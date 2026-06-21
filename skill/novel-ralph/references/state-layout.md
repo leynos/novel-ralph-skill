@@ -35,7 +35,6 @@ working/
 │   └── chapter-outline.md           # Phase 7 output
 ├── manuscript/
 │   ├── chapter-01/
-│   │   ├── plan.md                  # lifted from chapter-outline.md
 │   │   ├── scenes.md
 │   │   ├── beats.md
 │   │   ├── draft.md

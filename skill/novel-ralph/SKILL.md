@@ -104,7 +104,7 @@ Every turn begins here. No exceptions.
 ## Workflow
 
 The phases run in order. Earlier phases gate later ones. The drafting phase
-(Phase 7) contains the inner Ralph loop where most turns will be spent.
+(Phase 8) contains the inner Ralph loop where most turns will be spent.
 
 ### Phase 0 — Premise
 
