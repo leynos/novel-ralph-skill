@@ -36,20 +36,20 @@ This step answers which architectural choices are fixed before code lands. Its
 outcome informs every command's interface and the serialisation all mutators
 share. See novel-ralph-harness-design.md §1, §3, and §5.3.
 
-- [ ] 1.1.1. Record the deterministic-and-judgemental boundary as an ADR.
+- [x] 1.1.1. Record the deterministic-and-judgemental boundary as an ADR.
   - Capture the controlling rule: scripts detect and report; the model
     adjudicates. No command makes a narrative judgement.
   - See novel-ralph-harness-design.md §1.
   - Success: one accepted ADR states the boundary and the legal crossings,
     and is cited by every later slice.
-- [ ] 1.1.2. Record the TOML round-trip decision as an ADR.
+- [x] 1.1.2. Record the TOML round-trip decision as an ADR.
   - Requires 1.1.1.
   - Select `tomlkit` over an owned comment-preserving serialiser, with the
     reasoning from the design.
   - See novel-ralph-harness-design.md §5.3.
   - Success: the ADR resolves open question Q1 and fixes the dependency every
     mutator builds on.
-- [ ] 1.1.3. Record the shared interface contract as an ADR.
+- [x] 1.1.3. Record the shared interface contract as an ADR.
   - Requires 1.1.1.
   - Fix the JSON envelope, the `--human` flag, the checker-and-mutator
     segregation, and the disambiguated exit-code table: 0 success, 1 benign
@@ -64,14 +64,14 @@ share. See novel-ralph-harness-design.md §1, §3, and §5.3.
   - Success: the ADR resolves open question Q2; the five slices implement the
     same contract — including the code-1-versus-code-4 split — without
     renegotiating it.
-- [ ] 1.1.4. Record distribution as installed console-scripts as an ADR.
+- [x] 1.1.4. Record distribution as installed console-scripts as an ADR.
   - Requires 1.1.1.
   - Capture why the commands ship as console-scripts in `novel_ralph_skill`
     (terms-of-reference C3) rather than as self-contained `uv` scripts.
   - See novel-ralph-harness-design.md §2.2 and §4.
   - Success: an accepted ADR records the distribution decision and its
     rationale for future contributors.
-- [ ] 1.1.5. Record the command-surface shape as an ADR.
+- [x] 1.1.5. Record the command-surface shape as an ADR.
   - Requires 1.1.4.
   - Weigh five separate console-scripts against a single `novel` multiplexer,
     and record the decision to ship five named commands — each mapping 1:1 onto
