@@ -145,9 +145,9 @@ Sections:
 
 ### Phase 2 — Characters
 
-Produce `working/characters/_index.md` and one file per significant character at
-`working/characters/<slug>.md`. Significant = appears in more than one scene
-with a name and a function.
+Produce `working/characters/_index.md` and one file per named character at
+`working/characters/<slug>.md` — every character given a name in the treatment
+gets a file, matching the exit rule below.
 
 Each character file contains, in this order:
 
@@ -398,8 +398,11 @@ back-edits to earlier chapters — but only structural ones (pacing, emphasis,
 omission, addition). Line-level edits at this scale are out of scope; the
 spiteful critic handled those at chapter time.
 
-After integrating, set the corresponding gate
-(`state.gates.knitting.done_30 = true`, etc.) and continue drafting.
+After integrating, regenerate `working/manuscript/compiled.md` from the current
+chapter drafts (run `novel-compile`) so the compile reflects the back-edits the
+knitting pass just made; the `compiled.md` assembled before the pass is now
+stale. Then set the corresponding gate (`state.gates.knitting.done_30 = true`,
+etc.) and continue drafting.
 
 ### Phase 9 — Final pass
 

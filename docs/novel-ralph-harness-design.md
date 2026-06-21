@@ -209,10 +209,10 @@ yet done" of code 1 and looping on.
 Read-only checkers are strictly separated from mutators so the harness can call
 checkers freely without side effects:
 
-| Class               | Commands and subcommands                                                                       | Writes                                         |
-| ------------------- | ---------------------------------------------------------------------------------------------- | ---------------------------------------------- |
-| Checker (read-only) | `novel-done`, `novel-state check`, `wordcount`, `desloppify` (detect), `novel-compile --check` | None                                           |
-| Mutator             | `novel-state init` / `set-cursor` / `advance-phase` / `recount`, `novel-compile` (write)       | `state.toml`, `working/manuscript/compiled.md` |
+| Class               | Commands and subcommands                                                                               | Writes                                         |
+| ------------------- | ------------------------------------------------------------------------------------------------------ | ---------------------------------------------- |
+| Checker (read-only) | `novel-done`, `novel-state check`, `wordcount`, `desloppify` (detect), `novel-compile --check`         | None                                           |
+| Mutator             | `novel-state init` / `set-cursor` / `advance-phase` / `recount` / `reconcile`, `novel-compile` (write) | `state.toml`, `working/manuscript/compiled.md` |
 
 ### 3.4 Atomic writes
 
@@ -230,9 +230,9 @@ and the paths it will write, and clears the record *after* every artefact is
 written and verified. The record is written and cleared by the same atomic
 discipline. On the next turn, an uncleared `[pending_turn]` is the signature of
 a turn that died mid-write: `novel-state check` reads it, compares the named
-paths against disk, and reconciles (§5.4). The intent marker turns "some of my
-files landed and some did not" from a silent corruption into a declared,
-inspectable state.
+paths against disk, and reports the reconciliation `novel-state reconcile` then
+carries out (§5.4). The intent marker turns "some of my files landed and some
+did not" from a silent corruption into a declared, inspectable state.
 
 ## 4. The deterministic commands
 
@@ -246,13 +246,14 @@ in v1); filesystem work uses `pathlib`.
 All state mutation hides behind validated subcommands. Direct editing of
 `state.toml` is eliminated.
 
-| Subcommand      | Class   | Behaviour                                                                                                                      |
-| --------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| `init`          | Mutator | Create `working/` and an initial `state.toml` from title, slug, and target word count                                          |
-| `set-cursor`    | Mutator | Advance the drafting cursor (chapter, scene, beat); refuses incoherent cursors                                                 |
-| `advance-phase` | Mutator | Move `phase.current` to the next enum member; refuses skips and out-of-order completion                                        |
-| `recount`       | Mutator | Re-derive `word_counts.current` and `by_chapter` from chapter drafts on disk                                                   |
-| `check`         | Checker | Validate every invariant (§5.2), assert the chapter-manifest-to-disk bijection (§5.2), and reconcile state against disk (§5.4) |
+| Subcommand      | Class   | Behaviour                                                                                                                                         |
+| --------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `init`          | Mutator | Create `working/` and an initial `state.toml` from title, slug, and target word count                                                             |
+| `set-cursor`    | Mutator | Advance the drafting cursor (chapter, scene, beat); refuses incoherent cursors                                                                    |
+| `advance-phase` | Mutator | Move `phase.current` to the next enum member; refuses skips and out-of-order completion                                                           |
+| `recount`       | Mutator | Re-derive `word_counts.current` and `by_chapter` from chapter drafts on disk                                                                      |
+| `check`         | Checker | Validate every invariant (§5.2), assert the chapter-manifest-to-disk bijection (§5.2), and report any divergence from disk (§5.4) without writing |
+| `reconcile`     | Mutator | Write the disk-authoritative reconciliation `check` reports, bringing `state.toml` back into agreement with disk (§5.4)                           |
 
 `recount` eliminates hand-typed word counts entirely: the count is a pure
 aggregation over `working/manuscript/chapter-NN/draft.md` files, so the command
@@ -271,9 +272,16 @@ and comments. The mechanism is open question Q1, resolved in §5.3.
 `novel-done` is the done predicate as code, replacing the pseudocode in
 `done-conditions.md` and the ad-hoc shell the field report describes. It
 returns a structured per-clause result and a meaningful exit code, so "check
-done every turn" is one call. A satisfied predicate exits 0; an unsatisfied one
-exits 1 — the benign negative the harness loops on — never code 4, because "not
-yet done" is not a finding to repair.
+done every turn" is one call. A satisfied predicate exits 0. An unsatisfied
+predicate normally exits 1 — the benign negative the harness loops on — because
+"not yet done" is not a finding to repair. The one exception is compile
+divergence: when every clause except `compile_consistent` is satisfied, the
+manuscript is otherwise complete and the only obstacle is a stale
+`compiled.md`, which is an actionable finding a deterministic detector has
+surfaced. In that case `novel-done` exits 4, matching `novel-compile --check`
+(§4.3), so the harness regenerates the compile rather than looping. While any
+drafting clause is still unmet, compile staleness is expected mid-draft and the
+predicate stays at exit 1.
 
 The predicate evaluates each clause against disk and reports which failed:
 
@@ -458,29 +466,35 @@ current reference is removed.
 
 ### 5.4 Disk-authoritative reconciliation
 
-`novel-state check` implements the recovery routine the skill currently leaves
-to the agent. Disk is authoritative; `state.toml` describes disk. When `check`
-finds state merely *behind* disk — for example, state claims a chapter is not
-done but a `done.flag` exists — it reconstructs the intended state from on-disk
-evidence (which chapters carry `done.flag`, what `compiled.md` contains),
-reports the discrepancy in its payload, and, when run as a mutator variant,
-writes the reconciled state. No file in `working/` is ever deleted.
+`novel-state check` and `novel-state reconcile` together implement the recovery
+routine the skill currently leaves to the agent, split along the
+checker/mutator boundary (§3.3). Disk is authoritative; `state.toml` describes
+disk. `check` is strictly read-only: when it finds state merely *behind* disk —
+for example, state claims a chapter is not done but a `done.flag` exists — it
+reconstructs the intended state from on-disk evidence (which chapters carry
+`done.flag`, what `compiled.md` contains), reports the discrepancy and the
+reconciliation it implies in its payload, and exits 4 to signal an actionable
+finding. `check` never writes. `reconcile` performs the write `check` reports,
+bringing `state.toml` into agreement with disk; it computes the same
+reconciliation independently rather than trusting a payload handed to it. No
+file in `working/` is ever deleted.
 
-Reconciliation is loud, never silent. Every discrepancy `check` resolves is
+Reconciliation is loud, never silent. Every discrepancy `reconcile` resolves is
 both reported in `result` and appended to the log as a recovery entry, so a
 state repair always leaves an audit trail rather than quietly mutating the
 record. An uncleared `[pending_turn]` (§3.4) is reconciled the same way:
-`check` reads the named paths, completes or discards the partial write
-according to which artefacts actually landed, and logs what it did.
+`check` reads the named paths and reports whether the partial write should be
+completed or discarded according to which artefacts actually landed, and
+`reconcile` carries that out and logs what it did.
 
 Some disk evidence is not merely behind but *contradictory*, and `check` must
 not paper over it. A `done.flag` beside an empty or absent `draft.md`, or a
 `compiled.md` that references a chapter with no `draft.md`, cannot be resolved
 by trusting one field over another — the disk itself disagrees. In that case
-`check` does not auto-repair: it reports the conflict in `result`, logs it, and
-exits 4 so the agent adjudicates. The rule is that `check` reconciles where
-disk is internally consistent and the state is stale, and refuses — loudly —
-where disk contradicts itself.
+`reconcile` refuses to repair: it reports the conflict in `result`, logs it,
+and exits 4 so the agent adjudicates. The rule is that `reconcile` repairs only
+where disk is internally consistent and the state is merely stale, and refuses
+— loudly — where disk contradicts itself.
 
 ## 6. Configuration-driven detection (designed; built post-v1)
 
@@ -671,6 +685,19 @@ would buy confidence the simpler commands do not need.
   and phase-dependent branches carry semantic assertions. The gaps — for
   example, exhaustive cross-products of every phase with every command — are
   carried knowingly rather than silently.
+- **CLI error-path tests** assert the exit-code contract (§3.2) at its
+  boundaries, because the codes are an externally visible contract the harness
+  branches on, not an implementation detail. Each command is driven with a
+  malformed invocation (unknown subcommand or bad arguments → exit 2) and a
+  broken environment (missing or unparseable `state.toml`, absent working dir →
+  exit 3). `desloppify`, whose rule-pack loader and validator are the surface
+  most exposed to bad input, additionally covers a malformed rule pack (an
+  invalid pattern or schema violation → exit 2, §4.4) and an unreadable or
+  absent pack file (→ exit 3), plus the 0-versus-4 boundary directly: a clean
+  manuscript exits 0 and one violation past threshold exits 4. `wordcount`
+  covers its own gate-boundary envelope. The 1-versus-4 distinction is asserted
+  on `novel-done`: a mid-draft tree exits 1, while an otherwise-complete tree
+  with only a stale `compiled.md` exits 4 (§4.2).
 
 External executables, where any command grows them, are mocked with `cmd-mox`
 at the cuprum catalogue boundary; v1 commands shell out to nothing, so the
@@ -679,8 +706,8 @@ suite touches only the filesystem under `tmp_path`.
 ## 10. Failure modes
 
 - **`state.toml` unparseable.** Commands exit 3 with a message rather
-  than a stack trace. Recovery is `novel-state check` reconstructing from disk
-  (§5.4).
+  than a stack trace. Recovery is `novel-state check` reporting the
+  reconstruction from disk and `novel-state reconcile` applying it (§5.4).
 - **Chapter manifest missing or non-bijective during compile.**
   `novel-compile` exits 3 when `[chapters]` is absent or empty — ordering has
   no authoritative source, so the agent must complete chapter planning first —
@@ -691,9 +718,9 @@ suite touches only the filesystem under `tmp_path`.
   absent chapter — `novel-state check` refuses to auto-repair, reports the
   conflict, logs it, and exits 4 for the agent to adjudicate (§5.4).
 - **Torn multi-file turn.** An uncleared `[pending_turn]` record from a
-  crashed turn (§3.4) is detected by `novel-state check`, which completes or
-  discards the partial write according to what landed on disk and logs the
-  recovery.
+  crashed turn (§3.4) is detected by `novel-state check`;
+  `novel-state reconcile` completes or discards the partial write according to
+  what landed on disk and logs the recovery.
 - **Rule-pack pattern invalid.** `desloppify` exits 2, naming the
   offending rule id, so a malformed `ai-isms.toml` fails loudly rather than
   silently skipping a tell.

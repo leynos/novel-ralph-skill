@@ -217,22 +217,26 @@ agent-improvised recovery routine. See novel-ralph-harness-design.md §4.1 and
   - See novel-ralph-harness-design.md §4.1.
   - Success: `recount` is idempotent — a second run on unchanged drafts writes
     an identical file — and the by-chapter values sum to the current total.
-- [ ] 2.3.2. Implement disk-authoritative reconciliation and the bijection
-  check in `check`.
+- [ ] 2.3.2. Implement read-only reconciliation detection in `check` and the
+  disk-authoritative write in `reconcile`.
   - Requires 2.1.2 and 2.3.1.
-  - Reconstruct intended state from on-disk evidence (`done.flag` presence,
-    `compiled.md` contents) where disk is internally consistent, reporting
-    discrepancies in the payload, appending a recovery entry to the log, and
-    writing the reconciled state in the mutator variant without deleting any
-    file in `working/`. Assert the chapter-manifest-to-disk bijection — every
-    `chapter-NN/draft.md` maps to exactly one manifest entry and vice versa,
-    contiguous from 1. Reconcile an uncleared `[pending_turn]` by completing or
-    discarding the partial write according to what landed. Refuse to auto-repair
-    contradictory disk evidence (a `done.flag` beside an empty `draft.md`; a
-    `compiled.md` referencing an absent chapter): report, log, and exit 4.
-  - See novel-ralph-harness-design.md §5.2 and §5.4.
+  - In `check` (read-only), reconstruct intended state from on-disk evidence
+    (`done.flag` presence, `compiled.md` contents) where disk is internally
+    consistent, report the discrepancy and the reconciliation it implies in the
+    payload, and exit 4 without writing. In `reconcile` (mutator), recompute the
+    same reconciliation and write the reconciled state, appending a recovery
+    entry to the log and deleting no file in `working/`. Assert the
+    chapter-manifest-to-disk bijection in `check` — every `chapter-NN/draft.md`
+    maps to exactly one manifest entry and vice versa, contiguous from 1. Handle
+    an uncleared `[pending_turn]` by having `check` report whether the partial
+    write should be completed or discarded according to what landed and
+    `reconcile` carry it out. Refuse to auto-repair contradictory disk evidence
+    (a `done.flag` beside an empty `draft.md`; a `compiled.md` referencing an
+    absent chapter): both `check` and `reconcile` report, log, and exit 4.
+  - See novel-ralph-harness-design.md §3.3, §5.2, and §5.4.
   - Success: a scenario where state claims a chapter is done but no `done.flag`
-    exists is detected and reconciled from disk; a non-bijective manifest and a
+    exists is detected by `check` with exit 4 and repaired by `reconcile`, while
+    `check` itself writes nothing; a non-bijective manifest and a
     contradictory-evidence tree are each reported with exit 4 rather than
     silently repaired (the loud-reconciliation requirement).
 
@@ -271,12 +275,16 @@ novel-ralph-harness-design.md §4.2 and §2.3.
     rather than comparing header counts or word totals. `novel-compile` reuses
     this same function in phase 4 so the two cannot disagree. Report only the
     `compile_consistent` boolean, never per-chapter hashes, so the payload stays
-    bounded as the chapter count grows.
-  - See novel-ralph-harness-design.md §4.2 and §2.3.
+    bounded as the chapter count grows. Drive the exit-code carve-out: when
+    `compile_consistent` is the sole unmet clause, exit 4 (an actionable stale
+    compile, matching `novel-compile --check`); while any drafting clause is
+    still unmet, stay at exit 1.
+  - See novel-ralph-harness-design.md §3.2, §4.2, and §2.3.
   - Success: a stale `compiled.md` whose header count and word total
     coincidentally match the drafts is still reported as divergent (the
-    predicate-truthfulness property), and the `novel-done` result size is
-    independent of the chapter count.
+    predicate-truthfulness property); the `novel-done` result size is
+    independent of the chapter count; and an otherwise-complete tree with only a
+    stale `compiled.md` exits 4 while a mid-draft tree exits 1.
 
 ## 4. Vertical slice 3: deterministic, outline-ordered compilation
 
