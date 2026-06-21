@@ -196,10 +196,12 @@ novel-ralph-harness-design.md §3.4, §4.1, and §5.3.
   - Requires 2.1.2 and 2.2.1.
   - `init` creates `working/` and an initial state; `set-cursor` refuses
     incoherent cursors; `advance-phase` refuses skips and out-of-order
-    completion.
-  - See novel-ralph-harness-design.md §4.1.
+    completion. A refused mutator request returns exit 3 (state or input error,
+    per ADR 003 and §3.2), not the benign-negative exit 1 the loop continues
+    on, so the harness cannot mistake a rejected transition for progress.
+  - See novel-ralph-harness-design.md §4.1 and §3.2.
   - Success: a behavioural scenario shows an out-of-order `advance-phase` is
-    refused with exit 1 and leaves the prior state intact.
+    refused with exit 3 and leaves the prior state intact.
 
 ### 2.3. Deliver recount and disk-authoritative reconciliation
 
@@ -410,9 +412,9 @@ novel-ralph-harness-design.md §2.3 and §9.
 - [ ] 6.2.3. Correct the documented skill defects and point the prose at the
   commands.
   - Requires phase 3.
-  - Fix the `SKILL.md:110` phase mislabel, reduce both prose copies of the
-    done predicate to a pointer at `novel-done`, and remove the dead
-    `state-layout.md:39` `plan.md` reference.
+  - Fix the `SKILL.md:107` phase mislabel (drafting is Phase 8, not Phase 7),
+    reduce both prose copies of the done predicate to a pointer at `novel-done`,
+    and remove the dead `state-layout.md:38` `plan.md` reference.
   - See novel-ralph-harness-design.md §8.
   - Success: `make markdownlint` passes on the edited skill files and no prose
     copy of the predicate survives to diverge.

@@ -203,8 +203,8 @@ then delivers each side on the correct side of that line.
   implementing the recovery routine the skill currently describes as a manual
   job.
 - **G6.** Correct the documented defects surfaced by the field report:
-  the Phase 7/8 mislabel in `SKILL.md:110`, the two-source-of-truth done
-  predicate, and the dead per-chapter `plan.md` spec in `state-layout.md:39`.
+  the Phase 7/8 mislabel in `SKILL.md:107`, the two-source-of-truth done
+  predicate, and the dead per-chapter `plan.md` spec in `state-layout.md:38`.
 - **G7.** Define the clean-context sub-agent architecture for the
   adversarial passes (spiteful critic, knitting circle) and the longitudinal
   fangirl, and a new micro-level line-editor pass, with a stated

@@ -196,6 +196,14 @@ and 4 is the contract's load-bearing distinction: code 1 is the steady-state
 "not finished" the loop expects every turn, while code 4 is the signal that a
 deterministic detector has surfaced something only the model can resolve.
 
+A mutator that refuses an invalid request is a third case, distinct from both:
+`set-cursor` given an incoherent cursor, or `advance-phase` asked to skip or
+reorder the phase enum, exits 3 (state or input error), never 1. The requested
+mutation conflicts with the current state, so the harness must stop and bring
+the state into a valid configuration — typically by completing the prerequisite
+phase before re-attempting — rather than reading the refusal as the benign "not
+yet done" of code 1 and looping on.
+
 ### 3.3 Command and query segregation
 
 Read-only checkers are strictly separated from mutators so the harness can call
@@ -249,9 +257,11 @@ All state mutation hides behind validated subcommands. Direct editing of
 `recount` eliminates hand-typed word counts entirely: the count is a pure
 aggregation over `working/manuscript/chapter-NN/draft.md` files, so the command
 owns it. `advance-phase` enforces the phase enum order, making the silent phase
-drift in the field report impossible; advancing into `drafting` requires the
-chapter manifest (§5.1) to be populated, so compilation always has an
-authoritative ordering to follow.
+drift in the field report impossible; a skipping or out-of-order transition is
+refused with exit 3, not the benign code 1 (§3.2), so a rejected advance cannot
+be mistaken for progress. Advancing into `drafting` requires the chapter
+manifest (§5.1) to be populated, so compilation always has an authoritative
+ordering to follow.
 
 State serialisation round-trips losslessly, preserving the on-disk formatting
 and comments. The mechanism is open question Q1, resolved in §5.3.
@@ -352,10 +362,10 @@ gate cannot fire at 85%.
 ### 5.1 Schema
 
 The validated schema adopts the structure in
-`skill/novel-ralph/references/state-layout.md`, with the dead per-chapter
-`plan.md` reference removed (§8). That reference file is the authoritative
-source for the on-disk layout, and the design follows it exactly: the
-manuscript lives under `working/manuscript/`, so the compiled output is
+`skill/novel-ralph/references/state-layout.md`, omitting the dead per-chapter
+`plan.md` reference that file still lists (§8). That reference file is the
+authoritative source for the on-disk layout, and the design follows it exactly:
+the manuscript lives under `working/manuscript/`, so the compiled output is
 `working/manuscript/compiled.md`, each chapter is
 `working/manuscript/chapter-NN/` (zero-padded, holding `draft.md` and, when
 complete, `done.flag`), and the chapter outline is
@@ -612,20 +622,27 @@ graph TD
 state operations are scripted; adjudication and the critic, line-editor,
 knitting, and fangirl reads are model judgement.*
 
-## 8. Skill defects corrected
+## 8. Skill defects the rebuild corrects
 
 The rebuild corrects the defects the field report identified, all in the prose
-layer the commands replace:
+layer the commands replace. The reference files still carry these defects; the
+corrections to `SKILL.md` and `state-layout.md` are owned by roadmap task
+6.2.3, which runs once the commands the prose must point at exist. Until that
+task lands, this section is the record of what is wrong, not a claim that the
+reference files are already fixed.
 
-- **Phase mislabel.** `SKILL.md:110` calls drafting "Phase 7"; it is
-  Phase 8. Corrected.
+- **Phase mislabel.** `SKILL.md:107` calls drafting "Phase 7"; the drafting
+  section is Phase 8 (`SKILL.md:304`). Roadmap task 6.2.3 corrects the label in
+  `SKILL.md`.
 - **Two-source done predicate.** The short-form predicate in `SKILL.md`
   omits `final_pass_complete` and the gate booleans that the long-form
   predicate in `done-conditions.md` requires. `novel-done` becomes the single
-  source of truth; both prose copies are reduced to a pointer at the command.
-- **Dead `plan.md` spec.** `state-layout.md:39` documents a per-chapter
-  `plan.md` the workflow never produces and nothing checks. Removed from the
-  schema and the layout.
+  source of truth; roadmap task 6.2.3 reduces both prose copies to a pointer at
+  the command.
+- **Dead `plan.md` spec.** `state-layout.md:38` documents a per-chapter
+  `plan.md` the workflow never produces and nothing checks. The validated
+  schema omits it (§5.1); roadmap task 6.2.3 removes the stale entry from
+  `state-layout.md`.
 
 ## 9. Verification strategy
 
