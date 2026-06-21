@@ -3,6 +3,17 @@
 [Documentation contents](contents.md) is the index for novel-ralph-skill's
 documentation set.
 
+## Problem, design, and planning
+
+- [Terms of reference](terms-of-reference.md) settles the problem space
+  for the novel-ralph skill rebuild: why the deterministic spine was never
+  built, who the harnessed agent is, and the scope boundaries.
+- [novel-ralph harness design](novel-ralph-harness-design.md) is the
+  technical design for the deterministic spine and the clean-context sub-agent
+  architecture.
+- [Development roadmap](roadmap.md) sequences the rebuild into phases,
+  steps, and tasks.
+
 ## Project guides
 
 - [User guide](users-guide.md) explains how to use the generated project and

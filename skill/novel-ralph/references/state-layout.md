@@ -1,17 +1,16 @@
 # State layout
 
-The Ralph Loop assumes no memory between turns. State lives on
-disk. This reference defines the working directory, the
-`state.toml` schema, the log conventions, and the atomic-write
-discipline.
+The Ralph Loop assumes no memory between turns. State lives on disk. This
+reference defines the working directory, the `state.toml` schema, the log
+conventions, and the atomic-write discipline.
 
 ## Working directory
 
-The skill operates inside a single working directory. Default
-location: `./working/` relative to wherever the agent is run.
-Override via user instruction.
+The skill operates inside a single working directory. Default location:
+`./working/` relative to wherever the agent is run. Override via user
+instruction.
 
-```
+```text
 working/
 ├── state.toml                       # phase machine state
 ├── log.md                           # iteration log
@@ -53,15 +52,14 @@ working/
 └── fangirl-running.md               # forward-projecting fangirl log
 ```
 
-Chapter directory names are zero-padded to two digits up to 99
-chapters. Beyond 99, use three digits. (Almost no novel reaches
-99 chapters; if yours does, that's a structural conversation.)
+Chapter directory names are zero-padded to two digits up to 99 chapters. Beyond
+99, use three digits. (Almost no novel reaches 99 chapters; if yours does,
+that's a structural conversation.)
 
 ## state.toml schema
 
-The agent's primary memory. Read at the start of every turn,
-written atomically (write to `state.toml.new`, fsync, rename) at
-the end.
+The agent's primary memory. Read at the start of every turn, written atomically
+(write to `state.toml.new`, fsync, rename) at the end.
 
 ```toml
 schema_version = 1
@@ -122,7 +120,7 @@ by_chapter = { "01" = 3200, "02" = 3500, "03" = 3700, ... }
 
 In order:
 
-```
+```text
 premise
 treatment
 characters
@@ -136,20 +134,18 @@ final-pass
 done
 ```
 
-`phase.current` reflects the active phase. `phase.completed`
-contains all phases that have produced their exit artefacts.
-Phases must be completed in order; the entry routine refuses to
-jump phases.
+`phase.current` reflects the active phase. `phase.completed` contains all
+phases that have produced their exit artefacts. Phases must be completed in
+order; the entry routine refuses to jump phases.
 
 ### Drafting sub-state
 
-Drafting is the only phase with structured sub-state, because it
-is the only phase that takes many turns. The sub-state lets the
-agent resume mid-chapter without re-drafting.
+Drafting is the only phase with structured sub-state, because it is the only
+phase that takes many turns. The sub-state lets the agent resume mid-chapter
+without re-drafting.
 
-`current_chapter`, `current_scene`, `current_beat` form a cursor.
-The entry routine reads the cursor and advances the smallest
-applicable unit:
+`current_chapter`, `current_scene`, `current_beat` form a cursor. The entry
+routine reads the cursor and advances the smallest applicable unit:
 
 - If `current_beat` is mid-scene, write the next beat.
 - If a scene is complete and more scenes remain, advance to the
@@ -164,21 +160,21 @@ Each sub-step is its own state transition, logged.
 
 ### Critic sub-state
 
-`drafting.critic.pass` is the current pass number for the current
-chapter. Resets to 0 when advancing to a new chapter.
+`drafting.critic.pass` is the current pass number for the current chapter.
+Resets to 0 when advancing to a new chapter.
 
-`consecutive_clean` is currently always 0 or 1 (one clean pass is
-sufficient for convergence). Reserved for future tightening if
-the loop turns out to be too easy on chapters.
+`consecutive_clean` is currently always 0 or 1 (one clean pass is sufficient
+for convergence). Reserved for future tightening if the loop turns out to be
+too easy on chapters.
 
-`last_finding_counts` is the most recent critic pass's tally.
-Used for logging and for deciding whether to re-run after edits.
+`last_finding_counts` is the most recent critic pass's tally. Used for logging
+and for deciding whether to re-run after edits.
 
 ### Gates
 
-The knitting circle gates trigger when `word_counts.current /
-word_counts.target` crosses 0.30, 0.50, and 0.80 respectively,
-and the corresponding gate is still false. After the pass is
+The knitting circle gates trigger when
+`word_counts.current / word_counts.target` crosses 0.30, 0.50, and 0.80
+respectively, and the corresponding gate is still false. After the pass is
 integrated and logged, the gate flips to true.
 
 `final_pass_complete` flips to true at the end of Phase 9.
@@ -208,17 +204,17 @@ The log serves two functions:
 1. **Recovery.** If a turn crashes or context is lost, the log
    plus state.toml tells the next turn what was in flight.
 2. **Audit.** A drift detection trail. If the agent has been
-   working on chapter 4 for 18 turns and the log shows it
-   re-drafting the same beat, something is wrong.
+   working on chapter 4 for 18 turns and the log shows it re-drafting the same
+   beat, something is wrong.
 
-Read the last 200 lines on every entry. Don't try to load the
-whole log into context; it grows.
+Read the last 200 lines on every entry. Don't try to load the whole log into
+context; it grows.
 
 ## Atomic writes
 
-State integrity matters. The agent must not leave the working
-directory in a state where `state.toml` says "chapter 7 is done"
-but the chapter draft is incomplete.
+State integrity matters. The agent must not leave the working directory in a
+state where `state.toml` says "chapter 7 is done" but the chapter draft is
+incomplete.
 
 Discipline:
 
@@ -242,14 +238,14 @@ os.replace("working/state.toml.new", "working/state.toml")
 EOF
 ```
 
-4. Append to log.md last. The log entry is the receipt that the
+1. Append to log.md last. The log entry is the receipt that the
    state transition happened.
 
 ## Initialisation
 
 First turn: working/ does not exist.
 
-```
+```text
 1. mkdir -p working/{characters,world,reader,plan,manuscript,reviews}
 2. Create state.toml with:
    - phase.current = "premise"
@@ -264,7 +260,7 @@ First turn: working/ does not exist.
 
 Any subsequent turn:
 
-```
+```text
 1. Read state.toml.
 2. Read last 200 lines of log.md.
 3. If phase.current is "drafting", read working/fangirl-running.md
@@ -272,8 +268,8 @@ Any subsequent turn:
 4. Jump to the phase handler.
 ```
 
-The agent does not need to re-read prior phase outputs unless its
-current task depends on them. Cursor-driven loading.
+The agent does not need to re-read prior phase outputs unless its current task
+depends on them. Cursor-driven loading.
 
 ## Working directory hygiene
 
@@ -288,9 +284,9 @@ current task depends on them. Cursor-driven loading.
 
 ## When state is suspect
 
-If the agent reads state.toml and finds it incoherent with what
-is on disk (state says "chapter 5 done" but no `done.flag` exists
-in chapter-05/), the agent must:
+If the agent reads state.toml and finds it incoherent with what is on disk
+(state says "chapter 5 done" but no `done.flag` exists in chapter-05/), the
+agent must:
 
 1. Stop.
 2. Reconstruct the intended state from on-disk evidence (which
@@ -299,5 +295,4 @@ in chapter-05/), the agent must:
 4. Update state.toml to match disk reality.
 5. Proceed.
 
-Disk is authoritative. State.toml describes disk. Never the
-reverse.
+Disk is authoritative. State.toml describes disk. Never the reverse.

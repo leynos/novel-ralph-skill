@@ -18,11 +18,11 @@ Python dependencies, and Rust-enabled projects also run `cargo audit` from the
 
 ## Automation scripts
 
-The [Scripting standards](scripting-standards.md) document provides guidance for
-adding or updating helper scripts. New and updated scripts are expected to use
-`Cyclopts` for command-line interfaces, `cuprum` for typed and catalogue-bound
-external command execution, `pathlib` for filesystem paths, and `cmd-mox` for
-tests that mock external executables.
+The [Scripting standards](scripting-standards.md) document provides guidance
+for adding or updating helper scripts. New and updated scripts are expected to
+use `Cyclopts` for command-line interfaces, `cuprum` for typed and
+catalogue-bound external command execution, `pathlib` for filesystem paths, and
+`cmd-mox` for tests that mock external executables.
 
 Script changes should update the scripting guide when they introduce a new
 convention, command catalogue, testing pattern, or operational expectation that
@@ -35,18 +35,18 @@ actions under `.github/`.
 
 - `.github/workflows/ci.yml` runs on pushes to `main` and on pull requests. It
   sets up Python 3.13, installs `uv`, validates the generated `Makefile` with
-  `mbake`, runs `make build`, `make check-fmt`,
-  `make lint` (Ruff + `interrogate --fail-under 100 $(PYTHON_TARGETS)` + Pylint), `make
-  typecheck`, and `make audit`, then delegates coverage generation to the shared
-  coverage action. When the Rust extension is enabled, it also sets up Rust,
-  installs Rust lint and test tools, and passes `rust_extension/Cargo.toml` to
-  coverage.
+  `mbake`, runs `make build`, `make check-fmt`, `make lint` (Ruff +
+  `interrogate --fail-under 100 $(PYTHON_TARGETS)` + Pylint), `make typecheck`,
+  and `make audit`, then delegates coverage generation to the shared coverage
+  action. When the Rust extension is enabled, it also sets up Rust, installs
+  Rust lint and test tools, and passes `rust_extension/Cargo.toml` to coverage.
 - `.github/workflows/act-validation.yml` runs rendered workflow validation in a
   separate workflow. It installs `act`, checks Docker availability, and runs
   `make test WITH_ACT=1` outside the coverage path.
 - `.github/workflows/release.yml` publishes wheels when a `v*.*.*` tag is
-  pushed. It builds a pure Python wheel, creates a GitHub release with generated
-  release notes, downloads wheel artifacts, and uploads them to the tag release.
+  pushed. It builds a pure Python wheel, creates a GitHub release with
+  generated release notes, downloads wheel artifacts, and uploads them to the
+  tag release.
 - `.github/workflows/build-wheels.yml` is a reusable workflow for extension
   builds. It accepts a Python version and builds wheels across Linux, Windows,
   and macOS architectures via `.github/actions/build-wheels`.

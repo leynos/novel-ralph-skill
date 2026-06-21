@@ -1,9 +1,9 @@
 # Done conditions
 
-The Ralph Loop terminates when the agent truthfully reports done.
-"Truthfully" is the operative word. The agent must not declare
-completion on the strength of feeling, fatigue, or context
-exhaustion. Completion is a verifiable property of files on disk.
+The Ralph Loop terminates when the agent truthfully reports done. "Truthfully"
+is the operative word. The agent must not declare completion on the strength of
+feeling, fatigue, or context exhaustion. Completion is a verifiable property of
+files on disk.
 
 This reference defines the done predicate at three scales:
 
@@ -13,9 +13,9 @@ This reference defines the done predicate at three scales:
 
 ## How to evaluate
 
-Every turn, after the entry routine but before doing new work,
-evaluate the novel-level predicate. If it passes, write a final
-log entry and stop. Otherwise proceed.
+Every turn, after the entry routine but before doing new work, evaluate the
+novel-level predicate. If it passes, write a final log entry and stop.
+Otherwise proceed.
 
 ```python
 # Pseudocode for the predicate check
@@ -26,13 +26,13 @@ def novel_is_done(working_dir):
     return novel_predicate(working_dir, state)
 ```
 
-Phase advancement past `final-pass` to `done` happens exactly
-once, at the end of Phase 9. Until then, the predicate is false.
+Phase advancement past `final-pass` to `done` happens exactly once, at the end
+of Phase 9. Until then, the predicate is false.
 
 ## Phase-level exit criteria
 
-The agent must not advance `phase.current` until the exit
-criteria for the current phase are satisfied.
+The agent must not advance `phase.current` until the exit criteria for the
+current phase are satisfied.
 
 ### Phase 0 — Premise
 
@@ -54,8 +54,8 @@ criteria for the current phase are satisfied.
 - For every character named in the treatment with a speaking role
   in more than one scene, `working/characters/<slug>.md` exists.
 - Each character file has all eleven sections (name/age/role,
-  motivations, goals, challenges, limitations, flaws, ambitions,
-  quirks, premise-applicable traits, voice notes, attractor).
+  motivations, goals, challenges, limitations, flaws, ambitions, quirks,
+  premise-applicable traits, voice notes, attractor).
 - `working/characters/relationships.md` exists and is connected
   (no character file is isolated from the graph).
 
@@ -81,8 +81,7 @@ criteria for the current phase are satisfied.
 
 - `working/reader/audience.md` exists.
 - File contains: reader profile, JTBD in one sentence,
-  opportunity space, three to five comps with publishers and
-  years.
+  opportunity space, three to five comps with publishers and years.
 - `working/reader/comps.md` exists with anti-comps section.
 
 ### Phase 6 — Save the Cat
@@ -98,8 +97,8 @@ criteria for the current phase are satisfied.
 - `working/plan/chapter-outline.md` exists.
 - Every STC beat is served by at least one chapter.
 - Every chapter has all required fields: number, title (working),
-  POV, setting, premise, characters, conflict, outcome, beat
-  assignment, target word count.
+  POV, setting, premise, characters, conflict, outcome, beat assignment, target
+  word count.
 - Sum of chapter word count targets is within ±10% of
   `novel.target_word_count`.
 
@@ -120,8 +119,7 @@ This phase is done when:
 - Final image verification logged.
 - `state.gates.final.final_pass_complete = true`.
 
-After Phase 9 completes, `state.phase.current` advances to
-`done`.
+After Phase 9 completes, `state.phase.current` advances to `done`.
 
 ## Chapter-level done conditions
 
@@ -134,8 +132,8 @@ A chapter is done when all of:
 - Desloppification has been run against the latest draft
   (logged).
 - The spiteful critic loop has either converged (a pass with no
-  BLOCKER and no MAJOR) or hit the pass cap of 4, and all
-  BLOCKER/MAJOR findings have been addressed.
+  BLOCKER and no MAJOR) or hit the pass cap of 4, and all BLOCKER/MAJOR
+  findings have been addressed.
 - The fangirl pass has run and produced
   `working/manuscript/chapter-NN/fangirl-notes.md`.
 - Fangirl outputs have been folded into
@@ -144,8 +142,7 @@ A chapter is done when all of:
 
 ## Novel-level predicate
 
-The terminator. The agent declares done only when this
-evaluates true on disk.
+The terminator. The agent declares done only when this evaluates true on disk.
 
 ```python
 def novel_predicate(working_dir, state):
@@ -186,8 +183,8 @@ def novel_predicate(working_dir, state):
     return True
 ```
 
-If any check fails, the agent identifies which one and acts on
-it. If all checks pass, the agent writes one final log entry:
+If any check fails, the agent identifies which one and acts on it. If all
+checks pass, the agent writes one final log entry:
 
 ```markdown
 ## <timestamp> — turn <N> — DONE
@@ -207,28 +204,27 @@ And stops.
 ## Failure modes for the predicate
 
 - **State says done but chapter draft is empty.** State is lying.
-  Recovery: reset `phase.current` and reconstruct. The state-layout
-  reference covers this.
+  Recovery: reset `phase.current` and reconstruct. The state-layout reference
+  covers this.
 - **`done.flag` exists but `critic-notes.md` shows unresolved
-  BLOCKER.** The flag was touched prematurely. Recovery: untouch
-  the flag, return to that chapter's critic loop.
+  BLOCKER.** The flag was touched prematurely. Recovery: untouch the flag,
+  return to that chapter's critic loop.
 - **`compiled.md` is stale.** Regenerate from chapter drafts
   before continuing.
 - **Phase 9 declares complete without actually running.** Check
-  the log. The phase must have logged each step (desloppify,
-  spiteful, image verification).
+  the log. The phase must have logged each step (desloppify, spiteful, image
+  verification).
 
 ## Anti-patterns
 
 - **Declaring done because the context is full.** Context
-  exhaustion is not completion. Truncate, summarise, and
-  continue.
+  exhaustion is not completion. Truncate, summarise, and continue.
 - **Declaring done because no more changes are obvious.** The
   predicate is structural, not aesthetic. Run it.
 - **Declaring done with knitting-80 unresolved because "the book
-  is good enough."** The knitting pass exists precisely to
-  contest that judgement. Run it.
+  is good enough."** The knitting pass exists precisely to contest that
+  judgement. Run it.
 - **Skipping the final pass because individual chapters were
-  clean.** Novel-scale failures (overused phrases across
-  chapters, sagging structural arc, ending drift from treatment)
-  are invisible at chapter scale. The final pass is mandatory.
+  clean.** Novel-scale failures (overused phrases across chapters, sagging
+  structural arc, ending drift from treatment) are invisible at chapter scale.
+  The final pass is mandatory.
