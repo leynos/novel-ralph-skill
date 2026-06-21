@@ -6,7 +6,8 @@ idea at the GIST level: the steps underneath a phase work toward validating or
 falsifying that idea, and the tasks are concrete, review-sized execution units.
 The primary design document is `docs/novel-ralph-harness-design.md`; the
 problem statement is `docs/terms-of-reference.md`. Architectural decisions are
-recorded as ADRs under `docs/adr/` as the foundational phase ratifies them.
+recorded as ADRs in `docs/`, named `adr-NNN-short-description.md` per the
+documentation style guide, as the foundational phase ratifies them.
 
 The slices are ordered by the controlling decision in the design (§1): the
 deterministic spine ships first as five installed, tested commands, then the
@@ -50,11 +51,36 @@ share. See novel-ralph-harness-design.md §1, §3, and §5.3.
     mutator builds on.
 - [ ] 1.1.3. Record the shared interface contract as an ADR.
   - Requires 1.1.1.
-  - Fix the JSON envelope, the `--human` flag, the exit-code table, and the
-    checker-and-mutator segregation.
-  - See novel-ralph-harness-design.md §3.
+  - Fix the JSON envelope, the `--human` flag, the checker-and-mutator
+    segregation, and the disambiguated exit-code table: 0 success, 1 benign
+    negative (predicate not yet satisfied; the loop continues), 2 usage error,
+    3 state or input error, 4 actionable finding requiring agent intervention
+    (desloppify violations, compile divergence, reconciliation conflict).
+  - Settle the structured-error shape: machine-actionable data lives in
+    `result`; `messages` is human prose the harness never parses. Record the
+    relation between the three `schema_version` fields (envelope, state, rule
+    pack) and that they evolve independently.
+  - See novel-ralph-harness-design.md §3.1, §3.2, and §3.3.
   - Success: the ADR resolves open question Q2; the five slices implement the
-    same contract without renegotiating it.
+    same contract — including the code-1-versus-code-4 split — without
+    renegotiating it.
+- [ ] 1.1.4. Record distribution as installed console-scripts as an ADR.
+  - Requires 1.1.1.
+  - Capture why the commands ship as console-scripts in `novel_ralph_skill`
+    (terms-of-reference C3) rather than as self-contained `uv` scripts.
+  - See novel-ralph-harness-design.md §2.2 and §4.
+  - Success: an accepted ADR records the distribution decision and its
+    rationale for future contributors.
+- [ ] 1.1.5. Record the command-surface shape as an ADR.
+  - Requires 1.1.4.
+  - Weigh five separate console-scripts against a single `novel` multiplexer,
+    and record the decision to ship five named commands — each mapping 1:1 onto
+    a deterministic operation, with the shared envelope enforced by the §1.3
+    scaffolding rather than by a single entry point — together with the
+    multiplexer trade-offs considered.
+  - See novel-ralph-harness-design.md §4.
+  - Success: the trade is recorded before 1.2.1 wires the entry points, so the
+    five-script choice is deliberate rather than defaulted.
 
 ### 1.2. Stand up the console-script packaging boundary
 
@@ -64,7 +90,7 @@ harness's invocation model. See novel-ralph-harness-design.md §2.2 and §4, and
 docs/scripting-standards.md.
 
 - [ ] 1.2.1. Wire the five console-script entry points in `pyproject.toml`.
-  - Requires 1.1.3.
+  - Requires 1.1.3 and 1.1.5.
   - Register `novel-state`, `novel-done`, `novel-compile`, `desloppify`, and
     `wordcount` against stub Cyclopts applications that exit 2 until
     implemented.
@@ -86,10 +112,12 @@ drift and seeds the snapshot suite. See novel-ralph-harness-design.md §3 and §
   - Requires 1.1.3 and 1.2.1.
   - Provide the `command`, `schema_version`, `ok`, `working_dir`, `result`,
     and `messages` envelope, the `--human` rendering hook, and the exit-code
-    mapping (0/1/2/3) as reusable helpers.
+    mapping (0/1/2/3/4) as reusable helpers, with `result` carrying all
+    machine-actionable data and `messages` carrying only human prose.
   - See novel-ralph-harness-design.md §3.1 and §3.2.
-  - Success: a property-based test confirms `ok` always mirrors the exit code
-    across the four codes, and a snapshot pins the envelope shape.
+  - Success: a property-based test confirms `ok` is true only on exit 0 and
+    that codes 1 and 4 are both reported as `ok: false` with distinct
+    semantics, and a snapshot pins the envelope shape.
 - [ ] 1.3.2. Build the on-disk `working/` fixture corpus.
   - Requires 1.2.1.
   - Provide reusable `tmp_path` fixtures spanning all eleven phase states,
@@ -122,20 +150,28 @@ novel-ralph-harness-design.md §5.1 and §5.2.
 - [ ] 2.1.1. Implement the typed `state.toml` schema and the phase enum.
   - Requires steps 1.1-1.3.
   - Model the schema from `state-layout.md` with the dead per-chapter
-    `plan.md` reference removed, and encode the eleven-member phase enum in
-    order.
+    `plan.md` reference removed, encode the eleven-member phase enum in order,
+    and add the three new fields: the `[chapters]` manifest (number, slug,
+    title, target words), `[drafting.critic].convergence_target`, and the
+    `[pending_turn]` intent record. Anchor all manuscript paths under
+    `working/manuscript/`.
   - See novel-ralph-harness-design.md §5.1 and §8.
   - Success: representative states from the §1.3.2 corpus parse into the typed
-    structure without loss.
+    structure without loss, including the manifest and the pending-turn record.
 - [ ] 2.1.2. Implement the invariant validator behind `novel-state check`.
   - Requires 2.1.1.
   - Enforce phase membership, the completed-prefix ordering, the
-    by-chapter-sum-to-current rule, the critic counter range, cursor
-    coherence, and gate-boolean-versus-ratio consistency.
+    by-chapter-sum-to-current rule, cursor coherence, and
+    gate-boolean-versus-ratio consistency. Bound `consecutive_clean` by the
+    configured `convergence_target` ceiling (default 1, rejecting a target
+    below 1) rather than a hard-coded 0–1 literal, so the convergence bar is a
+    state-field change.
   - See novel-ralph-harness-design.md §5.2 and §2.3.
   - Success: a `hypothesis` suite over generated states shows `check` accepts
     exactly the states satisfying §5.2 and rejects the rest (the
-    state-coherence property).
+    state-coherence property), and a state with `consecutive_clean` above its
+    `convergence_target` is rejected while one within a raised target is
+    accepted.
 
 ### 2.2. Deliver lossless, atomic state mutation
 
@@ -147,10 +183,15 @@ novel-ralph-harness-design.md §3.4, §4.1, and §5.3.
 - [ ] 2.2.1. Implement the `tomlkit` round-trip and atomic write helper.
   - Requires 1.1.2 and 2.1.1.
   - Read, mutate, and re-serialise `state.toml` through `tomlkit`, writing via
-    a temporary file in the target directory followed by `Path.replace`.
+    a temporary file in the target directory followed by `Path.replace`. Open a
+    `[pending_turn]` intent record naming the operation and the paths it will
+    write before touching any other file, and clear it only once every artefact
+    is written and verified.
   - See novel-ralph-harness-design.md §5.3 and §3.4.
   - Success: a property-based test confirms a no-op mutate-and-write preserves
-    on-disk formatting and comments byte-for-byte (the round-trip property).
+    on-disk formatting and comments byte-for-byte (the round-trip property), and
+    a write interrupted before completion leaves a populated `[pending_turn]`
+    record for the next turn to reconcile.
 - [ ] 2.2.2. Implement `init`, `set-cursor`, and `advance-phase`.
   - Requires 2.1.2 and 2.2.1.
   - `init` creates `working/` and an initial state; `set-cursor` refuses
@@ -174,15 +215,24 @@ agent-improvised recovery routine. See novel-ralph-harness-design.md §4.1 and
   - See novel-ralph-harness-design.md §4.1.
   - Success: `recount` is idempotent — a second run on unchanged drafts writes
     an identical file — and the by-chapter values sum to the current total.
-- [ ] 2.3.2. Implement disk-authoritative reconciliation in `check`.
+- [ ] 2.3.2. Implement disk-authoritative reconciliation and the bijection
+  check in `check`.
   - Requires 2.1.2 and 2.3.1.
   - Reconstruct intended state from on-disk evidence (`done.flag` presence,
-    `compiled.md` contents), report discrepancies in the payload, and write
-    the reconciled state in the mutator variant without deleting any file in
-    `working/`.
-  - See novel-ralph-harness-design.md §5.4.
+    `compiled.md` contents) where disk is internally consistent, reporting
+    discrepancies in the payload, appending a recovery entry to the log, and
+    writing the reconciled state in the mutator variant without deleting any
+    file in `working/`. Assert the chapter-manifest-to-disk bijection — every
+    `chapter-NN/draft.md` maps to exactly one manifest entry and vice versa,
+    contiguous from 1. Reconcile an uncleared `[pending_turn]` by completing or
+    discarding the partial write according to what landed. Refuse to auto-repair
+    contradictory disk evidence (a `done.flag` beside an empty `draft.md`; a
+    `compiled.md` referencing an absent chapter): report, log, and exit 4.
+  - See novel-ralph-harness-design.md §5.2 and §5.4.
   - Success: a scenario where state claims a chapter is done but no `done.flag`
-    exists is detected and reconciled from disk.
+    exists is detected and reconciled from disk; a non-bijective manifest and a
+    contradictory-evidence tree are each reported with exit 4 rather than
+    silently repaired (the loud-reconciliation requirement).
 
 ## 3. Vertical slice 2: a single-source done predicate
 
@@ -210,14 +260,21 @@ novel-ralph-harness-design.md §4.2 and §2.3.
   - See novel-ralph-harness-design.md §4.2.
   - Success: each clause can be independently driven true and false from the
     §1.3.2 corpus, and the exit code is 0 only when every clause holds.
-- [ ] 3.1.2. Implement the hash-based compile-divergence clause.
+- [ ] 3.1.2. Implement the shared compile-and-hash routine and the
+  compile-divergence clause.
   - Requires 3.1.1.
-  - Hash each `draft.md`, build a fresh ordered compilation, and compare its
-    hash to `compiled.md` rather than comparing header counts or word totals.
+  - Build one compile-and-hash function that concatenates the chapter drafts in
+    zero-padded chapter-index order and hashes the result, and call it from the
+    `compile_consistent` clause to compare against `working/manuscript/compiled.md`
+    rather than comparing header counts or word totals. `novel-compile` reuses
+    this same function in phase 4 so the two cannot disagree. Report only the
+    `compile_consistent` boolean, never per-chapter hashes, so the payload stays
+    bounded as the chapter count grows.
   - See novel-ralph-harness-design.md §4.2 and §2.3.
   - Success: a stale `compiled.md` whose header count and word total
     coincidentally match the drafts is still reported as divergent (the
-    predicate-truthfulness property).
+    predicate-truthfulness property), and the `novel-done` result size is
+    independent of the chapter count.
 
 ## 4. Vertical slice 3: deterministic, outline-ordered compilation
 
@@ -233,25 +290,29 @@ clause so the two never disagree.
 ### 4.1. Deliver outline-ordered compilation and its checker
 
 This step answers whether compilation can be made deterministic and verifiable
-without writing. Its outcome resolves assumption A5 — ordering comes from the
-outline — and gives `novel-done` a stable artefact. See
-novel-ralph-harness-design.md §4.3 and §2.3.
+without writing. Its outcome resolves assumption A5 — ordering is the
+zero-padded chapter index, validated against the manifest — and gives
+`novel-done` a stable artefact. See novel-ralph-harness-design.md §4.3 and §2.3.
 
-- [ ] 4.1.1. Implement `novel-compile` ordered by the chapter outline.
+- [ ] 4.1.1. Implement `novel-compile` ordered by the zero-padded chapter index.
   - Requires phase 2.
-  - Concatenate chapter drafts in outline order with consistent separators,
-    writing `compiled.md` atomically, and exit 3 when the outline is absent.
+  - Concatenate chapter drafts in zero-padded chapter-index order with
+    consistent separators, writing `working/manuscript/compiled.md` atomically,
+    and exit 3 when the chapter manifest is absent or empty (no authoritative
+    ordering). No outline prose is parsed.
   - See novel-ralph-harness-design.md §4.3 and §10.
-  - Success: compilation is deterministic — identical drafts and outline
+  - Success: compilation is deterministic — identical drafts and manifest
     produce a byte-identical `compiled.md` — regardless of directory listing
     order.
 - [ ] 4.1.2. Implement the `--check` read-only divergence checker.
   - Requires 4.1.1 and 3.1.2.
-  - Report divergence using the same content-hash comparison as the
-    `novel-done` compile clause, writing nothing.
+  - Report divergence by calling the shared compile-and-hash routine from
+    3.1.2 — the same code path the `novel-done` compile clause uses — writing
+    nothing and exiting 4 on divergence.
   - See novel-ralph-harness-design.md §3.3 and §4.3.
   - Success: `novel-compile --check` and the `novel-done` compile clause agree
-    on every corpus fixture (the compile-fidelity property).
+    on every corpus fixture because they share one routine (the compile-fidelity
+    property).
 
 ## 5. Vertical slice 4: deterministic slop detection
 
@@ -284,10 +345,15 @@ novel-ralph-harness-design.md §4.4, §6.1, and §1.
   - Requires 5.1.1.
   - Emit structured output per hit — phrase, count, density per N words,
     threshold, pass or fail, and line numbers — for a chapter or the whole
-    manuscript, making zero edits.
-  - See novel-ralph-harness-design.md §4.4.
-  - Success: detection is read-only and reports zero violations with exit 0 on
-    clean prose, distinguishing a clean pass from a usage error.
+    manuscript, making zero edits. Exit 0 on a clean pass, 4 when violations are
+    found (an actionable finding), and 2 on a usage error, so the three are
+    distinguishable by exit code alone.
+  - Verify with snapshot coverage of the envelope plus boundary examples (a hit
+    exactly at threshold, a clean pass), not a full property-based or
+    behavioural suite — the command is a pure aggregation (§9).
+  - See novel-ralph-harness-design.md §4.4 and §9.
+  - Success: clean prose exits 0, a manuscript with violations exits 4, and a
+    malformed invocation exits 2 — each distinguishable without parsing JSON.
 
 ## 6. Vertical slice 5: derived word counts and gate triggers
 
@@ -310,7 +376,10 @@ report. See novel-ralph-harness-design.md §4.5.
   - Report per chapter and cumulatively: words, percentage of target, distance
     to the next knitting gate, and delta against the chapter target, deriving
     the 30%, 50%, and 80% gate triggers rather than noticing them late.
-  - See novel-ralph-harness-design.md §4.5.
+  - Verify with snapshot coverage of the envelope plus boundary examples (a
+    manuscript exactly on each gate), not a full property-based or behavioural
+    suite — the command is a pure aggregation (§9).
+  - See novel-ralph-harness-design.md §4.5 and §9.
   - Success: at a manuscript exactly on a gate threshold the corresponding gate
     is reported as just reached, and the next-gate distance is non-negative.
 

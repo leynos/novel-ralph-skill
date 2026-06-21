@@ -14,6 +14,20 @@ documentation set.
 - [Development roadmap](roadmap.md) sequences the rebuild into phases,
   steps, and tasks.
 
+## Architecture decision records
+
+- [ADR 001: deterministic and judgemental boundary](adr-001-deterministic-judgemental-boundary.md)
+  fixes the controlling decision: scripts detect and report; the model
+  adjudicates.
+- [ADR 002: TOML round-trip via tomlkit](adr-002-toml-round-trip-tomlkit.md)
+  selects `tomlkit` for comment-preserving state mutation (resolves Q1).
+- [ADR 003: shared interface contract](adr-003-shared-interface-contract.md)
+  fixes the JSON envelope and the disambiguated exit-code table (resolves Q2).
+- [ADR 004: distribution as installed console-scripts](adr-004-distribution-console-scripts.md)
+  records why the commands ship as console-scripts (decision C3).
+- [ADR 005: command surface — five scripts, not one multiplexer](adr-005-command-surface-five-scripts.md)
+  weighs the multiplexer and settles on five named commands.
+
 ## Project guides
 
 - [User guide](users-guide.md) explains how to use the generated project and

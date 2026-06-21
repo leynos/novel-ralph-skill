@@ -334,9 +334,14 @@ whole field report at once. The roadmap must hold the parity-first line.
   harness for the later judgemental phases. *Consequence if false:* the
   judgemental phases (G7) cannot be realised as designed and the skill retains
   self-marking for those passes.
-- **A5.** Chapter ordering can be derived deterministically from the
-  chapter outline rather than from a directory glob. *Consequence if false:*
-  compile ordering becomes ambiguous and needs an explicit manifest.
+- **A5.** Chapter ordering is the zero-padded chapter-directory index
+  (`chapter-01`, `chapter-02`, …), a total deterministic order that needs no
+  outline-prose parsing, validated against a structured chapter manifest in
+  `state.toml` written at chapter planning. The design resolves this from "can
+  be derived" to "is derived by the chapter index, checked for a
+  manifest-to-disk bijection" (novel-ralph-harness-design.md §4.3, §5.2).
+  *Consequence if the manifest is missing or non-bijective:* compilation has no
+  authoritative ordering and fails loudly rather than mis-ordering silently.
 
 ### 8.3 Dependencies
 
@@ -404,14 +409,23 @@ sub-agent*, *knitting gate*, *AI-isms rule pack*.
 
 ### B. ADR candidates
 
-- **TOML round-trip mechanism** (Q1): hard to reverse once the state
-  serialiser is built; warrants an ADR.
-- **Distribution as installed console-scripts** (C3): settled, but the
-  rationale is worth recording as an ADR for future contributors who might
-  reach for self-contained `uv` scripts.
+ADRs are recorded in `docs/`, named `adr-NNN-short-description.md` per the
+documentation style guide.
+
 - **Deterministic/judgemental boundary** (G1, G3): the organising
   principle of the rebuild; an ADR fixes it as the project's controlling
   decision.
+- **TOML round-trip mechanism** (Q1): hard to reverse once the state
+  serialiser is built; warrants an ADR.
+- **Shared interface contract** (Q2): the JSON envelope and the
+  disambiguated exit-code table (benign negative versus actionable finding); an
+  ADR fixes the contract the five commands share.
+- **Distribution as installed console-scripts** (C3): settled, but the
+  rationale is worth recording as an ADR for future contributors who might
+  reach for self-contained `uv` scripts.
+- **Command-surface shape**: five separate console-scripts versus a
+  single `novel` multiplexer; an ADR records the trade and the decision to ship
+  five named commands.
 
 ### C. References
 
