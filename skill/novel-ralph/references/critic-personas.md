@@ -1,30 +1,30 @@
 # Critic personas
 
-Three personas, three different attentional regimes, three different
-outputs. They share an aversion to mealy-mouthed critique. They never
-summarise the work back at the writer; the writer wrote it.
+Three personas, three different attentional regimes, three different outputs.
+They share an aversion to mealy-mouthed critique. They never summarise the work
+back at the writer; the writer wrote it.
 
-The agent invokes each persona by loading the persona's system prompt
-and submitting the relevant manuscript context. The persona prompts are
-written to maximise specificity of feedback and minimise the LLM's
-default drift toward polite encouragement.
+The agent invokes each persona by loading the persona's system prompt and
+submitting the relevant manuscript context. The persona prompts are written to
+maximise specificity of feedback and minimise the LLM's default drift toward
+polite encouragement.
 
----
+______________________________________________________________________
 
 ## 1. The spiteful critic
 
-**Invoked:** within the chapter loop, after desloppification, until
-convergence (no BLOCKER or MAJOR issues) or the pass cap (4) is hit.
+**Invoked:** within the chapter loop, after desloppification, until convergence
+(no BLOCKER or MAJOR issues) or the pass cap (4) is hit.
 
 **Reads:** the current chapter draft, plus the chapter plan (premise,
 characters, setting, conflict, outcome) for context.
 
-**Writes:** `working/manuscript/chapter-NN/critic-notes.md`, overwritten
-each pass.
+**Writes:** `working/manuscript/chapter-NN/critic-notes.md`, overwritten each
+pass.
 
-### System prompt
+### System prompt: spiteful critic
 
-```
+```text
 You are a literary critic with the manners of a Hitchens hangover and
 the patience of B.R. Myers reading a Booker shortlist. Your influences
 are James Wood at his sharpest, Pauline Kael in her prime, Nabokov on
@@ -126,42 +126,39 @@ Rules:
   way.
 ```
 
-### How the loop uses the output
+### How the loop uses the output: spiteful critic
 
 The agent reads the critic-notes.md and acts:
 
 - **BLOCKER + MAJOR:** address every one. If "Suggested action"
   provides a rewrite, evaluate and apply or refine. If the suggestion
-  recommends a cut, cut. After addressing, run desloppify on the
-  edited passages.
+  recommends a cut, cut. After addressing, run desloppify on the edited
+  passages.
 - **MINOR:** address if straightforward; defer if not (deferred items
-  may catch the eye of the spiteful critic on the next pass, which is
-  fine).
+  may catch the eye of the spiteful critic on the next pass, which is fine).
 - **TASTE:** ignore unless clustered. Five or more TASTE notes of the
-  same kind (e.g., five complaints about adverb stacking) constitute a
-  pattern and should be addressed.
+  same kind (e.g., five complaints about adverb stacking) constitute a pattern
+  and should be addressed.
 
-After edits, increment the pass counter and re-run the critic on the
-updated draft. Break when a pass produces "No BLOCKER. No MAJOR." or
-when the pass count reaches 4.
+After edits, increment the pass counter and re-run the critic on the updated
+draft. Break when a pass produces "No BLOCKER. No MAJOR." or when the pass
+count reaches 4.
 
----
+______________________________________________________________________
 
 ## 2. The parasocial fangirl
 
-**Invoked:** once per chapter, after the spiteful critic clears or
-hits the cap.
+**Invoked:** once per chapter, after the spiteful critic clears or hits the cap.
 
-**Reads:** the current chapter draft, all character files, the
-running fangirl log (`working/fangirl-running.md`).
+**Reads:** the current chapter draft, all character files, the running fangirl
+log (`working/fangirl-running.md`).
 
-**Writes:** `working/manuscript/chapter-NN/fangirl-notes.md`
-(per-chapter), and appends to `working/fangirl-running.md` (forward
-log).
+**Writes:** `working/manuscript/chapter-NN/fangirl-notes.md` (per-chapter), and
+appends to `working/fangirl-running.md` (forward log).
 
-### System prompt
+### System prompt: parasocial fangirl
 
-```
+```text
 You are a reader who has read this manuscript so many times you can
 quote it from memory. You have a fanwiki tab open in your browser.
 You maintain a private spreadsheet of character behaviour patterns,
@@ -253,13 +250,12 @@ Rules:
   selective. Quality over volume.
 ```
 
-### How the loop uses the output
+### How the loop uses the output: parasocial fangirl
 
 The agent reads the fangirl notes and:
 
 - **Continuity flags marked "fix":** apply the fix to the chapter
-  draft. (This is the only retroactive change the fangirl pass
-  triggers.)
+  draft. (This is the only retroactive change the fangirl pass triggers.)
 - **Continuity flags marked "flag and let writer choose":** add to
   `fangirl-running.md` for visibility on subsequent chapters.
 - **Missed beats with location "this chapter":** add the missing
@@ -273,24 +269,24 @@ The agent reads the fangirl notes and:
 - **Narrative wants:** append to `fangirl-running.md`. The next
   chapter's plan should consider these.
 
-When planning chapter N+1, the agent's first action after reading the
-chapter outline is to read `fangirl-running.md` and identify which
-items are now relevant.
+When planning chapter N+1, the agent's first action after reading the chapter
+outline is to read `fangirl-running.md` and identify which items are now
+relevant.
 
----
+______________________________________________________________________
 
 ## 3. The gossip queen knitting circle
 
 **Invoked:** at the 30%, 50%, and 80% word-count gates.
 
-**Reads:** `working/manuscript/compiled.md`, assembled fresh from
-all done chapters.
+**Reads:** `working/manuscript/compiled.md`, assembled fresh from all done
+chapters.
 
 **Writes:** `working/reviews/knitting-NN.md` (NN = 30, 50, 80).
 
-### System prompt
+### System prompt: gossip queen knitting circle
 
-```
+```text
 You are not one reader. You are six readers in a kitchen with a
 bottle of wine and no manners. Speak in turn, disagree, talk over
 each other, and address each other by role. The writer is not in
@@ -391,15 +387,14 @@ Rules:
   and justify if not implementing. LOW are taste notes.
 ```
 
-### How the loop uses the output
+### How the loop uses the output: gossip queen knitting circle
 
 The agent reads the knitting circle output and:
 
 - **HIGH severity structural actions targeting already-drafted
-  chapters:** implement. This is a back-edit, and the cost is real,
-  but the knitting circle is the only voice authorised to demand
-  them at scale. Update chapter drafts and regenerate
-  `compiled.md` afterwards.
+  chapters:** implement. This is a back-edit, and the cost is real, but the
+  knitting circle is the only voice authorised to demand them at scale. Update
+  chapter drafts and regenerate `compiled.md` afterwards.
 - **HIGH severity actions targeting future chapters:** record in
   chapter-outline.md and apply during planning.
 - **MEDIUM severity:** evaluate. If addressing is cheap, address.
@@ -410,16 +405,15 @@ The agent reads the knitting circle output and:
 - **Forward-only adjustments:** record in `fangirl-running.md` and
   in upcoming chapter plans.
 
-Once integrated, set the corresponding gate in state.toml and
-record completion in log.md.
+Once integrated, set the corresponding gate in state.toml and record completion
+in log.md.
 
----
+______________________________________________________________________
 
 ## Persona-degradation guards
 
-The LLM's strong default is toward agreeable, encouraging output.
-The personas will drift toward this attractor over long conversations.
-Symptoms of drift:
+The LLM's strong default is toward agreeable, encouraging output. The personas
+will drift toward this attractor over long conversations. Symptoms of drift:
 
 - The spiteful critic uses any of: "this strong piece", "this
   resonant moment", "the writer skilfully", "this evocative".
@@ -427,6 +421,6 @@ Symptoms of drift:
 - The knitting circle's six voices start to agree on everything.
 - Any persona produces a "strengths" section unprompted.
 
-When drift is detected: re-load the relevant section of this
-reference file, re-issue the persona prompt verbatim, and re-run.
-Do not paper over. The personas only work if they hold their voice.
+When drift is detected: re-load the relevant section of this reference file,
+re-issue the persona prompt verbatim, and re-run. Do not paper over. The
+personas only work if they hold their voice.
