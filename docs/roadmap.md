@@ -101,6 +101,34 @@ docs/scripting-standards.md.
   - Requires 1.1.2 and 1.2.1.
   - Success: `make test` and the quality gates in AGENTS.md pass against the
     extended dependency set.
+- [ ] 1.2.3. Decide and enforce a cross-platform policy for the console-scripts
+  e2e test.
+  - Remediation (source: review:1.2.1; severity: low). `test_console_scripts_e2e.py`
+    is only half-portable on Windows: the win32 branch resolves scripts via the
+    `nt_user` sysconfig scheme (a roaming user path, not the venv `Scripts/` dir
+    uv creates) and looks up `scripts_dir / command_name` without the `.exe`
+    suffix, so either commit to Linux-only execution or make the lookup truly
+    portable.
+- [ ] 1.2.4. Introduce a single source of truth for the five command names.
+  - Remediation (source: audit:1.2.1; severity: medium). The command-name list is
+    duplicated across `stub.py`, `pyproject.toml`, and three test modules; a
+    package registry consumed by the entry points and tests, asserted against
+    `[project.scripts]`, removes the drift risk while the surface is still five
+    thin stubs.
+- [ ] 1.2.5. Establish a docstring-coverage gate (interrogate) for the Python
+  package.
+  - Remediation (source: audit:1.2.1; severity: low). `interrogate` is a dev
+    dependency with no configuration or Makefile/CI invocation, so docstring
+    coverage is unenforced; locking the standard in now, while the modules are
+    well documented, is cheapest before the command bodies expand the surface.
+- [ ] 1.2.6. Remove the dead `tomli_w` snippet from `state-layout.md` and
+  reconcile the premature "is removed" claims.
+  - Remediation (source: review:1.2.2; severity: medium). The failed `tomli_w`
+    snippet still survives at `skill/novel-ralph/references/state-layout.md:229`
+    and `:235`, yet ADR-002 line 77 and design §5.3 already assert it "is removed"
+    while ADR-002 line 22 says it "even carries" it; delete the snippet (or
+    rewrite it to `tomlkit`) and reconcile the ADR-002 and design wording, as no
+    existing task owns this removal.
 
 ### 1.3. Build the shared contract scaffolding and test corpus
 
