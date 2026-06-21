@@ -72,3 +72,20 @@ suite runs unchanged.
 Run `make clean` to remove local build and cache outputs, including `.venv`,
 `.uv-cache`, `.uv-tools`, Python cache directories, coverage outputs, and Rust
 `target` output when the Rust extension is enabled.
+
+## Installed Commands
+
+Installing a wheel built from this package puts five console-scripts onto
+`PATH`:
+
+- `novel-state` — read and mutate the harness state.
+- `novel-done` — evaluate the done predicate.
+- `novel-compile` — regenerate the compiled manuscript.
+- `desloppify` — report prose tics.
+- `wordcount` — report per-chapter and cumulative word counts.
+
+As of roadmap task 1.2.1 every one of these commands is a **stub**: running it
+prints "`<name>` is not yet implemented" to standard error and exits with code
+`2`. None performs any real work yet, and none writes to the working tree. Each
+command's behaviour will be filled in by a later release; until then the
+commands exist only so the harness spine is invocable end to end.

@@ -73,6 +73,17 @@ with distribution in
 - `wordcount` — a read-only checker reporting per-chapter and cumulative
   counts and the next gate distance. See design §4.5.
 
+As of roadmap task 1.2.1 these five names are wired as `[project.scripts]`
+console-scripts (`pyproject.toml`) but are still **stubs**: each is a minimal
+Cyclopts application defined by the shared `make_stub_app` factory in
+[`novel_ralph_skill/commands/stub.py`](../novel_ralph_skill/commands/stub.py)
+that prints "`<name>` is not yet implemented" to stderr and exits `2` until its
+real behaviour lands in a later slice. The build-and-install proof lives in
+[`tests/test_console_scripts_e2e.py`](../tests/test_console_scripts_e2e.py),
+and [`tests/test_pyproject_scripts.py`](../tests/test_pyproject_scripts.py)
+guards the entry-point table. The JSON envelope, the `--human` switch, and the
+shared exit-code helper are deferred to roadmap step 1.3.
+
 ### Checker/mutator segregation
 
 Read-only checkers (`novel-done`, `novel-state check`, `wordcount`,

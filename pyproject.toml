@@ -5,7 +5,14 @@ description = "novel-ralph-skill package"
 readme = "README.md"
 requires-python = ">=3.14"
 license = { text = "ISC" }
-dependencies = ["tomlkit"]
+dependencies = ["cyclopts", "tomlkit"]
+
+[project.scripts]
+novel-state = "novel_ralph_skill.commands.stub:novel_state"
+novel-done = "novel_ralph_skill.commands.stub:novel_done"
+novel-compile = "novel_ralph_skill.commands.stub:novel_compile"
+desloppify = "novel_ralph_skill.commands.stub:desloppify"
+wordcount = "novel_ralph_skill.commands.stub:wordcount"
 
 [dependency-groups]
 dev = [
@@ -17,6 +24,7 @@ dev = [
     "ty",
     "pytest-timeout",
     "pytest-xdist",
+    "cuprum",
 ]
 
 [tool.ruff]
@@ -298,6 +306,7 @@ enable = [
 # Tests automatically killed after seconds elapsed
 timeout = 30
 testpaths = ["tests"]
+markers = ["slow: end-to-end tests that build and install a wheel"]
 
 [tool.uv]
 package = true

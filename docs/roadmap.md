@@ -89,7 +89,7 @@ the existing `novel_ralph_skill` package — supports local development and the
 harness's invocation model. See novel-ralph-harness-design.md §2.2 and §4, and
 docs/scripting-standards.md.
 
-- [ ] 1.2.1. Wire the five console-script entry points in `pyproject.toml`.
+- [x] 1.2.1. Wire the five console-script entry points in `pyproject.toml`.
   - Requires 1.1.3 and 1.1.5.
   - Register `novel-state`, `novel-done`, `novel-compile`, `desloppify`, and
     `wordcount` against stub Cyclopts applications that exit 2 until
