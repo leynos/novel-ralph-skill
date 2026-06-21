@@ -80,6 +80,8 @@ Cyclopts application defined by the shared `make_stub_app` factory in
 that prints "`<name>` is not yet implemented" to stderr and exits `2` until its
 real behaviour lands in a later slice. The build-and-install proof lives in
 [`tests/test_console_scripts_e2e.py`](../tests/test_console_scripts_e2e.py),
+which runs on POSIX only (see
+[adr-006-console-scripts-e2e-posix-policy.md](adr-006-console-scripts-e2e-posix-policy.md)),
 and [`tests/test_pyproject_scripts.py`](../tests/test_pyproject_scripts.py)
 guards the entry-point table. The JSON envelope, the `--human` switch, and the
 shared exit-code helper are deferred to roadmap step 1.3.

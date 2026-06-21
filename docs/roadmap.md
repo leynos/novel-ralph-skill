@@ -101,7 +101,7 @@ docs/scripting-standards.md.
   - Requires 1.1.2 and 1.2.1.
   - Success: `make test` and the quality gates in AGENTS.md pass against the
     extended dependency set.
-- [ ] 1.2.3. Decide and enforce a cross-platform policy for the console-scripts
+- [x] 1.2.3. Decide and enforce a cross-platform policy for the console-scripts
   e2e test.
   - Remediation (source: review:1.2.1; severity: low). `test_console_scripts_e2e.py`
     is only half-portable on Windows: the win32 branch resolves scripts via the

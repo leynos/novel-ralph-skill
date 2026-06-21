@@ -3,22 +3,26 @@
 This is the roadmap task 1.2.1 success criterion made executable: build a wheel
 from this package, install it into a throwaway virtual environment, and confirm
 all five console-scripts resolve on disk and exit ``2`` when run with no
-arguments. The build, venv, and install steps run ``uv`` (a bare program name)
-through a local cuprum catalogue per the scripting standards. The installed
-scripts are then run **by absolute path** via one scoped ``subprocess.run``,
-because cuprum's catalogue allowlists bare program names only and exposes no API
-to execute an absolute path, and ``uv run`` would resolve against the project
-environment rather than the freshly built wheel.
+arguments. Every external program — ``uv`` (a bare name) for the build, venv,
+and install steps, and the five installed console-scripts (run **by absolute
+path**) — runs through a local cuprum catalogue per the scripting standards.
+cuprum 0.1.0 allowlists any ``Program`` string, including an absolute path, and
+executes it through ``asyncio.create_subprocess_exec``, so the installed scripts
+need no raw ``subprocess``. ``uv run`` is avoided because it would resolve
+against the project environment rather than the freshly built wheel.
 
-The test is slow (build + venv + install + five subprocess runs), so it is
-marked ``slow`` and given an explicit 180s per-test timeout that supersedes the
-30s project default under ``-n auto``.
+This e2e is POSIX-only (ADR 006): CI runs the test suite only on
+``ubuntu-latest``, so the test is skipped on non-POSIX platforms rather than
+executing a broken Windows path.
+
+The test is slow (build + venv + install + five script runs), so it is marked
+``slow`` and given an explicit 180s per-test timeout that supersedes the 30s
+project default under ``-n auto``.
 """
 
 from __future__ import annotations
 
-import subprocess  # noqa: S404 - runs installed scripts by absolute path only
-import sys
+import os
 import sysconfig
 import typing as typ
 from pathlib import Path
@@ -31,6 +35,15 @@ if typ.TYPE_CHECKING:
     from cuprum.sh import CommandResult
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+# why: this e2e is POSIX-only (ADR 006). CI runs the test suite only on
+# ubuntu-latest; the Windows/macOS matrix builds wheels and never runs pytest,
+# so the old win32 branch was dead and wrong. Skip off POSIX rather than execute
+# a broken path.
+pytestmark = pytest.mark.skipif(
+    os.name != "posix",
+    reason="console-scripts e2e is POSIX-only; see ADR 006",
+)
 
 _CATALOGUE = ProgramCatalogue(
     projects=(
@@ -61,10 +74,13 @@ def _require_success(result: CommandResult, step: str) -> None:
 
 
 def _venv_scripts_dir(venv_dir: Path) -> Path:
-    """Return the venv's executable-scripts directory across platforms."""
-    scheme = "nt_user" if sys.platform == "win32" else "posix_prefix"
-    bin_name = sysconfig.get_path("scripts", scheme, vars={"base": str(venv_dir)})
-    return Path(bin_name)
+    """Return the venv's executable-scripts directory (POSIX, ``venv`` scheme)."""
+    scripts = sysconfig.get_path(
+        "scripts",
+        "venv",
+        vars={"base": str(venv_dir), "platbase": str(venv_dir)},
+    )
+    return Path(scripts)
 
 
 @pytest.mark.slow
@@ -90,7 +106,7 @@ def test_console_scripts_install_and_exit_two(tmp_path: Path) -> None:
     _require_success(_uv("venv", str(venv_dir)).run_sync(), "venv")
 
     scripts_dir = _venv_scripts_dir(venv_dir)
-    venv_python = scripts_dir / ("python.exe" if sys.platform == "win32" else "python")
+    venv_python = scripts_dir / "python"
     _require_success(
         _uv(
             "pip",
@@ -105,14 +121,24 @@ def test_console_scripts_install_and_exit_two(tmp_path: Path) -> None:
     for command_name in COMMAND_NAMES:
         script_path = scripts_dir / command_name
         assert script_path.exists(), f"{command_name} not installed at {script_path}"
-        result = subprocess.run(  # noqa: S603 - absolute tmp_path, not user input
-            [str(script_path)],
-            capture_output=True,
-            text=True,
-            check=False,
+        # cuprum 0.1.0 allowlists any Program string, including an absolute path,
+        # and runs it through asyncio.create_subprocess_exec; no subprocess
+        # needed (see the module docstring and ADR 006).
+        prog = Program(str(script_path))
+        catalogue = ProgramCatalogue(
+            projects=(
+                ProjectSettings(
+                    name="novel-ralph-e2e-scripts",
+                    programs=(prog,),
+                    documentation_locations=(),
+                    noise_rules=(),
+                ),
+            )
         )
-        assert result.returncode == 2, (
-            f"{command_name} exited {result.returncode}, expected 2"
+        result = sh.make(prog, catalogue=catalogue)().run_sync(capture=True)
+        assert result.exit_code == 2, (
+            f"{command_name} exited {result.exit_code}, expected 2"
         )
-        assert "Traceback" not in result.stderr
-        assert command_name in result.stderr
+        stderr = result.stderr or ""
+        assert "Traceback" not in stderr
+        assert command_name in stderr

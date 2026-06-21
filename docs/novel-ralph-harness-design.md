@@ -239,7 +239,9 @@ did not" from a silent corruption into a declared, inspectable state.
 The five commands form the v1 spine. Each is a Cyclopts application exposed as
 a console-script in `novel_ralph_skill`. None invokes an external process for
 its core logic, so cuprum is required only where a command shells out (none do
-in v1); filesystem work uses `pathlib`.
+in v1); filesystem work uses `pathlib`. The build-and-install proof
+(`tests/test_console_scripts_e2e.py`) runs on POSIX only, per
+`docs/adr-006-console-scripts-e2e-posix-policy.md`.
 
 ### 4.1 `novel-state`
 
