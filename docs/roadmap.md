@@ -97,7 +97,7 @@ docs/scripting-standards.md.
   - See novel-ralph-harness-design.md §4.
   - Success: a wheel build installs all five commands; each is invocable on
     `PATH` and reports a usage error rather than crashing.
-- [ ] 1.2.2. Add `tomlkit` to the package dependencies and confirm the build.
+- [x] 1.2.2. Add `tomlkit` to the package dependencies and confirm the build.
   - Requires 1.1.2 and 1.2.1.
   - Success: `make test` and the quality gates in AGENTS.md pass against the
     extended dependency set.
