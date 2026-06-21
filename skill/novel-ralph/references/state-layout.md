@@ -264,7 +264,9 @@ Any subsequent turn:
 1. Read state.toml.
 2. Read last 200 lines of log.md.
 3. If phase.current is "drafting", read working/fangirl-running.md
-   (forward-projecting continuity notes).
+   (forward-projecting continuity notes) when it exists. On the first
+   drafting turn no fangirl pass has run yet, so the file is absent;
+   treat its absence as an empty log rather than failing.
 4. Jump to the phase handler.
 ```
 

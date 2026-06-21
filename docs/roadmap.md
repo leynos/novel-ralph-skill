@@ -115,9 +115,13 @@ drift and seeds the snapshot suite. See novel-ralph-harness-design.md §3 and §
     mapping (0/1/2/3/4) as reusable helpers, with `result` carrying all
     machine-actionable data and `messages` carrying only human prose.
   - See novel-ralph-harness-design.md §3.1 and §3.2.
-  - Success: a property-based test confirms `ok` is true only on exit 0 and
-    that codes 1 and 4 are both reported as `ok: false` with distinct
-    semantics, and a snapshot pins the envelope shape.
+  - Success: a property-based test confirms `ok` is true only on exit 0; that
+    each of the four non-zero codes is reported as `ok: false`; and that all
+    five codes (0 success, 1 benign negative, 2 usage error, 3 state or input
+    error, 4 actionable finding) map to the expected envelope semantics — a
+    malformed invocation yields code 2, an unparseable or missing `state.toml`
+    yields code 3, and codes 1 and 4 carry distinct, non-interchangeable
+    meanings. A snapshot pins the envelope shape for each code.
 - [ ] 1.3.2. Build the on-disk `working/` fixture corpus.
   - Requires 1.2.1.
   - Provide reusable `tmp_path` fixtures spanning all eleven phase states,

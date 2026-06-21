@@ -51,8 +51,8 @@ current phase are satisfied.
 ### Phase 2 — Characters
 
 - `working/characters/_index.md` exists.
-- For every character named in the treatment with a speaking role
-  in more than one scene, `working/characters/<slug>.md` exists.
+- For every character named in the treatment,
+  `working/characters/<slug>.md` exists.
 - Each character file has all eleven sections (name/age/role,
   motivations, goals, challenges, limitations, flaws, ambitions, quirks,
   premise-applicable traits, voice notes, attractor).
@@ -132,8 +132,10 @@ A chapter is done when all of:
 - Desloppification has been run against the latest draft
   (logged).
 - The spiteful critic loop has either converged (a pass with no
-  BLOCKER and no MAJOR) or hit the pass cap of 4, and all BLOCKER/MAJOR
-  findings have been addressed.
+  BLOCKER and no MAJOR finding) or reached its pass cap of 4, in which case any
+  unresolved findings are logged in `critic-notes.md` and flagged for the
+  knitting circle pass (per SKILL.md Phase 8). Reaching the cap does not
+  require every finding to be addressed first.
 - The fangirl pass has run and produced
   `working/manuscript/chapter-NN/fangirl-notes.md`.
 - Fangirl outputs have been folded into

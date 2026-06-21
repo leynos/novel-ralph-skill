@@ -5,7 +5,7 @@ description = "novel-ralph-skill package"
 readme = "README.md"
 requires-python = ">=3.14"
 license = { text = "ISC" }
-dependencies = []
+dependencies = ["tomlkit"]
 
 [dependency-groups]
 dev = [

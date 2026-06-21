@@ -484,8 +484,13 @@ both reported in `result` and appended to the log as a recovery entry, so a
 state repair always leaves an audit trail rather than quietly mutating the
 record. An uncleared `[pending_turn]` (§3.4) is reconciled the same way:
 `check` reads the named paths and reports whether the partial write should be
-completed or discarded according to which artefacts actually landed, and
-`reconcile` carries that out and logs what it did.
+completed or rolled back, according to which artefacts actually landed.
+`reconcile` carries that out: completing writes the remaining artefacts so the
+turn lands, while rolling back clears the `[pending_turn]` record and leaves
+`state.toml` at the prior coherent point. Rolling back removes nothing — the
+partial artefacts stay on disk, unreferenced by state, and are overwritten when
+the turn is re-attempted, consistent with the guarantee that no file in
+`working/` is ever deleted.
 
 Some disk evidence is not merely behind but *contradictory*, and `check` must
 not paper over it. A `done.flag` beside an empty or absent `draft.md`, or a
@@ -719,8 +724,9 @@ suite touches only the filesystem under `tmp_path`.
   conflict, logs it, and exits 4 for the agent to adjudicate (§5.4).
 - **Torn multi-file turn.** An uncleared `[pending_turn]` record from a
   crashed turn (§3.4) is detected by `novel-state check`;
-  `novel-state reconcile` completes or discards the partial write according to
-  what landed on disk and logs the recovery.
+  `novel-state reconcile` completes the partial write or rolls it back
+  according to what landed on disk — overwriting, never deleting, any partial
+  artefact — and logs the recovery.
 - **Rule-pack pattern invalid.** `desloppify` exits 2, naming the
   offending rule id, so a malformed `ai-isms.toml` fails loudly rather than
   silently skipping a tell.
