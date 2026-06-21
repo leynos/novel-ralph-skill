@@ -13,8 +13,17 @@ import sys
 
 import cyclopts
 
+from novel_ralph_skill.commands.names import COMMAND_ENTRY_POINTS
+
 STUB_EXIT_CODE = 2
 """Exit code for an unimplemented command result (usage error, design 3.2)."""
+
+_NAME_FOR: dict[str, str] = {func: name for name, func in COMMAND_ENTRY_POINTS.items()}
+"""Reverse map from entry-point function name to its console-script name.
+
+Built once from the registry so each entry-point body reads its name from the
+single source of truth rather than re-spelling it inline (roadmap task 1.2.4).
+"""
 
 
 def make_stub_app(name: str) -> cyclopts.App:
@@ -57,24 +66,24 @@ def make_stub_app(name: str) -> cyclopts.App:
 
 def novel_state() -> None:
     """Console-script entry point for ``novel-state`` (stub; exits ``2``)."""
-    make_stub_app("novel-state")()
+    make_stub_app(_NAME_FOR["novel_state"])()
 
 
 def novel_done() -> None:
     """Console-script entry point for ``novel-done`` (stub; exits ``2``)."""
-    make_stub_app("novel-done")()
+    make_stub_app(_NAME_FOR["novel_done"])()
 
 
 def novel_compile() -> None:
     """Console-script entry point for ``novel-compile`` (stub; exits ``2``)."""
-    make_stub_app("novel-compile")()
+    make_stub_app(_NAME_FOR["novel_compile"])()
 
 
 def desloppify() -> None:
     """Console-script entry point for ``desloppify`` (stub; exits ``2``)."""
-    make_stub_app("desloppify")()
+    make_stub_app(_NAME_FOR["desloppify"])()
 
 
 def wordcount() -> None:
     """Console-script entry point for ``wordcount`` (stub; exits ``2``)."""
-    make_stub_app("wordcount")()
+    make_stub_app(_NAME_FOR["wordcount"])()

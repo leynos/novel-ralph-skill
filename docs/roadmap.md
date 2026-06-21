@@ -109,7 +109,7 @@ docs/scripting-standards.md.
     uv creates) and looks up `scripts_dir / command_name` without the `.exe`
     suffix, so either commit to Linux-only execution or make the lookup truly
     portable.
-- [ ] 1.2.4. Introduce a single source of truth for the five command names.
+- [x] 1.2.4. Introduce a single source of truth for the five command names.
   - Remediation (source: audit:1.2.1; severity: medium). The command-name list is
     duplicated across `stub.py`, `pyproject.toml`, and three test modules; a
     package registry consumed by the entry points and tests, asserted against

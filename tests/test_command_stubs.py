@@ -16,24 +16,13 @@ import typing as typ
 import pytest
 
 from novel_ralph_skill.commands import stub
+from novel_ralph_skill.commands.names import COMMAND_ENTRY_POINTS, COMMAND_NAMES
 
 if typ.TYPE_CHECKING:
     import collections.abc as cabc
 
-COMMAND_NAMES = (
-    "novel-state",
-    "novel-done",
-    "novel-compile",
-    "desloppify",
-    "wordcount",
-)
-
-ENTRY_POINTS: tuple[tuple[str, cabc.Callable[[], None]], ...] = (
-    ("novel-state", stub.novel_state),
-    ("novel-done", stub.novel_done),
-    ("novel-compile", stub.novel_compile),
-    ("desloppify", stub.desloppify),
-    ("wordcount", stub.wordcount),
+ENTRY_POINTS: tuple[tuple[str, cabc.Callable[[], None]], ...] = tuple(
+    (name, getattr(stub, func)) for name, func in COMMAND_ENTRY_POINTS.items()
 )
 
 

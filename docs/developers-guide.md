@@ -83,8 +83,15 @@ real behaviour lands in a later slice. The build-and-install proof lives in
 which runs on POSIX only (see
 [adr-006-console-scripts-e2e-posix-policy.md](adr-006-console-scripts-e2e-posix-policy.md)),
 and [`tests/test_pyproject_scripts.py`](../tests/test_pyproject_scripts.py)
-guards the entry-point table. The JSON envelope, the `--human` switch, and the
-shared exit-code helper are deferred to roadmap step 1.3.
+guards the entry-point table. The five names live once, as data, in a single
+registry,
+[`novel_ralph_skill/commands/names.py`](../novel_ralph_skill/commands/names.py);
+the entry-point functions and every test derive their names from it, and
+[`tests/test_command_names_registry.py`](../tests/test_command_names_registry.py)
+asserts the registry and `[project.scripts]` agree, so a rename or dropped entry
+point cannot silently drift. Edit a command name there, not in five places. The
+JSON envelope, the `--human` switch, and the shared exit-code helper are deferred
+to roadmap step 1.3.
 
 ### Checker/mutator segregation
 

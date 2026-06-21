@@ -31,6 +31,8 @@ import pytest
 from cuprum import ProgramCatalogue, ProjectSettings, sh
 from cuprum.program import Program
 
+from novel_ralph_skill.commands.names import COMMAND_NAMES
+
 if typ.TYPE_CHECKING:
     from cuprum.sh import CommandResult
 
@@ -56,14 +58,6 @@ _CATALOGUE = ProgramCatalogue(
     )
 )
 _uv = sh.make(Program("uv"), catalogue=_CATALOGUE)
-
-COMMAND_NAMES = (
-    "novel-state",
-    "novel-done",
-    "novel-compile",
-    "desloppify",
-    "wordcount",
-)
 
 
 def _require_success(result: CommandResult, step: str) -> None:
