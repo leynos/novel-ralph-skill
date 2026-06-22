@@ -129,6 +129,22 @@ docs/scripting-standards.md.
     while ADR-002 line 22 says it "even carries" it; delete the snippet (or
     rewrite it to `tomlkit`) and reconcile the ADR-002 and design wording, as no
     existing task owns this removal.
+- [ ] 1.2.7. Introduce `tests/conftest.py` to consolidate the shared test
+  scaffolding.
+  - Remediation (source: audit:1.2.6; severity: medium). The same project-root,
+    `pyproject` parse, repo-file reader, single-program catalogue,
+    `_venv_scripts_dir`, and TOML-table accessor are duplicated across the six
+    test modules and re-flagged in audit-1.2.1, 1.2.3, 1.2.4, 1.2.5, and 1.2.6;
+    a shared `conftest` removes the drift and cross-module private imports in one
+    move while the surface is still small.
+- [ ] 1.2.8. Broaden the state-layout direct-edit guard to reject any
+  hand-edit recipe, not just `tomli_w`.
+  - Remediation (source: review:1.2.6; severity: low). The 1.2.6 guard pins only
+    the literal `tomli_w` substrings, so a future `tomlkit`- or `tomllib`-based
+    hand-edit of `state.toml` would pass green while re-opening the design §4.1
+    "direct editing eliminated" violation; widen the guard to forbid any direct
+    `state.toml`-write recipe, coordinated with task 6.2.3 which rewrites the
+    reference prose to point at the `novel-state` commands.
 
 ### 1.3. Build the shared contract scaffolding and test corpus
 
