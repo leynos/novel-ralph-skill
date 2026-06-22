@@ -22,8 +22,10 @@ Python dependencies, and Rust-enabled projects also run `cargo audit` from the
 [`tests/conftest.py`](../tests/conftest.py) is the single home for scaffolding
 shared across the test suite. It exposes the project-root path (`project_root`),
 the parsed `pyproject.toml` (`pyproject`), a repo-relative UTF-8 reader
-(`read_repo_text`), a TOML-table accessor (`toml_table`), the one-program cuprum
-catalogue builder (`single_program_catalogue`), and the POSIX venv
+(`read_repo_text`), a TOML-table accessor (`toml_table`), the PEP 508
+dependency-name normaliser (`dist_name`, a `(spec) -> str | None` callable that
+reduces a requirement string to its bare distribution name), the one-program
+cuprum catalogue builder (`single_program_catalogue`), and the POSIX venv
 scripts-directory resolver (`venv_scripts_dir`).
 
 Test modules consume these by fixture name — list the fixture as a test or
@@ -43,8 +45,11 @@ the duplication and cross-module-import findings recorded in
 [`audit-1.2.1.md`](issues/audit-1.2.1.md),
 [`audit-1.2.3.md`](issues/audit-1.2.3.md),
 [`audit-1.2.4.md`](issues/audit-1.2.4.md),
-[`audit-1.2.5.md`](issues/audit-1.2.5.md), and
-[`audit-1.2.6.md`](issues/audit-1.2.6.md).
+[`audit-1.2.5.md`](issues/audit-1.2.5.md),
+[`audit-1.2.6.md`](issues/audit-1.2.6.md), and
+[`audit-1.2.7.md`](issues/audit-1.2.7.md) (Findings 1-2: the seventh
+`pyproject` parse and the divergent dependency-name normaliser, both now
+folded onto the shared fixtures).
 
 ## Automation scripts
 

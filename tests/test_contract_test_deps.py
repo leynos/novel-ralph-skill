@@ -17,29 +17,17 @@ directly.
 from __future__ import annotations
 
 import importlib.metadata
-import pathlib
-import tomllib
+import typing as typ
 
 import hypothesis
+
+if typ.TYPE_CHECKING:
+    import collections.abc as cabc
 
 # why: track the versions uv.lock resolves; bump in lockstep with a deliberate
 # upgrade. These exact pins are the re-resolution tripwires (round-2 B3).
 LOCKED_HYPOTHESIS_VERSION = "6.155.7"
 LOCKED_SYRUPY_VERSION = "5.3.2"
-
-_PYPROJECT = pathlib.Path(__file__).resolve().parents[1] / "pyproject.toml"
-
-
-def _dev_dependencies() -> list[str]:
-    """Return the ``[dependency-groups].dev`` list from ``pyproject.toml``.
-
-    Returns
-    -------
-    list[str]
-        The raw dependency specifiers declared for the dev group.
-    """
-    data = tomllib.loads(_PYPROJECT.read_text(encoding="utf-8"))
-    return data["dependency-groups"]["dev"]
 
 
 def test_hypothesis_import_and_version() -> None:
@@ -67,16 +55,26 @@ def test_syrupy_version() -> None:
     assert importlib.metadata.version("syrupy") == LOCKED_SYRUPY_VERSION
 
 
-def test_new_test_deps_are_declared_in_dev_group() -> None:
+def test_new_test_deps_are_declared_in_dev_group(
+    pyproject: dict[str, object],
+    toml_table: cabc.Callable[[cabc.Mapping[str, object], str], dict[str, object]],
+    dist_name: cabc.Callable[[str], str | None],
+) -> None:
     """Both new dependencies are declared in ``[dependency-groups].dev``.
+
+    The dev group is read through the shared ``pyproject``/``toml_table``
+    fixtures (no per-module parse), and each requirement string is reduced to
+    its bare distribution name through the shared ``dist_name`` normaliser, so
+    the match holds regardless of extras, version operators, or markers.
 
     Returns
     -------
     None
         The assertions raise on failure.
     """
-    declared = {
-        spec.split()[0].split(">")[0].split("=")[0] for spec in _dev_dependencies()
-    }
-    assert "hypothesis" in declared
-    assert "syrupy" in declared
+    dev = toml_table(pyproject, "dependency-groups")["dev"]
+    assert isinstance(dev, list), "[dependency-groups] dev must be a list"
+    for name in ("hypothesis", "syrupy"):
+        assert any(isinstance(spec, str) and dist_name(spec) == name for spec in dev), (
+            f"{name} must be declared in the dev dependency group"
+        )

@@ -18,6 +18,7 @@ guards that must fail raise :class:`AssertionError` directly.
 
 from __future__ import annotations
 
+import re
 import sysconfig
 import tomllib
 import typing as typ
@@ -30,6 +31,10 @@ if typ.TYPE_CHECKING:
     import collections.abc as cabc
 
     from cuprum.program import Program
+
+# Leading run of a PEP 508 requirement string before any version specifier,
+# extras bracket, marker, or whitespace; this is the bare distribution name.
+_DIST_NAME = re.compile(r"^[A-Za-z0-9](?:[A-Za-z0-9._-]*[A-Za-z0-9])?")
 
 
 @pytest.fixture(scope="session")
@@ -107,6 +112,32 @@ def toml_table() -> cabc.Callable[[cabc.Mapping[str, object], str], dict[str, ob
                 raise AssertionError(msg)
 
     return _table
+
+
+@pytest.fixture
+def dist_name() -> cabc.Callable[[str], str | None]:
+    """Return a PEP 508 bare-distribution-name normaliser.
+
+    The returned callable reduces a requirement string to its bare distribution
+    name: the leading run before any extras bracket, version operator, marker,
+    or whitespace. It is the single home for this normalisation, consumed by the
+    interrogate-gate and contract-test-deps suites by fixture name
+    (``docs/issues/audit-1.2.7.md`` Finding 2).
+
+    Returns
+    -------
+    Callable[[str], str | None]
+        A callable ``(spec) -> str | None`` returning the bare distribution
+        name of ``spec`` (e.g. ``hypothesis[cli]>=6.0`` -> ``hypothesis``), or
+        ``None`` when ``spec`` does not begin with a valid name.
+    """
+
+    def _normalise(spec: str) -> str | None:
+        """Return the bare distribution name of ``spec`` or ``None``."""
+        match = _DIST_NAME.match(spec.strip())
+        return match.group(0) if match else None
+
+    return _normalise
 
 
 @pytest.fixture

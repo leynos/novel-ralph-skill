@@ -71,6 +71,28 @@ def test_toml_table_rejects_a_non_table(
         toml_table(parent, "scalar")
 
 
+@pytest.mark.parametrize(
+    ("spec", "expected"),
+    [
+        ("hypothesis", "hypothesis"),
+        ("hypothesis[cli]>=6.0", "hypothesis"),
+        ("interrogate[toml]", "interrogate"),
+        ("pkg<2.0", "pkg"),
+        ("syrupy ~= 5.3", "syrupy"),
+        ('foo; python_version>="3.10"', "foo"),
+    ],
+)
+def test_dist_name_extracts_bare_name(
+    dist_name: cabc.Callable[[str], str | None],
+    spec: str,
+    expected: str,
+) -> None:
+    """``dist_name`` reduces a PEP 508 specifier to its bare distribution name."""
+    assert dist_name(spec) == expected, (
+        f"dist_name({spec!r}) did not yield {expected!r}"
+    )
+
+
 def test_single_program_catalogue_builds_usable_allowlist(
     single_program_catalogue: cabc.Callable[[str, Program], ProgramCatalogue],
 ) -> None:
@@ -114,3 +136,12 @@ def test_single_program_catalogue_accepts_absolute_path(
     assert program in catalogue.allowlist, (
         f"absolute-path {program} missing from allowlist {catalogue.allowlist}"
     )
+
+
+@pytest.mark.parametrize("spec", ["  ", ">=1.0"])
+def test_dist_name_returns_none_for_non_name(
+    dist_name: cabc.Callable[[str], str | None],
+    spec: str,
+) -> None:
+    """``dist_name`` returns ``None`` when the spec has no leading name."""
+    assert dist_name(spec) is None, f"dist_name({spec!r}) should be None"

@@ -158,7 +158,7 @@ docs/scripting-standards.md.
     its result and asserts nothing reads as dead code and may be flagged by a
     linter; making the "does not raise" intent explicit keeps the test's
     guarantee self-evident to maintainers.
-- [ ] 1.2.11. Migrate `test_contract_test_deps` onto the shared conftest
+- [x] 1.2.11. Migrate `test_contract_test_deps` onto the shared conftest
   fixtures and centralise dependency-name normalisation.
   - Remediation (source: audit:1.2.7; severity: medium). The 1.2.7 consolidation
     left `test_contract_test_deps.py` re-parsing `pyproject` itself and carrying
