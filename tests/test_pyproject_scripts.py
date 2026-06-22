@@ -9,18 +9,18 @@ than re-declared here.
 
 from __future__ import annotations
 
-import tomllib
-from pathlib import Path
+import typing as typ
 
 from novel_ralph_skill.commands import names
 
-_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if typ.TYPE_CHECKING:
+    import collections.abc as cabc
 
 
-def test_project_scripts_table_lists_the_five_commands() -> None:
+def test_project_scripts_table_lists_the_five_commands(
+    pyproject: dict[str, object],
+    toml_table: cabc.Callable[[cabc.Mapping[str, object], str], dict[str, object]],
+) -> None:
     """The ``[project.scripts]`` table lists exactly the five expected names."""
-    pyproject = tomllib.loads(
-        (_PROJECT_ROOT / "pyproject.toml").read_text(encoding="utf-8")
-    )
-    scripts = pyproject["project"]["scripts"]
+    scripts = toml_table(toml_table(pyproject, "project"), "scripts")
     assert scripts == names.project_scripts_table()

@@ -23,17 +23,19 @@ project default under ``-n auto``.
 from __future__ import annotations
 
 import os
-import sysconfig
 import typing as typ
 from pathlib import Path
 
 import pytest
-from cuprum import ProgramCatalogue, ProjectSettings, sh
+from cuprum import sh
 from cuprum.program import Program
 
 from novel_ralph_skill.commands.names import COMMAND_NAMES
 
 if typ.TYPE_CHECKING:
+    import collections.abc as cabc
+
+    from cuprum import ProgramCatalogue
     from cuprum.sh import CommandResult
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -47,18 +49,6 @@ pytestmark = pytest.mark.skipif(
     reason="console-scripts e2e is POSIX-only; see ADR 006",
 )
 
-_CATALOGUE = ProgramCatalogue(
-    projects=(
-        ProjectSettings(
-            name="novel-ralph-e2e",
-            programs=(Program("uv"),),
-            documentation_locations=(),
-            noise_rules=(),
-        ),
-    )
-)
-_uv = sh.make(Program("uv"), catalogue=_CATALOGUE)
-
 
 def _require_success(result: CommandResult, step: str) -> None:
     """Fail the test if a cuprum-run ``uv`` step did not exit ``0``."""
@@ -67,25 +57,46 @@ def _require_success(result: CommandResult, step: str) -> None:
         raise AssertionError(msg)
 
 
-def _venv_scripts_dir(venv_dir: Path) -> Path:
-    """Return the venv's executable-scripts directory (POSIX, ``venv`` scheme)."""
-    scripts = sysconfig.get_path(
-        "scripts",
-        "venv",
-        vars={"base": str(venv_dir), "platbase": str(venv_dir)},
-    )
-    return Path(scripts)
+def _assert_scripts_exit_two(
+    scripts_dir: Path,
+    single_program_catalogue: cabc.Callable[[str, Program], ProgramCatalogue],
+) -> None:
+    """Run each installed console-script by absolute path and assert exit ``2``."""
+    for command_name in COMMAND_NAMES:
+        script_path = scripts_dir / command_name
+        assert script_path.exists(), f"{command_name} not installed at {script_path}"
+        # cuprum 0.1.0 allowlists any Program string, including an absolute path,
+        # and runs it through asyncio.create_subprocess_exec; no subprocess
+        # needed (see the module docstring and ADR 006).
+        prog = Program(str(script_path))
+        catalogue = single_program_catalogue("novel-ralph-e2e-scripts", prog)
+        result = sh.make(prog, catalogue=catalogue)().run_sync(capture=True)
+        assert result.exit_code == 2, (
+            f"{command_name} exited {result.exit_code}, expected 2"
+        )
+        stderr = result.stderr or ""
+        assert "Traceback" not in stderr
+        assert command_name in stderr
 
 
 @pytest.mark.slow
 @pytest.mark.timeout(180)
-def test_console_scripts_install_and_exit_two(tmp_path: Path) -> None:
+def test_console_scripts_install_and_exit_two(
+    tmp_path: Path,
+    single_program_catalogue: cabc.Callable[[str, Program], ProgramCatalogue],
+    venv_scripts_dir: cabc.Callable[[Path], Path],
+) -> None:
     """Build, install, and run all five console-scripts; each exits ``2``."""
     wheel_dir = tmp_path / "wheels"
     venv_dir = tmp_path / "venv"
 
+    uv = sh.make(
+        Program("uv"),
+        catalogue=single_program_catalogue("novel-ralph-e2e", Program("uv")),
+    )
+
     _require_success(
-        _uv(
+        uv(
             "build",
             "--wheel",
             str(_PROJECT_ROOT),
@@ -97,12 +108,12 @@ def test_console_scripts_install_and_exit_two(tmp_path: Path) -> None:
     wheels = sorted(wheel_dir.glob("*.whl"))
     assert len(wheels) == 1, f"expected exactly one wheel, found {wheels}"
 
-    _require_success(_uv("venv", str(venv_dir)).run_sync(), "venv")
+    _require_success(uv("venv", str(venv_dir)).run_sync(), "venv")
 
-    scripts_dir = _venv_scripts_dir(venv_dir)
+    scripts_dir = venv_scripts_dir(venv_dir)
     venv_python = scripts_dir / "python"
     _require_success(
-        _uv(
+        uv(
             "pip",
             "install",
             "--python",
@@ -112,27 +123,4 @@ def test_console_scripts_install_and_exit_two(tmp_path: Path) -> None:
         "pip install",
     )
 
-    for command_name in COMMAND_NAMES:
-        script_path = scripts_dir / command_name
-        assert script_path.exists(), f"{command_name} not installed at {script_path}"
-        # cuprum 0.1.0 allowlists any Program string, including an absolute path,
-        # and runs it through asyncio.create_subprocess_exec; no subprocess
-        # needed (see the module docstring and ADR 006).
-        prog = Program(str(script_path))
-        catalogue = ProgramCatalogue(
-            projects=(
-                ProjectSettings(
-                    name="novel-ralph-e2e-scripts",
-                    programs=(prog,),
-                    documentation_locations=(),
-                    noise_rules=(),
-                ),
-            )
-        )
-        result = sh.make(prog, catalogue=catalogue)().run_sync(capture=True)
-        assert result.exit_code == 2, (
-            f"{command_name} exited {result.exit_code}, expected 2"
-        )
-        stderr = result.stderr or ""
-        assert "Traceback" not in stderr
-        assert command_name in stderr
+    _assert_scripts_exit_two(scripts_dir, single_program_catalogue)

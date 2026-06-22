@@ -10,33 +10,41 @@ silently drift.
 
 from __future__ import annotations
 
-import tomllib
-from pathlib import Path
+import typing as typ
 
 from novel_ralph_skill.commands import names, stub
 
-_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if typ.TYPE_CHECKING:
+    import collections.abc as cabc
 
 
-def _parse_scripts() -> dict[str, str]:
-    """Parse the ``[project.scripts]`` table from ``pyproject.toml``."""
-    data = tomllib.loads((_PROJECT_ROOT / "pyproject.toml").read_text(encoding="utf-8"))
-    return data["project"]["scripts"]
+def _parse_scripts(
+    pyproject: dict[str, object],
+    toml_table: cabc.Callable[[cabc.Mapping[str, object], str], dict[str, object]],
+) -> dict[str, object]:
+    """Return the ``[project.scripts]`` table from the parsed ``pyproject``."""
+    return toml_table(toml_table(pyproject, "project"), "scripts")
 
 
-def test_registry_matches_project_scripts() -> None:
+def test_registry_matches_project_scripts(
+    pyproject: dict[str, object],
+    toml_table: cabc.Callable[[cabc.Mapping[str, object], str], dict[str, object]],
+) -> None:
     """The registry-derived table equals ``[project.scripts]`` exactly."""
-    assert _parse_scripts() == names.project_scripts_table()
+    assert _parse_scripts(pyproject, toml_table) == names.project_scripts_table()
 
 
-def test_registry_order_matches_table() -> None:
+def test_registry_order_matches_table(
+    pyproject: dict[str, object],
+    toml_table: cabc.Callable[[cabc.Mapping[str, object], str], dict[str, object]],
+) -> None:
     """The TOML parse order matches the registry's registration order.
 
     ``tomllib`` preserves table key order, so comparing the parsed names to
     :data:`~novel_ralph_skill.commands.names.COMMAND_NAMES` catches a reordering
     that the order-insensitive dict equality above would miss.
     """
-    assert list(_parse_scripts()) == list(names.COMMAND_NAMES)
+    assert list(_parse_scripts(pyproject, toml_table)) == list(names.COMMAND_NAMES)
 
 
 def test_entry_points_resolve_to_callables() -> None:

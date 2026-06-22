@@ -18,30 +18,32 @@ possible direct-edit recipe (broadening it would collide with roadmap task
 
 from __future__ import annotations
 
-from pathlib import Path
+import typing as typ
 
-_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if typ.TYPE_CHECKING:
+    import collections.abc as cabc
 
-
-def _state_layout_text() -> str:
-    """Return the state-layout skill reference as text."""
-    return (
-        _PROJECT_ROOT / "skill" / "novel-ralph" / "references" / "state-layout.md"
-    ).read_text(encoding="utf-8")
+_STATE_LAYOUT_PARTS = ("skill", "novel-ralph", "references", "state-layout.md")
 
 
 class TestStateLayoutReference:
     """Pin the absence of the dead ``tomli_w`` snippet from the reference."""
 
-    def test_no_tomli_w_token(self) -> None:
+    def test_no_tomli_w_token(
+        self,
+        read_repo_text: cabc.Callable[..., str],
+    ) -> None:
         """The bare ``tomli_w`` token does not appear in the reference."""
-        assert "tomli_w" not in _state_layout_text(), (
+        assert "tomli_w" not in read_repo_text(*_STATE_LAYOUT_PARTS), (
             "the dead tomli_w snippet must stay removed from "
             "state-layout.md (ADR-002 selects tomlkit; design §4.1 "
             "eliminates direct editing of state.toml)"
         )
 
-    def test_no_tomli_w_import_or_dump(self) -> None:
+    def test_no_tomli_w_import_or_dump(
+        self,
+        read_repo_text: cabc.Callable[..., str],
+    ) -> None:
         """Neither the ``import`` nor the ``dump`` call site reappears.
 
         The deleted heredoc imported the dependency in the comma form
@@ -50,7 +52,7 @@ class TestStateLayoutReference:
         lines 26-27). Pin both the comma-form import token and the call
         site so a re-introduced snippet fails ``make test``.
         """
-        text = _state_layout_text()
+        text = read_repo_text(*_STATE_LAYOUT_PARTS)
         assert "tomllib, tomli_w" not in text, (
             "the dead `import tomllib, tomli_w, os` line must stay removed "
             "from state-layout.md"

@@ -14,30 +14,14 @@ the live gate.
 from __future__ import annotations
 
 import re
-import tomllib
 import typing as typ
-from pathlib import Path
 
-_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if typ.TYPE_CHECKING:
+    import collections.abc as cabc
+
 # Leading run of a PEP 508 requirement string before any version specifier,
 # extras bracket, marker, or whitespace; this is the bare distribution name.
 _DIST_NAME = re.compile(r"^[A-Za-z0-9](?:[A-Za-z0-9._-]*[A-Za-z0-9])?")
-
-
-def _pyproject() -> dict[str, object]:
-    """Parse and return the worktree ``pyproject.toml`` as a dict."""
-    return tomllib.loads((_PROJECT_ROOT / "pyproject.toml").read_text(encoding="utf-8"))
-
-
-def _table(parent: dict[str, object], key: str) -> dict[str, object]:
-    """Return the ``key`` sub-table of ``parent``, asserting it is a table."""
-    value = parent[key]
-    match value:
-        case dict():
-            return typ.cast("dict[str, object]", value)
-        case _:
-            msg = f"[{key}] must be a TOML table, got {type(value)}"
-            raise AssertionError(msg)
 
 
 def _dist_name(spec: str) -> str | None:
@@ -49,18 +33,25 @@ def _dist_name(spec: str) -> str | None:
 class TestInterrogateGate:
     """Pin the docstring-coverage gate's configuration, invocation, and deps."""
 
-    def test_fail_under_is_one_hundred(self) -> None:
+    def test_fail_under_is_one_hundred(
+        self,
+        pyproject: dict[str, object],
+        toml_table: cabc.Callable[[cabc.Mapping[str, object], str], dict[str, object]],
+    ) -> None:
         """The interrogate gate is pinned to 100% docstring coverage."""
-        interrogate = _table(_table(_pyproject(), "tool"), "interrogate")
+        interrogate = toml_table(toml_table(pyproject, "tool"), "interrogate")
         assert interrogate["fail-under"] == 100, (
             "[tool.interrogate] fail-under must be 100 so the 100% "
             "docstring-coverage standard is enforced for any auto-detecting "
             "invocation"
         )
 
-    def test_makefile_invokes_interrogate(self) -> None:
+    def test_makefile_invokes_interrogate(
+        self,
+        read_repo_text: cabc.Callable[..., str],
+    ) -> None:
         """A single Makefile recipe line runs interrogate over the targets."""
-        makefile = (_PROJECT_ROOT / "Makefile").read_text(encoding="utf-8")
+        makefile = read_repo_text("Makefile")
         # Same-line co-occurrence: deleting the interrogate recipe line must
         # fail this gate even though $(PYTHON_TARGETS) appears on several other
         # lines.
@@ -69,9 +60,13 @@ class TestInterrogateGate:
             for line in makefile.splitlines()
         ), "a Makefile recipe line must invoke interrogate over $(PYTHON_TARGETS)"
 
-    def test_interrogate_is_a_dev_dependency(self) -> None:
+    def test_interrogate_is_a_dev_dependency(
+        self,
+        pyproject: dict[str, object],
+        toml_table: cabc.Callable[[cabc.Mapping[str, object], str], dict[str, object]],
+    ) -> None:
         """The ``interrogate`` distribution is declared as a dev dependency."""
-        dev = _table(_pyproject(), "dependency-groups")["dev"]
+        dev = toml_table(pyproject, "dependency-groups")["dev"]
         assert isinstance(dev, list), "[dependency-groups] dev must be a list"
         # Normalise each requirement string to its bare distribution name so the
         # match holds regardless of version specifiers, extras, or whitespace

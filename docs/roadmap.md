@@ -129,7 +129,7 @@ docs/scripting-standards.md.
     while ADR-002 line 22 says it "even carries" it; delete the snippet (or
     rewrite it to `tomlkit`) and reconcile the ADR-002 and design wording, as no
     existing task owns this removal.
-- [ ] 1.2.7. Introduce `tests/conftest.py` to consolidate the shared test
+- [x] 1.2.7. Introduce `tests/conftest.py` to consolidate the shared test
   scaffolding.
   - Remediation (source: audit:1.2.6; severity: medium). The same project-root,
     `pyproject` parse, repo-file reader, single-program catalogue,

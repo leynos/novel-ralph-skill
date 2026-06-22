@@ -17,6 +17,36 @@ Run `make audit` as the dependency vulnerability gate. It runs `pip-audit` for
 Python dependencies, and Rust-enabled projects also run `cargo audit` from the
 `rust_extension` crate directory.
 
+
+## Shared test scaffolding
+
+[`tests/conftest.py`](../tests/conftest.py) is the single home for scaffolding
+shared across the test suite. It exposes the project-root path (`project_root`),
+the parsed `pyproject.toml` (`pyproject`), a repo-relative UTF-8 reader
+(`read_repo_text`), a TOML-table accessor (`toml_table`), the one-program cuprum
+catalogue builder (`single_program_catalogue`), and the POSIX venv
+scripts-directory resolver (`venv_scripts_dir`).
+
+Test modules consume these by fixture name — list the fixture as a test or
+helper parameter — and never by importing from another test module or from
+`conftest` itself. Importing helpers from `conftest` is fragile across pytest
+import modes, and reaching into another test module's private symbols couples
+modules through hidden dependencies; both are forbidden here. New shared
+scaffolding belongs in `tests/conftest.py` as another fixture rather than a
+fresh copy in each module.
+
+`tests/conftest.py` is inside `$(PYTHON_TARGETS)`, so it is subject to the full
+Ruff lint and format, 100% `interrogate` docstring coverage, Pylint, and `ty`
+typecheck gates — unlike `test_*.py`, it gains no `per-file-ignores` relief, so
+it carries a module docstring, a docstring on every fixture, and no bare
+`assert` (guards raise `AssertionError` directly). This consolidation discharges
+the duplication and cross-module-import findings recorded in
+[`audit-1.2.1.md`](issues/audit-1.2.1.md),
+[`audit-1.2.3.md`](issues/audit-1.2.3.md),
+[`audit-1.2.4.md`](issues/audit-1.2.4.md),
+[`audit-1.2.5.md`](issues/audit-1.2.5.md), and
+[`audit-1.2.6.md`](issues/audit-1.2.6.md).
+
 ## Automation scripts
 
 The [Scripting standards](scripting-standards.md) document provides guidance
