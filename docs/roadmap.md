@@ -337,7 +337,7 @@ formatting or leaving a torn file on a crash. Its outcome is the write
 discipline every mutator in the spine inherits. See
 novel-ralph-harness-design.md §3.4, §4.1, and §5.3.
 
-- [ ] 2.2.1. Implement the `tomlkit` round-trip and atomic write helper.
+- [x] 2.2.1. Implement the `tomlkit` round-trip and atomic write helper.
   - Requires 1.1.2 and 2.1.1.
   - Read, mutate, and re-serialise `state.toml` through `tomlkit`, writing via
     a temporary file in the target directory followed by `Path.replace`. Open a

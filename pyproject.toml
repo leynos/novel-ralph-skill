@@ -27,6 +27,7 @@ dev = [
     "cuprum",
     "hypothesis",
     "syrupy",
+    "pytest-bdd>=8.1.0",
 ]
 
 [tool.ruff]

@@ -277,7 +277,40 @@ file convenience; both are pure structural parses that resolve phase strings to
 `Phase` members and coerce TOML arrays to tuples without enforcing the §5.2
 invariants. Later slice-1 commands import this package: the `novel-state check`
 validator (task 2.1.2) layers the invariants over `parse_state`, and the
-`tomlkit` round-trip (task 2.2.1) is the matching writer.
+`tomlkit` round-trip writer (task 2.2.1) is the matching mutator seam, described
+next.
+
+### The `document.py` round-trip writer
+
+The write half of the `state` package lives in
+`novel_ralph_skill/state/document.py` (task 2.2.1) and is the seam every later
+mutator (`init`, `set-cursor`, `advance-phase`, `recount`, `reconcile`) calls;
+it has no CLI of its own. It supplies three disciplines:
+
+- **Lossless round-trip.** `load_document(path)` reads `state.toml` into a
+  style-preserving `tomlkit.TOMLDocument`, and `write_document_atomically`
+  re-dumps it, so a no-op write is byte-for-byte stable and a surgical value
+  edit rewrites only the touched bytes — comments and layout survive (ADR-002).
+  `document_to_state(document)` exposes the typed `State` as a *read* view (via
+  `parse_state`); the document, never the lossy typed model, is the write
+  source.
+- **Atomic write.** `write_document_atomically(document, path)` writes a
+  temporary file in the target's directory then `Path.replace`s it over the
+  target, so a crash before the rename leaves the prior coherent `state.toml`
+  intact and no stray temp file (design §3.4).
+- **`[pending_turn]` bracket.** The `pending_turn(path, operation=…, paths=…)`
+  context manager writes a `[pending_turn]` intent record atomically before
+  yielding the document for the caller's artefact work, then clears the record
+  and re-writes on a clean exit. On an exception it leaves the populated record
+  on disk for the next turn's `reconcile` (design §3.4); this helper owns only
+  the producer side. The clean-exit write re-dumps the *yielded, caller-mutated*
+  document, so an in-bracket value edit survives. `open_pending_turn` and
+  `clear_pending_turn` are the in-place primitives the context manager composes.
+
+The torn-turn recovery flow is covered by the suite's first `pytest-bdd`
+behavioural scenario (`tests/features/torn_turn.feature` with steps under
+`tests/steps/`); the round-trip and surgical-mutation guarantees are pinned by
+Hypothesis properties over a hand-authored, comment-and-layout-bearing fixture.
 
 ### The state-layout direct-edit guard
 
