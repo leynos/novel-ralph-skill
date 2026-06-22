@@ -266,6 +266,19 @@ per-chapter `chapter-NN/{draft.md,done.flag}`), with planning artefacts under
 compile-and-hash routine, so they cannot disagree about whether `compiled.md`
 is stale.
 
+The typed, read-only model of `state.toml` lives in the
+`novel_ralph_skill.state` package (design §5.1). `Phase` is the closed,
+eleven-member lifecycle enum (`premise` … `done`); `State` and its sub-shapes
+(`NovelMeta`, `PhaseState`, `ChapterEntry`, `Drafting`, `Gates`, `WordCounts`,
+`PendingTurn`, and friends) are frozen, slotted dataclasses mirroring the
+`state.toml` tables. `parse_state(mapping)` constructs a `State` from a decoded
+mapping at the boundary, and `load_state(path)` is the thin `tomllib`-backed
+file convenience; both are pure structural parses that resolve phase strings to
+`Phase` members and coerce TOML arrays to tuples without enforcing the §5.2
+invariants. Later slice-1 commands import this package: the `novel-state check`
+validator (task 2.1.2) layers the invariants over `parse_state`, and the
+`tomlkit` round-trip (task 2.2.1) is the matching writer.
+
 ### The state-layout direct-edit guard
 
 Because direct editing of `state.toml` is eliminated (design §4.1; ADR-002

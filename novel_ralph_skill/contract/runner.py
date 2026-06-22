@@ -26,6 +26,7 @@ import typing as typ
 
 from cyclopts.exceptions import CycloptsError
 
+from novel_ralph_skill._freeze import freeze_mapping, freeze_sequence
 from novel_ralph_skill.contract.envelope import (
     build_envelope,
     render_human,
@@ -77,6 +78,11 @@ class CommandOutcome:
     code: ExitCode
     result: cabc.Mapping[str, object] = dataclasses.field(default_factory=dict)
     messages: cabc.Sequence[str] = dataclasses.field(default_factory=tuple)
+
+    def __post_init__(self) -> None:
+        """Freeze ``result``/``messages`` to read-only containers at construction."""
+        object.__setattr__(self, "result", freeze_mapping(self.result))
+        object.__setattr__(self, "messages", freeze_sequence(self.messages))
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)

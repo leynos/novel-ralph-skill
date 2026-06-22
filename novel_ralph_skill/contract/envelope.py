@@ -15,6 +15,7 @@ import dataclasses
 import json
 import typing as typ
 
+from novel_ralph_skill._freeze import freeze_mapping, freeze_sequence
 from novel_ralph_skill.commands.names import COMMAND_NAMES
 from novel_ralph_skill.contract.exit_codes import ExitCode, is_ok
 
@@ -57,6 +58,11 @@ class Envelope:
     working_dir: str
     result: cabc.Mapping[str, object]
     messages: cabc.Sequence[str]
+
+    def __post_init__(self) -> None:
+        """Freeze ``result``/``messages`` to read-only containers at construction."""
+        object.__setattr__(self, "result", freeze_mapping(self.result))
+        object.__setattr__(self, "messages", freeze_sequence(self.messages))
 
 
 def build_envelope(  # noqa: PLR0913  # pylint: disable=too-many-arguments

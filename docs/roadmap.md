@@ -268,7 +268,7 @@ structure whose invariants a validator enforces. Its outcome is the single
 source of truth the done predicate and the recount logic read. See
 novel-ralph-harness-design.md §5.1 and §5.2.
 
-- [ ] 2.1.1. Implement the typed `state.toml` schema and the phase enum.
+- [x] 2.1.1. Implement the typed `state.toml` schema and the phase enum.
   - Requires steps 1.1-1.3.
   - Model the schema from `state-layout.md` with the dead per-chapter
     `plan.md` reference removed, encode the eleven-member phase enum in order,
