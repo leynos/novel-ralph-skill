@@ -137,7 +137,7 @@ docs/scripting-standards.md.
     test modules and re-flagged in audit-1.2.1, 1.2.3, 1.2.4, 1.2.5, and 1.2.6;
     a shared `conftest` removes the drift and cross-module private imports in one
     move while the surface is still small.
-- [ ] 1.2.8. Broaden the state-layout direct-edit guard to reject any
+- [x] 1.2.8. Broaden the state-layout direct-edit guard to reject any
   hand-edit recipe, not just `tomli_w`.
   - Remediation (source: review:1.2.6; severity: low). The 1.2.6 guard pins only
     the literal `tomli_w` substrings, so a future `tomlkit`- or `tomllib`-based

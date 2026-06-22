@@ -17,7 +17,6 @@ Run `make audit` as the dependency vulnerability gate. It runs `pip-audit` for
 Python dependencies, and Rust-enabled projects also run `cargo audit` from the
 `rust_extension` crate directory.
 
-
 ## Shared test scaffolding
 
 [`tests/conftest.py`](../tests/conftest.py) is the single home for scaffolding
@@ -195,6 +194,25 @@ per-chapter `chapter-NN/{draft.md,done.flag}`), with planning artefacts under
 `working/plan/`. `novel-done` and `novel-compile --check` call the same
 compile-and-hash routine, so they cannot disagree about whether `compiled.md`
 is stale.
+
+### The state-layout direct-edit guard
+
+Because direct editing of `state.toml` is eliminated (design §4.1; ADR-002
+selects `tomlkit` as the only sanctioned writer), the state-layout skill
+reference [`skill/novel-ralph/references/state-layout.md`](../skill/novel-ralph/references/state-layout.md)
+must not carry any copy-pasteable recipe that writes `state.toml` outside
+`novel-state`. The guard
+[`tests/test_state_layout_reference.py`](../tests/test_state_layout_reference.py)
+enforces this: it scans the reference's executable code fences
+(`python`/`py`/`sh`/`bash`/`shell`/`console`) for a write primitive — a known
+TOML writer (`tomlkit.dump`, `tomli_w`, `.write_text`), an `open(` paired with a
+write-mode literal, a redirect or heredoc targeting the path, or a backstop
+`.write(` on the path — and fails `make test` if one names the state file. It
+leaves the atomic-write *prose* (design §3.4 and §5.3) and any `novel-state`
+invocation example untouched, so it never flags a read-only `open(…, "rb")`, an
+unrelated redirect, or the schema fence. Rewriting the reference prose to point
+at the `novel-state` commands remains roadmap task 6.2.3's job; the guard only
+keeps a hand-edit recipe from re-entering.
 
 ## GitHub Actions
 
