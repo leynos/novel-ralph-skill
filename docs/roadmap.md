@@ -145,6 +145,99 @@ docs/scripting-standards.md.
     "direct editing eliminated" violation; widen the guard to forbid any direct
     `state.toml`-write recipe, coordinated with task 6.2.3 which rewrites the
     reference prose to point at the `novel-state` commands.
+- [ ] 1.2.9. Tighten the `read_repo_text` fixture signature from
+  `Callable[..., str]` to a precise `(*parts: str) -> str` form.
+  - Remediation (source: review:1.2.7; severity: low). The ellipsis in
+    `cabc.Callable[..., str]` disables argument-count and type checking at every
+    call site; a documented variadic callable signature restores the static
+    arg-shape guarantee the plan's Interfaces section preferred without changing
+    behaviour.
+- [ ] 1.2.10. Replace the bare `sh.make(...)` expression statement in
+  `test_conftest_helpers` with an explicit assertion.
+  - Remediation (source: review:1.2.7; severity: low). A statement that discards
+    its result and asserts nothing reads as dead code and may be flagged by a
+    linter; making the "does not raise" intent explicit keeps the test's
+    guarantee self-evident to maintainers.
+- [ ] 1.2.11. Migrate `test_contract_test_deps` onto the shared conftest
+  fixtures and centralise dependency-name normalisation.
+  - Remediation (source: audit:1.2.7; severity: medium). The 1.2.7 consolidation
+    left `test_contract_test_deps.py` re-parsing `pyproject` itself and carrying
+    a second, weaker copy of the PEP 508 distribution-name normaliser; lifting a
+    `dist_name` fixture into `conftest` and migrating the module onto the
+    `pyproject`/`toml_table` fixtures removes both duplications in one move.
+- [ ] 1.2.12. Refresh `docs/contents.md` to index ADR 006 and the
+  `docs/issues/` and `docs/execplans/` sets.
+  - Remediation (source: audit:1.2.6; severity: low). The documentation index
+    omits the POSIX console-scripts ADR plus the growing audit-trail and
+    per-task plan sets, leaving the audit history and per-task plans
+    undiscoverable from the documentation map; long-open across audits 1.2.5
+    through 1.2.8.
+- [ ] 1.2.13. Extend the state-layout guard fence grammar to all CommonMark
+  fence forms (tilde, four-or-more backticks, indented).
+  - Remediation (source: review:1.2.8; severity: low). The `re`-based fence
+    matcher cannot see tilde, longer-backtick, or list-indented fences, a
+    structural blind spot that could silently drop a recipe once the reference
+    gains list-embedded examples; a stdlib dedent pre-pass or vetted lightweight
+    fence parser hardens it without breaching the no-AST-dependency spirit.
+- [ ] 1.2.14. Extend the state-layout write-recipe guard to rename, move, and
+  in-place writers across Python and shell.
+  - Remediation (source: review:1.2.8; severity: low). `os.rename`/`os.replace`,
+    `shutil.move`/`shutil.copy`, `sed -i`, `dd of=`, `sponge`, and
+    `cp`/`mv ... working/state.toml` all currently pass the guard clean even
+    though they write the state file outside `novel-state`; a path-anchored
+    write-verb heuristic closes the disclosed residual hole. Coordinate with
+    task 6.2.3, which rewrites the reference prose to point at `novel-state`.
+- [ ] 1.2.15. Extend the direct-edit guard to every skill reference that can
+  carry executable recipes.
+  - Remediation (source: review:1.2.8; severity: low). 1.2.8 scoped the guard to
+    `state-layout.md`; other references such as `done-conditions.md` contain
+    executable fences and could grow a hand-edit recipe no guard would catch. A
+    shared multi-file fence scanner closes that gap without per-file
+    duplication, landing naturally alongside the 1.2.7 shared-conftest work.
+- [ ] 1.2.16. Add a fuzz or property check that the guard's planted-recipe
+  forms survive whitespace, quoting, and flag-order variation.
+  - Remediation (source: review:1.2.8; severity: low). The parametrized matrix
+    encodes one concrete spelling per form, sharing the regex's own assumptions;
+    a property test that mutates whitespace, quoting, and flag ordering around
+    each planted recipe would catch anchor-too-tight regressions like the
+    no-space redirect automatically.
+- [ ] 1.2.17. Enforce a single code-fence style (MD048) in the markdownlint
+  configuration.
+  - Remediation (source: review:1.2.8; severity: low). markdownlint currently
+    accepts tilde fences, which is what made the guard bypass reachable in
+    practice; pinning backtick-only fences repo-wide gives defence-in-depth for
+    this and any future fence-scoped tooling.
+- [ ] 1.2.18. Split `tests/test_state_layout_reference.py` before it breaches
+  the 400-line module cap.
+  - Remediation (source: review:1.2.8; severity: low). At 400 of 400 permitted
+    lines the next planted row or negative test breaks the AGENTS.md
+    module-size gate; pre-emptively extracting the recipe corpus or the scanner
+    helpers into a small test-support module (coordinated with the 1.2.7 shared
+    conftest) keeps future guard hardening unblocked.
+- [ ] 1.2.19. Distinguish the live `state.toml` from its atomic `.new` sibling
+  in the state-layout guard.
+  - Remediation (source: review:1.2.8; severity: medium). `_STATE_FILE` matches
+    as a bare substring, so a fenced illustration of the design-mandated
+    write-then-rename discipline (design §3.4, §5.3) is false-flagged because
+    `state.toml` is a substring of `state.toml.new`; anchor the live-file match
+    on a word, quote, or end-of-line boundary and add a negative test for a
+    `.new`-only write-then-rename fence. Coordinate with task 6.2.3, which may
+    legitimately show that pattern.
+- [ ] 1.2.20. Reconcile the developers' guide state-layout guard section with
+  the merged 1.2.8 code.
+  - Remediation (source: audit:1.2.8; severity: medium). The guide understates
+    the broadened guard — the write-token list omits `.write_bytes`/`.writelines`
+    and the executable info-string list omits `python3`/`py3`/`pycon`, all of
+    which the code scans and the planted-recipe matrix depends on; a
+    one-paragraph edit keeps the orientation prose truthful about the guard's
+    reach.
+- [ ] 1.2.21. Extract a shared wrapper-app builder fixture for the contract
+  run-driver tests and fold the residual conftest table accessors.
+  - Remediation (source: audit:1.2.8; severity: low). The load-bearing
+    four-flag Cyclopts `_build_app` is duplicated across `test_contract_runner`
+    and `test_contract_properties`, and `_parse_scripts` duplicates an inline
+    nested `toml_table` access; a small `wrapper_app` fixture plus a
+    `project_scripts` walker in `conftest` makes both live once.
 
 ### 1.3. Build the shared contract scaffolding and test corpus
 
