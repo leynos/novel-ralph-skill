@@ -1,0 +1,10 @@
+# A per_page rule with page_words = "300" (a TOML string): must raise.
+schema_version = 1
+pack = "ai-isms"
+
+[[rule]]
+id = "stringpagewords"
+pattern = "\\bdelve\\b"
+threshold = 5
+basis = "per_page"
+page_words = "300"

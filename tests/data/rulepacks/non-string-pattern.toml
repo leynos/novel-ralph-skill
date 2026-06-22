@@ -1,0 +1,10 @@
+# pattern = 42 (an integer, not a string): rejected naming the rule, and NOT a
+# raw re.error/TypeError.
+schema_version = 1
+pack = "ai-isms"
+
+[[rule]]
+id = "numericpattern"
+pattern = 42
+threshold = 0
+basis = "manuscript"

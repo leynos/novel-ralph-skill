@@ -1,0 +1,9 @@
+# An unknown basis fails loudly, naming the rule (the closed-set check).
+schema_version = 1
+pack = "ai-isms"
+
+[[rule]]
+id = "perparagraph"
+pattern = "\\bvery\\b"
+threshold = 0
+basis = "per_paragraph"

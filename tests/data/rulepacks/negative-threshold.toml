@@ -1,0 +1,9 @@
+# A negative threshold is incoherent: rejected, naming the rule.
+schema_version = 1
+pack = "ai-isms"
+
+[[rule]]
+id = "tapestry"
+pattern = "\\btapestry\\b"
+threshold = -1
+basis = "manuscript"

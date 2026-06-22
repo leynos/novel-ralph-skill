@@ -1,0 +1,16 @@
+# Two rules sharing id "x". A duplicate id is rejected, naming the colliding
+# id, so a later RulePackError(rule_id="x") names exactly one rule.
+schema_version = 1
+pack = "ai-isms"
+
+[[rule]]
+id = "x"
+pattern = "\\btapestry\\b"
+threshold = 0
+basis = "manuscript"
+
+[[rule]]
+id = "x"
+pattern = "\\bdelve\\b"
+threshold = 5
+basis = "manuscript"

@@ -1,0 +1,9 @@
+# schema_version 2 is unsupported: the loader reports it rather than coercing.
+schema_version = 2
+pack = "ai-isms"
+
+[[rule]]
+id = "tapestry"
+pattern = "\\btapestry\\b"
+threshold = 0
+basis = "manuscript"

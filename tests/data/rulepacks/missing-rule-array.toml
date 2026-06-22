@@ -1,0 +1,4 @@
+# A pack with schema_version and pack but no 'rule' array at all
+# (rule_id is None).
+schema_version = 1
+pack = "ai-isms"

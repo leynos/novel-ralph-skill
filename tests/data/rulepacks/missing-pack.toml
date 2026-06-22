@@ -1,0 +1,8 @@
+# No top-level 'pack' key: a pack-level fault (rule_id is None).
+schema_version = 1
+
+[[rule]]
+id = "tapestry"
+pattern = "\\btapestry\\b"
+threshold = 0
+basis = "manuscript"

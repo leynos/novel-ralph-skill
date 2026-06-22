@@ -1,0 +1,11 @@
+# Structurally valid pack whose rule 'broken' carries an uncompilable pattern.
+# Loading this must raise RulePackError naming 'broken' (the roadmap 5.1.1
+# headline behaviour).
+schema_version = 1
+pack = "ai-isms"
+
+[[rule]]
+id = "broken"
+pattern = "a("
+threshold = 0
+basis = "manuscript"

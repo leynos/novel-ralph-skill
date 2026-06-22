@@ -1,0 +1,3 @@
+# Syntactically broken TOML: tomllib cannot decode this, so load_rulepack
+# raises RulePackFileError (the exit-3 channel), not RulePackError.
+schema_version = = 1

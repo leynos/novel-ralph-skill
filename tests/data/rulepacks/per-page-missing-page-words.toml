@@ -1,0 +1,9 @@
+# A per_page rule without page_words is incomplete: rejected, naming the rule.
+schema_version = 1
+pack = "ai-isms"
+
+[[rule]]
+id = "delve"
+pattern = "\\bdelve\\b"
+threshold = 5
+basis = "per_page"

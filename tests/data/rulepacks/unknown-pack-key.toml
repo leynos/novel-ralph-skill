@@ -1,0 +1,11 @@
+# A pack table carrying a stray top-level key. An unknown pack-level key is
+# rejected (rule_id is None) rather than silently ignored.
+schema_version = 1
+pack = "ai-isms"
+extra = "y"
+
+[[rule]]
+id = "tapestry"
+pattern = "\\btapestry\\b"
+threshold = 0
+basis = "manuscript"

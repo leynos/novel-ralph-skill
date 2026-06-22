@@ -1,0 +1,9 @@
+# threshold = "0" (a TOML string): must raise, not be cast to/treated as 0.
+schema_version = 1
+pack = "ai-isms"
+
+[[rule]]
+id = "stringthreshold"
+pattern = "\\bvery\\b"
+threshold = "0"
+basis = "manuscript"

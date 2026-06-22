@@ -1,0 +1,12 @@
+# A rule carrying a misspelled field ('thresold' for 'threshold'). An unknown
+# key is rejected, naming the rule, rather than silently ignored — the exact
+# "silently skipping a tell" failure mode roadmap 5.1.1 exists to eliminate.
+schema_version = 1
+pack = "ai-isms"
+
+[[rule]]
+id = "typokey"
+pattern = "\\btapestry\\b"
+threshold = 0
+thresold = 99
+basis = "manuscript"

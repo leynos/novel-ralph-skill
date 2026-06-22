@@ -1,0 +1,9 @@
+# A rule (id = "noprose") with no 'pattern': rejected before compilation,
+# naming "noprose".
+schema_version = 1
+pack = "ai-isms"
+
+[[rule]]
+id = "noprose"
+threshold = 0
+basis = "manuscript"

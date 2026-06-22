@@ -1,0 +1,5 @@
+# An explicitly empty 'rule' array: a pack must declare at least one rule
+# (rule_id is None).
+schema_version = 1
+pack = "ai-isms"
+rule = []

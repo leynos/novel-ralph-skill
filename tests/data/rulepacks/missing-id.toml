@@ -1,0 +1,8 @@
+# A rule with no 'id': the error names the rule index (rule_id is None).
+schema_version = 1
+pack = "ai-isms"
+
+[[rule]]
+pattern = "\\bvery\\b"
+threshold = 0
+basis = "manuscript"

@@ -1,0 +1,17 @@
+# A minimal well-formed rule pack echoing the design §6.1 example: one
+# manuscript-basis rule with zero tolerance and one per-page-basis rule.
+schema_version = 1
+pack = "ai-isms"
+
+[[rule]]
+id = "tapestry"
+pattern = "\\btapestry\\b"
+threshold = 0
+basis = "manuscript"
+
+[[rule]]
+id = "delve"
+pattern = "\\bdelve\\b"
+threshold = 5
+basis = "per_page"
+page_words = 300

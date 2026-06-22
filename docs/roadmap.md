@@ -518,7 +518,7 @@ and applied uniformly across a chapter or the whole manuscript. Its outcome is
 the rule-pack contract the later packs extend. See
 novel-ralph-harness-design.md §4.4, §6.1, and §1.
 
-- [ ] 5.1.1. Implement the versioned rule-pack loader and schema.
+- [x] 5.1.1. Implement the versioned rule-pack loader and schema.
   - Requires steps 1.1-1.3.
   - Load a TOML pack of `pattern`, `threshold`, and `basis` rules, validating
     `schema_version` and rejecting malformed patterns with exit 2 naming the

@@ -1,0 +1,9 @@
+# threshold = 0.0 (a TOML float): must raise — a float is not an int.
+schema_version = 1
+pack = "ai-isms"
+
+[[rule]]
+id = "floatthreshold"
+pattern = "\\bvery\\b"
+threshold = 0.0
+basis = "manuscript"

@@ -332,6 +332,44 @@ unrelated redirect, or the schema fence. Rewriting the reference prose to point
 at the `novel-state` commands remains roadmap task 6.2.3's job; the guard only
 keeps a hand-edit recipe from re-entering.
 
+
+### Rule packs and the loader boundary
+
+A *rule pack* is a versioned TOML file of prose-detection rules that
+`desloppify` reads to flag slop without baking the rules into code (design §4.4
+and §6.1). Each rule names a regular-expression `pattern`, a `threshold` (the
+allowed number of hits), and a counting `basis`; a `per_page` rule additionally
+carries a `page_words` page size. The typed, read-only model and its validating
+loader live in the `novel_ralph_skill.rulepack` package.
+
+`RuleBasis` is the closed two-member set of counting bases (`manuscript`,
+`per_page`); `Rule` and `RulePack` are frozen, slotted dataclasses, with each
+`Rule` carrying both the verbatim `pattern` (for reporting) and its compiled
+form (so detection never recompiles). The rule pack's `schema_version` is its
+own number, independent of the envelope's and `state.toml`'s (design §3.1); the
+current version is `RULEPACK_SCHEMA_VERSION` (`1`).
+
+`parse_rulepack(mapping)` is the pure boundary that builds a validated
+`RulePack` from a decoded mapping, and `load_rulepack(path)` is the thin
+`tomllib`-backed file convenience over it — the same parse-boundary split as
+`parse_state`/`load_state`. Unlike `parse_state`, which is a structural-only
+parse, the rule-pack loader is a *validating* boundary: it runtime-checks every
+field and compiles every pattern at load time, so a malformed pack fails loudly
+rather than silently skipping a bad rule. The loader is detect-only (ADR-001):
+it validates structure and compiles patterns but never judges prose.
+
+The loader splits its failures into the two exit-code channels `desloppify`
+(roadmap task 5.1.2) surfaces. Malformed *pack content* — a bad `schema_version`,
+a missing or wrong-typed field, an unknown `basis`, a non-positive `page_words`,
+a negative `threshold`, or an uncompilable `pattern` — raises `RulePackError`,
+which carries the offending `rule_id` (or `None` for a pack-level fault) and maps
+to exit 2, naming the rule. An absent, unreadable, or undecodable pack *file*
+raises `RulePackFileError`, which maps to exit 3. The loader itself emits no
+envelope and never calls `sys.exit`; exit-code translation is the command body's
+job, exactly as for `parse_state`. Task 5.1.2 wires the `desloppify` command on
+top of `load_rulepack` and is responsible for catching these two errors (or
+extending the runner's `except` chain) to map each to its `ExitCode`.
+
 ## GitHub Actions
 
 The generated repository includes GitHub Actions workflows and local composite
