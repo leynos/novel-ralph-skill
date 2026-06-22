@@ -710,3 +710,77 @@ which rewrites the reference prose.
   - Success: a property test over whitespace, quoting, and flag-order mutations
     of each planted recipe passes, demonstrating the matcher is not
     anchor-too-tight.
+
+### 7.4. Settle the durability contract for atomic state writes
+
+This step answers whether the spine's atomic-write discipline should guarantee
+power-loss durability (`fsync` of the temporary file and parent directory
+before `Path.replace`) in addition to the process-crash recovery it already
+provides, or whether power-loss durability is explicitly out of scope. Its
+outcome is a single house-wide contract every mutator inheriting the §3.4
+write discipline obeys, recorded once rather than decided ad hoc per mutator.
+The current discipline (temp file plus `Path.replace`) is sound against a
+process crash but leaves true power-loss durability undefined; this is a
+deferred hardening extension surfaced by the review of step 2.2, and it does
+not gate the deterministic spine.
+
+- [ ] 7.4.1. Decide and document the fsync/durability policy for atomic state
+  writes.
+  - Reroute (source: review:2.2.1; severity: low). The atomic writer in
+    `novel_ralph_skill/state/document.py` and the canonical
+    `docs/scripting-standards.md` "Reading / writing files and atomic updates"
+    pattern it follows both omit an `fsync` of the temporary file and the parent
+    directory before `Path.replace`, so process-crash recovery is sound but
+    power-loss durability is undefined. Make the house-wide decision once — adopt
+    an `fsync`-before-replace durability guarantee, or record power-loss
+    durability as explicitly out of scope with its rationale — and capture it in
+    `docs/scripting-standards.md` (and design §3.4) so every mutator inheriting
+    the helper shares one contract.
+  - Requires 2.2.1.
+  - See novel-ralph-harness-design.md §3.4 and §5.3;
+    docs/scripting-standards.md "Reading / writing files and atomic updates".
+  - Success: `docs/scripting-standards.md` states the durability contract for
+    atomic writes explicitly, the atomic-write helper conforms to whatever the
+    contract decides, and design §3.4 cross-references the decision so no later
+    mutator re-litigates it.
+
+### 7.5. Harden the documentation gates against scratch artefacts and dependency drift
+
+This step answers whether the repository's documentation and behavioural-test
+gates can be made robust to predictable churn — uncommitted review-round
+scratch files and a future `pytest` major-version bump — without weakening the
+guarantees they provide. Its outcome is a gate set that stays green on the
+artefacts a normal review cycle leaves behind and fails loudly, with a clear
+remedy, only on a genuine regression. These are deferred tooling-hygiene
+extensions surfaced by the review of step 2.2; they do not gate the
+deterministic spine.
+
+- [ ] 7.5.1. Stop review-round ExecPlan scratch artefacts from breaking the
+  whole-tree markdownlint gate.
+  - Reroute (source: review:2.2.1; severity: low). Untracked
+    `docs/execplans/*.review-r*.md` scratch files trip `make markdownlint`
+    (MD013) on a whole-tree run even though they are not part of any committed
+    change, so a routine review cycle can redden the aggregate gate. Adopt a
+    convention that keeps these out of the gate — a `.gitignore` rule for
+    `*.review-r*.md`, a markdownlint `ignores` entry, or a docs-lint scope
+    limited to tracked files — without suppressing lint on the committed
+    ExecPlans and their review rounds that are meant to be checked.
+  - Requires 1.3.1.
+  - See AGENTS.md "Markdown guidance"; `.markdownlint-cli2.jsonc`.
+  - Success: `make markdownlint` stays green in the presence of an untracked
+    `docs/execplans/foo.review-r1.md` scratch file, while committed ExecPlans
+    and their review rounds are still linted.
+- [ ] 7.5.2. Track and absorb the pytest-bdd / pytest 10 compatibility break.
+  - Reroute (source: review:2.2.1; severity: low). `pytest-bdd` 8.1.0 emits a
+    `PytestRemovedIn10Warning` under the current `pytest`, so a `pytest` 10
+    upgrade will break the behavioural suite the spine depends on; the pin bump
+    must be deliberate, taken when a compatible `pytest-bdd` ships. Either filter
+    the warning with a documented rationale until then, or bump `pytest-bdd` and
+    its version-pin guard in lockstep once a `pytest`-10-compatible release lands.
+  - Requires 2.2.1.
+  - See AGENTS.md "Python verification and testing";
+    `tests/test_pytest_bdd_dependency.py`.
+  - Success: the behavioural suite runs clean under the targeted `pytest`, the
+    `pytest-bdd` version pin and its guard move together with any bump, and the
+    `PytestRemovedIn10Warning` is either resolved or filtered with a recorded
+    reason.
