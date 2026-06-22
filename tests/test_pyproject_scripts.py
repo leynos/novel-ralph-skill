@@ -19,8 +19,7 @@ if typ.TYPE_CHECKING:
 
 def test_project_scripts_table_lists_the_five_commands(
     pyproject: dict[str, object],
-    toml_table: cabc.Callable[[cabc.Mapping[str, object], str], dict[str, object]],
+    project_scripts: cabc.Callable[[cabc.Mapping[str, object]], dict[str, object]],
 ) -> None:
     """The ``[project.scripts]`` table lists exactly the five expected names."""
-    scripts = toml_table(toml_table(pyproject, "project"), "scripts")
-    assert scripts == names.project_scripts_table()
+    assert project_scripts(pyproject) == names.project_scripts_table()

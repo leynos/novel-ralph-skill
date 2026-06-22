@@ -12,54 +12,21 @@ fixes for these tests.
 from __future__ import annotations
 
 import json
+import typing as typ
 
-import cyclopts
 import pytest
+from conftest import STATE_FAULT_MESSAGE
 
 from novel_ralph_skill.commands.names import COMMAND_NAMES
 from novel_ralph_skill.contract.exit_codes import ExitCode
-from novel_ralph_skill.contract.runner import (
-    CommandOutcome,
-    RunContext,
-    StateInputError,
-    run,
-)
+from novel_ralph_skill.contract.runner import CommandOutcome, RunContext, run
+
+if typ.TYPE_CHECKING:
+    import collections.abc as cabc
+
+    import cyclopts
 
 _COMMAND = COMMAND_NAMES[0]
-_STATE_FAULT = "state.toml is unparseable"
-
-
-def _build_app(outcome: CommandOutcome | None = None) -> cyclopts.App:
-    """Build a wrapper-configured app with one ``act`` subcommand.
-
-    Parameters
-    ----------
-    outcome : CommandOutcome | None
-        The outcome the ``act`` body returns. When ``None`` the body raises
-        :class:`StateInputError` instead, to exercise the exit-``3`` path.
-
-    Returns
-    -------
-    cyclopts.App
-        An app configured exactly as :func:`run` requires, with no catch-all
-        default so an unknown subcommand raises ``UnknownCommandError``.
-    """
-    app = cyclopts.App(
-        result_action="return_value",
-        exit_on_error=False,
-        print_error=False,
-        help_on_error=False,
-    )
-
-    @app.command
-    def act(name: str = "default") -> object:
-        """Return the configured outcome, or raise the state-error sentinel."""
-        del name
-        if outcome is None:
-            raise StateInputError(_STATE_FAULT)
-        return outcome
-
-    return app
 
 
 def _run(app: cyclopts.App, argv: list[str], *, human: bool = False) -> None:
@@ -86,7 +53,9 @@ def _run(app: cyclopts.App, argv: list[str], *, human: bool = False) -> None:
     [["nope"], ["act", "--bad"], ["act", "extra", "tokens", "here"]],
 )
 def test_usage_error_exits_two(
-    argv: list[str], capsys: pytest.CaptureFixture[str]
+    argv: list[str],
+    capsys: pytest.CaptureFixture[str],
+    wrapper_app: cabc.Callable[[CommandOutcome | None], cyclopts.App],
 ) -> None:
     """A malformed invocation exits ``2`` with an ``ok: false`` envelope.
 
@@ -96,13 +65,15 @@ def test_usage_error_exits_two(
         The malformed argument vector.
     capsys : pytest.CaptureFixture[str]
         Captures stdout to inspect the emitted envelope.
+    wrapper_app : Callable[[CommandOutcome | None], cyclopts.App]
+        The shared builder for a run-configured app.
 
     Returns
     -------
     None
         The assertions raise on failure.
     """
-    app = _build_app(CommandOutcome(code=ExitCode.SUCCESS))
+    app = wrapper_app(CommandOutcome(code=ExitCode.SUCCESS))
     with pytest.raises(SystemExit) as excinfo:
         _run(app, argv)
     assert excinfo.value.code == ExitCode.USAGE_ERROR
@@ -111,29 +82,37 @@ def test_usage_error_exits_two(
     assert parsed["command"] == _COMMAND
 
 
-def test_state_error_exits_three(capsys: pytest.CaptureFixture[str]) -> None:
+def test_state_error_exits_three(
+    capsys: pytest.CaptureFixture[str],
+    wrapper_app: cabc.Callable[[CommandOutcome | None], cyclopts.App],
+) -> None:
     """A body raising :class:`StateInputError` exits ``3``, ``ok: false``.
 
     Parameters
     ----------
     capsys : pytest.CaptureFixture[str]
         Captures stdout to inspect the emitted envelope.
+    wrapper_app : Callable[[CommandOutcome | None], cyclopts.App]
+        The shared builder for a run-configured app.
 
     Returns
     -------
     None
         The assertions raise on failure.
     """
-    app = _build_app(outcome=None)
+    app = wrapper_app(None)
     with pytest.raises(SystemExit) as excinfo:
         _run(app, ["act"])
     assert excinfo.value.code == ExitCode.STATE_ERROR
     parsed = json.loads(capsys.readouterr().out)
     assert parsed["ok"] is False
-    assert parsed["messages"] == [_STATE_FAULT]
+    assert parsed["messages"] == [STATE_FAULT_MESSAGE]
 
 
-def test_success_exits_zero(capsys: pytest.CaptureFixture[str]) -> None:
+def test_success_exits_zero(
+    capsys: pytest.CaptureFixture[str],
+    wrapper_app: cabc.Callable[[CommandOutcome | None], cyclopts.App],
+) -> None:
     """A success outcome exits ``0`` with ``ok: true``.
 
     This path runs only because ``result_action="return_value"`` returned
@@ -143,13 +122,15 @@ def test_success_exits_zero(capsys: pytest.CaptureFixture[str]) -> None:
     ----------
     capsys : pytest.CaptureFixture[str]
         Captures stdout to inspect the emitted envelope.
+    wrapper_app : Callable[[CommandOutcome | None], cyclopts.App]
+        The shared builder for a run-configured app.
 
     Returns
     -------
     None
         The assertions raise on failure.
     """
-    app = _build_app(CommandOutcome(code=ExitCode.SUCCESS, result={"cursor": "ch01"}))
+    app = wrapper_app(CommandOutcome(code=ExitCode.SUCCESS, result={"cursor": "ch01"}))
     with pytest.raises(SystemExit) as excinfo:
         _run(app, ["act"])
     assert excinfo.value.code == ExitCode.SUCCESS
@@ -163,7 +144,9 @@ def test_success_exits_zero(capsys: pytest.CaptureFixture[str]) -> None:
     [ExitCode.BENIGN_NEGATIVE, ExitCode.ACTIONABLE_FINDING],
 )
 def test_body_code_flows_through(
-    code: ExitCode, capsys: pytest.CaptureFixture[str]
+    code: ExitCode,
+    capsys: pytest.CaptureFixture[str],
+    wrapper_app: cabc.Callable[[CommandOutcome | None], cyclopts.App],
 ) -> None:
     """The benign-negative and actionable-finding codes flow through unchanged.
 
@@ -173,13 +156,15 @@ def test_body_code_flows_through(
         The body's returned exit code (``1`` or ``4``).
     capsys : pytest.CaptureFixture[str]
         Captures stdout to inspect the emitted envelope.
+    wrapper_app : Callable[[CommandOutcome | None], cyclopts.App]
+        The shared builder for a run-configured app.
 
     Returns
     -------
     None
         The assertions raise on failure.
     """
-    app = _build_app(CommandOutcome(code=code))
+    app = wrapper_app(CommandOutcome(code=code))
     with pytest.raises(SystemExit) as excinfo:
         _run(app, ["act"])
     assert excinfo.value.code == code
@@ -188,6 +173,7 @@ def test_body_code_flows_through(
 
 def test_benign_and_actionable_are_not_interchangeable(
     capsys: pytest.CaptureFixture[str],
+    wrapper_app: cabc.Callable[[CommandOutcome | None], cyclopts.App],
 ) -> None:
     """The ``1`` and ``4`` codes are distinct and not interchangeable.
 
@@ -199,6 +185,8 @@ def test_benign_and_actionable_are_not_interchangeable(
     ----------
     capsys : pytest.CaptureFixture[str]
         Captures stdout (drained after each invocation).
+    wrapper_app : Callable[[CommandOutcome | None], cyclopts.App]
+        The shared builder for a run-configured app.
 
     Returns
     -------
@@ -207,7 +195,7 @@ def test_benign_and_actionable_are_not_interchangeable(
     """
     codes: dict[ExitCode, int] = {}
     for code in (ExitCode.BENIGN_NEGATIVE, ExitCode.ACTIONABLE_FINDING):
-        app = _build_app(CommandOutcome(code=code))
+        app = wrapper_app(CommandOutcome(code=code))
         with pytest.raises(SystemExit) as excinfo:
             _run(app, ["act"])
         assert isinstance(excinfo.value.code, int)
@@ -220,7 +208,9 @@ def test_benign_and_actionable_are_not_interchangeable(
 
 @pytest.mark.parametrize("flag", ["--help", "--version"])
 def test_help_and_version_exit_zero_without_envelope(
-    flag: str, capsys: pytest.CaptureFixture[str]
+    flag: str,
+    capsys: pytest.CaptureFixture[str],
+    wrapper_app: cabc.Callable[[CommandOutcome | None], cyclopts.App],
 ) -> None:
     """``--help``/``--version`` exit ``0`` and emit no envelope.
 
@@ -230,13 +220,15 @@ def test_help_and_version_exit_zero_without_envelope(
         The meta flag under test.
     capsys : pytest.CaptureFixture[str]
         Captures stdout to confirm no envelope is emitted.
+    wrapper_app : Callable[[CommandOutcome | None], cyclopts.App]
+        The shared builder for a run-configured app.
 
     Returns
     -------
     None
         The assertions raise on failure.
     """
-    app = _build_app(CommandOutcome(code=ExitCode.SUCCESS))
+    app = wrapper_app(CommandOutcome(code=ExitCode.SUCCESS))
     with pytest.raises(SystemExit) as excinfo:
         _run(app, [flag])
     assert excinfo.value.code == ExitCode.SUCCESS
@@ -249,6 +241,7 @@ def test_help_and_version_exit_zero_without_envelope(
 
 def test_human_flag_switches_rendering(
     capsys: pytest.CaptureFixture[str],
+    wrapper_app: cabc.Callable[[CommandOutcome | None], cyclopts.App],
 ) -> None:
     """``--human`` switches stdout to the human rendering at the same code.
 
@@ -256,13 +249,15 @@ def test_human_flag_switches_rendering(
     ----------
     capsys : pytest.CaptureFixture[str]
         Captures stdout to inspect the human rendering.
+    wrapper_app : Callable[[CommandOutcome | None], cyclopts.App]
+        The shared builder for a run-configured app.
 
     Returns
     -------
     None
         The assertions raise on failure.
     """
-    app = _build_app(
+    app = wrapper_app(
         CommandOutcome(code=ExitCode.SUCCESS, messages=["state initialised"])
     )
     with pytest.raises(SystemExit) as excinfo:

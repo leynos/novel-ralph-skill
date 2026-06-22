@@ -80,6 +80,16 @@ def test_toml_table_rejects_a_non_table(
         toml_table(parent, "scalar")
 
 
+def test_project_scripts_walks_to_the_scripts_table(
+    project_scripts: cabc.Callable[[cabc.Mapping[str, object]], dict[str, object]],
+) -> None:
+    """``project_scripts`` returns the nested ``[project.scripts]`` sub-table."""
+    parsed: dict[str, object] = {"project": {"scripts": {"cmd": "pkg.mod:main"}}}
+    assert project_scripts(parsed) == {"cmd": "pkg.mod:main"}, (
+        "project_scripts did not return the [project.scripts] table verbatim"
+    )
+
+
 @pytest.mark.parametrize(
     ("spec", "expected"),
     [

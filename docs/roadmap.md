@@ -218,7 +218,7 @@ drift and seeds the snapshot suite. See novel-ralph-harness-design.md §3 and §
     malformed invocation yields code 2, an unparseable or missing `state.toml`
     yields code 3, and codes 1 and 4 carry distinct, non-interchangeable
     meanings. A snapshot pins the envelope shape for each code.
-  - [ ] 1.3.1.1. Extract a shared wrapper-app builder fixture for the contract
+  - [x] 1.3.1.1. Extract a shared wrapper-app builder fixture for the contract
     run-driver tests and fold the residual conftest table accessors.
     - Addendum (from audit:1.2.8; severity: low). The four-flag Cyclopts
       `_build_app` is duplicated across `test_contract_runner` and

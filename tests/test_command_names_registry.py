@@ -18,25 +18,17 @@ if typ.TYPE_CHECKING:
     import collections.abc as cabc
 
 
-def _parse_scripts(
-    pyproject: dict[str, object],
-    toml_table: cabc.Callable[[cabc.Mapping[str, object], str], dict[str, object]],
-) -> dict[str, object]:
-    """Return the ``[project.scripts]`` table from the parsed ``pyproject``."""
-    return toml_table(toml_table(pyproject, "project"), "scripts")
-
-
 def test_registry_matches_project_scripts(
     pyproject: dict[str, object],
-    toml_table: cabc.Callable[[cabc.Mapping[str, object], str], dict[str, object]],
+    project_scripts: cabc.Callable[[cabc.Mapping[str, object]], dict[str, object]],
 ) -> None:
     """The registry-derived table equals ``[project.scripts]`` exactly."""
-    assert _parse_scripts(pyproject, toml_table) == names.project_scripts_table()
+    assert project_scripts(pyproject) == names.project_scripts_table()
 
 
 def test_registry_order_matches_table(
     pyproject: dict[str, object],
-    toml_table: cabc.Callable[[cabc.Mapping[str, object], str], dict[str, object]],
+    project_scripts: cabc.Callable[[cabc.Mapping[str, object]], dict[str, object]],
 ) -> None:
     """The TOML parse order matches the registry's registration order.
 
@@ -44,7 +36,7 @@ def test_registry_order_matches_table(
     :data:`~novel_ralph_skill.commands.names.COMMAND_NAMES` catches a reordering
     that the order-insensitive dict equality above would miss.
     """
-    assert list(_parse_scripts(pyproject, toml_table)) == list(names.COMMAND_NAMES)
+    assert list(project_scripts(pyproject)) == list(names.COMMAND_NAMES)
 
 
 def test_entry_points_resolve_to_callables() -> None:

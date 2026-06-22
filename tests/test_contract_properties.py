@@ -16,8 +16,8 @@ function-scoped fixture, which would raise
 from __future__ import annotations
 
 import json
+import typing as typ
 
-import cyclopts
 import pytest
 from hypothesis import given
 from hypothesis import strategies as st
@@ -25,15 +25,14 @@ from hypothesis import strategies as st
 from novel_ralph_skill.commands.names import COMMAND_NAMES
 from novel_ralph_skill.contract.envelope import build_envelope
 from novel_ralph_skill.contract.exit_codes import ExitCode
-from novel_ralph_skill.contract.runner import (
-    CommandOutcome,
-    RunContext,
-    StateInputError,
-    run,
-)
+from novel_ralph_skill.contract.runner import CommandOutcome, RunContext, run
+
+if typ.TYPE_CHECKING:
+    import collections.abc as cabc
+
+    import cyclopts
 
 _NON_ZERO_CODES = tuple(code for code in ExitCode if code is not ExitCode.SUCCESS)
-_STATE_FAULT = "state.toml is missing"
 
 # why: small JSON-serialisable values, so the generated result/messages exercise
 # the envelope without tripping the renderer on exotic objects.
@@ -128,37 +127,6 @@ def test_non_zero_codes_are_pairwise_distinct() -> None:
     assert int(ExitCode.USAGE_ERROR) != int(ExitCode.STATE_ERROR)
 
 
-def _build_app(outcome: CommandOutcome | None) -> cyclopts.App:
-    """Build a wrapper-configured app with one ``act`` subcommand.
-
-    Parameters
-    ----------
-    outcome : CommandOutcome | None
-        The outcome the body returns; ``None`` makes it raise
-        :class:`StateInputError`.
-
-    Returns
-    -------
-    cyclopts.App
-        An app configured as :func:`run` requires, with no catch-all default.
-    """
-    app = cyclopts.App(
-        result_action="return_value",
-        exit_on_error=False,
-        print_error=False,
-        help_on_error=False,
-    )
-
-    @app.command
-    def act() -> object:
-        """Return the outcome, or raise the state-error sentinel."""
-        if outcome is None:
-            raise StateInputError(_STATE_FAULT)
-        return outcome
-
-    return app
-
-
 def _drive(app: cyclopts.App, argv: list[str]) -> int:
     """Drive ``app`` through :func:`run` and return the captured exit code.
 
@@ -184,6 +152,7 @@ def _drive(app: cyclopts.App, argv: list[str]) -> int:
 
 def test_malformed_invocation_maps_to_two(
     capsys: pytest.CaptureFixture[str],
+    wrapper_app: cabc.Callable[[CommandOutcome | None], cyclopts.App],
 ) -> None:
     """A malformed invocation maps to exit ``2`` (the roadmap-named case).
 
@@ -191,34 +160,40 @@ def test_malformed_invocation_maps_to_two(
     ----------
     capsys : pytest.CaptureFixture[str]
         Captures and drains stdout.
+    wrapper_app : Callable[[CommandOutcome | None], cyclopts.App]
+        The shared builder for a run-configured app.
 
     Returns
     -------
     None
         The assertion raises on failure.
     """
-    app = _build_app(CommandOutcome(code=ExitCode.SUCCESS))
+    app = wrapper_app(CommandOutcome(code=ExitCode.SUCCESS))
     assert _drive(app, ["nope"]) == ExitCode.USAGE_ERROR
     assert json.loads(capsys.readouterr().out)["ok"] is False
 
 
 def test_state_fault_maps_to_three(
     capsys: pytest.CaptureFixture[str],
+    wrapper_app: cabc.Callable[[CommandOutcome | None], cyclopts.App],
 ) -> None:
     """An unparseable/missing ``state.toml`` maps to exit ``3``.
 
-    Modelled via :class:`StateInputError`, the contract's exit-``3`` channel.
+    Modelled via :class:`~novel_ralph_skill.contract.runner.StateInputError`,
+    the contract's exit-``3`` channel.
 
     Parameters
     ----------
     capsys : pytest.CaptureFixture[str]
         Captures and drains stdout.
+    wrapper_app : Callable[[CommandOutcome | None], cyclopts.App]
+        The shared builder for a run-configured app.
 
     Returns
     -------
     None
         The assertion raises on failure.
     """
-    app = _build_app(None)
+    app = wrapper_app(None)
     assert _drive(app, ["act"]) == ExitCode.STATE_ERROR
     assert json.loads(capsys.readouterr().out)["ok"] is False

@@ -24,8 +24,11 @@ import tomllib
 import typing as typ
 from pathlib import Path
 
+import cyclopts
 import pytest
 from cuprum import ProgramCatalogue, ProjectSettings
+
+from novel_ralph_skill.contract.runner import CommandOutcome, StateInputError
 
 if typ.TYPE_CHECKING:
     import collections.abc as cabc
@@ -59,6 +62,12 @@ if typ.TYPE_CHECKING:
 # Leading run of a PEP 508 requirement string before any version specifier,
 # extras bracket, marker, or whitespace; this is the bare distribution name.
 _DIST_NAME = re.compile(r"^[A-Za-z0-9](?:[A-Za-z0-9._-]*[A-Za-z0-9])?")
+
+# The state-fault message the shared ``wrapper_app`` body raises through
+# :class:`StateInputError`; consuming suites import it to assert the envelope's
+# ``messages`` carry the fault verbatim on the exit-``3`` path.
+STATE_FAULT_MESSAGE: typ.Final = "state.toml is unparseable or missing"
+_STATE_FAULT_MESSAGE = STATE_FAULT_MESSAGE
 
 
 @pytest.fixture(scope="session")
@@ -136,6 +145,35 @@ def toml_table() -> cabc.Callable[[cabc.Mapping[str, object], str], dict[str, ob
                 raise AssertionError(msg)
 
     return _table
+
+
+@pytest.fixture
+def project_scripts(
+    toml_table: cabc.Callable[[cabc.Mapping[str, object], str], dict[str, object]],
+) -> cabc.Callable[[cabc.Mapping[str, object]], dict[str, object]]:
+    """Return a walker yielding the ``[project.scripts]`` table from a parse.
+
+    The walker folds the ``toml_table(toml_table(parsed, "project"), "scripts")``
+    descent that the pyproject-scripts and command-name-registry suites each
+    spelled out inline, so the two-step descent lives once (``audit:1.2.8``).
+
+    Parameters
+    ----------
+    toml_table : Callable[[Mapping[str, object], str], dict[str, object]]
+        The shared table accessor performing each narrowing step.
+
+    Returns
+    -------
+    Callable[[Mapping[str, object]], dict[str, object]]
+        A callable ``(parsed) -> dict[str, object]`` returning the
+        ``[project.scripts]`` sub-table of a parsed ``pyproject`` mapping.
+    """
+
+    def _scripts(parsed: cabc.Mapping[str, object]) -> dict[str, object]:
+        """Return the ``[project.scripts]`` table from ``parsed``."""
+        return toml_table(toml_table(parsed, "project"), "scripts")
+
+    return _scripts
 
 
 @pytest.fixture
@@ -221,3 +259,47 @@ def venv_scripts_dir() -> cabc.Callable[[Path], Path]:
         return Path(scripts)
 
     return _resolve
+
+
+@pytest.fixture
+def wrapper_app() -> cabc.Callable[[CommandOutcome | None], cyclopts.App]:
+    """Return a builder for a :func:`~novel_ralph_skill.contract.runner.run` app.
+
+    The builder mirrors the four-flag Cyclopts app the contract run-driver tests
+    construct repeatedly: ``result_action="return_value"`` (so ``run`` owns every
+    ``sys.exit`` and envelope emission), ``exit_on_error=False`` (so usage faults
+    raise a ``CycloptsError`` for ``run`` to map to exit ``2``), and
+    ``print_error=False, help_on_error=False`` (so Cyclopts emits no Rich panel).
+    It registers one ``act`` subcommand and no catch-all default, so an unknown
+    subcommand raises ``UnknownCommandError``. The body returns the supplied
+    outcome, or raises :class:`~novel_ralph_skill.contract.runner.StateInputError`
+    when the outcome is ``None`` to exercise the exit-``3`` path. The ``act`` body
+    accepts an optional ``name`` argument so a caller can supply extra tokens to
+    provoke a usage error; callers that do not need it simply omit it.
+
+    Returns
+    -------
+    Callable[[CommandOutcome | None], cyclopts.App]
+        A callable ``(outcome) -> cyclopts.App`` building the run-configured app.
+    """
+
+    def _build(outcome: CommandOutcome | None = None) -> cyclopts.App:
+        """Return a run-configured app whose ``act`` body honours ``outcome``."""
+        app = cyclopts.App(
+            result_action="return_value",
+            exit_on_error=False,
+            print_error=False,
+            help_on_error=False,
+        )
+
+        @app.command
+        def act(name: str = "default") -> object:
+            """Return the configured outcome, or raise the state-error sentinel."""
+            del name
+            if outcome is None:
+                raise StateInputError(_STATE_FAULT_MESSAGE)
+            return outcome
+
+        return app
+
+    return _build

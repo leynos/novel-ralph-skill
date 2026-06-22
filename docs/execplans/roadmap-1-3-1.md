@@ -979,7 +979,7 @@ a small addendum pass — no plan or design-review cycle: make the change, run
 `make all`, `coderabbit review --agent`, commit, and tick the roadmap sub-task
 on merge.
 
-- [ ] 1.3.1.1 — Extract a shared wrapper-app builder fixture for the contract
+- [x] 1.3.1.1 — Extract a shared wrapper-app builder fixture for the contract
   run-driver tests and fold the residual conftest table accessors (from
   audit:1.2.8, low). The four-flag Cyclopts `_build_app` is duplicated across
   `test_contract_runner` and `test_contract_properties`, and `_parse_scripts`
