@@ -234,14 +234,14 @@ drift and seeds the snapshot suite. See novel-ralph-harness-design.md §3 and §
   - See novel-ralph-harness-design.md §5 and §9.
   - Success: the corpus is consumed unchanged by the slice suites in
     phases 2-6, so no slice re-rolls fixtures.
-  - [ ] 1.3.2.1. Disambiguate the three consecutive-clean sub-rules in the
+  - [x] 1.3.2.1. Disambiguate the three consecutive-clean sub-rules in the
     corpus oracle vocabulary.
     - Addendum (from audit:1.3.2; severity: low). Design §5.2 invariant 4
       bundles three sub-rules the oracle collapses onto the single
       `consecutive-clean-bound` name, so the set-equality self-test cannot tell
       the three targeting variants apart and two sub-rules could silently stop
       being exercised. Lightweight addendum pass.
-  - [ ] 1.3.2.2. Model a `done.flag` beside an absent `draft.md` in the corpus
+  - [x] 1.3.2.2. Model a `done.flag` beside an absent `draft.md` in the corpus
     builder.
     - Addendum (from review:1.3.2; severity: low). The builder always writes
       `draft.md`, so the design §5.4 absent-draft contradiction has no fixture;

@@ -155,12 +155,18 @@ def _build_state_document(spec: WorkingTreeSpec) -> tomlkit.TOMLDocument:
 
 
 def _write_chapter(chapter: ChapterSpec, manuscript: Path) -> None:
-    """Write one chapter directory: ``draft.md`` and optional ``done.flag``."""
+    """Write one chapter directory: optional ``draft.md`` and ``done.flag``.
+
+    ``draft.md`` is suppressed entirely when ``write_draft`` is ``False`` so the
+    directory has no draft at all (the design §5.4 ``done.flag``-beside-absent-
+    ``draft.md`` case); otherwise it is written, empty when ``draft_words`` is 0.
+    """
     chapter_dir = manuscript / chapter_dir_name(chapter.number)
     chapter_dir.mkdir(parents=True, exist_ok=True)
-    (chapter_dir / "draft.md").write_text(
-        draft_body(chapter.draft_words), encoding="utf-8"
-    )
+    if chapter.write_draft:
+        (chapter_dir / "draft.md").write_text(
+            draft_body(chapter.draft_words), encoding="utf-8"
+        )
     if chapter.has_done_flag:
         (chapter_dir / "done.flag").touch()
 

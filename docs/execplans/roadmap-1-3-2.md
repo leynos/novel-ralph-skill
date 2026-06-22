@@ -1370,7 +1370,7 @@ each as a small addendum pass — no plan or design-review cycle: make the chang
 run `make all`, `coderabbit review --agent`, commit, and tick the roadmap
 sub-task on merge.
 
-- [ ] 1.3.2.1 — Disambiguate the three consecutive-clean sub-rules in the oracle
+- [x] 1.3.2.1 — Disambiguate the three consecutive-clean sub-rules in the oracle
   vocabulary (from audit:1.3.2, low). Design §5.2 invariant 4 bundles three
   sub-rules (`consecutive_clean ≥ 0`, `consecutive_clean ≤ convergence_target`,
   `consecutive_clean ≤ chapters drafted`) that the oracle collapses onto the
@@ -1383,7 +1383,7 @@ sub-task on merge.
   variant breaks) so the corpus vocabulary mirrors the design's distinct
   sub-rules and strengthens task 2.1.2's cross-check. Test-only; the
   `CORPUS_INVARIANT_NAMES` vocabulary and the variant set are the surface.
-- [ ] 1.3.2.2 — Model a `done.flag` beside an *absent* `draft.md` in the corpus
+- [x] 1.3.2.2 — Model a `done.flag` beside an *absent* `draft.md` in the corpus
   builder (from review:1.3.2, low). Design §5.4 names the absent-draft
   contradiction ("a `done.flag` beside an empty *or absent* `draft.md`"), but
   the builder always writes `draft.md`, so only the empty-draft case

@@ -100,6 +100,29 @@ class TestBuildWorkingTree:
         assert not (working / "compiled.md").exists()
         assert not (working / "chapter-01").exists()
 
+    def test_write_draft_false_suppresses_draft_md(
+        self,
+        tmp_path: Path,
+        make_chapter_spec: cabc.Callable[..., ChapterSpec],
+        make_working_tree_spec: cabc.Callable[..., WorkingTreeSpec],
+        build_tree: cabc.Callable[..., Path],
+    ) -> None:
+        """``write_draft=False`` leaves a ``done.flag`` beside an absent draft.
+
+        The design §5.4 ``done.flag``-beside-absent-``draft.md`` contradiction
+        the always-written empty draft cannot reach: the chapter directory and
+        its ``done.flag`` are present, but ``draft.md`` is suppressed entirely.
+        """
+        spec = _minimal_spec(make_chapter_spec, make_working_tree_spec)
+        absent = dc.replace(
+            spec.chapters[0], draft_words=0, has_done_flag=True, write_draft=False
+        )
+        spec = dc.replace(spec, chapters=(absent, *spec.chapters[1:]))
+        chapter_dir = build_tree(spec, tmp_path) / "manuscript" / "chapter-01"
+        assert chapter_dir.is_dir()
+        assert (chapter_dir / "done.flag").is_file()
+        assert not (chapter_dir / "draft.md").exists()
+
     def test_state_decodes_to_declared_values(
         self,
         tmp_path: Path,

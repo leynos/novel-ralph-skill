@@ -37,7 +37,13 @@ if typ.TYPE_CHECKING:
 PHASE_IN_ENUM = "phase-in-enum"
 COMPLETED_PREFIX = "completed-prefix"
 BY_CHAPTER_SUM = "by-chapter-sum"
-CONSECUTIVE_CLEAN_BOUND = "consecutive-clean-bound"
+# Design §5.2 invariant 4 bundles three distinct sub-rules; the oracle names
+# each one separately so a variant pins exactly the sub-rule it breaks and no
+# sub-rule can silently stop being exercised (task 2.1.2's cross-check keys on
+# these same strings).
+CONSECUTIVE_CLEAN_WITHIN_TARGET = "consecutive-clean-within-target"
+CONVERGENCE_TARGET_AT_LEAST_ONE = "convergence-target-at-least-one"
+CONSECUTIVE_CLEAN_WITHIN_DRAFTED = "consecutive-clean-within-drafted"
 MANIFEST_DISK_BIJECTION = "manifest-disk-bijection"
 CURSOR_COHERENT = "cursor-coherent"
 GATE_RATIO_CONSISTENT = "gate-ratio-consistent"
@@ -49,7 +55,9 @@ CORPUS_INVARIANT_NAMES: tuple[str, ...] = (
     PHASE_IN_ENUM,
     COMPLETED_PREFIX,
     BY_CHAPTER_SUM,
-    CONSECUTIVE_CLEAN_BOUND,
+    CONSECUTIVE_CLEAN_WITHIN_TARGET,
+    CONVERGENCE_TARGET_AT_LEAST_ONE,
+    CONSECUTIVE_CLEAN_WITHIN_DRAFTED,
     MANIFEST_DISK_BIJECTION,
     CURSOR_COHERENT,
     GATE_RATIO_CONSISTENT,
@@ -91,18 +99,34 @@ def _check_by_chapter_sum(working_dir: Path) -> bool:
     return sum(word_counts["by_chapter"].values()) == word_counts["current"]
 
 
-def _check_consecutive_clean_bound(spec: WorkingTreeSpec) -> bool:
-    """Return True when ``consecutive_clean`` is within its bounds (invariant 4).
+def _check_consecutive_clean_within_target(spec: WorkingTreeSpec) -> bool:
+    """Return True when ``consecutive_clean`` is within its ceiling (inv 4a).
 
-    ``0 <= consecutive_clean <= convergence_target``, ``convergence_target >= 1``,
-    and ``consecutive_clean`` never exceeds the number of chapters drafted.
+    ``0 <= consecutive_clean <= convergence_target``: the counter is
+    non-negative and never exceeds the configured ``convergence_target`` ceiling.
+    A ``convergence_target`` below 1 is :func:`_check_convergence_target_at_least_one`'s
+    concern, not this one.
+    """
+    return 0 <= spec.consecutive_clean <= spec.convergence_target
+
+
+def _check_convergence_target_at_least_one(spec: WorkingTreeSpec) -> bool:
+    """Return True when ``convergence_target`` is at least 1 (invariant 4b).
+
+    Design §5.2 invariant 4 rejects a ``convergence_target`` below 1 outright,
+    independently of the ``consecutive_clean`` value it bounds.
+    """
+    return spec.convergence_target >= 1
+
+
+def _check_consecutive_clean_within_drafted(spec: WorkingTreeSpec) -> bool:
+    """Return True when ``consecutive_clean`` is within drafted chapters (inv 4c).
+
+    ``consecutive_clean`` never exceeds the number of chapters drafted; a
+    clean-pass count larger than the drafted set cannot have been earned.
     """
     drafted = sum(1 for chapter in spec.chapters if chapter.draft_words > 0)
-    return (
-        spec.convergence_target >= 1
-        and 0 <= spec.consecutive_clean <= spec.convergence_target
-        and spec.consecutive_clean <= drafted
-    )
+    return spec.consecutive_clean <= drafted
 
 
 def _check_manifest_disk_bijection(spec: WorkingTreeSpec) -> bool:
@@ -196,7 +220,9 @@ def _check_compiled_matches_drafts(spec: WorkingTreeSpec, working_dir: Path) -> 
 _SPEC_CHECKS: tuple[tuple[str, cabc.Callable[[WorkingTreeSpec], bool]], ...] = (
     (PHASE_IN_ENUM, _check_phase_in_enum),
     (COMPLETED_PREFIX, _check_completed_prefix),
-    (CONSECUTIVE_CLEAN_BOUND, _check_consecutive_clean_bound),
+    (CONSECUTIVE_CLEAN_WITHIN_TARGET, _check_consecutive_clean_within_target),
+    (CONVERGENCE_TARGET_AT_LEAST_ONE, _check_convergence_target_at_least_one),
+    (CONSECUTIVE_CLEAN_WITHIN_DRAFTED, _check_consecutive_clean_within_drafted),
     (MANIFEST_DISK_BIJECTION, _check_manifest_disk_bijection),
     (CURSOR_COHERENT, _check_cursor_coherent),
     (GATE_RATIO_CONSISTENT, _check_gate_ratio_consistent),

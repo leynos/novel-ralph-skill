@@ -78,6 +78,12 @@ class ChapterSpec:
         When true (the default), the chapter has a matching ``[chapters]``
         manifest entry; ``False`` models a ``chapter-NN/`` directory with no
         manifest entry, for the bijection-violation variant.
+    write_draft : bool
+        When true (the default), the builder writes ``draft.md`` (empty when
+        ``draft_words`` is ``0``); ``False`` suppresses the write entirely so
+        the chapter directory has *no* ``draft.md`` — modelling the design §5.4
+        ``done.flag`` beside an *absent* ``draft.md`` contradiction (which the
+        always-written empty case alone cannot reach).
     """
 
     number: int
@@ -87,6 +93,7 @@ class ChapterSpec:
     draft_words: int
     has_done_flag: bool
     in_manifest: bool = True
+    write_draft: bool = True
 
 
 @dc.dataclass(frozen=True, kw_only=True)

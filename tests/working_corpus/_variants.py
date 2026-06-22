@@ -52,6 +52,21 @@ def _flag_first_chapter_empty() -> WorkingTreeSpec:
     return _with_chapters((empty, *rest))
 
 
+def _flag_first_chapter_absent_draft() -> WorkingTreeSpec:
+    """Return a spec whose first flagged chapter has *no* ``draft.md`` at all.
+
+    The chapter carries a ``done.flag`` but the builder suppresses its
+    ``draft.md`` write (``write_draft=False``), so on disk the directory holds a
+    flag beside an absent draft — the design §5.4 case the always-written empty
+    draft cannot reach. ``draft_words`` stays 0 so the oracle's
+    ``has_done_flag and draft_words == 0`` branch flags it exactly as it flags
+    the empty-draft case.
+    """
+    first, *rest = _BASE_CHAPTERS
+    absent = dc.replace(first, draft_words=0, has_done_flag=True, write_draft=False)
+    return _with_chapters((absent, *rest))
+
+
 def _gate_true_below_threshold() -> WorkingTreeSpec:
     """Return a spec flipping a gate true while ``current`` stays honest.
 
@@ -101,11 +116,11 @@ def _build_incoherent_variants() -> dict[str, tuple[WorkingTreeSpec, str]]:
         ),
         "consecutive-clean-over-target": (
             dc.replace(_BASE, consecutive_clean=2, convergence_target=1),
-            oracle.CONSECUTIVE_CLEAN_BOUND,
+            oracle.CONSECUTIVE_CLEAN_WITHIN_TARGET,
         ),
         "convergence-target-below-one": (
             dc.replace(_BASE, consecutive_clean=0, convergence_target=0),
-            oracle.CONSECUTIVE_CLEAN_BOUND,
+            oracle.CONVERGENCE_TARGET_AT_LEAST_ONE,
         ),
         "consecutive-clean-over-chapters-drafted": (
             _with_chapters(
@@ -114,7 +129,7 @@ def _build_incoherent_variants() -> dict[str, tuple[WorkingTreeSpec, str]]:
                 convergence_target=3,
                 current_chapter=1,
             ),
-            oracle.CONSECUTIVE_CLEAN_BOUND,
+            oracle.CONSECUTIVE_CLEAN_WITHIN_DRAFTED,
         ),
         "manifest-extra-entry": (
             dc.replace(_BASE, manifest_only_numbers=(len(_BASE_CHAPTERS) + 1,)),
@@ -134,6 +149,10 @@ def _build_incoherent_variants() -> dict[str, tuple[WorkingTreeSpec, str]]:
         ),
         "done-flag-empty-draft": (
             _flag_first_chapter_empty(),
+            oracle.DONE_FLAG_WITHOUT_DRAFT,
+        ),
+        "done-flag-absent-draft": (
+            _flag_first_chapter_absent_draft(),
             oracle.DONE_FLAG_WITHOUT_DRAFT,
         ),
         "compiled-not-concatenation-of-drafts": (
