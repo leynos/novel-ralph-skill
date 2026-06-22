@@ -226,7 +226,7 @@ drift and seeds the snapshot suite. See novel-ralph-harness-design.md §3 and §
       `toml_table` access; a `wrapper_app` fixture plus a `project_scripts`
       walker in `conftest` makes both live once. Lightweight addendum pass
       against the 1.3.1 execplan.
-- [ ] 1.3.2. Build the on-disk `working/` fixture corpus.
+- [x] 1.3.2. Build the on-disk `working/` fixture corpus.
   - Requires 1.2.1.
   - Provide reusable `tmp_path` fixtures spanning all eleven phase states,
     coherent and deliberately incoherent `state.toml` variants, and chapter

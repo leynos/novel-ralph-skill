@@ -30,10 +30,28 @@ from cuprum import ProgramCatalogue, ProjectSettings
 
 from novel_ralph_skill.contract.runner import CommandOutcome, StateInputError
 
+# Register the corpus fixture plugin (roadmap 1.3.2). The corpus fixtures live in
+# ``tests/corpus_fixtures.py`` rather than here because the corpus surface would
+# push this module past the 400-line cap (AGENTS.md lines 24-27); a registered
+# plugin keeps every fixture available by name exactly as a ``conftest`` fixture
+# would be. ``conftest`` still re-exports the spec *types* under its
+# ``TYPE_CHECKING`` guard for the ``from conftest import WorkingTreeSpec``
+# carve-out.
+pytest_plugins = ("corpus_fixtures",)
+
 if typ.TYPE_CHECKING:
     import collections.abc as cabc
 
     from cuprum.program import Program
+
+    # Re-export the corpus spec types so test annotations use the sanctioned
+    # ``from conftest import WorkingTreeSpec`` carve-out (developers-guide
+    # "Shared test scaffolding"). This import is ``False`` at runtime, so it
+    # introduces no runtime cross-module import. The redundant ``as`` aliases
+    # mark these as intentional re-exports for the ``from conftest import …``
+    # form the tests use.
+    from working_corpus import ChapterSpec as ChapterSpec
+    from working_corpus import WorkingTreeSpec as WorkingTreeSpec
 
     class RepoTextReader(typ.Protocol):
         """A reader for a repo-relative UTF-8 text file.

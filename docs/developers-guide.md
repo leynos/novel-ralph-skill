@@ -66,6 +66,57 @@ the duplication and cross-module-import findings recorded in
 `pyproject` parse and the divergent dependency-name normaliser, both now
 folded onto the shared fixtures).
 
+### The `working/` fixture corpus
+
+The [`working_corpus`](../tests/working_corpus) package (roadmap task 1.3.2) is
+the shared on-disk test corpus the slice suites in phases 2-6 consume. It builds
+a `working/` directory tree under a test's `tmp_path` for each of the eleven
+phase states, for coherent and deliberately incoherent `state.toml` variants,
+and for `done.flag` permutations. The corpus is anchored to the design's
+authoritative artefacts —
+[novel-ralph-harness-design.md](novel-ralph-harness-design.md) §5.1 (schema and
+phase enum) and §5.2 (invariants), and
+[`state-layout.md`](../skill/novel-ralph/references/state-layout.md) (the
+on-disk layout) — not to the typed schema (roadmap task 2.1.1) or the §5.2
+validator (task 2.1.2), which consume it. It is consumed **unchanged** by phases
+2-6 (the roadmap 1.3.2 success criterion).
+
+The package's public surface is `WorkingTreeSpec` and `ChapterSpec` (the
+specification dataclasses), `build_working_tree` (the tree builder),
+`concatenate_drafts` with `CORPUS_SEPARATOR` and `GATE_THRESHOLDS` (the §4.3/§9
+compile model and the knitting thresholds), `PHASE_STATES` with
+`COHERENT_BASELINE` (the eleven coherent phase states and the mid-drafting
+baseline), `INCOHERENT_VARIANTS` (one deliberately incoherent variant per §5.2
+invariant plus the §5.4 disk and §3.4 torn-turn cases), `DONE_FLAG_PERMUTATIONS`
+(coherent `done.flag` patterns), and `corpus_check` with `CORPUS_INVARIANT_NAMES`
+(the corpus-local structural oracle and its stable invariant-name vocabulary).
+
+How the corpus is consumed:
+
+- **By fixture name only.** Later slices consume the corpus through pytest
+  fixtures, never by a runtime value import. The fixtures live in the registered
+  plugin module [`tests/corpus_fixtures.py`](../tests/corpus_fixtures.py)
+  (registered via `pytest_plugins` in `conftest`), which is the single runtime
+  importer of `working_corpus`. The plugin sits beside `conftest` rather than
+  inside it only because the corpus fixture surface would push `conftest` past
+  the 400-line module cap; for fixture resolution a registered plugin is
+  `conftest`-equivalent. The exposed fixtures are `make_chapter_spec`,
+  `make_working_tree_spec`, `build_tree`, `concatenate`, `compile_probe`,
+  `phase_names`, `phase_state_tree`, `baseline_tree`, `coherent_oracle_cases`,
+  `incoherent_variant_names`, `incoherent_tree`, `done_flag_permutation_names`,
+  `done_flag_tree`, `check_corpus`, and `corpus_invariant_names`.
+- **Spec types via the existing carve-out.** A test annotation that needs a
+  spec type uses the **existing** `TYPE_CHECKING` carve-out described above
+  verbatim — `from conftest import WorkingTreeSpec` (or `ChapterSpec`) under
+  `if TYPE_CHECKING:`. `conftest` makes this form available by re-exporting the
+  two types inside its own `TYPE_CHECKING` block, so no new import-contract
+  clause and no new sanctioned module is introduced.
+
+The `corpus_check` oracle is a corpus-internal cross-check, not the canonical
+validator: roadmap task 2.1.2 implements the real §5.2 validator and asserts it
+agrees with the corpus labels by keying on the same `CORPUS_INVARIANT_NAMES`
+strings.
+
 ## Automation scripts
 
 The [Scripting standards](scripting-standards.md) document provides guidance

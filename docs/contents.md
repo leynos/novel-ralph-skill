@@ -42,7 +42,9 @@ documentation set.
 - [User guide](users-guide.md) explains how to use the generated project and
   its public build and test commands.
 - [Developer guide](developers-guide.md) explains the contributor workflow and
-  points maintainers to script automation standards.
+  points maintainers to script automation standards. Its "Shared test
+  scaffolding" section documents the `working/` fixture corpus
+  ([`working_corpus`](../tests/working_corpus)) the slice suites consume.
 - [Documentation style guide](documentation-style-guide.md) defines the
   spelling, structure, Markdown, Architecture Decision Record (ADR), Request
   for Comments (RFC), and roadmap conventions used by this documentation set.
