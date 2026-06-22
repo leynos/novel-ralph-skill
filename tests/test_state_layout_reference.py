@@ -33,7 +33,7 @@ import typing as typ
 import pytest
 
 if typ.TYPE_CHECKING:
-    import collections.abc as cabc
+    from conftest import RepoTextReader
 
 _STATE_LAYOUT_PARTS = ("skill", "novel-ralph", "references", "state-layout.md")
 
@@ -261,7 +261,7 @@ class TestStateLayoutReference:
 
     def test_reference_has_no_direct_write_recipe(
         self,
-        read_repo_text: cabc.Callable[..., str],
+        read_repo_text: RepoTextReader,
     ) -> None:
         """The current reference carries no hand-edit recipe."""
         assert not find_direct_state_write_recipes(
@@ -273,7 +273,7 @@ class TestStateLayoutReference:
 
     def test_no_tomli_w_token(
         self,
-        read_repo_text: cabc.Callable[..., str],
+        read_repo_text: RepoTextReader,
     ) -> None:
         """The bare ``tomli_w`` token does not appear in the reference.
 
@@ -288,7 +288,7 @@ class TestStateLayoutReference:
 
     def test_no_tomli_w_import_or_dump(
         self,
-        read_repo_text: cabc.Callable[..., str],
+        read_repo_text: RepoTextReader,
     ) -> None:
         """Neither the ``import`` nor the ``dump`` call site reappears.
 

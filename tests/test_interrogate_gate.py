@@ -22,6 +22,8 @@ from hypothesis import strategies as st
 if typ.TYPE_CHECKING:
     import collections.abc as cabc
 
+    from conftest import RepoTextReader
+
 
 class TestInterrogateGate:
     """Pin the docstring-coverage gate's configuration, invocation, and deps."""
@@ -41,7 +43,7 @@ class TestInterrogateGate:
 
     def test_makefile_invokes_interrogate(
         self,
-        read_repo_text: cabc.Callable[..., str],
+        read_repo_text: RepoTextReader,
     ) -> None:
         """A single Makefile recipe line runs interrogate over the targets."""
         makefile = read_repo_text("Makefile")

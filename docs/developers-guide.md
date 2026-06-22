@@ -36,6 +36,21 @@ modules through hidden dependencies; both are forbidden here. New shared
 scaffolding belongs in `tests/conftest.py` as another fixture rather than a
 fresh copy in each module.
 
+One narrow exception applies to shared *types*. A type that describes a
+fixture's value — such as the `RepoTextReader` `Protocol` that types the
+`read_repo_text` fixture's return — may be imported from `conftest` under an
+`if TYPE_CHECKING:` guard (`from conftest import RepoTextReader`). This does
+not reintroduce the fragility the rule guards against: a `TYPE_CHECKING`
+import is `False` at runtime, so it creates no runtime cross-module import and
+cannot fail under any pytest import mode. It conveys a type only, never a
+fixture or helper *value*; fixtures are still consumed by parameter name. The
+prohibition on importing fixture or helper values, and on reaching into
+another module's private symbols, is unchanged. The variadic fixture's return
+type is expressed as a named `typing.Protocol` defined inside the
+`TYPE_CHECKING` block of `tests/conftest.py`, rather than as
+`Callable[..., str]`, because the `...` wildcard disables per-call
+argument-shape checking.
+
 `tests/conftest.py` is inside `$(PYTHON_TARGETS)`, so it is subject to the full
 Ruff lint and format, 100% `interrogate` docstring coverage, Pylint, and `ty`
 typecheck gates — unlike `test_*.py`, it gains no `per-file-ignores` relief, so

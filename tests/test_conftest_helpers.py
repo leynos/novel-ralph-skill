@@ -20,6 +20,7 @@ if typ.TYPE_CHECKING:
     import collections.abc as cabc
     from pathlib import Path
 
+    from conftest import RepoTextReader
     from cuprum import ProgramCatalogue
 
 
@@ -45,11 +46,19 @@ def test_pyproject_exposes_package_name(
 
 
 def test_read_repo_text_reads_a_known_marker(
-    read_repo_text: cabc.Callable[..., str],
+    read_repo_text: RepoTextReader,
 ) -> None:
     """``read_repo_text`` reads a repo file and returns its UTF-8 text."""
     text = read_repo_text("pyproject.toml")
     assert "[project]" in text, "pyproject.toml text is missing the [project] table"
+
+
+def test_read_repo_text_joins_multiple_parts(
+    read_repo_text: RepoTextReader,
+) -> None:
+    """``read_repo_text`` joins several path parts under the repo root."""
+    text = read_repo_text("docs", "roadmap.md")
+    assert "1.2.9" in text, "multi-part read did not reach docs/roadmap.md"
 
 
 def test_toml_table_returns_the_sub_table(

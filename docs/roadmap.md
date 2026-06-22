@@ -145,7 +145,7 @@ docs/scripting-standards.md.
     "direct editing eliminated" violation; widen the guard to forbid any direct
     `state.toml`-write recipe, coordinated with task 6.2.3 which rewrites the
     reference prose to point at the `novel-state` commands.
-- [ ] 1.2.9. Tighten the `read_repo_text` fixture signature from
+- [x] 1.2.9. Tighten the `read_repo_text` fixture signature from
   `Callable[..., str]` to a precise `(*parts: str) -> str` form.
   - Remediation (source: review:1.2.7; severity: low). The ellipsis in
     `cabc.Callable[..., str]` disables argument-count and type checking at every

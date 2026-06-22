@@ -32,6 +32,30 @@ if typ.TYPE_CHECKING:
 
     from cuprum.program import Program
 
+    class RepoTextReader(typ.Protocol):
+        """A reader for a repo-relative UTF-8 text file.
+
+        The reader joins its positional ``parts`` under the repository root and
+        returns the named file's UTF-8 text. Expressing the variadic shape as a
+        ``Protocol`` (rather than ``Callable[..., str]``) restores the per-call
+        argument-shape checking that the ``...`` wildcard disabled.
+        """
+
+        def __call__(self, *parts: str) -> str:
+            """Return the UTF-8 text of the file named by ``parts``.
+
+            Parameters
+            ----------
+            *parts : str
+                Path segments joined under the repository root.
+
+            Returns
+            -------
+            str
+                The UTF-8 text of the named file.
+            """
+
+
 # Leading run of a PEP 508 requirement string before any version specifier,
 # extras bracket, marker, or whitespace; this is the bare distribution name.
 _DIST_NAME = re.compile(r"^[A-Za-z0-9](?:[A-Za-z0-9._-]*[A-Za-z0-9])?")
@@ -67,7 +91,7 @@ def pyproject(project_root: Path) -> dict[str, object]:
 
 
 @pytest.fixture
-def read_repo_text(project_root: Path) -> cabc.Callable[..., str]:
+def read_repo_text(project_root: Path) -> RepoTextReader:
     """Return a reader for a repo-relative UTF-8 text file.
 
     Parameters
@@ -77,7 +101,7 @@ def read_repo_text(project_root: Path) -> cabc.Callable[..., str]:
 
     Returns
     -------
-    Callable[..., str]
+    RepoTextReader
         A callable ``(*parts: str) -> str`` that joins ``parts`` under
         ``project_root`` and returns the file's UTF-8 text.
     """
