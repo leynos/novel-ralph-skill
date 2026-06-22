@@ -21,8 +21,16 @@ from novel_ralph_skill.commands.names import COMMAND_ENTRY_POINTS, COMMAND_NAMES
 if typ.TYPE_CHECKING:
     import collections.abc as cabc
 
-ENTRY_POINTS: tuple[tuple[str, cabc.Callable[[], None]], ...] = tuple(
-    (name, getattr(stub, func)) for name, func in COMMAND_ENTRY_POINTS.items()
+# ``novel-state`` is excluded: its entry point now drives the real app, which
+# resolves ``./working/state.toml`` and exits ``3`` (state error) when no
+# ``working/`` is present, not the stub's ``2`` (Decision Log B6). The four
+# still-stubbed entry points keep the exit-``2`` contract; the real
+# ``novel-state`` callable is driven only by ``tests/test_novel_state_check.py``,
+# always under an explicit ``monkeypatch.chdir`` (advisory A6).
+STILL_STUBBED_ENTRY_POINTS: tuple[tuple[str, cabc.Callable[[], None]], ...] = tuple(
+    (name, getattr(stub, func))
+    for name, func in COMMAND_ENTRY_POINTS.items()
+    if name != "novel-state"
 )
 
 
@@ -70,14 +78,14 @@ def test_meta_flags_exit_zero(name: str, flag: str) -> None:
 @pytest.mark.filterwarnings(
     "ignore:Cyclopts application invoked without tokens:UserWarning"
 )
-@pytest.mark.parametrize(("name", "entry_point"), ENTRY_POINTS)
+@pytest.mark.parametrize(("name", "entry_point"), STILL_STUBBED_ENTRY_POINTS)
 def test_entry_point_callable_exits_two(
     name: str,
     entry_point: cabc.Callable[[], None],
     capsys: pytest.CaptureFixture[str],
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Each console-script callable runs its app and exits ``2``."""
+    """Each still-stubbed console-script callable runs its app and exits ``2``."""
     # The callable runs ``app()``, which parses ``sys.argv``; pin a clean,
     # no-argument argv so the bare command-result path is exercised.
     monkeypatch.setattr(sys, "argv", [name])

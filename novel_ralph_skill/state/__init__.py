@@ -42,9 +42,31 @@ from novel_ralph_skill.state.schema import (
     State,
     WordCounts,
 )
+from novel_ralph_skill.state.validate import (
+    BY_CHAPTER_SUM,
+    COMPLETED_PREFIX,
+    CONSECUTIVE_CLEAN_WITHIN_DRAFTED,
+    CONSECUTIVE_CLEAN_WITHIN_TARGET,
+    CONVERGENCE_TARGET_AT_LEAST_ONE,
+    CURSOR_COHERENT,
+    GATE_RATIO_CONSISTENT,
+    PHASE_IN_ENUM,
+    PURE_STATE_INVARIANT_NAMES,
+    Violation,
+    validate_state,
+)
 
 __all__ = [
+    "BY_CHAPTER_SUM",
+    "COMPLETED_PREFIX",
+    "CONSECUTIVE_CLEAN_WITHIN_DRAFTED",
+    "CONSECUTIVE_CLEAN_WITHIN_TARGET",
+    "CONVERGENCE_TARGET_AT_LEAST_ONE",
+    "CURSOR_COHERENT",
+    "GATE_RATIO_CONSISTENT",
+    "PHASE_IN_ENUM",
     "PHASE_ORDER",
+    "PURE_STATE_INVARIANT_NAMES",
     "ChapterEntry",
     "CriticState",
     "Drafting",
@@ -58,6 +80,7 @@ __all__ = [
     "Phase",
     "PhaseState",
     "State",
+    "Violation",
     "WordCounts",
     "clear_pending_turn",
     "document_to_state",
@@ -66,5 +89,6 @@ __all__ = [
     "open_pending_turn",
     "parse_state",
     "pending_turn",
+    "validate_state",
     "write_document_atomically",
 ]

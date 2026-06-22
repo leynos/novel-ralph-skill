@@ -280,6 +280,53 @@ validator (task 2.1.2) layers the invariants over `parse_state`, and the
 `tomlkit` round-trip writer (task 2.2.1) is the matching mutator seam, described
 next.
 
+### Invariant validation (`novel-state check`)
+
+`novel_ralph_skill.state.validate_state` is the §5.2 **pure-state** validator
+behind `novel-state check` (task 2.1.2). It is a pure
+`State -> tuple[Violation, ...]`: it decides whether a parsed `State` contradicts
+*itself*, reading nothing from disk beyond the `state.toml` that produced the
+`State`. It owns eight invariant names — `phase-in-enum`, `completed-prefix`,
+`by-chapter-sum`, `consecutive-clean-within-target`,
+`convergence-target-at-least-one`, `consecutive-clean-within-drafted`,
+`cursor-coherent`, and `gate-ratio-consistent` — spelled exactly as the corpus
+oracle's `CORPUS_INVARIANT_NAMES`, so task 2.1.3's cross-check keys on one
+vocabulary; the constants live in the production module and a test pins their
+equality to the oracle. Design §5.2 invariant 4 is split into three named
+sub-rules (`consecutive-clean-within-target`, `convergence-target-at-least-one`,
+and `consecutive-clean-within-drafted`) so a verdict pins exactly the sub-rule it
+breaks. The four §5.4 **disk-evidence** invariants (`manifest-disk-bijection`,
+`done-flag-without-draft`, `compiled-matches-drafts`, `pending-turn-cleared`)
+need `working/` contents beyond `state.toml` and are task 2.3.2's; `validate_state`
+never emits them, and a scope-boundary test pins that.
+
+Two readings are deliberate pure-state approximations, recorded so a later reader
+does not mistake them for bugs. The `gate-ratio-consistent` numerator is the
+**drafted total** `sum(word_counts.by_chapter.values())`, not `current`, matching
+the oracle and decoupling gate consistency (invariant 7) from the by-chapter sum
+(invariant 3); the predicate also short-circuits when `word_counts.target <= 0`
+rather than dividing, so `validate_state` is total over every constructible
+`State`. The `consecutive-clean-within-drafted` ceiling counts the
+`word_counts.by_chapter` entries with a positive drafted total as the pure-state
+proxy for the design's "chapters drafted" disk quantity (mirroring the oracle,
+which counts chapters whose `draft_words > 0`); the two agree on every corpus
+tree, and reconciling the proxy against a live draft count is task 2.1.3's
+on-disk cross-check.
+
+`novel-state check` is the first command to drive the shared `run` path: its
+entry point pre-parses the single `--human` flag off argv before `run` (so the
+flag is honoured even on the body-less usage and state-error paths), and it reads
+its state from the fixed cwd-relative `working/` directory — there is no
+`--working-dir` flag. A §5.2 violation returns exit `4` (an actionable finding
+the agent adjudicates), naming the breached invariants in `result.violations`; a
+missing or unparseable `state.toml` is the separate exit-`3` state-error channel,
+and `check` writes nothing (it is a checker). Note that `phase-in-enum` is
+enforced one layer *earlier* than the validator: `parse_state` raises constructing
+`Phase(current)` on an out-of-enum phase, so such a `state.toml` is rejected at
+load (exit `3`) and the validator's `phase-in-enum` predicate only fires for a
+`State` constructed directly (as in the property suite), never for one loaded
+from disk.
+
 ### The `document.py` round-trip writer
 
 The write half of the `state` package lives in
@@ -331,7 +378,6 @@ invocation example untouched, so it never flags a read-only `open(…, "rb")`, a
 unrelated redirect, or the schema fence. Rewriting the reference prose to point
 at the `novel-state` commands remains roadmap task 6.2.3's job; the guard only
 keeps a hand-edit recipe from re-entering.
-
 
 ### Rule packs and the loader boundary
 

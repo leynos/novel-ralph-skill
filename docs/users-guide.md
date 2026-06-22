@@ -85,8 +85,26 @@ Installing a wheel built from this package puts five console-scripts onto
 - `desloppify` — report prose tics.
 - `wordcount` — report per-chapter and cumulative word counts.
 
-As of roadmap task 1.2.1 every one of these commands is a **stub**: running it
-prints "`<name>` is not yet implemented" to standard error and exits with code
-`2`. None performs any real work yet, and none writes to the working tree. Each
-command's behaviour will be filled in by a later release; until then the
-commands exist only so the harness spine is invocable end to end.
+`novel-done`, `novel-compile`, `desloppify`, and `wordcount` are still
+**stubs**: running one prints "`<name>` is not yet implemented" to standard
+error and exits with code `2`. Each will be filled in by a later release.
+
+`novel-state` now has its first real subcommand, `novel-state check` (roadmap
+task 2.1.2). It validates the state coherence invariants of `./working/state.toml`
+and writes nothing. The working directory is the fixed `working/` directory
+relative to the current directory; there is no `--working-dir` flag. By default
+it prints a one-line JSON envelope on standard output; pass the global `--human`
+flag (`novel-state --human check`) for a readable rendering instead.
+
+`novel-state check` uses the shared exit-code table:
+
+- `0` — every checked invariant holds; `result.violations` is empty.
+- `4` — one or more invariants are violated; the breached invariant names appear
+  in `result.violations` for the agent to adjudicate.
+- `3` — `./working/state.toml` is missing or unparseable (the state-error
+  channel).
+
+The on-disk evidence invariants (the chapter manifest matching the directory
+set, `done.flag`/`draft.md` consistency, and `compiled.md` freshness) are
+validated by a later release; `novel-state check` currently checks only the
+invariants decidable from `state.toml` alone.

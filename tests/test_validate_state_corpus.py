@@ -1,0 +1,202 @@
+"""Corpus-oracle agreement and scope-boundary tests for the §5.2 validator.
+
+This is the anti-drift guarantee roadmap task 2.1.3 extends to full on-disk
+agreement. It asserts that :func:`~novel_ralph_skill.state.validate_state` keys
+its verdict on the same invariant-name vocabulary as the §1.3.2 corpus oracle
+(``CORPUS_INVARIANT_NAMES``), agrees with the oracle on every corpus tree once
+both verdicts are restricted to the six pure-state invariants this task owns, and
+never emits any of the four disk-evidence names that task 2.3.2 owns.
+
+The validator's name constants come from the production module
+(:data:`~novel_ralph_skill.state.PURE_STATE_INVARIANT_NAMES`); the oracle's come
+from the ``corpus_invariant_names`` fixture. The corpus is consumed by fixture
+name only — never by a runtime value import — so the frozen corpus contract is
+exercised, not duplicated.
+"""
+
+from __future__ import annotations
+
+import typing as typ
+
+import pytest
+
+from novel_ralph_skill.state import (
+    BY_CHAPTER_SUM,
+    COMPLETED_PREFIX,
+    CONSECUTIVE_CLEAN_WITHIN_DRAFTED,
+    CONSECUTIVE_CLEAN_WITHIN_TARGET,
+    CONVERGENCE_TARGET_AT_LEAST_ONE,
+    CURSOR_COHERENT,
+    GATE_RATIO_CONSISTENT,
+    PHASE_IN_ENUM,
+    PURE_STATE_INVARIANT_NAMES,
+    load_state,
+    validate_state,
+)
+
+if typ.TYPE_CHECKING:
+    import collections.abc as cabc
+    from pathlib import Path
+
+    from conftest import WorkingTreeSpec
+
+# The ``phase-in-enum`` invariant is enforced one layer earlier than the
+# validator: ``parse_state`` constructs ``Phase(current)`` and raises
+# ``ValueError`` on an out-of-enum phase, so a parsed ``State`` can never carry a
+# ``phase-in-enum`` violation. The corpus's ``phase-not-in-enum`` variant
+# therefore makes ``load_state`` raise (the exit-``3`` state-error channel in
+# production) rather than yielding a validator verdict. The agreement suite
+# treats such a tree as a parse rejection, asserting the parser enforces the
+# invariant the oracle labels. See the ExecPlan Surprises & discoveries.
+_PARSE_ENFORCED_INVARIANTS: frozenset[str] = frozenset({PHASE_IN_ENUM})
+
+# The exceptions ``parse_state``/``load_state`` raise on a structurally bad or
+# out-of-enum ``state.toml`` (the production exit-``3`` channel). Named so the
+# ``except`` below reads as a tuple rather than the bare py3.14 PEP 758 multi-type
+# form a reader on an older Python would misread.
+_PARSE_ERRORS: tuple[type[Exception], ...] = (ValueError, KeyError, TypeError)
+
+# The four §5.4 disk-evidence invariant names this task does NOT own; the
+# validator must never emit any of them (the scope-boundary pin, protecting task
+# 2.3.2's surface).
+_DEFERRED_INVARIANT_NAMES: frozenset[str] = frozenset(
+    {
+        "manifest-disk-bijection",
+        "done-flag-without-draft",
+        "compiled-matches-drafts",
+        "pending-turn-cleared",
+    },
+)
+
+
+def _validator_verdict(working_dir: Path) -> set[str]:
+    """Return the set of invariant names the validator reports for a tree."""
+    state = load_state(working_dir / "state.toml")
+    return {violation.invariant for violation in validate_state(state)}
+
+
+def _load_succeeds(working_dir: Path) -> bool:
+    """Return whether ``load_state`` parses the tree's ``state.toml`` (no raise).
+
+    A ``False`` result means the parser rejected the tree (the production exit-``3``
+    state-error channel) before the validator could run — the parse-enforced
+    ``phase-in-enum`` case.
+    """
+    try:
+        load_state(working_dir / "state.toml")
+    except _PARSE_ERRORS:
+        return False
+    return True
+
+
+def test_owned_names_equal_corpus_vocabulary(
+    corpus_invariant_names: tuple[str, ...],
+) -> None:
+    """The validator's eight owned constants equal the oracle's matching entries.
+
+    Pins the shared vocabulary (developers-guide) so the validator and the corpus
+    oracle cannot drift apart; the validator's constants are the production
+    module's, the oracle's come by fixture.
+    """
+    owned = {
+        PHASE_IN_ENUM,
+        COMPLETED_PREFIX,
+        BY_CHAPTER_SUM,
+        CONSECUTIVE_CLEAN_WITHIN_TARGET,
+        CONVERGENCE_TARGET_AT_LEAST_ONE,
+        CONSECUTIVE_CLEAN_WITHIN_DRAFTED,
+        CURSOR_COHERENT,
+        GATE_RATIO_CONSISTENT,
+    }
+    assert owned == set(corpus_invariant_names) - _DEFERRED_INVARIANT_NAMES
+    assert set(PURE_STATE_INVARIANT_NAMES) == owned
+
+
+def test_coherent_trees_pass_the_validator(
+    coherent_oracle_cases: list[tuple[WorkingTreeSpec, Path]],
+) -> None:
+    """Every coherent corpus tree has an empty pure-state verdict."""
+    for _spec, working_dir in coherent_oracle_cases:
+        assert _validator_verdict(working_dir) == set()
+
+
+def test_incoherent_agreement_restricted_to_owned(
+    incoherent_variant_names: tuple[str, ...],
+    incoherent_tree: cabc.Callable[[str], tuple[WorkingTreeSpec, Path, str]],
+    check_corpus: cabc.Callable[[WorkingTreeSpec, Path], tuple[str, ...]],
+) -> None:
+    """The validator agrees with the oracle on every variant, restricted to owned.
+
+    Intersecting both the oracle's verdict and the validator's verdict with
+    :data:`PURE_STATE_INVARIANT_NAMES` yields equal sets on every variant (strict;
+    B1 makes this hold). For a variant whose label is a disk-evidence invariant,
+    both restricted sets are empty (the validator correctly stays silent).
+    """
+    owned = set(PURE_STATE_INVARIANT_NAMES)
+    for name in incoherent_variant_names:
+        spec, working_dir, _expected = incoherent_tree(name)
+        oracle_owned = set(check_corpus(spec, working_dir)) & owned
+        if not _load_succeeds(working_dir):
+            # A parse-rejected tree: the parser enforces the owned invariant the
+            # oracle labels before the validator runs, so the oracle's owned labels
+            # must be a non-empty subset of the parse-enforced set.
+            assert oracle_owned <= _PARSE_ENFORCED_INVARIANTS, name
+            assert oracle_owned, name
+            continue
+        validator_owned = _validator_verdict(working_dir) & owned
+        assert validator_owned == oracle_owned, name
+
+
+def test_by_chapter_sum_variant_names_only_by_chapter_sum(
+    incoherent_tree: cabc.Callable[[str], tuple[WorkingTreeSpec, Path, str]],
+) -> None:
+    """The ``by-chapter-sum-mismatch`` variant names exactly ``by-chapter-sum``.
+
+    The load-bearing B1 case: corrupting ``current`` must not also trip
+    ``gate-ratio-consistent`` (the gate numerator is the drafted total, not
+    ``current``), proving invariant 7 is decoupled from invariant 3.
+    """
+    _spec, working_dir, _expected = incoherent_tree("by-chapter-sum-mismatch")
+    assert _validator_verdict(working_dir) == {BY_CHAPTER_SUM}
+
+
+def test_phase_in_enum_is_parser_enforced(
+    incoherent_tree: cabc.Callable[[str], tuple[WorkingTreeSpec, Path, str]],
+) -> None:
+    """The ``phase-not-in-enum`` tree is rejected by the parser, not the validator.
+
+    ``phase-in-enum`` is enforced one layer earlier than ``validate_state``:
+    ``parse_state`` raises ``ValueError`` constructing ``Phase(current)`` on an
+    out-of-enum phase, so ``load_state`` rejects the tree (the production exit-``3``
+    state-error channel) before the validator runs. This pins the boundary so the
+    agreement suite's parse-rejection branch is exercised deliberately.
+    """
+    _spec, working_dir, expected = incoherent_tree("phase-not-in-enum")
+    assert expected == PHASE_IN_ENUM
+    assert not _load_succeeds(working_dir)
+    with pytest.raises(ValueError, match="not a valid Phase"):
+        load_state(working_dir / "state.toml")
+
+
+@pytest.mark.parametrize("kind", ["coherent", "incoherent"])
+def test_validator_never_emits_deferred_names(
+    kind: str,
+    coherent_oracle_cases: list[tuple[WorkingTreeSpec, Path]],
+    incoherent_variant_names: tuple[str, ...],
+    incoherent_tree: cabc.Callable[[str], tuple[WorkingTreeSpec, Path, str]],
+) -> None:
+    """The validator emits none of the four disk-evidence names on any tree.
+
+    The scope-boundary pin: a future reader cannot mistake a deferred invariant
+    for a missing one, and task 2.3.2's surface is protected.
+    """
+    if kind == "coherent":
+        working_dirs = [working_dir for _spec, working_dir in coherent_oracle_cases]
+    else:
+        working_dirs = [incoherent_tree(name)[1] for name in incoherent_variant_names]
+    for working_dir in working_dirs:
+        # Skip parse-rejected trees: the validator never runs on them (the
+        # exit-3 state-error channel), so it emits nothing — deferred or owned.
+        if not _load_succeeds(working_dir):
+            continue
+        assert _validator_verdict(working_dir) & _DEFERRED_INVARIANT_NAMES == set()

@@ -279,7 +279,7 @@ novel-ralph-harness-design.md §5.1 and §5.2.
   - See novel-ralph-harness-design.md §5.1 and §8.
   - Success: representative states from the §1.3.2 corpus parse into the typed
     structure without loss, including the manifest and the pending-turn record.
-- [ ] 2.1.2. Implement the invariant validator behind `novel-state check`.
+- [x] 2.1.2. Implement the invariant validator behind `novel-state check`.
   - Requires 2.1.1.
   - Enforce phase membership, the completed-prefix ordering, the
     by-chapter-sum-to-current rule, cursor coherence, and

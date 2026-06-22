@@ -14,6 +14,12 @@ import sys
 import cyclopts
 
 from novel_ralph_skill.commands.names import COMMAND_ENTRY_POINTS
+from novel_ralph_skill.commands.novel_state import (
+    WORKING_DIR_NAME,
+    build_app,
+    parse_global_flags,
+)
+from novel_ralph_skill.contract.runner import RunContext, run
 
 STUB_EXIT_CODE = 2
 """Exit code for an unimplemented command result (usage error, design 3.2)."""
@@ -65,8 +71,27 @@ def make_stub_app(name: str) -> cyclopts.App:
 
 
 def novel_state() -> None:
-    """Console-script entry point for ``novel-state`` (stub; exits ``2``)."""
-    make_stub_app(_NAME_FOR["novel_state"])()
+    """Console-script entry point for ``novel-state`` (drives the real app).
+
+    Unlike the four still-stubbed entry points, ``novel-state`` is wired to its
+    real Cyclopts app (roadmap task 2.1.2). The single ``--human`` global flag is
+    pre-parsed off ``sys.argv`` *before* :func:`run` is called, because ``run``
+    stamps the human selection into the envelope even on the usage and
+    state-error paths where the command body never executes (Decision Log B3).
+    The working directory is the fixed ``working/`` constant the design records,
+    not a flag (B4), so it is stamped into the :class:`RunContext`
+    unconditionally and the residual argv (``--human`` removed) drives the app.
+    """
+    human, residual = parse_global_flags(sys.argv[1:])
+    run(
+        build_app(),
+        residual,
+        RunContext(
+            command=_NAME_FOR["novel_state"],
+            working_dir=WORKING_DIR_NAME,
+            human=human,
+        ),
+    )
 
 
 def novel_done() -> None:

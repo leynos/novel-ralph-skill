@@ -32,6 +32,15 @@ from cuprum.program import Program
 
 from novel_ralph_skill.commands.names import COMMAND_NAMES
 
+# ``novel-state`` is excluded from the exit-``2`` loop: its real app resolves
+# ``./working/state.toml`` and exits ``3`` when run with no ``working/`` present
+# (Decision Log B6). Its coherent-tree exit-``0`` e2e lives in
+# ``tests/test_novel_state_check.py``. The four still-stubbed scripts keep the
+# exit-``2`` contract here.
+_STILL_STUBBED_NAMES: tuple[str, ...] = tuple(
+    name for name in COMMAND_NAMES if name != "novel-state"
+)
+
 if typ.TYPE_CHECKING:
     import collections.abc as cabc
 
@@ -61,8 +70,8 @@ def _assert_scripts_exit_two(
     scripts_dir: Path,
     single_program_catalogue: cabc.Callable[[str, Program], ProgramCatalogue],
 ) -> None:
-    """Run each installed console-script by absolute path and assert exit ``2``."""
-    for command_name in COMMAND_NAMES:
+    """Run each still-stubbed console-script by absolute path; assert exit ``2``."""
+    for command_name in _STILL_STUBBED_NAMES:
         script_path = scripts_dir / command_name
         assert script_path.exists(), f"{command_name} not installed at {script_path}"
         # cuprum 0.1.0 allowlists any Program string, including an absolute path,
@@ -86,7 +95,12 @@ def test_console_scripts_install_and_exit_two(
     single_program_catalogue: cabc.Callable[[str, Program], ProgramCatalogue],
     venv_scripts_dir: cabc.Callable[[Path], Path],
 ) -> None:
-    """Build, install, and run all five console-scripts; each exits ``2``."""
+    """Build, install, and run the four still-stubbed scripts; each exits ``2``.
+
+    ``novel-state`` now drives its real app and is covered by
+    ``tests/test_novel_state_check.py`` (Decision Log B6); the other four scripts
+    remain stubs and exit ``2`` here.
+    """
     wheel_dir = tmp_path / "wheels"
     venv_dir = tmp_path / "venv"
 
