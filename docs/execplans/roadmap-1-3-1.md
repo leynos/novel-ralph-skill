@@ -971,3 +971,18 @@ Effect on remaining work: the work-item count is unchanged (six), but Work item
 item 4 fixes `result_action="return_value"` as a hard requirement. No new
 ambiguities; all load-bearing Cyclopts claims are now verified-and-cited and
 pinned by the Work item 1 tripwire.
+
+## Addenda (post-merge follow-ups)
+
+Lightweight addendum work item folded back onto this completed task. Execute as
+a small addendum pass — no plan or design-review cycle: make the change, run
+`make all`, `coderabbit review --agent`, commit, and tick the roadmap sub-task
+on merge.
+
+- [ ] 1.3.1.1 — Extract a shared wrapper-app builder fixture for the contract
+  run-driver tests and fold the residual conftest table accessors (from
+  audit:1.2.8, low). The four-flag Cyclopts `_build_app` is duplicated across
+  `test_contract_runner` and `test_contract_properties`, and `_parse_scripts`
+  duplicates an inline `toml_table` access; add a `wrapper_app` fixture plus a
+  `project_scripts` walker in `conftest` so both live once. Behaviour-preserving;
+  gate with `make all`.

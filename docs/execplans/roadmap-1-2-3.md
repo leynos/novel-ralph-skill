@@ -815,3 +815,17 @@ rejected by ADR 006); any property/Hypothesis/CrossHair suite.
   facts on the target machine before relying on them. Reworded the Constraints,
   Tolerances, and prose to impersonal phrasing and repaired broken inline code
   spans in response to CodeRabbit. Status moved DRAFT → DONE; Outcomes filled in.
+
+## Addenda (post-merge follow-ups)
+
+Lightweight addendum work items surfaced by later audits and folded back onto
+this completed task. Execute each as a small addendum pass — no plan or
+design-review cycle: make the change, run `make all` (plus `make markdownlint`
+and `make nixie` for Markdown), `coderabbit review --agent`, commit, and tick
+the matching roadmap sub-task on merge.
+
+- [ ] 1.2.3.1 — Index ADR 006 and the `docs/issues/` and `docs/execplans/` sets
+  in `docs/contents.md` (from audit:1.2.6, low). The documentation map omits the
+  POSIX console-scripts ADR and the growing audit-trail and per-task plan sets,
+  leaving them undiscoverable. Docs-only change; gate with `make markdownlint`
+  and `make nixie`.
