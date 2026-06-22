@@ -234,6 +234,19 @@ drift and seeds the snapshot suite. See novel-ralph-harness-design.md §3 and §
   - See novel-ralph-harness-design.md §5 and §9.
   - Success: the corpus is consumed unchanged by the slice suites in
     phases 2-6, so no slice re-rolls fixtures.
+  - [ ] 1.3.2.1. Disambiguate the three consecutive-clean sub-rules in the
+    corpus oracle vocabulary.
+    - Addendum (from audit:1.3.2; severity: low). Design §5.2 invariant 4
+      bundles three sub-rules the oracle collapses onto the single
+      `consecutive-clean-bound` name, so the set-equality self-test cannot tell
+      the three targeting variants apart and two sub-rules could silently stop
+      being exercised. Lightweight addendum pass.
+  - [ ] 1.3.2.2. Model a `done.flag` beside an absent `draft.md` in the corpus
+    builder.
+    - Addendum (from review:1.3.2; severity: low). The builder always writes
+      `draft.md`, so the design §5.4 absent-draft contradiction has no fixture;
+      add a `done-flag-absent-draft` variant keyed on `done-flag-without-draft`
+      for the 2.3.2 check/reconcile consumer. Lightweight addendum pass.
 
 ## 2. Vertical slice 1: trustworthy state through validated mutators
 
@@ -280,6 +293,42 @@ novel-ralph-harness-design.md §5.1 and §5.2.
     state-coherence property), and a state with `consecutive_clean` above its
     `convergence_target` is rejected while one within a raised target is
     accepted.
+- [ ] 2.1.3. Assert the §5.2 validator agrees with the corpus oracle on every
+  fixture, keyed on `CORPUS_INVARIANT_NAMES`.
+  - Reroute (source: review:1.3.2; severity: high). The §1.3.2 corpus exposes a
+    stable invariant-name vocabulary (`CORPUS_INVARIANT_NAMES`) precisely so the
+    canonical validator can be cross-checked against it; making this an explicit
+    acceptance clause closes the documented oracle-drift risk (1.3.2 execplan
+    Risks; advisory A5). Cross-check the verdict computed from each fixture's
+    materialised on-disk `state.toml` (not from the spec), so a spec-versus-disk
+    mislabel — the kind the by-chapter-sum fix-round-1 surfaced — is caught and
+    the validator and oracle cannot drift on the disk-derived quantities
+    (invariants 3 and 7).
+  - Requires 2.1.2.
+  - See novel-ralph-harness-design.md §5.2 and §9;
+    docs/execplans/roadmap-1-3-2.md (advisory A5, the fix-round-1 on-disk
+    decision).
+  - Success: for every §1.3.2 corpus fixture the §5.2 validator's verdict, run
+    against the materialised `state.toml`, matches the oracle's
+    `CORPUS_INVARIANT_NAMES` labels exactly — coherent trees pass and each
+    incoherent variant is rejected on its one named invariant.
+- [ ] 2.1.4. Complete the corpus's invariant-6 coverage for the scene/beat
+  cursor sub-clauses.
+  - Reroute (source: audit:1.3.2 / review:1.3.2; severity: medium). The §1.3.2
+    corpus exercises only the `current_chapter`-out-of-range clause of design
+    §5.2 invariant 6; the `current_scene`/`current_beat`-zero-until-plans-exist
+    and scene/beat-versus-`current_chapter` sub-clauses have no negative
+    fixture, so a validator mishandling them would pass against the corpus
+    undetected. Add the missing negative fixtures and extend the oracle's
+    `cursor-coherent` branch (or split it) so all three sub-clauses are
+    exercised; where the "zero until plans exist" clause needs scene/beat plans
+    to have on-disk representation, scope the fixture to that representation.
+  - Requires 2.1.2.
+  - See novel-ralph-harness-design.md §5.2 (invariant 6).
+  - Success: a non-zero `current_scene`/`current_beat` before its plan exists
+    and a scene/beat cursor referencing a chapter past `current_chapter` are
+    each a negative fixture the validator rejects, with the corpus oracle
+    labelling each on the cursor invariant.
 
 ### 2.2. Deliver lossless, atomic state mutation
 
@@ -347,6 +396,24 @@ agent-improvised recovery routine. See novel-ralph-harness-design.md §4.1 and
     `check` itself writes nothing; a non-bijective manifest and a
     contradictory-evidence tree are each reported with exit 4 rather than
     silently repaired (the loud-reconciliation requirement).
+- [ ] 2.3.3. Add disk-authoritative cross-checks to the corpus oracle for the
+  §5.4 structural invariants.
+  - Reroute (source: review:1.3.2; severity: medium). The §1.3.2 corpus oracle
+    proves only spec-internal consistency for the structural invariants, but
+    design §5.4 makes disk authoritative and the `check`/`reconcile` consumers
+    must detect state-versus-disk divergence. Extend the oracle to read
+    `working_dir` rather than the spec for the disk-authoritative invariants —
+    the manifest/disk bijection, the `done.flag`/`draft.md` contradiction, and
+    the `compiled.md` content-hash — so the corpus mirrors what the real `check`
+    exercises (the by-chapter-sum check already reads disk after fix-round-1;
+    this generalises that move). Test/corpus-only; no design change.
+  - Requires 2.3.2.
+  - See novel-ralph-harness-design.md §5.4; docs/execplans/roadmap-1-3-2.md
+    (the fix-round-1 on-disk decision).
+  - Success: the corpus oracle's manifest-bijection, done-flag/draft, and
+    compiled checks read the materialised `working_dir`, and a tree whose
+    `state.toml` claims agree with disk but whose disk evidence diverges is
+    flagged by the oracle from disk alone.
 
 ## 3. Vertical slice 2: a single-source done predicate
 

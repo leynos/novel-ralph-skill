@@ -1362,3 +1362,36 @@ Round 3 (2026-06-22) resolves the single blocking point D1 from
 No work item count changed (still five). The variant set grows by one
 (`consecutive-clean-over-chapters-drafted`); the scope Tolerance (~6 files /
 ~700 net lines) is unaffected.
+
+## Addenda (post-merge follow-ups)
+
+Lightweight addendum work items folded back onto this completed task. Execute
+each as a small addendum pass — no plan or design-review cycle: make the change,
+run `make all`, `coderabbit review --agent`, commit, and tick the roadmap
+sub-task on merge.
+
+- [ ] 1.3.2.1 — Disambiguate the three consecutive-clean sub-rules in the oracle
+  vocabulary (from audit:1.3.2, low). Design §5.2 invariant 4 bundles three
+  sub-rules (`consecutive_clean ≥ 0`, `consecutive_clean ≤ convergence_target`,
+  `consecutive_clean ≤ chapters drafted`) that the oracle collapses onto the
+  single `consecutive-clean-bound` name, so the set-equality self-test cannot
+  tell the three targeting variants
+  (`consecutive-clean-over-target`, `convergence-target-below-one`,
+  `consecutive-clean-over-chapters-drafted`) apart and two of the three
+  sub-rules could silently stop being exercised. Split the oracle into three
+  named checks (or add a minimality self-test that pins which sub-rule each
+  variant breaks) so the corpus vocabulary mirrors the design's distinct
+  sub-rules and strengthens task 2.1.2's cross-check. Test-only; the
+  `CORPUS_INVARIANT_NAMES` vocabulary and the variant set are the surface.
+- [ ] 1.3.2.2 — Model a `done.flag` beside an *absent* `draft.md` in the corpus
+  builder (from review:1.3.2, low). Design §5.4 names the absent-draft
+  contradiction ("a `done.flag` beside an empty *or absent* `draft.md`"), but
+  the builder always writes `draft.md`, so only the empty-draft case
+  (`done-flag-empty-draft`) is reachable today; the absent case has no fixture.
+  This is the scoped builder addition "What this task does NOT do" anticipates:
+  give `ChapterSpec` (or the builder) a way to suppress the `draft.md` write
+  when a `done.flag` is present, add a `done-flag-absent-draft` variant keyed on
+  `done-flag-without-draft`, and confirm the oracle already flags it (its branch
+  keys on `has_done_flag and draft_words == 0`, which the absent case must also
+  satisfy). Keeps the §5.4 contradiction set complete for the 2.3.2
+  check/reconcile consumer. Builder/test-only; no design field changes.
