@@ -221,23 +221,10 @@ Discipline:
    etc.).
 2. After the work is on disk and verified (file exists, size is
    non-zero), update state.toml.
-3. Write state.toml via temp file + rename:
-
-```bash
-# Example pattern for state mutation
-python3 - <<'EOF'
-import tomllib, tomli_w, os
-with open("working/state.toml", "rb") as f:
-    state = tomllib.load(f)
-state["drafting"]["current_beat"] = 6
-state["word_counts"]["current"] = 24820
-with open("working/state.toml.new", "wb") as f:
-    tomli_w.dump(state, f)
-os.replace("working/state.toml.new", "working/state.toml")
-EOF
-```
-
-1. Append to log.md last. The log entry is the receipt that the
+3. Write state.toml via a temporary file in working/, then atomically
+   rename it over working/state.toml, so a crash mid-write never leaves a torn
+   file.
+4. Append to log.md last. The log entry is the receipt that the
    state transition happened.
 
 ## Initialisation

@@ -464,7 +464,7 @@ an owned serialiser, because owning a comment-preserving TOML writer is
 avoidable complexity for no benefit. This choice is hard to reverse once
 mutators depend on it and is recorded in
 `docs/adr-002-toml-round-trip-tomlkit.md`. The failed `tomli_w` snippet in the
-current reference is removed.
+reference is removed.
 
 ### 5.4 Disk-authoritative reconciliation
 

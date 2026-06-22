@@ -121,7 +121,7 @@ docs/scripting-standards.md.
     dependency with no configuration or Makefile/CI invocation, so docstring
     coverage is unenforced; locking the standard in now, while the modules are
     well documented, is cheapest before the command bodies expand the surface.
-- [ ] 1.2.6. Remove the dead `tomli_w` snippet from `state-layout.md` and
+- [x] 1.2.6. Remove the dead `tomli_w` snippet from `state-layout.md` and
   reconcile the premature "is removed" claims.
   - Remediation (source: review:1.2.2; severity: medium). The failed `tomli_w`
     snippet still survives at `skill/novel-ralph/references/state-layout.md:229`
