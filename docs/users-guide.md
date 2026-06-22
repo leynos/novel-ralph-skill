@@ -14,9 +14,10 @@ these targets in order:
 - `test`: run pytest and, when Rust is enabled, Rust tests.
 - `audit`: run `pip-audit` and, when Rust is enabled, `cargo audit`.
 
-The `lint-python` target runs Ruff, then Interrogate with
-`interrogate --fail-under 100 $(PYTHON_TARGETS)` to enforce 100% docstring
-coverage for the Python targets, then Pylint via a PyPy-backed runner. The
+The `lint-python` target runs Ruff, then Interrogate over `$(PYTHON_TARGETS)`
+to enforce 100% docstring coverage for the Python targets (the threshold is
+pinned in `[tool.interrogate]` in `pyproject.toml`), then Pylint via a
+PyPy-backed runner. The
 Pylint runner is installed through `uv tool run` from the pinned
 `pylint-pypy-shim` repository.
 

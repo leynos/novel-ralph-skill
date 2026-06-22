@@ -302,6 +302,22 @@ enable = [
     "too-many-statements",
 ]
 
+[tool.interrogate]
+# Docstring-coverage gate. The project standard is 100% (AGENTS.md): every
+# public module, class, and function carries a docstring. This value is the
+# single source of truth for the threshold; the Makefile invokes interrogate
+# over $(PYTHON_TARGETS) without re-spelling the threshold on the CLI.
+fail-under = 100
+# Ignore flags pinned to interrogate's non-relaxing defaults so the gate
+# measures every node; they are documentary, not exemptions.
+ignore-init-method = false
+ignore-init-module = false
+ignore-magic = false
+ignore-private = false
+ignore-semiprivate = false
+ignore-module = false
+ignore-nested-functions = false
+
 [tool.pytest.ini_options]
 # Tests automatically killed after seconds elapsed
 timeout = 30

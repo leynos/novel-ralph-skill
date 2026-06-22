@@ -115,7 +115,7 @@ docs/scripting-standards.md.
     package registry consumed by the entry points and tests, asserted against
     `[project.scripts]`, removes the drift risk while the surface is still five
     thin stubs.
-- [ ] 1.2.5. Establish a docstring-coverage gate (interrogate) for the Python
+- [x] 1.2.5. Establish a docstring-coverage gate (interrogate) for the Python
   package.
   - Remediation (source: audit:1.2.1; severity: low). `interrogate` is a dev
     dependency with no configuration or Makefile/CI invocation, so docstring

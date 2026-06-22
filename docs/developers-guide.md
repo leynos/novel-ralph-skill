@@ -9,8 +9,9 @@ The public entrypoint for formatting, linting, typechecking, and tests is
 failure, and changes should be reconciled with the aggregate gate before being
 considered complete.
 
-`make lint` runs Ruff, `interrogate --fail-under 100 $(PYTHON_TARGETS)` for
-100% docstring coverage across `$(PYTHON_TARGETS)`, and Pylint.
+`make lint` runs Ruff, `interrogate` over `$(PYTHON_TARGETS)` to enforce 100%
+docstring coverage (the threshold is pinned in `[tool.interrogate]` in
+`pyproject.toml`, and `tests/test_interrogate_gate.py` guards it), and Pylint.
 
 Run `make audit` as the dependency vulnerability gate. It runs `pip-audit` for
 Python dependencies, and Rust-enabled projects also run `cargo audit` from the
@@ -154,7 +155,7 @@ actions under `.github/`.
 - `.github/workflows/ci.yml` runs on pushes to `main` and on pull requests. It
   sets up Python 3.13, installs `uv`, validates the generated `Makefile` with
   `mbake`, runs `make build`, `make check-fmt`, `make lint` (Ruff +
-  `interrogate --fail-under 100 $(PYTHON_TARGETS)` + Pylint), `make typecheck`,
+  `interrogate` over `$(PYTHON_TARGETS)` + Pylint), `make typecheck`,
   and `make audit`, then delegates coverage generation to the shared coverage
   action. When the Rust extension is enabled, it also sets up Rust, installs
   Rust lint and test tools, and passes `rust_extension/Cargo.toml` to coverage.

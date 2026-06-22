@@ -93,7 +93,7 @@ lint: lint-python ## Run linters
 
 lint-python: build ## Run Python linters
 	$(UV_ENV) $(UV) run ruff check $(PYTHON_TARGETS)
-	$(UV_ENV) $(UV) run interrogate --fail-under 100 $(PYTHON_TARGETS)
+	$(UV_ENV) $(UV) run interrogate $(PYTHON_TARGETS)
 	$(PYLINT) $(PYLINT_TARGETS)
 
 
