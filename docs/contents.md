@@ -13,6 +13,12 @@ documentation set.
   architecture.
 - [Development roadmap](roadmap.md) sequences the rebuild into phases,
   steps, and tasks.
+- [Execution plans](execplans/) hold the self-contained per-task plans
+  (`roadmap-<step>-<task>.md`) and their review rounds that drive each
+  roadmap task to completion.
+- [Post-merge audits](issues/) hold the per-task audit notes
+  (`audit-<step>.<task>.md`) recording the codebase review after each task
+  merged to `main`.
 
 ## Architecture decision records
 
@@ -27,6 +33,9 @@ documentation set.
   records why the commands ship as console-scripts (decision C3).
 - [ADR 005: command surface — five scripts, not one multiplexer](adr-005-command-surface-five-scripts.md)
   weighs the multiplexer and settles on five named commands.
+- [ADR 006: console-scripts e2e is POSIX-only](adr-006-console-scripts-e2e-posix-policy.md)
+  records why the wheel-build end-to-end test runs only where
+  `os.name == "posix"`.
 
 ## Project guides
 

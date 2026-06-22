@@ -824,7 +824,7 @@ design-review cycle: make the change, run `make all` (plus `make markdownlint`
 and `make nixie` for Markdown), `coderabbit review --agent`, commit, and tick
 the matching roadmap sub-task on merge.
 
-- [ ] 1.2.3.1 — Index ADR 006 and the `docs/issues/` and `docs/execplans/` sets
+- [x] 1.2.3.1 — Index ADR 006 and the `docs/issues/` and `docs/execplans/` sets
   in `docs/contents.md` (from audit:1.2.6, low). The documentation map omits the
   POSIX console-scripts ADR and the growing audit-trail and per-task plan sets,
   leaving them undiscoverable. Docs-only change; gate with `make markdownlint`

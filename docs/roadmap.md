@@ -109,7 +109,7 @@ docs/scripting-standards.md.
     uv creates) and looks up `scripts_dir / command_name` without the `.exe`
     suffix, so either commit to Linux-only execution or make the lookup truly
     portable.
-  - [ ] 1.2.3.1. Index ADR 006 and the `docs/issues/` and `docs/execplans/`
+  - [x] 1.2.3.1. Index ADR 006 and the `docs/issues/` and `docs/execplans/`
     sets in `docs/contents.md`.
     - Addendum (from audit:1.2.6; severity: low). The documentation map omits
       the POSIX console-scripts ADR and the growing audit-trail and per-task
