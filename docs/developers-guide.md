@@ -115,6 +115,22 @@ implementation both checkers and mutators reuse, is recorded in
 and design §2. New commands adopt the envelope rather than inventing their own
 output shape.
 
+The shared implementation lives in `novel_ralph_skill/contract/`. Its public
+surface is the frozen `Envelope` dataclass and the `build_envelope` constructor
+(which derives `ok` from the exit code and validates `command` against the
+single source of truth), the `render_machine` and `render_human` renderers, the
+`ENVELOPE_SCHEMA_VERSION` constant, the `ExitCode` enum and its `is_ok` helper,
+the `StateInputError` channel, the `CommandOutcome` and `RunContext` value
+types, and the `run` wrapper. A new command builds a Cyclopts app, returns a
+`CommandOutcome` from its body, and calls `run` rather than calling the app
+directly. Two consequences of `run` are load-bearing. First, `run` requires the
+caller to build the app with `result_action="return_value"` (plus
+`exit_on_error=False, print_error=False, help_on_error=False`) so that `run` —
+not Cyclopts — owns every `sys.exit` and envelope emission; without it
+Cyclopts's default `result_action` would exit on the body's return value and
+pre-empt the success-path envelope. Second, `run` translates Cyclopts's native
+exit-`1` usage errors into the contract's exit `2`.
+
 ### Disambiguated exit codes
 
 The exit code is a first-class part of the contract because the harness
@@ -133,6 +149,9 @@ finished yet" the loop expects every turn, while code 4 signals something only
 the model can resolve (desloppify violations, compile divergence, a
 reconciliation conflict, a `check` discrepancy). A refused mutator request — an
 incoherent `set-cursor` or an out-of-order `advance-phase` — is exit 3, never 1.
+A command body signals this exit-3 channel by raising `StateInputError`, which
+`run` maps to the state-error envelope and exit code; a missing or unparseable
+`state.toml` or an absent working directory uses the same channel.
 
 ### State and on-disk layout
 

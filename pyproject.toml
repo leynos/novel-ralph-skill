@@ -25,6 +25,8 @@ dev = [
     "pytest-timeout",
     "pytest-xdist",
     "cuprum",
+    "hypothesis",
+    "syrupy",
 ]
 
 [tool.ruff]

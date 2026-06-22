@@ -152,7 +152,7 @@ This step answers whether one envelope, output-mode switch, and exit-code
 helper can serve all five commands. Its outcome removes per-command contract
 drift and seeds the snapshot suite. See novel-ralph-harness-design.md §3 and §9.
 
-- [ ] 1.3.1. Implement the shared JSON-envelope and output-mode module.
+- [x] 1.3.1. Implement the shared JSON-envelope and output-mode module.
   - Requires 1.1.3 and 1.2.1.
   - Provide the `command`, `schema_version`, `ok`, `working_dir`, `result`,
     and `messages` envelope, the `--human` rendering hook, and the exit-code
