@@ -152,7 +152,7 @@ docs/scripting-standards.md.
     call site; a documented variadic callable signature restores the static
     arg-shape guarantee the plan's Interfaces section preferred without changing
     behaviour.
-- [ ] 1.2.10. Replace the bare `sh.make(...)` expression statement in
+- [x] 1.2.10. Replace the bare `sh.make(...)` expression statement in
   `test_conftest_helpers` with an explicit assertion.
   - Remediation (source: review:1.2.7; severity: low). A statement that discards
     its result and asserts nothing reads as dead code and may be flagged by a

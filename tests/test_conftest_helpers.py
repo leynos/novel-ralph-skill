@@ -85,9 +85,18 @@ def test_single_program_catalogue_builds_usable_allowlist(
     assert program in catalogue.allowlist, (
         f"{program} missing from catalogue allowlist {catalogue.allowlist}"
     )
-    # Resolving through the catalogue must not raise UnknownProgramError; a bare
-    # SafeCmdBuilder is returned without running anything.
-    sh.make(program, catalogue=catalogue)
+    # cuprum.sh.make resolves the program through the catalogue eagerly; for an
+    # allowlisted program it must return a usable SafeCmdBuilder rather than
+    # raising UnknownProgramError. Asserting on the returned builder (and the
+    # SafeCmd it constructs) makes that "does not raise" guarantee explicit.
+    builder = sh.make(program, catalogue=catalogue)
+    assert callable(builder), (
+        f"sh.make returned a non-callable {builder!r} for allowlisted {program}"
+    )
+    command = builder()
+    assert command.program == program, (
+        f"builder produced SafeCmd.program {command.program!r}, expected {program!r}"
+    )
 
 
 def test_single_program_catalogue_accepts_absolute_path(
