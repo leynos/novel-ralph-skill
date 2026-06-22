@@ -793,20 +793,20 @@ commit, and tick the matching roadmap sub-task on merge. The substantial guard
 *extensions* were re-routed to roadmap step 7.3; these four are the small fixes
 and hygiene only.
 
-- [ ] 1.2.8.1 — Enforce a single code-fence style (MD048) in the markdownlint
+- [x] 1.2.8.1 — Enforce a single code-fence style (MD048) in the markdownlint
   config (from review:1.2.8, low). Add the MD048 rule (backtick-only) and
   normalise any tilde fences repo-wide. Gate with `make markdownlint`.
-- [ ] 1.2.8.2 — Split `tests/test_state_layout_reference.py` before it breaches
+- [x] 1.2.8.2 — Split `tests/test_state_layout_reference.py` before it breaches
   the 400-line cap (from review:1.2.8, low). Extract the recipe corpus or
   scanner helpers into a small support module (coordinate with the 1.2.7 shared
   conftest). Behaviour-preserving; gate with `make all`.
-- [ ] 1.2.8.3 — Distinguish the live `state.toml` from its `.new` sibling in the
+- [x] 1.2.8.3 — Distinguish the live `state.toml` from its `.new` sibling in the
   guard (from review:1.2.8, medium — a real false-positive bug). `_STATE_FILE`
   matches as a bare substring, so a write-then-rename illustration (design §3.4,
   §5.3) is false-flagged; anchor the live-file match on a word, quote, or
   end-of-line boundary and add a negative test for a `.new`-only
   write-then-rename fence. Gate with `make all`.
-- [ ] 1.2.8.4 — Reconcile the developers' guide guard section with the merged
+- [x] 1.2.8.4 — Reconcile the developers' guide guard section with the merged
   code (from audit:1.2.8, medium). The guide's write-token list omits
   `.write_bytes`/`.writelines` and the executable info-string list omits
   `python3`/`py3`/`pycon`; a one-paragraph edit makes the prose truthful. Gate

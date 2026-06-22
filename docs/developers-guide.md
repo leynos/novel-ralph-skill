@@ -224,10 +224,11 @@ must not carry any copy-pasteable recipe that writes `state.toml` outside
 `novel-state`. The guard
 [`tests/test_state_layout_reference.py`](../tests/test_state_layout_reference.py)
 enforces this: it scans the reference's executable code fences
-(`python`/`py`/`sh`/`bash`/`shell`/`console`) for a write primitive — a known
-TOML writer (`tomlkit.dump`, `tomli_w`, `.write_text`), an `open(` paired with a
-write-mode literal, a redirect or heredoc targeting the path, or a backstop
-`.write(` on the path — and fails `make test` if one names the state file. It
+(`python`/`python3`/`py`/`py3`/`pycon`/`sh`/`bash`/`shell`/`console`) for a write
+primitive — a known TOML writer (`tomlkit.dump`, `tomli_w`, `.write_text`,
+`.write_bytes`, `.writelines`), an `open(` paired with a write-mode literal, a
+redirect or heredoc targeting the path, or a backstop `.write(` on the path — and
+fails `make test` if one names the state file. It
 leaves the atomic-write *prose* (design §3.4 and §5.3) and any `novel-state`
 invocation example untouched, so it never flags a read-only `open(…, "rb")`, an
 unrelated redirect, or the schema fence. Rewriting the reference prose to point

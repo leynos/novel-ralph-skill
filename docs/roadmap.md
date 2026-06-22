@@ -152,26 +152,26 @@ docs/scripting-standards.md.
     "direct editing eliminated" violation; widen the guard to forbid any direct
     `state.toml`-write recipe, coordinated with task 6.2.3 which rewrites the
     reference prose to point at the `novel-state` commands.
-  - [ ] 1.2.8.1. Enforce a single code-fence style (MD048) in the markdownlint
+  - [x] 1.2.8.1. Enforce a single code-fence style (MD048) in the markdownlint
     configuration.
     - Addendum (from review:1.2.8; severity: low). markdownlint accepts tilde
       fences, which made the guard bypass reachable; pinning backtick-only
       fences repo-wide is defence-in-depth. Lightweight addendum pass against
       the 1.2.8 execplan.
-  - [ ] 1.2.8.2. Split `tests/test_state_layout_reference.py` before it breaches
+  - [x] 1.2.8.2. Split `tests/test_state_layout_reference.py` before it breaches
     the 400-line module cap.
     - Addendum (from review:1.2.8; severity: low). At 400 of 400 lines the next
       planted row or negative test breaks the AGENTS.md module-size gate;
       extract the recipe corpus or scanner helpers into a small support module
       (coordinate with the 1.2.7 shared conftest). Lightweight addendum pass.
-  - [ ] 1.2.8.3. Distinguish the live `state.toml` from its atomic `.new`
+  - [x] 1.2.8.3. Distinguish the live `state.toml` from its atomic `.new`
     sibling in the state-layout guard.
     - Addendum (from review:1.2.8; severity: medium). `_STATE_FILE` matches as a
       bare substring, so a fenced write-then-rename illustration (design §3.4,
       §5.3) is false-flagged because `state.toml` is a substring of
       `state.toml.new`; anchor the live-file match on a word, quote, or
       end-of-line boundary and add a negative test. Lightweight addendum pass.
-  - [ ] 1.2.8.4. Reconcile the developers' guide state-layout guard section with
+  - [x] 1.2.8.4. Reconcile the developers' guide state-layout guard section with
     the merged 1.2.8 code.
     - Addendum (from audit:1.2.8; severity: medium). The guide's write-token
       list omits `.write_bytes`/`.writelines` and the executable info-string
