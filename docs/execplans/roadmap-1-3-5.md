@@ -906,3 +906,30 @@ unchanged and remains the sole owner of the `violations` key.
   - **A4.** Work Item 3 step 1 and the Decision Log now state that
     `advance-phase`'s `from`/`to` are transition labels, not on-disk schema keys.
 - Revision 1 — initial draft.
+
+## Addenda (post-merge follow-ups)
+
+Lightweight addendum work items folded back onto this completed task from the
+reviews and audits of step 1.3's tasks. Execute each as a small addendum pass —
+no plan or design-review cycle: make the change, run `make all` (plus `make
+markdownlint`/`make nixie` for Markdown), `coderabbit review --agent`, commit,
+and tick the matching roadmap sub-task on merge. The forward-looking reminder to
+extend the `violations`-ownership guard when `recount`/`reconcile` land is
+already captured in `tests/test_novel_state_violations_ownership.py`'s docstring
+and owned by roadmap tasks 2.3.1/2.3.2 (which inherit this task's mutator-result
+contract), so it is not re-filed here.
+
+- [ ] 1.3.5.1 — Record set-cursor's input-echo result coupling as a deliberate
+  choice (from review:1.3.5, low). `set-cursor` echoes its input args as the
+  success `result`; they equal the persisted scalars today, so note the coupling
+  as a deliberate choice — rather than re-reading the written document to make
+  the envelope structurally independent of the input path — in the design or
+  developers' guide, so it is recorded as a decision and not a latent assumption.
+  Gate with `make markdownlint` and `make nixie`.
+- [ ] 1.3.5.2 — Assert advance-phase's `from`/`to` are transition labels, not
+  `state.toml` schema keys (from audit:1.3.5, low). The from/to-are-not-schema-keys
+  intent is documented across the design, the developers' guide, and the
+  docstring but proven only in prose; add an on-disk behavioural test that
+  re-reads the written `state.toml` to assert `phase.current` and
+  `phase.completed` updated and no `from`/`to` keys were persisted, closing the
+  gap between prose and test surface. Gate with `make all`.

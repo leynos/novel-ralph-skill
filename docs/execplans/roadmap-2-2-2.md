@@ -1589,3 +1589,12 @@ and the partial-`init` bootstrap recovery (review:2.2.2) to step 2.3
   the shared validate-before-persist, exit-`3` refusal, write-nothing contract
   once and reference it from each. Gate with `make markdownlint` and `make
   nixie`.
+- [ ] 2.2.2.2 — Route `_check`, `init`, and the two mutators through a single
+  `working/state.toml` path accessor (from audit:1.3.5, low; re-surfaced from
+  audit:2.2.2 Finding 3). The canonical path is constructed in three places —
+  `commands/novel_state.py` `_check` (`pathlib.Path(WORKING_DIR_NAME) /
+  "state.toml"`) and `init` (`working / "state.toml"`), and
+  `commands/_state_mutators.py` `_state_path` — so promote one accessor (reusing
+  the existing `_state_path` or a shared `WORKING_DIR_NAME`-anchored helper) and
+  route all four call sites through it, removing the triplicated path
+  construction without changing behaviour. Gate with `make all`.

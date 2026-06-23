@@ -1164,3 +1164,10 @@ small fixes, doc gaps, and coverage only.
   `repr(member)` and `basis!r` render identically; remove the `str(...)` in
   `_resolve_basis` and `_resolve_page_words` (or add a one-line `StrEnum` note).
   Cosmetic; the `unknown-basis` assertions are unchanged. Gate with `make all`.
+- [ ] 5.1.1.6 — Split `rulepack/parse.py` to bring it under the 400-line file
+  cap (from audit:1.3.5, low; re-surfaced from audit:2.2.2 Finding 5).
+  `novel_ralph_skill/rulepack/parse.py` is 515 lines, breaching the AGENTS.md
+  400-line file cap. Extract the scalar-coercion helpers into a
+  `rulepack/_coerce.py` leaf module (no new public surface; `parse.py` re-imports
+  what it needs) so the cap breach is recorded as actionable work and resolved
+  rather than normalised. Gate with `make all`.

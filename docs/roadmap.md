@@ -302,6 +302,20 @@ drift and seeds the snapshot suite. See novel-ralph-harness-design.md §3 and §
     that names what they changed rather than an empty `violations` echo, the
     `violations` key is reserved for `check`, and the mutator result contract is
     recorded once for `recount`/`reconcile` to follow.
+  - [ ] 1.3.5.1. Record set-cursor's input-echo result coupling as a deliberate
+    choice.
+    - Addendum (from review:1.3.5; low). `set-cursor` echoes its input args as
+      the success `result`; they equal the persisted scalars today, so note the
+      coupling as a deliberate choice (rather than re-reading the written
+      document) in the design or developers' guide so it is not a latent
+      assumption. Lightweight addendum pass.
+  - [ ] 1.3.5.2. Assert advance-phase's `from`/`to` are transition labels, not
+    `state.toml` schema keys.
+    - Addendum (from audit:1.3.5; low). Add an on-disk behavioural test that
+      re-reads the written `state.toml` to assert `phase.current`/`phase.completed`
+      updated and no `from`/`to` keys were persisted, closing the prose-only gap
+      between the docstring intent and the test surface. Lightweight addendum
+      pass.
 
 ## 2. Vertical slice 1: trustworthy state through validated mutators
 
@@ -550,6 +564,13 @@ novel-ralph-harness-design.md §3.4, §4.1, and §5.3.
       `novel-state` section with each subcommand's options, the directory
       skeleton `init` creates, and the shared validate-before-persist, exit-3
       refusal, write-nothing contract. Lightweight addendum pass.
+  - [ ] 2.2.2.2. Route `_check`, `init`, and the two mutators through a single
+    `working/state.toml` path accessor.
+    - Addendum (from audit:1.3.5; low). The canonical path is constructed in
+      three places (`commands/novel_state.py` `_check` and `init`,
+      `commands/_state_mutators.py` `_state_path`); promote one accessor and
+      route all four through it so the path has a single home. Lightweight
+      addendum pass.
 
 ### 2.3. Deliver recount and disk-authoritative reconciliation
 
@@ -768,6 +789,12 @@ novel-ralph-harness-design.md §4.4, §6.1, and §1.
       `repr(member)` and `basis!r` render identically; remove the defensive
       `str(...)` in `_resolve_basis` and `_resolve_page_words`. Cosmetic;
       behaviour unchanged. Lightweight addendum pass.
+  - [ ] 5.1.1.6. Split `rulepack/parse.py` to bring it under the 400-line file
+    cap.
+    - Addendum (from audit:1.3.5; low). `rulepack/parse.py` is 515 lines,
+      breaching the AGENTS.md 400-line cap; extract the scalar-coercion helpers
+      into a `rulepack/_coerce.py` leaf module so the cap is met. Lightweight
+      addendum pass.
 - [ ] 5.1.2. Implement `desloppify` detection over the §6 offender table.
   - Requires 5.1.1.
   - Emit structured output per hit — phrase, count, density per N words,
