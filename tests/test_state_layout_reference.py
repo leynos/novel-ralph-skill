@@ -33,66 +33,57 @@ from __future__ import annotations
 import typing as typ
 
 import pytest
-from _state_layout_scanner import find_direct_state_write_recipes
+from _planted_recipes import PLANTED_RECIPES
+from _state_layout_scanner import (
+    find_direct_state_write_recipes,
+    find_direct_state_write_recipes_in_files,
+)
 
 if typ.TYPE_CHECKING:
+    from pathlib import Path
+
     from conftest import RepoTextReader
 
 _STATE_LAYOUT_PARTS = ("skill", "novel-ralph", "references", "state-layout.md")
 
+# The skill markdown set the multi-file guard scans, anchored under
+# ``skill/novel-ralph/``. ``test_discovery_covers_known_skill_files`` pins this
+# inventory as an intentional tripwire: adding or removing a reference fails that
+# test and forces a human to inspect the new file. The guard itself never
+# consults this list — it scans whatever the discovery glob returns — so a stale
+# inventory cannot neuter it.
+_KNOWN_SKILL_MARKDOWN = frozenset({
+    "skill/novel-ralph/SKILL.md",
+    "skill/novel-ralph/references/conflict-attractor.md",
+    "skill/novel-ralph/references/critic-personas.md",
+    "skill/novel-ralph/references/desloppify-checklist.md",
+    "skill/novel-ralph/references/done-conditions.md",
+    "skill/novel-ralph/references/jtbd-novel.md",
+    "skill/novel-ralph/references/state-layout.md",
+    "skill/novel-ralph/references/stc-beat-sheet.md",
+})
 
-# One forbidden hand-edit recipe per covered form, keyed by a stable id. Each
-# is a fenced executable block that writes ``state.toml`` and must be flagged.
-# Triple-quoted literals avoid the implicit string concatenation a tuple of
-# line fragments would introduce inside a collection literal (ruff ISC).
-_PLANTED_RECIPES: dict[str, str] = {
-    "tomlkit-dump": (
-        '```python\ntomlkit.dump(doc, open("working/state.toml", "w"))\n```\n'
-    ),
-    "tomllib-plus-write-text": (
-        "```python\n"
-        'doc = tomllib.load(open("working/state.toml", "rb"))\n'
-        'Path("working/state.toml").write_text("x = 1")\n'
-        "```\n"
-    ),
-    "raw-open-write": '```python\nopen("working/state.toml", "w").write("x")\n```\n',
-    "historical-tomli_w-heredoc": (
-        "```python\n"
-        'with open("working/state.toml", "wb") as f:\n'
-        "    tomli_w.dump(doc, f)\n"
-        "```\n"
-    ),
-    "shell-cat-heredoc": "```sh\ncat > working/state.toml <<'EOF'\nx=1\nEOF\n```\n",
-    "shell-cat-heredoc-no-space": (
-        "```sh\ncat >working/state.toml <<'EOF'\nx=1\nEOF\n```\n"
-    ),
-    "shell-append": "```sh\necho 'x = 1' >> working/state.toml\n```\n",
-    "shell-redirect-no-space": "```sh\necho 'x = 1' >working/state.toml\n```\n",
-    "shell-append-no-space": "```sh\necho 'x = 1' >>working/state.toml\n```\n",
-    "path-write-bytes": (
-        '```python\nPath("working/state.toml").write_bytes(b"x")\n```\n'
-    ),
-    "tilde-raw-open-write": (
-        '~~~python\nopen("working/state.toml", "w").write("x")\n~~~\n'
-    ),
-    "quad-backtick-raw-open-write": (
-        '````python\nopen("working/state.toml", "w").write("x")\n````\n'
-    ),
-    "shell-tee": "```sh\necho 'x = 1' | tee working/state.toml\n```\n",
-    "shell-tee-append": "```sh\necho 'x = 1' | tee -a working/state.toml\n```\n",
-    "python3-raw-open-write": (
-        '```python3\nopen("working/state.toml", "w").write("x = 1")\n```\n'
-    ),
-    "indented-list-step-append": (
-        "1. Edit the state file directly:\n\n"
-        "   ```sh\n"
-        "   echo 'x = 1' >> working/state.toml\n"
-        "   ```\n"
-    ),
-    "backstop-unknown-writer": (
-        '```python\nmywriter("working/state.toml").write(serialise(doc))\n```\n'
-    ),
-}
+
+@pytest.fixture
+def skill_markdown_documents(
+    project_root: Path,
+    read_repo_text: RepoTextReader,
+) -> dict[str, str]:
+    """Return ``{repo_relative_posix_path: text}`` for every skill markdown file.
+
+    Discovery globs ``skill/novel-ralph/**/*.md`` under ``project_root`` and reads
+    each file through the injected ``read_repo_text`` callable, passing the file's
+    parts relative to ``project_root`` so the single sanctioned UTF-8 reader is
+    reused rather than duplicated. Building the map in a fixture (not at module
+    level) is required because ``read_repo_text`` is itself a fixture and so is
+    unavailable at collection time. Keys are repo-relative POSIX paths so a guard
+    failure names the offending file unambiguously.
+    """
+    documents: dict[str, str] = {}
+    for path in sorted(project_root.glob("skill/novel-ralph/**/*.md")):
+        parts = path.relative_to(project_root).parts
+        documents["/".join(parts)] = read_repo_text(*parts)
+    return documents
 
 
 class TestStateLayoutReference:
@@ -268,10 +259,135 @@ class TestFindDirectStateWriteRecipes:
 
     @pytest.mark.parametrize(
         ("label", "recipe"),
-        list(_PLANTED_RECIPES.items()),
-        ids=list(_PLANTED_RECIPES),
+        list(PLANTED_RECIPES.items()),
+        ids=list(PLANTED_RECIPES),
     )
     def test_planted_recipe_is_flagged(self, label: str, recipe: str) -> None:
         """Each planted hand-edit recipe form is flagged."""
         messages = find_direct_state_write_recipes(recipe)
         assert messages, f"planted recipe {label!r} should be flagged"
+
+
+class TestFindDirectStateWriteRecipesInFiles:
+    """Exercise the multi-file driver that aggregates per-document findings."""
+
+    def test_clean_documents_return_empty_mapping(self) -> None:
+        """Two clean documents aggregate to an empty mapping."""
+        documents = {
+            "a.md": "```python\ntomllib.load(open('s', 'rb'))\n```\n",
+            "b.md": "Just prose naming state.toml outside any fence.\n",
+        }
+        assert not find_direct_state_write_recipes_in_files(documents)
+
+    def test_recipe_in_one_document_keyed_by_label(self) -> None:
+        """One recipe-bearing document yields a one-key mapping under its label.
+
+        The message list equals the single-file
+        :func:`find_direct_state_write_recipes` result for that text, pinning
+        the no-duplication invariant: the driver is the detector applied per
+        file, not a second matcher.
+        """
+        recipe = PLANTED_RECIPES["raw-open-write"]
+        documents = {"dirty.md": recipe, "clean.md": "nothing to see here\n"}
+        findings = find_direct_state_write_recipes_in_files(documents)
+        assert set(findings) == {"dirty.md"}
+        assert findings["dirty.md"] == find_direct_state_write_recipes(recipe)
+
+    def test_recipe_in_several_documents_all_reported(self) -> None:
+        """Two recipe-bearing documents both appear; a clean third does not."""
+        documents = {
+            "first.md": PLANTED_RECIPES["raw-open-write"],
+            "second.md": PLANTED_RECIPES["shell-append"],
+            "third.md": "clean prose\n",
+        }
+        findings = find_direct_state_write_recipes_in_files(documents)
+        assert set(findings) == {"first.md", "second.md"}
+
+    def test_empty_mapping_returns_empty(self) -> None:
+        """The empty-input edge case returns an empty mapping."""
+        assert not find_direct_state_write_recipes_in_files({})
+
+
+class TestSkillReferenceGuard:
+    """Guard every executable-carrying skill markdown file, not just one."""
+
+    def test_no_skill_reference_carries_direct_write_recipe(
+        self,
+        skill_markdown_documents: dict[str, str],
+    ) -> None:
+        """No skill markdown file carries a direct ``state.toml``-write recipe.
+
+        This is the acceptance-bearing guard. It is fully glob-driven over
+        ``skill/novel-ralph/**/*.md`` and carries zero per-file edits: adding a
+        new reference needs no change here (roadmap 7.3.3 "single shared scanner,
+        with no per-file duplication"). The per-file detector already embeds
+        design §4.1 and ADR-002 in each message, so the failure report only joins
+        the offending file labels with their message lists; it invents no second
+        message format.
+        """
+        findings = find_direct_state_write_recipes_in_files(skill_markdown_documents)
+        report = "; ".join(
+            f"{label}: {' | '.join(messages)}"
+            for label, messages in sorted(findings.items())
+        )
+        assert not findings, (
+            "skill markdown must not carry a copy-pasteable recipe that writes "
+            f"state.toml outside novel-state (design §4.1, ADR-002): {report}"
+        )
+
+    def test_discovery_covers_known_skill_files(
+        self,
+        skill_markdown_documents: dict[str, str],
+    ) -> None:
+        """The discovered label set equals the known skill markdown inventory.
+
+        This is an intentional tripwire, not the acceptance guard and not a
+        second detector. Its hard-coded eight-name inventory lives only here, by
+        design: when a contributor adds or removes a reference this assertion
+        fails and forces a human to inspect the new file and consciously update
+        the reviewed inventory. The guard above scans whatever the glob returns,
+        so a stale inventory cannot neuter it.
+        """
+        assert set(skill_markdown_documents) == _KNOWN_SKILL_MARKDOWN
+
+    def test_done_conditions_predicate_pseudocode_not_flagged(self) -> None:
+        """The read-only predicate ``python`` fence shape is not flagged.
+
+        A regression pin reconstructing the ``done-conditions.md`` predicate
+        pseudocode as a synthetic fixture (it only *reads* state via
+        ``read_state_toml`` and ``state[...]``), so the test does not couple to
+        the reference's exact current wording. It carries no write primitive on
+        ``state.toml`` and must stay clean.
+        """
+        fence = (
+            "```python\n"
+            "# Pseudocode for the predicate check\n"
+            "def novel_is_done(working_dir):\n"
+            "    state = read_state_toml(working_dir)\n"
+            '    if state["phase"]["current"] != "done":\n'
+            "        return False\n"
+            "    return novel_predicate(working_dir, state)\n"
+            "```\n"
+        )
+        assert not find_direct_state_write_recipes(fence)
+
+    @pytest.mark.parametrize(
+        "recipe_id",
+        ["raw-open-write", "shell-redirect-no-space", "indented-list-step-append"],
+    )
+    def test_planted_recipe_in_another_file_is_flagged(self, recipe_id: str) -> None:
+        """A recipe planted in a non-``state-layout.md`` file is reported.
+
+        Embeds a named ``PLANTED_RECIPES`` form into a synthetic
+        ``done-conditions.md`` document and asserts the driver reports it under
+        that label, proving the guard's reach extends beyond ``state-layout.md``.
+        The per-form matrix already lives in ``test_planted_recipe_is_flagged``,
+        so re-running every form through the driver would be duplication, not
+        coverage; three representative ids suffice.
+        """
+        label = "skill/novel-ralph/references/done-conditions.md"
+        documents = {label: PLANTED_RECIPES[recipe_id]}
+        findings = find_direct_state_write_recipes_in_files(documents)
+        assert set(findings) == {label}, (
+            f"planted recipe {recipe_id!r} in {label} should be flagged"
+        )

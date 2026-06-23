@@ -196,3 +196,24 @@ def find_direct_state_write_recipes(markdown: str) -> list[str]:
                 "route mutations through novel-state"
             )
     return messages
+
+
+def find_direct_state_write_recipes_in_files(
+    documents: dict[str, str],
+) -> dict[str, list[str]]:
+    """Return, per document label, the direct-write recipes it carries.
+
+    ``documents`` maps a human-readable label (e.g. a repo-relative path) to the
+    document's markdown text. The return maps each label whose document carries
+    at least one recipe to its non-empty message list; clean documents are
+    omitted, so an empty return mapping means every document is clean. The driver
+    calls :func:`find_direct_state_write_recipes` once per document and adds no
+    second matcher, so multi-file coverage reuses the single-file detector
+    verbatim (roadmap 7.3.3; design §4.1; ADR-002).
+    """
+    findings: dict[str, list[str]] = {}
+    for label, markdown in documents.items():
+        messages = find_direct_state_write_recipes(markdown)
+        if messages:
+            findings[label] = messages
+    return findings

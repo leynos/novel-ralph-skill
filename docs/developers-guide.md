@@ -20,13 +20,13 @@ Python dependencies, and Rust-enabled projects also run `cargo audit` from the
 ## Shared test scaffolding
 
 [`tests/conftest.py`](../tests/conftest.py) is the single home for scaffolding
-shared across the test suite. It exposes the project-root path (`project_root`),
-the parsed `pyproject.toml` (`pyproject`), a repo-relative UTF-8 reader
-(`read_repo_text`), a TOML-table accessor (`toml_table`), the PEP 508
-dependency-name normaliser (`dist_name`, a `(spec) -> str | None` callable that
-reduces a requirement string to its bare distribution name), the one-program
-cuprum catalogue builder (`single_program_catalogue`), and the POSIX venv
-scripts-directory resolver (`venv_scripts_dir`).
+shared across the test suite. It exposes the project-root path
+(`project_root`), the parsed `pyproject.toml` (`pyproject`), a repo-relative
+UTF-8 reader (`read_repo_text`), a TOML-table accessor (`toml_table`), the PEP
+508 dependency-name normaliser (`dist_name`, a `(spec) -> str | None` callable
+that reduces a requirement string to its bare distribution name), the
+one-program cuprum catalogue builder (`single_program_catalogue`), and the
+POSIX venv scripts-directory resolver (`venv_scripts_dir`).
 
 Test modules consume these by fixture name — list the fixture as a test or
 helper parameter — and never by importing from another test module or from
@@ -40,46 +40,45 @@ One narrow exception applies to shared *types*. A type that describes a
 fixture's value — such as the `RepoTextReader` `Protocol` that types the
 `read_repo_text` fixture's return — may be imported from `conftest` under an
 `if TYPE_CHECKING:` guard (`from conftest import RepoTextReader`). This does
-not reintroduce the fragility the rule guards against: a `TYPE_CHECKING`
-import is `False` at runtime, so it creates no runtime cross-module import and
-cannot fail under any pytest import mode. It conveys a type only, never a
-fixture or helper *value*; fixtures are still consumed by parameter name. The
-prohibition on importing fixture or helper values, and on reaching into
-another module's private symbols, is unchanged. The variadic fixture's return
-type is expressed as a named `typing.Protocol` defined inside the
-`TYPE_CHECKING` block of `tests/conftest.py`, rather than as
-`Callable[..., str]`, because the `...` wildcard disables per-call
-argument-shape checking.
+not reintroduce the fragility the rule guards against: a `TYPE_CHECKING` import
+is `False` at runtime, so it creates no runtime cross-module import and cannot
+fail under any pytest import mode. It conveys a type only, never a fixture or
+helper *value*; fixtures are still consumed by parameter name. The prohibition
+on importing fixture or helper values, and on reaching into another module's
+private symbols, is unchanged. The variadic fixture's return type is expressed
+as a named `typing.Protocol` defined inside the `TYPE_CHECKING` block of
+`tests/conftest.py`, rather than as `Callable[..., str]`, because the `...`
+wildcard disables per-call argument-shape checking.
 
 `tests/conftest.py` is inside `$(PYTHON_TARGETS)`, so it is subject to the full
 Ruff lint and format, 100% `interrogate` docstring coverage, Pylint, and `ty`
 typecheck gates — unlike `test_*.py`, it gains no `per-file-ignores` relief, so
 it carries a module docstring, a docstring on every fixture, and no bare
-`assert` (guards raise `AssertionError` directly). This consolidation discharges
-the duplication and cross-module-import findings recorded in
+`assert` (guards raise `AssertionError` directly). This consolidation
+discharges the duplication and cross-module-import findings recorded in
 [`audit-1.2.1.md`](issues/audit-1.2.1.md),
 [`audit-1.2.3.md`](issues/audit-1.2.3.md),
 [`audit-1.2.4.md`](issues/audit-1.2.4.md),
 [`audit-1.2.5.md`](issues/audit-1.2.5.md),
 [`audit-1.2.6.md`](issues/audit-1.2.6.md), and
 [`audit-1.2.7.md`](issues/audit-1.2.7.md) (Findings 1-2: the seventh
-`pyproject` parse and the divergent dependency-name normaliser, both now
-folded onto the shared fixtures).
+`pyproject` parse and the divergent dependency-name normaliser, both now folded
+onto the shared fixtures).
 
 ### The `working/` fixture corpus
 
 The [`working_corpus`](../tests/working_corpus) package (roadmap task 1.3.2) is
-the shared on-disk test corpus the slice suites in phases 2-6 consume. It builds
-a `working/` directory tree under a test's `tmp_path` for each of the eleven
-phase states, for coherent and deliberately incoherent `state.toml` variants,
-and for `done.flag` permutations. The corpus is anchored to the design's
-authoritative artefacts —
+the shared on-disk test corpus the slice suites in phases 2-6 consume. It
+builds a `working/` directory tree under a test's `tmp_path` for each of the
+eleven phase states, for coherent and deliberately incoherent `state.toml`
+variants, and for `done.flag` permutations. The corpus is anchored to the
+design's authoritative artefacts —
 [novel-ralph-harness-design.md](novel-ralph-harness-design.md) §5.1 (schema and
 phase enum) and §5.2 (invariants), and
 [`state-layout.md`](../skill/novel-ralph/references/state-layout.md) (the
 on-disk layout) — not to the typed schema (roadmap task 2.1.1) or the §5.2
-validator (task 2.1.2), which consume it. It is consumed **unchanged** by phases
-2-6 (the roadmap 1.3.2 success criterion).
+validator (task 2.1.2), which consume it. It is consumed **unchanged** by
+phases 2-6 (the roadmap 1.3.2 success criterion).
 
 The package's public surface is `WorkingTreeSpec` and `ChapterSpec` (the
 specification dataclasses), `build_working_tree` (the tree builder),
@@ -87,19 +86,21 @@ specification dataclasses), `build_working_tree` (the tree builder),
 compile model and the knitting thresholds), `PHASE_STATES` with
 `COHERENT_BASELINE` (the eleven coherent phase states and the mid-drafting
 baseline), `INCOHERENT_VARIANTS` (one deliberately incoherent variant per §5.2
-invariant plus the §5.4 disk and §3.4 torn-turn cases), `DONE_FLAG_PERMUTATIONS`
-(coherent `done.flag` patterns), and `corpus_check` with `CORPUS_INVARIANT_NAMES`
-(the corpus-local structural oracle and its stable invariant-name vocabulary).
+invariant plus the §5.4 disk and §3.4 torn-turn cases),
+`DONE_FLAG_PERMUTATIONS` (coherent `done.flag` patterns), and `corpus_check`
+with `CORPUS_INVARIANT_NAMES` (the corpus-local structural oracle and its
+stable invariant-name vocabulary).
 
 How the corpus is consumed:
 
 - **By fixture name only.** Later slices consume the corpus through pytest
-  fixtures, never by a runtime value import. The fixtures live in the registered
-  plugin module [`tests/corpus_fixtures.py`](../tests/corpus_fixtures.py)
-  (registered via `pytest_plugins` in `conftest`), which is the single runtime
-  importer of `working_corpus`. The plugin sits beside `conftest` rather than
-  inside it only because the corpus fixture surface would push `conftest` past
-  the 400-line module cap; for fixture resolution a registered plugin is
+  fixtures, never by a runtime value import. The fixtures live in the
+  registered plugin module
+  [`tests/corpus_fixtures.py`](../tests/corpus_fixtures.py) (registered via
+  `pytest_plugins` in `conftest`), which is the single runtime importer of
+  `working_corpus`. The plugin sits beside `conftest` rather than inside it
+  only because the corpus fixture surface would push `conftest` past the
+  400-line module cap; for fixture resolution a registered plugin is
   `conftest`-equivalent. The exposed fixtures are `make_chapter_spec`,
   `make_working_tree_spec`, `build_tree`, `concatenate`, `compile_probe`,
   `phase_names`, `phase_state_tree`, `baseline_tree`, `coherent_oracle_cases`,
@@ -189,19 +190,19 @@ registry,
 [`novel_ralph_skill/commands/names.py`](../novel_ralph_skill/commands/names.py);
 the entry-point functions and every test derive their names from it, and
 [`tests/test_command_names_registry.py`](../tests/test_command_names_registry.py)
-asserts the registry and `[project.scripts]` agree, so a rename or dropped entry
-point cannot silently drift. Edit a command name there, not in five places. The
-JSON envelope, the `--human` switch, and the shared exit-code helper are deferred
-to roadmap step 1.3.
+asserts the registry and `[project.scripts]` agree, so a rename or dropped
+entry point cannot silently drift. Edit a command name there, not in five
+places. The JSON envelope, the `--human` switch, and the shared exit-code
+helper are deferred to roadmap step 1.3.
 
 ### Checker/mutator segregation
 
 Read-only checkers (`novel-done`, `novel-state check`, `wordcount`,
 `desloppify`, `novel-compile --check`) write nothing, so the harness can call
-them freely. Mutators (`novel-state init`/`set-cursor`/`advance-phase`/`recount`
-/`reconcile` and `novel-compile`) are the only commands that touch `state.toml`
-or `compiled.md`, and they write atomically via a temporary file plus
-`Path.replace`, bracketed by a `[pending_turn]` intent record so a torn
+them freely. Mutators (`novel-state init`/`set-cursor`/`advance-phase`/
+`recount` /`reconcile` and `novel-compile`) are the only commands that touch
+`state.toml` or `compiled.md`, and they write atomically via a temporary file
+plus `Path.replace`, bracketed by a `[pending_turn]` intent record so a torn
 multi-file turn is recoverable. Keep this segregation honest: a command that
 detects a finding must not also repair it. See design §3.3 and §3.4.
 
@@ -248,10 +249,11 @@ The 1-versus-4 distinction is load-bearing: code 1 is the steady-state "not
 finished yet" the loop expects every turn, while code 4 signals something only
 the model can resolve (desloppify violations, compile divergence, a
 reconciliation conflict, a `check` discrepancy). A refused mutator request — an
-incoherent `set-cursor` or an out-of-order `advance-phase` — is exit 3, never 1.
-A command body signals this exit-3 channel by raising `StateInputError`, which
-`run` maps to the state-error envelope and exit code; a missing or unparseable
-`state.toml` or an absent working directory uses the same channel.
+incoherent `set-cursor` or an out-of-order `advance-phase` — is never exit 1;
+it is always exit 3. A command body signals this exit-3 channel by raising
+`StateInputError`, which `run` maps to the state-error envelope and exit code;
+a missing or unparseable `state.toml` or an absent working directory uses the
+same channel.
 
 ### State and on-disk layout
 
@@ -277,8 +279,8 @@ file convenience; both are pure structural parses that resolve phase strings to
 `Phase` members and coerce TOML arrays to tuples without enforcing the §5.2
 invariants. Later slice-1 commands import this package: the `novel-state check`
 validator (task 2.1.2) layers the invariants over `parse_state`, and the
-`tomlkit` round-trip writer (task 2.2.1) is the matching mutator seam, described
-next.
+`tomlkit` round-trip writer (task 2.2.1) is the matching mutator seam,
+described next.
 
 ### Invariant validation (`novel-state check`)
 
@@ -350,9 +352,10 @@ it has no CLI of its own. It supplies three disciplines:
   yielding the document for the caller's artefact work, then clears the record
   and re-writes on a clean exit. On an exception it leaves the populated record
   on disk for the next turn's `reconcile` (design §3.4); this helper owns only
-  the producer side. The clean-exit write re-dumps the *yielded, caller-mutated*
-  document, so an in-bracket value edit survives. `open_pending_turn` and
-  `clear_pending_turn` are the in-place primitives the context manager composes.
+  the producer side. The clean-exit write re-dumps the *yielded,
+  caller-mutated* document, so an in-bracket value edit survives.
+  `open_pending_turn` and `clear_pending_turn` are the in-place primitives the
+  context manager composes.
 
 The torn-turn recovery flow is covered by the suite's first `pytest-bdd`
 behavioural scenario (`tests/features/torn_turn.feature` with steps under
@@ -362,22 +365,44 @@ Hypothesis properties over a hand-authored, comment-and-layout-bearing fixture.
 ### The state-layout direct-edit guard
 
 Because direct editing of `state.toml` is eliminated (design §4.1; ADR-002
-selects `tomlkit` as the only sanctioned writer), the state-layout skill
-reference [`skill/novel-ralph/references/state-layout.md`](../skill/novel-ralph/references/state-layout.md)
-must not carry any copy-pasteable recipe that writes `state.toml` outside
-`novel-state`. The guard
+selects `tomlkit` as the only sanctioned writer), no skill markdown file may
+carry a copy-pasteable recipe that writes `state.toml` outside `novel-state`.
+The guard
 [`tests/test_state_layout_reference.py`](../tests/test_state_layout_reference.py)
-enforces this: it scans the reference's executable code fences
-(`python`/`python3`/`py`/`py3`/`pycon`/`sh`/`bash`/`shell`/`console`) for a write
-primitive — a known TOML writer (`tomlkit.dump`, `tomli_w`, `.write_text`,
-`.write_bytes`, `.writelines`), an `open(` paired with a write-mode literal, a
-redirect or heredoc targeting the path, or a backstop `.write(` on the path — and
-fails `make test` if one names the state file. It
-leaves the atomic-write *prose* (design §3.4 and §5.3) and any `novel-state`
-invocation example untouched, so it never flags a read-only `open(…, "rb")`, an
-unrelated redirect, or the schema fence. Rewriting the reference prose to point
-at the `novel-state` commands remains roadmap task 6.2.3's job; the guard only
-keeps a hand-edit recipe from re-entering.
+enforces this: it scans each file's executable code fences (`python`/`python3`/
+`py`/`py3`/`pycon`/`sh`/`bash`/`shell`/`console`) for a write primitive — a
+known TOML writer (`tomlkit.dump`, `tomli_w`, `.write_text`, `.write_bytes`,
+`.writelines`), an `open(` paired with a write-mode literal, a redirect or
+heredoc targeting the path, or a backstop `.write(` on the path — and fails
+`make test` if one names the state file. It leaves the atomic-write *prose*
+(design §3.4 and §5.3) and any `novel-state` invocation example untouched, so
+it never flags a read-only `open(…, "rb")`, an unrelated redirect, or the
+schema fence. Rewriting the reference prose to point at the `novel-state`
+commands remains roadmap task 6.2.3's job; the guard only keeps a hand-edit
+recipe from re-entering.
+
+Roadmap task 1.2.8 scoped the guard to `state-layout.md` alone, but other
+references such as `done-conditions.md` carry executable fences too and could
+grow a hand-edit recipe no single-file guard would catch. Roadmap task 7.3.3
+widened it: a shared multi-file driver,
+`find_direct_state_write_recipes_in_files` in
+[`tests/_state_layout_scanner.py`](../tests/_state_layout_scanner.py), applies
+the same per-file detector to every skill markdown file under
+`skill/novel-ralph/` (the seven references and `SKILL.md`), with no per-file
+duplication. The acceptance-bearing guard
+`test_no_skill_reference_carries_direct_write_recipe` discovers the file set by
+globbing `skill/novel-ralph/**/*.md`, so adding a new reference needs no change
+to the guard.
+
+The `.md` extension is a **gate assumption**, not a passing remark: the
+`**/*.md` discovery glob only catches files ending `.md`, so a reference added
+with a `.markdown` or `.mdx` extension would slip past the guard silently. All
+skill references use `.md` by convention; a non-`.md` skill document is a
+review smell until property and extension hardening lands in roadmap task
+7.3.4. The companion tripwire `test_discovery_covers_known_skill_files` pins
+the known inventory of skill markdown files, so adding or removing a reference
+fails that test and forces a human to inspect the new file and confirm the glob
+caught it.
 
 ### Rule packs and the loader boundary
 
@@ -405,16 +430,17 @@ rather than silently skipping a bad rule. The loader is detect-only (ADR-001):
 it validates structure and compiles patterns but never judges prose.
 
 The loader splits its failures into the two exit-code channels `desloppify`
-(roadmap task 5.1.2) surfaces. Malformed *pack content* — a bad `schema_version`,
-a missing or wrong-typed field, an unknown `basis`, a non-positive `page_words`,
-a negative `threshold`, or an uncompilable `pattern` — raises `RulePackError`,
-which carries the offending `rule_id` (or `None` for a pack-level fault) and maps
-to exit 2, naming the rule. An absent, unreadable, or undecodable pack *file*
-raises `RulePackFileError`, which maps to exit 3. The loader itself emits no
-envelope and never calls `sys.exit`; exit-code translation is the command body's
-job, exactly as for `parse_state`. Task 5.1.2 wires the `desloppify` command on
-top of `load_rulepack` and is responsible for catching these two errors (or
-extending the runner's `except` chain) to map each to its `ExitCode`.
+(roadmap task 5.1.2) surfaces. Malformed *pack content* — a bad
+`schema_version`, a missing or wrong-typed field, an unknown `basis`, a
+non-positive `page_words`, a negative `threshold`, or an uncompilable
+`pattern` — raises `RulePackError`, which carries the offending `rule_id` (or
+`None` for a pack-level fault) and maps to exit 2, naming the rule. An absent,
+unreadable, or undecodable pack *file* raises `RulePackFileError`, which maps
+to exit 3. The loader itself emits no envelope and never calls `sys.exit`;
+exit-code translation is the command body's job, exactly as for `parse_state`.
+Task 5.1.2 wires the `desloppify` command on top of `load_rulepack` and is
+responsible for catching these two errors (or extending the runner's `except`
+chain) to map each to its `ExitCode`.
 
 ## GitHub Actions
 
@@ -424,8 +450,8 @@ actions under `.github/`.
 - `.github/workflows/ci.yml` runs on pushes to `main` and on pull requests. It
   sets up Python 3.13, installs `uv`, validates the generated `Makefile` with
   `mbake`, runs `make build`, `make check-fmt`, `make lint` (Ruff +
-  `interrogate` over `$(PYTHON_TARGETS)` + Pylint), `make typecheck`,
-  and `make audit`, then delegates coverage generation to the shared coverage
+  `interrogate` over `$(PYTHON_TARGETS)` + Pylint), `make typecheck`, and
+  `make audit`, then delegates coverage generation to the shared coverage
   action. When the Rust extension is enabled, it also sets up Rust, installs
   Rust lint and test tools, and passes `rust_extension/Cargo.toml` to coverage.
 - `.github/workflows/act-validation.yml` runs rendered workflow validation in a

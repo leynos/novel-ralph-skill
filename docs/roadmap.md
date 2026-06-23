@@ -103,7 +103,8 @@ docs/scripting-standards.md.
     extended dependency set.
 - [x] 1.2.3. Decide and enforce a cross-platform policy for the console-scripts
   e2e test.
-  - Remediation (source: review:1.2.1; severity: low). `test_console_scripts_e2e.py`
+  - Remediation (source: review:1.2.1; severity: low).
+    `test_console_scripts_e2e.py`
     is only half-portable on Windows: the win32 branch resolves scripts via the
     `nt_user` sysconfig scheme (a roaming user path, not the venv `Scripts/` dir
     uv creates) and looks up `scripts_dir / command_name` without the `.exe`
@@ -117,7 +118,8 @@ docs/scripting-standards.md.
       pass against the 1.2.3 execplan: no plan or design-review cycle, just the
       change, the gates, and a merge.
 - [x] 1.2.4. Introduce a single source of truth for the five command names.
-  - Remediation (source: audit:1.2.1; severity: medium). The command-name list is
+  - Remediation (source: audit:1.2.1; severity: medium). The command-name list
+    is
     duplicated across `stub.py`, `pyproject.toml`, and three test modules; a
     package registry consumed by the entry points and tests, asserted against
     `[project.scripts]`, removes the drift risk while the surface is still five
@@ -691,7 +693,7 @@ which rewrites the reference prose.
     path-anchored write-verb heuristic closes the disclosed residual hole.
   - Success: each enumerated writer idiom against `working/state.toml` is
     rejected; legitimate non-state writes are not.
-- [ ] 7.3.3. Extend the direct-edit guard to every skill reference that can
+- [x] 7.3.3. Extend the direct-edit guard to every skill reference that can
   carry executable recipes.
   - Requires 1.2.8.
   - 1.2.8 scoped the guard to `state-layout.md`; other references such as
@@ -714,15 +716,15 @@ which rewrites the reference prose.
 ### 7.4. Settle the durability contract for atomic state writes
 
 This step answers whether the spine's atomic-write discipline should guarantee
-power-loss durability (`fsync` of the temporary file and parent directory
-before `Path.replace`) in addition to the process-crash recovery it already
-provides, or whether power-loss durability is explicitly out of scope. Its
-outcome is a single house-wide contract every mutator inheriting the §3.4
-write discipline obeys, recorded once rather than decided ad hoc per mutator.
-The current discipline (temp file plus `Path.replace`) is sound against a
-process crash but leaves true power-loss durability undefined; this is a
-deferred hardening extension surfaced by the review of step 2.2, and it does
-not gate the deterministic spine.
+power-loss durability (`fsync` of the temporary file and parent directory before
+`Path.replace`) in addition to the process-crash recovery it already provides,
+or whether power-loss durability is explicitly out of scope. Its outcome is a
+single house-wide contract every mutator inheriting the §3.4 write discipline
+obeys, recorded once rather than decided ad hoc per mutator. The current
+discipline (temp file plus `Path.replace`) is sound against a process crash but
+leaves true power-loss durability undefined; this is a deferred hardening
+extension surfaced by the review of step 2.2, and it does not gate the
+deterministic spine.
 
 - [ ] 7.4.1. Decide and document the fsync/durability policy for atomic state
   writes.
