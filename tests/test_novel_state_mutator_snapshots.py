@@ -70,6 +70,24 @@ def test_init_success_envelope_snapshot(
     assert _normalise(raw) == snapshot
 
 
+def test_set_cursor_success_envelope_snapshot(
+    phase_state_tree: cabc.Callable[[str], Path],
+    monkeypatch: pytest.MonkeyPatch,
+    snapshot: SnapshotAssertion,
+) -> None:
+    """Pin ``set-cursor``'s success envelope: ``result`` is the cursor it set."""
+    working = phase_state_tree("drafting")
+    monkeypatch.chdir(working.parent)
+    code, raw = _drive(["set-cursor", "--chapter", "2", "--scene", "0", "--beat", "0"])
+    assert code == ExitCode.SUCCESS
+    # The write-shaped ``result`` names the cursor and carries no ``violations``
+    # read shape (roadmap 1.3.5; audit-2.2.2 Finding 2).
+    result = typ.cast("dict[str, object]", json.loads(raw)["result"])
+    assert result == {"current_chapter": 2, "current_scene": 0, "current_beat": 0}
+    assert "violations" not in result
+    assert _normalise(raw) == snapshot
+
+
 def test_set_cursor_refusal_envelope_snapshot(
     phase_state_tree: cabc.Callable[[str], Path],
     monkeypatch: pytest.MonkeyPatch,
@@ -81,6 +99,24 @@ def test_set_cursor_refusal_envelope_snapshot(
     code, raw = _drive(["set-cursor", "--chapter", "99"])
     assert code == ExitCode.STATE_ERROR
     assert json.loads(raw)["ok"] is False
+    assert _normalise(raw) == snapshot
+
+
+def test_advance_phase_success_envelope_snapshot(
+    phase_state_tree: cabc.Callable[[str], Path],
+    monkeypatch: pytest.MonkeyPatch,
+    snapshot: SnapshotAssertion,
+) -> None:
+    """Pin ``advance-phase``'s success envelope: ``result`` names the transition."""
+    working = phase_state_tree("premise")
+    monkeypatch.chdir(working.parent)
+    code, raw = _drive(["advance-phase"])
+    assert code == ExitCode.SUCCESS
+    # The write-shaped ``result`` names the transition and carries no
+    # ``violations`` read shape (roadmap 1.3.5; audit-2.2.2 Finding 2).
+    result = typ.cast("dict[str, object]", json.loads(raw)["result"])
+    assert result == {"from": "premise", "to": "treatment"}
+    assert "violations" not in result
     assert _normalise(raw) == snapshot
 
 

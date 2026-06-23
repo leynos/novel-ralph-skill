@@ -150,10 +150,15 @@ def test_set_cursor_success(
     monkeypatch.chdir(working.parent)
     # ``chapter=2`` is within ``1..len(chapters)`` for the three-chapter drafting
     # tree; scene/beat stay at their valid defaults (AR2-2).
-    code, _ = _drive_and_capture(
+    code, envelope = _drive_and_capture(
         ["set-cursor", "--chapter", "2", "--scene", "0", "--beat", "0"], capsys
     )
     assert code == ExitCode.SUCCESS
+    # The write-shaped success ``result`` names the cursor it set, not the
+    # checker's ``violations`` read shape (roadmap 1.3.5; audit-2.2.2 Finding 2).
+    result = typ.cast("dict[str, object]", envelope["result"])
+    assert result == {"current_chapter": 2, "current_scene": 0, "current_beat": 0}
+    assert "violations" not in result
     check_code, _ = _drive_and_capture(["check"], capsys)
     assert check_code == ExitCode.SUCCESS
     import tomllib
@@ -207,8 +212,13 @@ def test_advance_phase_success_pre_drafting(
     """Advancing a coherent pre-drafting phase marches forward; ``check`` accepts."""
     working = phase_state_tree("premise")
     monkeypatch.chdir(working.parent)
-    code, _ = _drive_and_capture(["advance-phase"], capsys)
+    code, envelope = _drive_and_capture(["advance-phase"], capsys)
     assert code == ExitCode.SUCCESS
+    # The write-shaped success ``result`` names the transition it made, not the
+    # checker's ``violations`` read shape (roadmap 1.3.5; audit-2.2.2 Finding 2).
+    result = typ.cast("dict[str, object]", envelope["result"])
+    assert result == {"from": "premise", "to": "treatment"}
+    assert "violations" not in result
     import tomllib
 
     raw = tomllib.loads((working / "state.toml").read_text("utf-8"))
@@ -226,8 +236,11 @@ def test_advance_phase_success_into_drafting(
     """Advancing into ``drafting`` with a populated manifest exits ``0``."""
     working = populated_chapter_planning_tree()
     monkeypatch.chdir(working.parent)
-    code, _ = _drive_and_capture(["advance-phase"], capsys)
+    code, envelope = _drive_and_capture(["advance-phase"], capsys)
     assert code == ExitCode.SUCCESS
+    result = typ.cast("dict[str, object]", envelope["result"])
+    assert result == {"from": "chapter-planning", "to": "drafting"}
+    assert "violations" not in result
     check_code, _ = _drive_and_capture(["check"], capsys)
     assert check_code == ExitCode.SUCCESS
 

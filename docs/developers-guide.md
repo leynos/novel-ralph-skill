@@ -435,6 +435,18 @@ mutator:
   the benign exit `1` the loop continues on (design §3.2). Because the exit-`3`
   `run` arm emits only `messages` (no `result`), a refusal names the breached
   invariant(s) in `messages`.
+- **Success `result` is write-shaped, never `check`'s read shape.** A mutator's
+  success `result` names *what it changed* and never echoes the `check` query's
+  `violations` key (design §3.3; `docs/issues/audit-2.2.2.md` Finding 2).
+  `set-cursor` returns `{current_chapter, current_scene, current_beat}` — the
+  cursor it set, read back to the on-disk drafting fields without translation;
+  `advance-phase` returns `{from, to}` — the transition it made, as the
+  `Phase.value` strings. The `from`/`to` keys are *transition labels*, not on-disk
+  schema keys: `state.toml` persists `phase.current` plus `phase.completed`, never
+  a `[from]`/`[to]` table. `recount` and `reconcile` must follow the same
+  write-shaped discipline (the counts or discrepancies they wrote), so a later
+  mutator does not copy the checker's vocabulary by accident; a cross-subcommand
+  test pins `violations` to `check` alone.
 - **The two-helper document load path.** The mutators load through
   `_load_document_or_state_error` → `load_document` (`tomlkit`), **not**
   `_load_or_state_error` → `load_state` (`tomllib`), because they edit the live

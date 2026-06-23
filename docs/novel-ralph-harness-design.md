@@ -163,6 +163,21 @@ Every JSON payload carries a common envelope:
   the log. It is never parsed and never required for gating, so a wording
   change cannot break the harness.
 
+A mutator's success `result` names *what it changed*; the `violations` key is
+reserved for the `check` query alone. This is the envelope-level expression of
+command/query segregation (§3.3): a checker reports breached invariants in
+`result.violations`, whereas a mutator reports the change it made and never
+echoes the checker's read shape. Concretely, `init` returns the bootstrapped
+`working_dir` and `slug`; `set-cursor` returns the cursor it set
+(`current_chapter`, `current_scene`, `current_beat`); `advance-phase` returns the
+transition (`from`, `to`); and the later `recount`/`reconcile` mutators return
+the counts or discrepancies they wrote (§4.1, §5.4). `advance-phase`'s `from` and
+`to` are *transition labels* describing the move, not on-disk schema keys —
+`state.toml` has no `[from]`/`[to]` table; the persisted representation is
+`phase.current` plus `phase.completed` (§5.1). A refusal carries no `result`
+payload at all: the exit-3 channel emits only `messages` naming the breached
+invariant (§3.2).
+
 Three `schema_version` numbers coexist and evolve independently: the envelope's
 (this contract), `state.toml`'s (§5.1), and each rule pack's (§6.1). The
 separation is deliberate — the envelope version tracks the command contract,

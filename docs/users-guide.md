@@ -126,3 +126,9 @@ The on-disk evidence invariants (the chapter manifest matching the directory
 set, `done.flag`/`draft.md` consistency, and `compiled.md` freshness) are
 validated by a later release; `novel-state check` currently checks only the
 invariants decidable from `state.toml` alone.
+
+`result.violations` is the *checker's* read shape: it belongs to `novel-state
+check` alone. The write subcommands (`init`, `set-cursor`, `advance-phase`)
+instead report *what they changed* in `result` — `set-cursor` returns the cursor
+it set, `advance-phase` returns the `{from, to}` transition — so do not expect a
+`violations` key from a write.

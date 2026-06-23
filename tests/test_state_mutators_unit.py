@@ -47,6 +47,8 @@ if typ.TYPE_CHECKING:
     import collections.abc as cabc
     from pathlib import Path
 
+    from novel_ralph_skill.contract.runner import CommandOutcome
+
 # A ``state.toml`` that is valid TOML but missing every required table beyond
 # ``schema_version``; ``load_document`` parses it but ``document_to_state`` ->
 # ``parse_state`` rejects it (``NonExistentKey``).
@@ -195,13 +197,30 @@ def test_set_cursor_accepts_exactly_coherent_cursors(
     probe["drafting"]["current_beat"] = beat
     oracle_coherent = not validate_state(document_to_state(probe))
 
+    # The chdir MUST precede the suppress block. ``set_cursor`` resolves its
+    # target via ``_state_path()`` = ``Path('working')/'state.toml'`` — a
+    # cwd-RELATIVE path evaluated at call time (_state_mutators.py:57-59). If cwd
+    # is not ``working.parent`` when ``set_cursor`` runs, it cannot find
+    # ``working/state.toml``, raises ``StateInputError`` (swallowed by the
+    # suppress), and ``result_payload`` stays ``None`` — making the
+    # ``oracle_coherent`` arm fail for every coherent example.
     monkeypatch.chdir(working.parent)
-    outcome: ExitCode | None = None
+    outcome: CommandOutcome | None = None
     with contextlib.suppress(StateInputError):
-        outcome = set_cursor(chapter=chapter, scene=scene, beat=beat).code
+        outcome = set_cursor(chapter=chapter, scene=scene, beat=beat)
 
     if oracle_coherent:
-        assert outcome == ExitCode.SUCCESS
+        assert outcome is not None
+        assert outcome.code == ExitCode.SUCCESS
+        # The write-shaped success ``result`` echoes the exact coherent cursor
+        # over the whole input space, never the ``violations`` read shape
+        # (roadmap 1.3.5; audit-2.2.2 Finding 2).
+        assert dict(outcome.result) == {
+            "current_chapter": chapter,
+            "current_scene": scene,
+            "current_beat": beat,
+        }
+        assert "violations" not in outcome.result
     else:
         assert outcome is None  # the body raised StateInputError (exit 3)
 

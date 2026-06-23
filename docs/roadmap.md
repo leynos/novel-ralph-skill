@@ -279,7 +279,7 @@ drift and seeds the snapshot suite. See novel-ralph-harness-design.md §3 and §
     records `self.messages: tuple[str, ...]` once; the three domain exceptions
     subclass it (`RulePackError` adding `rule_id`), and the freeze-on-construct
     decision has one home.
-- [ ] 1.3.5. Settle a deliberate mutator success-result vocabulary, distinct
+- [x] 1.3.5. Settle a deliberate mutator success-result vocabulary, distinct
   from `check`'s `violations` shape.
   - Reroute (source: audit:2.2.2; severity: medium). The `set-cursor` and
     `advance-phase` mutators echo the checker's `result={"violations": []}`

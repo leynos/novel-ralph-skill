@@ -181,7 +181,12 @@ def set_cursor(*, chapter: int, scene: int, beat: int) -> CommandOutcome:
     Returns
     -------
     CommandOutcome
-        ``ExitCode.SUCCESS`` once the coherent cursor is written.
+        ``ExitCode.SUCCESS`` once the coherent cursor is written, carrying the
+        written cursor in ``result`` —
+        ``{"current_chapter", "current_scene", "current_beat"}``. This is the
+        write-shaped success vocabulary: a mutator names what it changed and
+        never echoes the ``check`` query's ``violations`` read shape (design
+        §3.1, §3.3; audit-2.2.2 Finding 2).
 
     Raises
     ------
@@ -205,7 +210,11 @@ def set_cursor(*, chapter: int, scene: int, beat: int) -> CommandOutcome:
     write_document_atomically(document, path)
     return CommandOutcome(
         code=ExitCode.SUCCESS,
-        result={"violations": []},
+        result={
+            "current_chapter": chapter,
+            "current_scene": scene,
+            "current_beat": beat,
+        },
         messages=[f"cursor set to chapter={chapter}, scene={scene}, beat={beat}"],
     )
 
@@ -259,7 +268,13 @@ def advance_phase() -> CommandOutcome:
     Returns
     -------
     CommandOutcome
-        ``ExitCode.SUCCESS`` once the advance is written.
+        ``ExitCode.SUCCESS`` once the advance is written, carrying the transition
+        in ``result`` — ``{"from", "to"}`` (the ``Phase.value`` strings). These
+        are *transition labels* describing the move, not on-disk schema keys:
+        ``state.toml`` has no ``[from]``/``[to]`` table; the persisted form is
+        ``phase.current`` plus ``phase.completed``. As a mutator it names what it
+        changed and never echoes the ``check`` query's ``violations`` read shape
+        (design §3.1, §3.3; audit-2.2.2 Finding 2).
 
     Raises
     ------
@@ -285,7 +300,10 @@ def advance_phase() -> CommandOutcome:
     write_document_atomically(document, path)
     return CommandOutcome(
         code=ExitCode.SUCCESS,
-        result={"violations": []},
+        result={
+            "from": prior.phase.current.value,
+            "to": successor.value,
+        },
         messages=[
             f"advanced phase from {prior.phase.current.value!r} to {successor.value!r}"
         ],
