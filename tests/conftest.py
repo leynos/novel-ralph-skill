@@ -30,14 +30,16 @@ from cuprum import ProgramCatalogue, ProjectSettings
 
 from novel_ralph_skill.contract.runner import CommandOutcome, StateInputError
 
-# Register the corpus fixture plugin (roadmap 1.3.2). The corpus fixtures live in
+# Register the corpus fixture plugins (roadmap 1.3.2). The corpus fixtures live in
 # ``tests/corpus_fixtures.py`` rather than here because the corpus surface would
 # push this module past the 400-line cap (AGENTS.md lines 24-27); a registered
 # plugin keeps every fixture available by name exactly as a ``conftest`` fixture
-# would be. ``conftest`` still re-exports the spec *types* under its
-# ``TYPE_CHECKING`` guard for the ``from conftest import WorkingTreeSpec``
-# carve-out.
-pytest_plugins = ("corpus_fixtures",)
+# would be. The live-draft oracle fixtures are split into
+# ``tests/corpus_live_draft_fixtures.py`` for the same reason: the combined
+# corpus and live-draft fixture surface would itself breach the 400-line cap.
+# ``conftest`` still re-exports the spec *types* under its ``TYPE_CHECKING`` guard
+# for the ``from conftest import WorkingTreeSpec`` carve-out.
+pytest_plugins = ("corpus_fixtures", "corpus_live_draft_fixtures")
 
 if typ.TYPE_CHECKING:
     import collections.abc as cabc

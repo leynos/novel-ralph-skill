@@ -19,6 +19,12 @@ from __future__ import annotations
 import typing as typ
 
 import pytest
+from _state_corpus_support import (
+    PARSE_ENFORCED_INVARIANTS,
+    PARSE_ERRORS,
+    load_succeeds,
+    validator_verdict,
+)
 
 from novel_ralph_skill.commands.novel_state import STATE_INPUT_ERRORS
 from novel_ralph_skill.state import (
@@ -32,7 +38,6 @@ from novel_ralph_skill.state import (
     PHASE_IN_ENUM,
     PURE_STATE_INVARIANT_NAMES,
     load_state,
-    validate_state,
 )
 from novel_ralph_skill.state.validate import _GATE_THRESHOLDS
 
@@ -41,25 +46,6 @@ if typ.TYPE_CHECKING:
     from pathlib import Path
 
     from conftest import WorkingTreeSpec
-
-# The ``phase-in-enum`` invariant is enforced one layer earlier than the
-# validator: ``parse_state`` constructs ``Phase(current)`` and raises
-# ``ValueError`` on an out-of-enum phase, so a parsed ``State`` can never carry a
-# ``phase-in-enum`` violation. The corpus's ``phase-not-in-enum`` variant
-# therefore makes ``load_state`` raise (the exit-``3`` state-error channel in
-# production) rather than yielding a validator verdict. The agreement suite
-# treats such a tree as a parse rejection, asserting the parser enforces the
-# invariant the oracle labels. See the ExecPlan Surprises & discoveries.
-_PARSE_ENFORCED_INVARIANTS: frozenset[str] = frozenset({PHASE_IN_ENUM})
-
-# The exceptions ``parse_state``/``load_state`` raise on a structurally bad or
-# out-of-enum ``state.toml`` (the production exit-``3`` channel). Named so the
-# ``except`` below reads as a tuple rather than the bare py3.14 PEP 758 multi-type
-# form a reader on an older Python would misread. This is the parse-fault subset
-# of the production ``STATE_INPUT_ERRORS`` vocabulary (the corpus trees always
-# exist on disk, so ``OSError`` is not exercised here); a test pins the subset
-# relationship so the two cannot drift (audit:2.1.2 finding 4).
-_PARSE_ERRORS: tuple[type[Exception], ...] = (ValueError, KeyError, TypeError)
 
 # The five disk-evidence invariant names this task does NOT own; the validator
 # must never emit any of them (the scope-boundary pin, protecting task 2.3.2's
@@ -75,26 +61,6 @@ _DEFERRED_INVARIANT_NAMES: frozenset[str] = frozenset(
         "cursor-plan-present",
     },
 )
-
-
-def _validator_verdict(working_dir: Path) -> set[str]:
-    """Return the set of invariant names the validator reports for a tree."""
-    state = load_state(working_dir / "state.toml")
-    return {violation.invariant for violation in validate_state(state)}
-
-
-def _load_succeeds(working_dir: Path) -> bool:
-    """Return whether ``load_state`` parses the tree's ``state.toml`` (no raise).
-
-    A ``False`` result means the parser rejected the tree (the production exit-``3``
-    state-error channel) before the validator could run — the parse-enforced
-    ``phase-in-enum`` case.
-    """
-    try:
-        load_state(working_dir / "state.toml")
-    except _PARSE_ERRORS:
-        return False
-    return True
 
 
 def test_owned_names_equal_corpus_vocabulary(
@@ -138,12 +104,12 @@ def test_parse_errors_subset_of_production_state_input_errors() -> None:
     """Pin this suite's parse-fault set as a subset of the production vocabulary.
 
     Pins the "what counts as a state-input error" vocabulary to one home: the
-    suite's ``_PARSE_ERRORS`` (the on-disk parse faults, minus ``OSError``) must
+    shared ``PARSE_ERRORS`` (the on-disk parse faults, minus ``OSError``) must
     be a subset of the production ``STATE_INPUT_ERRORS`` so the test cannot drift
     from the exit-``3`` channel ``novel-state check`` actually translates
     (audit:2.1.2 finding 4).
     """
-    assert set(_PARSE_ERRORS) <= set(STATE_INPUT_ERRORS)
+    assert set(PARSE_ERRORS) <= set(STATE_INPUT_ERRORS)
 
 
 def test_coherent_trees_pass_the_validator(
@@ -151,7 +117,7 @@ def test_coherent_trees_pass_the_validator(
 ) -> None:
     """Every coherent corpus tree has an empty pure-state verdict."""
     for _spec, working_dir in coherent_oracle_cases:
-        assert _validator_verdict(working_dir) == set()
+        assert validator_verdict(working_dir) == set()
 
 
 def test_incoherent_agreement_restricted_to_owned(
@@ -170,14 +136,14 @@ def test_incoherent_agreement_restricted_to_owned(
     for name in incoherent_variant_names:
         spec, working_dir, _expected = incoherent_tree(name)
         oracle_owned = set(check_corpus(spec, working_dir)) & owned
-        if not _load_succeeds(working_dir):
+        if not load_succeeds(working_dir):
             # A parse-rejected tree: the parser enforces the owned invariant the
             # oracle labels before the validator runs, so the oracle's owned labels
             # must be a non-empty subset of the parse-enforced set.
-            assert oracle_owned <= _PARSE_ENFORCED_INVARIANTS, name
+            assert oracle_owned <= PARSE_ENFORCED_INVARIANTS, name
             assert oracle_owned, name
             continue
-        validator_owned = _validator_verdict(working_dir) & owned
+        validator_owned = validator_verdict(working_dir) & owned
         assert validator_owned == oracle_owned, name
 
 
@@ -191,7 +157,7 @@ def test_by_chapter_sum_variant_names_only_by_chapter_sum(
     ``current``), proving invariant 7 is decoupled from invariant 3.
     """
     _spec, working_dir, _expected = incoherent_tree("by-chapter-sum-mismatch")
-    assert _validator_verdict(working_dir) == {BY_CHAPTER_SUM}
+    assert validator_verdict(working_dir) == {BY_CHAPTER_SUM}
 
 
 def test_phase_in_enum_is_parser_enforced(
@@ -207,7 +173,7 @@ def test_phase_in_enum_is_parser_enforced(
     """
     _spec, working_dir, expected = incoherent_tree("phase-not-in-enum")
     assert expected == PHASE_IN_ENUM
-    assert not _load_succeeds(working_dir)
+    assert not load_succeeds(working_dir)
     with pytest.raises(ValueError, match="not a valid Phase"):
         load_state(working_dir / "state.toml")
 
@@ -231,6 +197,6 @@ def test_validator_never_emits_deferred_names(
     for working_dir in working_dirs:
         # Skip parse-rejected trees: the validator never runs on them (the
         # exit-3 state-error channel), so it emits nothing — deferred or owned.
-        if not _load_succeeds(working_dir):
+        if not load_succeeds(working_dir):
             continue
-        assert _validator_verdict(working_dir) & _DEFERRED_INVARIANT_NAMES == set()
+        assert validator_verdict(working_dir) & _DEFERRED_INVARIANT_NAMES == set()

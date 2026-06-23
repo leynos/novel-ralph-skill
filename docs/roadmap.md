@@ -372,7 +372,7 @@ novel-ralph-harness-design.md §5.1 and §5.2.
       non-empty and mentions the offending values for a known breach, bringing
       the human-facing message channel under the same coverage as the machine
       name. Lightweight addendum pass.
-- [ ] 2.1.3. Assert the §5.2 validator agrees with the corpus oracle on every
+- [x] 2.1.3. Assert the §5.2 validator agrees with the corpus oracle on every
   fixture, keyed on `CORPUS_INVARIANT_NAMES`.
   - Reroute (source: review:1.3.2; severity: high). The §1.3.2 corpus exposes a
     stable invariant-name vocabulary (`CORPUS_INVARIANT_NAMES`) precisely so the

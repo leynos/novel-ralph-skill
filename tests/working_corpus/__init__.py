@@ -25,6 +25,7 @@ from __future__ import annotations
 
 from ._builder import build_working_tree
 from ._library import COHERENT_BASELINE, PHASE_ORDER, PHASE_STATES
+from ._live_draft import live_draft_counts, live_draft_owned
 from ._oracle import CORPUS_INVARIANT_NAMES, corpus_check
 from ._specs import (
     COMPILED_AUTO,
@@ -59,4 +60,6 @@ __all__ = [
     "corpus_check",
     "derive_by_chapter",
     "draft_body",
+    "live_draft_counts",
+    "live_draft_owned",
 ]
