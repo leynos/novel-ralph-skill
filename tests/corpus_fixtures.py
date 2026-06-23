@@ -108,6 +108,59 @@ def compile_probe(
 
 
 @pytest.fixture
+def populated_chapter_planning_tree(tmp_path: Path) -> cabc.Callable[[], Path]:
+    """Return a factory building a ``chapter-planning`` tree with a manifest.
+
+    No named corpus state captures "``chapter-planning`` with a populated
+    manifest": ``PHASE_STATES["chapter-planning"]`` is a pre-drafting spec with
+    an *empty* manifest, which advances into the empty-manifest refusal rather
+    than the success path (ExecPlan Decision Log D6). This fixture builds the
+    explicitly constructed populated-manifest tree the
+    ``advance-phase``-into-``drafting`` success case needs:
+    ``phase_current="chapter-planning"``, ``phase_completed=PHASE_ORDER[:7]``
+    (``premise`` … ``stc``), and three zero-draft chapters with a coherent,
+    zeroed cursor. Advancing it into ``drafting`` yields a coherent state.
+
+    Parameters
+    ----------
+    tmp_path : Path
+        The per-test temporary directory the tree is built under.
+
+    Returns
+    -------
+    Callable[[], Path]
+        A callable ``() -> Path`` materialising the tree and returning the
+        ``working/`` path.
+    """
+
+    def _build() -> Path:
+        """Build the populated-manifest ``chapter-planning`` tree."""
+        chapters = tuple(
+            wc.ChapterSpec(
+                number=number,
+                slug=f"chapter-{number:02d}",
+                title=f"Chapter {number}",
+                target_words=20000,
+                draft_words=0,
+                has_done_flag=False,
+            )
+            for number in (1, 2, 3)
+        )
+        spec = wc.WorkingTreeSpec(
+            phase_current="chapter-planning",
+            phase_completed=wc.PHASE_ORDER[:7],
+            chapters=chapters,
+            target_words=80000,
+            consecutive_clean=0,
+            convergence_target=1,
+            current_chapter=0,
+        )
+        return wc.build_working_tree(spec, tmp_path)
+
+    return _build
+
+
+@pytest.fixture
 def phase_names() -> tuple[str, ...]:
     """Return the eleven phase enum members in order.
 

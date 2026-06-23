@@ -8,11 +8,13 @@ the ``tomlkit`` round-trip helper (task 2.2.1) consume.
 
 The schema, phase enum, and parser are read-only: they model and parse
 ``state.toml`` but perform no CLI and no invariant validation (validation is
-task 2.1.2; the CLI is task 2.2.2). The *writer* — the lossless ``tomlkit``
-round-trip, the atomic temp-file-plus-``Path.replace`` write, and the
-``[pending_turn]`` intent bracket — lives in
-:mod:`novel_ralph_skill.state.document` (task 2.2.1, delivered) and is
-re-exported here.
+task 2.1.2). The *writer* — the lossless ``tomlkit`` round-trip, the atomic
+temp-file-plus-``Path.replace`` write, and the ``[pending_turn]`` intent
+bracket — lives in :mod:`novel_ralph_skill.state.document` (task 2.2.1,
+delivered) and is re-exported here. The ``init`` initial-state builder
+:func:`~novel_ralph_skill.state.initial.build_initial_document` (task 2.2.2,
+delivered) is likewise re-exported here; the mutator subcommands that consume it
+live in the ``commands`` package.
 """
 
 from __future__ import annotations
@@ -25,6 +27,7 @@ from novel_ralph_skill.state.document import (
     pending_turn,
     write_document_atomically,
 )
+from novel_ralph_skill.state.initial import build_initial_document
 from novel_ralph_skill.state.parse import load_state, parse_state
 from novel_ralph_skill.state.phase import PHASE_ORDER, Phase
 from novel_ralph_skill.state.schema import (
@@ -82,6 +85,7 @@ __all__ = [
     "State",
     "Violation",
     "WordCounts",
+    "build_initial_document",
     "clear_pending_turn",
     "document_to_state",
     "load_document",

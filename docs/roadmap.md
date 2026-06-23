@@ -443,7 +443,7 @@ novel-ralph-harness-design.md §3.4, §4.1, and §5.3.
     on-disk formatting and comments byte-for-byte (the round-trip property), and
     a write interrupted before completion leaves a populated `[pending_turn]`
     record for the next turn to reconcile.
-- [ ] 2.2.2. Implement `init`, `set-cursor`, and `advance-phase`.
+- [x] 2.2.2. Implement `init`, `set-cursor`, and `advance-phase`.
   - Requires 2.1.2 and 2.2.1.
   - `init` creates `working/` and an initial state; `set-cursor` refuses
     incoherent cursors; `advance-phase` refuses skips and out-of-order

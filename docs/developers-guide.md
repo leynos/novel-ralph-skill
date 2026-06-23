@@ -392,6 +392,56 @@ behavioural scenario (`tests/features/torn_turn.feature` with steps under
 `tests/steps/`); the round-trip and surgical-mutation guarantees are pinned by
 Hypothesis properties over a hand-authored, comment-and-layout-bearing fixture.
 
+### State mutators (`init`, `set-cursor`, `advance-phase`)
+
+The three state-mutating subcommands of `novel-state` (task 2.2.2; design §4.1)
+are the first commands that *write* `state.toml`. `init` lives in
+`commands/novel_state.py` beside `check`; `set-cursor` and `advance-phase` live
+in the sibling `commands/_state_mutators.py` so the command module stays within
+the 400-line cap once all three bodies land. Three disciplines bind every
+mutator:
+
+- **Validate before persist.** Each mutator edits the live `tomlkit` document,
+  derives the typed `State` *read* view through `document_to_state`, applies the
+  §5.2 `validate_state`, and writes atomically only when the proposed state is
+  coherent. A refused request performs **no write**, so the prior `state.toml`
+  is byte-for-byte unchanged (design §3.4).
+- **Refusal is exit `3`, never exit `1`.** An incoherent cursor, a phase skip or
+  out-of-order completion, a terminal advance, an empty-manifest advance into
+  `drafting`, or a missing/unparseable/structurally-incomplete `state.toml` is
+  the contract's exit `3` (state error), routed through `StateInputError` — never
+  the benign exit `1` the loop continues on (design §3.2). Because the exit-`3`
+  `run` arm emits only `messages` (no `result`), a refusal names the breached
+  invariant(s) in `messages`.
+- **The two-helper document load path.** The mutators load through
+  `_load_document_or_state_error` → `load_document` (`tomlkit`), **not**
+  `_load_or_state_error` → `load_state` (`tomllib`), because they edit the live
+  document in place. The typed-view derivation goes through a *second* helper,
+  `_state_view_or_state_error` → `document_to_state`. Both route faults to exit
+  `3` under the existing `STATE_INPUT_ERRORS` tuple. The second wrap is
+  load-bearing: a `state.toml` that is valid TOML but structurally incomplete
+  (e.g. `schema_version = 1` alone) passes `load_document` and fails only inside
+  `document_to_state`; left unwrapped that fault would exit `1`. The mutators
+  never call bare `document_to_state`.
+
+`init` *creates*, it does not overwrite: it refuses with exit `3` when
+`working/state.toml` already exists rather than clobbering a live project, then
+builds the full required table set (`build_initial_document`), creates the
+Initialisation directory skeleton plus an empty `log.md`, and writes atomically.
+Each of these mutators writes a single file (`state.toml`, plus `init`'s
+`log.md`), already atomic via `Path.replace`, so none opens a `[pending_turn]`
+bracket — that belongs to the genuinely multi-file mutators (`recount`,
+`reconcile`).
+
+`advance-phase` takes no argument and always moves to the immediate successor,
+so a phase *skip* cannot be requested. "Refuses out-of-order completion" is
+therefore realised **solely** as a prior-state coherence guard: a prior whose
+`completed` is not the in-order prefix is refused (a future reader should not
+hunt for skip-rejection logic that cannot exist). The behavioural proof is the
+`pytest-bdd` scenario `tests/features/advance_phase_refusal.feature`, which
+advances the `completed-prefix-gap` corpus tree and asserts exit `3` with the
+prior state intact.
+
 ### The state-layout direct-edit guard
 
 Because direct editing of `state.toml` is eliminated (design §4.1; ADR-002

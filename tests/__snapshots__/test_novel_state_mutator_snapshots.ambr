@@ -1,0 +1,19 @@
+# serializer version: 1
+# name: test_advance_phase_refusal_envelope_snapshot
+  '''
+  {"command": "novel-state", "schema_version": 1, "ok": false, "working_dir": "working", "result": {}, "messages": ["advance-phase from an incoherent state would violate: completed-prefix", "phase.completed (<Phase.PREMISE: 'premise'>, <Phase.CHARACTERS: 'characters'>) is not the in-order prefix (<Phase.PREMISE: 'premise'>, <Phase.TREATMENT: 'treatment'>, <Phase.CHARACTERS: 'characters'>, <Phase.CONFLICT_ANALYSIS: 'conflict-analysis'>, <Phase.SETTING: 'setting'>, <Phase.READER_FIT: 'reader-fit'>, <Phase.STC: 'stc'>, <Phase.CHAPTER_PLANNING: 'chapter-planning'>) for current <Phase.DRAFTING: 'drafting'>"]}
+  
+  '''
+# ---
+# name: test_init_success_envelope_snapshot
+  '''
+  {"command": "novel-state", "schema_version": 1, "ok": true, "working_dir": "working", "result": {"working_dir": "working", "slug": "s"}, "messages": ["initialised working/state.toml"]}
+  
+  '''
+# ---
+# name: test_set_cursor_refusal_envelope_snapshot
+  '''
+  {"command": "novel-state", "schema_version": 1, "ok": false, "working_dir": "working", "result": {}, "messages": ["set-cursor would violate: cursor-coherent", "cursor (chapter=99, scene=0, beat=0) is incoherent for 3 manifest chapters"]}
+  
+  '''
+# ---
