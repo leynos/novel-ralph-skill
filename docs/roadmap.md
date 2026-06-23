@@ -395,7 +395,7 @@ novel-ralph-harness-design.md §5.1 and §5.2.
       non-empty and mentions the offending values for a known breach, bringing
       the human-facing message channel under the same coverage as the machine
       name. Lightweight addendum pass.
-  - [ ] 2.1.2.9. Render `Phase` members as kebab strings in the validator's
+  - [x] 2.1.2.9. Render `Phase` members as kebab strings in the validator's
     operator-facing `Violation.detail` messages.
     - Addendum (from review:2.2.2; low). The `phase-in-enum` and
       `completed-prefix` details repr `Phase` members

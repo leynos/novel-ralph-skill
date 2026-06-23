@@ -1,7 +1,7 @@
 # serializer version: 1
 # name: test_advance_phase_refusal_envelope_snapshot
   '''
-  {"command": "novel-state", "schema_version": 1, "ok": false, "working_dir": "working", "result": {}, "messages": ["advance-phase from an incoherent state would violate: completed-prefix", "phase.completed (<Phase.PREMISE: 'premise'>, <Phase.CHARACTERS: 'characters'>) is not the in-order prefix (<Phase.PREMISE: 'premise'>, <Phase.TREATMENT: 'treatment'>, <Phase.CHARACTERS: 'characters'>, <Phase.CONFLICT_ANALYSIS: 'conflict-analysis'>, <Phase.SETTING: 'setting'>, <Phase.READER_FIT: 'reader-fit'>, <Phase.STC: 'stc'>, <Phase.CHAPTER_PLANNING: 'chapter-planning'>) for current <Phase.DRAFTING: 'drafting'>"]}
+  {"command": "novel-state", "schema_version": 1, "ok": false, "working_dir": "working", "result": {}, "messages": ["advance-phase from an incoherent state would violate: completed-prefix", "phase.completed (premise, characters) is not the in-order prefix (premise, treatment, characters, conflict-analysis, setting, reader-fit, stc, chapter-planning) for current drafting"]}
   
   '''
 # ---

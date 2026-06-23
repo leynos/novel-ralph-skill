@@ -203,7 +203,14 @@ def _break_gate_ratio(state: State) -> State:
 # rather than slipping past the machine-name assertions (audit:2.1.2 finding 8).
 _DETAIL_CASES: tuple[tuple[str, State, tuple[str, ...]], ...] = (
     (PHASE_IN_ENUM, _break_phase(_baseline()), ("not-a-phase",)),
-    (COMPLETED_PREFIX, _break_completed_prefix(_baseline()), ("completed", "prefix")),
+    (
+        COMPLETED_PREFIX,
+        _break_completed_prefix(_baseline()),
+        # The current phase is ``PHASE_ORDER[8]`` (``drafting``) and the expected
+        # prefix opens with ``premise``; both must appear as the kebab ``.value``
+        # an operator reads in ``state.toml`` (review:2.2.2 finding 9).
+        ("completed", "prefix", "drafting", "premise"),
+    ),
     (BY_CHAPTER_SUM, _break_by_chapter_sum(_baseline()), ("8000", "8001")),
     (CONSECUTIVE_CLEAN_WITHIN_TARGET, _break_within_target(_baseline()), ("2", "1")),
     (CONVERGENCE_TARGET_AT_LEAST_ONE, _break_at_least_one(_baseline()), ("0", "1")),
@@ -232,6 +239,12 @@ def test_violation_detail_names_the_offending_values(
     """
     violation = _violation_for(state, invariant)
     assert violation.detail, f"{invariant} produced an empty detail string"
+    # Phase members must render as the kebab ``.value`` an operator reads in
+    # ``state.toml``, never the ``<Phase.PREMISE: 'premise'>`` repr that leaks
+    # into every refusal envelope (review:2.2.2 finding 9).
+    assert "<Phase." not in violation.detail, (
+        f"{invariant} detail {violation.detail!r} leaks the Phase repr"
+    )
     for substring in expected_substrings:
         assert substring in violation.detail, (
             f"{invariant} detail {violation.detail!r} is missing {substring!r}"

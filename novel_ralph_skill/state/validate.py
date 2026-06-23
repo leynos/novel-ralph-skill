@@ -90,13 +90,31 @@ class Violation:
     detail: str
 
 
+def _kebab(member: object) -> str:
+    """Render a phase as the kebab string an operator reads in ``state.toml``.
+
+    A :class:`~novel_ralph_skill.state.phase.Phase` is a :class:`enum.StrEnum`,
+    so ``str(member)`` is its kebab-case value (``Phase.PREMISE`` →
+    ``"premise"``) rather than the ``<Phase.PREMISE: 'premise'>`` repr. An
+    out-of-enum ``current`` (the ``phase-in-enum`` breach) is already a plain
+    string, so ``str`` renders it verbatim — keeping the detail prose in the
+    on-disk vocabulary either way.
+    """
+    return str(member)
+
+
+def _kebab_tuple(members: cabc.Iterable[object]) -> str:
+    """Render a tuple of phases as kebab strings (e.g. ``(premise, treatment)``)."""
+    return f"({', '.join(_kebab(member) for member in members)})"
+
+
 def _check_phase_in_enum(state: State) -> Violation | None:
     """Return a violation when ``phase.current`` is outside the enum (inv 1)."""
     if state.phase.current in PHASE_ORDER:
         return None
     return Violation(
         invariant=PHASE_IN_ENUM,
-        detail=f"phase.current {state.phase.current!r} is not a Phase member",
+        detail=f"phase.current {_kebab(state.phase.current)} is not a Phase member",
     )
 
 
@@ -116,8 +134,9 @@ def _check_completed_prefix(state: State) -> Violation | None:
     return Violation(
         invariant=COMPLETED_PREFIX,
         detail=(
-            f"phase.completed {tuple(state.phase.completed)!r} is not the in-order "
-            f"prefix {expected!r} for current {state.phase.current!r}"
+            f"phase.completed {_kebab_tuple(state.phase.completed)} is not the "
+            f"in-order prefix {_kebab_tuple(expected)} for current "
+            f"{_kebab(state.phase.current)}"
         ),
     )
 
