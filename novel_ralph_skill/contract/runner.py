@@ -38,6 +38,7 @@ from novel_ralph_skill.contract.envelope import (
     render_human,
     render_machine,
 )
+from novel_ralph_skill.contract.errors import EnvelopeMessagesError
 from novel_ralph_skill.contract.exit_codes import ExitCode
 
 if typ.TYPE_CHECKING:
@@ -79,25 +80,16 @@ def parse_global_flags(argv: list[str]) -> tuple[bool, list[str]]:
     return human, residual
 
 
-class StateInputError(Exception):
+class StateInputError(EnvelopeMessagesError):
     """A command body raises this to signal the contract's exit-``3`` channel.
 
     A state or input fault — a missing or unparseable ``state.toml``, an absent
     working directory, or a refused mutator request — is the contract's exit
     ``3``, never the benign ``1`` (design 3.2 and 3.4). The optional
-    ``messages`` payload carries human prose for the emitted envelope.
+    ``messages`` payload, recorded once by the
+    :class:`~novel_ralph_skill.contract.errors.EnvelopeMessagesError` base,
+    carries human prose for the emitted envelope.
     """
-
-    def __init__(self, *messages: str) -> None:
-        """Record the human-prose messages for the state-error envelope.
-
-        Parameters
-        ----------
-        *messages : str
-            Human-oriented notes describing the state or input fault.
-        """
-        super().__init__(*messages)
-        self.messages: tuple[str, ...] = messages
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)

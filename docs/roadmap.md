@@ -263,7 +263,7 @@ drift and seeds the snapshot suite. See novel-ralph-harness-design.md §3 and §
   - Success: `parse_global_flags` and `_HUMAN_FLAG` live in a shared seam (e.g.
     `contract.runner` or `commands/_global_flags.py`), every command imports the
     one splitter, and no command depends on a sibling command module.
-- [ ] 1.3.4. Extract a shared envelope-`messages`-carrying exception base for the
+- [x] 1.3.4. Extract a shared envelope-`messages`-carrying exception base for the
   domain error types.
   - Reroute (source: audit:5.1.1; severity: medium). `StateInputError`,
     `RulePackError`, and `RulePackFileError` hand-repeat the same

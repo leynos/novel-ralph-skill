@@ -8,8 +8,9 @@ re-inventing an output shape.
 
 The public surface re-exported here is :class:`Envelope`, :func:`build_envelope`,
 :func:`render_machine`, :func:`render_human`, :data:`ENVELOPE_SCHEMA_VERSION`,
-:class:`ExitCode`, :func:`is_ok`, :class:`CommandOutcome`, :class:`RunContext`,
-:class:`StateInputError`, :func:`parse_global_flags`, and :func:`run`.
+:class:`EnvelopeMessagesError`, :class:`ExitCode`, :func:`is_ok`,
+:class:`CommandOutcome`, :class:`RunContext`, :class:`StateInputError`,
+:func:`parse_global_flags`, and :func:`run`.
 """
 
 from __future__ import annotations
@@ -21,6 +22,7 @@ from novel_ralph_skill.contract.envelope import (
     render_human,
     render_machine,
 )
+from novel_ralph_skill.contract.errors import EnvelopeMessagesError
 from novel_ralph_skill.contract.exit_codes import ExitCode, is_ok
 from novel_ralph_skill.contract.runner import (
     CommandOutcome,
@@ -34,6 +36,7 @@ __all__ = [
     "ENVELOPE_SCHEMA_VERSION",
     "CommandOutcome",
     "Envelope",
+    "EnvelopeMessagesError",
     "ExitCode",
     "RunContext",
     "StateInputError",

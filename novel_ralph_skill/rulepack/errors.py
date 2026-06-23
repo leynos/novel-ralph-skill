@@ -14,17 +14,20 @@ a message:
 - :class:`RulePackFileError` — the pack *file* is absent, unreadable, or holds
   undecodable TOML. The command maps this to ``ExitCode.STATE_ERROR`` (exit 3).
 
-Both mirror ``StateInputError`` in
-:mod:`novel_ralph_skill.contract.runner`: they store human-prose ``messages`` on
-the instance for the envelope the command will build. The loader itself never
-calls :func:`sys.exit` and emits no envelope; exit-code translation is the
-command body's job.
+Both share the
+:class:`~novel_ralph_skill.contract.errors.EnvelopeMessagesError` base from the
+``contract`` layer (the ``rulepack`` → ``contract`` dependency direction; design
+§3.1): they store human-prose ``messages`` on the instance for the envelope the
+command will build. The loader itself never calls :func:`sys.exit` and emits no
+envelope; exit-code translation is the command body's job.
 """
 
 from __future__ import annotations
 
+from novel_ralph_skill.contract.errors import EnvelopeMessagesError
 
-class RulePackError(Exception):
+
+class RulePackError(EnvelopeMessagesError):
     """Malformed rule-pack *content*: the command maps this to exit 2.
 
     Raised by the loader when a decoded rule pack violates the v1 schema — a bad
@@ -48,27 +51,17 @@ class RulePackError(Exception):
             that names no single rule.
         """
         super().__init__(*messages)
-        self.messages: tuple[str, ...] = messages
         self.rule_id: str | None = rule_id
 
 
-class RulePackFileError(Exception):
+class RulePackFileError(EnvelopeMessagesError):
     """An absent, unreadable, or undecodable pack file: maps to exit 3.
 
     Raised by :func:`~novel_ralph_skill.rulepack.parse.load_rulepack` when the
     pack file is missing, cannot be read, or holds TOML that ``tomllib`` cannot
     decode. A decode fault is an input fault (exit 3), kept distinct from a
     *structurally valid* TOML that violates the schema (which is
-    :class:`RulePackError`, exit 2).
+    :class:`RulePackError`, exit 2). The human-prose ``messages`` are recorded
+    once by the
+    :class:`~novel_ralph_skill.contract.errors.EnvelopeMessagesError` base.
     """
-
-    def __init__(self, *messages: str) -> None:
-        """Record the human-prose messages for the state-error envelope.
-
-        Parameters
-        ----------
-        *messages : str
-            Human-oriented notes describing the file or decode fault.
-        """
-        super().__init__(*messages)
-        self.messages: tuple[str, ...] = messages
