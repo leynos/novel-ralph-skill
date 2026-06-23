@@ -422,6 +422,28 @@ novel-ralph-harness-design.md §5.1 and §5.2.
     against the materialised `state.toml`, matches the oracle's
     `CORPUS_INVARIANT_NAMES` labels exactly — coherent trees pass and each
     incoherent variant is rejected on its one named invariant.
+  - [ ] 2.1.3.1. Consolidate the live-draft oracle's repeated `state.toml`
+    parsing and drop the third `by-chapter-sum` predicate twin.
+    - Addendum (from audit:2.1.3; medium). The three `_check_*_live` predicates
+      in `tests/working_corpus/_live_draft.py` each re-parse `state.toml`; parse
+      it once in `live_draft_owned` and pass the decoded tables in, and drop
+      `_check_by_chapter_sum_live` in favour of the `by-chapter-sum` verdict
+      `corpus_check` already returns. Test-only cleanup of redundant reads and a
+      hand-copied table twin. Lightweight addendum pass.
+  - [ ] 2.1.3.2. Lift the shared disk-evidence invariant-name set into one home
+    for both agreement suites.
+    - Addendum (from audit:2.1.3; medium). `_DISK_EVIDENCE_NAMES` and
+      `_DEFERRED_INVARIANT_NAMES` are identical five-element frozensets
+      hard-coded in two test modules with nothing pinning them equal; derive the
+      set once in `tests/_state_corpus_support.py` (ideally as
+      `set(CORPUS_INVARIANT_NAMES) - set(PURE_STATE_INVARIANT_NAMES)`) and import
+      it into both. Test-only. Lightweight addendum pass.
+  - [ ] 2.1.3.3. Promote the §5.2 gate thresholds to a public exported constant.
+    - Addendum (from audit:2.1.3; low). Two test modules import the private
+      `_GATE_THRESHOLDS` across the package boundary; export `GATE_THRESHOLDS`
+      from `novel_ralph_skill.state` alongside the invariant-name constants and
+      update the imports, removing the cross-module-private-import smell prior
+      audits repeatedly lifted. Lightweight addendum pass.
 - [x] 2.1.4. Complete the corpus's invariant-6 coverage for the scene/beat
   cursor sub-clauses.
   - Reroute (source: audit:1.3.2 / review:1.3.2; severity: medium). The §1.3.2
@@ -454,6 +476,42 @@ novel-ralph-harness-design.md §5.1 and §5.2.
     a scene/beat cursor referencing a chapter past `current_chapter` is a
     negative fixture both the corpus oracle and the §5.2 validator reject on the
     pure-state `cursor-coherent` name.
+- [ ] 2.1.5. Promote a `by_chapter_override` table-versus-draft divergence
+  variant into the §1.3.2 shared corpus so the whole-corpus agreement loop is
+  discriminating.
+  - Reroute (source: review:2.1.3 / audit:2.1.3; severity: medium). The 2.1.3
+    live-draft cross-check proves the validator enforces invariants 4c and 7
+    against a source genuinely independent of the `[word_counts]` table, but no
+    §1.3.2 corpus tree sets `by_chapter_override`, so on every current corpus
+    tree the table and the on-disk drafts are numerically equal and the
+    whole-corpus agreement test alone cannot discriminate a live read from a
+    table read. The 2.1.3 fix-round-1 had to construct a one-off module-local
+    `divergent_table_tree` fixture to close that, and a surviving mutant
+    (live reader to table reader) confirmed the gap. This serves the step-2.1
+    hypothesis — that the schema's invariants can be expressed as a typed
+    structure a validator enforces — by making the validator-versus-live-oracle
+    cross-check discriminating from first-class corpus data and by exercising
+    the validator's two table-based proxies (`gate-ratio-consistent`,
+    `consecutive-clean-within-drafted`) against a genuinely divergent tree,
+    rather than resting the discrimination on a bespoke per-test fixture. It is
+    substantial because it adds corpus data under step-1.3.2 ownership
+    (`tests/working_corpus/_variants.py` and the oracle vocabulary) and must
+    keep the existing spec-keyed `corpus_check`, `CORPUS_INVARIANT_NAMES`, and
+    every current agreement suite green, which warrants its own plan and review.
+    Add a first-class corpus variant (positive `draft.md` bodies with a
+    `by_chapter_override` that under-counts or omits a drafted chapter so the
+    table mislabels the real drafts) owned by the §1.3.2 corpus, and retire the
+    module-local `divergent_table_tree` fixture in favour of it.
+  - Requires 2.1.3.
+  - See novel-ralph-harness-design.md §5.2 and §9;
+    docs/execplans/roadmap-2-1-3.md (Fix round 1, the divergent-table tree);
+    docs/execplans/roadmap-1-3-2.md (the corpus-ownership constraints).
+  - Success: a first-class §1.3.2 corpus variant sets `by_chapter_override` so
+    the table's `by_chapter` diverges from the on-disk drafts; the whole-corpus
+    live-draft agreement test discriminates the live read from a table read
+    directly through the standard corpus loop (the live reader to table reader
+    mutant is killed without the module-local fixture); and the module-local
+    `divergent_table_tree` fixture is removed.
 
 ### 2.2. Deliver lossless, atomic state mutation
 
@@ -1007,3 +1065,36 @@ deterministic spine.
     `pytest-bdd` version pin and its guard move together with any bump, and the
     `PytestRemovedIn10Warning` is either resolved or filtered with a recorded
     reason.
+
+### 7.6. Harden the state-validation lane against inert assertions
+
+This step answers whether the state validator and the validator-versus-oracle
+agreement suites are adversarially robust — whether a semantically meaningful
+mutation of the lane's logic is reliably caught by a test, or whether inert
+guards survive that pass green while no longer constraining behaviour. Its
+outcome is a mutation-tested confidence in the lane that goes beyond
+example-based coverage, surfacing surviving mutants as new tests. This is a
+deferred verification-hardening extension surfaced by the review of step 2.1; it
+does not advance the step-2.1 schema-and-validator hypothesis (the validator and
+its agreement suites already exist and are cross-checked) and it does not gate
+the deterministic spine.
+
+- [ ] 7.6.1. Mutation-test the state validator and the oracle-agreement suites.
+  - Reroute (source: review:2.1.3; severity: low). The 2.1.3 review found a
+    passing suite that survived a semantically meaningful mutation (a live
+    `draft.md` reader silently degraded to a `[word_counts]` table reader), an
+    inert guard caught only by a one-off manual mutation probe. A scoped `mutmut`
+    run over `novel_ralph_skill/state/validate.py` and the corpus oracles
+    (`tests/working_corpus/_oracle.py`, `tests/working_corpus/_live_draft.py`)
+    would surface such inert guards across the whole state-validation lane
+    systematically, not just at the one site the review happened to probe. This
+    does not serve the step-2.1 hypothesis — it is adversarial verification of an
+    already-built lane, a cross-cutting quality concern — so it is deferred here
+    rather than parked in 2.1.
+  - Requires 2.1.3.
+  - See novel-ralph-harness-design.md §9; AGENTS.md "Python verification and
+    testing"; the `mutmut` skill.
+  - Success: a scoped `mutmut` run over the named validator and oracle modules
+    reports its surviving mutants, each surviving mutant is either killed by a
+    new test or recorded with a rationale, and the mutation configuration is
+    captured so the run is repeatable.

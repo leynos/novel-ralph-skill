@@ -1222,3 +1222,51 @@ Round 1 (2026-06-23): initial draft (superseded). Proposed a
 `[word_counts]`-table re-read oracle keyed on `CORPUS_INVARIANT_NAMES`; the
 design review found that construction non-independent and rescoped it to the
 live-draft cross-check above.
+
+## Addenda (post-merge follow-ups)
+
+Lightweight addendum work items folded back onto this completed task from the
+post-merge audit (`docs/issues/audit-2.1.3.md`). Execute each as a small
+addendum pass — no plan or design-review cycle: make the change, run `make all`
+(plus `make markdownlint`/`make nixie` for Markdown), `coderabbit review
+--agent`, commit, and tick the matching roadmap sub-task on merge. The
+substantial, cross-cutting follow-ups were re-routed off this task: the
+first-class `by_chapter_override` corpus divergence variant (review:2.1.3 /
+audit:2.1.3) to roadmap step 2.1 (task 2.1.5, because it adds §1.3.2 corpus data
+and hardens the validator cross-check that proves the step-2.1 hypothesis), and
+the lane-wide `mutmut` run (review:2.1.3) to roadmap step 7.6 (a deferred
+verification-hardening extension); the three below are the small, localised
+fixes. Audit Finding 5 (the inline owned-name restriction) and Finding 6 (the
+users'-guide verdict vocabulary) are not folded here: Finding 6's vocabulary
+enumeration already shipped in task 2.1.2.7, with its residual operator-meaning
+prose deferred to the broader users-guide update in task 2.2.2.1.
+
+- [ ] 2.1.3.1 — Consolidate the live-draft oracle's repeated `state.toml`
+  parsing and drop the third `by-chapter-sum` predicate twin (from audit:2.1.3,
+  medium; Findings 1 and 3). In `tests/working_corpus/_live_draft.py`, parse
+  `state.toml` once in `live_draft_owned` and pass the decoded
+  `[word_counts]`/`[gates]`/`[drafting]` tables into the three `_check_*_live`
+  predicates, turning them into pure functions over already-decoded data; then
+  drop `_check_by_chapter_sum_live` in favour of the `by-chapter-sum` verdict
+  `corpus_check(spec, working_dir)` already returns (line 184), so the
+  table-internal read is no longer a third hand-copied twin. Test-only. Gate
+  with `make all`.
+- [ ] 2.1.3.2 — Lift the shared disk-evidence invariant-name set into one home
+  for both agreement suites (from audit:2.1.3, medium; Finding 2). The identical
+  five-element frozensets `_DISK_EVIDENCE_NAMES`
+  (`tests/test_validate_state_live_draft.py`) and `_DEFERRED_INVARIANT_NAMES`
+  (`tests/test_validate_state_corpus.py`) are hard-coded in two modules with
+  nothing pinning them equal. Define the set once in
+  `tests/_state_corpus_support.py` — ideally derived as
+  `set(CORPUS_INVARIANT_NAMES) - set(PURE_STATE_INVARIANT_NAMES)` so it cannot
+  drift from the owned vocabulary — and import it into both modules. Test-only.
+  Gate with `make all`.
+- [ ] 2.1.3.3 — Promote the §5.2 gate thresholds to a public exported constant
+  (from audit:2.1.3, low; Finding 4). `tests/test_validate_state_corpus.py` and
+  `tests/test_validate_state_property.py` both import the module-private
+  `_GATE_THRESHOLDS` from `novel_ralph_skill/state/validate.py` across the
+  package boundary — the cross-module-private-import smell prior audits
+  repeatedly lifted. Export `GATE_THRESHOLDS` from `state/validate.py`,
+  re-export it through `novel_ralph_skill.state.__init__` alongside the
+  invariant-name constants, and update the two test imports. Gate with
+  `make all`.
