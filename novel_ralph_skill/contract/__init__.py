@@ -9,7 +9,7 @@ re-inventing an output shape.
 The public surface re-exported here is :class:`Envelope`, :func:`build_envelope`,
 :func:`render_machine`, :func:`render_human`, :data:`ENVELOPE_SCHEMA_VERSION`,
 :class:`ExitCode`, :func:`is_ok`, :class:`CommandOutcome`, :class:`RunContext`,
-:class:`StateInputError`, and :func:`run`.
+:class:`StateInputError`, :func:`parse_global_flags`, and :func:`run`.
 """
 
 from __future__ import annotations
@@ -26,6 +26,7 @@ from novel_ralph_skill.contract.runner import (
     CommandOutcome,
     RunContext,
     StateInputError,
+    parse_global_flags,
     run,
 )
 
@@ -38,6 +39,7 @@ __all__ = [
     "StateInputError",
     "build_envelope",
     "is_ok",
+    "parse_global_flags",
     "render_human",
     "render_machine",
     "run",

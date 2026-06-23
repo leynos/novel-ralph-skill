@@ -14,12 +14,8 @@ import sys
 import cyclopts
 
 from novel_ralph_skill.commands.names import COMMAND_ENTRY_POINTS
-from novel_ralph_skill.commands.novel_state import (
-    WORKING_DIR_NAME,
-    build_app,
-    parse_global_flags,
-)
-from novel_ralph_skill.contract.runner import RunContext, run
+from novel_ralph_skill.commands.novel_state import WORKING_DIR_NAME, build_app
+from novel_ralph_skill.contract import RunContext, parse_global_flags, run
 
 STUB_EXIT_CODE = 2
 """Exit code for an unimplemented command result (usage error, design 3.2)."""

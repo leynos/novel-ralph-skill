@@ -17,7 +17,10 @@ import typing as typ
 import pytest
 from conftest import STATE_FAULT_MESSAGE
 
+from novel_ralph_skill import contract
+from novel_ralph_skill.commands import novel_state
 from novel_ralph_skill.commands.names import COMMAND_NAMES
+from novel_ralph_skill.contract import runner
 from novel_ralph_skill.contract.exit_codes import ExitCode
 from novel_ralph_skill.contract.runner import CommandOutcome, RunContext, run
 
@@ -269,3 +272,30 @@ def test_human_flag_switches_rendering(
     # The human rendering is not the machine JSON object.
     with pytest.raises(json.JSONDecodeError):
         json.loads(out)
+
+
+# --- The ``parse_global_flags`` seam guards (roadmap task 1.3.3) ---
+
+
+def test_parse_global_flags_is_a_contract_seam() -> None:
+    """The splitter is the contract package's public seam, not a command's.
+
+    A consumer importing ``parse_global_flags`` from the package front door
+    resolves the very object defined on ``contract.runner``, and the symbol is
+    advertised in the package ``__all__`` so the re-export is a documented part
+    of the public surface (roadmap task 1.3.3).
+    """
+    assert contract.parse_global_flags is runner.parse_global_flags
+    assert "parse_global_flags" in contract.__all__
+
+
+def test_novel_state_command_does_not_own_the_splitter() -> None:
+    """The command module no longer defines the global-flag splitter.
+
+    With neither ``parse_global_flags`` nor ``_HUMAN_FLAG`` on the
+    ``novel-state`` command module, no command can import the splitter from a
+    sibling command module — the seam has the one neutral home the contract
+    package provides (roadmap task 1.3.3).
+    """
+    assert not hasattr(novel_state, "parse_global_flags")
+    assert not hasattr(novel_state, "_HUMAN_FLAG")

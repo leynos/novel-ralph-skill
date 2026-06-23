@@ -33,10 +33,8 @@ from cuprum.program import Program
 from cuprum.sh import ExecutionContext
 
 from novel_ralph_skill.commands import stub
-from novel_ralph_skill.commands.novel_state import (
-    build_app,
-    parse_global_flags,
-)
+from novel_ralph_skill.commands.novel_state import build_app
+from novel_ralph_skill.contract import parse_global_flags
 from novel_ralph_skill.contract.exit_codes import ExitCode
 from novel_ralph_skill.contract.runner import RunContext, run
 

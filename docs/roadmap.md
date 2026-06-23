@@ -249,7 +249,7 @@ drift and seeds the snapshot suite. See novel-ralph-harness-design.md §3 and §
       `draft.md`, so the design §5.4 absent-draft contradiction has no fixture;
       add a `done-flag-absent-draft` variant keyed on `done-flag-without-draft`
       for the 2.3.2 check/reconcile consumer. Lightweight addendum pass.
-- [ ] 1.3.3. Hoist `parse_global_flags` and `_HUMAN_FLAG` into a shared seam
+- [x] 1.3.3. Hoist `parse_global_flags` and `_HUMAN_FLAG` into a shared seam
   before the second command imports them cross-command.
   - Reroute (source: audit:2.1.2; severity: low). `parse_global_flags` is a
     command-agnostic `--human` splitter (ADR-003 §3.1) currently living in the

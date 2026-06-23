@@ -222,10 +222,11 @@ surface is the frozen `Envelope` dataclass and the `build_envelope` constructor
 single source of truth), the `render_machine` and `render_human` renderers, the
 `ENVELOPE_SCHEMA_VERSION` constant, the `ExitCode` enum and its `is_ok` helper,
 the `StateInputError` channel, the `CommandOutcome` and `RunContext` value
-types, and the `run` wrapper. A new command builds a Cyclopts app, returns a
-`CommandOutcome` from its body, and calls `run` rather than calling the app
-directly. Two consequences of `run` are load-bearing. First, `run` requires the
-caller to build the app with `result_action="return_value"` (plus
+types, the command-agnostic `parse_global_flags` splitter, and the `run`
+wrapper. A new command builds a Cyclopts app, returns a `CommandOutcome` from
+its body, and calls `run` rather than calling the app directly. Two consequences
+of `run` are load-bearing. First, `run` requires the caller to build the app
+with `result_action="return_value"` (plus
 `exit_on_error=False, print_error=False, help_on_error=False`) so that `run` —
 not Cyclopts — owns every `sys.exit` and envelope emission; without it
 Cyclopts's default `result_action` would exit on the body's return value and
@@ -317,7 +318,9 @@ on-disk cross-check.
 
 `novel-state check` is the first command to drive the shared `run` path: its
 entry point pre-parses the single `--human` flag off argv before `run` (so the
-flag is honoured even on the body-less usage and state-error paths), and it reads
+flag is honoured even on the body-less usage and state-error paths) using the
+shared `parse_global_flags` splitter from the contract package, so every command
+pre-parses `--human` through one seam rather than re-implementing it. It reads
 its state from the fixed cwd-relative `working/` directory — there is no
 `--working-dir` flag. A §5.2 violation returns exit `4` (an actionable finding
 the agent adjudicates), naming the breached invariants in `result.violations`; a

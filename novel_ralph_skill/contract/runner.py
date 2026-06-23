@@ -16,6 +16,12 @@ A command body returns a :class:`CommandOutcome` carrying its
 exit-``3`` state/input channel. ``--help``/``--version`` are handled by Cyclopts
 and yield a non-:class:`CommandOutcome` return, which :func:`run` treats as the
 help/version path: it exits ``0`` with no envelope.
+
+This module also hosts the command-agnostic ``--human`` global-flag splitter,
+:func:`parse_global_flags`, the pre-parse every command performs before
+:func:`run` is called (ADR-003 §3.1). It lives here, beside the
+``RunContext.human`` field it feeds, so the shared output-mode machinery sits in
+one package rather than in a command module.
 """
 
 from __future__ import annotations
@@ -38,6 +44,39 @@ if typ.TYPE_CHECKING:
     import collections.abc as cabc
 
     import cyclopts
+
+
+_HUMAN_FLAG = "--human"
+
+
+def parse_global_flags(argv: list[str]) -> tuple[bool, list[str]]:
+    """Split the ``--human`` global flag off ``argv`` (ADR-003 §3.1).
+
+    This is the command-agnostic pre-parse every command performs before
+    :func:`run` is reached. :func:`run` stamps the ``--human`` selection into
+    every envelope, including the usage (exit ``2``) and state-error (exit
+    ``3``) paths where the command body never runs, so the flag must be resolved
+    *before* ``run`` is called (Decision Log B3). This is a tiny
+    standard-library splitter — no new dependency: it recognises a ``--human``
+    boolean in any position, removes every occurrence, and returns the selection
+    alongside the residual argv. It parses no working-directory token; the
+    working directory is the fixed ``working/`` constant (B4), never a flag.
+
+    Parameters
+    ----------
+    argv : list[str]
+        The raw argument vector (typically ``sys.argv[1:]``).
+
+    Returns
+    -------
+    tuple[bool, list[str]]
+        ``(human, residual)`` — whether ``--human`` was present, and ``argv``
+        with every ``--human`` occurrence removed, the remaining tokens in
+        order.
+    """
+    residual = [token for token in argv if token != _HUMAN_FLAG]
+    human = len(residual) != len(argv)
+    return human, residual
 
 
 class StateInputError(Exception):

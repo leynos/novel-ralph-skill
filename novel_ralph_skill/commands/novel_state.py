@@ -1,12 +1,15 @@
-"""The ``novel-state`` subcommand app and its global-flag pre-parse.
+"""The read-only ``novel-state`` subcommand app and its working directory.
 
 This module hosts the read-only ``novel-state`` Cyclopts app (design §4.1) and
-the standard-library ``--human`` pre-parse the entry point performs before
-:func:`novel_ralph_skill.contract.runner.run` is reached. It is the first
-command on the real ``run`` path, so the conventions it sets — pre-parsing the
-single ``--human`` global flag off argv (ADR-003 §3.1) and reading state from
-the fixed cwd-relative ``working/`` directory (design line 151) — are the ones
-the four later commands inherit.
+its ``WORKING_DIR_NAME`` default. It is the first command on the real ``run``
+path, so the conventions it sets — reading state from the fixed cwd-relative
+``working/`` directory (design line 151) — are the ones the four later commands
+inherit. The command-agnostic ``--human`` pre-parse the entry point performs
+before :func:`novel_ralph_skill.contract.runner.run` is reached no longer lives
+here; it is the shared
+:func:`novel_ralph_skill.contract.parse_global_flags` splitter (ADR-003 §3.1),
+which every command imports from the contract package rather than from a sibling
+command module.
 
 The ``check`` subcommand validates the §5.2 pure-state invariants (roadmap task
 2.1.2) without writing (the checker half of the §5.4 checker/mutator split). It
@@ -37,38 +40,6 @@ from novel_ralph_skill.state import load_state, validate_state
 # so the file ``check`` reads and the envelope's ``working_dir`` field cannot
 # drift (Decision Log B4/B5). There is no ``--working-dir`` flag.
 WORKING_DIR_NAME = "working"
-
-_HUMAN_FLAG = "--human"
-
-
-def parse_global_flags(argv: list[str]) -> tuple[bool, list[str]]:
-    """Split the ``--human`` global flag off ``argv`` (ADR-003 §3.1).
-
-    The shared :func:`novel_ralph_skill.contract.runner.run` stamps the
-    ``--human`` selection into every envelope, including the usage (exit ``2``)
-    and state-error (exit ``3``) paths where the command body never runs, so the
-    flag must be resolved *before* ``run`` is called (Decision Log B3). This is a
-    tiny standard-library splitter — no new dependency: it recognises a
-    ``--human`` boolean in any position, removes every occurrence, and returns
-    the selection alongside the residual argv. It parses no working-directory
-    token; the working directory is the fixed ``working/`` constant (B4), never a
-    flag.
-
-    Parameters
-    ----------
-    argv : list[str]
-        The raw argument vector (typically ``sys.argv[1:]``).
-
-    Returns
-    -------
-    tuple[bool, list[str]]
-        ``(human, residual)`` — whether ``--human`` was present, and ``argv``
-        with every ``--human`` occurrence removed, the remaining tokens in
-        order.
-    """
-    residual = [token for token in argv if token != _HUMAN_FLAG]
-    human = len(residual) != len(argv)
-    return human, residual
 
 
 def _check() -> CommandOutcome:
