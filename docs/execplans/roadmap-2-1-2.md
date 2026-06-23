@@ -1709,3 +1709,61 @@ Round-4 revision (2026-06-22). Resolves the single round-3 Logisphere blocker
 Library versions remain pinned to `uv.lock` (`cyclopts` 4.18.0, `hypothesis`
 6.155.7, `syrupy` 5.3.2, `cuprum` 0.1.0 — the last unused). Implementation has
 not started.
+
+## Addenda (post-merge follow-ups)
+
+Lightweight addendum work items folded back onto this completed task from the
+post-merge audit (`docs/issues/audit-2.1.2.md`). Execute each as a small
+addendum pass — no plan or design-review cycle: make the change, run `make all`
+(plus `make markdownlint`/`make nixie` for Markdown), `coderabbit review
+--agent`, commit, and tick the matching roadmap sub-task on merge. The two
+substantial, cross-cutting findings (the generic `parse_global_flags` hoist and
+the shared envelope-`messages` exception base) were re-routed to roadmap step
+1.3 (tasks 1.3.3 and 1.3.4); these eight are the small fixes, doc gaps, and
+coverage only.
+
+- [ ] 2.1.2.1 — Make `validate._GATE_THRESHOLDS` the single source of truth for
+  the `(0.30, 0.50, 0.80)` gate triple (from audit:2.1.2, medium). Import the
+  production constant into `tests/test_validate_state_property.py` instead of
+  redeclaring it, and pin `tests/working_corpus/_specs.GATE_THRESHOLDS` equal to
+  the production constant with a one-line test (mirroring
+  `test_owned_names_equal_corpus_vocabulary`), so the property suite and the
+  oracle cannot drift from the validator. Gate with `make all`.
+- [ ] 2.1.2.2 — Add reciprocal twin cross-references between the validator and
+  the corpus oracle (from audit:2.1.2, low). Add the reverse pointer in
+  `tests/working_corpus/_oracle.py` naming
+  `test_incoherent_agreement_restricted_to_owned` as the contract pinning the
+  deliberate-twin equivalence, and record the deliberate-twin policy once in the
+  developers' guide. No de-duplication — the twin is the cross-check. Gate with
+  `make all` plus `make markdownlint`.
+- [ ] 2.1.2.3 — Add a named in-memory unit test that `_check_phase_in_enum`
+  fires for a directly-constructed out-of-enum `State` (from audit:2.1.2, low).
+  Pairs with `test_phase_in_enum_is_parser_enforced` (the disk-path side) to make
+  the two-layer enforcement self-documenting. Gate with `make all`.
+- [ ] 2.1.2.4 — Extract `_load_or_state_error(path) -> State` and a named
+  state-input exception-tuple constant in
+  `novel_ralph_skill/commands/novel_state.py` (from audit:2.1.2, low). Lift the
+  load-and-translate step and the exit-3 exception set out of `_check`, and have
+  `tests/test_validate_state_corpus.py` reference the shared constant (or assert
+  its list is a subset). Reusable for the four later mutators. Gate with
+  `make all`.
+- [ ] 2.1.2.5 — Collapse the two `_check` `CommandOutcome` branches into one
+  verdict-driven constructor (from audit:2.1.2, low). Compute the verdict once,
+  then build a single outcome whose `code` is `SUCCESS` on an empty verdict else
+  `ACTIONABLE_FINDING`. Gate with `make all`.
+- [ ] 2.1.2.6 — Document the design-invariant-number to owned-name mapping (from
+  audit:2.1.2, low). Add a compact §5.2-invariant-number → owned-name(s)/deferred
+  table to the validator module docstring or developers' guide §"Invariant
+  validation" (e.g. §5.2 inv 4 → {within-target, at-least-one, within-drafted};
+  inv 5 → manifest-disk-bijection, deferred to task 2.3.2). Gate with
+  `make markdownlint` and `make nixie`.
+- [ ] 2.1.2.7 — Enumerate the eight `result.violations` invariant names in the
+  users' guide (from audit:2.1.2, low). Add a name → one-line plain-English
+  reference list to the `novel-state check` section, noting the set is the
+  pure-state half and disk-evidence invariants arrive later. Gate with
+  `make markdownlint`.
+- [ ] 2.1.2.8 — Pin each predicate's `Violation.detail` prose with a focused
+  test (from audit:2.1.2, low). Assert each invariant's `detail` is non-empty and
+  mentions the offending values for a known breach, bringing the human-facing
+  message channel under the same coverage as the machine-name channel. Gate with
+  `make all`.

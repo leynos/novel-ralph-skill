@@ -877,3 +877,55 @@ were not engaged. `coderabbit review` returned no findings.
 This is a single-character convention fix to one gated test-support module; the
 three-work-item decomposition, the test-tree footprint, and the deterministic
 scope are unchanged.
+
+## Addenda (post-merge follow-ups)
+
+Lightweight addendum work items folded back onto this completed task from the
+post-merge audit (`docs/issues/audit-7.3.3.md`). Execute each as a small
+addendum pass — no plan or design-review cycle: make the change, run `make all`
+(plus `make markdownlint`/`make nixie` for Markdown), `coderabbit review
+--agent`, commit, and tick the matching roadmap sub-task on merge. None weakens
+the guard; all are coverage, ergonomics, and consistency tidy-ups. The
+substantial fence-grammar, write-verb, and recipe-form hardening extensions
+remain roadmap tasks 7.3.1, 7.3.2, and 7.3.4 — these seven do not overlap them.
+
+- [ ] 7.3.3.1 — Plant a flagged recipe for every under-exercised executable
+  fence label (from audit:7.3.3, medium). Six of the nine executable labels
+  (`py`, `py3`, `pycon`, `bash`, `shell`, `console`) are never planted as a
+  positive case in `tests/_planted_recipes.py`; add one flagged recipe per
+  label — a shell-redirect for `bash`/`shell`/`console`, a write primitive for
+  `py`/`py3`/`pycon` — so dropping a member from `_EXECUTABLE_INFO_STRINGS` or
+  `_PYTHON_INFO_STRINGS` fails a test. Gate with `make all`.
+- [ ] 7.3.3.2 — Reconcile `_iter_executable_fences`' name with its return shape
+  (from audit:7.3.3, low). The `_iter_` prefix promises a lazy generator but the
+  body returns a `list`; either convert to `yield (label, body)` annotated
+  `cabc.Iterator[...]`, or rename to `_executable_fences`. Internal; detector
+  behaviour unchanged. Gate with `make all`.
+- [ ] 7.3.3.3 — Express `find_direct_state_write_recipes_in_files` as a walrus
+  dict comprehension (from audit:7.3.3, low). Replace the mutable-accumulator
+  loop with the comprehension form, keeping the "calls the detector once per
+  document, adds no second matcher" note; the four existing driver tests pin the
+  behaviour. Gate with `make all`.
+- [ ] 7.3.3.4 — Anchor the inventory-tripwire intent on the edit line (from
+  audit:7.3.3, low). Add a comment above `_KNOWN_SKILL_MARKDOWN` stating it is
+  intentionally hand-maintained and must not be derived from the glob (cite
+  `test_discovery_covers_known_skill_files` and the developers' guide), so a
+  refactor cannot silently collapse the tripwire. No behaviour change. Gate with
+  `make all`.
+- [ ] 7.3.3.5 — Name the `console`-fence bare-`.write(` gap as deferred to 7.3.4
+  (from audit:7.3.3, low). `console` is in `_EXECUTABLE_INFO_STRINGS` but not
+  `_PYTHON_INFO_STRINGS`, so a `python -c` bare-`.write(` one-liner in a
+  `console` transcript slips the guard; extend the executable-set comment to
+  record this as a known, accepted gap deferred to task 7.3.4. Gate with
+  `make all`.
+- [ ] 7.3.3.6 — Add a tripwire for non-`.md` markdown-like skill references
+  (from audit:7.3.3, low). The `**/*.md` discovery glob silently skips a
+  `.markdown`/`.mdx`/`.mkd` reference; assert no file with such a suffix appears
+  under `skill/novel-ralph/`, with a message pointing at task 7.3.4 and the
+  gate-assumption prose. Gate with `make all`.
+- [ ] 7.3.3.7 — Consider folding the clean-fence "not flagged" asserts into one
+  parametrized table (from audit:7.3.3, low). The temp-file and
+  unrelated-redirect clean cases share a "assert this fence is clean" skeleton;
+  weigh a single parametrized `test_clean_fence_not_flagged` (per-row rationale
+  as `ids`) against the one-test-per-rationale form before applying. Judgement
+  call; lower priority than the coverage items. Gate with `make all`.

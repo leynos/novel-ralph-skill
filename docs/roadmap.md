@@ -249,6 +249,36 @@ drift and seeds the snapshot suite. See novel-ralph-harness-design.md §3 and §
       `draft.md`, so the design §5.4 absent-draft contradiction has no fixture;
       add a `done-flag-absent-draft` variant keyed on `done-flag-without-draft`
       for the 2.3.2 check/reconcile consumer. Lightweight addendum pass.
+- [ ] 1.3.3. Hoist `parse_global_flags` and `_HUMAN_FLAG` into a shared seam
+  before the second command imports them cross-command.
+  - Reroute (source: audit:2.1.2; severity: low). `parse_global_flags` is a
+    command-agnostic `--human` splitter (ADR-003 §3.1) currently living in the
+    `novel_state` command module, so the four later commands would otherwise
+    import it from a sibling or re-implement it. This advances the step-1.3
+    hypothesis — one envelope, output-mode switch, and exit-code helper serving
+    all five commands — by giving the splitter a neutral home before the import
+    direction sets, rather than the 2.1 schema hypothesis where it was raised.
+  - Requires 1.3.1.
+  - See novel-ralph-harness-design.md §3.1; docs/adr-003-shared-interface-contract.md.
+  - Success: `parse_global_flags` and `_HUMAN_FLAG` live in a shared seam (e.g.
+    `contract.runner` or `commands/_global_flags.py`), every command imports the
+    one splitter, and no command depends on a sibling command module.
+- [ ] 1.3.4. Extract a shared envelope-`messages`-carrying exception base for the
+  domain error types.
+  - Reroute (source: audit:5.1.1; severity: medium). `StateInputError`,
+    `RulePackError`, and `RulePackFileError` hand-repeat the same
+    `messages`-carrying `__init__` across the `contract` and `rulepack` layers,
+    so a future change to the envelope-messages contract must be mirrored across
+    three sites. This serves the step-1.3 shared-contract-scaffolding
+    hypothesis — one envelope contract for every command — not the 5.1 rule-pack
+    hypothesis where it surfaced. The cross-layer direction holds: `rulepack` may
+    depend on a `contract` base, never the reverse.
+  - Requires 1.3.1.
+  - See novel-ralph-harness-design.md §3.1; docs/adr-003-shared-interface-contract.md.
+  - Success: a single `EnvelopeMessagesError` base in a neutral `contract` module
+    records `self.messages: tuple[str, ...]` once; the three domain exceptions
+    subclass it (`RulePackError` adding `rule_id`), and the freeze-on-construct
+    decision has one home.
 
 ## 2. Vertical slice 1: trustworthy state through validated mutators
 
@@ -295,6 +325,53 @@ novel-ralph-harness-design.md §5.1 and §5.2.
     state-coherence property), and a state with `consecutive_clean` above its
     `convergence_target` is rejected while one within a raised target is
     accepted.
+  - [ ] 2.1.2.1. Make `validate._GATE_THRESHOLDS` the single source of truth for
+    the `(0.30, 0.50, 0.80)` gate triple.
+    - Addendum (from audit:2.1.2; medium). Import the production constant into
+      the property suite and pin the corpus `_specs.GATE_THRESHOLDS` to it with
+      a one-line test, so neither cross-check can drift from the validator.
+      Lightweight addendum pass.
+  - [ ] 2.1.2.2. Add reciprocal twin cross-references between the validator
+    predicates and the corpus oracle.
+    - Addendum (from audit:2.1.2; low). Add the reverse pointer in `_oracle.py`
+      naming the agreement suite that pins the deliberate-twin equivalence, and
+      record the twin policy once in the developers' guide. Lightweight addendum
+      pass.
+  - [ ] 2.1.2.3. Add a named in-memory unit test that `_check_phase_in_enum`
+    fires for a directly-constructed out-of-enum `State`.
+    - Addendum (from audit:2.1.2; low). The disk path enforces the phase enum in
+      the parser, leaving the validator's safety-net layer exercised only
+      indirectly; a paired in-memory test makes the two-layer design
+      self-documenting. Lightweight addendum pass.
+  - [ ] 2.1.2.4. Extract a `_load_or_state_error` helper and a named
+    state-input exception-tuple constant in `novel_state`.
+    - Addendum (from audit:2.1.2; low). Lift the load-and-translate step and the
+      exit-3 exception set out of `_check` so it reads as load → validate → build
+      outcome, and have the corpus test reference the shared constant.
+      Lightweight addendum pass.
+  - [ ] 2.1.2.5. Collapse the two `_check` `CommandOutcome` branches into one
+    verdict-driven constructor.
+    - Addendum (from audit:2.1.2; low). Compute the verdict once and build a
+      single outcome whose code is `SUCCESS` on an empty verdict else
+      `ACTIONABLE_FINDING`, removing the parallel result/messages plumbing.
+      Lightweight addendum pass.
+  - [ ] 2.1.2.6. Document the design-invariant-number to owned-name mapping for
+    the validator.
+    - Addendum (from audit:2.1.2; low). Add a compact §5.2-invariant-number to
+      owned-name(s)/deferred table to the validator docstring or the developers'
+      guide so the eight-names-versus-seven-invariants relationship is checkable
+      at a glance. Lightweight addendum pass.
+  - [ ] 2.1.2.7. Enumerate the eight `result.violations` invariant names in the
+    users' guide.
+    - Addendum (from audit:2.1.2; low). Add a name-to-plain-English reference
+      list to the `novel-state check` section, noting the set is the pure-state
+      half and disk-evidence invariants arrive later. Lightweight addendum pass.
+  - [ ] 2.1.2.8. Pin each predicate's `Violation.detail` prose with a focused
+    test.
+    - Addendum (from audit:2.1.2; low). Assert that each invariant's `detail` is
+      non-empty and mentions the offending values for a known breach, bringing
+      the human-facing message channel under the same coverage as the machine
+      name. Lightweight addendum pass.
 - [ ] 2.1.3. Assert the §5.2 validator agrees with the corpus oracle on every
   fixture, keyed on `CORPUS_INVARIANT_NAMES`.
   - Reroute (source: review:1.3.2; severity: high). The §1.3.2 corpus exposes a
@@ -528,6 +605,35 @@ novel-ralph-harness-design.md §4.4, §6.1, and §1.
   - See novel-ralph-harness-design.md §6.1 and §10.
   - Success: a pack with an invalid regular expression fails loudly, naming the
     rule, rather than silently skipping it.
+  - [ ] 5.1.1.1. Document the on-disk rule-pack TOML format for pack authors.
+    - Addendum (from audit:5.1.1; medium). Add a worked fenced TOML example to
+      the developers' guide "Rule packs" section showing both bases and enumerate
+      the v1 key vocabulary with the strict rules the loader enforces, so an
+      author has a documented format to write against. Lightweight addendum pass.
+  - [ ] 5.1.1.2. Make `parse_rulepack`'s total exception surface explicit in its
+    docstring.
+    - Addendum (from audit:5.1.1; low). State that `RulePackError` is the only
+      exception the pure boundary raises and that file/decode faults belong to
+      `load_rulepack` (`RulePackFileError`), pinning the contract task 5.1.2
+      catches against. Lightweight addendum pass.
+  - [ ] 5.1.1.3. Route every per-rule diagnostic through the `_where(rule_id)`
+    helper.
+    - Addendum (from audit:5.1.1; low). Replace the six inline
+      `f"rule {rule_id!r} …"` prefixes in the rule-specific helpers with
+      `_where(rule_id)` so the rule-naming format has one home. Internal only;
+      public behaviour unchanged. Lightweight addendum pass.
+  - [ ] 5.1.1.4. Reconcile `_entries`' concrete `list`/`dict` guard with the
+    boundary's advertised `Mapping` input and pin it with a test.
+    - Addendum (from audit:5.1.1; low). Pick one: tighten the documented contract
+      to a `tomllib`-shaped mapping, or loosen the guards to the abstract shapes;
+      then add the matching purity test for a non-`dict` mapping input so the
+      contract is asserted rather than implied. Lightweight addendum pass.
+  - [ ] 5.1.1.5. Drop the redundant `str(...)` wrappers in the `RuleBasis`
+    diagnostic builders.
+    - Addendum (from audit:5.1.1; low). `RuleBasis` is a `StrEnum`, so
+      `repr(member)` and `basis!r` render identically; remove the defensive
+      `str(...)` in `_resolve_basis` and `_resolve_page_words`. Cosmetic;
+      behaviour unchanged. Lightweight addendum pass.
 - [ ] 5.1.2. Implement `desloppify` detection over the §6 offender table.
   - Requires 5.1.1.
   - Emit structured output per hit — phrase, count, density per N words,
@@ -702,6 +808,45 @@ which rewrites the reference prose.
     gap without per-file duplication.
   - Success: a planted hand-edit recipe in any executable-carrying reference is
     caught by a single shared scanner, with no per-file duplication.
+  - [ ] 7.3.3.1. Plant a flagged recipe for every under-exercised executable
+    fence label.
+    - Addendum (from audit:7.3.3; medium). Six labels (`py`, `py3`, `pycon`,
+      `bash`, `shell`, `console`) are in the executable set but never planted as
+      a positive case; add one flagged recipe per label so dropping a member from
+      the frozenset fails a test. Lightweight addendum pass.
+  - [ ] 7.3.3.2. Reconcile `_iter_executable_fences`' name with its eager-list
+    return.
+    - Addendum (from audit:7.3.3; low). The `_iter_` prefix promises a lazy
+      generator but the body returns a `list`; either yield per fence or rename
+      to `_executable_fences`. Internal only. Lightweight addendum pass.
+  - [ ] 7.3.3.3. Express `find_direct_state_write_recipes_in_files` as a walrus
+    dict comprehension.
+    - Addendum (from audit:7.3.3; low). Replace the mutable-accumulator loop with
+      a comprehension that calls the detector once per document, preserving the
+      no-second-matcher invariant. Readability tidy-up. Lightweight addendum pass.
+  - [ ] 7.3.3.4. Anchor the inventory-tripwire intent on the
+    `_KNOWN_SKILL_MARKDOWN` edit line.
+    - Addendum (from audit:7.3.3; low). Add a comment above the constant stating
+      it is hand-maintained and must not be derived from the glob, so a refactor
+      cannot silently optimise the tripwire away. Lightweight addendum pass.
+  - [ ] 7.3.3.5. Name the `console`-fence bare-`.write(` Python-in-shell gap as
+    a deferred 7.3.4 item.
+    - Addendum (from audit:7.3.3; low). `console` is executable but not in the
+      Python set, so a `python -c` bare-`.write(` one-liner slips the guard;
+      extend the executable-set comment to record this as an accepted gap
+      deferred to task 7.3.4. Lightweight addendum pass.
+  - [ ] 7.3.3.6. Add a tripwire for non-`.md` markdown-like skill references.
+    - Addendum (from audit:7.3.3; low). The `**/*.md` discovery glob silently
+      skips a `.markdown`/`.mdx`/`.mkd` reference; assert no such file appears
+      under `skill/novel-ralph/`, with a message pointing at task 7.3.4 and the
+      gate-assumption prose. Lightweight addendum pass.
+  - [ ] 7.3.3.7. Consider folding the clean-fence "not flagged" asserts into one
+    parametrized table.
+    - Addendum (from audit:7.3.3; low). The temp-file and unrelated-redirect
+      clean cases share a "assert this fence is clean" skeleton; weigh a single
+      parametrized `test_clean_fence_not_flagged` (keeping the per-row rationale
+      as `ids`) against the one-test-per-rationale form. Lightweight addendum
+      pass.
 - [ ] 7.3.4. Add a fuzz or property check that the guard's planted-recipe forms
   survive whitespace, quoting, and flag-order variation.
   - Requires 1.2.8.
