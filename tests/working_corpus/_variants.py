@@ -1,12 +1,24 @@
-"""The deliberately incoherent variants and the ``done.flag`` permutations.
+"""The incoherent variants, ``done.flag`` permutations, and divergent tables.
 
 ``INCOHERENT_VARIANTS`` maps each named variant to a ``(spec, invariant-name)``
 pair: the spec breaks exactly the one §5.2 or §5.4 invariant the string names and
 no other (the corpus self-test proves the isolation). Every variant is a minimal
 mutation of ``COHERENT_BASELINE`` so the broken invariant is the only difference.
 
-``DONE_FLAG_PERMUTATIONS`` (Work item 4) carries coherent multi-chapter trees
-differing only in which chapters carry ``done.flag``.
+``DONE_FLAG_PERMUTATIONS`` carries coherent multi-chapter trees differing only in
+which chapters carry ``done.flag``.
+
+``DIVERGENT_TABLE_VARIANTS`` (roadmap 2.1.5) carries trees whose
+``[word_counts].by_chapter`` table deliberately *belies* the on-disk ``draft.md``
+bodies: the table over-counts both the drafted-words total and the
+drafted-chapters count. Such a tree is **not** an ``INCOHERENT_VARIANTS`` member —
+under the spec-draft :func:`corpus_check` it breaks two owned proxies
+(``consecutive-clean-within-drafted`` and ``gate-ratio-consistent``) while the
+table-reading §5.2 validator breaks none, a deliberate validator-versus-oracle
+disagreement both the single-invariant self-test and the agreement suites forbid
+for an incoherent variant. The category exists to *exercise* that documented
+disagreement, so the whole-corpus live-draft agreement loop is discriminating; it
+is a finding to investigate, not a drift to align away.
 """
 
 from __future__ import annotations
@@ -230,4 +242,59 @@ DONE_FLAG_PERMUTATIONS: dict[str, WorkingTreeSpec] = {
     "all-flagged": _flagged((True, True, True)),
     "leading-prefix-flagged": _flagged((True, True, False)),
     "non-contiguous-subset-flagged": _flagged((True, False, True)),
+}
+
+
+def _divergent_table_spec() -> WorkingTreeSpec:
+    """Return a tree whose ``by_chapter`` table over-counts its on-disk drafts.
+
+    The tree drafts two chapters of 4000 words each (live: 8000 words, two
+    drafted chapters) against an 80000 target, but overrides ``by_chapter`` to
+    three entries of 30000 (table: 90000 words, three entries ``> 0``) with
+    ``current`` pinned to the table sum so ``by-chapter-sum`` stays silent
+    (Decision Log D3). All three knitting gates are forced ``True``,
+    ``consecutive_clean`` is 3 with a matching ``convergence_target``, and
+    ``current_chapter`` is pinned to 2 so ``cursor-coherent`` stays silent under
+    the live read.
+
+    Because ``_with_chapters`` inherits the baseline's cursor and counter fields
+    and leaves the override fields unset, every divergent field is set explicitly
+    here rather than relying on inheritance (round-2 advisory A4). Under the
+    spec-draft :func:`corpus_check` the live 0.10 ratio contradicts the
+    all-``True`` gates and the counter 3 exceeds the two drafted chapters, so the
+    oracle names both proxies; the table-reading §5.2 validator, seeing a 1.125
+    ratio and three drafted entries, names neither. That disagreement is the
+    discriminator the whole-corpus live-draft agreement loop needs.
+    """
+    chapters = tuple(
+        ChapterSpec(
+            number=index + 1,
+            slug=f"chapter-{index + 1:02d}",
+            title=f"Chapter {index + 1}",
+            target_words=40000,
+            draft_words=4000,
+            has_done_flag=False,
+        )
+        for index in range(2)
+    )
+    return _with_chapters(
+        chapters,
+        consecutive_clean=3,
+        convergence_target=3,
+        current_chapter=2,
+        by_chapter_override={"01": 30000, "02": 30000, "03": 30000},
+        current_words_override=90000,
+        done_30=True,
+        done_50=True,
+        done_80=True,
+    )
+
+
+# Divergent-table trees (roadmap 2.1.5): the ``[word_counts].by_chapter`` table
+# over-counts both proxy quantities relative to the on-disk drafts, so the
+# draft-reading live oracle and the table-reading §5.2 validator disagree on the
+# two proxies. Not an ``INCOHERENT_VARIANTS`` member (Decision Log D1): it breaks
+# two owned names under ``corpus_check`` while the validator breaks none.
+DIVERGENT_TABLE_VARIANTS: dict[str, WorkingTreeSpec] = {
+    "by-chapter-override-over-counts-drafts": _divergent_table_spec(),
 }

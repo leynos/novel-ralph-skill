@@ -4,7 +4,8 @@ This package is the corpus data and builder for roadmap task 1.3.2. Its public
 surface (re-exported here) is the specification dataclasses, the tree builder,
 the compile helper and its constants, and — added in later work items — the
 named specification library, the incoherent variants, the ``done.flag``
-permutations, and the corpus-local structural oracle.
+permutations, the divergent-table variants, and the corpus-local structural
+oracle.
 
 ``tests/conftest.py`` is the single runtime importer of this package: it
 re-exposes every datum as a pytest fixture so test modules consume the corpus by
@@ -39,13 +40,18 @@ from ._specs import (
     derive_by_chapter,
     draft_body,
 )
-from ._variants import DONE_FLAG_PERMUTATIONS, INCOHERENT_VARIANTS
+from ._variants import (
+    DIVERGENT_TABLE_VARIANTS,
+    DONE_FLAG_PERMUTATIONS,
+    INCOHERENT_VARIANTS,
+)
 
 __all__ = [
     "COHERENT_BASELINE",
     "COMPILED_AUTO",
     "CORPUS_INVARIANT_NAMES",
     "CORPUS_SEPARATOR",
+    "DIVERGENT_TABLE_VARIANTS",
     "DONE_FLAG_PERMUTATIONS",
     "GATE_THRESHOLDS",
     "INCOHERENT_VARIANTS",

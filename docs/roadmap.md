@@ -490,7 +490,7 @@ novel-ralph-harness-design.md §5.1 and §5.2.
     a scene/beat cursor referencing a chapter past `current_chapter` is a
     negative fixture both the corpus oracle and the §5.2 validator reject on the
     pure-state `cursor-coherent` name.
-- [ ] 2.1.5. Promote a `by_chapter_override` table-versus-draft divergence
+- [x] 2.1.5. Promote a `by_chapter_override` table-versus-draft divergence
   variant into the §1.3.2 shared corpus so the whole-corpus agreement loop is
   discriminating.
   - Reroute (source: review:2.1.3 / audit:2.1.3; severity: medium). The 2.1.3

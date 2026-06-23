@@ -25,6 +25,9 @@ import typing as typ
 
 import pytest
 import tomlkit
+from _state_corpus_support import validator_verdict
+
+from novel_ralph_skill.state import PURE_STATE_INVARIANT_NAMES
 
 if typ.TYPE_CHECKING:
     import collections.abc as cabc
@@ -532,3 +535,65 @@ class TestCoherentIncoherentSplit:
             "beat-cursor-past-current-chapter",
         }
         assert expected_variants <= set(incoherent_variant_names)
+
+
+_DIVERGENT_KEY = "by-chapter-override-over-counts-drafts"
+
+
+class TestCorpusDivergentTable:
+    """Pin the divergent-table category's shape, exclusion, and disagreement.
+
+    The divergent-table variant (roadmap 2.1.5) is a first-class §1.3.2 corpus
+    category, separate from ``INCOHERENT_VARIANTS``: under the spec-draft
+    :func:`corpus_check` it breaks the two table-based proxies while the
+    table-reading §5.2 validator breaks neither. These tests pin that the
+    category is excluded from the incoherent set and that the two sides disagree
+    exactly as designed, so a future reader cannot mistake the disagreement for a
+    bug and "fix" it by aligning the oracles. The tree is sourced from the corpus
+    through the ``divergent_table_tree`` factory fixture, so the corpus stays
+    consumed by fixture name and never by a runtime value import.
+    """
+
+    def test_divergent_table_breaks_both_proxies(
+        self,
+        divergent_table_tree: cabc.Callable[[str], tuple[WorkingTreeSpec, Path]],
+        check_corpus: cabc.Callable[[WorkingTreeSpec, Path], tuple[str, ...]],
+    ) -> None:
+        """``corpus_check`` names exactly the two table-based proxies, in order.
+
+        The vocabulary order is ``consecutive-clean-within-drafted`` (index 5)
+        before ``gate-ratio-consistent`` (index 9), and ``by-chapter-sum`` stays
+        silent because ``current`` equals the override table sum (Decision Log
+        D3).
+        """
+        spec, working = divergent_table_tree(_DIVERGENT_KEY)
+        assert check_corpus(spec, working) == (
+            "consecutive-clean-within-drafted",
+            "gate-ratio-consistent",
+        )
+
+    def test_divergent_table_not_in_incoherent_variants(
+        self,
+        divergent_table_variant_names: tuple[str, ...],
+        incoherent_variant_names: tuple[str, ...],
+    ) -> None:
+        """The divergent-table keys are absent from ``INCOHERENT_VARIANTS``.
+
+        Pins the Constraint that the variant is a separate category, so the
+        single-invariant and validator-versus-oracle agreement self-tests never
+        see it.
+        """
+        assert _DIVERGENT_KEY in divergent_table_variant_names
+        assert set(divergent_table_variant_names).isdisjoint(incoherent_variant_names)
+
+    def test_divergent_table_validator_stays_silent(
+        self,
+        divergent_table_tree: cabc.Callable[[str], tuple[WorkingTreeSpec, Path]],
+    ) -> None:
+        """The table-reading validator's owned verdict on the tree is empty.
+
+        The disagreement's table side: reading the 1.125 ratio and three drafted
+        entries, the §5.2 validator names neither proxy.
+        """
+        _spec, working = divergent_table_tree(_DIVERGENT_KEY)
+        assert validator_verdict(working) & set(PURE_STATE_INVARIANT_NAMES) == set()

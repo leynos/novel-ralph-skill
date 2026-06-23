@@ -345,11 +345,16 @@ restricted to the eight owned names, `validate_state` (reading the table) and th
 live-draft oracle (reading the drafts) return the same verdict on every coherent
 tree and every incoherent variant — a full-vocabulary cross-check keyed on
 `CORPUS_INVARIANT_NAMES`. Both live readings are the design's **honest-draft**
-bases (the invariant-7 numerator and the invariant-4c ceiling), so a future
-`by_chapter_override` variant that separated the table basis from the draft basis
-on either proxy is a finding to investigate, not a drift to paper over; a
-`test_live_draft_counts_equal_honest_draft_bases` self-test pins both live numbers
-to those bases on every coherent tree. The cross-check does **not** "live-
+bases (the invariant-7 numerator and the invariant-4c ceiling), so the
+`by_chapter_override` variant
+`DIVERGENT_TABLE_VARIANTS["by-chapter-override-over-counts-drafts"]` (roadmap
+2.1.5), which separates the table basis from the draft basis on both proxies,
+is a finding to investigate, not a drift to paper over;
+`test_live_draft_discriminates_table_from_drafts` drives that discrimination from
+corpus data through the standard fixture loop (the `divergent_table_tree`
+factory), having retired the module-local fixture the 2.1.3 fix round used, and
+a `test_live_draft_counts_equal_honest_draft_bases` self-test pins both live
+numbers to those bases on every coherent tree. The cross-check does **not** "live-
 reconcile" `by-chapter-sum` (invariant 3 is table-internal, with no live
 analogue, so it reads `sum(by_chapter) == current` from the table) and it does
 **not** re-run `validate_state` as the oracle — the other five owned invariants

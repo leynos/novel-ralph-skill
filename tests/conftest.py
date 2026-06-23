@@ -36,10 +36,17 @@ from novel_ralph_skill.contract.runner import CommandOutcome, StateInputError
 # plugin keeps every fixture available by name exactly as a ``conftest`` fixture
 # would be. The live-draft oracle fixtures are split into
 # ``tests/corpus_live_draft_fixtures.py`` for the same reason: the combined
-# corpus and live-draft fixture surface would itself breach the 400-line cap.
+# corpus and live-draft fixture surface would itself breach the 400-line cap. The
+# divergent-table category fixtures (roadmap 2.1.5) are split into
+# ``tests/corpus_divergent_fixtures.py`` likewise, because ``corpus_fixtures`` is
+# already at the cap and cannot host them.
 # ``conftest`` still re-exports the spec *types* under its ``TYPE_CHECKING`` guard
 # for the ``from conftest import WorkingTreeSpec`` carve-out.
-pytest_plugins = ("corpus_fixtures", "corpus_live_draft_fixtures")
+pytest_plugins = (
+    "corpus_fixtures",
+    "corpus_live_draft_fixtures",
+    "corpus_divergent_fixtures",
+)
 
 if typ.TYPE_CHECKING:
     import collections.abc as cabc

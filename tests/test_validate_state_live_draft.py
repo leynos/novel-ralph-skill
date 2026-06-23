@@ -16,16 +16,20 @@ booleans against the live drafted-words ratio and the ``[drafting.critic].
 consecutive_clean`` counter against the live drafted-chapters count. Comparing the
 table-reading validator with the draft-reading oracle on every corpus tree pins
 that the two agree on quantities neither one derived from the table they both
-validate, so a future ``by_chapter_override`` variant that separated the table
-from the drafts on either proxy would surface as a disagreement to investigate.
+validate, and the ``by_chapter_override`` variant that separates the table from
+the drafts on either proxy — ``DIVERGENT_TABLE_VARIANTS[
+"by-chapter-override-over-counts-drafts"]`` — surfaces as a disagreement driven
+from corpus data.
 
-Because no §1.3.2 corpus tree sets ``by_chapter_override``, the table and the
-drafts agree numerically on every corpus tree, so the whole-corpus agreement test
-alone cannot tell a live-draft read from a table read — a table-based mutant of
-``live_draft_counts`` passes it. ``test_live_draft_discriminates_table_from_drafts``
-closes that gap by constructing the one tree where the table belies the drafts and
-asserting the oracle reads the drafts and disagrees with the table-reading
-validator on both proxies.
+Because the coherent and incoherent §1.3.2 corpus trees keep
+``by_chapter_override`` unset, the table and the drafts agree numerically on every
+one of them, so the whole-corpus agreement test alone cannot tell a live-draft
+read from a table read — a table-based mutant of ``live_draft_counts`` passes it.
+``test_live_draft_discriminates_table_from_drafts`` closes that gap by sourcing the
+``DIVERGENT_TABLE_VARIANTS`` corpus tree (where the table belies the drafts)
+through the ``divergent_table_tree`` factory fixture and asserting the oracle reads
+the drafts and disagrees with the table-reading validator on both proxies. The tree
+is now a first-class corpus variant, no longer constructed in this module.
 
 Both verdicts are restricted to ``CORPUS_INVARIANT_NAMES``'s eight pure-state
 (owned) names before comparison; a disk-evidence variant therefore yields two
@@ -39,7 +43,6 @@ from __future__ import annotations
 
 import typing as typ
 
-import pytest
 from _state_corpus_support import (
     PARSE_ENFORCED_INVARIANTS,
     load_succeeds,
@@ -57,7 +60,7 @@ if typ.TYPE_CHECKING:
     import collections.abc as cabc
     from pathlib import Path
 
-    from conftest import ChapterSpec, WorkingTreeSpec
+    from conftest import WorkingTreeSpec
 
 # The five disk-evidence invariant names the validator never owns; a variant
 # labelled with one of these yields two empty owned verdicts that agree.
@@ -70,94 +73,6 @@ _DISK_EVIDENCE_NAMES: frozenset[str] = frozenset(
         "cursor-plan-present",
     },
 )
-
-
-@pytest.fixture
-def corpus_builders(
-    make_chapter_spec: cabc.Callable[..., ChapterSpec],
-    make_working_tree_spec: cabc.Callable[..., WorkingTreeSpec],
-    build_tree: cabc.Callable[[WorkingTreeSpec, Path], Path],
-) -> tuple[
-    cabc.Callable[..., ChapterSpec],
-    cabc.Callable[..., WorkingTreeSpec],
-    cabc.Callable[[WorkingTreeSpec, Path], Path],
-]:
-    """Return the chapter/tree constructors and the builder as one bundle.
-
-    Bundling the three corpus constructor and builder callables keeps the
-    :func:`divergent_table_tree` fixture's parameter list within the project's
-    argument-count gate while still delivering each by fixture name (mirroring the
-    ``compile_probe`` bundling fixture in ``corpus_fixtures``).
-    """
-    return make_chapter_spec, make_working_tree_spec, build_tree
-
-
-@pytest.fixture
-def divergent_table_tree(
-    tmp_path: Path,
-    corpus_builders: tuple[
-        cabc.Callable[..., ChapterSpec],
-        cabc.Callable[..., WorkingTreeSpec],
-        cabc.Callable[[WorkingTreeSpec, Path], Path],
-    ],
-    phase_names: tuple[str, ...],
-) -> tuple[WorkingTreeSpec, Path]:
-    """Return a tree whose ``[word_counts].by_chapter`` table belies its drafts.
-
-    No tree in the §1.3.2 corpus sets ``by_chapter_override``, so on every corpus
-    tree the on-disk drafts and the ``[word_counts]`` table agree and a live-draft
-    read is numerically indistinguishable from a table read. This fixture builds
-    the one tree that separates them, so a test can prove the live-draft oracle is
-    genuinely live: a table read would return different numbers and a different
-    verdict.
-
-    The tree drafts two chapters of 4000 words each (live: 8000 words, two drafted
-    chapters) against an 80000 target, but overrides ``by_chapter`` to three
-    entries of 30000 (table: 90000 words, three entries ``> 0``) with ``current``
-    set to the table sum so ``by-chapter-sum`` stays silent. All three knitting
-    gates are ``True`` and ``consecutive_clean`` is 3 with a matching
-    ``convergence_target``. Under the live read the gates contradict the 0.10 ratio
-    and the counter exceeds the two drafted chapters, so the live oracle names both
-    proxy invariants; the table-reading §5.2 validator, seeing a 1.125 ratio and
-    three drafted entries, names neither. The two therefore disagree on both
-    proxies — the discrimination a same-numbers corpus tree cannot provide. The
-    tree is built through the corpus constructor and builder fixtures, so the
-    corpus is still consumed by fixture name and never by a runtime value import.
-    """
-    make_chapter_spec, make_working_tree_spec, build_tree = corpus_builders
-    completed = phase_names[: phase_names.index("drafting")]
-    spec = make_working_tree_spec(
-        phase_current="drafting",
-        phase_completed=completed,
-        chapters=(
-            make_chapter_spec(
-                number=1,
-                slug="chapter-01",
-                title="Chapter 1",
-                target_words=40000,
-                draft_words=4000,
-                has_done_flag=False,
-            ),
-            make_chapter_spec(
-                number=2,
-                slug="chapter-02",
-                title="Chapter 2",
-                target_words=40000,
-                draft_words=4000,
-                has_done_flag=False,
-            ),
-        ),
-        target_words=80000,
-        consecutive_clean=3,
-        convergence_target=3,
-        by_chapter_override={"01": 30000, "02": 30000, "03": 30000},
-        current_words_override=90000,
-        done_30=True,
-        done_50=True,
-        done_80=True,
-        current_chapter=2,
-    )
-    return spec, build_tree(spec, tmp_path)
 
 
 def test_live_draft_counts_equal_honest_draft_bases(
@@ -226,19 +141,23 @@ def test_live_draft_agreement_over_whole_corpus(
 
 
 def test_live_draft_discriminates_table_from_drafts(
-    divergent_table_tree: tuple[WorkingTreeSpec, Path],
+    divergent_table_tree: cabc.Callable[[str], tuple[WorkingTreeSpec, Path]],
+    divergent_table_variant_names: tuple[str, ...],
     live_draft_counts: cabc.Callable[[Path], tuple[int, int]],
     check_live_draft: cabc.Callable[[WorkingTreeSpec, Path], set[str]],
 ) -> None:
     """The live oracle reads the drafts, not the table, when the two diverge.
 
     Every §1.3.2 corpus tree keeps ``[word_counts].by_chapter`` numerically equal
-    to its on-disk drafts (no variant sets ``by_chapter_override``), so on the
-    corpus a live-draft read and a table read are indistinguishable and a
-    table-based mutant of :func:`live_draft_counts` passes every other test in
-    this module. This test builds the one tree that separates them — drafts of
-    8000 words across two chapters against a table claiming 90000 words across
-    three entries — and pins the discrimination directly.
+    to its on-disk drafts on the coherent and incoherent variants, so on those a
+    live-draft read and a table read are indistinguishable and a table-based
+    mutant of :func:`live_draft_counts` passes every other test in this module.
+    The divergent-table tree this test exercises is now a first-class §1.3.2
+    corpus variant (``DIVERGENT_TABLE_VARIANTS``), sourced through the
+    ``divergent_table_tree`` factory fixture rather than constructed in-module —
+    drafts of 8000 words across two chapters against a table claiming 90000 words
+    across three entries — so the discrimination is driven from corpus data
+    through the standard fixture loop.
 
     Assertion (a): :func:`live_draft_counts` returns the **draft**-derived numbers
     ``(8000, 2)``, never the table-derived ``(90000, 3)``. Assertion (b): the
@@ -251,7 +170,8 @@ def test_live_draft_discriminates_table_from_drafts(
     oracle's verdict to the validator's, so the disagreement is exactly what proves
     the oracle is live.
     """
-    spec, working_dir = divergent_table_tree
+    (variant_name,) = divergent_table_variant_names
+    spec, working_dir = divergent_table_tree(variant_name)
     assert live_draft_counts(working_dir) == (8000, 2)
     oracle_owned = check_live_draft(spec, working_dir)
     validator_owned = validator_verdict(working_dir) & set(PURE_STATE_INVARIANT_NAMES)
