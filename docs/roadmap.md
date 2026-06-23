@@ -279,6 +279,29 @@ drift and seeds the snapshot suite. See novel-ralph-harness-design.md §3 and §
     records `self.messages: tuple[str, ...]` once; the three domain exceptions
     subclass it (`RulePackError` adding `rule_id`), and the freeze-on-construct
     decision has one home.
+- [ ] 1.3.5. Settle a deliberate mutator success-result vocabulary, distinct
+  from `check`'s `violations` shape.
+  - Reroute (source: audit:2.2.2; severity: medium). The `set-cursor` and
+    `advance-phase` mutators echo the checker's `result={"violations": []}`
+    shape on a successful write, borrowing a query's vocabulary for a command
+    and disagreeing with `init`'s own write result (`{"working_dir", "slug"}`),
+    so an agent cannot tell a checker envelope from a mutator one by `result`
+    alone. This serves the step-1.3 hypothesis — one envelope contract serving
+    all five commands without per-command result drift — by fixing the
+    write-result shape before `recount` and `reconcile` copy the checker's
+    vocabulary too; it does not serve the step-2.2 write-discipline hypothesis
+    where it was raised. Settle a write-shaped `result` for mutators (e.g.
+    `set-cursor` returns the cursor it set, `advance-phase` returns the
+    transition) and reserve `violations` for the `check` query, recording the
+    contract in the design or developers' guide so later mutators inherit it.
+  - Requires 1.3.1.
+  - See novel-ralph-harness-design.md §3.1, §3.2, and §5.4;
+    docs/adr-003-shared-interface-contract.md; docs/issues/audit-2.2.2.md
+    (Finding 2).
+  - Success: the `novel-state` write mutators return a write-shaped `result`
+    that names what they changed rather than an empty `violations` echo, the
+    `violations` key is reserved for `check`, and the mutator result contract is
+    recorded once for `recount`/`reconcile` to follow.
 
 ## 2. Vertical slice 1: trustworthy state through validated mutators
 
@@ -372,6 +395,14 @@ novel-ralph-harness-design.md §5.1 and §5.2.
       non-empty and mentions the offending values for a known breach, bringing
       the human-facing message channel under the same coverage as the machine
       name. Lightweight addendum pass.
+  - [ ] 2.1.2.9. Render `Phase` members as kebab strings in the validator's
+    operator-facing `Violation.detail` messages.
+    - Addendum (from review:2.2.2; low). The `phase-in-enum` and
+      `completed-prefix` details repr `Phase` members
+      (`<Phase.PREMISE: 'premise'>`) rather than the kebab `.value` an operator
+      reads in `state.toml`, and this leaks into every advance-phase and
+      set-cursor refusal envelope; format members via `.value` so the detail
+      matches the on-disk vocabulary. Lightweight addendum pass.
 - [x] 2.1.3. Assert the §5.2 validator agrees with the corpus oracle on every
   fixture, keyed on `CORPUS_INVARIANT_NAMES`.
   - Reroute (source: review:1.3.2; severity: high). The §1.3.2 corpus exposes a
@@ -453,6 +484,14 @@ novel-ralph-harness-design.md §3.4, §4.1, and §5.3.
   - See novel-ralph-harness-design.md §4.1 and §3.2.
   - Success: a behavioural scenario shows an out-of-order `advance-phase` is
     refused with exit 3 and leaves the prior state intact.
+  - [ ] 2.2.2.1. Document the `init`, `set-cursor`, and `advance-phase`
+    subcommands in the users' guide.
+    - Addendum (from audit:2.2.2; high). Task 2.2.2 promoted three subcommands
+      from stubs to shipping commands but updated only the developers' guide;
+      `users-guide.md` still describes only `novel-state check`. Extend the
+      `novel-state` section with each subcommand's options, the directory
+      skeleton `init` creates, and the shared validate-before-persist, exit-3
+      refusal, write-nothing contract. Lightweight addendum pass.
 
 ### 2.3. Deliver recount and disk-authoritative reconciliation
 
@@ -508,6 +547,28 @@ agent-improvised recovery routine. See novel-ralph-harness-design.md §4.1 and
     compiled checks read the materialised `working_dir`, and a tree whose
     `state.toml` claims agree with disk but whose disk evidence diverges is
     flagged by the oracle from disk alone.
+- [ ] 2.3.4. Cover the partial-`init` bootstrap (`state.toml` present, `log.md`
+  absent) in disk-authoritative reconciliation.
+  - Reroute (source: review:2.2.2; severity: low). `init` writes `state.toml`
+    then `log.md` and refuses any re-run while `state.toml` exists (task 2.2.2
+    Decision Log D3), so a crash between the two writes leaves an unrecoverable
+    partial bootstrap: `state.toml` present, `log.md` absent, and re-run
+    refused. `init` deliberately opens no `[pending_turn]` bracket, so the 2.3.2
+    pending-turn recovery path does not see this case. This serves the step-2.3
+    hypothesis — state re-derivable from disk so it can never drift — by giving
+    multi-file turn recovery, which owns torn turns, the partial-init case too;
+    it does not serve the step-2.2 write-discipline hypothesis where it was
+    raised. Either `check`/`reconcile` self-heal a missing `log.md` against an
+    otherwise-coherent tree, or the partial-init recovery is documented as the
+    operator's `init`-rerun-after-removing-`state.toml` routine, decided once.
+  - Requires 2.3.2.
+  - See novel-ralph-harness-design.md §3.4 and §5.4;
+    docs/execplans/roadmap-2-2-2.md (Decision Log D3).
+  - Success: a `working/` tree with `state.toml` present and `log.md` absent is
+    either reconciled by `reconcile` (a fresh `log.md` recreated, no file in
+    `working/` deleted) or the recovery routine is documented in the users'
+    guide, and `check` reports the partial bootstrap rather than leaving it
+    silently unrecoverable.
 
 ## 3. Vertical slice 2: a single-source done predicate
 

@@ -1563,3 +1563,29 @@ completion" is realised solely as the prior-state coherence guard and no
 skip-rejection logic exists), AR2-2 (the `set-cursor` success test pins the
 exact in-range cursor `chapter=2, scene=0, beat=0`). Status: DRAFT, pending
 design review (round 3).
+
+## Addenda (post-merge follow-ups)
+
+Lightweight addendum work items folded back onto this completed task from the
+post-merge audit (`docs/issues/audit-2.2.2.md`). Execute each as a small
+addendum pass — no plan or design-review cycle: make the change, run `make all`
+(plus `make markdownlint`/`make nixie` for Markdown), `coderabbit review
+--agent`, commit, and tick the matching roadmap sub-task on merge. The
+substantial, cross-cutting findings were re-routed off this task: the mutator
+success-result vocabulary (audit Finding 2) to roadmap step 1.3 (task 1.3.5),
+and the partial-`init` bootstrap recovery (review:2.2.2) to step 2.3
+(task 2.3.4); the doc gap below is the small fix.
+
+- [ ] 2.2.2.1 — Document the `init`, `set-cursor`, and `advance-phase`
+  subcommands in the users' guide (from audit:2.2.2, high). Task 2.2.2 promoted
+  three subcommands from stubs to shipping commands but updated only the
+  developers' guide; `docs/users-guide.md` lines 92–128 still describe only
+  `novel-state check`. Extend the `novel-state` section with a subcommand each:
+  `init` (its `--title`/`--slug`/`--target-word-count` options, the directory
+  skeleton it creates, and the exit-`3` refusal to overwrite an existing
+  `state.toml`), `set-cursor` (its three integer options and the
+  `cursor-coherent` refusal), and `advance-phase` (its zero-argument advance, the
+  terminal-`done` refusal, and the empty-manifest-into-`drafting` refusal). State
+  the shared validate-before-persist, exit-`3` refusal, write-nothing contract
+  once and reference it from each. Gate with `make markdownlint` and `make
+  nixie`.

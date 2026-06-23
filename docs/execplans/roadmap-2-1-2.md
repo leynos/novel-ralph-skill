@@ -1767,3 +1767,15 @@ coverage only.
   mentions the offending values for a known breach, bringing the human-facing
   message channel under the same coverage as the machine-name channel. Gate with
   `make all`.
+- [ ] 2.1.2.9 — Render `Phase` members as kebab strings in the validator's
+  operator-facing `Violation.detail` messages (from review:2.2.2, low). The
+  `phase-in-enum` and `completed-prefix` details in
+  `novel_ralph_skill/state/validate.py` repr `Phase` members
+  (`<Phase.PREMISE: 'premise'>`) via `{state.phase.current!r}` and
+  `{tuple(...)!r}` rather than the kebab `.value` an operator reads in
+  `state.toml`; this leaks into every `advance-phase`/`set-cursor` refusal
+  envelope. Format the offending members through `.value` (or a small kebab
+  helper) so the detail matches the on-disk vocabulary, and extend the
+  detail-prose test (2.1.2.8) to assert the kebab form rather than the repr. Pure
+  message change; the machine `name` and invariant logic are untouched. Gate with
+  `make all`.
