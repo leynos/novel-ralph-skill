@@ -143,6 +143,36 @@ def _build_incoherent_variants() -> dict[str, tuple[WorkingTreeSpec, str]]:
             dc.replace(_BASE, current_chapter=len(_BASE_CHAPTERS) + 5),
             oracle.CURSOR_COHERENT,
         ),
+        "scene-cursor-without-plan": (
+            # ``current_scene`` is non-zero but the current chapter carries no
+            # ``scenes.md`` (``has_scene_plan`` defaults False). The other cursor
+            # stays 0 and the other plan flag stays default, so only the
+            # disk-evidence ``cursor-plan-present`` name breaks.
+            dc.replace(_BASE, current_scene=1),
+            oracle.CURSOR_PLAN_PRESENT,
+        ),
+        "beat-cursor-without-plan": (
+            # ``current_beat`` is non-zero but the current chapter carries no
+            # ``beats.md``; the scene cursor stays 0, so only
+            # ``cursor-plan-present`` breaks.
+            dc.replace(_BASE, current_beat=1),
+            oracle.CURSOR_PLAN_PRESENT,
+        ),
+        "scene-cursor-past-current-chapter": (
+            # ``current_chapter == 0`` (no current chapter) with a non-zero
+            # ``current_scene``: a scene cursor past the nonexistent current
+            # chapter. The disk-evidence ``cursor-plan-present`` guard skips a
+            # zero ``current_chapter``, so only the pure-state ``cursor-coherent``
+            # name breaks.
+            dc.replace(_BASE, current_chapter=0, current_scene=1, current_beat=0),
+            oracle.CURSOR_COHERENT,
+        ),
+        "beat-cursor-past-current-chapter": (
+            # The same with a non-zero ``current_beat`` and a zero
+            # ``current_scene``; only ``cursor-coherent`` breaks.
+            dc.replace(_BASE, current_chapter=0, current_scene=0, current_beat=1),
+            oracle.CURSOR_COHERENT,
+        ),
         "gate-true-below-threshold": (
             _gate_true_below_threshold(),
             oracle.GATE_RATIO_CONSISTENT,

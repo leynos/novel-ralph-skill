@@ -11,6 +11,10 @@ These tests prove the builder materialises the tree each spec claims, writes a
 ``tomlkit``-round-trippable ``state.toml`` carrying every §5.1 schema table, and
 that the coherent/incoherent split is real and isolated.
 """
+# This corpus self-test grows one focused case per corpus invariant, so it sits
+# above the default module-line ceiling; the per-case isolation is clearer kept
+# in one module than split across files.
+# pylint: disable=too-many-lines
 
 from __future__ import annotations
 
@@ -19,6 +23,7 @@ import re
 import tomllib
 import typing as typ
 
+import pytest
 import tomlkit
 
 if typ.TYPE_CHECKING:
@@ -76,6 +81,56 @@ def _minimal_spec(
     )
 
 
+if typ.TYPE_CHECKING:
+    PlanCursorProbe = cabc.Callable[..., tuple[str, ...]]
+
+
+@pytest.fixture
+def plan_cursor_probe(  # pylint: disable=too-many-arguments,too-many-positional-arguments
+    tmp_path: Path,
+    make_chapter_spec: cabc.Callable[..., ChapterSpec],
+    make_working_tree_spec: cabc.Callable[..., WorkingTreeSpec],
+    build_tree: cabc.Callable[..., Path],
+    check_corpus: cabc.Callable[[WorkingTreeSpec, Path], tuple[str, ...]],
+) -> PlanCursorProbe:
+    """Return a probe building a minimal tree with a configured cursor and plans.
+
+    The probe mutates the first chapter's plan flags and the tree cursor, builds
+    the tree, and returns the oracle verdict. It lets the disk-evidence
+    ``cursor-plan-present`` tests run the oracle on a custom cursor without each
+    test naming the four builder fixtures (keeping the test signatures small).
+    """
+
+    def _probe(
+        *,
+        current_chapter: int,
+        current_scene: int = 0,
+        current_beat: int = 0,
+        has_scene_plan: bool = False,
+        has_beat_plan: bool = False,
+    ) -> tuple[str, ...]:
+        """Build the configured tree and return its oracle verdict."""
+        spec = _minimal_spec(make_chapter_spec, make_working_tree_spec)
+        first, *rest = spec.chapters
+        spec = dc.replace(
+            spec,
+            chapters=(
+                dc.replace(
+                    first,
+                    has_scene_plan=has_scene_plan,
+                    has_beat_plan=has_beat_plan,
+                ),
+                *rest,
+            ),
+            current_chapter=current_chapter,
+            current_scene=current_scene,
+            current_beat=current_beat,
+        )
+        return check_corpus(spec, build_tree(spec, tmp_path))
+
+    return _probe
+
+
 class TestBuildWorkingTree:
     """Exercise :func:`build_working_tree` on minimal coherent specs."""
 
@@ -122,6 +177,35 @@ class TestBuildWorkingTree:
         assert chapter_dir.is_dir()
         assert (chapter_dir / "done.flag").is_file()
         assert not (chapter_dir / "draft.md").exists()
+
+    def test_plan_flags_write_scene_and_beat_files(
+        self,
+        tmp_path: Path,
+        make_chapter_spec: cabc.Callable[..., ChapterSpec],
+        make_working_tree_spec: cabc.Callable[..., WorkingTreeSpec],
+        build_tree: cabc.Callable[..., Path],
+    ) -> None:
+        """``has_scene_plan`` / ``has_beat_plan`` write ``scenes.md`` / ``beats.md``.
+
+        The plan-file flags are the on-disk representation of the
+        scene/beat plans (``state-layout.md`` lines 38-39); with both flags at
+        their ``False`` default neither file is written.
+        """
+        spec = _minimal_spec(make_chapter_spec, make_working_tree_spec)
+        first, second = spec.chapters
+        spec = dc.replace(
+            spec,
+            chapters=(
+                dc.replace(first, has_scene_plan=True, has_beat_plan=True),
+                second,
+            ),
+        )
+        manuscript = build_tree(spec, tmp_path) / "manuscript"
+        assert (manuscript / "chapter-01" / "scenes.md").is_file()
+        assert (manuscript / "chapter-01" / "beats.md").is_file()
+        # The second chapter keeps both flags at their default, so no plan file.
+        assert not (manuscript / "chapter-02" / "scenes.md").exists()
+        assert not (manuscript / "chapter-02" / "beats.md").exists()
 
     def test_state_decodes_to_declared_values(
         self,
@@ -396,3 +480,55 @@ class TestCoherentIncoherentSplit:
             "the corpus must exercise every oracle invariant; missing: "
             f"{set(corpus_invariant_names) - exercised}"
         )
+
+    def test_cursor_plan_present_positive_and_out_of_range(
+        self,
+        tmp_path: Path,
+        plan_cursor_probe: PlanCursorProbe,
+    ) -> None:
+        """Pin the ``cursor-plan-present`` positive control and out-of-range guard.
+
+        Positive control: a non-zero scene/beat cursor whose current chapter
+        carries ``scenes.md`` and ``beats.md`` is coherent, so the disk-evidence
+        predicate is not vacuously rejecting every non-zero cursor. Out-of-range
+        guard: with ``current_chapter`` past the manifest and ``current_scene``
+        non-zero, the predicate does not fire or raise — the lone break is the
+        pure-state ``cursor-coherent`` clause.
+        """
+        assert (
+            plan_cursor_probe(
+                current_chapter=1,
+                current_scene=2,
+                current_beat=3,
+                has_scene_plan=True,
+                has_beat_plan=True,
+            )
+            == ()
+        )
+        assert plan_cursor_probe(current_chapter=99, current_scene=1) == (
+            "cursor-coherent",
+        )
+
+    def test_invariant_six_subclauses_are_present(
+        self,
+        corpus_invariant_names: tuple[str, ...],
+        incoherent_variant_names: tuple[str, ...],
+    ) -> None:
+        """The corpus exercises all three invariant-6 sub-clauses, each named.
+
+        The permanent coverage assertion for roadmap task 2.1.4: the
+        disk-evidence ``cursor-plan-present`` name exists, and both the
+        disk-evidence "zero until plans exist" variants and both the pure-state
+        scene/beat-past-``current_chapter`` variants are present. It was locked
+        as an ``xfail(strict=True)`` target while the feature was absent; both
+        sub-clauses have now landed, so the marker is removed and the test passes
+        outright.
+        """
+        assert "cursor-plan-present" in set(corpus_invariant_names)
+        expected_variants = {
+            "scene-cursor-without-plan",
+            "beat-cursor-without-plan",
+            "scene-cursor-past-current-chapter",
+            "beat-cursor-past-current-chapter",
+        }
+        assert expected_variants <= set(incoherent_variant_names)

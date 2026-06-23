@@ -391,7 +391,7 @@ novel-ralph-harness-design.md §5.1 and §5.2.
     against the materialised `state.toml`, matches the oracle's
     `CORPUS_INVARIANT_NAMES` labels exactly — coherent trees pass and each
     incoherent variant is rejected on its one named invariant.
-- [ ] 2.1.4. Complete the corpus's invariant-6 coverage for the scene/beat
+- [x] 2.1.4. Complete the corpus's invariant-6 coverage for the scene/beat
   cursor sub-clauses.
   - Reroute (source: audit:1.3.2 / review:1.3.2; severity: medium). The §1.3.2
     corpus exercises only the `current_chapter`-out-of-range clause of design
@@ -402,12 +402,27 @@ novel-ralph-harness-design.md §5.1 and §5.2.
     `cursor-coherent` branch (or split it) so all three sub-clauses are
     exercised; where the "zero until plans exist" clause needs scene/beat plans
     to have on-disk representation, scope the fixture to that representation.
+  - Reroute (source: review:2.1.4; severity: medium). The "zero until plans
+    exist" sub-clause is disk-evidence: deciding it requires reading whether
+    `scenes.md`/`beats.md` exist on disk for the current chapter. The §5.2
+    validator is disk-blind by construction — task 2.1.2 locked it to the
+    state-only part of `cursor-coherent` and deferred every disk-evidence
+    invariant to reconciliation task 2.3.2 — so the original Success clause's
+    "the validator rejects" wording cannot be honoured for that sub-clause
+    without breaching the locked boundary. The Success clause below is therefore
+    amended: the disk-evidence "zero until plans exist" fixture is rejected by
+    the corpus oracle on a new disk-evidence cursor name (`cursor-plan-present`),
+    with validator rejection of that sub-clause deferred to task 2.3.2; the
+    pure-state scene/beat-past-`current_chapter` fixture is rejected by both the
+    corpus oracle and the validator on `cursor-coherent`.
   - Requires 2.1.2.
   - See novel-ralph-harness-design.md §5.2 (invariant 6).
-  - Success: a non-zero `current_scene`/`current_beat` before its plan exists
-    and a scene/beat cursor referencing a chapter past `current_chapter` are
-    each a negative fixture the validator rejects, with the corpus oracle
-    labelling each on the cursor invariant.
+  - Success: a non-zero `current_scene`/`current_beat` before its plan exists is
+    a negative fixture the corpus oracle rejects on the disk-evidence
+    `cursor-plan-present` name, with validator rejection deferred to task 2.3.2;
+    a scene/beat cursor referencing a chapter past `current_chapter` is a
+    negative fixture both the corpus oracle and the §5.2 validator reject on the
+    pure-state `cursor-coherent` name.
 
 ### 2.2. Deliver lossless, atomic state mutation
 

@@ -155,11 +155,14 @@ def _build_state_document(spec: WorkingTreeSpec) -> tomlkit.TOMLDocument:
 
 
 def _write_chapter(chapter: ChapterSpec, manuscript: Path) -> None:
-    """Write one chapter directory: optional ``draft.md`` and ``done.flag``.
+    """Write one chapter directory: draft, plan files, and ``done.flag``.
 
     ``draft.md`` is suppressed entirely when ``write_draft`` is ``False`` so the
     directory has no draft at all (the design §5.4 ``done.flag``-beside-absent-
     ``draft.md`` case); otherwise it is written, empty when ``draft_words`` is 0.
+    ``scenes.md`` and ``beats.md`` (the scene/beat plan files, ``state-layout.md``
+    lines 38-39) are written only when ``has_scene_plan`` / ``has_beat_plan`` are
+    set, each with a fixed deterministic body so snapshot suites do not churn.
     """
     chapter_dir = manuscript / chapter_dir_name(chapter.number)
     chapter_dir.mkdir(parents=True, exist_ok=True)
@@ -167,6 +170,10 @@ def _write_chapter(chapter: ChapterSpec, manuscript: Path) -> None:
         (chapter_dir / "draft.md").write_text(
             draft_body(chapter.draft_words), encoding="utf-8"
         )
+    if chapter.has_scene_plan:
+        (chapter_dir / "scenes.md").write_text("# Scenes\n", encoding="utf-8")
+    if chapter.has_beat_plan:
+        (chapter_dir / "beats.md").write_text("# Beats\n", encoding="utf-8")
     if chapter.has_done_flag:
         (chapter_dir / "done.flag").touch()
 

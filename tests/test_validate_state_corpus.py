@@ -4,8 +4,8 @@ This is the anti-drift guarantee roadmap task 2.1.3 extends to full on-disk
 agreement. It asserts that :func:`~novel_ralph_skill.state.validate_state` keys
 its verdict on the same invariant-name vocabulary as the §1.3.2 corpus oracle
 (``CORPUS_INVARIANT_NAMES``), agrees with the oracle on every corpus tree once
-both verdicts are restricted to the six pure-state invariants this task owns, and
-never emits any of the four disk-evidence names that task 2.3.2 owns.
+both verdicts are restricted to the eight pure-state invariants this task owns,
+and never emits any of the five disk-evidence names that task 2.3.2 owns.
 
 The validator's name constants come from the production module
 (:data:`~novel_ralph_skill.state.PURE_STATE_INVARIANT_NAMES`); the oracle's come
@@ -61,15 +61,18 @@ _PARSE_ENFORCED_INVARIANTS: frozenset[str] = frozenset({PHASE_IN_ENUM})
 # relationship so the two cannot drift (audit:2.1.2 finding 4).
 _PARSE_ERRORS: tuple[type[Exception], ...] = (ValueError, KeyError, TypeError)
 
-# The four §5.4 disk-evidence invariant names this task does NOT own; the
-# validator must never emit any of them (the scope-boundary pin, protecting task
-# 2.3.2's surface).
+# The five disk-evidence invariant names this task does NOT own; the validator
+# must never emit any of them (the scope-boundary pin, protecting task 2.3.2's
+# surface). ``cursor-plan-present`` is the scene/beat-plan-presence sub-clause of
+# design §5.2 invariant 6 — disk-evidence, so deferred to reconciliation task
+# 2.3.2 like the four §5.4 names.
 _DEFERRED_INVARIANT_NAMES: frozenset[str] = frozenset(
     {
         "manifest-disk-bijection",
         "done-flag-without-draft",
         "compiled-matches-drafts",
         "pending-turn-cleared",
+        "cursor-plan-present",
     },
 )
 

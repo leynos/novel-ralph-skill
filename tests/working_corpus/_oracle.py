@@ -21,6 +21,7 @@ import typing as typ
 from ._library import PHASE_ORDER
 from ._specs import (
     GATE_THRESHOLDS,
+    chapter_dir_name,
     concatenate_drafts,
     draft_body,
 )
@@ -46,6 +47,11 @@ CONVERGENCE_TARGET_AT_LEAST_ONE = "convergence-target-at-least-one"
 CONSECUTIVE_CLEAN_WITHIN_DRAFTED = "consecutive-clean-within-drafted"
 MANIFEST_DISK_BIJECTION = "manifest-disk-bijection"
 CURSOR_COHERENT = "cursor-coherent"
+# Disk-evidence: the scene/beat-plan-presence sub-clause of design §5.2
+# invariant 6 ("zero until their plans exist"). It reads the built tree for the
+# current chapter's ``scenes.md`` / ``beats.md``, so the pure-state §5.2
+# validator cannot decide it; validator rejection is deferred to task 2.3.2.
+CURSOR_PLAN_PRESENT = "cursor-plan-present"
 GATE_RATIO_CONSISTENT = "gate-ratio-consistent"
 DONE_FLAG_WITHOUT_DRAFT = "done-flag-without-draft"
 COMPILED_MATCHES_DRAFTS = "compiled-matches-drafts"
@@ -60,6 +66,7 @@ CORPUS_INVARIANT_NAMES: tuple[str, ...] = (
     CONSECUTIVE_CLEAN_WITHIN_DRAFTED,
     MANIFEST_DISK_BIJECTION,
     CURSOR_COHERENT,
+    CURSOR_PLAN_PRESENT,
     GATE_RATIO_CONSISTENT,
     DONE_FLAG_WITHOUT_DRAFT,
     COMPILED_MATCHES_DRAFTS,
@@ -162,13 +169,22 @@ def _check_cursor_coherent(spec: WorkingTreeSpec) -> bool:
     """Return True when the drafting cursor is coherent (invariant 6).
 
     ``current_chapter`` never references a chapter past the drafted set; the
-    scene and beat sub-cursors are non-negative.
+    scene and beat sub-cursors are non-negative; and a scene or beat cursor
+    never references a chapter past ``current_chapter`` — read in its only
+    pure-state form as: when ``current_chapter == 0`` there is no current
+    chapter for a scene or beat to belong to, so both must be ``0`` (Decision
+    Log D2). The disk-evidence "zero until plans exist" sub-clause is
+    :func:`_check_cursor_plan_present`'s, not this one's.
     """
-    return (
+    if not (
         0 <= spec.current_chapter <= len(spec.chapters)
         and spec.current_scene >= 0
         and spec.current_beat >= 0
-    )
+    ):
+        return False
+    if spec.current_chapter == 0:
+        return spec.current_scene == 0 and spec.current_beat == 0
+    return True
 
 
 def _check_gate_ratio_consistent(spec: WorkingTreeSpec) -> bool:
@@ -226,10 +242,35 @@ def _check_compiled_matches_drafts(spec: WorkingTreeSpec, working_dir: Path) -> 
     return compiled_path.read_text(encoding="utf-8") == expected
 
 
+def _check_cursor_plan_present(spec: WorkingTreeSpec, working_dir: Path) -> bool:
+    """Return True when a non-zero scene/beat cursor has its on-disk plan (inv 6).
+
+    The "zero until their plans exist" sub-clause of design §5.2 invariant 6: a
+    non-zero ``current_scene`` requires the current chapter's ``scenes.md``, and
+    a non-zero ``current_beat`` requires its ``beats.md`` (``state-layout.md``
+    lines 38-39, 86-88). This is disk-evidence — it reads the built tree — so
+    the pure-state validator cannot decide it (deferred to task 2.3.2).
+
+    ``working_dir`` is the materialised ``working/`` directory, so the plan files
+    live under ``working_dir / "manuscript" / chapter_dir_name(n)/`` — the same
+    ``manuscript/`` base :func:`_check_compiled_matches_drafts` joins. The
+    predicate is guarded by ``0 < current_chapter <= len(chapters)`` so it never
+    raises on a malformed cursor and leaves the degenerate ``current_chapter ==
+    0`` case to the pure-state :func:`_check_cursor_coherent` clause; an
+    out-of-range cursor returns True (the predicate does not fire).
+    """
+    if not 0 < spec.current_chapter <= len(spec.chapters):
+        return True
+    chapter_dir = working_dir / "manuscript" / chapter_dir_name(spec.current_chapter)
+    if spec.current_scene > 0 and not (chapter_dir / "scenes.md").exists():
+        return False
+    return not (spec.current_beat > 0 and not (chapter_dir / "beats.md").exists())
+
+
 # The structural checks that depend on the spec alone, keyed by invariant name.
-# ``BY_CHAPTER_SUM`` and ``COMPILED_MATCHES_DRAFTS`` are disk-evidence checks
-# (they read the materialised ``working/`` tree), so they are applied separately
-# in :func:`corpus_check` rather than listed here.
+# ``BY_CHAPTER_SUM``, ``COMPILED_MATCHES_DRAFTS`` and ``CURSOR_PLAN_PRESENT`` are
+# disk-evidence checks (they read the materialised ``working/`` tree), so they
+# are applied separately in :func:`corpus_check` rather than listed here.
 _SPEC_CHECKS: tuple[tuple[str, cabc.Callable[[WorkingTreeSpec], bool]], ...] = (
     (PHASE_IN_ENUM, _check_phase_in_enum),
     (COMPLETED_PREFIX, _check_completed_prefix),
@@ -267,4 +308,5 @@ def corpus_check(spec: WorkingTreeSpec, working_dir: Path) -> tuple[str, ...]:
     passed = {name: check(spec) for name, check in _SPEC_CHECKS}
     passed[BY_CHAPTER_SUM] = _check_by_chapter_sum(working_dir)
     passed[COMPILED_MATCHES_DRAFTS] = _check_compiled_matches_drafts(spec, working_dir)
+    passed[CURSOR_PLAN_PRESENT] = _check_cursor_plan_present(spec, working_dir)
     return tuple(name for name in CORPUS_INVARIANT_NAMES if not passed[name])

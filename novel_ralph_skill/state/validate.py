@@ -197,17 +197,23 @@ def _check_cursor_coherent(state: State) -> Violation | None:
     """Return a violation when the drafting cursor is incoherent (inv 6).
 
     Bounds ``0 <= current_chapter <= len(state.chapters)`` and requires
-    ``current_scene >= 0`` and ``current_beat >= 0``, following the oracle's
-    structural reading (the "zero until plans exist" disk sub-clause is task
-    2.1.4/2.3.2's).
+    ``current_scene >= 0`` and ``current_beat >= 0``; and enforces the
+    scene/beat-past-``current_chapter`` sub-clause in its only pure-state form:
+    when ``current_chapter == 0`` there is no current chapter for a scene or
+    beat to belong to, so both must be ``0`` (Decision Log D2). The
+    disk-evidence "zero until plans exist" sub-clause remains task
+    2.1.4-corpus / 2.3.2's and is not checked here.
     """
     drafting = state.drafting
-    conditions = (
-        0 <= drafting.current_chapter <= len(state.chapters),
-        drafting.current_scene >= 0,
-        drafting.current_beat >= 0,
+    bounded = (
+        0 <= drafting.current_chapter <= len(state.chapters)
+        and drafting.current_scene >= 0
+        and drafting.current_beat >= 0
     )
-    if all(conditions):
+    scene_beat_past_chapter = drafting.current_chapter == 0 and (
+        drafting.current_scene != 0 or drafting.current_beat != 0
+    )
+    if bounded and not scene_beat_past_chapter:
         return None
     return Violation(
         invariant=CURSOR_COHERENT,

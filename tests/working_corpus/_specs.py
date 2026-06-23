@@ -84,6 +84,18 @@ class ChapterSpec:
         the chapter directory has *no* ``draft.md`` — modelling the design §5.4
         ``done.flag`` beside an *absent* ``draft.md`` contradiction (which the
         always-written empty case alone cannot reach).
+    has_scene_plan : bool
+        When true, the builder writes ``scenes.md`` beside the draft — the
+        on-disk scene plan (``state-layout.md`` line 38). Defaulting ``False``
+        keeps every existing spec byte-identical; a non-zero ``current_scene``
+        without this file is the "zero until plans exist" sub-clause of design
+        §5.2 invariant 6.
+    has_beat_plan : bool
+        When true, the builder writes ``beats.md`` beside the draft — the
+        on-disk beat plan (``state-layout.md`` line 39). Defaulting ``False``
+        keeps every existing spec byte-identical; a non-zero ``current_beat``
+        without this file is the "zero until plans exist" sub-clause of design
+        §5.2 invariant 6.
     """
 
     number: int
@@ -94,6 +106,8 @@ class ChapterSpec:
     has_done_flag: bool
     in_manifest: bool = True
     write_draft: bool = True
+    has_scene_plan: bool = False
+    has_beat_plan: bool = False
 
 
 @dc.dataclass(frozen=True, kw_only=True)

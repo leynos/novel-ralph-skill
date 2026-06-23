@@ -19,6 +19,11 @@ rather than a ``ZeroDivisionError``). These assert the exact verdict directly,
 independent of the behavioural suite, so a silent empty-verdict bug fails here.
 """
 
+# This property suite grows one perturbation and one focused case per pure-state
+# invariant, so it sits above the default module-line ceiling; the per-invariant
+# isolation is clearer kept in one module than split across files.
+# pylint: disable=too-many-lines
+
 from __future__ import annotations
 
 import dataclasses as dc
@@ -31,6 +36,7 @@ from novel_ralph_skill.state import (
     CONSECUTIVE_CLEAN_WITHIN_DRAFTED,
     CONSECUTIVE_CLEAN_WITHIN_TARGET,
     CONVERGENCE_TARGET_AT_LEAST_ONE,
+    CURSOR_COHERENT,
     GATE_RATIO_CONSISTENT,
     PHASE_IN_ENUM,
     PHASE_ORDER,
@@ -151,6 +157,9 @@ def coherent_states(draw: st.DrawFn) -> State:
     drafted_chapters)]`` (where ``drafted_chapters`` counts chapters with a
     positive drafted total, matching the validator's ``within-drafted`` proxy);
     and the cursor is non-negative with ``current_chapter <= len(chapters)``.
+    When the drawn ``current_chapter`` is ``0`` the scene and beat sub-cursors
+    are forced to ``0`` so the state satisfies the pure-state
+    scene/beat-past-``current_chapter`` clause of invariant 6 (Decision Log D2).
     """
     phase_index = draw(st.integers(min_value=0, max_value=len(PHASE_ORDER) - 1))
     chapter_words = tuple(
@@ -166,6 +175,11 @@ def coherent_states(draw: st.DrawFn) -> State:
     # manifest length: an all-zero chapter is planned but not yet drafted.
     drafted_chapters = sum(1 for words in chapter_words if words > 0)
     clean_ceiling = min(convergence_target, drafted_chapters)
+    current_chapter = draw(st.integers(min_value=0, max_value=len(chapter_words)))
+    # A zero ``current_chapter`` has no current chapter for a scene or beat to
+    # belong to, so the cursor sub-counters must be zero (invariant 6, D2);
+    # otherwise draw them in ``[0, 20]`` as before.
+    cursor_ceiling = 0 if current_chapter == 0 else 20
     return _build_state(
         _StateParams(
             phase_index=phase_index,
@@ -175,11 +189,9 @@ def coherent_states(draw: st.DrawFn) -> State:
             gates=_gates_for_ratio(drafted_total / target),
             consecutive_clean=draw(st.integers(min_value=0, max_value=clean_ceiling)),
             convergence_target=convergence_target,
-            current_chapter=draw(
-                st.integers(min_value=0, max_value=len(chapter_words))
-            ),
-            current_scene=draw(st.integers(min_value=0, max_value=20)),
-            current_beat=draw(st.integers(min_value=0, max_value=20)),
+            current_chapter=current_chapter,
+            current_scene=draw(st.integers(min_value=0, max_value=cursor_ceiling)),
+            current_beat=draw(st.integers(min_value=0, max_value=cursor_ceiling)),
         )
     )
 
@@ -220,10 +232,24 @@ def _perturb_gate(state: State) -> State:
     return dc.replace(state, gates=dc.replace(state.gates, knitting=flipped))
 
 
+def _perturb_cursor_past_current_chapter(state: State) -> State:
+    """Break ``cursor-coherent`` with a scene cursor past ``current_chapter``.
+
+    Forces ``current_chapter == 0`` (no current chapter) while ``current_scene``
+    is non-zero, the only pure-state form of the scene/beat-past-``current_chapter``
+    sub-clause of invariant 6 (Decision Log D2). The cursor fields appear only in
+    ``_check_cursor_coherent``, so from any coherent state this breaks exactly
+    ``cursor-coherent``.
+    """
+    drafting = dc.replace(state.drafting, current_chapter=0, current_scene=1)
+    return dc.replace(state, drafting=drafting)
+
+
 _PERTURBATIONS = {
     PHASE_IN_ENUM: _perturb_phase,
     BY_CHAPTER_SUM: _perturb_by_chapter_sum,
     GATE_RATIO_CONSISTENT: _perturb_gate,
+    CURSOR_COHERENT: _perturb_cursor_past_current_chapter,
 }
 # Invariant 4's three sub-rules (``within-target``, ``at-least-one``,
 # ``within-drafted``) are not driven from arbitrary coherent states here: an

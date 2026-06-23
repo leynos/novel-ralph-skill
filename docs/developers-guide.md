@@ -298,10 +298,12 @@ vocabulary; the constants live in the production module and a test pins their
 equality to the oracle. Design §5.2 invariant 4 is split into three named
 sub-rules (`consecutive-clean-within-target`, `convergence-target-at-least-one`,
 and `consecutive-clean-within-drafted`) so a verdict pins exactly the sub-rule it
-breaks. The four §5.4 **disk-evidence** invariants (`manifest-disk-bijection`,
-`done-flag-without-draft`, `compiled-matches-drafts`, `pending-turn-cleared`)
-need `working/` contents beyond `state.toml` and are task 2.3.2's; `validate_state`
-never emits them, and a scope-boundary test pins that.
+breaks. Five **disk-evidence** invariants — the four §5.4 ones
+(`manifest-disk-bijection`, `done-flag-without-draft`, `compiled-matches-drafts`,
+`pending-turn-cleared`) plus `cursor-plan-present`, the scene/beat-plan-presence
+sub-clause of invariant 6 ("zero until plans exist") added by task 2.1.4 — need
+`working/` contents beyond `state.toml` and are task 2.3.2's; `validate_state`
+never emits any of them, and a scope-boundary test pins that.
 
 The eight owned names map onto the design's seven §5.2 invariants (numbered by
 their order in the bullet list) as follows; invariant 4 splits into three
