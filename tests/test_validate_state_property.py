@@ -49,7 +49,11 @@ from novel_ralph_skill.state import (
     validate_state,
 )
 
-_GATE_THRESHOLDS = (0.30, 0.50, 0.80)
+# Read the validator's own gate-threshold triple rather than redeclaring it: the
+# production constant is the single §5.2 source of truth, so this suite cannot
+# silently agree with a wrong validator by mirroring an independent copy
+# (audit:2.1.2 finding 1).
+from novel_ralph_skill.state.validate import _GATE_THRESHOLDS
 
 
 def _by_chapter_key(number: int) -> str:
@@ -364,3 +368,22 @@ def test_negative_target_yields_no_gate_violation() -> None:
     state = dc.replace(state, word_counts=dc.replace(state.word_counts, current=8000))
     verdict = {violation.invariant for violation in validate_state(state)}
     assert GATE_RATIO_CONSISTENT not in verdict
+
+
+def test_phase_in_enum_fires_for_directly_constructed_state() -> None:
+    """A directly-built out-of-enum ``State`` names exactly ``phase-in-enum``.
+
+    This is the in-memory side of the two-layer ``phase-in-enum`` enforcement.
+    On the production (disk) path ``parse_state`` raises constructing
+    ``Phase(current)``, so the validator's predicate never fires there — pinned
+    by ``test_phase_in_enum_is_parser_enforced`` in
+    ``tests/test_validate_state_corpus.py``. The validator must nonetheless stay
+    total over any constructible ``State``, so a ``State`` built directly with an
+    out-of-enum ``phase.current`` must yield exactly the ``phase-in-enum``
+    violation (and not, e.g., also ``completed-prefix``). This named test makes
+    that in-memory contract self-documenting rather than only exercised
+    indirectly by the perturbation suite.
+    """
+    state = _perturb_phase(_baseline_coherent())
+    verdict = {violation.invariant for violation in validate_state(state)}
+    assert verdict == {PHASE_IN_ENUM}

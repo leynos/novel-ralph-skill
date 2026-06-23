@@ -325,48 +325,48 @@ novel-ralph-harness-design.md §5.1 and §5.2.
     state-coherence property), and a state with `consecutive_clean` above its
     `convergence_target` is rejected while one within a raised target is
     accepted.
-  - [ ] 2.1.2.1. Make `validate._GATE_THRESHOLDS` the single source of truth for
+  - [x] 2.1.2.1. Make `validate._GATE_THRESHOLDS` the single source of truth for
     the `(0.30, 0.50, 0.80)` gate triple.
     - Addendum (from audit:2.1.2; medium). Import the production constant into
       the property suite and pin the corpus `_specs.GATE_THRESHOLDS` to it with
       a one-line test, so neither cross-check can drift from the validator.
       Lightweight addendum pass.
-  - [ ] 2.1.2.2. Add reciprocal twin cross-references between the validator
+  - [x] 2.1.2.2. Add reciprocal twin cross-references between the validator
     predicates and the corpus oracle.
     - Addendum (from audit:2.1.2; low). Add the reverse pointer in `_oracle.py`
       naming the agreement suite that pins the deliberate-twin equivalence, and
       record the twin policy once in the developers' guide. Lightweight addendum
       pass.
-  - [ ] 2.1.2.3. Add a named in-memory unit test that `_check_phase_in_enum`
+  - [x] 2.1.2.3. Add a named in-memory unit test that `_check_phase_in_enum`
     fires for a directly-constructed out-of-enum `State`.
     - Addendum (from audit:2.1.2; low). The disk path enforces the phase enum in
       the parser, leaving the validator's safety-net layer exercised only
       indirectly; a paired in-memory test makes the two-layer design
       self-documenting. Lightweight addendum pass.
-  - [ ] 2.1.2.4. Extract a `_load_or_state_error` helper and a named
+  - [x] 2.1.2.4. Extract a `_load_or_state_error` helper and a named
     state-input exception-tuple constant in `novel_state`.
     - Addendum (from audit:2.1.2; low). Lift the load-and-translate step and the
       exit-3 exception set out of `_check` so it reads as load → validate → build
       outcome, and have the corpus test reference the shared constant.
       Lightweight addendum pass.
-  - [ ] 2.1.2.5. Collapse the two `_check` `CommandOutcome` branches into one
+  - [x] 2.1.2.5. Collapse the two `_check` `CommandOutcome` branches into one
     verdict-driven constructor.
     - Addendum (from audit:2.1.2; low). Compute the verdict once and build a
       single outcome whose code is `SUCCESS` on an empty verdict else
       `ACTIONABLE_FINDING`, removing the parallel result/messages plumbing.
       Lightweight addendum pass.
-  - [ ] 2.1.2.6. Document the design-invariant-number to owned-name mapping for
+  - [x] 2.1.2.6. Document the design-invariant-number to owned-name mapping for
     the validator.
     - Addendum (from audit:2.1.2; low). Add a compact §5.2-invariant-number to
       owned-name(s)/deferred table to the validator docstring or the developers'
       guide so the eight-names-versus-seven-invariants relationship is checkable
       at a glance. Lightweight addendum pass.
-  - [ ] 2.1.2.7. Enumerate the eight `result.violations` invariant names in the
+  - [x] 2.1.2.7. Enumerate the eight `result.violations` invariant names in the
     users' guide.
     - Addendum (from audit:2.1.2; low). Add a name-to-plain-English reference
       list to the `novel-state check` section, noting the set is the pure-state
       half and disk-evidence invariants arrive later. Lightweight addendum pass.
-  - [ ] 2.1.2.8. Pin each predicate's `Violation.detail` prose with a focused
+  - [x] 2.1.2.8. Pin each predicate's `Violation.detail` prose with a focused
     test.
     - Addendum (from audit:2.1.2; low). Assert that each invariant's `detail` is
       non-empty and mentions the offending values for a known breach, bringing

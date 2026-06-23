@@ -303,6 +303,21 @@ breaks. The four §5.4 **disk-evidence** invariants (`manifest-disk-bijection`,
 need `working/` contents beyond `state.toml` and are task 2.3.2's; `validate_state`
 never emits them, and a scope-boundary test pins that.
 
+The eight owned names map onto the design's seven §5.2 invariants (numbered by
+their order in the bullet list) as follows; invariant 4 splits into three
+sub-rules and invariant 5 is deferred, which is why the validator owns eight
+names but covers seven design invariants:
+
+| §5.2 invariant | Owned name(s) / status |
+| --- | --- |
+| 1 (phase in enum) | `phase-in-enum` |
+| 2 (completed is enum prefix) | `completed-prefix` |
+| 3 (`by_chapter` sums to `current`) | `by-chapter-sum` |
+| 4 (`consecutive_clean` bounds) | `consecutive-clean-within-target`, `convergence-target-at-least-one`, `consecutive-clean-within-drafted` |
+| 5 (manifest-disk bijection) | `manifest-disk-bijection` — deferred to task 2.3.2 (disk evidence) |
+| 6 (cursor coherent) | `cursor-coherent` |
+| 7 (gate ratio consistent) | `gate-ratio-consistent` |
+
 Two readings are deliberate pure-state approximations, recorded so a later reader
 does not mistake them for bugs. The `gate-ratio-consistent` numerator is the
 **drafted total** `sum(word_counts.by_chapter.values())`, not `current`, matching
@@ -315,6 +330,16 @@ proxy for the design's "chapters drafted" disk quantity (mirroring the oracle,
 which counts chapters whose `draft_words > 0`); the two agree on every corpus
 tree, and reconciling the proxy against a live draft count is task 2.1.3's
 on-disk cross-check.
+
+Six of `validate_state`'s structural predicates are **deliberate twins** of the
+corpus oracle's same-named predicates in `tests/working_corpus/_oracle.py`. This
+duplication is intentional, not an oversight: the oracle is an independent
+cross-check and must never import the validator it checks, so each side carries
+its own copy of the rule. The two are pinned to agree on every corpus tree by
+`tests/test_validate_state_corpus.py::test_incoherent_agreement_restricted_to_owned`;
+editing either predicate keeps that contract test as the safety net, and each
+module carries a reciprocal cross-reference comment pointing at its twin. Do not
+de-duplicate the twins — collapsing them would defeat the cross-check.
 
 `novel-state check` is the first command to drive the shared `run` path: its
 entry point pre-parses the single `--human` flag off argv before `run` (so the

@@ -20,6 +20,7 @@ import typing as typ
 
 import pytest
 
+from novel_ralph_skill.commands.novel_state import STATE_INPUT_ERRORS
 from novel_ralph_skill.state import (
     BY_CHAPTER_SUM,
     COMPLETED_PREFIX,
@@ -33,6 +34,7 @@ from novel_ralph_skill.state import (
     load_state,
     validate_state,
 )
+from novel_ralph_skill.state.validate import _GATE_THRESHOLDS
 
 if typ.TYPE_CHECKING:
     import collections.abc as cabc
@@ -53,7 +55,10 @@ _PARSE_ENFORCED_INVARIANTS: frozenset[str] = frozenset({PHASE_IN_ENUM})
 # The exceptions ``parse_state``/``load_state`` raise on a structurally bad or
 # out-of-enum ``state.toml`` (the production exit-``3`` channel). Named so the
 # ``except`` below reads as a tuple rather than the bare py3.14 PEP 758 multi-type
-# form a reader on an older Python would misread.
+# form a reader on an older Python would misread. This is the parse-fault subset
+# of the production ``STATE_INPUT_ERRORS`` vocabulary (the corpus trees always
+# exist on disk, so ``OSError`` is not exercised here); a test pins the subset
+# relationship so the two cannot drift (audit:2.1.2 finding 4).
 _PARSE_ERRORS: tuple[type[Exception], ...] = (ValueError, KeyError, TypeError)
 
 # The four §5.4 disk-evidence invariant names this task does NOT own; the
@@ -110,6 +115,32 @@ def test_owned_names_equal_corpus_vocabulary(
     }
     assert owned == set(corpus_invariant_names) - _DEFERRED_INVARIANT_NAMES
     assert set(PURE_STATE_INVARIANT_NAMES) == owned
+
+
+def test_corpus_gate_thresholds_equal_production(
+    corpus_gate_thresholds: tuple[float, float, float],
+) -> None:
+    """The corpus's gate-threshold triple equals the production validator's.
+
+    Pins the corpus's independent ``0.30 / 0.50 / 0.80`` copy to the §5.2 source
+    of truth (mirroring :func:`test_owned_names_equal_corpus_vocabulary`) so the
+    oracle's cross-check cannot silently drift from the validator (audit:2.1.2
+    finding 1). The corpus keeps its own copy on purpose; this test keeps it
+    honest.
+    """
+    assert corpus_gate_thresholds == _GATE_THRESHOLDS
+
+
+def test_parse_errors_subset_of_production_state_input_errors() -> None:
+    """Pin this suite's parse-fault set as a subset of the production vocabulary.
+
+    Pins the "what counts as a state-input error" vocabulary to one home: the
+    suite's ``_PARSE_ERRORS`` (the on-disk parse faults, minus ``OSError``) must
+    be a subset of the production ``STATE_INPUT_ERRORS`` so the test cannot drift
+    from the exit-``3`` channel ``novel-state check`` actually translates
+    (audit:2.1.2 finding 4).
+    """
+    assert set(_PARSE_ERRORS) <= set(STATE_INPUT_ERRORS)
 
 
 def test_coherent_trees_pass_the_validator(

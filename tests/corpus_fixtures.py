@@ -323,3 +323,18 @@ def corpus_invariant_names() -> tuple[str, ...]:
         validator keys its cross-check on.
     """
     return wc.CORPUS_INVARIANT_NAMES
+
+
+@pytest.fixture
+def corpus_gate_thresholds() -> tuple[float, float, float]:
+    """Return the corpus's knitting-gate threshold triple.
+
+    Returns
+    -------
+    tuple[float, float, float]
+        The ``GATE_THRESHOLDS`` triple, the corpus's independent copy of the
+        §5.2 ``0.30 / 0.50 / 0.80`` thresholds; a test pins it equal to the
+        production validator constant so the two cannot drift (audit:2.1.2
+        finding 1).
+    """
+    return wc.GATE_THRESHOLDS

@@ -104,6 +104,24 @@ flag (`novel-state --human check`) for a readable rendering instead.
 - `3` — `./working/state.toml` is missing or unparseable (the state-error
   channel).
 
+The names that can appear in `result.violations` are the pure-state half of the
+invariant set (the on-disk-evidence invariants below arrive in a later release):
+
+- `phase-in-enum` — the current phase is not one of the known workflow phases.
+- `completed-prefix` — the completed-phase list is not the in-order run of phases
+  before the current one (a phase is missing or out of order).
+- `by-chapter-sum` — the per-chapter word counts do not add up to the recorded
+  current total.
+- `consecutive-clean-within-target` — the consecutive-clean-pass counter is
+  negative or above its configured convergence target.
+- `convergence-target-at-least-one` — the convergence target is below one.
+- `consecutive-clean-within-drafted` — the consecutive-clean-pass counter claims
+  more clean chapters than have actually been drafted.
+- `cursor-coherent` — the drafting cursor (chapter, scene, beat) is negative or
+  points past the chapters in the manifest.
+- `gate-ratio-consistent` — a knitting gate is set true or false in a way that
+  disagrees with the drafted-word ratio against its threshold.
+
 The on-disk evidence invariants (the chapter manifest matching the directory
 set, `done.flag`/`draft.md` consistency, and `compiled.md` freshness) are
 validated by a later release; `novel-state check` currently checks only the

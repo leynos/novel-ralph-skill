@@ -28,6 +28,7 @@ from __future__ import annotations
 
 import pathlib
 import tomllib
+import typing as typ
 
 import cyclopts
 
@@ -35,11 +36,59 @@ from novel_ralph_skill.contract.exit_codes import ExitCode
 from novel_ralph_skill.contract.runner import CommandOutcome, StateInputError
 from novel_ralph_skill.state import load_state, validate_state
 
+if typ.TYPE_CHECKING:
+    from novel_ralph_skill.state import State
+
 # The fixed cwd-relative working directory the design records (design line 151);
 # the same constant the entry point stamps into the ``RunContext.working_dir``,
 # so the file ``check`` reads and the envelope's ``working_dir`` field cannot
 # drift (Decision Log B4/B5). There is no ``--working-dir`` flag.
 WORKING_DIR_NAME = "working"
+
+# The exceptions a missing or malformed ``state.toml`` raises through
+# ``load_state``; each is translated to ``StateInputError`` (the exit-``3``
+# state-error channel). Named once here so the "what counts as a state-input
+# error" vocabulary has a single home the four later mutators reuse, and so the
+# corpus test can pin its own parse-error list against this set rather than
+# hand-listing it independently (audit:2.1.2 finding 4).
+STATE_INPUT_ERRORS: tuple[type[Exception], ...] = (
+    OSError,
+    tomllib.TOMLDecodeError,
+    KeyError,
+    ValueError,
+    TypeError,
+)
+
+
+def _load_or_state_error(path: pathlib.Path) -> State:
+    """Load ``path`` into a ``State``, translating load faults to ``StateInputError``.
+
+    Owns the load-and-translate boundary so callers read as "load → validate →
+    build outcome": it maps every member of :data:`STATE_INPUT_ERRORS` to a
+    :class:`~novel_ralph_skill.contract.runner.StateInputError` (the exit-``3``
+    state-error channel) and lets a coherent load return the parsed ``State``
+    unchanged. Reusable by the four later mutators that hit the same boundary.
+
+    Parameters
+    ----------
+    path : pathlib.Path
+        The ``state.toml`` to load.
+
+    Returns
+    -------
+    State
+        The parsed, typed state.
+
+    Raises
+    ------
+    StateInputError
+        When ``path`` is missing or unparseable.
+    """
+    try:
+        return load_state(path)
+    except STATE_INPUT_ERRORS as exc:
+        msg = f"cannot load {path}: {exc}"
+        raise StateInputError(msg) from exc
 
 
 def _check() -> CommandOutcome:
@@ -64,29 +113,17 @@ def _check() -> CommandOutcome:
         state-error channel).
     """
     path = pathlib.Path(WORKING_DIR_NAME) / "state.toml"
-    try:
-        state = load_state(path)
-    except (
-        OSError,
-        tomllib.TOMLDecodeError,
-        KeyError,
-        ValueError,
-        TypeError,
-    ) as exc:
-        msg = f"cannot load {path}: {exc}"
-        raise StateInputError(msg) from exc
-
+    state = _load_or_state_error(path)
     verdict = validate_state(state)
-    if not verdict:
-        return CommandOutcome(
-            code=ExitCode.SUCCESS,
-            result={"violations": []},
-            messages=["state is coherent"],
-        )
+    # One verdict-driven constructor: an empty verdict is success, any violation
+    # is an actionable finding. Computing the verdict once and projecting it into
+    # a single outcome makes "empty verdict means success" a single expression
+    # rather than two parallel constructors (audit:2.1.2 finding 5).
+    code = ExitCode.SUCCESS if not verdict else ExitCode.ACTIONABLE_FINDING
     return CommandOutcome(
-        code=ExitCode.ACTIONABLE_FINDING,
+        code=code,
         result={"violations": [violation.invariant for violation in verdict]},
-        messages=[violation.detail for violation in verdict],
+        messages=[violation.detail for violation in verdict] or ["state is coherent"],
     )
 
 

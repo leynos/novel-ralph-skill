@@ -67,6 +67,19 @@ CORPUS_INVARIANT_NAMES: tuple[str, ...] = (
 )
 
 
+# The six structural §5.2 predicates below are deliberate twins of the
+# production validator's same-named predicates in
+# ``novel_ralph_skill/state/validate.py`` (``_check_completed_prefix``,
+# ``_check_consecutive_clean_within_target``,
+# ``_check_convergence_target_at_least_one``,
+# ``_check_consecutive_clean_within_drafted``, ``_check_cursor_coherent``,
+# ``_check_gate_ratio_consistent``). The duplication is intentional: the oracle
+# is an independent cross-check and must NOT import the thing it checks. The two
+# sides are pinned to agree on every corpus tree by the contract test
+# ``test_incoherent_agreement_restricted_to_owned`` in
+# ``tests/test_validate_state_corpus.py``; edit either predicate and that test
+# must still hold (the deliberate-twin policy is recorded in the developers'
+# guide §"Invariant validation").
 def _check_phase_in_enum(spec: WorkingTreeSpec) -> bool:
     """Return True when ``phase.current`` is a member of the phase enum (inv 1)."""
     return spec.phase_current in PHASE_ORDER
