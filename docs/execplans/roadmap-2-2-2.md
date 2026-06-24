@@ -253,11 +253,12 @@ Stop and escalate when any of these is breached rather than working around it.
   files … is not atomic as a whole"). A `set-cursor`/`advance-phase` that
   writes only `state.toml` is already atomic via `write_document_atomically`,
   so it does **not** need the bracket. `init` writes one state file plus an
-  empty `log.md`; the `log.md` write precedes and is independent of the state
-  write, and a partial `init` (log present, state absent) is reconciled by
-  re-running `init` (which still refuses only if `state.toml` exists), so no
-  bracket is required. The plan records this scoping decision (Decision Log D3)
-  so a reviewer does not read the absent bracket as a gap; the `pending_turn`
+  empty `log.md`; the `state.toml` write precedes and is independent of the
+  `log.md` write, so the realisable partial `init` is (state present, log
+  absent). That partial is reconciled by task 2.3.4 (`init` itself still refuses
+  whenever `state.toml` exists), so no bracket is required. The plan records this
+  scoping decision (Decision Log D3) so a reviewer does not read the absent
+  bracket as a gap; the `pending_turn`
   helper remains available to the genuinely multi-file mutators (`recount`,
   `reconcile`).
 - Risk: an `init` slug/title with characters that break the filesystem-safe
@@ -1598,7 +1599,7 @@ and the partial-`init` bootstrap recovery (review:2.2.2) to step 2.3
   the existing `_state_path` or a shared `WORKING_DIR_NAME`-anchored helper) and
   route all four call sites through it, removing the triplicated path
   construction without changing behaviour. Gate with `make all`.
-- [ ] 2.2.2.3 — Correct the partial-`init` direction in this plan's Decision Log
+- [x] 2.2.2.3 — Correct the partial-`init` direction in this plan's Decision Log
   D3 (from review:2.3.4, low). D3 describes the realisable partial-`init` as
   `log.md` present and `state.toml` absent, but `init` writes `state.toml` first,
   so the realisable case is the inverse (`state.toml` present, `log.md` absent),

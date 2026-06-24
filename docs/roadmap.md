@@ -642,7 +642,7 @@ novel-ralph-harness-design.md §3.4, §4.1, and §5.3.
       `commands/_state_mutators.py` `_state_path`); promote one accessor and
       route all four through it so the path has a single home. Lightweight
       addendum pass.
-  - [ ] 2.2.2.3. Correct the partial-init direction in roadmap-2-2-2 Decision
+  - [x] 2.2.2.3. Correct the partial-init direction in roadmap-2-2-2 Decision
     Log D3.
     - Addendum (from review:2.3.4; low). D3 describes the realisable partial-init
       as `log present, state absent`, but `init` writes `state.toml` first, so
