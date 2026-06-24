@@ -1026,7 +1026,7 @@ zero-padded chapter index, validated against the manifest — and gives
   - Success: compilation is deterministic — identical drafts and manifest
     produce a byte-identical `compiled.md` — regardless of directory listing
     order.
-  - [ ] 4.1.1.1. Add a coherence integration test driving `novel-compile` then
+  - [x] 4.1.1.1. Add a coherence integration test driving `novel-compile` then
     `novel-state check` end-to-end through the installed console scripts.
     - Addendum (from review:4.1.1; low). The round-trip oracle is pinned at the
       function level (`check_disk_evidence` over a freshly compiled tree); a thin

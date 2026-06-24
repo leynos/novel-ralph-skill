@@ -911,7 +911,7 @@ cross-cutting hygiene from the same audit (the `manuscript_dir`/`compiled_path`
 accessor consolidation, audit:4.1.1 Finding 1) is re-routed to roadmap step 7.10
 rather than folded here.
 
-- [ ] 4.1.1.1 — Add a coherence integration test that drives `novel-compile`
+- [x] 4.1.1.1 — Add a coherence integration test that drives `novel-compile`
   then `novel-state check` end-to-end through the installed console scripts
   (from review:4.1.1, low). The round-trip oracle is pinned at the function
   level (`check_disk_evidence` over a freshly compiled tree); a thin integration
