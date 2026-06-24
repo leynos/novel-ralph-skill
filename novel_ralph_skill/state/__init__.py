@@ -27,6 +27,7 @@ from novel_ralph_skill.state._disk_word_counts import (
 from novel_ralph_skill.state.compile_model import (
     DRAFT_SEPARATOR,
     concatenate_drafts,
+    present_draft_bodies,
 )
 from novel_ralph_skill.state.disk_evidence import (
     COMPILED_MATCHES_DRAFTS,
@@ -45,6 +46,7 @@ from novel_ralph_skill.state.document import (
     open_pending_turn,
     pending_turn,
     write_document_atomically,
+    write_text_atomically,
 )
 from novel_ralph_skill.state.initial import build_initial_document
 from novel_ralph_skill.state.parse import load_state, parse_state
@@ -136,7 +138,9 @@ __all__ = [
     "open_pending_turn",
     "parse_state",
     "pending_turn",
+    "present_draft_bodies",
     "recount_words",
     "validate_state",
     "write_document_atomically",
+    "write_text_atomically",
 ]

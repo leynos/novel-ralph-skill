@@ -84,9 +84,22 @@ Installing a wheel built from this package puts five console-scripts onto
 - `desloppify` — report prose tics.
 - `wordcount` — report per-chapter and cumulative word counts.
 
-`novel-done`, `novel-compile`, and `wordcount` are still **stubs**: running one
-prints "`<name>` is not yet implemented" to standard error and exits with code
-`2`. Each will be filled in by a later release.
+`novel-done` and `wordcount` are still **stubs**: running one prints
+"`<name>` is not yet implemented" to standard error and exits with code `2`.
+Each will be filled in by a later release.
+
+`novel-compile` regenerates `working/manuscript/compiled.md` by concatenating the
+chapter drafts in zero-padded chapter-index order (`chapter-01/draft.md`,
+`chapter-02/draft.md`, …), joined by one fixed separator. The order is taken from
+the `[chapters]` manifest, not from the directory listing, so identical drafts
+always produce a byte-identical `compiled.md`: it is deterministic and idempotent,
+and a second run over unchanged drafts rewrites nothing observable. The working
+directory is the fixed `working/` directory relative to the current directory.
+When the `[chapters]` manifest is absent or empty there is no authoritative
+ordering, so `novel-compile` writes nothing and exits `3` (the state/input code
+in the shared exit-code table below): plan the chapters first. Any other state or
+input fault — a missing or unparseable `state.toml`, or an unreadable draft —
+likewise exits `3`.
 
 `novel-state` now has its first real subcommand, `novel-state check` (roadmap
 task 2.1.2). It validates the state coherence invariants of

@@ -1,10 +1,13 @@
-"""Stub console-script entry points for the deterministic spine.
+"""Console-script entry points for the deterministic spine.
 
-Each of the five console-scripts (``novel-state``, ``novel-done``,
-``novel-compile``, ``desloppify``, ``wordcount``) is wired here as a minimal
-Cyclopts application that reports "not yet implemented" and exits ``2`` until
-its real logic lands in a later roadmap slice. The shared :func:`make_stub_app`
-factory keeps the five definitions in lockstep so they cannot drift.
+The five console-scripts (``novel-state``, ``novel-done``, ``novel-compile``,
+``desloppify``, ``wordcount``) are wired here. ``novel-state`` (task 2.1.2),
+``desloppify`` (task 5.1.2), and ``novel-compile`` (task 4.1.1) drive their real
+Cyclopts apps through the shared :func:`~novel_ralph_skill.contract.runner.run`
+wrapper; ``novel-done`` and ``wordcount`` remain stubs that report "not yet
+implemented" and exit ``2`` until their slices land. The shared
+:func:`make_stub_app` factory keeps the two remaining stub definitions in
+lockstep so they cannot drift.
 """
 
 from __future__ import annotations
@@ -96,8 +99,28 @@ def novel_done() -> None:
 
 
 def novel_compile() -> None:
-    """Console-script entry point for ``novel-compile`` (stub; exits ``2``)."""
-    make_stub_app(_NAME_FOR["novel_compile"])()
+    """Console-script entry point for ``novel-compile`` (drives the real app).
+
+    Like ``novel_state`` and ``desloppify``, ``novel-compile`` is wired to its
+    real Cyclopts app (roadmap task 4.1.1): it pre-parses the ``--human`` global
+    flag, then drives the single-default-callback compile app through the shared
+    :func:`run` wrapper, resolving the fixed ``working/`` tree from the process
+    cwd (Decision Log B3/B4). The write path concatenates the chapter drafts into
+    ``working/manuscript/compiled.md``; the ``--check`` divergence flag is roadmap
+    task 4.1.2 and is not wired here.
+    """
+    human, residual = parse_global_flags(sys.argv[1:])
+    from novel_ralph_skill.commands import _compile
+
+    run(
+        _compile.build_app(),
+        residual,
+        RunContext(
+            command=_NAME_FOR["novel_compile"],
+            working_dir=WORKING_DIR_NAME,
+            human=human,
+        ),
+    )
 
 
 def desloppify() -> None:

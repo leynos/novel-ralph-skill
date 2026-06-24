@@ -895,7 +895,7 @@ without writing. Its outcome resolves assumption A5 — ordering is the
 zero-padded chapter index, validated against the manifest — and gives
 `novel-done` a stable artefact. See novel-ralph-harness-design.md §4.3 and §2.3.
 
-- [ ] 4.1.1. Implement `novel-compile` ordered by the zero-padded chapter index.
+- [x] 4.1.1. Implement `novel-compile` ordered by the zero-padded chapter index.
   - Requires phase 2.
   - Concatenate chapter drafts in zero-padded chapter-index order with
     consistent separators, writing `working/manuscript/compiled.md` atomically,

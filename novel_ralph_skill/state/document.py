@@ -111,21 +111,26 @@ def document_to_state(document: TOMLDocument) -> State:
     return parse_state(document)
 
 
-def write_document_atomically(document: TOMLDocument, path: Path) -> None:
-    """Serialize ``document`` to ``path`` atomically (design §3.4).
+def write_text_atomically(text: str, path: Path) -> None:
+    """Write ``text`` to ``path`` atomically (design §3.4).
 
-    Writes ``tomlkit.dumps(document)`` to a temporary file in ``path.parent``
-    then renames it over ``path`` with ``Path.replace``, so on POSIX a reader
-    sees either the whole old file or the whole new file, never a torn half. On
-    any failure before the replace the temporary file is unlinked, so no stray
-    temp file survives.
+    Writes ``text`` to a temporary file in ``path.parent`` then renames it over
+    ``path`` with ``Path.replace``, so on POSIX a reader sees either the whole
+    old file or the whole new file, never a torn half. On any failure before the
+    replace the temporary file is unlinked, so no stray temp file survives.
+
+    This is the single home of the temp-file/rename/unlink discipline (design
+    §3.4; ``docs/scripting-standards.md``): :func:`write_document_atomically`
+    delegates to it after serialising its ``tomlkit`` document, and the
+    ``novel-compile`` write path (roadmap task 4.1.1) uses it directly for the
+    pre-rendered ``compiled.md`` string.
 
     Parameters
     ----------
-    document : tomlkit.TOMLDocument
-        The document to serialize.
+    text : str
+        The pre-rendered text to write.
     path : pathlib.Path
-        The target ``state.toml`` path. Its parent must already exist.
+        The target file path. Its parent must already exist.
     """
     # The temp file shares the target's directory so the rename stays on one
     # filesystem and is atomic on POSIX (design §3.4; scripting-standards). It is
@@ -141,14 +146,34 @@ def write_document_atomically(document: TOMLDocument, path: Path) -> None:
         encoding="utf-8",
     ) as handle:
         temp_path = Path(handle.name)
-        handle.write(tomlkit.dumps(document))
+        handle.write(text)
     try:
         temp_path.replace(path)
     except OSError:
         # Clean up the temp file before propagating, so a failed write leaves
-        # only the prior coherent ``state.toml`` and no orphaned temp file.
+        # only the prior coherent target file and no orphaned temp file.
         temp_path.unlink(missing_ok=True)
         raise
+
+
+def write_document_atomically(document: TOMLDocument, path: Path) -> None:
+    """Serialize ``document`` to ``path`` atomically (design §3.4).
+
+    Serialises ``tomlkit.dumps(document)`` and delegates to
+    :func:`write_text_atomically`, so the temp-file-plus-``Path.replace``
+    discipline lives in exactly one place (ExecPlan Decision Log D-WRITER). A
+    reader sees either the whole old file or the whole new file, never a torn
+    half; on any failure before the replace the temporary file is unlinked, so
+    no stray temp file survives.
+
+    Parameters
+    ----------
+    document : tomlkit.TOMLDocument
+        The document to serialize.
+    path : pathlib.Path
+        The target ``state.toml`` path. Its parent must already exist.
+    """
+    write_text_atomically(tomlkit.dumps(document), path)
 
 
 def open_pending_turn(

@@ -168,8 +168,9 @@ with distribution in
 - `novel-done` — the done predicate as code, evaluated per clause against
   disk. See design §4.2.
 - `novel-compile` — regenerates `working/manuscript/compiled.md`
-  deterministically in chapter-index order; `--check` is a read-only divergence
-  checker. See design §4.3.
+  deterministically in chapter-index order (the write path, roadmap task 4.1.1);
+  the `--check` read-only divergence checker is roadmap task 4.1.2 and is not yet
+  wired. See design §4.3.
 - `desloppify` — detects and reports prose tics from a versioned rule pack,
   never editing. See design §4.4 and §6.
 - `wordcount` — a read-only checker reporting per-chapter and cumulative
@@ -204,14 +205,16 @@ Read-only checkers (`novel-done`, `novel-state check`, `wordcount`,
 them freely. Mutators (`novel-state init`/`set-cursor`/`advance-phase`/
 `recount`/`reconcile` and `novel-compile`) are the only commands that touch
 `state.toml` or `compiled.md`, and every write is atomic via a temporary file
-plus `Path.replace`. Only the *genuinely multi-file* writers (`reconcile` and
-`novel-compile`) bracket their writes with a `[pending_turn]` intent record so
-a torn multi-file turn is recoverable. The single-file mutators (`init`/
-`set-cursor`/`advance-phase`/`recount`) write one file per `Path.replace` and
+plus `Path.replace`. Only the *genuinely multi-file* writer (`reconcile`)
+brackets its writes with a `[pending_turn]` intent record so a torn multi-file
+turn is recoverable. The single-file mutators (`init`/`set-cursor`/
+`advance-phase`/`recount`/`novel-compile`) write one file per `Path.replace` and
 open **no** `[pending_turn]` bracket — `recount` re-derives only
 `[word_counts]` in `state.toml` (design §4.1 line 271), and a recount is named
 in design §3.4 lines 240-241 as *one write among several in a turn*, not the
-command writing several files; `init` writes `state.toml` *and* `log.md` yet
+command writing several files; `novel-compile` writes only
+`working/manuscript/compiled.md`, one `Path.replace` (design §4.3, §3.4); `init`
+writes `state.toml` *and* `log.md` yet
 still uses no bracket because each is a single `Path.replace` write. Keep this
 segregation honest: a command that detects a finding must not also repair it.
 See design §3.3 and §3.4.
@@ -300,9 +303,15 @@ round-trips losslessly with `tomlkit` to preserve comments and formatting
 [adr-002-toml-round-trip-tomlkit.md](adr-002-toml-round-trip-tomlkit.md)).
 Manuscript content lives under `working/manuscript/` (`compiled.md` and
 per-chapter `chapter-NN/{draft.md,done.flag}`), with planning artefacts under
-`working/plan/`. `novel-done` and `novel-compile --check` call the same
-compile-and-hash routine, so they cannot disagree about whether `compiled.md`
-is stale.
+`working/plan/`. The `novel-compile` **write** path (roadmap task 4.1.1)
+regenerates `compiled.md` by reusing the single production join rule —
+`compile_model.concatenate_drafts` over `present_draft_bodies`, the same read
+rule the `compiled-matches-drafts` disk-evidence invariant recomputes — so a
+freshly compiled tree is coherent under `novel-state check` by construction. The
+`novel-compile --check` divergence flag and the `novel-done` done predicate will
+call the same compile-and-**hash** routine (roadmap tasks 4.1.2 and 3.1.2), so
+they cannot disagree about whether `compiled.md` is stale; that routine is not
+yet delivered, and `--check` is not yet wired.
 
 The typed, read-only model of `state.toml` lives in the
 `novel_ralph_skill.state` package (design §5.1). `Phase` is the closed,
@@ -592,12 +601,15 @@ builds the full required table set (`build_initial_document`), creates the
 Initialisation directory skeleton plus an empty `log.md`, and writes
 atomically. Each of these mutators writes a single file (`state.toml`, plus
 `init`'s `log.md`), already atomic via `Path.replace`, so none opens a
-`[pending_turn]` bracket — that belongs to the genuinely multi-file mutators
-(`reconcile` and `novel-compile`). `recount` is a single-file mutator too: it
-re-derives only `[word_counts]` in `state.toml` (design §4.1 line 271), and
-design §3.4 lines 240-241 name a recount as *one write among several in a
-turn*, not the command writing several files, so it writes one `Path.replace`
-and opens no bracket, exactly like `set-cursor` and `advance-phase`.
+`[pending_turn]` bracket — that belongs to the genuinely multi-file mutator
+`reconcile`. `recount` and `novel-compile` are single-file mutators too:
+`recount` re-derives only `[word_counts]` in `state.toml` (design §4.1 line
+271), and design §3.4 lines 240-241 name a recount as *one write among several
+in a turn*, not the command writing several files, so it writes one
+`Path.replace` and opens no bracket; `novel-compile` (roadmap task 4.1.1) writes
+only `working/manuscript/compiled.md` (design §4.3), one `Path.replace`,
+likewise with no bracket. Both behave exactly like `set-cursor` and
+`advance-phase`.
 
 `advance-phase` takes no argument and always moves to the immediate successor,
 so a phase *skip* cannot be requested. "Refuses out-of-order completion" is

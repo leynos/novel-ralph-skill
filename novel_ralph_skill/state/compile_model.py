@@ -20,14 +20,64 @@ from __future__ import annotations
 
 import typing as typ
 
+from novel_ralph_skill.state._disk_paths import _chapter_dir_name
+
 if typ.TYPE_CHECKING:
     import collections.abc as cabc
+    from pathlib import Path
+
+    from novel_ralph_skill.state.schema import State
 
 # The single separator the ordered draft bodies are joined with when recomputing
 # the expected ``compiled.md``. The design names "consistent separators" (§4.3)
 # but pins no exact bytes, so this module owns the production copy; the corpus's
 # ``CORPUS_SEPARATOR`` is its independent twin (pinned equal by test).
 DRAFT_SEPARATOR = "\n\n"
+
+
+def present_draft_bodies(state: State, working_dir: Path) -> list[str]:
+    """Return the present chapters' draft bodies in ascending chapter order.
+
+    Reads each manifest chapter's ``draft.md`` as UTF-8 (an absent draft
+    contributes the empty string), ordered by chapter number, so a caller that
+    concatenates the result reproduces the same ordered body sequence the
+    ``compiled-matches-drafts`` disk-evidence invariant recomputes (design §4.3;
+    §9 lines 705-711). This is the single read rule both the ``novel-compile``
+    write path (roadmap task 4.1.1) and
+    :func:`~novel_ralph_skill.state.disk_evidence._check_compiled_matches_drafts`
+    share, so a freshly compiled tree is coherent under the detector by
+    construction (ExecPlan Constraints "Draft-body read rule matches the
+    disk-evidence detector exactly"; D-READ).
+
+    Parameters
+    ----------
+    state : State
+        The parsed, typed ``state.toml`` carrying the ``[chapters]`` manifest.
+    working_dir : pathlib.Path
+        The ``working/`` directory holding ``manuscript/``.
+
+    Returns
+    -------
+    list[str]
+        The present chapters' draft bodies, ascending by chapter number; an
+        absent ``draft.md`` contributes ``""``.
+
+    Raises
+    ------
+    OSError
+        Any read fault other than a missing ``draft.md`` (e.g.
+        ``PermissionError``, ``IsADirectoryError``) propagates for the caller to
+        route to the exit-``3`` channel.
+    UnicodeDecodeError
+        When a body is not valid UTF-8 (a ``ValueError`` subclass), likewise
+        propagated.
+    """
+    manuscript = working_dir / "manuscript"
+    bodies: list[str] = []
+    for chapter in sorted(state.chapters, key=lambda chapter: chapter.number):
+        draft = manuscript / _chapter_dir_name(chapter.number) / "draft.md"
+        bodies.append(draft.read_text(encoding="utf-8") if draft.exists() else "")
+    return bodies
 
 
 def concatenate_drafts(drafts: cabc.Sequence[str]) -> str:
