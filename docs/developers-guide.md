@@ -271,6 +271,18 @@ Cyclopts's default `result_action` would exit on the body's return value and
 pre-empt the success-path envelope. Second, `run` translates Cyclopts's native
 exit-`1` usage errors into the contract's exit `2`.
 
+`build_envelope` validates its `command` argument against `COMMAND_NAMES`, so
+`novel_ralph_skill/contract/` imports the registry from
+[`novel_ralph_skill/commands/names.py`](../novel_ralph_skill/commands/names.py).
+This edge is deliberate, not a layering leak: `names.py` is a leaf
+source-of-truth module that holds only the five command names as data and
+carries no command logic. The shared name registry is therefore a leaf that
+both the `contract` layer and the `commands` layer may depend on, exactly so the
+five names live once and neither layer re-spells them. A test fixture
+(`tests/conftest.py`) imports `COMMAND_NAMES` for the same reason. Keep the
+dependency pointed this way: nothing in `commands/names.py` may import from
+`contract/`, or the edge would become a genuine cycle.
+
 ### Disambiguated exit codes
 
 The exit code is a first-class part of the contract because the harness

@@ -228,7 +228,7 @@ drift and seeds the snapshot suite. See novel-ralph-harness-design.md §3 and §
       `toml_table` access; a `wrapper_app` fixture plus a `project_scripts`
       walker in `conftest` makes both live once. Lightweight addendum pass
       against the 1.3.1 execplan.
-  - [ ] 1.3.1.2. Audit and document the `contract`→`commands.names` import edge.
+  - [x] 1.3.1.2. Audit and document the `contract`→`commands.names` import edge.
     - Addendum (from review:1.3.6; severity: low). `contract/envelope.py` and
       `tests/conftest.py` both import `COMMAND_NAMES` from
       `novel_ralph_skill.commands.names`, crossing the `contract`→`commands`

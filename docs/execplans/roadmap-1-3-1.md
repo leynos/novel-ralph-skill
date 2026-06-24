@@ -986,7 +986,7 @@ on merge.
   duplicates an inline `toml_table` access; add a `wrapper_app` fixture plus a
   `project_scripts` walker in `conftest` so both live once. Behaviour-preserving;
   gate with `make all`.
-- [ ] 1.3.1.2 — Audit and document the `contract`→`commands.names` import edge
+- [x] 1.3.1.2 — Audit and document the `contract`→`commands.names` import edge
   (from review:1.3.6, low). `contract/envelope.py` and `tests/conftest.py` both
   import `COMMAND_NAMES` from `novel_ralph_skill.commands.names`, which crosses
   the `contract`→`commands` layering boundary the design states. The dependency
