@@ -932,6 +932,15 @@ novel-ralph-harness-design.md §4.2 and §2.3.
       a docs pass. Reconcile the reference prose to the manifest source so it no
       longer describes a parse path absent from the codebase. Lightweight
       addendum pass.
+  - [ ] 3.1.1.2. Reconcile the `done-conditions.md` predicate pseudocode to the
+    zero-padded `chapter-NN` layout.
+    - Addendum (from audit:3.1.5; low). The reference `novel_predicate`'s unpadded
+      `chapter-{chapter_id}` path (`done-conditions.md:162,184`) contradicts the
+      shipped `_chapter_dir_name` (`chapter-NN`), so a reader following it
+      literally looks in the wrong directory for single-digit chapters; fix the
+      pseudocode to the zero-padded layout. Docs-only one-line fix removing a
+      standing docs-vs-code inconsistency. Closes audit-3.1.5 Finding 1.
+      Lightweight addendum pass.
 - [x] 3.1.2. Implement the shared compile-and-hash routine and the
   compile-divergence clause.
   - Requires 3.1.1.
@@ -1049,6 +1058,23 @@ novel-ralph-harness-design.md §4.2 and §2.3.
     §1.3.2 corpus tree built from critic-personas-shaped output drives the clause
     both clean and dirty; an unresolved blocker in genuine critic output is
     reported (the clause stays false); and the done-predicate suite stays green.
+  - [ ] 3.1.5.1. Pin the decorated `## BLOCKER` heading false-clean direction with
+    an asserting-current-behaviour test.
+    - Addendum (from review:3.1.5; low). The recogniser enters the section only
+      on an exact `## BLOCKER` match, so a decorated heading
+      (`## BLOCKER (chapter 3)`) reads clean by design and matches the producer
+      contract, but no test pins this single-sided behaviour; add an
+      asserting-current-behaviour test so a future critic-prompt change emitting
+      a decorated heading cannot silently re-open the exit-0 lie, mirroring how
+      D-BLOCKER-CASE is pinned. Lightweight addendum pass.
+  - [ ] 3.1.5.2. Add an end-to-end novel-done scenario for the cap-reached
+    `[resolved]` exit-0 path.
+    - Addendum (from audit:3.1.5; low). The `[resolved]` token's purpose is the
+      cap-reached resolution path, yet only a unit test covers it; the exit-0
+      direction is the one the harness loop terminates on, so it is the more
+      consequential to pin behaviourally. Add the scenario using the existing
+      all-hold tree builder and step wiring. Closes audit-3.1.5 Finding 2.
+      Lightweight addendum pass.
 
 ## 4. Vertical slice 3: deterministic, outline-ordered compilation
 
@@ -2354,3 +2380,44 @@ pass) and it does not gate the deterministic spine.
     `compile_consistent`, `_check_compiled_matches_drafts`, and `check_compiled`
     each carry only a one-sentence self-projection pointing at the authoritative
     docstring; no fourth full copy remains; and `make all` stays green.
+
+### 7.20. Harden the BLOCKER recogniser against a second `critic-notes.md` producer
+
+This step answers whether the `no_unresolved_blockers` recogniser stays sound if
+`critic-notes.md` ever gains a second writer — a manual edit, a different model,
+or a reformatting tool — beyond the spiteful critic whose strict `## BLOCKER` /
+`### Bn` format the recogniser is deliberately single-sided and exact-match
+against today. Its outcome is either a defensively whitespace-normalising
+recogniser or a producer-side lint that rejects malformed `## BLOCKER` / `### Bn`
+headings, so an off-by-one-space drift cannot silently flip a chapter to clean
+and re-introduce the exit-0 lie. This is a deferred robustness-hardening
+extension surfaced by the review of step 3.1.5; it does not advance the settled
+step-3.1 done-predicate hypothesis (the recogniser is already sound against the
+sole producer the critic loop writes today) and it does not gate the
+deterministic spine.
+
+- [ ] 7.20.1. Decide and apply the multi-producer hardening for the BLOCKER
+  recogniser grammar.
+  - Reroute (source: review:3.1.5; severity: low). The recogniser enters a
+    `## BLOCKER` section and matches `### Bn` findings on an exact, case-sensitive
+    grammar (D-BLOCKER-FORMAT, D-BLOCKER-CASE), which is sound while the spiteful
+    critic is the only writer of `critic-notes.md`. If a second producer appears,
+    a benign whitespace variant (`##  BLOCKER`, trailing spaces, a tab before the
+    token) would read clean and re-open the exit-0 lie task 3.1.5 closed. Decide
+    once between normalising benign whitespace defensively in the recogniser and
+    adding a producer-side lint that rejects malformed `## BLOCKER` / `### Bn`
+    headings, and apply the chosen approach with tests over the whitespace
+    variants. This is cross-cutting robustness hygiene against a hypothetical
+    second producer, not the settled step-3.1 truthful-done-clause hypothesis
+    where it was raised, so it is deferred here.
+  - Requires 3.1.5.
+  - See novel-ralph-harness-design.md §4.2;
+    skill/novel-ralph/references/critic-personas.md (the `## BLOCKER` / `### Bn`
+    format); skill/novel-ralph/references/done-conditions.md;
+    docs/execplans/roadmap-3-1-5.md (D-BLOCKER-FORMAT, D-BLOCKER-CASE).
+  - Success: one decision records whether benign whitespace is normalised in the
+    recogniser or rejected by a producer-side lint; the chosen approach is applied
+    and pinned by tests over the `##  BLOCKER`, trailing-space, and
+    tab-before-token variants so none silently reads clean; the documented
+    case/variant out-of-scope decision (D-BLOCKER-CASE) is preserved or revisited
+    explicitly; and the done-predicate suite stays green.

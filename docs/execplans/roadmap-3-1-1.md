@@ -1004,3 +1004,14 @@ parent).
   the reference predicate prose so it iterates the manifest chapter source rather
   than the absent outline parse, keeping the design §4.3 chapter-source rule the
   single described path. Docs-only; no code or test change.
+
+- [ ] **Roadmap 3.1.1.2 — reconcile the `novel_predicate` pseudocode to the
+  zero-padded `chapter-NN` layout** (from audit:3.1.5; severity low). The
+  reference `novel_predicate`'s unpadded `chapter-{chapter_id}` path
+  (`skill/novel-ralph/references/done-conditions.md:162,184`) contradicts the
+  shipped `_chapter_dir_name` (`novel_ralph_skill/state/_disk_paths.py`), which
+  zero-pads to `chapter-NN`, so a reader following the pseudocode literally looks
+  in the wrong directory for single-digit chapters. Edit the two pseudocode
+  `done.flag` / `critic-notes.md` paths to the zero-padded `chapter-NN` layout the
+  code derives. Docs-only one-line fix removing a standing docs-vs-code
+  inconsistency; closes audit-3.1.5 Finding 1. No code or test change.

@@ -707,3 +707,32 @@ recogniser uses only `str`, `re` (optional, for the `### B<digits>` match), and
 `pathlib`. The corpus oracle twin in
 `tests/working_corpus/_done_predicate_oracle.py` re-implements the same
 heading-based rule independently and must not import the production helpers.
+
+## Addenda
+
+Lightweight post-merge corrections folded onto this completed task. Each runs as
+a no-plan, no-review addendum pass (roadmap sub-task under the `[x]` 3.1.5
+parent).
+
+- [ ] **Roadmap 3.1.5.1 — pin the decorated `## BLOCKER` heading false-clean
+  direction** (from review:3.1.5; severity low). The recogniser enters a section
+  only on a line whose stripped text equals `## BLOCKER` (D-BLOCKER-FORMAT), so
+  a decorated heading such as `## BLOCKER (chapter 3)` reads clean by design and
+  matches the producer contract — but no test pins this single-sided behaviour,
+  so a future critic-prompt change emitting a decorated heading could silently
+  re-open the exit-0 lie this task closed. Add an asserting-current-behaviour test
+  (a body whose only `## BLOCKER`-like line is decorated holds the clause clean),
+  mirroring how D-BLOCKER-CASE pins the case/variant limitation, so the limitation
+  is explicit and tamper-evident. Test-only; no production change.
+
+- [ ] **Roadmap 3.1.5.2 — add an end-to-end novel-done scenario for the
+  cap-reached `[resolved]` exit-0 path** (from audit:3.1.5; severity low). The
+  `[resolved]` token's purpose is the cap-reached resolution path
+  (`done-conditions.md:134-138`), yet only a unit test
+  (`test_resolved_blocker_is_clean`) covers it; the exit-0 direction is the one
+  the harness loop terminates on, so it is the more consequential to pin
+  behaviourally. Add a BDD scenario to `tests/features/novel_done.feature` (with
+  its `tests/steps/novel_done_steps.py` wiring) using the existing all-hold tree
+  builder and a `### B1 — … [resolved]` finding, asserting exit `0` and
+  `no_unresolved_blockers` true. Closes audit-3.1.5 Finding 2. Test-only; no
+  production change.
