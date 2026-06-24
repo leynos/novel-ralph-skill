@@ -197,6 +197,26 @@ def test_compile_consistent_undecodable_propagates(tmp_path: Path) -> None:
         compile_consistent(state, working)
 
 
+def test_compile_consistent_undecodable_draft_propagates(tmp_path: Path) -> None:
+    """A present ``compiled.md`` beside an undecodable ``draft.md`` propagates.
+
+    The complementary fault direction to
+    :func:`test_compile_consistent_undecodable_propagates`: ``compiled.md`` is
+    present and decodable, but a manifest chapter's ``draft.md`` holds non-UTF-8
+    bytes. The shared ``compiled_matches_drafts`` helper must read that draft to
+    recompute the concatenation, so the ``UnicodeDecodeError`` propagates through
+    the ``compile_consistent`` clause for the command layer to route to exit 3
+    (the helper's own fault test covers the mechanism; this pins clause-boundary
+    propagation at the ``compile_consistent``/``evaluate_done`` seam where the
+    exit-3 routing actually applies, from review:3.1.3).
+    """
+    state, working = _all_hold_tree(tmp_path)
+    first_draft = min((working / "manuscript").glob("chapter-*/draft.md"))
+    first_draft.write_bytes(b"\xff\xfe not utf-8")
+    with pytest.raises(UnicodeDecodeError):
+        compile_consistent(state, working)
+
+
 @settings(
     max_examples=50,
     deadline=None,

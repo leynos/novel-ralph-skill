@@ -811,7 +811,7 @@ shipped clause is named `compile_consistent` in
 the code (only historical audit notes reference the old name), so it is dropped
 rather than re-filed. The one below is the small, localised fault-test addition.
 
-- [ ] 3.1.3.1 — Add a clause-boundary fault-propagation test for
+- [x] 3.1.3.1 — Add a clause-boundary fault-propagation test for
   `compile_consistent` with a present compile beside an unreadable draft (from
   review:3.1.3, low). The shared `compiled_matches_drafts` helper propagates
   `UnicodeDecodeError`/`OSError` when `compiled.md` is present beside an

@@ -992,7 +992,7 @@ novel-ralph-harness-design.md §4.2 and §2.3.
     clause consume it (each supplying its own absent-file polarity); no third
     independent re-implementation survives; and the done-predicate and
     disk-evidence suites stay green.
-  - [ ] 3.1.3.1. Add a clause-boundary fault-propagation test for
+  - [x] 3.1.3.1. Add a clause-boundary fault-propagation test for
     `compile_consistent` with a present compile beside an unreadable draft.
     - Addendum (from review:3.1.3; low). The shared
       `compiled_matches_drafts` helper propagates `UnicodeDecodeError`/`OSError`
