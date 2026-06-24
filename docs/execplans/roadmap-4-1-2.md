@@ -969,3 +969,30 @@ These changes touch only the test-authoring guidance (Work items 2–4), the
 Context and orientation note, and the Decision Log; the implementation design
 (Work item 1, the shared-routine reuse, the polarity, and the cyclopts flag
 binding) is unchanged.
+
+## Addenda
+
+Small, surgical corrections to this completed task, each run as a no-plan,
+no-review lightweight pass. Roadmap sub-tasks `4.1.2.1` and `4.1.2.2`.
+
+- **4.1.2.1 — Align design §4.3 prose with the delivered absent-compile
+  polarity** (from review:4.1.2; low). Design §4.3 (line 374) describes
+  `novel-compile --check` as "exiting 4 when the compile is stale", but the
+  shipped and agreement-pinned behaviour also exits 4 when `compiled.md` is
+  absent — both `ABSENT` and `DIVERGES` are findings, only `MATCHES` is satisfied
+  (Constraints "`--check` projects the verdict to the `compile_consistent`
+  polarity"; D-POLARITY). Reword the §4.3 sentence to "stale or absent" so the
+  design no longer reads as a latent doc/behaviour mismatch a future reader could
+  mistake for a bug. Documentation-only; run `make markdownlint` and `make
+  nixie`.
+- **4.1.2.2 — Add an absent-compile case to the `novel-compile --check`
+  entry-point e2e** (from review:4.1.2; low). `tests/test_compile_e2e.py` pins
+  the `--check` current (exit `0`) and stale (exit `4`) branches through the real
+  console-script body `stub.novel_compile()` but not the absent branch, which is
+  the polarity decision (`ABSENT` treated as a finding, not vacuously satisfied)
+  most likely to regress. The absent path is covered in-process
+  (unit/BDD/agreement) but not through `parse_global_flags` + `_drive`. Add a
+  third e2e case (build a tree with `compiled=None`, drive
+  `["novel-compile", "--check"]`, assert exit `4`, `diverged: true`, and that no
+  `compiled.md` was created) to close the symmetry with the current and stale
+  entry-point cases.

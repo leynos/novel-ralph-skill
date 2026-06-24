@@ -1094,6 +1094,22 @@ zero-padded chapter index, validated against the manifest — and gives
   - Success: `novel-compile --check` and the `novel-done` compile clause agree
     on every corpus fixture because they share one routine (the compile-fidelity
     property).
+  - [ ] 4.1.2.1. Align design §4.3 prose with the delivered absent-compile
+    polarity.
+    - Addendum (from review:4.1.2; low). Design §4.3 says `novel-compile --check`
+      exits 4 "when the compile is stale", but the shipped, agreement-pinned
+      behaviour also exits 4 when `compiled.md` is absent (matching the
+      `novel-done` compile clause); reword the sentence to "stale or absent" so
+      the design no longer reads as a latent doc/behaviour mismatch. Lightweight
+      addendum pass.
+  - [ ] 4.1.2.2. Add an absent-compile case to the `novel-compile --check`
+    entry-point e2e.
+    - Addendum (from review:4.1.2; low). `tests/test_compile_e2e.py` pins the
+      `--check` current (exit 0) and stale (exit 4) branches through the real
+      console-script body but not the absent branch, which is the polarity
+      decision most likely to regress; add a third e2e case (absent `compiled.md`
+      → exit 4, `diverged: true`, no file created) to close the symmetry.
+      Lightweight addendum pass.
 
 ## 5. Vertical slice 4: deterministic slop detection
 
@@ -2264,3 +2280,77 @@ deterministic spine.
     disk-bound property tests load it rather than re-declaring the deadline
     settings; an audit confirms every filesystem- or parse-touching `@given` test
     honours the no-deadline policy; and the property suite stays green.
+
+### 7.19. Single-home the compile-currency projection and the compiled.md path
+
+This step answers whether the "is `compiled.md` current?" content-polarity
+projection and the `working/manuscript/compiled.md` location can each be reduced
+to a single, structurally-enforced source — a named `compile_is_current`
+predicate over the shared `CompiledComparison` verdict and one `compiled.md`
+path/relative-token seam — so the agreement invariant the `--check` checker, the
+`compile_consistent` clause, and the §5.4 detector depend on is enforced by
+construction rather than only pinned by test, and the absent-file projection
+prose is described in one authoritative place. Its outcome is one home for the
+compile-currency decision and one home for the artefact's location across the
+four modules that touch them. This is a deferred maintainability-hardening
+extension surfaced by the audit and review of step 4.1.2; it does not advance the
+settled step-4.1 deterministic-and-verifiable-compilation hypothesis (the
+`--check` checker and the done clause already agree on every corpus fixture and
+pass) and it does not gate the deterministic spine.
+
+- [ ] 7.19.1. Extract a `compile_is_current` predicate and a single `compiled.md`
+  path seam, and route the four consumers through them.
+  - Reroute (source: audit:4.1.2; severity: low). The `MATCHES`-only
+    content-polarity projection is hand-repeated at three sites
+    (`done_predicate.compile_consistent`, `commands._compile.check_compiled`, and
+    the `_novel_done` compile clause), and the `working/manuscript/compiled.md`
+    location is constructed independently in `compile_model.py`, `_compile.py`
+    (`_COMPILED_REL`), and the `done_predicate`/`_novel_done` modules. Extract a
+    named `compile_is_current(verdict)` predicate and a `compiled_manuscript_path`
+    / `COMPILED_REL` seam into `compile_model.py` (already the owner of the join
+    rule), then have `check_compiled`, `compile_consistent`, and the `novel-done`
+    compile clause consume them, so the agreement invariant the `--check`
+    success criterion pins is structurally enforced rather than only test-pinned
+    and `compiled.md`'s location has one definition. No behavioural change. This
+    is cross-cutting compile-model DRY-and-layering hygiene, not the settled
+    step-4.1 hypothesis where it was raised, so it is deferred here.
+  - Requires 4.1.2.
+  - See novel-ralph-harness-design.md §4.3 and §5.4;
+    docs/issues/audit-4.1.2.md;
+    novel_ralph_skill/state/compile_model.py;
+    novel_ralph_skill/state/done_predicate.py;
+    novel_ralph_skill/state/disk_evidence.py;
+    novel_ralph_skill/commands/_compile.py.
+  - Success: a named `compile_is_current` predicate over `CompiledComparison`
+    lives once in `compile_model.py` and is consumed by `check_compiled`,
+    `compile_consistent`, and the `novel-done` compile clause in place of their
+    hand-written `is CompiledComparison.MATCHES` tests; the
+    `working/manuscript/compiled.md` path and its working-relative token have one
+    definition the four modules import; no behaviour changes; and every compile,
+    done-predicate, and disk-evidence suite stays green.
+- [ ] 7.19.2. Consolidate the `CompiledComparison` absent-file projection prose
+  into one authoritative docstring.
+  - Reroute (source: audit:4.1.2; severity: low; carry-forward of audit-3.1.3
+    Finding 3). The absent-file projection prose is now duplicated across four
+    docstrings — `compiled_matches_drafts`, `compile_consistent`,
+    `_check_compiled_matches_drafts`, and (since 4.1.2) `check_compiled`;
+    audit-3.1.3 Finding 3 already proposed making the shared helper docstring
+    authoritative and reducing each consumer to a one-sentence self-projection,
+    and 4.1.2 added the fourth copy. Make `compiled_matches_drafts`'s docstring
+    the single authoritative description of the three-valued verdict and the two
+    opposite absent-file polarities, and trim the three consumers to a
+    one-sentence note of which polarity they project. Doc-only; no behaviour
+    change. This is cross-cutting documentation-DRY hygiene, not the settled
+    step-4.1 hypothesis where it was raised, so it is deferred here.
+  - Requires 3.1.3.
+  - See novel-ralph-harness-design.md §4.3 and §5.4;
+    docs/issues/audit-4.1.2.md; docs/issues/audit-3.1.3.md (Finding 3);
+    novel_ralph_skill/state/compile_model.py;
+    novel_ralph_skill/state/done_predicate.py;
+    novel_ralph_skill/state/disk_evidence.py;
+    novel_ralph_skill/commands/_compile.py.
+  - Success: the three-valued verdict and the two opposite absent-file polarities
+    are described authoritatively once in `compiled_matches_drafts`'s docstring;
+    `compile_consistent`, `_check_compiled_matches_drafts`, and `check_compiled`
+    each carry only a one-sentence self-projection pointing at the authoritative
+    docstring; no fourth full copy remains; and `make all` stays green.
