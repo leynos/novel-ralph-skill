@@ -46,6 +46,7 @@ pytest_plugins = (
     "corpus_fixtures",
     "corpus_live_draft_fixtures",
     "corpus_divergent_fixtures",
+    "corpus_done_predicate_fixtures",
 )
 
 if typ.TYPE_CHECKING:

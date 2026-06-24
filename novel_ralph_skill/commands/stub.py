@@ -2,12 +2,12 @@
 
 The five console-scripts (``novel-state``, ``novel-done``, ``novel-compile``,
 ``desloppify``, ``wordcount``) are wired here. ``novel-state`` (task 2.1.2),
-``desloppify`` (task 5.1.2), and ``novel-compile`` (task 4.1.1) drive their real
-Cyclopts apps through the shared :func:`~novel_ralph_skill.contract.runner.run`
-wrapper; ``novel-done`` and ``wordcount`` remain stubs that report "not yet
-implemented" and exit ``2`` until their slices land. The shared
-:func:`make_stub_app` factory keeps the two remaining stub definitions in
-lockstep so they cannot drift.
+``desloppify`` (task 5.1.2), ``novel-compile`` (task 4.1.1), and ``novel-done``
+(task 3.1.1) drive their real Cyclopts apps through the shared
+:func:`~novel_ralph_skill.contract.runner.run` wrapper; only ``wordcount``
+remains a stub that reports "not yet implemented" and exits ``2`` until its
+slice lands. The shared :func:`make_stub_app` factory keeps the remaining stub
+definition consistent with the live apps so it cannot drift.
 """
 
 from __future__ import annotations
@@ -94,8 +94,27 @@ def novel_state() -> None:
 
 
 def novel_done() -> None:
-    """Console-script entry point for ``novel-done`` (stub; exits ``2``)."""
-    make_stub_app(_NAME_FOR["novel_done"])()
+    """Console-script entry point for ``novel-done`` (drives the real app).
+
+    Like ``novel_state`` and ``desloppify``, ``novel-done`` is wired to its real
+    Cyclopts app (roadmap task 3.1.1): it pre-parses the ``--human`` global flag,
+    then drives the app through the shared :func:`run` wrapper, resolving the
+    fixed ``working/`` tree from the process cwd (Decision Log B3/B4). The app is
+    the read-only done predicate (design §4.2); the one remaining stub
+    (``wordcount``) keeps the exit-``2`` placeholder until its slice lands.
+    """
+    human, residual = parse_global_flags(sys.argv[1:])
+    from novel_ralph_skill.commands import _novel_done
+
+    run(
+        _novel_done.build_app(),
+        residual,
+        RunContext(
+            command=_NAME_FOR["novel_done"],
+            working_dir=WORKING_DIR_NAME,
+            human=human,
+        ),
+    )
 
 
 def novel_compile() -> None:

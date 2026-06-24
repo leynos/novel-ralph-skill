@@ -163,6 +163,9 @@ def _write_chapter(chapter: ChapterSpec, manuscript: Path) -> None:
     ``scenes.md`` and ``beats.md`` (the scene/beat plan files, ``state-layout.md``
     lines 38-39) are written only when ``has_scene_plan`` / ``has_beat_plan`` are
     set, each with a fixed deterministic body so snapshot suites do not churn.
+    ``critic-notes.md`` is written verbatim only when ``critic_notes`` is set, so
+    a chapter without it has no notes file at all — the clean case the
+    ``novel-done`` ``no_unresolved_blockers`` clause reads as having no blockers.
     """
     chapter_dir = manuscript / chapter_dir_name(chapter.number)
     chapter_dir.mkdir(parents=True, exist_ok=True)
@@ -174,8 +177,30 @@ def _write_chapter(chapter: ChapterSpec, manuscript: Path) -> None:
         (chapter_dir / "scenes.md").write_text("# Scenes\n", encoding="utf-8")
     if chapter.has_beat_plan:
         (chapter_dir / "beats.md").write_text("# Beats\n", encoding="utf-8")
+    if chapter.critic_notes is not None:
+        (chapter_dir / "critic-notes.md").write_text(
+            chapter.critic_notes, encoding="utf-8"
+        )
     if chapter.has_done_flag:
         (chapter_dir / "done.flag").touch()
+
+
+def _write_reviews(spec: WorkingTreeSpec, working: Path) -> None:
+    """Write ``working/reviews/knitting-NN.md`` for each named percentage.
+
+    The ``reviews/`` directory is created only when ``knitting_reviews`` is
+    non-empty, so a spec without it leaves no ``reviews/`` directory — keeping
+    every existing corpus tree byte-identical. Each review carries a fixed
+    deterministic body so snapshot suites do not churn.
+    """
+    if not spec.knitting_reviews:
+        return
+    reviews = working / "reviews"
+    reviews.mkdir(parents=True, exist_ok=True)
+    for percentage in spec.knitting_reviews:
+        (reviews / f"knitting-{percentage}.md").write_text(
+            f"# Knitting {percentage}\n", encoding="utf-8"
+        )
 
 
 def build_working_tree(spec: WorkingTreeSpec, dest: Path) -> Path:
@@ -202,6 +227,7 @@ def build_working_tree(spec: WorkingTreeSpec, dest: Path) -> Path:
     (working / "plan" / "chapter-outline.md").write_text("", encoding="utf-8")
     for chapter in spec.chapters:
         _write_chapter(chapter, manuscript)
+    _write_reviews(spec, working)
     compiled = _resolve_compiled(spec)
     if compiled is not None:
         (manuscript / "compiled.md").write_text(compiled, encoding="utf-8")

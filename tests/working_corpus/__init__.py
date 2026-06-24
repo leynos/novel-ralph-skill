@@ -27,6 +27,22 @@ from __future__ import annotations
 
 from ._builder import build_working_tree
 from ._divergent_variants import DIVERGENT_TABLE_VARIANTS
+from ._done_predicate_oracle import (
+    no_unresolved_blockers as oracle_no_unresolved_blockers,
+)
+from ._done_predicate_oracle import (
+    reviews_all_present as oracle_reviews_all_present,
+)
+from ._done_predicate_specs import (
+    ALL_KNITTING_REVIEWS,
+    DONE_PREDICATE_ALL_HOLD,
+    DONE_PREDICATE_FAILERS,
+    DONE_PREDICATE_NEAR_MISS_BLOCKER,
+    DONE_PREDICATE_RESOLVED_BLOCKER,
+    NEAR_MISS_BLOCKER_NOTE,
+    RESOLVED_BLOCKER_NOTE,
+    UNRESOLVED_BLOCKER_NOTE,
+)
 from ._library import COHERENT_BASELINE, PHASE_ORDER, PHASE_STATES
 from ._live_draft import live_draft_counts, live_draft_owned
 from ._oracle import (
@@ -57,18 +73,26 @@ from ._variants import (
 )
 
 __all__ = [
+    "ALL_KNITTING_REVIEWS",
     "COHERENT_BASELINE",
     "COMPILED_AUTO",
     "CORPUS_INVARIANT_NAMES",
     "CORPUS_SEPARATOR",
     "DIVERGENT_TABLE_VARIANTS",
     "DONE_FLAG_PERMUTATIONS",
+    "DONE_PREDICATE_ALL_HOLD",
+    "DONE_PREDICATE_FAILERS",
+    "DONE_PREDICATE_NEAR_MISS_BLOCKER",
+    "DONE_PREDICATE_RESOLVED_BLOCKER",
     "GATE_THRESHOLDS",
     "INCOHERENT_VARIANTS",
     "LOG_PRESENT",
+    "NEAR_MISS_BLOCKER_NOTE",
     "PHASE_ORDER",
     "PHASE_STATES",
     "POST_BUILD_MUTATIONS",
+    "RESOLVED_BLOCKER_NOTE",
+    "UNRESOLVED_BLOCKER_NOTE",
     "WORD_COUNTS_COVER_DRAFTS",
     "WORD_COUNTS_MATCH_DRAFTS",
     "ChapterSpec",
@@ -82,4 +106,6 @@ __all__ = [
     "draft_body",
     "live_draft_counts",
     "live_draft_owned",
+    "oracle_no_unresolved_blockers",
+    "oracle_reviews_all_present",
 ]

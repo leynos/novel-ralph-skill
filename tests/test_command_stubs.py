@@ -23,20 +23,22 @@ if typ.TYPE_CHECKING:
 
 # ``novel-state`` is excluded: its entry point now drives the real app, which
 # resolves ``./working/state.toml`` and exits ``3`` (state error) when no
-# ``working/`` is present, not the stub's ``2`` (Decision Log B6). The four
+# ``working/`` is present, not the stub's ``2`` (Decision Log B6). The
 # still-stubbed entry points keep the exit-``2`` contract; the real
 # ``novel-state`` callable is driven only by ``tests/test_novel_state_check.py``,
 # always under an explicit ``monkeypatch.chdir`` (advisory A6).
 # ``desloppify`` now drives its real app too (roadmap task 5.1.2): it resolves
 # ``./working/`` and exits per its own contract, not the stub's ``2``. It is
 # covered by ``tests/test_desloppify_command.py``. ``novel-compile`` (roadmap task
-# 4.1.1) likewise drives a real app and is covered by ``tests/test_compile_e2e.py``;
-# the two remaining scripts (``novel-done``, ``wordcount``) keep the exit-``2``
-# stub contract here.
+# 4.1.1) likewise drives a real app and is covered by ``tests/test_compile_e2e.py``.
+# ``novel-done`` joins them (roadmap task 3.1.1): its entry point drives the real
+# done-predicate app and is covered by ``tests/test_novel_done_command.py``. The one
+# remaining script (``wordcount``) keeps the exit-``2`` stub contract here.
 _REAL_COMMANDS: frozenset[str] = frozenset({
     "novel-state",
     "desloppify",
     "novel-compile",
+    "novel-done",
 })
 STILL_STUBBED_ENTRY_POINTS: tuple[tuple[str, cabc.Callable[[], None]], ...] = tuple(
     (name, getattr(stub, func))

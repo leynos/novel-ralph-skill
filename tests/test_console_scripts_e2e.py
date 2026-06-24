@@ -32,17 +32,18 @@ from cuprum.program import Program
 
 from novel_ralph_skill.commands.names import COMMAND_NAMES
 
-# ``novel-state``, ``desloppify``, and ``novel-compile`` are excluded from the
-# exit-``2`` loop: each real app resolves ``./working/`` and exits per its own
-# contract (``3`` when no ``working/`` is present), not the stub's ``2`` (Decision
-# Log B6; roadmap 5.1.2, 4.1.1). Their real e2es live in
-# ``tests/test_novel_state_check.py``, ``tests/test_desloppify_e2e.py``, and
-# ``tests/test_compile_e2e.py``. The two still-stubbed scripts (``novel-done``,
-# ``wordcount``) keep the exit-``2`` contract here.
+# ``novel-state``, ``desloppify``, ``novel-compile``, and ``novel-done`` are
+# excluded from the exit-``2`` loop: each real app resolves ``./working/`` and
+# exits per its own contract (``3`` when no ``working/`` is present), not the
+# stub's ``2`` (Decision Log B6; roadmap 5.1.2, 4.1.1, 3.1.1). Their real e2es
+# live in ``tests/test_novel_state_check.py``, ``tests/test_desloppify_e2e.py``,
+# ``tests/test_compile_e2e.py``, and ``tests/test_novel_done_e2e.py``. The one
+# still-stubbed script (``wordcount``) keeps the exit-``2`` contract here.
 _REAL_COMMANDS: frozenset[str] = frozenset({
     "novel-state",
     "desloppify",
     "novel-compile",
+    "novel-done",
 })
 _STILL_STUBBED_NAMES: tuple[str, ...] = tuple(
     name for name in COMMAND_NAMES if name not in _REAL_COMMANDS
@@ -102,13 +103,14 @@ def test_console_scripts_install_and_exit_two(
     single_program_catalogue: cabc.Callable[[str, Program], ProgramCatalogue],
     venv_scripts_dir: cabc.Callable[[Path], Path],
 ) -> None:
-    """Build, install, and run the two still-stubbed scripts; each exits ``2``.
+    """Build, install, and run the still-stubbed script; it exits ``2``.
 
-    ``novel-state``, ``desloppify``, and ``novel-compile`` now drive real apps
-    and are covered by ``tests/test_novel_state_check.py``,
-    ``tests/test_desloppify_e2e.py``, and ``tests/test_compile_e2e.py``
-    respectively (Decision Log B6; roadmap 4.1.1); the remaining two scripts
-    (``novel-done``, ``wordcount``) stay stubs and exit ``2`` here.
+    ``novel-state``, ``desloppify``, ``novel-compile``, and ``novel-done`` now
+    drive real apps and are covered by ``tests/test_novel_state_check.py``,
+    ``tests/test_desloppify_e2e.py``, ``tests/test_compile_e2e.py``, and
+    ``tests/test_novel_done_e2e.py`` respectively (Decision Log B6; roadmap
+    5.1.2, 4.1.1, 3.1.1); the one remaining script (``wordcount``) stays a stub
+    and exits ``2`` here.
     """
     wheel_dir = tmp_path / "wheels"
     venv_dir = tmp_path / "venv"

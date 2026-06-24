@@ -84,9 +84,10 @@ Installing a wheel built from this package puts five console-scripts onto
 - `desloppify` — report prose tics.
 - `wordcount` — report per-chapter and cumulative word counts.
 
-`novel-done` and `wordcount` are still **stubs**: running one prints
-"`<name>` is not yet implemented" to standard error and exits with code `2`.
-Each will be filled in by a later release.
+`wordcount` is still a **stub**: running it prints
+"`wordcount` is not yet implemented" to standard error and exits with code `2`.
+It will be filled in by a later release. `novel-done` (see below) and
+`novel-compile` now drive their real checkers.
 
 `novel-compile` regenerates `working/manuscript/compiled.md` by concatenating the
 chapter drafts in zero-padded chapter-index order (`chapter-01/draft.md`,
@@ -287,3 +288,40 @@ measures the rate the tic appears at, not the raw count, so a draft that is one
 tenth of a page with one hit is reported at the same rate as a full page with
 ten. Do not be surprised when a short chapter trips a per-page rule on one hit;
 re-scan once the chapter is fuller to read the settled rate.
+
+`novel-done` evaluates the done predicate (roadmap task 3.1.1): it answers "is
+the novel finished?" deterministically, so the harness can check it every turn
+with one call. It reads `./working/state.toml` and the `working/` tree, evaluates
+six done clauses against disk, and writes nothing on any path (it is a read-only
+checker). It takes no arguments. Like the other checkers it prints a one-line
+JSON envelope by default and a readable rendering under the global `--human`
+flag.
+
+The `result` reports each clause as a boolean, so an operator sees exactly which
+conditions are unmet:
+
+- `phase_is_done` — `state.phase.current` has reached the terminal `done` phase.
+- `final_pass_complete` — the final-pass gate (`[gates.final]`) is set.
+- `all_chapters_flagged` — every manifest chapter has an on-disk `done.flag`.
+- `knitting_gates_passed` — all three knitting gate booleans are true *and* all
+  three `working/reviews/knitting-{30,50,80}.md` reviews are present.
+- `compile_consistent` — `working/manuscript/compiled.md` is present (see the v1
+  caveat below).
+- `no_unresolved_blockers` — no chapter's `critic-notes.md` carries an unresolved
+  BLOCKER (a line beginning `BLOCKER` without a `[resolved]` marker).
+
+`novel-done` uses the shared exit-code table:
+
+- `0` — every clause holds; the novel is done.
+- `1` — at least one clause is false (the benign "not yet done" the harness loops
+  on); `messages` names the unmet clauses.
+- `3` — a state or input error: `./working/state.toml` is missing or unparseable,
+  or a chapter artefact (such as `critic-notes.md`) is unreadable.
+
+**v1 caveat.** In this release `compile_consistent` checks only that
+`compiled.md` *exists*: an *absent* compile is always reported (a tree with no
+`compiled.md` can never be declared done), but a *present-but-stale* compile —
+one that no longer matches the chapter drafts — is not yet caught, so it can
+still pass. Catching a stale compile, and the exit-`4` compile-divergence finding
+that goes with it, lands with roadmap task 3.1.2. No `novel-done` path emits
+exit `4` in v1.

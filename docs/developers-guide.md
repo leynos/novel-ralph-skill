@@ -510,6 +510,83 @@ such a `state.toml` is rejected at load (exit `3`) and the validator's
 `phase-in-enum` predicate only fires for a `State` constructed directly (as in
 the property suite), never for one loaded from disk.
 
+
+### Done predicate (`novel-done`)
+
+`novel-done` (roadmap task 3.1.1) is the read-only done predicate as a
+console-script (design §4.2). Its pure engine lives in
+`novel_ralph_skill/state/done_predicate.py`, beside `disk_evidence.py` and
+parallel to it: a `(State, working_dir) -> DoneClauses` reader with one predicate
+per clause, a `chapter-NN` path derivation shared through `_chapter_dir_name`
+(imported from `_disk_paths.py`, not from `disk_evidence`), and the same
+benign-absent / propagate-everything-else fault boundary — but it inverts the
+polarity, returning `True` when a clause *holds*. The command body and its app
+live in `novel_ralph_skill/commands/_novel_done.py`, reusing `novel-state`'s
+`working_dir`, `state_path`, `_load_or_state_error`, and `STATE_INPUT_ERRORS`
+seams; the `stub.py` `novel_done()` entry point drives it through the shared
+`run` wrapper exactly as `desloppify()` does.
+
+**The six clauses and their disk sources.** The clause names are fixed by design
+§4.2; their truth conditions are the `novel_predicate` body in
+`skill/novel-ralph/references/done-conditions.md` "Novel-level predicate":
+
+- `phase_is_done` := `state.phase.current is Phase.DONE`;
+- `final_pass_complete` := `state.gates.final.final_pass_complete`;
+- `all_chapters_flagged` := every manifest chapter has an on-disk
+  `manuscript/chapter-NN/done.flag`;
+- `knitting_gates_passed` := the three `state.gates.knitting.done_30/50/80`
+  booleans are all true *and* `reviews/knitting-{30,50,80}.md` all exist (the
+  `(30, 50, 80)` percentages are taken from one `KNITTING_PERCENTAGES` constant
+  shared between the booleans and the file names so they cannot drift);
+- `no_unresolved_blockers` := no manifest chapter's `critic-notes.md` carries an
+  unresolved BLOCKER;
+- `compile_consistent` := `manuscript/compiled.md` *exists* (existence-only; see
+  below).
+
+**Manifest, not outline (a deliberate divergence).** The reference predicate
+iterates planned chapters parsed from `plan/chapter-outline.md`; `novel-done`
+reads the **manifest** (`state.chapters`) instead. This is design §4.3-conformant
+(the manifest is the authoritative chapter set and order, there is no
+`parse_chapter_outline` in the codebase, and `novel-state check` already asserts
+the manifest⇄directory bijection), recorded so a later docs pass can reconcile
+`done-conditions.md` to the manifest source.
+
+**The BLOCKER format.** An unresolved BLOCKER is a `critic-notes.md` line whose
+stripped text starts with `BLOCKER` (case-sensitive) and does *not* contain the
+literal substring `[resolved]`. An absent `critic-notes.md` is clean. The rule is
+acknowledged brittle (a prose mention of `[resolved]`, or `RESOLVED`, would
+mis-classify); the corpus pins the edge with a near-miss spec whose body mentions
+resolution in prose yet stays an unresolved blocker.
+
+**`compile_consistent` is the existence half only (a named v1 limitation).** In
+3.1.1 the clause is the single function `compile_consistent_exists(working_dir)`:
+a present `compiled.md` holds, an absent one does not. This makes the exit-`0`
+path *sound for the absent case* — a tree with no compile can never be declared
+done — while deferring the hash comparison (catching a *present-but-stale*
+compile) and the exit-`4` compile-divergence carve-out to roadmap task 3.1.2.
+The residual stale-but-present window is the documented unsoundness window; the
+function's docstring names 3.1.2 as the owner so the swap is a localised edit.
+
+**The fault boundary.** Mirroring `wordcount`/`disk_evidence`, an *absent* on-disk
+artefact is a benign false clause, but every other read fault (`PermissionError`,
+an undecodable `critic-notes.md`) propagates; the command body wraps
+`evaluate_done` under `STATE_INPUT_ERRORS` and re-raises `StateInputError`, so a
+corrupt tree reaches the exit-`3` channel rather than being swallowed as exit `1`.
+No 3.1.1 path emits exit `4`.
+
+**Oracle twins for the two new disk clauses.** The `knitting_gates_passed`
+review-existence read and the `no_unresolved_blockers` BLOCKER scan are
+disk-evidence reads, so each gets an independent corpus-side twin in
+`tests/working_corpus/_done_predicate_oracle.py`
+(`reviews_all_present`, `no_unresolved_blockers`) that re-implements the read
+without importing the production predicate; a cross-check test pins each equal to
+its production counterpart on every `novel-done` corpus tree, exactly as the
+`_oracle_disk.py` twins pin `disk_evidence`. The `novel-done` corpus specs (the
+all-six-clauses-hold tree, the per-clause failers, the `[resolved]`/near-miss
+BLOCKER trees) live in `tests/working_corpus/_done_predicate_specs.py`, added
+beside `PHASE_STATES`/`COHERENT_BASELINE` without mutating them so every existing
+fixture and snapshot stays byte-identical.
+
 ### The `document.py` round-trip writer
 
 The write half of the `state` package lives in

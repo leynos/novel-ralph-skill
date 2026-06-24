@@ -849,7 +849,7 @@ against disk and reported individually. Its outcome makes the predicate
 auditable rather than a single opaque boolean. See
 novel-ralph-harness-design.md §4.2 and §2.3.
 
-- [ ] 3.1.1. Implement the per-clause predicate and its structured result.
+- [x] 3.1.1. Implement the per-clause predicate and its structured result.
   - Requires phase 2.
   - Evaluate `phase_is_done`, `final_pass_complete`, `all_chapters_flagged`,
     `knitting_gates_passed`, `compile_consistent`, and

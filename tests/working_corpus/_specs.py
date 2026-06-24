@@ -96,6 +96,14 @@ class ChapterSpec:
         keeps every existing spec byte-identical; a non-zero ``current_beat``
         without this file is the "zero until plans exist" sub-clause of design
         §5.2 invariant 6.
+    critic_notes : str | None
+        When ``None`` (the default), no ``critic-notes.md`` is written — the
+        clean case the ``novel-done`` ``no_unresolved_blockers`` clause treats as
+        having no blockers. A string is written verbatim as ``critic-notes.md``;
+        an *unresolved* BLOCKER is a line whose stripped text starts with
+        ``BLOCKER`` and does **not** contain the literal ``[resolved]`` token
+        (the production D-BLOCKER format the ``done_predicate`` engine reads).
+        Defaulting ``None`` keeps every existing spec byte-identical.
     """
 
     number: int
@@ -108,6 +116,7 @@ class ChapterSpec:
     write_draft: bool = True
     has_scene_plan: bool = False
     has_beat_plan: bool = False
+    critic_notes: str | None = None
 
 
 @dc.dataclass(frozen=True, kw_only=True)
@@ -161,6 +170,13 @@ class WorkingTreeSpec:
     pending_turn : Mapping[str, object] | None
         When set, the two-key ``operation``/``paths`` ``[pending_turn]`` marker
         for the torn-turn variant.
+    knitting_reviews : tuple[int, ...]
+        The knitting-gate percentages (a subset of ``{30, 50, 80}``) whose
+        ``working/reviews/knitting-NN.md`` files the builder writes. Defaulting
+        to the empty tuple keeps every existing spec byte-identical (no
+        ``reviews/`` directory is created); the ``novel-done``
+        ``knitting_gates_passed`` clause needs all three present alongside the
+        three gate booleans.
     """
 
     phase_current: str
@@ -181,6 +197,7 @@ class WorkingTreeSpec:
     current_beat: int = 0
     compiled: str | None = None
     pending_turn: cabc.Mapping[str, object] | None = None
+    knitting_reviews: tuple[int, ...] = ()
 
 
 def chapter_dir_name(number: int) -> str:

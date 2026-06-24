@@ -1,0 +1,39 @@
+# serializer version: 1
+# name: test_all_hold_envelope_snapshot
+  dict({
+    'command': 'novel-done',
+    'messages': list([
+      'novel is done',
+    ]),
+    'ok': True,
+    'result': dict({
+      'all_chapters_flagged': True,
+      'compile_consistent': True,
+      'final_pass_complete': True,
+      'knitting_gates_passed': True,
+      'no_unresolved_blockers': True,
+      'phase_is_done': True,
+    }),
+    'schema_version': 1,
+    'working_dir': 'working',
+  })
+# ---
+# name: test_one_clause_fails_envelope_snapshot
+  dict({
+    'command': 'novel-done',
+    'messages': list([
+      'phase_is_done is false',
+    ]),
+    'ok': False,
+    'result': dict({
+      'all_chapters_flagged': True,
+      'compile_consistent': True,
+      'final_pass_complete': True,
+      'knitting_gates_passed': True,
+      'no_unresolved_blockers': True,
+      'phase_is_done': False,
+    }),
+    'schema_version': 1,
+    'working_dir': 'working',
+  })
+# ---
