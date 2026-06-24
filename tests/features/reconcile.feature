@@ -14,3 +14,10 @@ Feature: reconcile repairs a stale state.toml from the on-disk drafts
     Then reconcile exits 0 and rewrites the word counts from the drafts
     And reconcile removes no working file and logs a recount recovery entry
     And a follow-up check exits 0
+
+  Scenario: a partial-init tree (state.toml present, log.md absent) is repaired by reconcile
+    Given a partial-init tree whose log.md is absent beside a present state.toml
+    When reconcile runs against that tree
+    Then reconcile exits 0 and recreates log.md
+    And reconcile removes no working file and logs a recreate-log recovery entry
+    And a follow-up check exits 0

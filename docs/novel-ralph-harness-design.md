@@ -537,7 +537,7 @@ where disk is internally consistent and the state is merely stale, and refuses
 
 The "behind disk" reconstruction above names re-deriving the intended state
 from *which chapters carry `done.flag` and what `compiled.md` contains*. v1's
-disk-authoritative `reconcile` deliberately **narrows** that to the two
+disk-authoritative `reconcile` deliberately **narrows** that to the three
 deterministically recomputable corrections it can make without fabricating an
 agent judgement:
 
@@ -564,6 +564,15 @@ agent judgement:
    artefact is recomputable — `state.toml`/`log.md`) or rolled back (when an
    unrecoverable artefact, a `draft.md` or a `done.flag`, did not land),
    exactly as above.
+3. **A `log.md` absent beside a present `state.toml`.** The partial-`init`
+   bootstrap: `init` writes `state.toml` first and `log.md` second and refuses
+   any re-run while `state.toml` exists (roadmap task 2.3.4), so a crash between
+   the two writes leaves `log.md` absent — a tree re-running `init` cannot
+   repair. It is detected by the `log-present` disk-evidence invariant and
+   repaired by recreating an empty `log.md` and appending a recovery receipt.
+   `log.md` is recomputable (empty at `init`, append-only after), so recreating
+   it fabricates no agent judgement and keeps disk authoritative; the repair
+   deletes nothing, exactly as the no-deletion constraint requires.
 
 The broader `done.flag`/`compiled.md`-driven reconstruction §5.4 describes — a
 per-chapter done projection, or re-projecting gates from a recount — is

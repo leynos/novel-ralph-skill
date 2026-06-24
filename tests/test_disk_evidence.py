@@ -129,6 +129,27 @@ def test_detector_silent_on_done_flag_permutations(
         assert _disk_verdict(working_dir) == set(), name
 
 
+def test_log_present_fires_when_log_md_absent(tmp_path: Path) -> None:
+    """A coherent tree with ``log.md`` removed reports exactly ``log-present``.
+
+    The partial-``init`` bootstrap: ``init`` writes ``state.toml`` first and
+    ``log.md`` second, so a crash between the two writes leaves ``state.toml``
+    present and ``log.md`` absent (roadmap task 2.3.4). The detector reports this
+    as the lone ``log-present`` disk-evidence violation.
+    """
+    working_dir = wc.build_working_tree(wc.COHERENT_BASELINE, tmp_path)
+    (working_dir / "log.md").unlink()
+    state = load_state(working_dir / "state.toml")
+    fired = check_disk_evidence(state, working_dir)
+    assert [violation.invariant for violation in fired] == ["log-present"]
+
+
+def test_log_present_silent_when_log_md_present(tmp_path: Path) -> None:
+    """A coherent tree whose ``log.md`` is present never reports ``log-present``."""
+    working_dir = wc.build_working_tree(wc.COHERENT_BASELINE, tmp_path)
+    assert "log-present" not in _disk_verdict(working_dir)
+
+
 def test_compiled_join_helper_equals_corpus(
     concatenate: cabc.Callable[[cabc.Sequence[str]], str],
 ) -> None:

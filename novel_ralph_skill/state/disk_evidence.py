@@ -8,14 +8,17 @@ decides whether a :class:`~novel_ralph_skill.state.schema.State` contradicts
 view together and returns the disk-evidence invariants the tree violates (design
 §3.3, §5.4; roadmap task 2.3.2).
 
-It owns six invariant names. Five are the names already reserved by the corpus
+It owns seven invariant names. Five are the names already reserved by the corpus
 oracle's ``CORPUS_INVARIANT_NAMES`` (``manifest-disk-bijection``,
 ``done-flag-without-draft``, ``compiled-matches-drafts``,
-``pending-turn-cleared``, ``cursor-plan-present``); the sixth,
-``word-counts-match-drafts``, is **new this task** — the disk-vs-table per-chapter
-word-count divergence that realises the roadmap's done-claim case (ExecPlan
-Decision Log D-WORDCOUNT). Each name is spelled exactly as the corpus oracle's
-matching entry, and the equality is pinned by a test (D-NAMES).
+``pending-turn-cleared``, ``cursor-plan-present``); ``word-counts-match-drafts``
+was added by task 2.3.2 — the disk-vs-table per-chapter word-count divergence that
+realises the roadmap's done-claim case (ExecPlan Decision Log D-WORDCOUNT); and
+``log-present`` is **new this task** (2.3.4) — the partial-``init`` bootstrap
+where ``state.toml`` is present but ``log.md`` is absent (``init`` writes
+``state.toml`` first, ``log.md`` second, and refuses re-runs). Each name is
+spelled exactly as the corpus oracle's matching entry, and the equality is pinned
+by a test (D-NAMES).
 
 The predicates are **deliberate twins** of the same-named checks in
 ``tests/working_corpus/_oracle.py`` (the oracle's disk-evidence checks read the
@@ -27,12 +30,15 @@ corpus tree by ``tests/test_novel_state_check_disk.py``'s agreement suite and th
 ``tests/test_disk_evidence.py`` twin-equality tests (the deliberate-twin policy,
 developers' guide §"Invariant validation").
 
-All six twins now read disk on both sides (roadmap task 2.3.3): the corpus
-``_check_manifest_disk_bijection``, ``_check_done_flag_without_draft``, and
-``_check_compiled_matches_drafts`` were rerouted from reading the
-``WorkingTreeSpec`` to reading the materialised ``working/`` tree, joining the
-``cursor-plan``, ``by-chapter-sum``, and ``word-counts-match-drafts`` twins that
-already did, so the cross-check is genuinely disk-vs-disk on every invariant.
+The six manuscript-comparing twins all read disk on both sides (roadmap task
+2.3.3): the corpus ``_check_manifest_disk_bijection``,
+``_check_done_flag_without_draft``, and ``_check_compiled_matches_drafts`` were
+rerouted from reading the ``WorkingTreeSpec`` to reading the materialised
+``working/`` tree, joining the ``cursor-plan``, ``by-chapter-sum``, and
+``word-counts-match-drafts`` twins that already did. The seventh twin,
+``log-present`` (task 2.3.4), likewise reads disk on both sides — it compares
+``log.md``'s presence rather than the manuscript — so the cross-check is
+genuinely disk-vs-disk on every invariant.
 
 The detector is **total**: every predicate returns a ``Violation | None`` for
 every constructible ``State`` over any ``working_dir``. The word-count predicate
@@ -54,20 +60,24 @@ if typ.TYPE_CHECKING:
 
     from novel_ralph_skill.state.schema import State
 
-# The §5.4 disk-evidence invariant names this task owns. The first five are the
-# names the corpus oracle already reserved (``CORPUS_INVARIANT_NAMES``); the
-# sixth is new this task (D-WORDCOUNT). Each string equals the oracle's matching
-# entry (the equality is pinned by a test).
+# The §5.4 disk-evidence invariant names this module owns. The first five are
+# the names the corpus oracle already reserved (``CORPUS_INVARIANT_NAMES``); the
+# sixth (``word-counts-match-drafts``) was added by task 2.3.2 (D-WORDCOUNT); the
+# seventh (``log-present``) is new this task (2.3.4). Each string equals the
+# oracle's matching entry (the equality is pinned by a test).
 MANIFEST_DISK_BIJECTION: typ.Final = "manifest-disk-bijection"
 DONE_FLAG_WITHOUT_DRAFT: typ.Final = "done-flag-without-draft"
 COMPILED_MATCHES_DRAFTS: typ.Final = "compiled-matches-drafts"
 PENDING_TURN_CLEARED: typ.Final = "pending-turn-cleared"
 CURSOR_PLAN_PRESENT: typ.Final = "cursor-plan-present"
 WORD_COUNTS_MATCH_DRAFTS: typ.Final = "word-counts-match-drafts"
+LOG_PRESENT: typ.Final = "log-present"
 
 # The owned set, in design §5.2/§5.4 order, for callers that need to distinguish
 # the disk-evidence verdict from the pure-state verdict. The order is the corpus
-# oracle's disk-evidence subset order, with the new word-count name appended.
+# oracle's disk-evidence subset order, with the word-count name (task 2.3.2) and
+# the partial-``init`` ``log-present`` name (task 2.3.4) appended last, lowest
+# precedence.
 DISK_EVIDENCE_INVARIANT_NAMES: tuple[str, ...] = (
     MANIFEST_DISK_BIJECTION,
     CURSOR_PLAN_PRESENT,
@@ -75,6 +85,7 @@ DISK_EVIDENCE_INVARIANT_NAMES: tuple[str, ...] = (
     COMPILED_MATCHES_DRAFTS,
     PENDING_TURN_CLEARED,
     WORD_COUNTS_MATCH_DRAFTS,
+    LOG_PRESENT,
 )
 
 
@@ -306,6 +317,25 @@ def _check_word_counts_match_drafts(
     )
 
 
+def _check_log_present(_state: State, working_dir: Path) -> Violation | None:
+    """Return a violation when ``state.toml`` is present but ``log.md`` is absent.
+
+    The partial-``init`` bootstrap (roadmap task 2.3.4): ``init`` writes
+    ``state.toml`` first and ``log.md`` second and refuses any re-run while
+    ``state.toml`` exists, so a crash between the two writes leaves ``log.md``
+    absent beside a present ``state.toml`` — a tree nothing else detects. The
+    ``state`` parameter is unused (the caller already loaded ``state``, proving
+    ``state.toml`` is present), so it is named ``_state`` to satisfy Ruff ARG001,
+    matching ``_check_pending_turn_cleared(state, _working_dir)``.
+    """
+    if (working_dir / "log.md").exists():
+        return None
+    return Violation(
+        invariant=LOG_PRESENT,
+        detail="log.md is absent beside a present state.toml (partial init)",
+    )
+
+
 # The per-invariant predicates, assembled in :data:`DISK_EVIDENCE_INVARIANT_NAMES`
 # order so the verdict order is deterministic (stable for the agreement suite and
 # any snapshot).
@@ -316,6 +346,7 @@ _PREDICATES: tuple[cabc.Callable[[State, Path], Violation | None], ...] = (
     _check_compiled_matches_drafts,
     _check_pending_turn_cleared,
     _check_word_counts_match_drafts,
+    _check_log_present,
 )
 
 

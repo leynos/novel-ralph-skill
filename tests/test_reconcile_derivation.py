@@ -134,6 +134,69 @@ def test_recount_carries_disk_derived_counts(tmp_path: Path) -> None:
     }
 
 
+def test_partial_init_derives_recreate_log(tmp_path: Path) -> None:
+    """A log-absent tree derives ``RECREATE_LOG`` naming ``log-present``.
+
+    The partial-``init`` bootstrap (``state.toml`` present, ``log.md`` absent) is a
+    detected, repairable condition: the derivation classifies it as the
+    ``RECREATE_LOG`` action carrying the ``log-present`` discrepancy.
+    """
+    working = wc.build_working_tree(wc.COHERENT_BASELINE, tmp_path)
+    (working / "log.md").unlink()
+    state = load_state(working / "state.toml")
+    reconciliation = derive_reconciliation(state, working)
+    assert reconciliation.action == ReconcileAction.RECREATE_LOG
+    assert reconciliation.discrepancies == ("log-present",)
+
+
+def test_refuse_dominates_log_present(tmp_path: Path) -> None:
+    """A log-absent tree that also trips a refuse-class violation still refuses.
+
+    ``log-present`` is the lowest-precedence disk-evidence invariant, so a tree
+    that is both log-absent and carries a refuse-class contradiction (here a
+    ``compiled.md`` that is not the concatenation of its drafts) reconciles to
+    ``REFUSE``, never ``RECREATE_LOG`` (precedence).
+    """
+    spec = dc.replace(wc.COHERENT_BASELINE, compiled="not the real concatenation")
+    working = wc.build_working_tree(spec, tmp_path)
+    (working / "log.md").unlink()
+    state = load_state(working / "state.toml")
+    reconciliation = derive_reconciliation(state, working)
+    assert reconciliation.action == ReconcileAction.REFUSE
+
+
+# The materialising corpus variants whose own action is not NONE (the
+# parse-rejected ``phase-not-in-enum`` and ``partial-init``, which has no spec
+# incoherence, are excluded). Removing each tree's ``log.md`` must never let
+# ``log-present`` override a higher-precedence action: the lowest-precedence
+# invariant only surfaces (as ``RECREATE_LOG``) when nothing else fires.
+_NON_NONE_VARIANTS = [
+    name for name, action in _VARIANT_ACTIONS.items() if action != ReconcileAction.NONE
+]
+
+
+@pytest.mark.parametrize("name", _NON_NONE_VARIANTS)
+def test_log_present_never_overrides_higher_precedence(
+    name: str,
+    tmp_path: Path,
+) -> None:
+    """``log-present`` never co-fires above a higher-precedence action.
+
+    Over every materialising corpus variant whose action is not ``NONE``, removing
+    ``log.md`` (so ``log-present`` would fire on its own) leaves the derived action
+    unchanged: the higher-precedence refuse / pending-turn / recount branch still
+    wins, so ``RECREATE_LOG`` only ever surfaces when nothing else fires (the
+    precedence invariant the corpus exercises; see ``python-verification``).
+    """
+    spec, _expected = wc.INCOHERENT_VARIANTS[name]
+    working = wc.build_working_tree(spec, tmp_path / name)
+    (working / "log.md").unlink()
+    state = load_state(working / "state.toml")
+    reconciliation = derive_reconciliation(state, working)
+    assert reconciliation.action == _VARIANT_ACTIONS[name], name
+    assert reconciliation.action != ReconcileAction.RECREATE_LOG, name
+
+
 # A path-segment alphabet for the property strategy: directory and file names a
 # torn turn might declare, mixing recomputable (``state.toml``/``log.md``) and
 # unrecoverable (``draft.md``/``done.flag``) basenames with present and absent

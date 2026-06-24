@@ -76,6 +76,7 @@ def _result(raw: str) -> dict[str, object]:
         ("done-flag-empty-draft", "done-flag-without-draft", "refuse"),
         ("manifest-extra-entry", "manifest-disk-bijection", "refuse"),
         ("scene-cursor-without-plan", "cursor-plan-present", "refuse"),
+        ("partial-init", "log-present", "recreate-log"),
     ],
 )
 def test_disk_evidence_tree_exits_four_with_reconciliation(
@@ -157,6 +158,32 @@ def test_union_detector_agrees_with_corpus_oracle(
             v.invariant for v in check_disk_evidence(state, working)
         }
         assert production == oracle, working
+
+
+def test_log_present_twin_agreement_over_partial_init_tree(
+    incoherent_tree: cabc.Callable[[str], tuple[WorkingTreeSpec, Path, str]],
+    check_corpus: cabc.Callable[[WorkingTreeSpec, Path], tuple[str, ...]],
+) -> None:
+    """Production and oracle agree on ``log-present`` over the log-absent tree.
+
+    The spec-built agreement loop above never reaches ``log-present``: every
+    spec-built tree has ``log.md`` (the builder always writes it), so the only way
+    to a log-absent tree is the ``partial-init`` post-build mutation. This pins the
+    twin agreement directly for the one invariant the spec-built corpus cannot
+    express (roadmap task 2.3.4): both the production ``check_disk_evidence`` and
+    the oracle ``corpus_check`` fire ``log-present`` and agree on this tree.
+    """
+    spec, working, _expected = incoherent_tree("partial-init")
+    production = {
+        v.invariant
+        for v in check_disk_evidence(load_state(working / "state.toml"), working)
+    }
+    oracle = set(check_corpus(spec, working))
+    assert "log-present" in production, "production must fire log-present"
+    assert "log-present" in oracle, "the oracle must fire log-present"
+    assert production == oracle, (
+        "production and oracle must agree on the log-absent tree"
+    )
 
 
 def test_recount_envelope_snapshot(

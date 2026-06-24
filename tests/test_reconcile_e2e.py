@@ -1,16 +1,16 @@
-"""End-to-end reachability of ``novel-state reconcile`` (roadmap 2.3.2, Work item 6).
+"""End-to-end reachability of ``novel-state reconcile`` (roadmap 2.3.2, 2.3.4).
 
-Two proofs of the externally observable command-line behaviour of the new
-subcommand:
+Proofs of the externally observable command-line behaviour of the subcommand:
 
-- a fast entry-point check driven through ``stub.novel_state()`` (the installed
-  console-script body), proving ``novel-state reconcile`` resolves, repairs the
-  roadmap headline tree, and exits ``0`` with a write-shaped envelope;
-- the slower wheel-build install e2e (POSIX-only, ADR-006): it builds and installs
-  the wheel into a fresh venv, materialises a stale tree under the subprocess cwd,
-  runs the installed ``novel-state reconcile`` (exit ``0``), and confirms a
-  follow-up ``check`` is coherent (exit ``0``) — the recovery routine running as a
-  real installed command, not a Python import.
+- fast entry-point checks driven through ``stub.novel_state()`` (the installed
+  console-script body), proving ``novel-state reconcile`` resolves and repairs the
+  roadmap headline ``recount`` tree and the partial-``init`` log-absent tree, each
+  exiting ``0`` with a write-shaped envelope;
+- the slower wheel-build install e2es (POSIX-only, ADR-006): each builds and
+  installs the wheel into a fresh venv, materialises a stale or log-absent tree
+  under the subprocess cwd, runs the installed ``novel-state reconcile`` (exit
+  ``0``), and confirms a follow-up ``check`` is coherent (exit ``0``) — the
+  recovery routine running as a real installed command, not a Python import.
 
 The wheel build/install helper ``_build_and_install_novel_state`` is reused
 verbatim from ``test_novel_state_check.py`` (D-CUPRUM: locked ``cuprum==0.1.0``).
@@ -62,6 +62,76 @@ def test_entry_point_reconcile_reachable_repairs_and_exits_zero(
     assert result["by_chapter"] == {"01": 0, "02": 24000, "03": 20800}, (
         "reconcile must write the disk-derived per-chapter counts"
     )
+
+
+def test_entry_point_reconcile_recreates_absent_log_md(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """``novel-state reconcile`` recreates an absent ``log.md`` (partial init)."""
+    working = wc.build_working_tree(wc.COHERENT_BASELINE, tmp_path)
+    (working / "log.md").unlink()
+    monkeypatch.chdir(working.parent)
+    monkeypatch.setattr(sys, "argv", [_COMMAND, "reconcile"])
+    with pytest.raises(SystemExit) as excinfo:
+        stub.novel_state()
+    assert excinfo.value.code == ExitCode.SUCCESS, "reconcile must exit 0 on repair"
+    envelope = json.loads(capsys.readouterr().out)
+    result = typ.cast("dict[str, object]", envelope["result"])
+    assert result["action"] == "recreate-log", "reconcile must report recreate-log"
+    assert (working / "log.md").exists(), "reconcile must recreate the absent log.md"
+
+
+@pytest.mark.skipif(
+    os.name != "posix",
+    reason="console-script e2e is POSIX-only; see ADR 006",
+)
+@pytest.mark.slow
+@pytest.mark.timeout(180)
+def test_installed_novel_state_reconcile_recreates_absent_log_md(
+    tmp_path: Path,
+    single_program_catalogue: cabc.Callable[[str, Program], ProgramCatalogue],
+    venv_scripts_dir: cabc.Callable[[Path], Path],
+) -> None:
+    """Build, install, and run ``novel-state reconcile`` against a log-absent tree.
+
+    The partial-``init`` recovery running as a real installed command: the tree has
+    ``state.toml`` but no ``log.md``, the installed ``reconcile`` recreates it (exit
+    ``0``), and a follow-up ``check`` exits ``0``. The 180s timeout supersedes the
+    30s project default.
+    """
+    dest = tmp_path / "run"
+    dest.mkdir()
+    shutil.copytree(
+        wc.build_working_tree(wc.COHERENT_BASELINE, tmp_path / "fixture"),
+        dest / "working",
+    )
+    (dest / "working" / "log.md").unlink()
+
+    script_path = _build_and_install_novel_state(
+        tmp_path, single_program_catalogue, venv_scripts_dir
+    )
+    prog = Program(str(script_path))
+    catalogue = single_program_catalogue("novel-state-run", prog)
+
+    reconcile_result = sh.make(prog, catalogue=catalogue)("reconcile").run_sync(
+        context=ExecutionContext(cwd=dest), capture=True
+    )
+    assert reconcile_result.exit_code == 0, reconcile_result.stderr
+    reconcile_env = json.loads(reconcile_result.stdout or "{}")
+    assert reconcile_env["ok"] is True
+    assert typ.cast("dict[str, object]", reconcile_env["result"])["action"] == (
+        "recreate-log"
+    )
+    assert (dest / "working" / "log.md").exists(), (
+        "the installed run must recreate log.md"
+    )
+
+    check_result = sh.make(prog, catalogue=catalogue)("check").run_sync(
+        context=ExecutionContext(cwd=dest), capture=True
+    )
+    assert check_result.exit_code == 0, check_result.stderr
 
 
 @pytest.mark.skipif(

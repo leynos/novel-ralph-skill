@@ -80,6 +80,47 @@ def stale_done_claim_tree(tmp_path: Path) -> _Outcome:
     return _Outcome(working=working, files_before=files)
 
 
+@given(
+    "a partial-init tree whose log.md is absent beside a present state.toml",
+    target_fixture="outcome",
+)
+def partial_init_tree(tmp_path: Path) -> _Outcome:
+    """Build a coherent baseline and unlink ``log.md`` (the partial-``init`` case).
+
+    Returns
+    -------
+    _Outcome
+        The built ``working/`` path and the set of files present after ``log.md``
+        is removed; the exit codes are filled in by the run steps.
+    """
+    working = wc.build_working_tree(wc.COHERENT_BASELINE, tmp_path)
+    (working / "log.md").unlink()
+    files = {str(p.relative_to(working)) for p in working.rglob("*") if p.is_file()}
+    return _Outcome(working=working, files_before=files)
+
+
+@then("reconcile exits 0 and recreates log.md")
+def reconcile_recreates_log(outcome: _Outcome) -> None:
+    """Assert ``reconcile`` exited ``0`` and ``log.md`` is present again."""
+    assert outcome.reconcile_code == ExitCode.SUCCESS, (
+        f"expected reconcile exit 0, got {outcome.reconcile_code}"
+    )
+    assert (outcome.working / "log.md").exists(), "reconcile must recreate log.md"
+
+
+@then("reconcile removes no working file and logs a recreate-log recovery entry")
+def reconcile_recreate_log_keeps_files(outcome: _Outcome) -> None:
+    """Assert no file was removed and a ``recreate-log`` receipt was appended."""
+    after = {
+        str(p.relative_to(outcome.working))
+        for p in outcome.working.rglob("*")
+        if p.is_file()
+    }
+    assert outcome.files_before <= after, "reconcile must remove no working/ file"
+    log = (outcome.working / "log.md").read_text(encoding="utf-8")
+    assert "recreate-log" in log, "reconcile must append a recreate-log recovery entry"
+
+
 @when("check runs against that tree")
 def run_check(outcome: _Outcome, monkeypatch: pytest.MonkeyPatch) -> None:
     """Drive ``check`` and capture its exit code."""

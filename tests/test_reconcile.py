@@ -241,6 +241,65 @@ def test_complete_clears_record_and_logs(
     assert recheck_code == ExitCode.SUCCESS, "the recovered tree must re-check clean"
 
 
+def test_recreate_log_repairs_partial_init_tree(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A log-absent tree: reconcile recreates log.md, exits 0, deletes no file.
+
+    The partial-``init`` bootstrap (roadmap task 2.3.4): ``init`` writes
+    ``state.toml`` first and ``log.md`` second, so a crash between leaves ``log.md``
+    absent. ``reconcile`` recreates it, appends a ``recreate-log`` receipt, removes
+    no other ``working/`` file, and a follow-up ``check`` exits ``0``.
+    """
+    working = wc.build_working_tree(wc.COHERENT_BASELINE, tmp_path)
+    (working / "log.md").unlink()
+    files_before = _present_files(working)
+
+    code, env = _drive(working, "reconcile", monkeypatch)
+    assert code == ExitCode.SUCCESS, "recreate-log must exit 0"
+    result = _result(env)
+    assert result["action"] == "recreate-log", (
+        "reconcile must report the recreate-log action"
+    )
+    assert result["discrepancies"] == ["log-present"], (
+        "the recreate-log result must name the log-present discrepancy"
+    )
+    assert "violations" not in result, (
+        "the write-shaped result must not echo the check read shape"
+    )
+
+    log = working / "log.md"
+    assert log.exists(), "reconcile must recreate the absent log.md"
+    assert "recreate-log" in log.read_text(encoding="utf-8"), (
+        "reconcile must append a recreate-log recovery entry"
+    )
+    # log.md was absent before, so the prior set is recreated plus nothing removed.
+    assert files_before <= _present_files(working), (
+        "recreate-log must remove no working/ file"
+    )
+
+    code, env = _drive(working, "check", monkeypatch)
+    assert code == ExitCode.SUCCESS, "the repaired tree must re-check clean"
+
+
+def test_recreate_log_is_idempotent(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A second ``reconcile`` over a repaired tree is a ``NONE`` no-op at exit 0."""
+    working = wc.build_working_tree(wc.COHERENT_BASELINE, tmp_path)
+    (working / "log.md").unlink()
+    first_code, _first = _drive(working, "reconcile", monkeypatch)
+    assert first_code == ExitCode.SUCCESS
+
+    second_code, second_env = _drive(working, "reconcile", monkeypatch)
+    assert second_code == ExitCode.SUCCESS, "the second reconcile must exit 0"
+    assert _result(second_env)["action"] == "none", (
+        "a second reconcile over the repaired tree must be a NONE no-op"
+    )
+
+
 def test_headline_variant_sole_violation(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,

@@ -301,7 +301,14 @@ def incoherent_tree(
         # test do not inherit a previous variant's ``compiled.md`` or chapters.
         dest = tmp_path / name
         dest.mkdir(exist_ok=True)
-        return spec, wc.build_working_tree(spec, dest), expected
+        working = wc.build_working_tree(spec, dest)
+        # Apply the variant's post-build mutation (the only place it runs) so a
+        # variant whose incoherence the spec cannot express — the partial-``init``
+        # log-absent tree — is materialised exactly where the corpus tests read it.
+        mutate = wc.POST_BUILD_MUTATIONS.get(name)
+        if mutate is not None:
+            mutate(working)
+        return spec, working, expected
 
     return _build
 

@@ -202,6 +202,10 @@ payload from `check`), then:
 - when `state.toml` left an uncleared `[pending_turn]`, it completes or rolls
   the
   torn turn back (it never fabricates a draft or a `done.flag`) and exits `0`;
+- when `log.md` is absent beside a present `state.toml` — the partial-`init`
+  bootstrap, where a crash struck between `init`'s two writes (`state.toml`
+  first, `log.md` second) and re-running `init` refuses — it recreates an empty
+  `log.md`, appends a recovery receipt, and exits `0` (roadmap task 2.3.4);
 - when disk *contradicts itself* — a `done.flag` beside an empty draft, a
   `compiled.md` referencing absent content, a non-bijective manifest, or a
   plan-less cursor — it **refuses**: it writes no state change and exits `4`

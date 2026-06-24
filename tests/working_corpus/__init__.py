@@ -30,6 +30,7 @@ from ._library import COHERENT_BASELINE, PHASE_ORDER, PHASE_STATES
 from ._live_draft import live_draft_counts, live_draft_owned
 from ._oracle import (
     CORPUS_INVARIANT_NAMES,
+    LOG_PRESENT,
     WORD_COUNTS_MATCH_DRAFTS,
     corpus_check,
 )
@@ -46,6 +47,9 @@ from ._specs import (
     draft_body,
 )
 from ._variants import (
+    _POST_BUILD_MUTATIONS as POST_BUILD_MUTATIONS,
+)
+from ._variants import (
     DIVERGENT_TABLE_VARIANTS,
     DONE_FLAG_PERMUTATIONS,
     INCOHERENT_VARIANTS,
@@ -60,8 +64,10 @@ __all__ = [
     "DONE_FLAG_PERMUTATIONS",
     "GATE_THRESHOLDS",
     "INCOHERENT_VARIANTS",
+    "LOG_PRESENT",
     "PHASE_ORDER",
     "PHASE_STATES",
+    "POST_BUILD_MUTATIONS",
     "WORD_COUNTS_MATCH_DRAFTS",
     "ChapterSpec",
     "WorkingTreeSpec",

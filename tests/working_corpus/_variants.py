@@ -31,6 +31,7 @@ align away.
 from __future__ import annotations
 
 import dataclasses as dc
+import typing as typ
 
 from . import _oracle as oracle
 from . import _reconcile_variants as reconcile_variants
@@ -44,6 +45,10 @@ from ._variant_base import (
 from ._variant_base import (
     with_chapters as _with_chapters,
 )
+
+if typ.TYPE_CHECKING:
+    import collections.abc as cabc
+    from pathlib import Path
 
 
 def _flag_first_chapter_empty() -> WorkingTreeSpec:
@@ -216,12 +221,40 @@ def _build_incoherent_variants() -> dict[str, tuple[WorkingTreeSpec, str]]:
             reconcile_variants.pending_turn_rollback_unrecoverable(),
             oracle.PENDING_TURN_CLEARED,
         ),
+        "partial-init": (
+            # A coherent baseline; ``_remove_log_md`` (in ``_POST_BUILD_MUTATIONS``)
+            # unlinks its ``log.md`` after the build so it breaks exactly
+            # ``log-present`` (roadmap task 2.3.4).
+            _BASE,
+            oracle.LOG_PRESENT,
+        ),
     }
 
 
 INCOHERENT_VARIANTS: dict[str, tuple[WorkingTreeSpec, str]] = (
     _build_incoherent_variants()
 )
+
+
+def _remove_log_md(working_dir: Path) -> None:
+    """Unlink ``working/log.md`` to materialise the partial-``init`` bootstrap.
+
+    The corpus builder always writes an empty ``log.md``, so the log-absent tree
+    roadmap task 2.3.4 detects can only be produced by removing it after the build.
+    Applied by the ``incoherent_tree`` fixture for the ``partial-init`` variant and
+    nowhere else, so the tree is log-absent exactly where the corpus tests read it.
+    """
+    (working_dir / "log.md").unlink()
+
+
+# Post-build mutations keyed by variant name, applied by the ``incoherent_tree``
+# fixture after ``build_working_tree``. The registry exists only for the variants
+# whose incoherence the spec cannot express (the builder always writes ``log.md``);
+# leaving ``INCOHERENT_VARIANTS``'s ``(spec, name)`` shape untouched for the
+# existing subscript consumers.
+_POST_BUILD_MUTATIONS: dict[str, cabc.Callable[[Path], None]] = {
+    "partial-init": _remove_log_md,
+}
 
 
 def _flagged(flags: tuple[bool, ...]) -> WorkingTreeSpec:

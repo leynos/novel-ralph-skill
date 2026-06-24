@@ -695,7 +695,7 @@ agent-improvised recovery routine. See novel-ralph-harness-design.md §4.1 and
       delivered it. Record the disk-vs-disk discipline and update the invariant-5
       status so the policy lives in the source of truth, not only in source
       docstrings. Lightweight addendum pass.
-- [ ] 2.3.4. Cover the partial-`init` bootstrap (`state.toml` present, `log.md`
+- [x] 2.3.4. Cover the partial-`init` bootstrap (`state.toml` present, `log.md`
   absent) in disk-authoritative reconciliation.
   - Reroute (source: review:2.2.2; severity: low). `init` writes `state.toml`
     then `log.md` and refuses any re-run while `state.toml` exists (task 2.2.2

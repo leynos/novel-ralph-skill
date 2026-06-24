@@ -25,11 +25,17 @@ D-COMPLETE) is total and deterministic:
 3. Else ``word-counts-match-drafts`` fired yields
    :attr:`ReconcileAction.RECOUNT`, carrying the disk-derived ``current`` and
    ``by_chapter`` so the mutator writes them without re-reading disk.
-4. Else :attr:`ReconcileAction.NONE` (coherent; nothing to do).
+4. Else ``log-present`` fired yields :attr:`ReconcileAction.RECREATE_LOG`: the
+   partial-``init`` bootstrap (``log.md`` absent beside a present ``state.toml``).
+   ``log-present`` is **not** refuse-class — ``log.md`` is recomputable (empty at
+   ``init``, append-only after), so the mutator recreates it without fabricating
+   an agent judgement (roadmap task 2.3.4; design §5.4).
+5. Else :attr:`ReconcileAction.NONE` (coherent; nothing to do).
 
 No disk-evidence violation ever falls through to ``NONE`` while ``check`` exits
 4 (round-2 blocking point 4): ``cursor-plan-present`` maps to ``REFUSE`` like the
-contradictions, so the only ``NONE`` is a genuinely coherent tree.
+contradictions and ``log-present`` maps to ``RECREATE_LOG``, so the only ``NONE``
+is a genuinely coherent tree.
 """
 
 from __future__ import annotations
@@ -43,6 +49,7 @@ from novel_ralph_skill.state.disk_evidence import (
     COMPILED_MATCHES_DRAFTS,
     CURSOR_PLAN_PRESENT,
     DONE_FLAG_WITHOUT_DRAFT,
+    LOG_PRESENT,
     MANIFEST_DISK_BIJECTION,
     PENDING_TURN_CLEARED,
     WORD_COUNTS_MATCH_DRAFTS,
@@ -79,6 +86,7 @@ class ReconcileAction(enum.StrEnum):
 
     NONE = "none"
     RECOUNT = "recount"
+    RECREATE_LOG = "recreate-log"
     COMPLETE_PENDING_TURN = "complete-pending-turn"
     ROLLBACK_PENDING_TURN = "rollback-pending-turn"
     REFUSE = "refuse"
@@ -240,6 +248,12 @@ def derive_reconciliation(state: State, working_dir: Path) -> Reconciliation:
         )
     if WORD_COUNTS_MATCH_DRAFTS in fired:
         return _recount(state, working_dir, [WORD_COUNTS_MATCH_DRAFTS])
+    if LOG_PRESENT in fired:
+        return Reconciliation(
+            action=ReconcileAction.RECREATE_LOG,
+            discrepancies=(LOG_PRESENT,),
+            detail="recreating the absent log.md receipt",
+        )
     return Reconciliation(
         action=ReconcileAction.NONE,
         discrepancies=(),

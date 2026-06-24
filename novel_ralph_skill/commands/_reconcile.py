@@ -8,6 +8,9 @@ payload) by calling the same shared
 on the action:
 
 - ``NONE`` → exit ``0``, no write, no log (a coherent tree; nothing to repair).
+- ``RECREATE_LOG`` → recreate the absent ``log.md`` as the partial-``init``
+  repair, append a ``recreate-log`` receipt (the append-mode open *is* the
+  create), write **no** ``state.toml`` change, exit ``0`` (roadmap task 2.3.4).
 - ``RECOUNT`` → rewrite ``[word_counts]`` from the drafts (exactly as ``recount``
   does), validate the proposed document, log a ``recount`` receipt, exit ``0``.
 - ``COMPLETE_PENDING_TURN`` → write each recomputable missing declared artefact
@@ -270,6 +273,15 @@ def reconcile() -> CommandOutcome:
         )
     if action is ReconcileAction.REFUSE:
         return _refuse_outcome(working_dir, reconciliation)
+    if action is ReconcileAction.RECREATE_LOG:
+        # The partial-``init`` repair: ``log.md`` is absent beside a present
+        # ``state.toml``. ``_append_recovery_entry`` opens ``log.md`` in append
+        # mode, which *creates* it, so the recreate and the receipt are one write.
+        # No ``state.toml`` change, so this needs no D-SELF bracket (no torn turn
+        # to re-derive: a crash leaves ``log.md`` still absent, which a subsequent
+        # ``reconcile`` re-derives as RECREATE_LOG and finishes).
+        _append_recovery_entry(working_dir, f"recreate-log: {reconciliation.detail}")
+        return _write_outcome(ReconcileAction.RECREATE_LOG, reconciliation)
     if action is ReconcileAction.RECOUNT:
         edit = _recount_edit(reconciliation)
         log_line = f"recount: {reconciliation.detail}"

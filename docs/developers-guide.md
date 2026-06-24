@@ -333,19 +333,22 @@ vocabulary; the constants live in the production module and a test pins their
 equality to the oracle. Design §5.2 invariant 4 is split into three named
 sub-rules (`consecutive-clean-within-target`,
 `convergence-target-at-least-one`, and `consecutive-clean-within-drafted`) so a
-verdict pins exactly the sub-rule it breaks. Six **disk-evidence** invariants —
-the four §5.4 ones (`manifest-disk-bijection`, `done-flag-without-draft`,
-`compiled-matches-drafts`, `pending-turn-cleared`), `cursor-plan-present` (the
-scene/beat-plan-presence sub-clause of invariant 6, "zero until plans exist",
-added by task 2.1.4), and `word-counts-match-drafts` (the disk-vs-table
-per-chapter word-count divergence added by task 2.3.2) — need `working/`
-contents beyond `state.toml`. `validate_state` never emits any of them (a
-scope-boundary test pins that); task 2.3.2's `check_disk_evidence`
-(`novel_ralph_skill/state/disk_evidence.py`) **implements** all six, the §5.4
-twin of `validate_state`, and disk-aware `check` unions the two verdicts. The
-production `DISK_EVIDENCE_INVARIANT_NAMES` tuple is pinned equal to the corpus
-oracle's disk-evidence subset by `test_owned_names_equal_corpus_vocabulary`,
-the same shared-vocabulary discipline the pure-state names follow.
+verdict pins exactly the sub-rule it breaks. Seven **disk-evidence**
+invariants — the four §5.4 ones (`manifest-disk-bijection`,
+`done-flag-without-draft`, `compiled-matches-drafts`, `pending-turn-cleared`),
+`cursor-plan-present` (the scene/beat-plan-presence sub-clause of invariant 6,
+"zero until plans exist", added by task 2.1.4), `word-counts-match-drafts` (the
+disk-vs-table per-chapter word-count divergence added by task 2.3.2), and
+`log-present` (the partial-`init` bootstrap detector — `log.md` absent while
+`state.toml` is present — added by task 2.3.4) — need `working/` contents beyond
+`state.toml`. `validate_state`
+never emits any of them (a scope-boundary test pins that); task 2.3.2's
+`check_disk_evidence` (`novel_ralph_skill/state/disk_evidence.py`)
+**implements** all seven, the §5.4 twin of `validate_state`, and disk-aware
+`check` unions the two verdicts. The production `DISK_EVIDENCE_INVARIANT_NAMES`
+tuple is pinned equal to the corpus oracle's disk-evidence subset by
+`test_owned_disk_evidence_names_equal_corpus_subset`, the same shared-vocabulary
+discipline the pure-state names follow.
 
 The eight owned names map onto the design's seven §5.2 invariants (numbered by
 their order in the bullet list) as follows; invariant 4 splits into three
@@ -436,14 +439,19 @@ not de-duplicate the twins — collapsing them would defeat the cross-check.
 
 The corpus oracle's **disk-evidence** predicates follow the same twin
 discipline, but against a different production module. After tasks 2.3.2/2.3.3
-the oracle reads the materialised `working/` tree for all six §5.4 disk-evidence
-invariants (`manifest-disk-bijection`, `done-flag-without-draft`,
-`compiled-matches-drafts`, `pending-turn-cleared`, `cursor-plan-present`, and
-`word-counts-match-drafts`), so these checks are **disk-vs-disk** twins of
-production `check_disk_evidence` (`novel_ralph_skill/state/disk_evidence.py`) —
-both sides glob `manuscript/chapter-*` and read each `draft.md` from disk — not
-twins of the pure-state `validate_state` the section above describes. The two
-disk-reading sides are pinned to agree on every corpus tree by
+the oracle reads the materialised `working/` tree for all seven §5.4
+disk-evidence invariants (`manifest-disk-bijection`, `done-flag-without-draft`,
+`compiled-matches-drafts`, `pending-turn-cleared`, `cursor-plan-present`,
+`word-counts-match-drafts`, and `log-present`), so these checks are
+**disk-vs-disk** twins of production `check_disk_evidence`
+(`novel_ralph_skill/state/disk_evidence.py`) — not twins of the pure-state
+`validate_state` the section above describes. The six manuscript-comparing
+twins glob `manuscript/chapter-*` and read each `draft.md` from disk on both
+sides, and the `log-present` twin (added by task 2.3.4 — the partial-`init`
+bootstrap where `state.toml` is present but `log.md` is absent) reads
+`log.md`'s presence on disk on both sides; in every case the cross-check is
+disk-vs-disk. The two disk-reading sides are pinned to agree on every corpus
+tree by
 `tests/test_novel_state_check_disk.py::test_union_detector_agrees_with_corpus_oracle`
 and `tests/test_disk_evidence.py::test_word_counts_twin_equals_corpus_oracle`,
 and the production tuple `DISK_EVIDENCE_INVARIANT_NAMES` is pinned equal to the
