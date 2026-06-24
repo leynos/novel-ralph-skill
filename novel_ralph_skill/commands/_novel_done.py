@@ -25,7 +25,7 @@ owns every exit and envelope.
 
 from __future__ import annotations
 
-import cyclopts
+import typing as typ
 
 from novel_ralph_skill.commands.novel_state import (
     STATE_INPUT_ERRORS,
@@ -34,8 +34,15 @@ from novel_ralph_skill.commands.novel_state import (
     working_dir,
 )
 from novel_ralph_skill.contract.exit_codes import ExitCode
-from novel_ralph_skill.contract.runner import CommandOutcome, StateInputError
+from novel_ralph_skill.contract.runner import (
+    CommandOutcome,
+    StateInputError,
+    make_contract_app,
+)
 from novel_ralph_skill.state.done_predicate import evaluate_done
+
+if typ.TYPE_CHECKING:
+    import cyclopts
 
 
 def _novel_done() -> CommandOutcome:
@@ -83,8 +90,8 @@ def _novel_done() -> CommandOutcome:
 def build_app() -> cyclopts.App:
     """Build the ``novel-done`` Cyclopts app (design §4.2).
 
-    Wired with ``result_action="return_value", exit_on_error=False,
-    print_error=False, help_on_error=False`` so the shared
+    Built via :func:`novel_ralph_skill.contract.runner.make_contract_app`, which
+    owns the four-flag contract so the shared
     :func:`novel_ralph_skill.contract.runner.run` owns every exit and envelope,
     exactly like ``novel-state`` and ``desloppify``. The single default body
     takes no arguments and returns a
@@ -95,13 +102,7 @@ def build_app() -> cyclopts.App:
     cyclopts.App
         The configured ``novel-done`` app.
     """
-    app = cyclopts.App(
-        name="novel-done",
-        result_action="return_value",
-        exit_on_error=False,
-        print_error=False,
-        help_on_error=False,
-    )
+    app = make_contract_app("novel-done")
 
     @app.default
     def _check() -> CommandOutcome:

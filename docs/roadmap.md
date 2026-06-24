@@ -320,7 +320,7 @@ drift and seeds the snapshot suite. See novel-ralph-harness-design.md §3 and §
       updated and no `from`/`to` keys were persisted, closing the prose-only gap
       between the docstring intent and the test surface. Lightweight addendum
       pass.
-- [ ] 1.3.6. Add a shared contract-app factory for the runner's required
+- [x] 1.3.6. Add a shared contract-app factory for the runner's required
   four-flag `cyclopts.App`.
   - Reroute (source: audit:3.1.1; severity: low). The runner's hard requirement
     (`result_action='return_value'`, `exit_on_error=False`, `print_error=False`,

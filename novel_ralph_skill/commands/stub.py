@@ -13,12 +13,16 @@ definition consistent with the live apps so it cannot drift.
 from __future__ import annotations
 
 import sys
+import typing as typ
 
 import cyclopts
 
 from novel_ralph_skill.commands.names import COMMAND_ENTRY_POINTS
 from novel_ralph_skill.commands.novel_state import WORKING_DIR_NAME, build_app
 from novel_ralph_skill.contract import RunContext, parse_global_flags, run
+
+if typ.TYPE_CHECKING:
+    import collections.abc as cabc
 
 STUB_EXIT_CODE = 2
 """Exit code for an unimplemented command result (usage error, design 3.2)."""
@@ -69,100 +73,63 @@ def make_stub_app(name: str) -> cyclopts.App:
     return app
 
 
-def novel_state() -> None:
-    """Console-script entry point for ``novel-state`` (drives the real app).
+def _drive(name: str, build_app: cabc.Callable[[], cyclopts.App]) -> None:
+    """Pre-parse ``--human`` and drive ``build_app()`` through :func:`run`.
 
-    Unlike the four still-stubbed entry points, ``novel-state`` is wired to its
-    real Cyclopts app (roadmap task 2.1.2). The single ``--human`` global flag is
-    pre-parsed off ``sys.argv`` *before* :func:`run` is called, because ``run``
-    stamps the human selection into the envelope even on the usage and
-    state-error paths where the command body never executes (Decision Log B3).
-    The working directory is the fixed ``working/`` constant the design records,
-    not a flag (B4), so it is stamped into the :class:`RunContext`
-    unconditionally and the residual argv (``--human`` removed) drives the app.
+    This is the shared body the four real entry points collapse onto. The single
+    ``--human`` global flag is split off ``sys.argv`` *before* :func:`run` is
+    called, because ``run`` stamps the human selection into the envelope even on
+    the usage and state-error paths where the command body never executes
+    (Decision Log B3). The working directory is the fixed ``working/`` constant
+    the design records, not a flag (B4), so it is stamped into the
+    :class:`RunContext` unconditionally and the residual argv (``--human``
+    removed) drives the app.
+
+    The ``build_app`` callable is passed in rather than imported here so each
+    entry point keeps its own import site and laziness (top-level for
+    ``novel-state``, deferred in-body for the other three); ``_drive`` adds no
+    import of its own (Decision Log; audit-3.1.1 Finding 4).
+
+    Parameters
+    ----------
+    name : str
+        The console-script name stamped into every envelope.
+    build_app : collections.abc.Callable[[], cyclopts.App]
+        A zero-argument builder returning the command's run-configured app.
     """
     human, residual = parse_global_flags(sys.argv[1:])
     run(
         build_app(),
         residual,
-        RunContext(
-            command=_NAME_FOR["novel_state"],
-            working_dir=WORKING_DIR_NAME,
-            human=human,
-        ),
+        RunContext(command=name, working_dir=WORKING_DIR_NAME, human=human),
     )
+
+
+def novel_state() -> None:
+    """Console-script entry point for ``novel-state`` (drives via :func:`_drive`)."""
+    _drive(_NAME_FOR["novel_state"], build_app)  # build_app imported at module top
 
 
 def novel_done() -> None:
-    """Console-script entry point for ``novel-done`` (drives the real app).
-
-    Like ``novel_state`` and ``desloppify``, ``novel-done`` is wired to its real
-    Cyclopts app (roadmap task 3.1.1): it pre-parses the ``--human`` global flag,
-    then drives the app through the shared :func:`run` wrapper, resolving the
-    fixed ``working/`` tree from the process cwd (Decision Log B3/B4). The app is
-    the read-only done predicate (design §4.2); the one remaining stub
-    (``wordcount``) keeps the exit-``2`` placeholder until its slice lands.
-    """
-    human, residual = parse_global_flags(sys.argv[1:])
+    """Console-script entry point for ``novel-done`` (drives via :func:`_drive`)."""
+    # Deferred import: keeps entry-point import cost lazy (audit-3.1.1 Finding 4).
     from novel_ralph_skill.commands import _novel_done
 
-    run(
-        _novel_done.build_app(),
-        residual,
-        RunContext(
-            command=_NAME_FOR["novel_done"],
-            working_dir=WORKING_DIR_NAME,
-            human=human,
-        ),
-    )
+    _drive(_NAME_FOR["novel_done"], _novel_done.build_app)
 
 
 def novel_compile() -> None:
-    """Console-script entry point for ``novel-compile`` (drives the real app).
-
-    Like ``novel_state`` and ``desloppify``, ``novel-compile`` is wired to its
-    real Cyclopts app (roadmap task 4.1.1): it pre-parses the ``--human`` global
-    flag, then drives the single-default-callback compile app through the shared
-    :func:`run` wrapper, resolving the fixed ``working/`` tree from the process
-    cwd (Decision Log B3/B4). The write path concatenates the chapter drafts into
-    ``working/manuscript/compiled.md``; the ``--check`` divergence flag is roadmap
-    task 4.1.2 and is not wired here.
-    """
-    human, residual = parse_global_flags(sys.argv[1:])
+    """Console-script entry point for ``novel-compile`` (drives via :func:`_drive`)."""
     from novel_ralph_skill.commands import _compile
 
-    run(
-        _compile.build_app(),
-        residual,
-        RunContext(
-            command=_NAME_FOR["novel_compile"],
-            working_dir=WORKING_DIR_NAME,
-            human=human,
-        ),
-    )
+    _drive(_NAME_FOR["novel_compile"], _compile.build_app)
 
 
 def desloppify() -> None:
-    """Console-script entry point for ``desloppify`` (drives the real app).
-
-    Like ``novel_state``, ``desloppify`` is wired to its real Cyclopts app
-    (roadmap task 5.1.2): it pre-parses the ``--human`` global flag, then drives
-    the app through the shared :func:`run` wrapper, resolving the fixed
-    ``working/`` tree from the process cwd (Decision Log B3/B4). The four other
-    entry points remain stubs until their slices land.
-    """
-    human, residual = parse_global_flags(sys.argv[1:])
+    """Console-script entry point for ``desloppify`` (drives via :func:`_drive`)."""
     from novel_ralph_skill.commands import _desloppify
 
-    run(
-        _desloppify.build_app(),
-        residual,
-        RunContext(
-            command=_NAME_FOR["desloppify"],
-            working_dir=WORKING_DIR_NAME,
-            human=human,
-        ),
-    )
+    _drive(_NAME_FOR["desloppify"], _desloppify.build_app)
 
 
 def wordcount() -> None:

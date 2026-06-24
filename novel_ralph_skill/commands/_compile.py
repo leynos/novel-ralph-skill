@@ -29,7 +29,7 @@ tasks 4.1.2 and 3.1.2 (ExecPlan D-SCOPE).
 
 from __future__ import annotations
 
-import cyclopts
+import typing as typ
 
 from novel_ralph_skill.commands.novel_state import (
     STATE_INPUT_ERRORS,
@@ -38,12 +38,19 @@ from novel_ralph_skill.commands.novel_state import (
     working_dir,
 )
 from novel_ralph_skill.contract.exit_codes import ExitCode
-from novel_ralph_skill.contract.runner import CommandOutcome, StateInputError
+from novel_ralph_skill.contract.runner import (
+    CommandOutcome,
+    StateInputError,
+    make_contract_app,
+)
 from novel_ralph_skill.state import (
     concatenate_drafts,
     present_draft_bodies,
     write_text_atomically,
 )
+
+if typ.TYPE_CHECKING:
+    import cyclopts
 
 # The working-relative ``compiled.md`` path, named once so the written file, the
 # success ``result``, and the human message cannot drift (design §4.3). It is the
@@ -126,8 +133,8 @@ def build_app() -> cyclopts.App:
     ``novel-compile`` maps 1:1 onto one deterministic operation, so the app
     exposes a single default callback (the write) rather than a subcommand
     multiplexer (the ``--check`` flag is roadmap task 4.1.2; ExecPlan D-SCOPE).
-    Wired with ``result_action="return_value", exit_on_error=False,
-    print_error=False, help_on_error=False`` so the shared
+    Built via :func:`novel_ralph_skill.contract.runner.make_contract_app`, which
+    owns the four-flag contract so the shared
     :func:`novel_ralph_skill.contract.runner.run` owns every exit and envelope,
     exactly like ``desloppify``.
 
@@ -136,13 +143,7 @@ def build_app() -> cyclopts.App:
     cyclopts.App
         The configured ``novel-compile`` app.
     """
-    app = cyclopts.App(
-        name="novel-compile",
-        result_action="return_value",
-        exit_on_error=False,
-        print_error=False,
-        help_on_error=False,
-    )
+    app = make_contract_app("novel-compile")
 
     @app.default
     def _compile() -> CommandOutcome:

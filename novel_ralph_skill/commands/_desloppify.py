@@ -35,8 +35,6 @@ from __future__ import annotations
 import pathlib
 import typing as typ
 
-import cyclopts
-
 from novel_ralph_skill.commands._desloppify_report import (
     offenders_pack_path,
     report_outcome,
@@ -48,12 +46,18 @@ from novel_ralph_skill.commands.novel_state import (
 )
 from novel_ralph_skill.contract.errors import EnvelopeMessagesError
 from novel_ralph_skill.contract.exit_codes import ExitCode
-from novel_ralph_skill.contract.runner import CommandOutcome, StateInputError
+from novel_ralph_skill.contract.runner import (
+    CommandOutcome,
+    StateInputError,
+    make_contract_app,
+)
 from novel_ralph_skill.rulepack import RulePackError, RulePackFileError, load_rulepack
 from novel_ralph_skill.rulepack.detect import ScannedChapter, detect
 
 if typ.TYPE_CHECKING:
     import collections.abc as cabc
+
+    import cyclopts
 
     from novel_ralph_skill.state import ChapterEntry
 
@@ -290,8 +294,8 @@ def _scan_or_usage(*, chapter: int | None, pack: pathlib.Path | None) -> Command
 def build_app() -> cyclopts.App:
     """Build the ``desloppify`` Cyclopts app (design §4.4).
 
-    Wired with ``result_action="return_value", exit_on_error=False,
-    print_error=False, help_on_error=False`` so the shared
+    Built via :func:`novel_ralph_skill.contract.runner.make_contract_app`, which
+    owns the four-flag contract so the shared
     :func:`novel_ralph_skill.contract.runner.run` owns every exit and envelope,
     exactly like ``novel-state``. The single default body takes the optional
     ``--chapter`` and ``--pack`` keywords and returns a
@@ -302,13 +306,7 @@ def build_app() -> cyclopts.App:
     cyclopts.App
         The configured ``desloppify`` app.
     """
-    app = cyclopts.App(
-        name="desloppify",
-        result_action="return_value",
-        exit_on_error=False,
-        print_error=False,
-        help_on_error=False,
-    )
+    app = make_contract_app("desloppify")
 
     @app.default
     def _scan(

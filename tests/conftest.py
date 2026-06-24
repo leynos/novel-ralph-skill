@@ -24,11 +24,15 @@ import tomllib
 import typing as typ
 from pathlib import Path
 
-import cyclopts
 import pytest
 from cuprum import ProgramCatalogue, ProjectSettings
 
-from novel_ralph_skill.contract.runner import CommandOutcome, StateInputError
+from novel_ralph_skill.commands.names import COMMAND_NAMES
+from novel_ralph_skill.contract.runner import (
+    CommandOutcome,
+    StateInputError,
+    make_contract_app,
+)
 
 # Register the corpus fixture plugins (roadmap 1.3.2). The corpus fixtures live in
 # ``tests/corpus_fixtures.py`` rather than here because the corpus surface would
@@ -52,6 +56,7 @@ pytest_plugins = (
 if typ.TYPE_CHECKING:
     import collections.abc as cabc
 
+    import cyclopts
     from cuprum.program import Program
 
     # Re-export the corpus spec types so test annotations use the sanctioned
@@ -293,12 +298,15 @@ def venv_scripts_dir() -> cabc.Callable[[Path], Path]:
 def wrapper_app() -> cabc.Callable[[CommandOutcome | None], cyclopts.App]:
     """Return a builder for a :func:`~novel_ralph_skill.contract.runner.run` app.
 
-    The builder mirrors the four-flag Cyclopts app the contract run-driver tests
-    construct repeatedly: ``result_action="return_value"`` (so ``run`` owns every
-    ``sys.exit`` and envelope emission), ``exit_on_error=False`` (so usage faults
-    raise a ``CycloptsError`` for ``run`` to map to exit ``2``), and
-    ``print_error=False, help_on_error=False`` (so Cyclopts emits no Rich panel).
-    It registers one ``act`` subcommand and no catch-all default, so an unknown
+    The builder constructs the run-configured app via
+    :func:`~novel_ralph_skill.contract.runner.make_contract_app`, which owns the
+    four-flag contract (``result_action="return_value"`` so ``run`` owns every
+    ``sys.exit`` and envelope emission; ``exit_on_error=False`` so usage faults
+    raise a ``CycloptsError`` for ``run`` to map to exit ``2``;
+    ``print_error=False, help_on_error=False`` so Cyclopts emits no Rich panel).
+    The fixture tracks the production contract through the factory rather than
+    re-spelling the flags. It registers one ``act`` subcommand and no catch-all
+    default, so an unknown
     subcommand raises ``UnknownCommandError``. The body returns the supplied
     outcome, or raises :class:`~novel_ralph_skill.contract.runner.StateInputError`
     when the outcome is ``None`` to exercise the exit-``3`` path. The ``act`` body
@@ -313,12 +321,10 @@ def wrapper_app() -> cabc.Callable[[CommandOutcome | None], cyclopts.App]:
 
     def _build(outcome: CommandOutcome | None = None) -> cyclopts.App:
         """Return a run-configured app whose ``act`` body honours ``outcome``."""
-        app = cyclopts.App(
-            result_action="return_value",
-            exit_on_error=False,
-            print_error=False,
-            help_on_error=False,
-        )
+        # The factory requires a name where this fixture was previously
+        # anonymous; the name is behaviourally inert for the run path (proven by
+        # the --help/--version -> None/exit-0 assertion in test_contract_runner).
+        app = make_contract_app(COMMAND_NAMES[0])
 
         @app.command
         def act(name: str = "default") -> object:

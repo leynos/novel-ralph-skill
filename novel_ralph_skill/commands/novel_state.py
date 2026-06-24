@@ -44,10 +44,12 @@ import pathlib
 import tomllib
 import typing as typ
 
-import cyclopts
-
 from novel_ralph_skill.contract.exit_codes import ExitCode
-from novel_ralph_skill.contract.runner import CommandOutcome, StateInputError
+from novel_ralph_skill.contract.runner import (
+    CommandOutcome,
+    StateInputError,
+    make_contract_app,
+)
 from novel_ralph_skill.state import (
     build_initial_document,
     check_disk_evidence,
@@ -58,6 +60,8 @@ from novel_ralph_skill.state import (
 )
 
 if typ.TYPE_CHECKING:
+    import cyclopts
+
     from novel_ralph_skill.state import Reconciliation, State, Violation
 
 # The Initialisation directory skeleton ``init`` creates beside ``state.toml``,
@@ -299,10 +303,10 @@ def _init(*, title: str, slug: str, target_word_count: int) -> CommandOutcome:
 def build_app() -> cyclopts.App:
     """Build the ``novel-state`` Cyclopts app with its subcommands.
 
-    Wired with ``result_action="return_value", exit_on_error=False,
-    print_error=False, help_on_error=False`` so the shared
-    :func:`novel_ralph_skill.contract.runner.run` owns every exit and envelope
-    (the ``wrapper_app`` fixture's contract). Exposes the read-only ``check``
+    Built via :func:`novel_ralph_skill.contract.runner.make_contract_app`, which
+    owns the four-flag contract so the shared
+    :func:`novel_ralph_skill.contract.runner.run` owns every exit and envelope.
+    Exposes the read-only ``check``
     subcommand, the ``init`` builder-mutator (roadmap task 2.2.2), the
     ``set-cursor`` and ``advance-phase`` mutators (task 2.2.2), and the
     ``recount`` mutator (task 2.3.1); the remaining ``reconcile`` mutator lands in
@@ -325,13 +329,7 @@ def build_app() -> cyclopts.App:
     # import would be circular. The builder runs after both modules are defined.
     from novel_ralph_skill.commands import _state_mutators as mutators
 
-    app = cyclopts.App(
-        name="novel-state",
-        result_action="return_value",
-        exit_on_error=False,
-        print_error=False,
-        help_on_error=False,
-    )
+    app = make_contract_app("novel-state")
 
     @app.command
     def check() -> CommandOutcome:

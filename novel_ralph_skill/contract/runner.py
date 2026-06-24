@@ -30,6 +30,7 @@ import dataclasses
 import sys
 import typing as typ
 
+import cyclopts
 from cyclopts.exceptions import CycloptsError
 
 from novel_ralph_skill._freeze import freeze_mapping, freeze_sequence
@@ -44,10 +45,40 @@ from novel_ralph_skill.contract.exit_codes import ExitCode
 if typ.TYPE_CHECKING:
     import collections.abc as cabc
 
-    import cyclopts
-
 
 _HUMAN_FLAG = "--human"
+
+
+def make_contract_app(name: str) -> cyclopts.App:
+    """Build a Cyclopts app wired to the four-flag contract :func:`run` requires.
+
+    The app is constructed with ``result_action="return_value",
+    exit_on_error=False, print_error=False, help_on_error=False`` so the shared
+    :func:`run` wrapper owns every exit and envelope. The four-flag contract is
+    specified in the :func:`run` docstring (runner.py lines 166-170); the flags
+    serve the exit-code policy in design §3.2 / ADR-003 Table 2 but are not
+    documented there. Callers register their ``@app.command``/``@app.default``
+    bodies on the returned app exactly as before; this factory owns only the
+    four-flag construction, co-located with the wrapper that demands it.
+
+    Parameters
+    ----------
+    name : str
+        The console-script name for the app (e.g. ``"novel-state"``).
+
+    Returns
+    -------
+    cyclopts.App
+        A freshly constructed app carrying the four required flags and ``name``,
+        ready for the caller's command/default registration.
+    """
+    return cyclopts.App(
+        name=name,
+        result_action="return_value",
+        exit_on_error=False,
+        print_error=False,
+        help_on_error=False,
+    )
 
 
 def parse_global_flags(argv: list[str]) -> tuple[bool, list[str]]:
