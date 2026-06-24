@@ -320,6 +320,11 @@ regenerates `compiled.md` by reusing the single production join rule —
 `compile_model.concatenate_drafts` over `present_draft_bodies`, the same read
 rule the `compiled-matches-drafts` disk-evidence invariant recomputes — so a
 freshly compiled tree is coherent under `novel-state check` by construction. The
+*comparison* against that join rule is shared too, not just the join: roadmap
+task 3.1.3 factored "does `compiled.md` equal the ordered draft concatenation?"
+into the one helper `compile_model.compiled_matches_drafts` (see the done
+predicate section below), so the detector and the `compile_consistent` clause
+recompute the verdict at a single site. The
 `novel-compile --check` divergence flag and the `novel-done` done predicate will
 call the same compile-and-**hash** routine (roadmap tasks 4.1.2 and 3.1.2), so
 they cannot disagree about whether `compiled.md` is stale; that routine is not
@@ -572,21 +577,35 @@ resolution in prose yet stays an unresolved blocker.
 
 **`compile_consistent` is the full content comparison (roadmap 3.1.2).** The
 clause is the single function `compile_consistent(state, working_dir)`: an absent
-`compiled.md` is `False`, a present one is `True` iff its bytes equal
-`concatenate_drafts(present_draft_bodies(state, working_dir))`. It reuses the
-shared `compile_model` routine — the same `present_draft_bodies`/
-`concatenate_drafts` the §5.4 detector `_check_compiled_matches_drafts` uses — so
-the clause and the detector cannot disagree on what "compiled matches drafts"
-means. The verdict is a direct byte comparison, not a digest (D-BYTE-COMPARE).
-This closes the 3.1.1 stale-but-present unsoundness window: a present-but-stale
-compile whose header count and word total coincide with the drafts is still
-caught, because the comparison is over bytes, not counts.
+`compiled.md` is `False`, a present one is `True` iff its bytes equal the ordered
+draft concatenation. The verdict is read from the shared production helper
+`compile_model.compiled_matches_drafts` (see below), which the §5.4 detector
+`_check_compiled_matches_drafts` also consumes, so the clause and the detector
+cannot disagree on what "compiled matches drafts" means. The comparison is a
+direct byte comparison, not a digest (D-BYTE-COMPARE). This closes the 3.1.1
+stale-but-present unsoundness window: a present-but-stale compile whose header
+count and word total coincide with the drafts is still caught, because the
+comparison is over bytes, not counts.
 
 The clause carries the **opposite** absent-file polarity to that §5.4 detector,
 which treats an absent `compiled.md` as *vacuously satisfied* ("nothing to diverge
 from"); here an absent compile is *not consistent*. The two polarities are correct
-for their different jobs. Roadmap task 3.1.3 owns the cross-detector unification
-that factors one `compiled_matches_drafts` helper both consume.
+for their different jobs, and both are projections of the one shared helper.
+
+**One owner for "compiled.md equals the ordered draft concatenation" (roadmap
+task 3.1.3).** That comparison lives in a single production helper,
+`compile_model.compiled_matches_drafts(state, working_dir) -> CompiledComparison`,
+returning the three-valued `ABSENT`/`MATCHES`/`DIVERGES` (audit-3.1.1 Finding 2).
+Both production callers consume it, each projecting the verdict to its own
+absent-file polarity: the §5.4 detector `_check_compiled_matches_drafts` maps
+`DIVERGES` to a `Violation` and `ABSENT`/`MATCHES` to none, while the
+`compile_consistent` done-clause maps `MATCHES` to `True` and both `ABSENT` and
+`DIVERGES` to `False`. A `bool` helper could not serve both, since the detector
+must tell an *absent* compile (no violation) from a *present-but-stale* one (a
+violation), which a single "present and matching" boolean collapses. The
+test-side corpus oracle deliberately keeps its own copy of the comparison (see
+the invariant-validation twin policy) and does not import the helper, so a
+production bug cannot mask itself.
 
 **The exit-`4` carve-out (the conservative reading).** `novel-done` exits `4`
 (`ACTIONABLE_FINDING`) **iff** `compile_consistent` is the *sole* false clause

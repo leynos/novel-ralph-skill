@@ -65,8 +65,8 @@ from novel_ralph_skill.state._disk_word_counts import (
     _check_word_counts_match_drafts,
 )
 from novel_ralph_skill.state.compile_model import (
-    concatenate_drafts,
-    present_draft_bodies,
+    CompiledComparison,
+    compiled_matches_drafts,
 )
 from novel_ralph_skill.state.validate import Violation
 
@@ -167,20 +167,20 @@ def _check_done_flag_without_draft(state: State, working_dir: Path) -> Violation
 def _check_compiled_matches_drafts(state: State, working_dir: Path) -> Violation | None:
     """Return a violation when ``compiled.md`` is not the concatenated drafts.
 
-    Recomputes the ordered :func:`concatenate_drafts` of the present drafts —
-    read through the shared
-    :func:`~novel_ralph_skill.state.compile_model.present_draft_bodies` rule the
-    ``novel-compile`` write path also uses, so a freshly compiled tree is
-    coherent here by construction (ExecPlan D-READ) — and compares
-    ``compiled.md``'s bytes against it (design §4.3/§9). A tree with no
-    ``compiled.md`` trivially satisfies the check (nothing to diverge from),
-    exactly as the oracle's ``_check_compiled_matches_drafts`` treats it (D-COMPILE).
+    The comparison verdict comes from the shared single production site
+    :func:`~novel_ralph_skill.state.compile_model.compiled_matches_drafts`, which
+    recomputes the ordered concatenation through the one
+    :func:`~novel_ralph_skill.state.compile_model.present_draft_bodies` /
+    :func:`~novel_ralph_skill.state.compile_model.concatenate_drafts` read-and-join
+    rule the ``novel-compile`` write path also uses, so a freshly compiled tree is
+    coherent here by construction (ExecPlan D-READ; design §4.3/§9). This detector
+    projects the three-valued verdict to its absent-file polarity: only a
+    *present-and-diverging* ``compiled.md`` (:attr:`CompiledComparison.DIVERGES`)
+    is a violation; an *absent* one (:attr:`CompiledComparison.ABSENT`) trivially
+    satisfies the check (nothing to diverge from), exactly as the oracle's
+    ``_check_compiled_matches_drafts`` treats it (D-COMPILE; audit-3.1.1 Finding 2).
     """
-    compiled = working_dir / "manuscript" / "compiled.md"
-    if not compiled.exists():
-        return None
-    expected = concatenate_drafts(present_draft_bodies(state, working_dir))
-    if compiled.read_text(encoding="utf-8") == expected:
+    if compiled_matches_drafts(state, working_dir) is not CompiledComparison.DIVERGES:
         return None
     return Violation(
         invariant=COMPILED_MATCHES_DRAFTS,

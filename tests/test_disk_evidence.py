@@ -39,8 +39,10 @@ from novel_ralph_skill.state import (
     check_disk_evidence,
     concatenate_drafts,
     load_state,
+    present_draft_bodies,
 )
 from novel_ralph_skill.state.disk_evidence import (
+    _check_compiled_matches_drafts,
     _check_word_counts_cover_drafts,
     _check_word_counts_match_drafts,
 )
@@ -174,6 +176,37 @@ def test_compiled_join_helper_equals_corpus(
     ]
     for drafts in cases:
         assert concatenate_drafts(drafts) == concatenate(drafts), drafts
+
+
+def test_compiled_matches_drafts_projection(tmp_path: Path) -> None:
+    """The detector projects the shared helper's three-valued verdict.
+
+    The detector now delegates the comparison to
+    :func:`~novel_ralph_skill.state.compile_model.compiled_matches_drafts` and
+    projects: only ``DIVERGES`` (a present-but-stale compile) is a
+    ``compiled-matches-drafts`` violation, while ``ABSENT`` (no compile) and
+    ``MATCHES`` (a fresh compile) are silent. This pins the absent-file polarity
+    so a future regression in the projection is caught.
+    """
+    working_dir = wc.build_working_tree(wc.COHERENT_BASELINE, tmp_path)
+    state = load_state(working_dir / "state.toml")
+    compiled = working_dir / "manuscript" / "compiled.md"
+
+    # ABSENT: the drafting baseline writes no compiled.md -> no violation.
+    assert not compiled.exists()
+    assert _check_compiled_matches_drafts(state, working_dir) is None
+
+    # MATCHES: a fresh compile equal to the ordered join -> no violation.
+    compiled.write_text(
+        concatenate_drafts(present_draft_bodies(state, working_dir)), encoding="utf-8"
+    )
+    assert _check_compiled_matches_drafts(state, working_dir) is None
+
+    # DIVERGES: a present-but-stale compile -> the named violation.
+    compiled.write_text("stale content diverging from drafts", encoding="utf-8")
+    violation = _check_compiled_matches_drafts(state, working_dir)
+    assert violation is not None
+    assert violation.invariant == COMPILED_MATCHES_DRAFTS
 
 
 def test_word_counts_twin_equals_corpus_oracle(

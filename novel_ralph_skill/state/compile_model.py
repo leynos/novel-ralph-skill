@@ -18,6 +18,7 @@ finding, not a silent alignment.
 
 from __future__ import annotations
 
+import enum
 import typing as typ
 
 from novel_ralph_skill.state._disk_paths import _chapter_dir_name
@@ -33,6 +34,81 @@ if typ.TYPE_CHECKING:
 # but pins no exact bytes, so this module owns the production copy; the corpus's
 # ``CORPUS_SEPARATOR`` is its independent twin (pinned equal by test).
 DRAFT_SEPARATOR = "\n\n"
+
+
+class CompiledComparison(enum.Enum):
+    """Three-valued verdict for ``compiled.md`` against the present drafts.
+
+    The "is ``compiled.md`` the ordered concatenation of the present drafts?"
+    comparison has three outcomes the two production callers must tell apart,
+    not two: an *absent* ``compiled.md`` is distinct from a *present-but-stale*
+    one. A plain :class:`bool` ("present and matching") would collapse absent
+    and diverging into one ``False``, which neither caller can use. Hence this
+    closed three-state result, with each caller projecting it to its own
+    absent-file polarity (design §4.3/§5.4; ``docs/issues/audit-3.1.1.md``
+    Finding 2).
+    """
+
+    ABSENT = "absent"
+    MATCHES = "matches"
+    DIVERGES = "diverges"
+
+
+def compiled_matches_drafts(state: State, working_dir: Path) -> CompiledComparison:
+    """Return how ``compiled.md`` compares to the ordered draft concatenation.
+
+    This is the **single production site** that decides whether
+    ``working/manuscript/compiled.md`` equals the ordered concatenation of the
+    present chapter drafts (design §4.3/§5.4; ``docs/issues/audit-3.1.1.md``
+    Finding 2). Both
+    :func:`~novel_ralph_skill.state.disk_evidence._check_compiled_matches_drafts`
+    (the §5.4 detector) and the
+    :func:`~novel_ralph_skill.state.done_predicate.compile_consistent` done-clause
+    consume it, each projecting the three-valued result to its own absent-file
+    polarity — the detector treats absent as satisfied, the content clause treats
+    both absent and divergent as not-done (only ``MATCHES`` holds) — so the two
+    cannot disagree on the same tree.
+
+    The existence check precedes any draft read: an absent ``compiled.md``
+    returns :attr:`CompiledComparison.ABSENT` without touching the drafts.
+    Otherwise the expected text is recomputed through the one join rule
+    (:func:`concatenate_drafts` of :func:`present_draft_bodies`) and compared
+    byte-for-byte. A *missing* ``draft.md`` contributes ``""`` (benign); every
+    other read fault — ``PermissionError``, ``IsADirectoryError``,
+    ``UnicodeDecodeError`` — propagates unchanged for the command layer to route
+    to the exit-``3`` channel. The helper neither catches nor reshapes those
+    faults.
+
+    Parameters
+    ----------
+    state : State
+        The parsed, typed ``state.toml`` carrying the ``[chapters]`` manifest.
+    working_dir : pathlib.Path
+        The ``working/`` directory holding ``manuscript/compiled.md``.
+
+    Returns
+    -------
+    CompiledComparison
+        :attr:`~CompiledComparison.ABSENT` when ``compiled.md`` is absent;
+        :attr:`~CompiledComparison.MATCHES` when its bytes equal the ordered
+        draft concatenation; :attr:`~CompiledComparison.DIVERGES` otherwise.
+
+    Raises
+    ------
+    OSError
+        Any read fault other than a missing ``compiled.md`` or ``draft.md``
+        (e.g. ``PermissionError``, ``IsADirectoryError``) propagates.
+    UnicodeDecodeError
+        When ``compiled.md`` or a present ``draft.md`` is not valid UTF-8 (a
+        ``ValueError`` subclass), likewise propagated.
+    """
+    compiled = working_dir / "manuscript" / "compiled.md"
+    if not compiled.exists():
+        return CompiledComparison.ABSENT
+    expected = concatenate_drafts(present_draft_bodies(state, working_dir))
+    if compiled.read_text(encoding="utf-8") == expected:
+        return CompiledComparison.MATCHES
+    return CompiledComparison.DIVERGES
 
 
 def present_draft_bodies(state: State, working_dir: Path) -> list[str]:

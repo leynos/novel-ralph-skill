@@ -32,7 +32,11 @@ is absorbed; :func:`pathlib.Path.exists` already maps a missing path to ``False`
 without raising, so the ``done.flag``/review existence reads never raise, and the
 two body reads that can fault — the ``critic-notes.md`` scan and (since 3.1.2) the
 ``compiled.md`` content comparison — are guarded so an absent file is benign while
-an undecodable or otherwise unreadable one propagates.
+an undecodable or otherwise unreadable one propagates. Both the ``compiled.md``
+comparison and the §5.4 detector now route through the one shared
+:func:`~novel_ralph_skill.state.compile_model.compiled_matches_drafts` helper
+(roadmap task 3.1.3), so the clause and the detector cannot disagree on what
+"compiled matches drafts" means.
 """
 
 from __future__ import annotations
@@ -42,8 +46,8 @@ import typing as typ
 
 from novel_ralph_skill.state._disk_paths import _chapter_dir_name
 from novel_ralph_skill.state.compile_model import (
-    concatenate_drafts,
-    present_draft_bodies,
+    CompiledComparison,
+    compiled_matches_drafts,
 )
 from novel_ralph_skill.state.phase import Phase
 
@@ -220,25 +224,26 @@ def compile_consistent(state: State, working_dir: Path) -> bool:
     The content comparison the existence-only 3.1.1 clause deferred (the "hash"
     half of design §2.3/§4.2/§4.3). An absent ``manuscript/compiled.md`` is
     ``False`` — an absent compile can never be declared "done" (preserving the
-    3.1.1 B1 soundness fix); a present one is ``True`` iff its bytes equal
-    ``concatenate_drafts(present_draft_bodies(state, working_dir))`` and ``False``
-    otherwise, so a present-but-stale compile is caught (closing Risk R-STALE).
+    3.1.1 B1 soundness fix); a present one is ``True`` iff its bytes equal the
+    ordered draft concatenation and ``False`` otherwise, so a present-but-stale
+    compile is caught (closing Risk R-STALE).
 
-    The comparison reuses the single shared compile-and-hash routine
-    (:func:`~novel_ralph_skill.state.compile_model.present_draft_bodies` plus
-    :func:`~novel_ralph_skill.state.compile_model.concatenate_drafts`) that the
-    §5.4 detector
-    (``disk_evidence._check_compiled_matches_drafts``) also uses, so the clause
-    and the detector cannot disagree on what "compiled matches drafts" means. The
-    verdict is a direct byte comparison, not a digest
-    (ExecPlan D-BYTE-COMPARE): the detector compares bytes the same way, and a
-    boolean over two in-memory strings needs no ``hashlib``.
+    The verdict is read from the single shared production site
+    :func:`~novel_ralph_skill.state.compile_model.compiled_matches_drafts`, which
+    the §5.4 detector (``disk_evidence._check_compiled_matches_drafts``) also
+    consumes, so the clause and the detector cannot disagree on what "compiled
+    matches drafts" means (roadmap task 3.1.3). This clause projects the helper's
+    three-valued result to its **content** polarity: only
+    :attr:`~novel_ralph_skill.state.compile_model.CompiledComparison.MATCHES`
+    holds; both :attr:`~CompiledComparison.ABSENT` and
+    :attr:`~CompiledComparison.DIVERGES` are ``False``. The helper performs a
+    direct byte comparison, not a digest (ExecPlan D-BYTE-COMPARE): a boolean over
+    two in-memory strings needs no ``hashlib``.
 
     This clause carries the **opposite** absent-file polarity to that §5.4
     detector, which treats an absent ``compiled.md`` as *vacuously satisfied*
     ("nothing to diverge from"). The two polarities are correct for their
-    different jobs; roadmap task 3.1.3 owns the cross-detector unification that
-    reconciles them in one helper.
+    different jobs and are reconciled in the one shared helper (3.1.3).
 
     Parameters
     ----------
@@ -258,16 +263,12 @@ def compile_consistent(state: State, working_dir: Path) -> bool:
     OSError
         Any read fault other than a missing ``compiled.md`` (e.g.
         ``PermissionError``) propagates for the command layer to route to the
-        exit-``3`` channel (D-FAULT); :func:`present_draft_bodies` likewise
-        propagates every non-absent draft read fault.
+        exit-``3`` channel (D-FAULT); the helper likewise propagates every
+        non-absent draft read fault.
     UnicodeDecodeError
         When ``compiled.md`` (or a draft body) is not valid UTF-8, propagated.
     """
-    compiled = working_dir / "manuscript" / "compiled.md"
-    if not compiled.exists():
-        return False
-    expected = concatenate_drafts(present_draft_bodies(state, working_dir))
-    return compiled.read_text(encoding="utf-8") == expected
+    return compiled_matches_drafts(state, working_dir) is CompiledComparison.MATCHES
 
 
 def _contains_unresolved_blocker(notes_path: Path) -> bool:

@@ -26,6 +26,8 @@ from novel_ralph_skill.state._disk_word_counts import (
 )
 from novel_ralph_skill.state.compile_model import (
     DRAFT_SEPARATOR,
+    CompiledComparison,
+    compiled_matches_drafts,
     concatenate_drafts,
     present_draft_bodies,
 )
@@ -110,6 +112,7 @@ __all__ = [
     "WORD_COUNTS_COVER_DRAFTS",
     "WORD_COUNTS_MATCH_DRAFTS",
     "ChapterEntry",
+    "CompiledComparison",
     "CriticState",
     "Drafting",
     "FangirlState",
@@ -129,6 +132,7 @@ __all__ = [
     "build_initial_document",
     "check_disk_evidence",
     "clear_pending_turn",
+    "compiled_matches_drafts",
     "concatenate_drafts",
     "derive_reconciliation",
     "disk_word_counts",

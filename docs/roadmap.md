@@ -951,7 +951,7 @@ novel-ralph-harness-design.md §4.2 and §2.3.
     predicate-truthfulness property); the `novel-done` result size is
     independent of the chapter count; and an otherwise-complete tree with only a
     stale `compiled.md` exits 4 while a mid-draft tree exits 1.
-- [ ] 3.1.3. Share the compiled-matches-drafts comparison between the §5.4
+- [x] 3.1.3. Share the compiled-matches-drafts comparison between the §5.4
   detector and the `compile_consistent` clause.
   - Step-task (source: audit:3.1.1; severity: medium).
     `disk_evidence._check_compiled_matches_drafts` already implements the
