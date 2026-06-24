@@ -22,9 +22,19 @@ It writes exactly one file, already atomic via ``Path.replace``, so it opens no
 manifest has no authoritative ordering, so the command refuses with exit ``3``
 and writes nothing (design §10 lines 811-815; ExecPlan D-EMPTY); a missing or
 unparseable ``state.toml``, an absent ``working/`` tree, or an unreadable/
-undecodable ``draft.md`` is likewise exit ``3``. This is the write path only;
-the ``--check`` divergence checker and the compile-and-hash routine are roadmap
-tasks 4.1.2 and 3.1.2 (ExecPlan D-SCOPE).
+undecodable ``draft.md`` is likewise exit ``3``.
+
+The module also hosts the ``--check`` read-only divergence checker
+(:func:`check_compiled`; roadmap task 4.1.2; design §4.3). With ``--check``,
+``novel-compile`` is a *checker*: it reads ``state.toml`` and the manuscript
+tree, reports whether ``compiled.md`` is the ordered concatenation of the present
+drafts, **writes nothing on any path**, and exits ``4`` (an actionable finding)
+when the compile is stale or absent so the agent knows to regenerate (design
+§3.3 checker/mutator table; ADR-001). The two modes share the verdict site
+:func:`~novel_ralph_skill.state.compiled_matches_drafts` with the ``novel-done``
+``compile_consistent`` clause, so the command-line surface and the done clause
+cannot disagree about whether ``compiled.md`` is current (ExecPlan
+D-POLARITY/D-BYTE-COMPARE).
 """
 
 from __future__ import annotations
@@ -44,6 +54,8 @@ from novel_ralph_skill.contract.runner import (
     make_contract_app,
 )
 from novel_ralph_skill.state import (
+    CompiledComparison,
+    compiled_matches_drafts,
     concatenate_drafts,
     present_draft_bodies,
     write_text_atomically,
@@ -52,11 +64,36 @@ from novel_ralph_skill.state import (
 if typ.TYPE_CHECKING:
     import cyclopts
 
+    from novel_ralph_skill.state.schema import State
+
 # The working-relative ``compiled.md`` path, named once so the written file, the
 # success ``result``, and the human message cannot drift (design §4.3). It is the
 # working-relative token rather than an absolute path so the envelope is
 # deterministic for snapshotting (ExecPlan D-RESULT; AGENTS.md snapshot rule).
 _COMPILED_REL = "working/manuscript/compiled.md"
+
+
+def _require_chapter_manifest(state: State) -> None:
+    """Refuse an absent or empty ``[chapters]`` manifest with exit ``3``.
+
+    An absent or empty manifest has no authoritative ordering, so neither the
+    write path nor the ``--check`` checker can act on it; both refuse with the
+    identical exit-``3`` :class:`StateInputError` *before* any read, so the two
+    modes' state-error boundary cannot drift (design §10; ExecPlan D-EMPTY).
+
+    Parameters
+    ----------
+    state : State
+        The parsed, typed ``state.toml`` carrying the ``[chapters]`` manifest.
+
+    Raises
+    ------
+    StateInputError
+        When ``state.chapters`` is empty (the exit-``3`` channel).
+    """
+    if not state.chapters:
+        msg = "cannot compile: chapter manifest is absent or empty"
+        raise StateInputError(msg)
 
 
 def compile_manuscript() -> CommandOutcome:
@@ -96,11 +133,7 @@ def compile_manuscript() -> CommandOutcome:
         or ``working/manuscript/`` is absent (each the exit-``3`` channel).
     """
     state = _load_or_state_error(state_path())
-    if not state.chapters:
-        # An absent or empty manifest has no authoritative ordering, so there is
-        # nothing to compile; refuse rather than write an empty compiled.md.
-        msg = "cannot compile: chapter manifest is absent or empty"
-        raise StateInputError(msg)
+    _require_chapter_manifest(state)
     root = working_dir()
     try:
         bodies = present_draft_bodies(state, root)
@@ -127,16 +160,95 @@ def compile_manuscript() -> CommandOutcome:
     )
 
 
+def check_compiled() -> CommandOutcome:
+    """Report whether ``compiled.md`` matches the drafts; write nothing.
+
+    The read-only half of ``novel-compile`` (roadmap task 4.1.2; design §4.3).
+    It loads ``state.toml`` through ``novel-state``'s shared exit-``3`` boundary,
+    refuses an absent/empty ``[chapters]`` manifest with the identical exit-``3``
+    :class:`StateInputError` the write path uses (via the shared
+    :func:`_require_chapter_manifest` guard), then reads the divergence verdict
+    from the single production site
+    :func:`~novel_ralph_skill.state.compiled_matches_drafts` — the same routine
+    the ``novel-done`` ``compile_consistent`` clause consumes, so the two cannot
+    disagree on whether ``compiled.md`` is current (ExecPlan Constraints "share
+    one comparison routine"; D-BYTE-COMPARE).
+
+    The verdict is projected to the ``compile_consistent`` polarity: only
+    :attr:`~novel_ralph_skill.state.CompiledComparison.MATCHES` is satisfied
+    (exit ``0``); both :attr:`~CompiledComparison.ABSENT` and
+    :attr:`~CompiledComparison.DIVERGES` are actionable findings (exit ``4``),
+    because an absent ``compiled.md`` is equally "not current — regenerate it"
+    (ExecPlan D-POLARITY). This is the **opposite** polarity to the §5.4
+    ``novel-state check`` disk-evidence detector (absent = vacuously satisfied);
+    both are reconciled inside the one shared helper.
+
+    The body never calls ``write_text_atomically`` and never reaches the write
+    branch, so it writes nothing on any path (ADR-001; ExecPlan R-NOWRITE). The
+    success ``result`` carries the checker-shaped keys ``checked``/``chapters``/
+    ``diverged`` and no write keys; ``diverged`` is the bounded boolean datum, not
+    a per-chapter enumeration (design §3.3; ExecPlan D-RESULT).
+
+    Returns
+    -------
+    CommandOutcome
+        ``ExitCode.SUCCESS`` with ``diverged=False`` when the verdict is
+        ``MATCHES``; ``ExitCode.ACTIONABLE_FINDING`` with ``diverged=True`` when
+        the verdict is ``ABSENT`` or ``DIVERGES``.
+
+    Raises
+    ------
+    StateInputError
+        When ``state.toml`` is missing/unparseable, the ``[chapters]`` manifest
+        is absent or empty, or a chapter's ``draft.md``/``compiled.md`` is
+        unreadable or undecodable (each the exit-``3`` channel).
+    """
+    state = _load_or_state_error(state_path())
+    _require_chapter_manifest(state)
+    try:
+        verdict = compiled_matches_drafts(state, working_dir())
+    except STATE_INPUT_ERRORS as exc:
+        msg = f"cannot read chapter drafts or {_COMPILED_REL}: {exc}"
+        raise StateInputError(msg) from exc
+    if verdict is CompiledComparison.MATCHES:
+        return CommandOutcome(
+            code=ExitCode.SUCCESS,
+            result={
+                "checked": _COMPILED_REL,
+                "chapters": len(state.chapters),
+                "diverged": False,
+            },
+            messages=[f"{_COMPILED_REL} matches the chapter drafts"],
+        )
+    return CommandOutcome(
+        code=ExitCode.ACTIONABLE_FINDING,
+        result={
+            "checked": _COMPILED_REL,
+            "chapters": len(state.chapters),
+            "diverged": True,
+        },
+        messages=[
+            (
+                f"{_COMPILED_REL} diverges from the chapter drafts; "
+                "regenerate it with novel-compile"
+            )
+        ],
+    )
+
+
 def build_app() -> cyclopts.App:
     """Build the ``novel-compile`` Cyclopts app (design §4.3; ADR-005).
 
-    ``novel-compile`` maps 1:1 onto one deterministic operation, so the app
-    exposes a single default callback (the write) rather than a subcommand
-    multiplexer (the ``--check`` flag is roadmap task 4.1.2; ExecPlan D-SCOPE).
+    ``novel-compile`` maps 1:1 onto one operation with two modes, so the app
+    exposes a single default callback carrying a kw-only ``--check`` boolean
+    rather than a subcommand multiplexer (design §4.3; ADR-005; ExecPlan D-FLAG).
     Built via :func:`novel_ralph_skill.contract.runner.make_contract_app`, which
     owns the four-flag contract so the shared
     :func:`novel_ralph_skill.contract.runner.run` owns every exit and envelope,
-    exactly like ``desloppify``.
+    exactly like ``desloppify``. Without ``--check`` the body writes
+    ``compiled.md`` and exits ``0``; with ``--check`` it is the read-only
+    divergence checker (:func:`check_compiled`), which writes nothing and exits
+    ``4`` on a stale or absent compile.
 
     Returns
     -------
@@ -146,8 +258,8 @@ def build_app() -> cyclopts.App:
     app = make_contract_app("novel-compile")
 
     @app.default
-    def _compile() -> CommandOutcome:
-        """Concatenate the chapter drafts into ``compiled.md``; exit 0/3."""
-        return compile_manuscript()
+    def _compile(*, check: bool = False) -> CommandOutcome:
+        """Check or compile the chapter drafts; ``--check`` writes nothing."""
+        return check_compiled() if check else compile_manuscript()
 
     return app

@@ -1,10 +1,20 @@
-"""End-to-end reachability of ``novel-compile`` (roadmap task 4.1.1).
+"""End-to-end reachability of ``novel-compile`` (roadmap tasks 4.1.1, 4.1.2).
 
 This proves the externally observable command-line behaviour of the now-real
 command: driven through ``stub.novel_compile()`` (the installed console-script
 body) against a prepared drafting tree, ``novel-compile`` resolves, exits ``0``,
 emits an envelope naming the written ``compiled.md``, and writes the file with
 the ordered draft concatenation. An empty-manifest tree refuses with exit ``3``.
+
+The ``--check`` entry-point cases pin the read-only divergence checker through
+the same real console-script body: a current compile exits ``0`` with
+``diverged: false`` and a present-but-stale compile exits ``4`` with
+``diverged: true``, each leaving ``compiled.md`` byte-for-byte unchanged. These
+are the only layer that exercises ``parse_global_flags`` + ``_drive`` (where
+``--human`` is stripped and the residual argv, including ``--check``, is
+forwarded to ``run``), so they regression-pin that the kw-only ``--check`` flag
+survives the pre-parse (ExecPlan R-ENTRYPOINT, D-ENTRYPOINT). The in-process
+``run(build_app(), ["--check"], …)`` tests bypass that layer entirely.
 
 The slower wheel-build install e2e for the spine lives in
 ``tests/test_console_scripts_e2e.py``; this fast entry-point check is the
@@ -81,6 +91,94 @@ def test_entry_point_compile_reachable_exits_zero(
     assert result["compiled"] == "working/manuscript/compiled.md"
     compiled = working / "manuscript" / "compiled.md"
     assert compiled.read_text(encoding="utf-8") == expected
+
+
+def _check_tree(compiled: str | None, tmp_path: Path) -> Path:
+    """Build a coherent three-chapter tree carrying ``compiled`` on disk.
+
+    ``compiled`` is :data:`working_corpus.COMPILED_AUTO` for the coherent
+    compile or an arbitrary string for a present-but-stale one; the materialised
+    ``compiled.md`` is what the entry-point ``--check`` cases inspect.
+    """
+    counts = (3, 5, 4)
+    chapters = tuple(
+        wc.ChapterSpec(
+            number=number,
+            slug=f"chapter-{number:02d}",
+            title=f"Chapter {number}",
+            target_words=20000,
+            draft_words=count,
+            has_done_flag=False,
+        )
+        for number, count in enumerate(counts, start=1)
+    )
+    spec = wc.WorkingTreeSpec(
+        phase_current="drafting",
+        phase_completed=wc.PHASE_ORDER[:8],
+        chapters=chapters,
+        target_words=80000,
+        consecutive_clean=0,
+        convergence_target=1,
+        current_chapter=len(chapters),
+        compiled=compiled,
+    )
+    return wc.build_working_tree(spec, tmp_path)
+
+
+def test_entry_point_compile_check_current_exits_zero(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """``--check`` over a current compile exits ``0`` through the entry point.
+
+    Drives the real console-script body ``stub.novel_compile()`` with ``sys.argv
+    = [_COMMAND, "--check"]``, so the kw-only ``--check`` flag must survive the
+    ``parse_global_flags`` + ``_drive`` pre-parse and reach the body (R-ENTRYPOINT).
+    """
+    working = _check_tree(wc.COMPILED_AUTO, tmp_path)
+    compiled = working / "manuscript" / "compiled.md"
+    before = compiled.read_bytes()
+    monkeypatch.chdir(working.parent)
+    monkeypatch.setattr(sys, "argv", [_COMMAND, "--check"])
+    with pytest.raises(SystemExit) as excinfo:
+        stub.novel_compile()
+    assert excinfo.value.code == ExitCode.SUCCESS
+    result = typ.cast(
+        "dict[str, object]", json.loads(capsys.readouterr().out)["result"]
+    )
+    assert result["diverged"] is False
+    assert result["checked"] == "working/manuscript/compiled.md"
+    assert compiled.read_bytes() == before, (
+        "--check must not write through the entry point"
+    )
+
+
+def test_entry_point_compile_check_stale_exits_four(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """``--check`` over a present-but-stale compile exits ``4`` through the entry point.
+
+    The finding branch of the entry-point pin: a stale ``compiled.md`` exits ``4``
+    with ``diverged: true`` and is left byte-for-byte unchanged.
+    """
+    working = _check_tree("STALE — not the ordered concatenation", tmp_path)
+    compiled = working / "manuscript" / "compiled.md"
+    before = compiled.read_bytes()
+    monkeypatch.chdir(working.parent)
+    monkeypatch.setattr(sys, "argv", [_COMMAND, "--check"])
+    with pytest.raises(SystemExit) as excinfo:
+        stub.novel_compile()
+    assert excinfo.value.code == ExitCode.ACTIONABLE_FINDING
+    envelope = json.loads(capsys.readouterr().out)
+    assert envelope["ok"] is False
+    result = typ.cast("dict[str, object]", envelope["result"])
+    assert result["diverged"] is True
+    assert compiled.read_bytes() == before, (
+        "--check must not write through the entry point"
+    )
 
 
 def test_entry_point_compile_empty_manifest_exits_three(

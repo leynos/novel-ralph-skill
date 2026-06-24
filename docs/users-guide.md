@@ -102,6 +102,15 @@ in the shared exit-code table below): plan the chapters first. Any other state o
 input fault — a missing or unparseable `state.toml`, or an unreadable draft —
 likewise exits `3`.
 
+`novel-compile --check` is the read-only counterpart (roadmap task 4.1.2). It
+reports whether `compiled.md` is the ordered concatenation of the present chapter
+drafts and **writes nothing on any path**. It exits `0` when the compile is
+current and `4` (an actionable finding) when `compiled.md` is stale **or absent**,
+so the harness knows to regenerate it; an absent or empty `[chapters]` manifest
+still exits `3`. The verdict is read from the one shared routine the `novel-done`
+`compile_consistent` clause also uses, so `novel-compile --check` and that clause
+agree on every tree about whether `compiled.md` is current.
+
 `novel-state` now has its first real subcommand, `novel-state check` (roadmap
 task 2.1.2). It validates the state coherence invariants of
 `./working/state.toml` and writes nothing. The working directory is the fixed

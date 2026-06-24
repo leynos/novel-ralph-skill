@@ -169,8 +169,9 @@ with distribution in
   disk. See design §4.2.
 - `novel-compile` — regenerates `working/manuscript/compiled.md`
   deterministically in chapter-index order (the write path, roadmap task 4.1.1);
-  the `--check` read-only divergence checker is roadmap task 4.1.2 and is not yet
-  wired. See design §4.3.
+  `novel-compile --check` is the read-only divergence checker (roadmap task
+  4.1.2), which writes nothing and exits `4` when `compiled.md` is stale or
+  absent. See design §4.3.
 - `desloppify` — detects and reports prose tics from a versioned rule pack,
   never editing. See design §4.4 and §6.
 - `wordcount` — a read-only checker reporting per-chapter and cumulative
@@ -324,11 +325,18 @@ freshly compiled tree is coherent under `novel-state check` by construction. The
 task 3.1.3 factored "does `compiled.md` equal the ordered draft concatenation?"
 into the one helper `compile_model.compiled_matches_drafts` (see the done
 predicate section below), so the detector and the `compile_consistent` clause
-recompute the verdict at a single site. The
-`novel-compile --check` divergence flag and the `novel-done` done predicate will
-call the same compile-and-**hash** routine (roadmap tasks 4.1.2 and 3.1.2), so
-they cannot disagree about whether `compiled.md` is stale; that routine is not
-yet delivered, and `--check` is not yet wired.
+recompute the verdict at a single site. Both the `novel-compile --check`
+divergence flag (roadmap task 4.1.2) and the `novel-done` `compile_consistent`
+clause now call that one routine, `compile_model.compiled_matches_drafts` — a
+direct byte comparison, not a digest, so no `hashlib` is involved despite the
+historical "compile-and-hash" naming. They cannot disagree about whether
+`compiled.md` is stale. `novel-compile --check` projects the verdict to the same
+polarity the `compile_consistent` clause uses: only `MATCHES` is satisfied (exit
+`0`), so an absent or stale `compiled.md` is exit `4`. This is the **opposite**
+absent-file polarity to the §5.4 `novel-state check` detector
+(`_check_compiled_matches_drafts`), which treats an absent `compiled.md` as
+vacuously satisfied; the two polarities are correct for their different jobs and
+are reconciled inside the one shared helper.
 
 The typed, read-only model of `state.toml` lives in the
 `novel_ralph_skill.state` package (design §5.1). `Phase` is the closed,

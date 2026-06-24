@@ -1,0 +1,13 @@
+# serializer version: 1
+# name: test_check_diverges_envelope_snapshot
+  '''
+  {"command": "novel-compile", "schema_version": 1, "ok": false, "working_dir": "working", "result": {"checked": "working/manuscript/compiled.md", "chapters": 3, "diverged": true}, "messages": ["working/manuscript/compiled.md diverges from the chapter drafts; regenerate it with novel-compile"]}
+  
+  '''
+# ---
+# name: test_check_matches_envelope_snapshot
+  '''
+  {"command": "novel-compile", "schema_version": 1, "ok": true, "working_dir": "working", "result": {"checked": "working/manuscript/compiled.md", "chapters": 3, "diverged": false}, "messages": ["working/manuscript/compiled.md matches the chapter drafts"]}
+  
+  '''
+# ---

@@ -20,3 +20,30 @@ Feature: novel-compile regenerates compiled.md in chapter-index order
     When novel-compile runs against that tree
     Then novel-compile exits 3
     And no compiled.md is written
+
+  Scenario: check reports a current compile
+    Given a working tree whose compiled.md matches the drafts
+    When novel-compile --check runs against that tree
+    Then novel-compile exits 0
+    And the envelope reports diverged false
+    And the present compiled.md is left byte-for-byte unchanged
+
+  Scenario: check reports a stale compile
+    Given a working tree with a present-but-stale compiled.md
+    When novel-compile --check runs against that tree
+    Then novel-compile exits 4
+    And the envelope reports diverged true
+    And the present compiled.md is left byte-for-byte unchanged
+
+  Scenario: check reports an absent compile
+    Given a working tree with no compiled.md
+    When novel-compile --check runs against that tree
+    Then novel-compile exits 4
+    And the envelope reports diverged true
+    And no compiled.md is written
+
+  Scenario: check refuses an empty chapter manifest with exit 3
+    Given a working tree whose chapter manifest is empty
+    When novel-compile --check runs against that tree
+    Then novel-compile exits 3
+    And no compiled.md is written

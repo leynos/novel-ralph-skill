@@ -1085,7 +1085,7 @@ zero-padded chapter index, validated against the manifest — and gives
       integration test driving both real entry points in sequence catches future
       drift between the two commands' resolvers and envelopes the function-level
       pin cannot see. Lightweight addendum pass.
-- [ ] 4.1.2. Implement the `--check` read-only divergence checker.
+- [x] 4.1.2. Implement the `--check` read-only divergence checker.
   - Requires 4.1.1 and 3.1.2.
   - Report divergence by calling the shared compile-and-hash routine from
     3.1.2 — the same code path the `novel-done` compile clause uses — writing
