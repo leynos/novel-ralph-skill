@@ -3,11 +3,11 @@
 This module is a pytest plugin registered through ``pytest_plugins`` in
 ``tests/conftest.py``, alongside the ``corpus_fixtures`` and
 ``corpus_live_draft_fixtures`` plugins. It re-exposes the
-``DIVERGENT_TABLE_VARIANTS`` corpus category (roadmap 2.1.5) by fixture name: the
-divergent-table trees whose ``[word_counts].by_chapter`` table deliberately
-over-counts both proxy quantities relative to the on-disk ``draft.md`` bodies, so
-the draft-reading live oracle and the table-reading §5.2 validator disagree on
-the two proxies.
+``DIVERGENT_TABLE_VARIANTS`` corpus category (roadmap 2.1.5, 2.1.6) by fixture
+name: the divergent-table trees whose ``[word_counts].by_chapter`` table
+deliberately belies the on-disk ``draft.md`` bodies — one member over-counts both
+proxy quantities, the other under-counts them — so the draft-reading live oracle
+and the table-reading §5.2 validator disagree on at least one proxy.
 
 These fixtures live here rather than in ``corpus_fixtures`` solely because that
 module is at the 400-line cap (AGENTS.md lines 24-27): adding the two fixtures

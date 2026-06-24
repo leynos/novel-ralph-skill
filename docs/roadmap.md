@@ -548,7 +548,7 @@ novel-ralph-harness-design.md §5.1 and §5.2.
       variant will break it with an opaque unpacking error; iterate the variant
       set (or pin an explicit single variant) to localise that future failure.
       Lightweight addendum pass.
-- [ ] 2.1.6. Add a symmetric under-counting divergent-table corpus variant so the
+- [x] 2.1.6. Add a symmetric under-counting divergent-table corpus variant so the
   discrimination loop catches a mutant that mishandles only over-counts.
   - The §1.3.2 corpus now owns a single over-counting `by_chapter_override`
     divergent-table tree. Add a first-class sibling variant whose

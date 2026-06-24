@@ -168,10 +168,14 @@ def live_draft_owned(spec: WorkingTreeSpec, working_dir: Path) -> set[str]:
     live quantities (the live drafted-words total ``sum(chapter.draft_words)`` and
     the live drafted-chapters count
     ``sum(1 for c in chapters if c.draft_words > 0)`` recovered from disk), NOT
-    their ``[word_counts].by_chapter`` table equivalents. A future
-    ``by_chapter_override`` variant that separates the table basis from the draft
-    basis on either proxy is therefore a finding to investigate, not a drift to
-    align.
+    their ``[word_counts].by_chapter`` table equivalents. The two
+    ``by_chapter_override`` variants that separate the table basis from the draft
+    basis — ``DIVERGENT_TABLE_VARIANTS["by-chapter-override-over-counts-drafts"]``
+    and ``["by-chapter-override-under-counts-drafts"]`` — therefore exercise this
+    landmine: the disagreement they surface is a finding to investigate, not a
+    drift to align. The under-counting variant in particular kills a
+    ``min(live, table)``-style mutant of :func:`live_draft_counts` that mishandles
+    only over-counts and survives the over-counting variant alone.
 
     The ``spec`` argument feeds only the :func:`corpus_check` reuse; the two
     live-draft proxy reconciliations (``gate-ratio-consistent``,

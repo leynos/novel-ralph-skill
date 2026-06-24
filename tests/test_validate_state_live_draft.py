@@ -16,20 +16,26 @@ booleans against the live drafted-words ratio and the ``[drafting.critic].
 consecutive_clean`` counter against the live drafted-chapters count. Comparing the
 table-reading validator with the draft-reading oracle on every corpus tree pins
 that the two agree on quantities neither one derived from the table they both
-validate, and the ``by_chapter_override`` variant that separates the table from
-the drafts on either proxy — ``DIVERGENT_TABLE_VARIANTS[
-"by-chapter-override-over-counts-drafts"]`` — surfaces as a disagreement driven
+validate, and the ``by_chapter_override`` variants that separate the table from
+the drafts on either proxy — the two ``DIVERGENT_TABLE_VARIANTS`` members
+``"by-chapter-override-over-counts-drafts"`` and
+``"by-chapter-override-under-counts-drafts"`` — surface as disagreements driven
 from corpus data.
 
 Because the coherent and incoherent §1.3.2 corpus trees keep
 ``by_chapter_override`` unset, the table and the drafts agree numerically on every
 one of them, so the whole-corpus agreement test alone cannot tell a live-draft
 read from a table read — a table-based mutant of ``live_draft_counts`` passes it.
-``test_live_draft_discriminates_table_from_drafts`` closes that gap by sourcing the
-``DIVERGENT_TABLE_VARIANTS`` corpus tree (where the table belies the drafts)
-through the ``divergent_table_tree`` factory fixture and asserting the oracle reads
-the drafts and disagrees with the table-reading validator on both proxies. The tree
-is now a first-class corpus variant, no longer constructed in this module.
+``test_live_draft_discriminates_table_from_drafts`` closes that gap by iterating
+every ``DIVERGENT_TABLE_VARIANTS`` corpus tree (where the table belies the drafts)
+through the ``divergent_table_tree`` factory fixture and asserting, against a
+per-variant expected verdict, that the oracle reads the drafts and disagrees with
+the table-reading validator. The table over-counts both proxies on one tree (the
+live oracle fires both) and under-counts both on the other (the live oracle fires
+only ``gate-ratio-consistent``); the under-counting tree exists to kill a
+``min(live, table)``-style mutant of ``live_draft_counts`` that the over-counting
+tree alone cannot catch. The trees are first-class corpus variants, no longer
+constructed in this module.
 
 Both verdicts are restricted to ``CORPUS_INVARIANT_NAMES``'s eight pure-state
 (owned) names before comparison; a disk-evidence variant therefore yields two
@@ -73,6 +79,27 @@ _DISK_EVIDENCE_NAMES: frozenset[str] = frozenset(
         "cursor-plan-present",
     },
 )
+
+# Each divergent-table variant's verified live read and the owned verdict the
+# live-draft oracle returns on it (the table-reading validator stays silent on
+# every owned name for both). The over-counting tree makes the table over-state
+# both proxy quantities, so the live oracle fires both proxies; the under-counting
+# tree makes the table *under*-state them, and Decision Log D2 proves that on the
+# under-counting tree only ``gate-ratio-consistent`` can fire on the live side
+# (``consecutive-clean-within-drafted`` cannot, because the under-counted table
+# chapter count is a smaller ceiling than the live count, never exceeded). The
+# verdicts are asymmetric, so each key carries its own expectation rather than a
+# single shared assertion.
+_DIVERGENT_EXPECTATIONS: dict[str, tuple[tuple[int, int], frozenset[str]]] = {
+    "by-chapter-override-over-counts-drafts": (
+        (8000, 2),
+        frozenset({GATE_RATIO_CONSISTENT, CONSECUTIVE_CLEAN_WITHIN_DRAFTED}),
+    ),
+    "by-chapter-override-under-counts-drafts": (
+        (90000, 3),
+        frozenset({GATE_RATIO_CONSISTENT}),
+    ),
+}
 
 
 def test_live_draft_counts_equal_honest_draft_bases(
@@ -146,38 +173,52 @@ def test_live_draft_discriminates_table_from_drafts(
     live_draft_counts: cabc.Callable[[Path], tuple[int, int]],
     check_live_draft: cabc.Callable[[WorkingTreeSpec, Path], set[str]],
 ) -> None:
-    """The live oracle reads the drafts, not the table, when the two diverge.
+    """The live oracle reads the drafts, not the table, on every divergent tree.
 
-    Every §1.3.2 corpus tree keeps ``[word_counts].by_chapter`` numerically equal
-    to its on-disk drafts on the coherent and incoherent variants, so on those a
-    live-draft read and a table read are indistinguishable and a table-based
-    mutant of :func:`live_draft_counts` passes every other test in this module.
-    The divergent-table tree this test exercises is now a first-class §1.3.2
-    corpus variant (``DIVERGENT_TABLE_VARIANTS``), sourced through the
-    ``divergent_table_tree`` factory fixture rather than constructed in-module —
-    drafts of 8000 words across two chapters against a table claiming 90000 words
-    across three entries — so the discrimination is driven from corpus data
-    through the standard fixture loop.
+    Every coherent and incoherent §1.3.2 corpus tree keeps
+    ``[word_counts].by_chapter`` numerically equal to its on-disk drafts, so on
+    those a live-draft read and a table read are indistinguishable and a
+    table-based mutant of :func:`live_draft_counts` passes every other test in
+    this module. The divergent-table trees this test exercises are first-class
+    §1.3.2 corpus variants (``DIVERGENT_TABLE_VARIANTS``), sourced through the
+    ``divergent_table_tree`` factory fixture rather than constructed in-module, so
+    the discrimination is driven from corpus data through the standard fixture
+    loop for *every* divergent variant.
 
-    Assertion (a): :func:`live_draft_counts` returns the **draft**-derived numbers
-    ``(8000, 2)``, never the table-derived ``(90000, 3)``. Assertion (b): the
-    live-draft oracle and the table-reading §5.2 validator **disagree** on both
-    perturbed proxies — the live oracle names ``gate-ratio-consistent`` (the live
-    0.10 ratio contradicts the all-``True`` gates) and
-    ``consecutive-clean-within-drafted`` (``consecutive_clean`` 3 exceeds the two
-    live drafted chapters), while the validator, reading the table's 1.125 ratio
-    and three drafted entries, names neither. A table-based read would collapse the
-    oracle's verdict to the validator's, so the disagreement is exactly what proves
-    the oracle is live.
+    The two trees diverge in opposite directions, so each carries its own expected
+    verdict in :data:`_DIVERGENT_EXPECTATIONS`. The over-counting tree drafts 8000
+    words across two chapters against a table claiming 90000 words across three
+    entries; its live read is ``(8000, 2)`` and the live oracle fires both proxies
+    (the live 0.10 ratio contradicts the all-``True`` gates and
+    ``consecutive_clean`` 3 exceeds the two live drafted chapters). The
+    under-counting tree drafts 90000 words across three chapters against a table
+    claiming 8000 words across two entries; its live read is ``(90000, 3)`` and the
+    live oracle fires only ``gate-ratio-consistent`` (the live 1.125 ratio
+    contradicts the all-``False`` gates, while ``consecutive_clean`` 2 stays within
+    both the live and the table drafted-chapter counts — Decision Log D2).
+
+    For each variant: assertion (a) — :func:`live_draft_counts` returns the
+    **draft**-derived numbers, never the table-derived ones; assertion (b) — the
+    live-draft oracle and the table-reading §5.2 validator **disagree** on the
+    perturbed proxies, the validator naming none of them. A table-based read would
+    collapse the oracle's verdict to the validator's, so the disagreement is
+    exactly what proves the oracle is live. The under-counting tree is the variant
+    that kills a ``min(live, table)``-style mutant of :func:`live_draft_counts`
+    which "mishandles only over-counts" and survives the over-counting tree alone.
     """
-    (variant_name,) = divergent_table_variant_names
-    spec, working_dir = divergent_table_tree(variant_name)
-    assert live_draft_counts(working_dir) == (8000, 2)
-    oracle_owned = check_live_draft(spec, working_dir)
-    validator_owned = validator_verdict(working_dir) & set(PURE_STATE_INVARIANT_NAMES)
-    assert oracle_owned == {GATE_RATIO_CONSISTENT, CONSECUTIVE_CLEAN_WITHIN_DRAFTED}
-    assert validator_owned == set()
-    assert oracle_owned != validator_owned
+    owned = set(PURE_STATE_INVARIANT_NAMES)
+    for variant_name in divergent_table_variant_names:
+        # A new, unpinned divergent variant must announce itself loudly rather
+        # than silently skipping the discrimination assertion.
+        assert variant_name in _DIVERGENT_EXPECTATIONS, variant_name
+        expected_counts, expected_owned = _DIVERGENT_EXPECTATIONS[variant_name]
+        spec, working_dir = divergent_table_tree(variant_name)
+        assert live_draft_counts(working_dir) == expected_counts, variant_name
+        oracle_owned = check_live_draft(spec, working_dir)
+        validator_owned = validator_verdict(working_dir) & owned
+        assert oracle_owned == set(expected_owned), variant_name
+        assert validator_owned == set(), variant_name
+        assert oracle_owned != validator_owned, variant_name
 
 
 def test_live_draft_oracle_agrees_with_validator_on_proxy_decoupling(

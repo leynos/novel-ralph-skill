@@ -353,16 +353,32 @@ restricted to the eight owned names, `validate_state` (reading the table) and th
 live-draft oracle (reading the drafts) return the same verdict on every coherent
 tree and every incoherent variant — a full-vocabulary cross-check keyed on
 `CORPUS_INVARIANT_NAMES`. Both live readings are the design's **honest-draft**
-bases (the invariant-7 numerator and the invariant-4c ceiling), so the
-`by_chapter_override` variant
-`DIVERGENT_TABLE_VARIANTS["by-chapter-override-over-counts-drafts"]` (roadmap
-2.1.5), which separates the table basis from the draft basis on both proxies,
-is a finding to investigate, not a drift to paper over;
-`test_live_draft_discriminates_table_from_drafts` drives that discrimination from
+bases (the invariant-7 numerator and the invariant-4c ceiling), so the two
+`by_chapter_override` variants that separate the table basis from the draft basis
+— `DIVERGENT_TABLE_VARIANTS["by-chapter-override-over-counts-drafts"]` (roadmap
+2.1.5) and `["by-chapter-override-under-counts-drafts"]` (roadmap 2.1.6) — are
+findings to investigate, not drifts to paper over.
+`test_live_draft_discriminates_table_from_drafts` iterates both members from
 corpus data through the standard fixture loop (the `divergent_table_tree`
 factory), having retired the module-local fixture the 2.1.3 fix round used, and
 a `test_live_draft_counts_equal_honest_draft_bases` self-test pins both live
-numbers to those bases on every coherent tree. The cross-check does **not** "live-
+numbers to those bases on every coherent tree. The two members diverge in
+opposite directions and so carry asymmetric expected verdicts. The over-counting
+tree makes the table over-state both quantities, so the live oracle names
+**both** proxies (`gate-ratio-consistent` and `consecutive-clean-within-drafted`)
+while the validator names neither. The under-counting tree makes the table
+under-state them, and there the live oracle names **only**
+`gate-ratio-consistent`: `consecutive-clean-within-drafted` cannot fire on the
+live side because an under-counted table chapter count is a *smaller* ceiling than
+the live count, so keeping the validator silent forces the `consecutive_clean`
+counter within the live count too. The under-counting tree exists specifically to
+kill a table-reading mutant of `live_draft_counts` that "mishandles only
+over-counts" — a `min(live, table)`-style mutant that returns the element-wise
+minimum of the live read and the table read. On the over-counting tree that
+minimum is the live read, so the mutant survives; on the under-counting tree it
+returns the table read, collapsing the oracle's verdict from
+`{gate-ratio-consistent}` to empty and failing the discrimination test. The
+over-counting tree alone cannot catch it. The cross-check does **not** "live-
 reconcile" `by-chapter-sum` (invariant 3 is table-internal, with no live
 analogue, so it reads `sum(by_chapter) == current` from the table) and it does
 **not** re-run `validate_state` as the oracle — the other five owned invariants

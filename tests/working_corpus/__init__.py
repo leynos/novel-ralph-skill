@@ -4,8 +4,9 @@ This package is the corpus data and builder for roadmap task 1.3.2. Its public
 surface (re-exported here) is the specification dataclasses, the tree builder,
 the compile helper and its constants, and — added in later work items — the
 named specification library, the incoherent variants, the ``done.flag``
-permutations, the divergent-table variants, and the corpus-local structural
-oracle.
+permutations, the divergent-table variants (the over-counting and under-counting
+``[word_counts].by_chapter`` trees whose table belies the on-disk drafts), and the
+corpus-local structural oracle.
 
 ``tests/conftest.py`` is the single runtime importer of this package: it
 re-exposes every datum as a pytest fixture so test modules consume the corpus by
