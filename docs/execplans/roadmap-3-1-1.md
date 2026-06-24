@@ -1005,7 +1005,7 @@ parent).
   than the absent outline parse, keeping the design §4.3 chapter-source rule the
   single described path. Docs-only; no code or test change.
 
-- [ ] **Roadmap 3.1.1.2 — reconcile the `novel_predicate` pseudocode to the
+- [x] **Roadmap 3.1.1.2 — reconcile the `novel_predicate` pseudocode to the
   zero-padded `chapter-NN` layout** (from audit:3.1.5; severity low). The
   reference `novel_predicate`'s unpadded `chapter-{chapter_id}` path
   (`skill/novel-ralph/references/done-conditions.md:162,184`) contradicts the

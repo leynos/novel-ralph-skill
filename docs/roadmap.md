@@ -932,7 +932,7 @@ novel-ralph-harness-design.md §4.2 and §2.3.
       a docs pass. Reconcile the reference prose to the manifest source so it no
       longer describes a parse path absent from the codebase. Lightweight
       addendum pass.
-  - [ ] 3.1.1.2. Reconcile the `done-conditions.md` predicate pseudocode to the
+  - [x] 3.1.1.2. Reconcile the `done-conditions.md` predicate pseudocode to the
     zero-padded `chapter-NN` layout.
     - Addendum (from audit:3.1.5; low). The reference `novel_predicate`'s unpadded
       `chapter-{chapter_id}` path (`done-conditions.md:162,184`) contradicts the

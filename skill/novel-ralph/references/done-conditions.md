@@ -159,7 +159,7 @@ def novel_predicate(working_dir, state):
     # §4.3 pins the chapter source to the manifest, not to outline prose.
     for chapter in state["chapters"]:
         chapter_id = chapter["number"]
-        flag = working_dir / f"manuscript/chapter-{chapter_id}/done.flag"
+        flag = working_dir / f"manuscript/chapter-{chapter_id:02d}/done.flag"
         if not flag.exists():
             return False
 
@@ -181,7 +181,7 @@ def novel_predicate(working_dir, state):
     # 5. No outstanding BLOCKER findings. Iterate the same manifest chapter set.
     for chapter in state["chapters"]:
         chapter_id = chapter["number"]
-        notes = working_dir / f"manuscript/chapter-{chapter_id}/critic-notes.md"
+        notes = working_dir / f"manuscript/chapter-{chapter_id:02d}/critic-notes.md"
         if notes.exists() and contains_unresolved_blocker(notes):
             return False
 
