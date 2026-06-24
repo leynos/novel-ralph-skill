@@ -986,3 +986,13 @@ on merge.
   duplicates an inline `toml_table` access; add a `wrapper_app` fixture plus a
   `project_scripts` walker in `conftest` so both live once. Behaviour-preserving;
   gate with `make all`.
+- [ ] 1.3.1.2 — Audit and document the `contract`→`commands.names` import edge
+  (from review:1.3.6, low). `contract/envelope.py` and `tests/conftest.py` both
+  import `COMMAND_NAMES` from `novel_ralph_skill.commands.names`, which crosses
+  the `contract`→`commands` layering boundary the design states. The dependency
+  is pre-existing and benign — `names.py` is a leaf source-of-truth module with
+  no command logic — but the direction is currently implicit. Make it explicit
+  with a short note (an ADR-003 or developers'-guide sentence) recording that
+  the shared name registry is a leaf both layers may depend on, so the edge
+  reads as deliberate rather than a layering leak. Documentation-only; no
+  relocation required. Gate with `make all`.

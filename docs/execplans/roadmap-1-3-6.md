@@ -875,3 +875,38 @@ item 2 is explicitly warned not to reintroduce that misattribution. (3) Advisory
 fixture's newly added `name=` is behaviourally inert. No work items were added,
 removed, or reordered; the change is documentation/test-specification precision
 only.
+
+## Addenda (post-merge follow-ups)
+
+Lightweight addendum work items folded back onto this completed task. Execute
+each as a small addendum pass — no plan or design-review cycle: make the change,
+run `make all`, `coderabbit review --agent`, commit, and tick the roadmap
+sub-task on merge.
+
+- [ ] 1.3.6.1 — Add a structural tripwire pinning that the four `build_app()`
+  constructors and the four real entry points consume the centralisation (merges
+  review:1.3.6 and audit:1.3.6 Finding 3, low and medium). The behavioural proof
+  that `make_contract_app`/`_drive` are on the path is currently indirect
+  (console-scripts e2e plus per-command suites), so a future edit re-inlining a
+  bare `cyclopts.App` in one `build_app()`, or re-inlining the
+  `parse_global_flags`/`run` plumbing in one entry point, would still pass every
+  existing suite. Add a lightweight in-process test that (a) parametrises over
+  the four production `build_app` callables and asserts each returned app carries
+  the four-flag contract (`result_action`, `exit_on_error`, `print_error`,
+  `help_on_error`), and (b) asserts each of the four real entry points routes
+  through `_drive`/`make_contract_app` (e.g. by monkeypatching the shared seam
+  and confirming each entry point invokes it). This is the cheap structural
+  tripwire the factory makes possible, guarding the "constructors consume the
+  factory" half of the 1.3.6 success criterion. Behaviour-preserving;
+  test-only; gate with `make all`.
+- [ ] 1.3.6.2 — Document the four-flag cyclopts contract and `make_contract_app`
+  in ADR-003 and the developers' guide (from audit:1.3.6 Findings 1 and 6, low).
+  The four-flag requirement is now load-bearing contract machinery with a
+  dedicated factory but is undocumented in prose — the `runner.py` docstring
+  itself notes the flags "are not documented there". Record in ADR-003 (the
+  shared-interface-contract ADR) the four-flag requirement, the per-flag
+  rationale, and that `make_contract_app` is its single enforcement point, so a
+  future sixth command calls the factory rather than `cyclopts.App` directly; add
+  the matching note to the developers' guide. Keep the existing attribution that
+  design §3.2 / ADR-003 Table 2 is the exit-code policy the flags serve, not the
+  flag specification. Documentation-only; gate with `make all`.

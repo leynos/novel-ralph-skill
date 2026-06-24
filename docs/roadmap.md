@@ -228,6 +228,15 @@ drift and seeds the snapshot suite. See novel-ralph-harness-design.md §3 and §
       `toml_table` access; a `wrapper_app` fixture plus a `project_scripts`
       walker in `conftest` makes both live once. Lightweight addendum pass
       against the 1.3.1 execplan.
+  - [ ] 1.3.1.2. Audit and document the `contract`→`commands.names` import edge.
+    - Addendum (from review:1.3.6; severity: low). `contract/envelope.py` and
+      `tests/conftest.py` both import `COMMAND_NAMES` from
+      `novel_ralph_skill.commands.names`, crossing the `contract`→`commands`
+      layering boundary; the edge is benign because `names.py` is a leaf
+      source-of-truth module, but a short ADR-003 or developers'-guide note
+      recording the shared registry as a leaf both layers may depend on makes the
+      dependency direction deliberate. Lightweight addendum pass against the
+      1.3.1 execplan.
 - [x] 1.3.2. Build the on-disk `working/` fixture corpus.
   - Requires 1.2.1.
   - Provide reusable `tmp_path` fixtures spanning all eleven phase states,
@@ -342,6 +351,27 @@ drift and seeds the snapshot suite. See novel-ralph-harness-design.md §3 and §
     bodies consume it rather than re-spelling the flags and the
     `parse_global_flags`/`run` plumbing, and the contract-runner and command
     suites stay green.
+  - [ ] 1.3.6.1. Add a structural tripwire pinning that the four `build_app()`
+    constructors and the four real entry points consume the centralisation.
+    - Addendum (from review:1.3.6 and audit:1.3.6 Finding 3; severity: medium).
+      The proof that `make_contract_app`/`_drive` are on the path is only
+      indirect today (console-scripts e2e plus per-command suites), so a future
+      edit re-inlining a bare `cyclopts.App` in one `build_app()` or the
+      `parse_global_flags`/`run` plumbing in one entry point would still pass
+      every suite; add a parametrized in-process test asserting each of the four
+      production `build_app` apps carries the four-flag contract and each real
+      entry point routes through `_drive`/`make_contract_app`. Lightweight
+      addendum pass against the 1.3.6 execplan.
+  - [ ] 1.3.6.2. Document the four-flag cyclopts contract and `make_contract_app`
+    in ADR-003 and the developers' guide.
+    - Addendum (from audit:1.3.6 Findings 1 and 6; severity: low). The four-flag
+      requirement is now load-bearing contract machinery with a dedicated factory
+      but is undocumented in prose (the `runner.py` docstring notes the flags
+      "are not documented there"); record in ADR-003 the requirement, the
+      per-flag rationale, and that `make_contract_app` is its single enforcement
+      point so a future sixth command calls the factory, and add the matching
+      developers'-guide note. Lightweight addendum pass against the 1.3.6
+      execplan.
 
 ## 2. Vertical slice 1: trustworthy state through validated mutators
 
@@ -1978,3 +2008,66 @@ corpus tree and pass) and it does not gate the deterministic spine.
     defers to the bijection invariant rather than double-firing, pinned by a new
     §1.3.2 corpus variant; and every current word-count and corpus agreement suite
     stays green.
+
+### 7.16. Single-home the command-facade and entry-point shared seams
+
+This step answers whether the command facade's shared seams — the
+state-sourcing helpers that `novel_state.py` exports to its sibling commands and
+the near-identical entry-point bodies in `stub.py` — can be lifted into explicit,
+neutrally-named homes so a refactor of any one command cannot silently break the
+others and the remaining entry-point boilerplate collapses. Its outcome is a
+dedicated state-sourcing module with a public load-or-state-error seam and a
+registry-driven entry-point construction, so the command layer's cross-module
+contracts are structural rather than carried by underscore-private imports and
+hand-copied function bodies. This is a deferred maintainability-hardening
+extension surfaced by the review and audit of step 1.3.6; it does not advance the
+step-1.3 shared-envelope hypothesis (the envelope, output-mode switch, and
+exit-code helper already serve all five commands and pass) and it does not gate
+the deterministic spine.
+
+- [ ] 7.16.1. Lift the shared state-sourcing seam out of `novel_state` into a
+  dedicated module with a public `load_or_state_error`.
+  - Reroute (source: audit:1.3.6 Finding 2; severity: medium).
+    `_load_or_state_error` (underscore-private) plus `STATE_INPUT_ERRORS`,
+    `WORKING_DIR_NAME`, `state_path`, and `working_dir` are imported across five
+    sibling command modules (`_compile.py`, `_recount.py`, `_state_mutators.py`,
+    `_novel_done.py`, `_desloppify.py`) and `stub.py`, making `novel_state.py` a
+    de-facto shared-utility home behind a command facade; the private name
+    misleads and a `novel-state` refactor risks silently breaking four commands.
+    Extract them into a dedicated module (e.g. `_state_io.py` or
+    `state/sourcing.py`) with a public `load_or_state_error`, continuing the
+    single-home discipline of 1.3.3/1.3.4/1.3.6. This is cross-cutting command-
+    layer DRY-and-layering hygiene, not the step-1.3 shared-envelope hypothesis
+    where it was raised, so it is deferred here.
+  - Requires 1.3.6.
+  - See novel-ralph-harness-design.md §3.1 and §4;
+    docs/adr-003-shared-interface-contract.md.
+  - Success: the load-and-translate seam, the state-input exception-tuple, the
+    `working/` directory name, and the `state_path`/`working_dir` accessors live
+    in a dedicated module with a public `load_or_state_error`; the five sibling
+    commands and `stub.py` import them from that neutral home rather than from
+    `novel_state`; no command depends on the `novel_state` module for these
+    seams; and every command suite stays green.
+- [ ] 7.16.2. Collapse the four entry-point functions onto a registry-driven
+  construction table.
+  - Reroute (source: review:1.3.6; severity: low). After 1.3.6 the four real
+    entry points (`novel_state`, `novel_done`, `novel_compile`, `desloppify`) are
+    one-liners differing only by name and `build_app` source; they could collapse
+    further into a generated table keyed off `COMMAND_ENTRY_POINTS`, eliminating
+    the remaining repetition and the deferred-import boilerplate. The 1.3.6
+    Constraint preserved the public function names and import sites, and this
+    change would alter the import-laziness profile, so it warrants its own plan
+    and review. This serves the step-7.16 command-facade single-home
+    hypothesis — one registry-driven home for entry-point construction — not the
+    step-1.3 shared-envelope hypothesis where it was raised. Coordinate with
+    7.16.1 so the table consumes the neutral state-sourcing seam.
+  - Requires 1.3.6.
+  - See novel-ralph-harness-design.md §4;
+    docs/adr-005-command-surface-five-scripts.md;
+    novel_ralph_skill/commands/names.py (`COMMAND_ENTRY_POINTS`).
+  - Success: the four real entry-point bodies are produced from a single
+    registry-driven table keyed off `COMMAND_ENTRY_POINTS` rather than four
+    hand-copied one-liners; the public entry-point function names, their
+    `[project.scripts]` targets, and the import-laziness profile are preserved (or
+    the laziness change is decided and recorded); and the entry-point, stub, and
+    console-scripts e2e suites stay green.
