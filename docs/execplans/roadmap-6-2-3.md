@@ -779,3 +779,30 @@ points:
    iterates the manifest. The §580-586 dev-guide note is recorded as already
    stale independent of this task, and the implementer is forbidden from
    writing a narrative attributing that reconciliation to 6.2.3.
+
+## Addenda
+
+Lightweight follow-up corrections to this completed task, triaged from the
+post-merge review and audit. Each is a single focused commit run as a no-plan,
+no-review lightweight pass; none changes the predicate semantics this task
+consolidated.
+
+- **6.2.3.1 — Repoint the `SKILL.md` reference-files table row (from
+  review:6.2.3; low).** The "Reference files" table in
+  `skill/novel-ralph/SKILL.md` still names `references/done-conditions.md` as the
+  reference for "overall completion". After this task `done-conditions.md` merely
+  redirects the novel-level predicate to `novel-done`, so that table cell is the
+  last soft pointer implying `done-conditions.md` still holds the overall
+  predicate. Tweak the row to name `novel-done` for the novel-level completion
+  check, leaving the phase-level and chapter-level reference role intact.
+- **6.2.3.2 — Reconcile design §8 and the developers' guide clause table (from
+  audit:6.2.3; low).** Two small docs-consistency residues this task left. Design
+  §8's two-source-predicate bullet
+  (`docs/novel-ralph-harness-design.md`: "roadmap task 6.2.3 reduces both prose
+  copies … which runs once …") still reads future-tense though the task has
+  merged; reword it to record the consolidation as done. Separately, the
+  now-authoritative developers' guide clause table
+  (`docs/developers-guide.md` "The six clauses and their disk sources") lists
+  `no_unresolved_blockers` before `compile_consistent`, the reverse of the
+  canonical design §4.2 envelope order; reorder the two bullets to match §4.2.
+  Both are prose-only; `make markdownlint` and `make nixie` gate them.

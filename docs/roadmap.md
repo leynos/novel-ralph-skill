@@ -1310,6 +1310,23 @@ novel-ralph-harness-design.md §2.3 and §9.
   - Success: `make markdownlint` passes on the edited skill files and
     `grep -rn "novel_predicate" skill/` returns no match, so no prose copy of
     the predicate survives to diverge.
+  - [ ] 6.2.3.1. Repoint the `SKILL.md` reference-files table row for
+    done-conditions toward `novel-done` for novel-level completion.
+    - Addendum (from review:6.2.3; low). `SKILL.md` "Reference files" still
+      names `done-conditions.md` as the reference for "overall completion",
+      which after this task is `novel-done`'s responsibility
+      (`done-conditions.md` merely redirects); a one-line table-cell tweak
+      naming `novel-done` for the novel-level check removes the last soft
+      pointer implying `done-conditions.md` holds the overall predicate.
+      Lightweight addendum pass.
+  - [ ] 6.2.3.2. Reconcile design §8 and the developers' guide clause table
+    after this task.
+    - Addendum (from audit:6.2.3; low). Design §8's two-source-predicate bullet
+      still reads future-tense ("roadmap task 6.2.3 reduces both prose copies")
+      now this task has merged, and the now-authoritative developers' guide
+      clause table lists the six clauses out of canonical design §4.2 order
+      (`no_unresolved_blockers` and `compile_consistent` swapped); fix both
+      together. Lightweight addendum pass.
 - [ ] 6.2.4. Broaden the installed-binary e2e coverage to `recount` and the
   exit-3 state-error paths.
   - Requires 2.1.2 and 2.3.1.
@@ -2424,3 +2441,65 @@ deterministic spine.
     tab-before-token variants so none silently reads clean; the documented
     case/variant out-of-scope decision (D-BLOCKER-CASE) is preserved or revisited
     explicitly; and the done-predicate suite stays green.
+
+### 7.21. Keep the done-predicate single-source consolidation drift-free
+
+This step answers whether the single-source-of-truth invariant task 6.2.3
+established — that the novel-level done predicate lives once, in `novel-done` and
+the developers' guide clause table, with both skill prose copies reduced to
+pointers — can be kept drift-free over time by an automated guard and by sweeping
+the superseded `novel_predicate` references in the closed-work records to
+pointers, rather than relying on a one-time manual grep. Its outcome is a
+regression guard modelled on the state-layout prose guard
+(`tests/test_state_layout_reference.py`) plus a housekeeping note on the
+historical records, so no future edit can silently reintroduce a divergent prose
+copy. This is a deferred documentation-truthfulness hardening extension surfaced
+by the review and audit of step 6.2.3; it does not advance the settling step-6.2
+hypothesis (whether the five commands behave correctly across the
+`command × output-mode × phase` surface) and it does not gate the deterministic
+spine.
+
+- [ ] 7.21.1. Guard the done-predicate prose consolidation with a fence-scanning
+  regression test.
+  - Reroute (source: audit:6.2.3 / review:6.2.3; severity: medium; two
+    near-identical proposals merged — a coarse `grep -rn "novel_predicate"
+    skill/` CI guard and a richer fence-scanning test). Task 6.2.3 reduced both
+    prose copies of the predicate to pointers at `novel-done`, but unlike the
+    analogous state-layout prose guard (`tests/test_state_layout_reference.py`)
+    there is no test stopping `SKILL.md` or `done-conditions.md` from
+    re-restating the predicate; the single-source invariant is protected only by
+    a one-time manual grep, so an unguarded consolidation can silently regress the
+    two-source drift design §8 records as closed. Add a guard, modelled on the
+    state-layout fence scanner, that asserts no prose copy of the `novel_predicate`
+    body (or an equivalent clause re-enumeration) survives in the skill files, so
+    a future edit reintroducing a divergent copy fails a test. This is
+    cross-cutting documentation-truthfulness hardening, not the settling step-6.2
+    combinatorial-surface hypothesis where it was raised, so it is deferred here.
+  - Requires 6.2.3.
+  - See novel-ralph-harness-design.md §8;
+    docs/execplans/roadmap-6-2-3.md (Constraints 5-6, the scoped success grep);
+    tests/test_state_layout_reference.py (the analogous prose guard).
+  - Success: a regression test asserts no prose copy of the done predicate
+    survives in `skill/` (the `grep -rn "novel_predicate" skill/` invariant is
+    test-enforced, not manual); a planted re-statement of the predicate body in
+    `SKILL.md` or `done-conditions.md` fails the guard; and the suite stays green.
+- [ ] 7.21.2. Sweep the closed-work records for superseded `novel_predicate`
+  references and annotate them as superseded by `novel-done`.
+  - Reroute (source: review:6.2.3; severity: low). Task 6.2.3 deliberately left
+    the `novel_predicate` mentions in the completed-work records
+    (`docs/roadmap.md` addenda 3.1.1.1/3.1.1.2; `docs/execplans/roadmap-3-1-1*.md`)
+    out of scope (its Constraints 5-6) so the historical record stayed intact.
+    They are harmless historically but a future reader may follow them to a
+    deleted symbol; a separate, clearly-scoped housekeeping pass can add a
+    "superseded by `novel-done`" note beside each without gutting the historical
+    record. This is cross-cutting documentation-truthfulness hygiene on closed
+    records, not the settling step-6.2 hypothesis where it was raised, so it is
+    deferred here.
+  - Requires 6.2.3.
+  - See docs/execplans/roadmap-6-2-3.md (Constraints 5-6, the out-of-scope
+    closed-work records); docs/roadmap.md (the 3.1.1.1/3.1.1.2 addenda);
+    docs/execplans/roadmap-3-1-1.md.
+  - Success: each surviving `novel_predicate` reference in the closed-work
+    records carries a brief "superseded by `novel-done`" annotation pointing a
+    future reader at the live source of truth; no historical record is gutted or
+    renumbered; and `make markdownlint` and `make nixie` stay green.
