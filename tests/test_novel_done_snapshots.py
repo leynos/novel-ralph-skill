@@ -121,13 +121,31 @@ def test_one_clause_fails_envelope_snapshot(
     assert envelope == snapshot
 
 
-def test_human_mode_names_failed_clause(
-    done_predicate_failer_tree: cabc.Callable[[str], tuple[WorkingTreeSpec, Path]],
+def test_sole_stale_compile_envelope_snapshot(
+    sole_stale_compile_tree: cabc.Callable[[], Path],
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
+    snapshot: SnapshotAssertion,
 ) -> None:
-    """``--human`` renders without error and names the failed clause (§2.3)."""
-    _spec, working = done_predicate_failer_tree("compile_consistent")
+    """The sole-stale-compile tree snapshots ``ok: false`` at exit ``4`` (3.1.2)."""
+    code, envelope = _run_capture(sole_stale_compile_tree(), monkeypatch, capsys)
+    assert code == ExitCode.ACTIONABLE_FINDING
+    assert envelope["ok"] is False
+    result = typ.cast("dict[str, object]", envelope["result"])
+    assert tuple(result) == _CLAUSE_KEYS
+    assert result["compile_consistent"] is False
+    # Only ``compile_consistent`` is false; the other five still hold.
+    assert sum(1 for value in result.values() if value is False) == 1
+    _assert_no_volatile_fields(envelope)
+    assert envelope == snapshot
+
+
+def _run_human(
+    working: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> tuple[int, str]:
+    """Drive ``novel-done --human`` from ``working.parent``; return ``(code, out)``."""
     monkeypatch.chdir(working.parent)
     with pytest.raises(SystemExit) as excinfo:
         run(
@@ -135,7 +153,31 @@ def test_human_mode_names_failed_clause(
             [],
             RunContext(command=_COMMAND, working_dir="working", human=True),
         )
-    assert int(typ.cast("int", excinfo.value.code)) == ExitCode.BENIGN_NEGATIVE
-    rendered = capsys.readouterr().out
+    return int(typ.cast("int", excinfo.value.code)), capsys.readouterr().out
+
+
+def test_human_mode_names_failed_clause(
+    sole_stale_compile_tree: cabc.Callable[[], Path],
+    done_predicate_failer_tree: cabc.Callable[[str], tuple[WorkingTreeSpec, Path]],
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """``--human`` names the stale compile at exit ``4`` and the missing one at ``1``.
+
+    Over the stale-present tree ``--human`` renders without error, exits ``4``,
+    and names the stale compile; over the absent-compile sole-failure tree it
+    renders without error, exits ``1``, and reports the compile *missing* rather
+    than stale, so the carve-out boundary is not misleading (A-4; ADR-003).
+    """
+    code, rendered = _run_human(sole_stale_compile_tree(), monkeypatch, capsys)
+    assert code == ExitCode.ACTIONABLE_FINDING
     assert rendered.strip(), "human mode must render a non-empty report"
     assert "compile_consistent" in rendered
+    assert "stale" in rendered
+
+    _spec, absent = done_predicate_failer_tree("compile_consistent")
+    assert not (absent / "manuscript" / "compiled.md").exists()
+    code, rendered = _run_human(absent, monkeypatch, capsys)
+    assert code == ExitCode.BENIGN_NEGATIVE
+    assert "compile_consistent" in rendered
+    assert "missing" in rendered

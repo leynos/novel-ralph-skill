@@ -37,3 +37,22 @@
     'working_dir': 'working',
   })
 # ---
+# name: test_sole_stale_compile_envelope_snapshot
+  dict({
+    'command': 'novel-done',
+    'messages': list([
+      'compile_consistent is false (stale compile; regenerate)',
+    ]),
+    'ok': False,
+    'result': dict({
+      'all_chapters_flagged': True,
+      'compile_consistent': False,
+      'final_pass_complete': True,
+      'knitting_gates_passed': True,
+      'no_unresolved_blockers': True,
+      'phase_is_done': True,
+    }),
+    'schema_version': 1,
+    'working_dir': 'working',
+  })
+# ---

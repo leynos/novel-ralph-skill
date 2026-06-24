@@ -932,7 +932,7 @@ novel-ralph-harness-design.md §4.2 and §2.3.
       a docs pass. Reconcile the reference prose to the manifest source so it no
       longer describes a parse path absent from the codebase. Lightweight
       addendum pass.
-- [ ] 3.1.2. Implement the shared compile-and-hash routine and the
+- [x] 3.1.2. Implement the shared compile-and-hash routine and the
   compile-divergence clause.
   - Requires 3.1.1.
   - Build one compile-and-hash function that concatenates the chapter drafts in

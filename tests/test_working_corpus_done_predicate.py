@@ -18,6 +18,10 @@ from __future__ import annotations
 import typing as typ
 
 from novel_ralph_skill.state import load_state
+from novel_ralph_skill.state.compile_model import (
+    concatenate_drafts,
+    present_draft_bodies,
+)
 from novel_ralph_skill.state.done_predicate import (
     DoneClauses,
     evaluate_done,
@@ -130,6 +134,49 @@ def test_blocker_oracle_twin_agrees(
     for working in cases:
         state = load_state(working / "state.toml")
         assert oracle_no_blockers(working) == no_unresolved_blockers(state, working)
+
+
+def _header_count(text: str) -> int:
+    """Return the number of ``#``-prefixed (markdown header) lines in ``text``."""
+    return sum(1 for line in text.splitlines() if line.lstrip().startswith("#"))
+
+
+def test_sole_stale_compile_is_count_coincident_but_divergent(
+    sole_stale_compile_tree: cabc.Callable[[], Path],
+) -> None:
+    """The sole-stale-compile tree's compile matches counts yet diverges by bytes.
+
+    The R-STALE-MISS precondition: ``compiled.md`` is present but is *not* the
+    ordered concatenation, while carrying the same whitespace-split token count
+    and the same (header-free, vacuously zero) header count as the drafts — so a
+    counts-only check could not betray it but the byte comparison must. The sole
+    false clause is ``compile_consistent``.
+    """
+    working = sole_stale_compile_tree()
+    state = load_state(working / "state.toml")
+    coherent = concatenate_drafts(present_draft_bodies(state, working))
+    on_disk = (working / "manuscript" / "compiled.md").read_text(encoding="utf-8")
+    assert on_disk != coherent, "the stale compile must diverge from the concatenation"
+    assert len(on_disk.split()) == len(coherent.split()), "token count must coincide"
+    assert _header_count(on_disk) == _header_count(coherent), "header count coincides"
+    clauses = _evaluate(working)
+    assert clauses.failed_clause_names == ("compile_consistent",)
+
+
+def test_mid_draft_stale_has_drafting_clause_and_stale_compile(
+    mid_draft_stale_tree: cabc.Callable[[], Path],
+) -> None:
+    """The mid-draft-stale tree fails a drafting clause *and* ``compile_consistent``.
+
+    Proves the carve-out cannot fire mid-draft: ``compile_consistent`` is false
+    *alongside* a drafting clause (``phase_is_done``), so the failure set has more
+    than one member (R-CARVE-MISFIRE).
+    """
+    working = mid_draft_stale_tree()
+    clauses = _evaluate(working)
+    assert "compile_consistent" in clauses.failed_clause_names
+    assert "phase_is_done" in clauses.failed_clause_names
+    assert len(clauses.failed_clause_names) >= 2
 
 
 def test_existing_specs_have_no_new_artefacts(

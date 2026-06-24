@@ -18,18 +18,24 @@ dataclass tree.
 from __future__ import annotations
 
 import dataclasses
+import tempfile
 import typing as typ
+from pathlib import Path
 
 import pytest
 import working_corpus as wc
-from hypothesis import given
+from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
 from novel_ralph_skill.state import Phase, load_state
+from novel_ralph_skill.state.compile_model import (
+    concatenate_drafts,
+    present_draft_bodies,
+)
 from novel_ralph_skill.state.done_predicate import (
     DoneClauses,
     all_chapters_flagged,
-    compile_consistent_exists,
+    compile_consistent,
     evaluate_done,
     final_pass_complete,
     knitting_gates_passed,
@@ -38,8 +44,6 @@ from novel_ralph_skill.state.done_predicate import (
 )
 
 if typ.TYPE_CHECKING:
-    from pathlib import Path
-
     from novel_ralph_skill.state.schema import State
 
 _CLAUSE_FIELDS: tuple[str, ...] = tuple(
@@ -132,21 +136,105 @@ def test_knitting_gates_passed_false_when_gate_boolean_false(tmp_path: Path) -> 
     assert knitting_gates_passed(one_gate_off, working) is False
 
 
-def test_compile_consistent_exists_present_and_absent(tmp_path: Path) -> None:
-    """``compile_consistent_exists`` is True iff ``compiled.md`` is present.
+def _expected_compiled(state: State, working: Path) -> str:
+    """Return the byte-coherent ``compiled.md`` for the materialised tree."""
+    return concatenate_drafts(present_draft_bodies(state, working))
 
-    Pins the R-STALE window: it is True for a present compile whether or not it
-    matches the drafts (stale or fresh), and False only when absent, so 3.1.2's
-    swap to a hash comparison is a visible behaviour change.
+
+def test_compile_consistent_present_coherent_and_absent(tmp_path: Path) -> None:
+    """``compile_consistent`` is True for a coherent compile, False when absent.
+
+    The all-hold tree writes the hash-equal concatenation, so the clause holds;
+    removing ``compiled.md`` makes it false (an absent compile is never "done",
+    preserving the 3.1.1 B1 soundness fix; R-EXISTENCE-REGRESS).
     """
-    _, working = _all_hold_tree(tmp_path)
+    state, working = _all_hold_tree(tmp_path)
     compiled = working / "manuscript" / "compiled.md"
-    assert compile_consistent_exists(working) is True
-    # A present-but-stale compile still passes the existence-only clause.
-    compiled.write_text("stale content diverging from drafts", encoding="utf-8")
-    assert compile_consistent_exists(working) is True
+    assert compiled.read_text(encoding="utf-8") == _expected_compiled(state, working)
+    assert compile_consistent(state, working) is True
     compiled.unlink()
-    assert compile_consistent_exists(working) is False
+    assert compile_consistent(state, working) is False
+
+
+def test_compile_consistent_false_when_present_but_stale(tmp_path: Path) -> None:
+    """A present-but-divergent ``compiled.md`` is caught (R-STALE closed).
+
+    This is the visible behaviour change from 3.1.1's existence-only clause: a
+    present compile that no longer matches the drafts is now ``False`` where the
+    old clause returned ``True``.
+    """
+    state, working = _all_hold_tree(tmp_path)
+    compiled = working / "manuscript" / "compiled.md"
+    compiled.write_text("stale content diverging from drafts", encoding="utf-8")
+    assert compile_consistent(state, working) is False
+
+
+def test_compile_consistent_false_when_count_coincident(tmp_path: Path) -> None:
+    """A stale compile with the same token and header count is still divergent.
+
+    The predicate-truthfulness property (R-STALE-MISS): a body whose
+    whitespace-split token count *and* header count match the drafts but whose
+    non-whitespace bytes differ must still report divergence, because the clause
+    compares bytes, not counts.
+    """
+    state, working = _all_hold_tree(tmp_path)
+    compiled = working / "manuscript" / "compiled.md"
+    coherent = _expected_compiled(state, working)
+    # Swap one "word" token for an equal-length, header-count-preserving token,
+    # keeping the whitespace-split count identical while diverging by bytes.
+    stale = coherent.replace("word", "wxrd", 1)
+    assert stale != coherent
+    assert len(stale.split()) == len(coherent.split())
+    assert stale.count("\n#") == coherent.count("\n#")
+    compiled.write_text(stale, encoding="utf-8")
+    assert compile_consistent(state, working) is False
+
+
+def test_compile_consistent_undecodable_propagates(tmp_path: Path) -> None:
+    """An undecodable ``compiled.md`` propagates for the command layer (exit 3)."""
+    state, working = _all_hold_tree(tmp_path)
+    (working / "manuscript" / "compiled.md").write_bytes(b"\xff\xfe not utf-8")
+    with pytest.raises(UnicodeDecodeError):
+        compile_consistent(state, working)
+
+
+@settings(
+    max_examples=50,
+    deadline=None,
+    suppress_health_check=[HealthCheck.function_scoped_fixture],
+)
+@given(st.integers(min_value=0, max_value=64), st.integers(min_value=33, max_value=126))
+def test_compile_consistent_byte_perturbation_property(
+    position: int, replacement: int
+) -> None:
+    """Any non-whitespace byte change falsifies the clause; the exact match holds.
+
+    Hypothesis is the right adversary here (``python-verification``): an invariant
+    over a range of single-byte perturbations of the coherent concatenation. The
+    tree is rebuilt under a fresh temporary directory per example because a
+    Hypothesis property body cannot take the function-scoped ``tmp_path`` fixture.
+
+    ``deadline=None`` and a bounded ``max_examples`` are required because each
+    example materialises a full corpus working tree and parses ``state.toml`` via
+    ``_all_hold_tree``, so per-example runtime exceeds Hypothesis's default 200ms
+    deadline under xdist contention — matching the convention used by the other
+    filesystem-heavy property tests in this suite.
+    """
+    with tempfile.TemporaryDirectory() as raw:
+        state, working = _all_hold_tree(Path(raw))
+        compiled = working / "manuscript" / "compiled.md"
+        coherent = compiled.read_text(encoding="utf-8")
+        assert compile_consistent(state, working) is True
+        if not coherent or position >= len(coherent):
+            return
+        char = coherent[position]
+        if char.isspace():
+            return
+        perturbed = coherent[:position] + chr(replacement) + coherent[position + 1 :]
+        if perturbed == coherent:
+            return
+        compiled.write_text(perturbed, encoding="utf-8")
+        assert compile_consistent(state, working) is False
 
 
 def test_no_unresolved_blockers_clean_and_blocking(tmp_path: Path) -> None:

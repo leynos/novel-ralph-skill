@@ -9,10 +9,13 @@ exactly as ``tests/test_desloppify_e2e.py`` and ``tests/test_console_scripts_e2e
 do.
 
 An all-six-clauses-hold tree exits ``0`` with ``ok: true`` in the stdout JSON; an
-otherwise-complete tree whose ``compiled.md`` is absent exits ``1`` (proving the
-existence half drives a benign negative end-to-end, never a false ``0``). This
-e2e is POSIX-only (ADR-006) and slow (build + venv + install), so it is skipped
-off POSIX and given an explicit 180s timeout that supersedes the 30s default.
+otherwise-complete tree whose ``compiled.md`` is absent exits ``1`` (proving an
+absent compile drives a benign negative end-to-end, never a false ``0``); an
+otherwise-complete tree whose ``compiled.md`` is present but stale exits ``4`` (the
+3.1.2 ``ACTIONABLE_FINDING`` carve-out); and a mid-draft tree carrying the same
+stale compile exits ``1`` (the carve-out stays benign mid-draft). This e2e is
+POSIX-only (ADR-006) and slow (build + venv + install), so it is skipped off POSIX
+and given an explicit 180s timeout that supersedes the 30s default.
 """
 
 from __future__ import annotations
@@ -133,6 +136,52 @@ def test_installed_novel_done_absent_compile_exits_one(
     dest = tmp_path / "run-not-done"
     dest.mkdir()
     _materialise_working(dest, source)
+
+    result = _run_in(script_path, dest, single_program_catalogue)
+    assert result.exit_code == 1, result.stderr
+    envelope = json.loads(result.stdout or "{}")
+    assert envelope["ok"] is False
+    assert envelope["result"]["compile_consistent"] is False
+
+
+@pytest.mark.slow
+@pytest.mark.timeout(180)
+def test_installed_novel_done_sole_stale_compile_exits_four(
+    tmp_path: Path,
+    sole_stale_compile_tree: cabc.Callable[[], Path],
+    single_program_catalogue: cabc.Callable[[str, Program], ProgramCatalogue],
+    venv_scripts_dir: cabc.Callable[[Path], Path],
+) -> None:
+    """The installed ``novel-done`` exits ``4`` over a sole stale-present compile."""
+    script_path = _build_and_install_novel_done(
+        tmp_path, single_program_catalogue, venv_scripts_dir
+    )
+    dest = tmp_path / "run-stale"
+    dest.mkdir()
+    _materialise_working(dest, sole_stale_compile_tree())
+
+    result = _run_in(script_path, dest, single_program_catalogue)
+    assert result.exit_code == 4, result.stderr
+    envelope = json.loads(result.stdout or "{}")
+    assert envelope["ok"] is False
+    assert envelope["result"]["compile_consistent"] is False
+
+
+@pytest.mark.slow
+@pytest.mark.timeout(180)
+def test_installed_novel_done_mid_draft_stale_exits_one(
+    tmp_path: Path,
+    mid_draft_stale_tree: cabc.Callable[[], Path],
+    single_program_catalogue: cabc.Callable[[str, Program], ProgramCatalogue],
+    venv_scripts_dir: cabc.Callable[[Path], Path],
+) -> None:
+    """The installed ``novel-done`` exits ``1`` over a mid-draft stale compile."""
+    script_path = _build_and_install_novel_done(
+        tmp_path, single_program_catalogue, venv_scripts_dir
+    )
+    dest = tmp_path / "run-mid-draft"
+    dest.mkdir()
+    _materialise_working(dest, mid_draft_stale_tree())
 
     result = _run_in(script_path, dest, single_program_catalogue)
     assert result.exit_code == 1, result.stderr

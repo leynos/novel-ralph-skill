@@ -29,9 +29,10 @@ Fault boundary (ExecPlan D-FAULT): an *absent* on-disk artefact (no
 (``PermissionError``, ``UnicodeDecodeError``) propagates for the command layer to
 translate to the exit-``3`` state-error channel. Only :class:`FileNotFoundError`
 is absorbed; :func:`pathlib.Path.exists` already maps a missing path to ``False``
-without raising, so the ``done.flag``/review/compile existence reads never raise,
-and the only read that can fault — the ``critic-notes.md`` body read — is guarded
-so an absent file is benign while an undecodable one propagates.
+without raising, so the ``done.flag``/review existence reads never raise, and the
+two body reads that can fault — the ``critic-notes.md`` scan and (since 3.1.2) the
+``compiled.md`` content comparison — are guarded so an absent file is benign while
+an undecodable or otherwise unreadable one propagates.
 """
 
 from __future__ import annotations
@@ -40,6 +41,10 @@ import dataclasses
 import typing as typ
 
 from novel_ralph_skill.state._disk_paths import _chapter_dir_name
+from novel_ralph_skill.state.compile_model import (
+    concatenate_drafts,
+    present_draft_bodies,
+)
 from novel_ralph_skill.state.phase import Phase
 
 if typ.TYPE_CHECKING:
@@ -83,8 +88,9 @@ class DoneClauses:
         All three knitting gate booleans are ``True`` and all three
         ``reviews/knitting-NN.md`` exist.
     compile_consistent : bool
-        ``manuscript/compiled.md`` exists (existence-only in 3.1.1;
-        D-COMPILE-EXISTENCE).
+        ``manuscript/compiled.md`` is present and byte-equal to the ordered
+        concatenation of the present drafts (the content comparison; 3.1.2
+        D-CLAUSE-FN). An absent compile is false.
     no_unresolved_blockers : bool
         No manifest chapter's ``critic-notes.md`` carries an unresolved BLOCKER.
     """
@@ -208,16 +214,60 @@ def knitting_gates_passed(state: State, working_dir: Path) -> bool:
     )
 
 
-def compile_consistent_exists(working_dir: Path) -> bool:
-    """Return whether ``manuscript/compiled.md`` exists.
+def compile_consistent(state: State, working_dir: Path) -> bool:
+    """Return whether ``compiled.md`` is the ordered concatenation of the drafts.
 
-    Existence-only in 3.1.1: a present ``compiled.md`` holds, an absent one does
-    not, so an *absent* compile can never be declared "done" (closing the
-    exit-``0`` lie). Roadmap task 3.1.2 adds the hash comparison and the
-    exit-``4`` carve-out so a present-but-stale compile is caught
-    (ExecPlan D-COMPILE-EXISTENCE; the stale window is Risk R-STALE).
+    The content comparison the existence-only 3.1.1 clause deferred (the "hash"
+    half of design §2.3/§4.2/§4.3). An absent ``manuscript/compiled.md`` is
+    ``False`` — an absent compile can never be declared "done" (preserving the
+    3.1.1 B1 soundness fix); a present one is ``True`` iff its bytes equal
+    ``concatenate_drafts(present_draft_bodies(state, working_dir))`` and ``False``
+    otherwise, so a present-but-stale compile is caught (closing Risk R-STALE).
+
+    The comparison reuses the single shared compile-and-hash routine
+    (:func:`~novel_ralph_skill.state.compile_model.present_draft_bodies` plus
+    :func:`~novel_ralph_skill.state.compile_model.concatenate_drafts`) that the
+    §5.4 detector
+    (``disk_evidence._check_compiled_matches_drafts``) also uses, so the clause
+    and the detector cannot disagree on what "compiled matches drafts" means. The
+    verdict is a direct byte comparison, not a digest
+    (ExecPlan D-BYTE-COMPARE): the detector compares bytes the same way, and a
+    boolean over two in-memory strings needs no ``hashlib``.
+
+    This clause carries the **opposite** absent-file polarity to that §5.4
+    detector, which treats an absent ``compiled.md`` as *vacuously satisfied*
+    ("nothing to diverge from"). The two polarities are correct for their
+    different jobs; roadmap task 3.1.3 owns the cross-detector unification that
+    reconciles them in one helper.
+
+    Parameters
+    ----------
+    state : State
+        The parsed, typed ``state.toml`` carrying the ``[chapters]`` manifest.
+    working_dir : pathlib.Path
+        The ``working/`` directory holding ``manuscript/``.
+
+    Returns
+    -------
+    bool
+        ``True`` iff ``compiled.md`` is present and byte-equal to the recomputed
+        concatenation; ``False`` when absent or divergent.
+
+    Raises
+    ------
+    OSError
+        Any read fault other than a missing ``compiled.md`` (e.g.
+        ``PermissionError``) propagates for the command layer to route to the
+        exit-``3`` channel (D-FAULT); :func:`present_draft_bodies` likewise
+        propagates every non-absent draft read fault.
+    UnicodeDecodeError
+        When ``compiled.md`` (or a draft body) is not valid UTF-8, propagated.
     """
-    return (working_dir / "manuscript" / "compiled.md").exists()
+    compiled = working_dir / "manuscript" / "compiled.md"
+    if not compiled.exists():
+        return False
+    expected = concatenate_drafts(present_draft_bodies(state, working_dir))
+    return compiled.read_text(encoding="utf-8") == expected
 
 
 def _contains_unresolved_blocker(notes_path: Path) -> bool:
@@ -289,6 +339,6 @@ def evaluate_done(state: State, working_dir: Path) -> DoneClauses:
         final_pass_complete=final_pass_complete(state),
         all_chapters_flagged=all_chapters_flagged(state, working_dir),
         knitting_gates_passed=knitting_gates_passed(state, working_dir),
-        compile_consistent=compile_consistent_exists(working_dir),
+        compile_consistent=compile_consistent(state, working_dir),
         no_unresolved_blockers=no_unresolved_blockers(state, working_dir),
     )

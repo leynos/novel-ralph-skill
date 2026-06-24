@@ -1,4 +1,4 @@
-"""In-process tests for the wired ``novel-done`` command (roadmap task 3.1.1).
+"""In-process tests for the wired ``novel-done`` command (roadmap tasks 3.1.1-3.1.2).
 
 These drive the real ``novel-done`` Cyclopts app through the shared
 :func:`novel_ralph_skill.contract.runner.run` wrapper, mirroring
@@ -7,10 +7,13 @@ These drive the real ``novel-done`` Cyclopts app through the shared
 observable exit-code outcome from the ExecPlan purpose (design §4.2, §3.2): the
 all-six-clauses-hold tree exits ``0`` with ``ok: true``; each single-clause-fail
 tree exits ``1`` with ``ok: false`` (including the absent-``compiled.md`` tree,
-proving the existence half drives a benign ``1`` rather than a false ``0``); a
-missing/unparseable ``state.toml`` and an undecodable ``critic-notes.md`` each
-exit ``3`` (the D-FAULT negative test); and a stray positional token exits ``2``
-(the runner's ``CycloptsError`` arm). No 3.1.1 path exits ``4``.
+proving the absent compile drives a benign ``1`` rather than a false ``0``); the
+sole-stale-*present*-compile tree exits ``4`` (the 3.1.2 ``ACTIONABLE_FINDING``
+carve-out) while a mid-draft stale compile and a stale compile paired with each
+other unmet clause stay at ``1`` (the carve-out is exclusive); a
+missing/unparseable ``state.toml``, an undecodable ``critic-notes.md``, and an
+undecodable ``compiled.md`` each exit ``3`` (the D-FAULT negative tests); and a
+stray positional token exits ``2`` (the runner's ``CycloptsError`` arm).
 """
 
 from __future__ import annotations
@@ -109,6 +112,94 @@ def test_absent_compile_exits_one_not_zero(
     assert code == ExitCode.BENIGN_NEGATIVE
     result = typ.cast("dict[str, object]", envelope["result"])
     assert result["compile_consistent"] is False
+
+
+def test_sole_stale_present_compile_exits_four(
+    sole_stale_compile_tree: cabc.Callable[[], Path],
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A sole stale-*present* ``compiled.md`` exits ``4`` (the carve-out)."""
+    working = sole_stale_compile_tree()
+    assert (working / "manuscript" / "compiled.md").exists()
+    code, envelope = _run_capture(working, monkeypatch, capsys)
+    assert code == ExitCode.ACTIONABLE_FINDING
+    assert envelope["ok"] is False
+    result = typ.cast("dict[str, object]", envelope["result"])
+    assert result["compile_consistent"] is False
+    assert sum(1 for value in result.values() if value is False) == 1
+
+
+def test_mid_draft_stale_compile_exits_one(
+    mid_draft_stale_tree: cabc.Callable[[], Path],
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A stale compile *alongside* a drafting clause stays exit ``1``."""
+    code, envelope = _run_capture(mid_draft_stale_tree(), monkeypatch, capsys)
+    assert code == ExitCode.BENIGN_NEGATIVE
+    result = typ.cast("dict[str, object]", envelope["result"])
+    assert result["compile_consistent"] is False
+    assert result["phase_is_done"] is False
+
+
+def test_stale_compile_with_each_other_clause_exits_one(
+    sole_stale_compile_tree: cabc.Callable[[], Path],
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A stale compile paired with *each* other unmet clause exits ``1``.
+
+    Drives the carve-out's exclusivity: a present-but-stale ``compiled.md`` plus
+    any second unmet clause must not fire the exit-``4`` carve-out, so the
+    failure set has more than the single ``compile_consistent`` member.
+    """
+    working = sole_stale_compile_tree()
+    manuscript = working / "manuscript"
+    # Removing the first chapter's done.flag adds all_chapters_flagged to the
+    # failure set beside the stale compile_consistent, so the carve-out must not
+    # fire (the failure set is no longer the sole compile_consistent tuple).
+    (_first_chapter_dir(working) / "done.flag").unlink()
+    assert (manuscript / "compiled.md").exists()
+    code, envelope = _run_capture(working, monkeypatch, capsys)
+    assert code == ExitCode.BENIGN_NEGATIVE
+    result = typ.cast("dict[str, object]", envelope["result"])
+    assert result["compile_consistent"] is False
+    assert result["all_chapters_flagged"] is False
+
+
+def test_absent_sole_compile_exits_one_with_missing_message(
+    done_predicate_failer_tree: cabc.Callable[[str], tuple[WorkingTreeSpec, Path]],
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """An absent sole-failure ``compiled.md`` exits ``1`` and reports it missing.
+
+    The absent-vs-stale split: the carve-out gates on ``compiled.md`` *existing*,
+    so a sole ``compile_consistent`` failure caused by an *absent* compile stays
+    exit ``1`` (D-CARVE), and the human message names it *missing* not stale (A-4).
+    """
+    _spec, working = done_predicate_failer_tree("compile_consistent")
+    assert not (working / "manuscript" / "compiled.md").exists()
+    code, envelope = _run_capture(working, monkeypatch, capsys)
+    assert code == ExitCode.BENIGN_NEGATIVE
+    result = typ.cast("dict[str, object]", envelope["result"])
+    assert result["compile_consistent"] is False
+    assert sum(1 for value in result.values() if value is False) == 1
+    messages = typ.cast("list[str]", envelope["messages"])
+    assert any("missing" in line for line in messages)
+
+
+def test_undecodable_compiled_exits_three(
+    all_hold_tree: cabc.Callable[[], Path],
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """An undecodable ``compiled.md`` exits ``3``, not the benign ``1`` (R-FAULT)."""
+    working = all_hold_tree()
+    (working / "manuscript" / "compiled.md").write_bytes(b"\xff\xfe bad")
+    code, _envelope = _run_capture(working, monkeypatch, capsys)
+    assert code == ExitCode.STATE_ERROR
 
 
 def test_missing_state_exits_three(

@@ -98,6 +98,40 @@ def single_failer_tree(clause: str, tmp_path: Path) -> _Outcome:
     return _Outcome(working=wc.build_working_tree(spec, tmp_path))
 
 
+@given(
+    "an otherwise-complete working tree whose compiled.md is stale",
+    target_fixture="outcome",
+)
+def sole_stale_compile_tree(tmp_path: Path) -> _Outcome:
+    """Build the sole-stale-compile tree (the exit-``4`` carve-out fixture).
+
+    Returns
+    -------
+    _Outcome
+        The built ``working/`` path; the exit code is filled in by the run step.
+    """
+    return _Outcome(
+        working=wc.build_working_tree(wc.DONE_PREDICATE_SOLE_STALE_COMPILE, tmp_path)
+    )
+
+
+@given(
+    "a mid-draft working tree whose compiled.md is stale",
+    target_fixture="outcome",
+)
+def mid_draft_stale_tree(tmp_path: Path) -> _Outcome:
+    """Build the mid-draft-stale tree (a drafting clause unmet plus a stale compile).
+
+    Returns
+    -------
+    _Outcome
+        The built ``working/`` path; the exit code is filled in by the run step.
+    """
+    return _Outcome(
+        working=wc.build_working_tree(wc.DONE_PREDICATE_MID_DRAFT_STALE, tmp_path)
+    )
+
+
 @when("novel-done runs against that tree")
 def run_novel_done(
     outcome: _Outcome,
@@ -123,6 +157,14 @@ def asserts_exit_one(outcome: _Outcome) -> None:
     """Assert the predicate exited ``1`` (benign not-yet-done)."""
     assert outcome.exit_code == ExitCode.BENIGN_NEGATIVE, (
         f"expected exit 1, got {outcome.exit_code}"
+    )
+
+
+@then("novel-done exits 4")
+def asserts_exit_four(outcome: _Outcome) -> None:
+    """Assert the predicate exited ``4`` (the stale-present compile carve-out)."""
+    assert outcome.exit_code == ExitCode.ACTIONABLE_FINDING, (
+        f"expected exit 4, got {outcome.exit_code}"
     )
 
 

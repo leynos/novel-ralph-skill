@@ -116,6 +116,45 @@ def blocker_edge_trees(
 
 
 @pytest.fixture
+def sole_stale_compile_tree(tmp_path: Path) -> cabc.Callable[[], Path]:
+    """Return a factory building the sole-stale-compile ``novel-done`` tree.
+
+    Returns
+    -------
+    Callable[[], Path]
+        A callable ``() -> Path`` materialising
+        ``DONE_PREDICATE_SOLE_STALE_COMPILE`` (every clause holds except
+        ``compile_consistent``, false on a present-but-divergent count-coincident
+        ``compiled.md``) and returning the ``working/`` path.
+    """
+
+    def _build() -> Path:
+        """Build the sole-stale-compile tree under the test's ``tmp_path``."""
+        return wc.build_working_tree(wc.DONE_PREDICATE_SOLE_STALE_COMPILE, tmp_path)
+
+    return _build
+
+
+@pytest.fixture
+def mid_draft_stale_tree(tmp_path: Path) -> cabc.Callable[[], Path]:
+    """Return a factory building the mid-draft-stale ``novel-done`` tree.
+
+    Returns
+    -------
+    Callable[[], Path]
+        A callable ``() -> Path`` materialising
+        ``DONE_PREDICATE_MID_DRAFT_STALE`` (a drafting clause unmet *and* a stale
+        ``compiled.md``) and returning the ``working/`` path.
+    """
+
+    def _build() -> Path:
+        """Build the mid-draft-stale tree under the test's ``tmp_path``."""
+        return wc.build_working_tree(wc.DONE_PREDICATE_MID_DRAFT_STALE, tmp_path)
+
+    return _build
+
+
+@pytest.fixture
 def oracle_reviews_present() -> cabc.Callable[[Path], bool]:
     """Return the corpus-side review-existence oracle twin.
 

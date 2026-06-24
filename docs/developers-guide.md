@@ -551,7 +551,8 @@ seams; the `stub.py` `novel_done()` entry point drives it through the shared
   shared between the booleans and the file names so they cannot drift);
 - `no_unresolved_blockers` := no manifest chapter's `critic-notes.md` carries an
   unresolved BLOCKER;
-- `compile_consistent` := `manuscript/compiled.md` *exists* (existence-only; see
+- `compile_consistent` := `manuscript/compiled.md` is present *and* byte-equal to
+  the ordered concatenation of the present drafts (the content comparison; see
   below).
 
 **Manifest, not outline (a deliberate divergence).** The reference predicate
@@ -569,21 +570,43 @@ acknowledged brittle (a prose mention of `[resolved]`, or `RESOLVED`, would
 mis-classify); the corpus pins the edge with a near-miss spec whose body mentions
 resolution in prose yet stays an unresolved blocker.
 
-**`compile_consistent` is the existence half only (a named v1 limitation).** In
-3.1.1 the clause is the single function `compile_consistent_exists(working_dir)`:
-a present `compiled.md` holds, an absent one does not. This makes the exit-`0`
-path *sound for the absent case* — a tree with no compile can never be declared
-done — while deferring the hash comparison (catching a *present-but-stale*
-compile) and the exit-`4` compile-divergence carve-out to roadmap task 3.1.2.
-The residual stale-but-present window is the documented unsoundness window; the
-function's docstring names 3.1.2 as the owner so the swap is a localised edit.
+**`compile_consistent` is the full content comparison (roadmap 3.1.2).** The
+clause is the single function `compile_consistent(state, working_dir)`: an absent
+`compiled.md` is `False`, a present one is `True` iff its bytes equal
+`concatenate_drafts(present_draft_bodies(state, working_dir))`. It reuses the
+shared `compile_model` routine — the same `present_draft_bodies`/
+`concatenate_drafts` the §5.4 detector `_check_compiled_matches_drafts` uses — so
+the clause and the detector cannot disagree on what "compiled matches drafts"
+means. The verdict is a direct byte comparison, not a digest (D-BYTE-COMPARE).
+This closes the 3.1.1 stale-but-present unsoundness window: a present-but-stale
+compile whose header count and word total coincide with the drafts is still
+caught, because the comparison is over bytes, not counts.
+
+The clause carries the **opposite** absent-file polarity to that §5.4 detector,
+which treats an absent `compiled.md` as *vacuously satisfied* ("nothing to diverge
+from"); here an absent compile is *not consistent*. The two polarities are correct
+for their different jobs. Roadmap task 3.1.3 owns the cross-detector unification
+that factors one `compiled_matches_drafts` helper both consume.
+
+**The exit-`4` carve-out (the conservative reading).** `novel-done` exits `4`
+(`ACTIONABLE_FINDING`) **iff** `compile_consistent` is the *sole* false clause
+**and** `compiled.md` is present — a stale-present compile the harness can
+regenerate (matching `novel-compile --check`). The decision lives in the command
+body (`_novel_done._sole_stale_compile`), not the pure engine, because exit codes
+are the command/contract layer's concern. It is conservative (D-CARVE): an
+*absent* sole-failure compile stays exit `1`, because an absent compile is not a
+regenerable stale one (this preserves the 3.1.1 B1 soundness fix). The
+`compiled.md` `exists()` stat is the read-only mechanism that distinguishes a
+stale-present compile from an absent one, since `DoneClauses` carries only the six
+booleans and cannot say *why* `compile_consistent` is false. The human `messages`
+line names a *stale* compile at exit `4` and a *missing* one at exit `1` (A-4).
 
 **The fault boundary.** Mirroring `wordcount`/`disk_evidence`, an *absent* on-disk
 artefact is a benign false clause, but every other read fault (`PermissionError`,
-an undecodable `critic-notes.md`) propagates; the command body wraps
-`evaluate_done` under `STATE_INPUT_ERRORS` and re-raises `StateInputError`, so a
-corrupt tree reaches the exit-`3` channel rather than being swallowed as exit `1`.
-No 3.1.1 path emits exit `4`.
+an undecodable `critic-notes.md` or `compiled.md`) propagates; the command body
+wraps `evaluate_done` under `STATE_INPUT_ERRORS` and re-raises `StateInputError`,
+so a corrupt tree reaches the exit-`3` channel rather than being swallowed as exit
+`1` or `4`.
 
 **Oracle twins for the two new disk clauses.** The `knitting_gates_passed`
 review-existence read and the `no_unresolved_blockers` BLOCKER scan are

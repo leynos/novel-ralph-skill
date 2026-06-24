@@ -26,3 +26,15 @@ Feature: novel-done evaluates the six done clauses against disk
       | knitting_gate_false     |
       | compile_consistent      |
       | no_unresolved_blockers  |
+
+  Scenario: a stale compile in an otherwise-complete tree is an actionable finding
+    Given an otherwise-complete working tree whose compiled.md is stale
+    When novel-done runs against that tree
+    Then novel-done exits 4
+    And the result reports "compile_consistent" false
+
+  Scenario: a stale compile mid-draft stays benign
+    Given a mid-draft working tree whose compiled.md is stale
+    When novel-done runs against that tree
+    Then novel-done exits 1
+    And the result reports "compile_consistent" false

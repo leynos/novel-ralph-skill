@@ -312,23 +312,29 @@ conditions are unmet:
 - `all_chapters_flagged` — every manifest chapter has an on-disk `done.flag`.
 - `knitting_gates_passed` — all three knitting gate booleans are true *and* all
   three `working/reviews/knitting-{30,50,80}.md` reviews are present.
-- `compile_consistent` — `working/manuscript/compiled.md` is present (see the v1
-  caveat below).
+- `compile_consistent` — `working/manuscript/compiled.md` is present *and* its
+  content is the ordered concatenation of the chapter drafts. An absent compile,
+  or a present-but-stale one that no longer matches the drafts, fails the clause.
 - `no_unresolved_blockers` — no chapter's `critic-notes.md` carries an unresolved
   BLOCKER (a line beginning `BLOCKER` without a `[resolved]` marker).
 
 `novel-done` uses the shared exit-code table:
 
 - `0` — every clause holds; the novel is done.
-- `1` — at least one clause is false (the benign "not yet done" the harness loops
-  on); `messages` names the unmet clauses.
+- `1` — a drafting clause is unmet (the benign "not yet done" the harness loops
+  on), alone or alongside a stale compile; `messages` names the unmet clauses. A
+  sole failure caused by an *absent* `compiled.md` also exits `1` (an absent
+  compile is not a regenerable stale one).
 - `3` — a state or input error: `./working/state.toml` is missing or unparseable,
-  or a chapter artefact (such as `critic-notes.md`) is unreadable.
+  or a chapter artefact (such as `critic-notes.md`, `compiled.md`, or a
+  `draft.md`) is unreadable.
+- `4` — every clause holds *except* `compile_consistent`, and `compiled.md` is
+  present: the manuscript is otherwise complete and the only obstacle is a stale
+  compile, which the harness regenerates (matching `novel-compile --check`).
 
-**v1 caveat.** In this release `compile_consistent` checks only that
-`compiled.md` *exists*: an *absent* compile is always reported (a tree with no
-`compiled.md` can never be declared done), but a *present-but-stale* compile —
-one that no longer matches the chapter drafts — is not yet caught, so it can
-still pass. Catching a stale compile, and the exit-`4` compile-divergence finding
-that goes with it, lands with roadmap task 3.1.2. No `novel-done` path emits
-exit `4` in v1.
+**Stale-compile handling.** `compile_consistent` checks the compile *content*:
+it recomputes the ordered concatenation of the present drafts and compares it
+byte-for-byte against `compiled.md`, so a present-but-stale compile — one that no
+longer matches the drafts even if its header count and word total coincide — is
+caught. When that stale compile is the *only* unmet clause, `novel-done` exits
+`4` (the actionable finding above) rather than looping at `1`.

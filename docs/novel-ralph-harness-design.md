@@ -307,11 +307,15 @@ and comments. The mechanism is open question Q1, resolved in §5.3.
 
 ### 4.2 `novel-done`
 
-> Implementation status: roadmap task 3.1.1 ships five sound clauses plus an
-> existence-only `compile_consistent` (a present `compiled.md` holds, an absent
-> one does not), so no 3.1.1 path emits exit 4. The compile-and-hash half and the
-> exit-4 compile-divergence carve-out described below land with roadmap task
-> 3.1.2.
+> Implementation status: roadmap task 3.1.1 shipped five sound clauses plus an
+> existence-only `compile_consistent`; roadmap task 3.1.2 then swapped that clause
+> for the full content comparison (`compiled.md` byte-equal to the ordered
+> concatenation of the drafts, reusing the shared compile-and-hash routine) and
+> added the exit-4 compile-divergence carve-out described below, so a
+> present-but-stale compile is caught and a sole stale-present compile exits 4.
+> The cross-detector unification of this clause with the §5.4
+> `compiled-matches-drafts` detector (one shared `compiled_matches_drafts` helper)
+> lands with roadmap task 3.1.3.
 
 `novel-done` is the done predicate as code, replacing the pseudocode in
 `done-conditions.md` and the ad-hoc shell the field report describes. It

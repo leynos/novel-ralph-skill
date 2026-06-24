@@ -24,7 +24,14 @@ from __future__ import annotations
 
 import dataclasses as dc
 
-from ._specs import COMPILED_AUTO, GATE_THRESHOLDS, ChapterSpec, WorkingTreeSpec
+from ._specs import (
+    COMPILED_AUTO,
+    GATE_THRESHOLDS,
+    ChapterSpec,
+    WorkingTreeSpec,
+    concatenate_drafts,
+    draft_body,
+)
 
 # The phase prefix preceding ``done`` (``premise`` … ``final-pass``), mirroring
 # the ``PHASE_STATES["done"]`` completed prefix without importing the mapping.
@@ -151,4 +158,64 @@ DONE_PREDICATE_RESOLVED_BLOCKER: WorkingTreeSpec = _note_on_first_chapter(
 )
 DONE_PREDICATE_NEAR_MISS_BLOCKER: WorkingTreeSpec = _note_on_first_chapter(
     DONE_PREDICATE_ALL_HOLD, NEAR_MISS_BLOCKER_NOTE
+)
+
+# --- stale-compile specs (roadmap 3.1.2, D-CORPUS-STALE) ---------------------
+#
+# On the "header count" half of the success criterion (A-1): the corpus
+# ``draft_body`` emits header-free bodies (``"word word word"``), so every corpus
+# draft carries zero ``#``-prefixed lines and the "header count" coincidence is
+# vacuously ``0 == 0`` on both sides. Adding header-bearing drafts would break the
+# word-count derivation (``len(body.split()) != draft_words``) and cascade through
+# the §5.2 corpus oracle, so this plan takes option 2 of the ExecPlan A-1 fork:
+# the **word-total** coincidence is modelled here (a stale compile with the same
+# whitespace-split token count as the true concatenation), and the genuine
+# byte-fidelity property is discharged by the Work-item-1 Hypothesis
+# byte-perturbation property, which falsifies any non-whitespace change regardless
+# of header structure. No reviewer should read this as testing a literal non-zero
+# header-count coincidence; under the header-free corpus that coincidence is
+# vacuous.
+
+
+def _count_coincident_stale_body(spec: WorkingTreeSpec) -> str:
+    """Return a stale ``compiled.md`` body that is count-coincident but divergent.
+
+    Recomputes the coherent ordered concatenation of ``spec``'s present drafts
+    and swaps one ``"word"`` token for the equal-length ``"wxrd"``, so the
+    whitespace-split token count is preserved (R-STALE-MISS) while at least one
+    non-whitespace byte differs. The header count is preserved too — vacuously,
+    since the header-free corpus drafts carry no ``#`` lines (A-1). Raises when
+    the drafts contain no ``"word"`` token to swap, so a silently coherent body
+    can never masquerade as stale.
+    """
+    bodies = [draft_body(chapter.draft_words) for chapter in spec.chapters]
+    coherent = concatenate_drafts(bodies)
+    stale = coherent.replace("word", "wxrd", 1)
+    if stale == coherent:
+        msg = "cannot derive a count-coincident stale body: no 'word' token"
+        raise ValueError(msg)
+    return stale
+
+
+_STALE_COMPILED: str = _count_coincident_stale_body(DONE_PREDICATE_ALL_HOLD)
+
+# The sole-stale-compile tree: every clause holds except ``compile_consistent``,
+# which is false because ``compiled.md`` is present but byte-divergent (the
+# count-coincident stale body). The load-bearing exit-``4`` fixture (D-CARVE).
+DONE_PREDICATE_SOLE_STALE_COMPILE: WorkingTreeSpec = dc.replace(
+    DONE_PREDICATE_ALL_HOLD, compiled=_STALE_COMPILED
+)
+
+# The mid-draft-stale tree: a drafting clause is unmet (``phase_current`` is not
+# ``done``) *and* the same count-coincident stale ``compiled.md`` is present, so
+# ``compile_consistent`` is false alongside ``phase_is_done``. Proves the
+# exit-``4`` carve-out stays at exit ``1`` mid-draft (R-CARVE-MISFIRE).
+DONE_PREDICATE_MID_DRAFT_STALE: WorkingTreeSpec = dc.replace(
+    DONE_PREDICATE_ALL_HOLD, phase_current="final-pass", compiled=_STALE_COMPILED
+)
+
+# A plainly-wrong stale compile (byte- *and* count-divergent), the obvious
+# control beside the subtle count-coincident one.
+DONE_PREDICATE_OBVIOUS_STALE_COMPILE: WorkingTreeSpec = dc.replace(
+    DONE_PREDICATE_ALL_HOLD, compiled="this is not the concatenation of any drafts"
 )
