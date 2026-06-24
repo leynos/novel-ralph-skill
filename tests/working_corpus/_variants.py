@@ -33,35 +33,17 @@ from __future__ import annotations
 import dataclasses as dc
 
 from . import _oracle as oracle
-from ._library import COHERENT_BASELINE
-from ._specs import GATE_THRESHOLDS, ChapterSpec, WorkingTreeSpec
-
-_BASE = COHERENT_BASELINE
-_BASE_CHAPTERS = _BASE.chapters
-
-
-def _consistent_gates(chapters: tuple[ChapterSpec, ...]) -> dict[str, bool]:
-    """Return knitting-gate booleans honestly crossed by ``chapters`` drafts."""
-    ratio = sum(chapter.draft_words for chapter in chapters) / _BASE.target_words
-    low, mid, high = GATE_THRESHOLDS
-    return {
-        "done_30": ratio >= low,
-        "done_50": ratio >= mid,
-        "done_80": ratio >= high,
-    }
-
-
-def _with_chapters(
-    chapters: tuple[ChapterSpec, ...], **changes: object
-) -> WorkingTreeSpec:
-    """Return the baseline with replaced chapters, honest gates, and changes.
-
-    Explicit gate booleans in ``changes`` override the honest defaults, so a
-    gate-inconsistency variant can deliberately set a gate against the ratio.
-    """
-    fields: dict[str, object] = {"chapters": chapters, **_consistent_gates(chapters)}
-    fields.update(changes)
-    return dc.replace(_BASE, **fields)
+from . import _reconcile_variants as reconcile_variants
+from ._specs import ChapterSpec, WorkingTreeSpec
+from ._variant_base import (
+    BASE as _BASE,
+)
+from ._variant_base import (
+    BASE_CHAPTERS as _BASE_CHAPTERS,
+)
+from ._variant_base import (
+    with_chapters as _with_chapters,
+)
 
 
 def _flag_first_chapter_empty() -> WorkingTreeSpec:
@@ -216,6 +198,22 @@ def _build_incoherent_variants() -> dict[str, tuple[WorkingTreeSpec, str]]:
                     "paths": ["working/manuscript/chapter-03/draft.md"],
                 },
             ),
+            oracle.PENDING_TURN_CLEARED,
+        ),
+        "done-flag-real-draft-undercount": (
+            reconcile_variants.done_flag_real_draft_undercount(),
+            oracle.WORD_COUNTS_MATCH_DRAFTS,
+        ),
+        "done-claim-stale-word-counts": (
+            reconcile_variants.done_claim_stale_word_counts(),
+            oracle.WORD_COUNTS_MATCH_DRAFTS,
+        ),
+        "pending-turn-complete-recomputable": (
+            reconcile_variants.pending_turn_complete_recomputable(),
+            oracle.PENDING_TURN_CLEARED,
+        ),
+        "pending-turn-rollback-unrecoverable": (
+            reconcile_variants.pending_turn_rollback_unrecoverable(),
             oracle.PENDING_TURN_CLEARED,
         ),
     }

@@ -205,16 +205,41 @@ them freely. Mutators (`novel-state init`/`set-cursor`/`advance-phase`/
 `recount`/`reconcile` and `novel-compile`) are the only commands that touch
 `state.toml` or `compiled.md`, and every write is atomic via a temporary file
 plus `Path.replace`. Only the *genuinely multi-file* writers (`reconcile` and
-`novel-compile`) bracket their writes with a `[pending_turn]` intent record so a
-torn multi-file turn is recoverable. The single-file mutators
-(`init`/`set-cursor`/`advance-phase`/`recount`) write one file per `Path.replace`
-and open **no** `[pending_turn]` bracket — `recount` re-derives only
-`[word_counts]` in `state.toml` (design §4.1 line 271), and a recount is named in
-design §3.4 lines 240-241 as *one write among several in a turn*, not the command
-writing several files; `init` writes `state.toml` *and* `log.md` yet still uses
-no bracket because each is a single `Path.replace` write. Keep this segregation
-honest: a command that detects a finding must not also repair it. See design §3.3
-and §3.4.
+`novel-compile`) bracket their writes with a `[pending_turn]` intent record so
+a torn multi-file turn is recoverable. The single-file mutators (`init`/
+`set-cursor`/`advance-phase`/`recount`) write one file per `Path.replace` and
+open **no** `[pending_turn]` bracket — `recount` re-derives only
+`[word_counts]` in `state.toml` (design §4.1 line 271), and a recount is named
+in design §3.4 lines 240-241 as *one write among several in a turn*, not the
+command writing several files; `init` writes `state.toml` *and* `log.md` yet
+still uses no bracket because each is a single `Path.replace` write. Keep this
+segregation honest: a command that detects a finding must not also repair it.
+See design §3.3 and §3.4.
+
+`reconcile` (roadmap task 2.3.2) is the project's **first genuinely multi-file
+mutator**: a state-writing repair touches `state.toml` *and* appends a recovery
+receipt to `log.md`, so it brackets the pair with a `[pending_turn]` of its
+own. It does **not** use the `pending_turn` context manager
+(`novel_ralph_skill/state/document.py`), because that manager clears the record
+on `__exit__` with no hook to land the `log.md` receipt *before* the clear.
+Instead `novel_ralph_skill/commands/_reconcile.py::_run_reconcile_bracket`
+drives the lower-level seam manually in a fixed order: (1) `open_pending_turn` +
+`write_document_atomically` lands the intent record first; (2) the state edit
+(the recount, or the torn-turn clear); (3) the `log.md` receipt is appended; (4)
+`clear_pending_turn` + `write_document_atomically` clears the bracket last,
+after both the state edit and the receipt are on disk. This is a **deliberate
+ordering note against design §3.4 line 237** ("the log entry is appended last
+as the receipt"): the receipt is written before the final
+bracket-clear-and-`state.toml` write rather than strictly after every artefact,
+because §3.4 lines 243-245 also require the record to be cleared *only after*
+every artefact is written and verified — and a receipt appended after the clear
+would reopen a crash window with state settled, the record gone, and no
+receipt. Ordering the receipt as step 3 (before the clear) closes that window:
+a crash at any step leaves a populated `operation="reconcile"` record a
+subsequent `reconcile` re-derives and finishes, and a completed run leaves a
+coherent tree with the receipt on disk. `reconcile` deletes no `working/` file
+on any path; a rollback clears the record and leaves the partial artefacts in
+place, unreferenced.
 
 ### The shared JSON envelope
 
@@ -234,9 +259,9 @@ single source of truth), the `render_machine` and `render_human` renderers, the
 the `StateInputError` channel, the `CommandOutcome` and `RunContext` value
 types, the command-agnostic `parse_global_flags` splitter, and the `run`
 wrapper. A new command builds a Cyclopts app, returns a `CommandOutcome` from
-its body, and calls `run` rather than calling the app directly. Two consequences
-of `run` are load-bearing. First, `run` requires the caller to build the app
-with `result_action="return_value"` (plus
+its body, and calls `run` rather than calling the app directly. Two
+consequences of `run` are load-bearing. First, `run` requires the caller to
+build the app with `result_action="return_value"` (plus
 `exit_on_error=False, print_error=False, help_on_error=False`) so that `run` —
 not Cyclopts — owns every `sys.exit` and envelope emission; without it
 Cyclopts's default `result_action` would exit on the body's return value and
@@ -297,50 +322,57 @@ described next.
 
 `novel_ralph_skill.state.validate_state` is the §5.2 **pure-state** validator
 behind `novel-state check` (task 2.1.2). It is a pure
-`State -> tuple[Violation, ...]`: it decides whether a parsed `State` contradicts
-*itself*, reading nothing from disk beyond the `state.toml` that produced the
-`State`. It owns eight invariant names — `phase-in-enum`, `completed-prefix`,
-`by-chapter-sum`, `consecutive-clean-within-target`,
+`State -> tuple[Violation, ...]`: it decides whether a parsed `State`
+contradicts *itself*, reading nothing from disk beyond the `state.toml` that
+produced the `State`. It owns eight invariant names — `phase-in-enum`,
+`completed-prefix`, `by-chapter-sum`, `consecutive-clean-within-target`,
 `convergence-target-at-least-one`, `consecutive-clean-within-drafted`,
 `cursor-coherent`, and `gate-ratio-consistent` — spelled exactly as the corpus
 oracle's `CORPUS_INVARIANT_NAMES`, so task 2.1.3's cross-check keys on one
 vocabulary; the constants live in the production module and a test pins their
 equality to the oracle. Design §5.2 invariant 4 is split into three named
-sub-rules (`consecutive-clean-within-target`, `convergence-target-at-least-one`,
-and `consecutive-clean-within-drafted`) so a verdict pins exactly the sub-rule it
-breaks. Five **disk-evidence** invariants — the four §5.4 ones
-(`manifest-disk-bijection`, `done-flag-without-draft`, `compiled-matches-drafts`,
-`pending-turn-cleared`) plus `cursor-plan-present`, the scene/beat-plan-presence
-sub-clause of invariant 6 ("zero until plans exist") added by task 2.1.4 — need
-`working/` contents beyond `state.toml` and are task 2.3.2's; `validate_state`
-never emits any of them, and a scope-boundary test pins that.
+sub-rules (`consecutive-clean-within-target`,
+`convergence-target-at-least-one`, and `consecutive-clean-within-drafted`) so a
+verdict pins exactly the sub-rule it breaks. Six **disk-evidence** invariants —
+the four §5.4 ones (`manifest-disk-bijection`, `done-flag-without-draft`,
+`compiled-matches-drafts`, `pending-turn-cleared`), `cursor-plan-present` (the
+scene/beat-plan-presence sub-clause of invariant 6, "zero until plans exist",
+added by task 2.1.4), and `word-counts-match-drafts` (the disk-vs-table
+per-chapter word-count divergence added by task 2.3.2) — need `working/`
+contents beyond `state.toml`. `validate_state` never emits any of them (a
+scope-boundary test pins that); task 2.3.2's `check_disk_evidence`
+(`novel_ralph_skill/state/disk_evidence.py`) **implements** all six, the §5.4
+twin of `validate_state`, and disk-aware `check` unions the two verdicts. The
+production `DISK_EVIDENCE_INVARIANT_NAMES` tuple is pinned equal to the corpus
+oracle's disk-evidence subset by `test_owned_names_equal_corpus_vocabulary`,
+the same shared-vocabulary discipline the pure-state names follow.
 
 The eight owned names map onto the design's seven §5.2 invariants (numbered by
 their order in the bullet list) as follows; invariant 4 splits into three
 sub-rules and invariant 5 is deferred, which is why the validator owns eight
 names but covers seven design invariants:
 
-| §5.2 invariant | Owned name(s) / status |
-| --- | --- |
-| 1 (phase in enum) | `phase-in-enum` |
-| 2 (completed is enum prefix) | `completed-prefix` |
-| 3 (`by_chapter` sums to `current`) | `by-chapter-sum` |
-| 4 (`consecutive_clean` bounds) | `consecutive-clean-within-target`, `convergence-target-at-least-one`, `consecutive-clean-within-drafted` |
-| 5 (manifest-disk bijection) | `manifest-disk-bijection` — deferred to task 2.3.2 (disk evidence) |
-| 6 (cursor coherent) | `cursor-coherent` |
-| 7 (gate ratio consistent) | `gate-ratio-consistent` |
+| §5.2 invariant                     | Owned name(s) / status                                                                                   |
+| ---------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| 1 (phase in enum)                  | `phase-in-enum`                                                                                          |
+| 2 (completed is enum prefix)       | `completed-prefix`                                                                                       |
+| 3 (`by_chapter` sums to `current`) | `by-chapter-sum`                                                                                         |
+| 4 (`consecutive_clean` bounds)     | `consecutive-clean-within-target`, `convergence-target-at-least-one`, `consecutive-clean-within-drafted` |
+| 5 (manifest-disk bijection)        | `manifest-disk-bijection` — deferred to task 2.3.2 (disk evidence)                                       |
+| 6 (cursor coherent)                | `cursor-coherent`                                                                                        |
+| 7 (gate ratio consistent)          | `gate-ratio-consistent`                                                                                  |
 
-Two readings are deliberate pure-state approximations, recorded so a later reader
-does not mistake them for bugs. The `gate-ratio-consistent` numerator is the
-**drafted total** `sum(word_counts.by_chapter.values())`, not `current`, matching
-the oracle and decoupling gate consistency (invariant 7) from the by-chapter sum
-(invariant 3); the predicate also short-circuits when `word_counts.target <= 0`
-rather than dividing, so `validate_state` is total over every constructible
-`State`. The `consecutive-clean-within-drafted` ceiling counts the
-`word_counts.by_chapter` entries with a positive drafted total as the pure-state
-proxy for the design's "chapters drafted" disk quantity (mirroring the oracle,
-which counts chapters whose `draft_words > 0`); the two agree on every corpus
-tree.
+Two readings are deliberate pure-state approximations, recorded so a later
+reader does not mistake them for bugs. The `gate-ratio-consistent` numerator is
+the **drafted total** `sum(word_counts.by_chapter.values())`, not `current`,
+matching the oracle and decoupling gate consistency (invariant 7) from the
+by-chapter sum (invariant 3); the predicate also short-circuits when
+`word_counts.target <= 0` rather than dividing, so `validate_state` is total
+over every constructible `State`. The `consecutive-clean-within-drafted`
+ceiling counts the `word_counts.by_chapter` entries with a positive drafted
+total as the pure-state proxy for the design's "chapters drafted" disk quantity
+(mirroring the oracle, which counts chapters whose `draft_words > 0`); the two
+agree on every corpus tree.
 
 Task 2.1.3 reconciles **both** proxies against a live draft count in
 `tests/test_validate_state_live_draft.py::test_live_draft_agreement_over_whole_corpus`.
@@ -384,33 +416,38 @@ over-counting tree alone cannot catch it. The cross-check does **not** "live-
 reconcile" `by-chapter-sum` (invariant 3 is table-internal, with no live
 analogue, so it reads `sum(by_chapter) == current` from the table) and it does
 **not** re-run `validate_state` as the oracle — the other five owned invariants
-come from the spec-keyed `corpus_check`.
+come from the spec-keyed `corpus_check`. The disk-vs-table per-chapter divergence
+`by-chapter-sum` cannot see — a table internally consistent but stale against
+the drafts — is exactly what task 2.3.2's disk-evidence
+`word-counts-match-drafts` detects, comparing the per-chapter `by_chapter`
+mapping (over the shared chapter keys, never `current`, so it stays orthogonal
+to `by-chapter-sum`) against the recount of the on-disk drafts.
 
 Six of `validate_state`'s structural predicates are **deliberate twins** of the
-corpus oracle's same-named predicates in `tests/working_corpus/_oracle.py`. This
-duplication is intentional, not an oversight: the oracle is an independent
+corpus oracle's same-named predicates in `tests/working_corpus/_oracle.py`.
+This duplication is intentional, not an oversight: the oracle is an independent
 cross-check and must never import the validator it checks, so each side carries
 its own copy of the rule. The two are pinned to agree on every corpus tree by
 `tests/test_validate_state_corpus.py::test_incoherent_agreement_restricted_to_owned`;
 editing either predicate keeps that contract test as the safety net, and each
-module carries a reciprocal cross-reference comment pointing at its twin. Do not
-de-duplicate the twins — collapsing them would defeat the cross-check.
+module carries a reciprocal cross-reference comment pointing at its twin. Do
+not de-duplicate the twins — collapsing them would defeat the cross-check.
 
 `novel-state check` is the first command to drive the shared `run` path: its
 entry point pre-parses the single `--human` flag off argv before `run` (so the
 flag is honoured even on the body-less usage and state-error paths) using the
-shared `parse_global_flags` splitter from the contract package, so every command
-pre-parses `--human` through one seam rather than re-implementing it. It reads
-its state from the fixed cwd-relative `working/` directory — there is no
-`--working-dir` flag. A §5.2 violation returns exit `4` (an actionable finding
-the agent adjudicates), naming the breached invariants in `result.violations`; a
-missing or unparseable `state.toml` is the separate exit-`3` state-error channel,
-and `check` writes nothing (it is a checker). Note that `phase-in-enum` is
-enforced one layer *earlier* than the validator: `parse_state` raises constructing
-`Phase(current)` on an out-of-enum phase, so such a `state.toml` is rejected at
-load (exit `3`) and the validator's `phase-in-enum` predicate only fires for a
-`State` constructed directly (as in the property suite), never for one loaded
-from disk.
+shared `parse_global_flags` splitter from the contract package, so every
+command pre-parses `--human` through one seam rather than re-implementing it.
+It reads its state from the fixed cwd-relative `working/` directory — there is
+no `--working-dir` flag. A §5.2 violation returns exit `4` (an actionable
+finding the agent adjudicates), naming the breached invariants in
+`result.violations`; a missing or unparseable `state.toml` is the separate
+exit-`3` state-error channel, and `check` writes nothing (it is a checker).
+Note that `phase-in-enum` is enforced one layer *earlier* than the validator:
+`parse_state` raises constructing `Phase(current)` on an out-of-enum phase, so
+such a `state.toml` is rejected at load (exit `3`) and the validator's
+`phase-in-enum` predicate only fires for a `State` constructed directly (as in
+the property suite), never for one loaded from disk.
 
 ### The `document.py` round-trip writer
 
@@ -455,29 +492,29 @@ the 400-line cap once all three bodies land. Three disciplines bind every
 mutator:
 
 - **Validate before persist.** Each mutator edits the live `tomlkit` document,
-  derives the typed `State` *read* view through `document_to_state`, applies the
-  §5.2 `validate_state`, and writes atomically only when the proposed state is
-  coherent. A refused request performs **no write**, so the prior `state.toml`
-  is byte-for-byte unchanged (design §3.4).
+  derives the typed `State` *read* view through `document_to_state`, applies
+  the §5.2 `validate_state`, and writes atomically only when the proposed state
+  is coherent. A refused request performs **no write**, so the prior
+  `state.toml` is byte-for-byte unchanged (design §3.4).
 - **Refusal is exit `3`, never exit `1`.** An incoherent cursor, a phase skip or
   out-of-order completion, a terminal advance, an empty-manifest advance into
   `drafting`, or a missing/unparseable/structurally-incomplete `state.toml` is
-  the contract's exit `3` (state error), routed through `StateInputError` — never
-  the benign exit `1` the loop continues on (design §3.2). Because the exit-`3`
-  `run` arm emits only `messages` (no `result`), a refusal names the breached
-  invariant(s) in `messages`.
+  the contract's exit `3` (state error), routed through `StateInputError` —
+  never the benign exit `1` the loop continues on (design §3.2). Because the
+  exit-`3` `run` arm emits only `messages` (no `result`), a refusal names the
+  breached invariant(s) in `messages`.
 - **Success `result` is write-shaped, never `check`'s read shape.** A mutator's
   success `result` names *what it changed* and never echoes the `check` query's
   `violations` key (design §3.3; `docs/issues/audit-2.2.2.md` Finding 2).
   `set-cursor` returns `{current_chapter, current_scene, current_beat}` — the
   cursor it set, read back to the on-disk drafting fields without translation;
   `advance-phase` returns `{from, to}` — the transition it made, as the
-  `Phase.value` strings. The `from`/`to` keys are *transition labels*, not on-disk
-  schema keys: `state.toml` persists `phase.current` plus `phase.completed`, never
-  a `[from]`/`[to]` table. `recount` and `reconcile` must follow the same
-  write-shaped discipline (the counts or discrepancies they wrote), so a later
-  mutator does not copy the checker's vocabulary by accident; a cross-subcommand
-  test pins `violations` to `check` alone.
+  `Phase.value` strings. The `from`/`to` keys are *transition labels*, not
+  on-disk schema keys: `state.toml` persists `phase.current` plus
+  `phase.completed`, never a `[from]`/`[to]` table. `recount` and `reconcile`
+  must follow the same write-shaped discipline (the counts or discrepancies
+  they wrote), so a later mutator does not copy the checker's vocabulary by
+  accident; a cross-subcommand test pins `violations` to `check` alone.
 - **The two-helper document load path.** The mutators load through
   `_load_document_or_state_error` → `load_document` (`tomlkit`), **not**
   `_load_or_state_error` → `load_state` (`tomllib`), because they edit the live
@@ -492,15 +529,15 @@ mutator:
 `init` *creates*, it does not overwrite: it refuses with exit `3` when
 `working/state.toml` already exists rather than clobbering a live project, then
 builds the full required table set (`build_initial_document`), creates the
-Initialisation directory skeleton plus an empty `log.md`, and writes atomically.
-Each of these mutators writes a single file (`state.toml`, plus `init`'s
-`log.md`), already atomic via `Path.replace`, so none opens a `[pending_turn]`
-bracket — that belongs to the genuinely multi-file mutators (`reconcile` and
-`novel-compile`). `recount` is a single-file mutator too: it re-derives only
-`[word_counts]` in `state.toml` (design §4.1 line 271), and design §3.4 lines
-240-241 name a recount as *one write among several in a turn*, not the command
-writing several files, so it writes one `Path.replace` and opens no bracket,
-exactly like `set-cursor` and `advance-phase`.
+Initialisation directory skeleton plus an empty `log.md`, and writes
+atomically. Each of these mutators writes a single file (`state.toml`, plus
+`init`'s `log.md`), already atomic via `Path.replace`, so none opens a
+`[pending_turn]` bracket — that belongs to the genuinely multi-file mutators
+(`reconcile` and `novel-compile`). `recount` is a single-file mutator too: it
+re-derives only `[word_counts]` in `state.toml` (design §4.1 line 271), and
+design §3.4 lines 240-241 name a recount as *one write among several in a
+turn*, not the command writing several files, so it writes one `Path.replace`
+and opens no bracket, exactly like `set-cursor` and `advance-phase`.
 
 `advance-phase` takes no argument and always moves to the immediate successor,
 so a phase *skip* cannot be requested. "Refuses out-of-order completion" is
@@ -521,12 +558,13 @@ chapter, `0` for an absent or empty `draft.md`), written in ascending key order
 so a second recount over unchanged drafts is byte-for-byte identical
 (idempotence); `current` is the drafted sum `sum(by_chapter.values())`, so §5.2
 invariant 3 holds by construction. The success `result` is write-shaped —
-`{current, by_chapter}`, the counts it wrote — never the checker's `violations`.
-An absent `draft.md` counts as `0`, but an unreadable or undecodable draft, a
-missing or structurally-incomplete `state.toml`, or a recount that would breach
-a §5.2 invariant each refuses with exit `3` (the state-error channel) and leaves
-the prior `state.toml` byte-for-byte intact. The behavioural proof is the
-`pytest-bdd` scenario `tests/features/recount.feature`.
+`{current, by_chapter}`, the counts it wrote — never the checker's
+`violations`. An absent `draft.md` counts as `0`, but an unreadable or
+undecodable draft, a missing or structurally-incomplete `state.toml`, or a
+recount that would breach a §5.2 invariant each refuses with exit `3` (the
+state-error channel) and leaves the prior `state.toml` byte-for-byte intact.
+The behavioural proof is the `pytest-bdd` scenario
+`tests/features/recount.feature`.
 
 ### The state-layout direct-edit guard
 

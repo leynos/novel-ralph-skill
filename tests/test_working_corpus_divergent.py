@@ -46,9 +46,11 @@ class TestCorpusDivergentTable:
     at least one table-based proxy while the table-reading §5.2 validator breaks
     neither. These tests pin that the category is excluded from the incoherent set
     and that the two sides disagree exactly as designed — the over-counting tree on
-    both proxies, the under-counting tree on ``gate-ratio-consistent`` only — so a
-    future reader cannot mistake the disagreement for a bug and "fix" it by aligning
-    the oracles. Every tree is sourced from the corpus through the
+    both gate/cursor proxies, the under-counting tree on ``gate-ratio-consistent``
+    only — while roadmap task 2.3.2's disk-evidence ``word-counts-match-drafts``
+    detector fires on both, since each table diverges from the on-disk drafts per
+    chapter. A future reader cannot mistake the disagreement for a bug and "fix" it
+    by aligning the oracles. Every tree is sourced from the corpus through the
     ``divergent_table_tree`` factory fixture, so the corpus stays consumed by
     fixture name and never by a runtime value import.
     """
@@ -58,17 +60,20 @@ class TestCorpusDivergentTable:
         divergent_table_tree: cabc.Callable[[str], tuple[WorkingTreeSpec, Path]],
         check_corpus: cabc.Callable[[WorkingTreeSpec, Path], tuple[str, ...]],
     ) -> None:
-        """``corpus_check`` names exactly the two table-based proxies, in order.
+        """``corpus_check`` names the two table-based proxies plus the disk-vs-table.
 
         The vocabulary order is ``consecutive-clean-within-drafted`` (index 5)
         before ``gate-ratio-consistent`` (index 9), and ``by-chapter-sum`` stays
         silent because ``current`` equals the override table sum (Decision Log
-        D3).
+        D3). Roadmap task 2.3.2's ``word-counts-match-drafts`` (index 13) now also
+        fires: the override table over-counts the on-disk drafts, which is exactly
+        the disk-vs-table per-chapter divergence that detector owns (D-WORDCOUNT).
         """
         spec, working = divergent_table_tree(_OVER_COUNTING_KEY)
         assert check_corpus(spec, working) == (
             "consecutive-clean-within-drafted",
             "gate-ratio-consistent",
+            "word-counts-match-drafts",
         )
 
     def test_divergent_table_not_in_incoherent_variants(
@@ -91,20 +96,28 @@ class TestCorpusDivergentTable:
         divergent_table_tree: cabc.Callable[[str], tuple[WorkingTreeSpec, Path]],
         check_corpus: cabc.Callable[[WorkingTreeSpec, Path], tuple[str, ...]],
     ) -> None:
-        """``corpus_check`` names exactly ``gate-ratio-consistent`` and nothing else.
+        """``corpus_check`` names ``gate-ratio-consistent`` plus the disk-vs-table.
 
-        The under-counting tree's verified shape (Decision Log D2): the live 1.125
-        ratio contradicts the all-``False`` gates, so ``gate-ratio-consistent``
-        fires; ``consecutive-clean-within-drafted`` stays silent because the
-        ``consecutive_clean`` counter 2 is within both the live (3) and the
-        under-counted table (2) drafted-chapter counts; ``by-chapter-sum`` stays
-        silent because ``current`` equals the override table sum (Decision Log D3);
-        and ``cursor-coherent`` stays silent because ``current_chapter`` 3 is within
-        the three drafted chapters. A drift in the gates or the drafts is caught
-        immediately by the exact one-name expectation.
+        Among the gate and cursor proxies the under-counting tree breaks only
+        ``gate-ratio-consistent``. The under-counting tree's verified shape
+        (Decision Log D2): the live 1.125 ratio contradicts the all-``False``
+        gates, so ``gate-ratio-consistent`` fires; ``consecutive-clean-within-drafted``
+        stays silent because the ``consecutive_clean`` counter 2 is within both the
+        live (3) and the under-counted table (2) drafted-chapter counts;
+        ``by-chapter-sum`` stays silent because ``current`` equals the override
+        table sum (Decision Log D3); and ``cursor-coherent`` stays silent because
+        ``current_chapter`` 3 is within the three drafted chapters. Roadmap task
+        2.3.2's disk-evidence ``word-counts-match-drafts`` (index 13) also fires:
+        the override table under-counts the on-disk drafts per chapter, which is
+        exactly the disk-vs-table divergence that detector owns (D-WORDCOUNT),
+        symmetric to the over-counting tree. A drift in the gates or the drafts is
+        caught immediately by the exact expectation.
         """
         spec, working = divergent_table_tree(_UNDER_COUNTING_KEY)
-        assert check_corpus(spec, working) == ("gate-ratio-consistent",)
+        assert check_corpus(spec, working) == (
+            "gate-ratio-consistent",
+            "word-counts-match-drafts",
+        )
 
     def test_divergent_table_validator_stays_silent(
         self,

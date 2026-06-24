@@ -17,9 +17,8 @@ these targets in order:
 The `lint-python` target runs Ruff, then Interrogate over `$(PYTHON_TARGETS)`
 to enforce 100% docstring coverage for the Python targets (the threshold is
 pinned in `[tool.interrogate]` in `pyproject.toml`), then Pylint via a
-PyPy-backed runner. The
-Pylint runner is installed through `uv tool run` from the pinned
-`pylint-pypy-shim` repository.
+PyPy-backed runner. The Pylint runner is installed through `uv tool run` from
+the pinned `pylint-pypy-shim` repository.
 
 Pytest discovery is limited to the top-level `tests/` tree. Keep generated
 project unit tests there rather than in package module directories or
@@ -90,11 +89,12 @@ prints "`<name>` is not yet implemented" to standard error and exits with code
 `2`. Each will be filled in by a later release.
 
 `novel-state` now has its first real subcommand, `novel-state check` (roadmap
-task 2.1.2). It validates the state coherence invariants of `./working/state.toml`
-and writes nothing. The working directory is the fixed `working/` directory
-relative to the current directory; there is no `--working-dir` flag. By default
-it prints a one-line JSON envelope on standard output; pass the global `--human`
-flag (`novel-state --human check`) for a readable rendering instead.
+task 2.1.2). It validates the state coherence invariants of
+`./working/state.toml` and writes nothing. The working directory is the fixed
+`working/` directory relative to the current directory; there is no
+`--working-dir` flag. By default it prints a one-line JSON envelope on standard
+output; pass the global `--human` flag (`novel-state --human check`) for a
+readable rendering instead.
 
 `novel-state check` uses the shared exit-code table:
 
@@ -104,12 +104,19 @@ flag (`novel-state --human check`) for a readable rendering instead.
 - `3` — `./working/state.toml` is missing or unparseable (the state-error
   channel).
 
-The names that can appear in `result.violations` are the pure-state half of the
-invariant set (the on-disk-evidence invariants below arrive in a later release):
+As of roadmap task 2.3.2 `novel-state check` is **disk-aware**: it validates
+the pure-state invariants decidable from `state.toml` alone *and* the
+disk-evidence invariants that compare `state.toml` against the `working/` tree.
+When a disk-evidence invariant is violated it also attaches a
+`result.reconciliation` describing the repair a stale tree implies (the action —
+`recount`, `refuse`, `complete-pending-turn`, or `rollback-pending-turn` — and
+the discrepancy names); `check` still writes nothing on any path.
+
+The pure-state names that can appear in `result.violations` are:
 
 - `phase-in-enum` — the current phase is not one of the known workflow phases.
-- `completed-prefix` — the completed-phase list is not the in-order run of phases
-  before the current one (a phase is missing or out of order).
+- `completed-prefix` — the completed-phase list is not the in-order run of
+  phases before the current one (a phase is missing or out of order).
 - `by-chapter-sum` — the per-chapter word counts do not add up to the recorded
   current total.
 - `consecutive-clean-within-target` — the consecutive-clean-pass counter is
@@ -122,27 +129,65 @@ invariant set (the on-disk-evidence invariants below arrive in a later release):
 - `gate-ratio-consistent` — a knitting gate is set true or false in a way that
   disagrees with the drafted-word ratio against its threshold.
 
-The on-disk evidence invariants (the chapter manifest matching the directory
-set, `done.flag`/`draft.md` consistency, and `compiled.md` freshness) are
-validated by a later release; `novel-state check` currently checks only the
-invariants decidable from `state.toml` alone.
+The disk-evidence names compare the recorded state against the `working/` tree:
 
-`novel-state recount` re-derives the word counts from the chapter drafts, so you
-never type a word count by hand. It reads each chapter's
+- `manifest-disk-bijection` — the chapter manifest and the on-disk
+  `chapter-NN/` directories are not in one-to-one correspondence.
+- `done-flag-without-draft` — a chapter carries a `done.flag` beside an empty or
+  absent `draft.md`.
+- `compiled-matches-drafts` — `compiled.md` is not the ordered concatenation of
+  the present drafts.
+- `pending-turn-cleared` — `state.toml` records an uncleared `[pending_turn]` (a
+  torn multi-file turn).
+- `cursor-plan-present` — a non-zero scene or beat cursor has no on-disk
+  `scenes.md`/`beats.md` plan for its chapter.
+- `word-counts-match-drafts` — the recorded per-chapter `[word_counts]` table
+  disagrees with the words actually on disk (a stale done-claim, or a real
+  `done.flag` over a draft the table under-counts).
+
+`novel-state recount` re-derives the word counts from the chapter drafts, so
+you never type a word count by hand. It reads each chapter's
 `working/manuscript/chapter-NN/draft.md`, counts its words, and rewrites
-`[word_counts].current` and `[word_counts].by_chapter` to match what is actually
-on disk (`current` is the sum of the per-chapter counts). It is idempotent:
-running it twice over unchanged drafts leaves `state.toml` byte-for-byte
-identical. Like the other write subcommands it writes nothing on refusal (exit
-`3`) — a missing or unparseable `state.toml`, an unreadable draft, or a recount
-that would leave the state incoherent each leaves the prior file untouched.
+`[word_counts].current` and `[word_counts].by_chapter` to match what is
+actually on disk (`current` is the sum of the per-chapter counts). It is
+idempotent: running it twice over unchanged drafts leaves `state.toml`
+byte-for-byte identical. Like the other write subcommands it writes nothing on
+refusal (exit `3`) — a missing or unparseable `state.toml`, an unreadable
+draft, or a recount that would leave the state incoherent each leaves the prior
+file untouched.
 
-`result.violations` is the *checker's* read shape: it belongs to `novel-state
-check` alone. The write subcommands (`init`, `set-cursor`, `advance-phase`,
-`recount`) instead report *what they changed* in `result` — `set-cursor` returns
-the cursor it set, `advance-phase` returns the `{from, to}` transition, and
-`recount` returns the `{current, by_chapter}` counts it wrote — so do not expect
-a `violations` key from a write.
+`novel-state reconcile` (roadmap task 2.3.2) carries out the repair
+`novel-state check` reports when `state.toml` has drifted from the on-disk
+manuscript — the recovery routine you used to run by hand, now run as code. It
+re-derives the reconciliation from disk independently (it never trusts a
+payload from `check`), then:
+
+- when the `[word_counts]` table is stale against the drafts, it rewrites
+  `[word_counts]` from the drafts (a recount) and exits `0`;
+- when `state.toml` left an uncleared `[pending_turn]`, it completes or rolls
+  the
+  torn turn back (it never fabricates a draft or a `done.flag`) and exits `0`;
+- when disk *contradicts itself* — a `done.flag` beside an empty draft, a
+  `compiled.md` referencing absent content, a non-bijective manifest, or a
+  plan-less cursor — it **refuses**: it writes no state change and exits `4`
+  for you to adjudicate.
+
+Every repair or refusal is logged as a recovery receipt appended to
+`working/log.md`, and `reconcile` removes no file under `working/`. It is
+idempotent: running it twice over an already-reconciled tree is a no-op that
+leaves `state.toml` byte-for-byte unchanged. A repair that would cross a
+knitting gate the recorded gates do not reflect is refused (exit `3`) rather
+than silently mis-repaired, because integrating a knitting pass is your
+judgement, not a deterministic recompute.
+
+`result.violations` is the *checker's* read shape: it belongs to
+`novel-state check` alone. The write subcommands (`init`, `set-cursor`,
+`advance-phase`, `recount`, `reconcile`) instead report *what they changed* in
+`result` — `set-cursor` returns the cursor it set, `advance-phase` returns the
+`{from, to}` transition, `recount` returns the `{current, by_chapter}` counts
+it wrote, and `reconcile` returns the `{action, discrepancies, detail}` it
+enacted (plus the written counts for a recount) — so do not expect a
+`violations` key from a write.
 
 `desloppify` reports prose tics (roadmap task 5.1.2). It reads the chapter
 drafts under `./working/`, scans them against a versioned rule pack — the §6

@@ -34,6 +34,7 @@ from novel_ralph_skill.state import (
     CONSECUTIVE_CLEAN_WITHIN_TARGET,
     CONVERGENCE_TARGET_AT_LEAST_ONE,
     CURSOR_COHERENT,
+    DISK_EVIDENCE_INVARIANT_NAMES,
     GATE_RATIO_CONSISTENT,
     PHASE_IN_ENUM,
     PURE_STATE_INVARIANT_NAMES,
@@ -47,11 +48,12 @@ if typ.TYPE_CHECKING:
 
     from conftest import WorkingTreeSpec
 
-# The five disk-evidence invariant names this task does NOT own; the validator
+# The six disk-evidence invariant names this task does NOT own; the validator
 # must never emit any of them (the scope-boundary pin, protecting task 2.3.2's
 # surface). ``cursor-plan-present`` is the scene/beat-plan-presence sub-clause of
 # design §5.2 invariant 6 — disk-evidence, so deferred to reconciliation task
-# 2.3.2 like the four §5.4 names.
+# 2.3.2 like the four §5.4 names. ``word-counts-match-drafts`` is task 2.3.2's
+# new disk-vs-table per-chapter word-count divergence (D-WORDCOUNT).
 _DEFERRED_INVARIANT_NAMES: frozenset[str] = frozenset(
     {
         "manifest-disk-bijection",
@@ -59,6 +61,7 @@ _DEFERRED_INVARIANT_NAMES: frozenset[str] = frozenset(
         "compiled-matches-drafts",
         "pending-turn-cleared",
         "cursor-plan-present",
+        "word-counts-match-drafts",
     },
 )
 
@@ -84,6 +87,11 @@ def test_owned_names_equal_corpus_vocabulary(
     }
     assert owned == set(corpus_invariant_names) - _DEFERRED_INVARIANT_NAMES
     assert set(PURE_STATE_INVARIANT_NAMES) == owned
+    # Task 2.3.2's disk-evidence detector owns exactly the six deferred names; pin
+    # the production ``DISK_EVIDENCE_INVARIANT_NAMES`` tuple equal to the oracle's
+    # disk-evidence subset so the two vocabularies cannot drift (D-NAMES).
+    assert set(DISK_EVIDENCE_INVARIANT_NAMES) == _DEFERRED_INVARIANT_NAMES
+    assert set(DISK_EVIDENCE_INVARIANT_NAMES) == set(corpus_invariant_names) - owned
 
 
 def test_corpus_gate_thresholds_equal_production(

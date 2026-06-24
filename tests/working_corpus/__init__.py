@@ -28,7 +28,11 @@ from __future__ import annotations
 from ._builder import build_working_tree
 from ._library import COHERENT_BASELINE, PHASE_ORDER, PHASE_STATES
 from ._live_draft import live_draft_counts, live_draft_owned
-from ._oracle import CORPUS_INVARIANT_NAMES, corpus_check
+from ._oracle import (
+    CORPUS_INVARIANT_NAMES,
+    WORD_COUNTS_MATCH_DRAFTS,
+    corpus_check,
+)
 from ._specs import (
     COMPILED_AUTO,
     CORPUS_SEPARATOR,
@@ -58,6 +62,7 @@ __all__ = [
     "INCOHERENT_VARIANTS",
     "PHASE_ORDER",
     "PHASE_STATES",
+    "WORD_COUNTS_MATCH_DRAFTS",
     "ChapterSpec",
     "WorkingTreeSpec",
     "build_working_tree",

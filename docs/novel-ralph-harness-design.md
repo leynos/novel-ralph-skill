@@ -169,12 +169,12 @@ command/query segregation (§3.3): a checker reports breached invariants in
 `result.violations`, whereas a mutator reports the change it made and never
 echoes the checker's read shape. Concretely, `init` returns the bootstrapped
 `working_dir` and `slug`; `set-cursor` returns the cursor it set
-(`current_chapter`, `current_scene`, `current_beat`); `advance-phase` returns the
-transition (`from`, `to`); and the later `recount`/`reconcile` mutators return
-the counts or discrepancies they wrote (§4.1, §5.4). `advance-phase`'s `from` and
-`to` are *transition labels* describing the move, not on-disk schema keys —
-`state.toml` has no `[from]`/`[to]` table; the persisted representation is
-`phase.current` plus `phase.completed` (§5.1). A refusal carries no `result`
+(`current_chapter`, `current_scene`, `current_beat`); `advance-phase` returns
+the transition (`from`, `to`); and the later `recount`/`reconcile` mutators
+return the counts or discrepancies they wrote (§4.1, §5.4). `advance-phase`'s
+`from` and `to` are *transition labels* describing the move, not on-disk schema
+keys — `state.toml` has no `[from]`/`[to]` table; the persisted representation
+is `phase.current` plus `phase.completed` (§5.1). A refusal carries no `result`
 payload at all: the exit-3 channel emits only `messages` naming the breached
 invariant (§3.2).
 
@@ -517,6 +517,42 @@ by trusting one field over another — the disk itself disagrees. In that case
 and exits 4 so the agent adjudicates. The rule is that `reconcile` repairs only
 where disk is internally consistent and the state is merely stale, and refuses
 — loudly — where disk contradicts itself.
+
+#### v1 reconciliation scope (roadmap task 2.3.2)
+
+The "behind disk" reconstruction above names re-deriving the intended state
+from *which chapters carry `done.flag` and what `compiled.md` contains*. v1's
+disk-authoritative `reconcile` deliberately **narrows** that to the two
+deterministically recomputable corrections it can make without fabricating an
+agent judgement:
+
+1. **Stale `[word_counts]` vs the drafts.** Done-ness is recorded in the
+   per-chapter `word_counts.by_chapter` table, not a per-chapter `done`
+   boolean. A settled tree whose table claims a done chapter the drafts do not
+   corroborate (or a real `done.flag` over a draft the table under-counts) is
+   detected by the `word-counts-match-drafts` disk-evidence invariant and
+   repaired by re-deriving `[word_counts]` from the drafts — a recount fired by
+   genuine disk evidence. This repair rewrites `[word_counts]` **only** and
+   never `[gates]`: a knitting gate flag records "threshold crossed **and** the
+   pass integrated and logged", an agent action disk does not store, so
+   synthesising it would violate "disk is authoritative, never the reverse".
+   Word-count reconciliation is therefore in scope **only for sub-threshold
+   divergences** — where the recounted ratio crosses exactly the 30/50/80%
+   thresholds the recorded gates already reflect — so the reconciled tree stays
+   gate-consistent. A done-claim large enough to move a gate is reported and
+   escalated, not silently re-projected.
+2. **An uncleared `[pending_turn]`.** Completed (when every missing declared
+   artefact is recomputable — `state.toml`/`log.md`) or rolled back (when an
+   unrecoverable artefact, a `draft.md` or a `done.flag`, did not land),
+   exactly as above.
+
+The broader `done.flag`/`compiled.md`-driven reconstruction §5.4 describes — a
+per-chapter done projection, or re-projecting gates from a recount — is
+**deferred** to a later task. The `cursor-plan-present` break (the §5.2
+invariant-6 "scene/beat zero until plans exist" sub-clause) is given §5.4
+*refuse* semantics here: `reconcile` cannot synthesise a missing plan from disk
+without fabricating planning prose, so it reports, logs, and exits 4 rather
+than repairing — the same disposition as a contradiction.
 
 ## 6. Configuration-driven detection (designed; built post-v1)
 

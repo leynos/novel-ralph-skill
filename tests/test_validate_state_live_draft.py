@@ -68,8 +68,10 @@ if typ.TYPE_CHECKING:
 
     from conftest import WorkingTreeSpec
 
-# The five disk-evidence invariant names the validator never owns; a variant
+# The six disk-evidence invariant names the validator never owns; a variant
 # labelled with one of these yields two empty owned verdicts that agree.
+# ``word-counts-match-drafts`` is task 2.3.2's disk-vs-table per-chapter divergence
+# (D-WORDCOUNT).
 _DISK_EVIDENCE_NAMES: frozenset[str] = frozenset(
     {
         "manifest-disk-bijection",
@@ -77,6 +79,7 @@ _DISK_EVIDENCE_NAMES: frozenset[str] = frozenset(
         "compiled-matches-drafts",
         "pending-turn-cleared",
         "cursor-plan-present",
+        "word-counts-match-drafts",
     },
 )
 

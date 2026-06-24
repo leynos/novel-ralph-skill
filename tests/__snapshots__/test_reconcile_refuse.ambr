@@ -1,0 +1,4 @@
+# serializer version: 1
+# name: test_reconcile_refuse_envelope_snapshot
+  '{"command": "novel-state", "messages": ["disk evidence refuses repair: done-flag-without-draft"], "ok": false, "result": {"action": "refuse", "detail": "disk evidence refuses repair: done-flag-without-draft", "discrepancies": ["done-flag-without-draft"]}, "schema_version": 1, "working_dir": "working"}'
+# ---

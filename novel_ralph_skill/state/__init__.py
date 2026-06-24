@@ -19,6 +19,21 @@ live in the ``commands`` package.
 
 from __future__ import annotations
 
+from novel_ralph_skill.state.compile_model import (
+    DRAFT_SEPARATOR,
+    concatenate_drafts,
+)
+from novel_ralph_skill.state.disk_evidence import (
+    COMPILED_MATCHES_DRAFTS,
+    CURSOR_PLAN_PRESENT,
+    DISK_EVIDENCE_INVARIANT_NAMES,
+    DONE_FLAG_WITHOUT_DRAFT,
+    MANIFEST_DISK_BIJECTION,
+    PENDING_TURN_CLEARED,
+    WORD_COUNTS_MATCH_DRAFTS,
+    check_disk_evidence,
+    disk_word_counts,
+)
 from novel_ralph_skill.state.document import (
     clear_pending_turn,
     document_to_state,
@@ -30,6 +45,11 @@ from novel_ralph_skill.state.document import (
 from novel_ralph_skill.state.initial import build_initial_document
 from novel_ralph_skill.state.parse import load_state, parse_state
 from novel_ralph_skill.state.phase import PHASE_ORDER, Phase
+from novel_ralph_skill.state.reconcile import (
+    ReconcileAction,
+    Reconciliation,
+    derive_reconciliation,
+)
 from novel_ralph_skill.state.schema import (
     ChapterEntry,
     CriticState,
@@ -62,15 +82,23 @@ from novel_ralph_skill.state.wordcount import recount_words
 
 __all__ = [
     "BY_CHAPTER_SUM",
+    "COMPILED_MATCHES_DRAFTS",
     "COMPLETED_PREFIX",
     "CONSECUTIVE_CLEAN_WITHIN_DRAFTED",
     "CONSECUTIVE_CLEAN_WITHIN_TARGET",
     "CONVERGENCE_TARGET_AT_LEAST_ONE",
     "CURSOR_COHERENT",
+    "CURSOR_PLAN_PRESENT",
+    "DISK_EVIDENCE_INVARIANT_NAMES",
+    "DONE_FLAG_WITHOUT_DRAFT",
+    "DRAFT_SEPARATOR",
     "GATE_RATIO_CONSISTENT",
+    "MANIFEST_DISK_BIJECTION",
+    "PENDING_TURN_CLEARED",
     "PHASE_IN_ENUM",
     "PHASE_ORDER",
     "PURE_STATE_INVARIANT_NAMES",
+    "WORD_COUNTS_MATCH_DRAFTS",
     "ChapterEntry",
     "CriticState",
     "Drafting",
@@ -83,11 +111,17 @@ __all__ = [
     "PendingTurn",
     "Phase",
     "PhaseState",
+    "ReconcileAction",
+    "Reconciliation",
     "State",
     "Violation",
     "WordCounts",
     "build_initial_document",
+    "check_disk_evidence",
     "clear_pending_turn",
+    "concatenate_drafts",
+    "derive_reconciliation",
+    "disk_word_counts",
     "document_to_state",
     "load_document",
     "load_state",

@@ -259,11 +259,13 @@ drift and seeds the snapshot suite. See novel-ralph-harness-design.md §3 and §
     all five commands — by giving the splitter a neutral home before the import
     direction sets, rather than the 2.1 schema hypothesis where it was raised.
   - Requires 1.3.1.
-  - See novel-ralph-harness-design.md §3.1; docs/adr-003-shared-interface-contract.md.
+  - See novel-ralph-harness-design.md §3.1;
+    docs/adr-003-shared-interface-contract.md.
   - Success: `parse_global_flags` and `_HUMAN_FLAG` live in a shared seam (e.g.
     `contract.runner` or `commands/_global_flags.py`), every command imports the
     one splitter, and no command depends on a sibling command module.
-- [x] 1.3.4. Extract a shared envelope-`messages`-carrying exception base for the
+- [x] 1.3.4. Extract a shared envelope-`messages`-carrying exception base for
+      the
   domain error types.
   - Reroute (source: audit:5.1.1; severity: medium). `StateInputError`,
     `RulePackError`, and `RulePackFileError` hand-repeat the same
@@ -274,8 +276,10 @@ drift and seeds the snapshot suite. See novel-ralph-harness-design.md §3 and §
     hypothesis where it surfaced. The cross-layer direction holds: `rulepack` may
     depend on a `contract` base, never the reverse.
   - Requires 1.3.1.
-  - See novel-ralph-harness-design.md §3.1; docs/adr-003-shared-interface-contract.md.
-  - Success: a single `EnvelopeMessagesError` base in a neutral `contract` module
+  - See novel-ralph-harness-design.md §3.1;
+    docs/adr-003-shared-interface-contract.md.
+  - Success: a single `EnvelopeMessagesError` base in a neutral `contract`
+    module
     records `self.messages: tuple[str, ...]` once; the three domain exceptions
     subclass it (`RulePackError` adding `rule_id`), and the freeze-on-construct
     decision has one home.
@@ -631,7 +635,7 @@ agent-improvised recovery routine. See novel-ralph-harness-design.md §4.1 and
   - See novel-ralph-harness-design.md §4.1.
   - Success: `recount` is idempotent — a second run on unchanged drafts writes
     an identical file — and the by-chapter values sum to the current total.
-- [ ] 2.3.2. Implement read-only reconciliation detection in `check` and the
+- [x] 2.3.2. Implement read-only reconciliation detection in `check` and the
   disk-authoritative write in `reconcile`.
   - Requires 2.1.2 and 2.3.1.
   - In `check` (read-only), reconstruct intended state from on-disk evidence
@@ -1252,10 +1256,10 @@ mutation of the lane's logic is reliably caught by a test, or whether inert
 guards survive that pass green while no longer constraining behaviour. Its
 outcome is a mutation-tested confidence in the lane that goes beyond
 example-based coverage, surfacing surviving mutants as new tests. This is a
-deferred verification-hardening extension surfaced by the review of step 2.1; it
-does not advance the step-2.1 schema-and-validator hypothesis (the validator and
-its agreement suites already exist and are cross-checked) and it does not gate
-the deterministic spine.
+deferred verification-hardening extension surfaced by the review of step 2.1;
+it does not advance the step-2.1 schema-and-validator hypothesis (the validator
+and its agreement suites already exist and are cross-checked) and it does not
+gate the deterministic spine.
 
 - [ ] 7.6.1. Mutation-test the state validator and the oracle-agreement suites.
   - Reroute (source: review:2.1.3; severity: low). The 2.1.3 review found a
@@ -1319,14 +1323,14 @@ gate the deterministic spine.
 ### 7.8. Settle a harness-wide observability contract for the mutators
 
 This step answers whether the spine's mutators should emit a consistent
-structured operator log — beyond the human `messages` line each already
-returns — so the Ralph loop is observable when it runs unattended, or whether
-the JSON envelope alone is the agreed operability surface. Its outcome is one
-house-wide logging contract every mutator inherits, recorded once rather than
-bolted on per command. The current mutators (`set-cursor`, `advance-phase`,
-`recount`) emit only a human `messages` line with no structured operator log;
-this is a deferred operability-hardening extension surfaced by the review of
-step 2.3, and it does not gate the deterministic spine.
+structured operator log — beyond the human `messages` line each already returns
+— so the Ralph loop is observable when it runs unattended, or whether the JSON
+envelope alone is the agreed operability surface. Its outcome is one house-wide
+logging contract every mutator inherits, recorded once rather than bolted on
+per command. The current mutators (`set-cursor`, `advance-phase`, `recount`)
+emit only a human `messages` line with no structured operator log; this is a
+deferred operability-hardening extension surfaced by the review of step 2.3,
+and it does not gate the deterministic spine.
 
 - [ ] 7.8.1. Decide and document the structured-logging policy for the spine
   mutators.
@@ -1352,8 +1356,8 @@ This step answers whether the `tomlkit` inline-table materialisation idiom —
 now hand-copied across the state writers and the corpus builder — can be
 collapsed onto a single state-package helper without disturbing the lossless
 round-trip the schema parser reads back, paralleling how the counting rule was
-centralised in `wordcount`. Its outcome is one home for the inline-table rule so
-a future change to the on-disk inline-table style is made once. This is a
+centralised in `wordcount`. Its outcome is one home for the inline-table rule
+so a future change to the on-disk inline-table style is made once. This is a
 deferred maintainability-hardening extension surfaced by the audit of step 2.3;
 it does not advance the step-2.3 disk-re-derivation hypothesis (the inline
 tables already round-trip correctly) and it does not gate the deterministic

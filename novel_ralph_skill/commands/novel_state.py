@@ -11,24 +11,30 @@ here; it is the shared
 which every command imports from the contract package rather than from a sibling
 command module.
 
-The read-only ``check`` subcommand validates the §5.2 pure-state invariants
-(roadmap task 2.1.2) without writing (the checker half of the §5.4
-checker/mutator split). It loads ``./working/state.toml`` relative to the process
-cwd, applies :func:`novel_ralph_skill.state.validate_state`, and returns a
+The read-only ``check`` subcommand is **disk-aware** (roadmap task 2.3.2): it
+validates the §5.2 pure-state invariants (task 2.1.2) **and** the §5.4
+disk-evidence invariants (this task) without writing (the checker half of the
+§5.4 checker/mutator split). It loads ``./working/state.toml`` relative to the
+process cwd, applies :func:`novel_ralph_skill.state.validate_state` and
+:func:`novel_ralph_skill.state.check_disk_evidence`, and returns a
 :class:`~novel_ralph_skill.contract.runner.CommandOutcome`: exit ``0`` with an
 empty ``result.violations`` when the state is coherent, or exit ``4``
-(``ACTIONABLE_FINDING``) naming the violated invariants when it is not. A
-missing or unparseable ``state.toml`` raises
-:class:`~novel_ralph_skill.contract.runner.StateInputError` for the exit-``3``
-state-error channel. The disk-evidence invariants (§5.4) are task 2.3.2's and
-are not checked here.
+(``ACTIONABLE_FINDING``) naming the violated invariants when it is not. When disk
+evidence fired it attaches the implied
+:func:`~novel_ralph_skill.state.derive_reconciliation` to
+``result.reconciliation`` (reported, never enacted — ``check`` writes nothing). A
+missing or unparseable ``state.toml`` — or an unreadable chapter ``draft.md`` —
+raises :class:`~novel_ralph_skill.contract.runner.StateInputError` for the
+exit-``3`` state-error channel.
 
 The ``init`` mutator (roadmap task 2.2.2) is the *create* command: it bootstraps
 ``working/`` and a coherent initial ``state.toml`` (refusing to overwrite an
 existing one). Its ``set-cursor`` and ``advance-phase`` siblings — the two
 mutators that load, edit, and re-write an existing ``state.toml`` — live in
 :mod:`novel_ralph_skill.commands._state_mutators` and are registered here; the
-remaining mutators (``recount``/``reconcile``) are later tasks.
+``recount`` mutator (task 2.3.1) lives in
+:mod:`novel_ralph_skill.commands._recount` and the ``reconcile`` mutator (task
+2.3.2) in :mod:`novel_ralph_skill.commands._reconcile`, both registered here too.
 """
 
 from __future__ import annotations
@@ -44,13 +50,15 @@ from novel_ralph_skill.contract.exit_codes import ExitCode
 from novel_ralph_skill.contract.runner import CommandOutcome, StateInputError
 from novel_ralph_skill.state import (
     build_initial_document,
+    check_disk_evidence,
+    derive_reconciliation,
     load_state,
     validate_state,
     write_document_atomically,
 )
 
 if typ.TYPE_CHECKING:
-    from novel_ralph_skill.state import State
+    from novel_ralph_skill.state import Reconciliation, State, Violation
 
 # The Initialisation directory skeleton ``init`` creates beside ``state.toml``,
 # sourced verbatim from state-layout.md "Initialisation" step 1
@@ -122,38 +130,89 @@ def _load_or_state_error(path: pathlib.Path) -> State:
         raise StateInputError(msg) from exc
 
 
-def _check() -> CommandOutcome:
-    """Validate ``./working/state.toml`` against the §5.2 pure-state invariants.
+def _render_reconciliation(reconciliation: Reconciliation) -> dict[str, object]:
+    """Render a :class:`Reconciliation` as the read-only ``check`` payload.
 
-    Reads the fixed cwd-relative ``working/state.toml`` (design line 151),
-    parses it, and applies :func:`novel_ralph_skill.state.validate_state`. A
-    coherent state returns exit ``0``; a violation returns exit ``4`` naming the
-    breached invariants in ``result.violations``. This is a checker: it writes
-    nothing (design §3.3).
+    ``check`` reports the reconciliation a stale ``state.toml`` *implies* without
+    enacting it (design §3.3, §5.4): the action name, the discrepancy names that
+    drove it, and the human detail, plus the disk-derived counts for a ``recount``
+    so an operator can see exactly what ``reconcile`` would write. It carries no
+    write-shaped success vocabulary — ``check`` writes nothing.
+    """
+    payload: dict[str, object] = {
+        "action": str(reconciliation.action),
+        "discrepancies": list(reconciliation.discrepancies),
+        "detail": reconciliation.detail,
+    }
+    if reconciliation.recounted_by_chapter is not None:
+        payload["current"] = reconciliation.recounted_current
+        payload["by_chapter"] = dict(reconciliation.recounted_by_chapter)
+    return payload
+
+
+def _disk_evidence_or_state_error(
+    state: State, working_dir: pathlib.Path
+) -> tuple[Violation, ...]:
+    """Run the §5.4 disk-evidence detector, mapping read faults to exit ``3``.
+
+    :func:`~novel_ralph_skill.state.check_disk_evidence` reads each chapter's
+    ``draft.md``; an absent draft is benign (counted ``0``), but every other read
+    fault — an undecodable body (``UnicodeDecodeError``), a ``PermissionError`` —
+    propagates. Wrapping it under ``STATE_INPUT_ERRORS`` routes those to the
+    exit-``3`` state-error channel rather than letting them escape to exit ``1``,
+    exactly as the ``recount`` mutator wraps the same reader.
+    """
+    try:
+        return check_disk_evidence(state, working_dir)
+    except STATE_INPUT_ERRORS as exc:
+        msg = f"cannot read disk evidence under {working_dir}: {exc}"
+        raise StateInputError(msg) from exc
+
+
+def _check() -> CommandOutcome:
+    """Validate ``./working/state.toml`` against the §5.2 and §5.4 invariants.
+
+    Reads the fixed cwd-relative ``working/state.toml`` (design line 151), parses
+    it, applies :func:`novel_ralph_skill.state.validate_state` (the §5.2 pure-state
+    invariants) **and** :func:`novel_ralph_skill.state.check_disk_evidence` (the
+    §5.4 disk-evidence invariants), and unions the verdicts into
+    ``result.violations``. When any disk-evidence violation fired, it attaches the
+    :func:`~novel_ralph_skill.state.derive_reconciliation` result to
+    ``result.reconciliation`` so an operator sees the repair a stale tree implies.
+    A coherent state returns exit ``0``; any violation returns exit ``4``. This is
+    a checker: it writes nothing on any path (design §3.3).
 
     Returns
     -------
     CommandOutcome
         ``ExitCode.SUCCESS`` with an empty ``violations`` list when coherent, or
-        ``ExitCode.ACTIONABLE_FINDING`` naming the violated invariants.
+        ``ExitCode.ACTIONABLE_FINDING`` naming the violated invariants (and a
+        ``reconciliation`` payload when disk evidence fired).
 
     Raises
     ------
     StateInputError
-        When ``working/state.toml`` is missing or unparseable (the exit-``3``
-        state-error channel).
+        When ``working/state.toml`` is missing or unparseable, or a chapter
+        ``draft.md`` is unreadable (the exit-``3`` state-error channel).
     """
-    path = pathlib.Path(WORKING_DIR_NAME) / "state.toml"
-    state = _load_or_state_error(path)
-    verdict = validate_state(state)
+    working_dir = pathlib.Path(WORKING_DIR_NAME)
+    state = _load_or_state_error(working_dir / "state.toml")
+    pure_state = validate_state(state)
+    disk_evidence = _disk_evidence_or_state_error(state, working_dir)
+    verdict = (*pure_state, *disk_evidence)
+    result: dict[str, object] = {
+        "violations": [violation.invariant for violation in verdict]
+    }
+    if disk_evidence:
+        result["reconciliation"] = _render_reconciliation(
+            derive_reconciliation(state, working_dir)
+        )
     # One verdict-driven constructor: an empty verdict is success, any violation
-    # is an actionable finding. Computing the verdict once and projecting it into
-    # a single outcome makes "empty verdict means success" a single expression
-    # rather than two parallel constructors (audit:2.1.2 finding 5).
+    # is an actionable finding (audit:2.1.2 finding 5).
     code = ExitCode.SUCCESS if not verdict else ExitCode.ACTIONABLE_FINDING
     return CommandOutcome(
         code=code,
-        result={"violations": [violation.invariant for violation in verdict]},
+        result=result,
         messages=[violation.detail for violation in verdict] or ["state is coherent"],
     )
 
@@ -236,7 +295,7 @@ def build_app() -> cyclopts.App:
     -------
     cyclopts.App
         The configured ``novel-state`` app exposing ``check``, ``init``,
-        ``set-cursor``, ``advance-phase``, and ``recount``.
+        ``set-cursor``, ``advance-phase``, ``recount``, and ``reconcile``.
     """
     # Imported inside the builder, not at module top: the mutator module imports
     # ``STATE_INPUT_ERRORS``/``WORKING_DIR_NAME`` from this module, so a top-level
@@ -282,5 +341,12 @@ def build_app() -> cyclopts.App:
         from novel_ralph_skill.commands import _recount
 
         return _recount.recount()
+
+    @app.command
+    def reconcile() -> CommandOutcome:
+        """Write the disk-authoritative reconciliation; log it; exit 0/4."""
+        from novel_ralph_skill.commands import _reconcile
+
+        return _reconcile.reconcile()
 
     return app
