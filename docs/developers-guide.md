@@ -28,6 +28,25 @@ that reduces a requirement string to its bare distribution name), the
 one-program cuprum catalogue builder (`single_program_catalogue`), and the
 POSIX venv scripts-directory resolver (`venv_scripts_dir`).
 
+The installed-binary e2es obtain a built-and-installed `novel-state`
+console-script through the module-scoped `installed_novel_state` fixture, the
+sanctioned replacement for the former cross-module
+`_build_and_install_novel_state` helper that one e2e module imported from
+another (an instance of the value-import the rule below forbids). The fixture
+builds a wheel with `uv build --wheel`, installs it into a fresh `uv venv`, and
+returns the installed script's absolute path; it is **module-scoped** so the
+slow build runs once per consuming module and every test reuses the one install.
+It lives in the registered plugin module
+[`tests/installed_binary_fixtures.py`](../tests/installed_binary_fixtures.py)
+(registered via `pytest_plugins` in `conftest`) rather than in `conftest` itself,
+for the same reason the corpus plugin does: hosting it inline would push
+`conftest` past the 400-line module cap, and for fixture resolution a registered
+plugin is `conftest`-equivalent. Because a module-scoped fixture cannot request
+the function-scoped `single_program_catalogue` / `venv_scripts_dir` (pytest
+raises `ScopeMismatch`), the plugin inlines their logic as two private helpers,
+mirroring `test_ai_isms_e2e.py`'s `installed_desloppify`. The fixture is
+POSIX-only per ADR-006; consuming modules keep their own POSIX skip guard.
+
 Test modules consume these by fixture name — list the fixture as a test or
 helper parameter — and never by importing from another test module or from
 `conftest` itself. Importing helpers from `conftest` is fragile across pytest

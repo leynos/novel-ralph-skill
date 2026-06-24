@@ -46,11 +46,18 @@ from novel_ralph_skill.contract.runner import (
 # already at the cap and cannot host them.
 # ``conftest`` still re-exports the spec *types* under its ``TYPE_CHECKING`` guard
 # for the ``from conftest import WorkingTreeSpec`` carve-out.
+#
+# The module-scoped ``installed_novel_state`` fixture (roadmap 6.2.4) lives in
+# ``tests/installed_binary_fixtures.py`` for the same reason: hosting it here
+# would push this module past the 400-line cap (AGENTS.md lines 24-27). A
+# registered plugin keeps it available by name to every installed-binary e2e
+# module exactly as a ``conftest`` fixture would be.
 pytest_plugins = (
     "corpus_fixtures",
     "corpus_live_draft_fixtures",
     "corpus_divergent_fixtures",
     "corpus_done_predicate_fixtures",
+    "installed_binary_fixtures",
 )
 
 if typ.TYPE_CHECKING:

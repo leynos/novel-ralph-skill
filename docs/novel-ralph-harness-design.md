@@ -832,6 +832,19 @@ would buy confidence the simpler commands do not need.
   covers its own gate-boundary envelope. The 1-versus-4 distinction is asserted
   on `novel-done`: a mid-draft tree exits 1, while an otherwise-complete tree
   with only a stale `compiled.md` exits 4 (§4.2).
+- **Installed-binary e2es** prove the exit-code contract at the real
+  wheel/venv packaging boundary, not merely against the in-process entry-point
+  body, because the harness branches on the exit code of the *installed*
+  console-script. A wheel is built with `uv build --wheel`, installed into a
+  fresh `uv venv`, and the resulting script is run by its absolute path through
+  the cuprum catalogue allowlist (POSIX-only; ADR-006). Alongside the existing
+  `check` (exit 0), `desloppify` (exit 4), and `novel-done` (exit 0/1/4) proofs,
+  the `recount` mutator is anchored here too: the installed `novel-state recount`
+  corrects deliberately wrong word counts and exits 0 with the recounted
+  `{current, by_chapter}` envelope, and refuses a missing or unparseable
+  `state.toml` by exiting 3 with an `ok: false` envelope and no traceback — the
+  mutator-refusal-is-3 rule (§3.2) and the unparseable-state failure mode (§10)
+  observed against a real installed console-script.
 
 External executables, where any command grows them, are mocked with `cmd-mox`
 at the cuprum catalogue boundary; v1 commands shell out to nothing, so the

@@ -12,8 +12,11 @@ Proofs of the externally observable command-line behaviour of the subcommand:
   ``0``), and confirms a follow-up ``check`` is coherent (exit ``0``) — the
   recovery routine running as a real installed command, not a Python import.
 
-The wheel build/install helper ``_build_and_install_novel_state`` is reused
-verbatim from ``test_novel_state_check.py`` (D-CUPRUM: locked ``cuprum==0.1.0``).
+The built-and-installed ``novel-state`` script is supplied by the module-scoped
+``installed_novel_state`` fixture (``tests/installed_binary_fixtures.py``), so the
+wheel is built once for the module and both installed e2es reuse it; the fixture
+replaces the former cross-module ``_build_and_install_novel_state`` import
+(roadmap 6.2.4; locked ``cuprum==0.1.0``).
 """
 
 from __future__ import annotations
@@ -29,7 +32,6 @@ import working_corpus as wc
 from cuprum import sh
 from cuprum.program import Program
 from cuprum.sh import ExecutionContext
-from test_novel_state_check import _build_and_install_novel_state
 
 from novel_ralph_skill.commands import stub
 from novel_ralph_skill.contract.exit_codes import ExitCode
@@ -192,14 +194,15 @@ def test_entry_point_reconcile_recreates_absent_log_md(
 def test_installed_novel_state_reconcile_recreates_absent_log_md(
     tmp_path: Path,
     single_program_catalogue: cabc.Callable[[str, Program], ProgramCatalogue],
-    venv_scripts_dir: cabc.Callable[[Path], Path],
+    installed_novel_state: Path,
 ) -> None:
     """Build, install, and run ``novel-state reconcile`` against a log-absent tree.
 
     The partial-``init`` recovery running as a real installed command: the tree has
     ``state.toml`` but no ``log.md``, the installed ``reconcile`` recreates it (exit
-    ``0``), and a follow-up ``check`` exits ``0``. The 180s timeout supersedes the
-    30s project default.
+    ``0``), and a follow-up ``check`` exits ``0``. The ``installed_novel_state``
+    fixture supplies the script path (built once per module). The 180s timeout
+    supersedes the 30s project default.
     """
     dest = tmp_path / "run"
     dest.mkdir()
@@ -209,10 +212,7 @@ def test_installed_novel_state_reconcile_recreates_absent_log_md(
     )
     (dest / "working" / "log.md").unlink()
 
-    script_path = _build_and_install_novel_state(
-        tmp_path, single_program_catalogue, venv_scripts_dir
-    )
-    prog = Program(str(script_path))
+    prog = Program(str(installed_novel_state))
     catalogue = single_program_catalogue("novel-state-run", prog)
 
     reconcile_result = sh.make(prog, catalogue=catalogue)("reconcile").run_sync(
@@ -243,24 +243,22 @@ def test_installed_novel_state_reconcile_recreates_absent_log_md(
 def test_installed_novel_state_reconcile_repairs_stale_tree(
     tmp_path: Path,
     single_program_catalogue: cabc.Callable[[str, Program], ProgramCatalogue],
-    venv_scripts_dir: cabc.Callable[[Path], Path],
+    installed_novel_state: Path,
 ) -> None:
     """Build, install, and run ``novel-state reconcile`` against a stale tree.
 
     The installed script runs with cuprum's ``ExecutionContext(cwd=dest)`` so it
     resolves ``./working/state.toml``, repairs the stale ``[word_counts]`` (exit
-    ``0``), and a follow-up ``check`` exits ``0``. The 180s timeout supersedes the
-    30s project default.
+    ``0``), and a follow-up ``check`` exits ``0``. The ``installed_novel_state``
+    fixture supplies the script path (built once per module). The 180s timeout
+    supersedes the 30s project default.
     """
     dest = tmp_path / "run"
     dest.mkdir()
     spec, _expected = wc.INCOHERENT_VARIANTS["done-claim-stale-word-counts"]
     shutil.copytree(wc.build_working_tree(spec, tmp_path / "fixture"), dest / "working")
 
-    script_path = _build_and_install_novel_state(
-        tmp_path, single_program_catalogue, venv_scripts_dir
-    )
-    prog = Program(str(script_path))
+    prog = Program(str(installed_novel_state))
     catalogue = single_program_catalogue("novel-state-run", prog)
 
     reconcile_result = sh.make(prog, catalogue=catalogue)("reconcile").run_sync(

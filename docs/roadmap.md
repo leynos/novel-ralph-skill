@@ -1327,7 +1327,7 @@ novel-ralph-harness-design.md §2.3 and §9.
       clause table lists the six clauses out of canonical design §4.2 order
       (`no_unresolved_blockers` and `compile_consistent` swapped); fix both
       together. Lightweight addendum pass.
-- [ ] 6.2.4. Broaden the installed-binary e2e coverage to `recount` and the
+- [x] 6.2.4. Broaden the installed-binary e2e coverage to `recount` and the
   exit-3 state-error paths.
   - Requires 2.1.2 and 2.3.1.
   - Today only the exit-0 path (and `desloppify`'s exit 4) crosses the real

@@ -25,7 +25,6 @@ import os
 import shutil
 import sys
 import typing as typ
-from pathlib import Path
 
 import pytest
 from cuprum import sh
@@ -40,6 +39,7 @@ from novel_ralph_skill.contract.runner import RunContext, run
 
 if typ.TYPE_CHECKING:
     import collections.abc as cabc
+    from pathlib import Path
 
     from conftest import WorkingTreeSpec
     from cuprum import ProgramCatalogue
@@ -301,37 +301,6 @@ def test_parse_global_flags(
 # --- The installed-script e2e (Decision Log B6) ---
 
 
-def _build_and_install_novel_state(
-    tmp_path: Path,
-    single_program_catalogue: cabc.Callable[[str, Program], ProgramCatalogue],
-    venv_scripts_dir: cabc.Callable[[Path], Path],
-) -> Path:
-    """Build a wheel, install it into a fresh venv, and return the ``novel-state``."""
-    project_root = Path(__file__).resolve().parent.parent
-    venv_dir = tmp_path / "venv"
-    uv = sh.make(
-        Program("uv"),
-        catalogue=single_program_catalogue("novel-state-e2e", Program("uv")),
-    )
-    build = uv(
-        "build", "--wheel", str(project_root), "--out-dir", str(tmp_path / "wheels")
-    ).run_sync()
-    assert build.exit_code == 0, build.stderr
-    wheels = sorted((tmp_path / "wheels").glob("*.whl"))
-    assert len(wheels) == 1, f"expected one wheel, found {wheels}"
-
-    assert uv("venv", str(venv_dir)).run_sync().exit_code == 0
-    scripts_dir = venv_scripts_dir(venv_dir)
-    install = uv(
-        "pip", "install", "--python", str(scripts_dir / "python"), str(wheels[0])
-    ).run_sync()
-    assert install.exit_code == 0, install.stderr
-
-    script_path = scripts_dir / "novel-state"
-    assert script_path.exists(), f"novel-state not installed at {script_path}"
-    return script_path
-
-
 @pytest.mark.skipif(
     os.name != "posix",
     reason="console-script e2e is POSIX-only; see ADR 006",
@@ -342,13 +311,15 @@ def test_installed_novel_state_check_exits_zero(
     tmp_path: Path,
     baseline_tree: cabc.Callable[[], Path],
     single_program_catalogue: cabc.Callable[[str, Program], ProgramCatalogue],
-    venv_scripts_dir: cabc.Callable[[Path], Path],
+    installed_novel_state: Path,
 ) -> None:
     """Build, install, and run ``novel-state check`` against a coherent tree.
 
     The installed script runs with cuprum's ``ExecutionContext(cwd=dest)`` so it
     resolves ``./working/state.toml`` and exits ``0`` with ``ok: true``. The
-    180s timeout supersedes the 30s project default (pyproject ``timeout = 30``).
+    ``installed_novel_state`` fixture supplies the built-and-installed script path
+    (built once per module). The 180s timeout supersedes the 30s project default
+    (pyproject ``timeout = 30``).
     """
     dest = tmp_path / "run"
     dest.mkdir()
@@ -357,10 +328,7 @@ def test_installed_novel_state_check_exits_zero(
     # under the test's ``tmp_path``).
     shutil.copytree(baseline_tree(), dest / "working")
 
-    script_path = _build_and_install_novel_state(
-        tmp_path, single_program_catalogue, venv_scripts_dir
-    )
-    prog = Program(str(script_path))
+    prog = Program(str(installed_novel_state))
     catalogue = single_program_catalogue("novel-state-run", prog)
     result = sh.make(prog, catalogue=catalogue)("check").run_sync(
         context=ExecutionContext(cwd=dest), capture=True
