@@ -19,6 +19,11 @@ live in the ``commands`` package.
 
 from __future__ import annotations
 
+from novel_ralph_skill.state._disk_word_counts import (
+    WORD_COUNTS_COVER_DRAFTS,
+    WORD_COUNTS_MATCH_DRAFTS,
+    disk_word_counts,
+)
 from novel_ralph_skill.state.compile_model import (
     DRAFT_SEPARATOR,
     concatenate_drafts,
@@ -31,9 +36,7 @@ from novel_ralph_skill.state.disk_evidence import (
     LOG_PRESENT,
     MANIFEST_DISK_BIJECTION,
     PENDING_TURN_CLEARED,
-    WORD_COUNTS_MATCH_DRAFTS,
     check_disk_evidence,
-    disk_word_counts,
 )
 from novel_ralph_skill.state.document import (
     clear_pending_turn,
@@ -102,6 +105,7 @@ __all__ = [
     "PHASE_IN_ENUM",
     "PHASE_ORDER",
     "PURE_STATE_INVARIANT_NAMES",
+    "WORD_COUNTS_COVER_DRAFTS",
     "WORD_COUNTS_MATCH_DRAFTS",
     "ChapterEntry",
     "CriticState",

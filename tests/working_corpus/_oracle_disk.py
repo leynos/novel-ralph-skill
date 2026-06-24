@@ -6,10 +6,11 @@ split out from :mod:`._oracle` purely for file size (AGENTS.md 400-line cap). Ea
 moved predicate keeps the role it had in ``_oracle.py`` and is imported back there
 so :func:`._oracle.corpus_check` and every existing caller are unchanged.
 
-The five §5.4 disk-evidence twins — :func:`_check_manifest_disk_bijection`,
+The §5.4 disk-evidence twins — :func:`_check_manifest_disk_bijection`,
 :func:`_check_done_flag_without_draft`, :func:`_check_compiled_matches_drafts`,
-:func:`_check_word_counts_match_drafts`, and :func:`_check_cursor_plan_present` —
-remain the disk-reading twins of the same-named production predicates in
+:func:`_check_word_counts_match_drafts`, :func:`_check_word_counts_cover_drafts`,
+:func:`_check_log_present`, and :func:`_check_cursor_plan_present` — remain the
+disk-reading twins of the same-named production predicates in
 :mod:`novel_ralph_skill.state.disk_evidence`. :func:`_check_by_chapter_sum` is
 **not** a disk-evidence twin: it is the on-disk reader of the *pure-state*
 ``by-chapter-sum`` name, owned by ``validate_state`` and absent from
@@ -32,6 +33,12 @@ if typ.TYPE_CHECKING:
     from pathlib import Path
 
     from ._specs import WorkingTreeSpec
+
+# Disk-evidence (roadmap task 2.3.6): the ``by_chapter`` key-set coverage
+# divergence from the manifest-keyed recount, orthogonal to the shared-key value
+# match ``WORD_COUNTS_MATCH_DRAFTS`` owns. Defined here beside the predicate that
+# owns it and re-exported through ``_oracle`` so the vocabulary stays single-homed.
+WORD_COUNTS_COVER_DRAFTS = "word-counts-cover-drafts"
 
 
 def _check_by_chapter_sum(working_dir: Path) -> bool:
@@ -172,6 +179,36 @@ def _check_word_counts_match_drafts(working_dir: Path) -> bool:
     disk = _disk_by_chapter(working_dir)
     shared = set(disk) & set(table)
     return all(disk[key] == table[key] for key in shared)
+
+
+def _check_word_counts_cover_drafts(working_dir: Path) -> bool:
+    """Return True when the ``by_chapter`` key set covers the manifest drafts (§5.4).
+
+    Recomputes the manifest-keyed disk ``by_chapter`` via :func:`_disk_by_chapter`
+    (one entry per manifest chapter) and returns True iff its key set equals the
+    ``[word_counts].by_chapter`` table key set. A recount key absent from the
+    table is a drafted chapter omitted from the table; a table key absent from
+    the recount is a key the manifest never declared. Both are pure key-coverage
+    signals (roadmap task 2.3.6).
+
+    The check **defers** to ``manifest-disk-bijection`` when the manifest and the
+    on-disk chapter directories are not in bijection: a non-bijective manifest is
+    that invariant's signal, and because the recount keys off the (untrustworthy)
+    manifest the key-set comparison would otherwise double-fire on every
+    manifest/disk structural mismatch. Guarding on bijection isolates the
+    hand-edited-table case — the only way the table key set diverges once the
+    manifest and disk agree — so this predicate stays orthogonal to both
+    ``manifest-disk-bijection`` and the shared-key value match
+    :func:`_check_word_counts_match_drafts` owns. Disk-reading twin of production
+    ``_check_word_counts_cover_drafts``.
+    """
+    state = tomllib.loads((working_dir / "state.toml").read_text(encoding="utf-8"))
+    manifest = {chapter["number"] for chapter in state["chapters"]}
+    if manifest != _on_disk_chapter_numbers(working_dir):
+        return True
+    table = dict(state["word_counts"]["by_chapter"])
+    disk = _disk_by_chapter(working_dir)
+    return set(disk) == set(table)
 
 
 def _check_log_present(working_dir: Path) -> bool:

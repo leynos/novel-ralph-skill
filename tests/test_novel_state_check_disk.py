@@ -72,6 +72,16 @@ def _result(raw: str) -> dict[str, object]:
     "case",
     [
         ("done-flag-real-draft-undercount", "word-counts-match-drafts", "recount"),
+        (
+            "word-counts-cover-drafts-omits-drafted-chapter",
+            "word-counts-cover-drafts",
+            "recount",
+        ),
+        (
+            "word-counts-cover-drafts-extra-table-key",
+            "word-counts-cover-drafts",
+            "recount",
+        ),
         ("uncleared-pending-turn", "pending-turn-cleared", "complete-pending-turn"),
         ("done-flag-empty-draft", "done-flag-without-draft", "refuse"),
         ("manifest-extra-entry", "manifest-disk-bijection", "refuse"),

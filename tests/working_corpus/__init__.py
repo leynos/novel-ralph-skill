@@ -26,11 +26,13 @@ layout). The typed schema (roadmap task 2.1.1) and the §5.2 validator (task
 from __future__ import annotations
 
 from ._builder import build_working_tree
+from ._divergent_variants import DIVERGENT_TABLE_VARIANTS
 from ._library import COHERENT_BASELINE, PHASE_ORDER, PHASE_STATES
 from ._live_draft import live_draft_counts, live_draft_owned
 from ._oracle import (
     CORPUS_INVARIANT_NAMES,
     LOG_PRESENT,
+    WORD_COUNTS_COVER_DRAFTS,
     WORD_COUNTS_MATCH_DRAFTS,
     corpus_check,
 )
@@ -50,7 +52,6 @@ from ._variants import (
     _POST_BUILD_MUTATIONS as POST_BUILD_MUTATIONS,
 )
 from ._variants import (
-    DIVERGENT_TABLE_VARIANTS,
     DONE_FLAG_PERMUTATIONS,
     INCOHERENT_VARIANTS,
 )
@@ -68,6 +69,7 @@ __all__ = [
     "PHASE_ORDER",
     "PHASE_STATES",
     "POST_BUILD_MUTATIONS",
+    "WORD_COUNTS_COVER_DRAFTS",
     "WORD_COUNTS_MATCH_DRAFTS",
     "ChapterSpec",
     "WorkingTreeSpec",

@@ -333,20 +333,22 @@ vocabulary; the constants live in the production module and a test pins their
 equality to the oracle. Design §5.2 invariant 4 is split into three named
 sub-rules (`consecutive-clean-within-target`,
 `convergence-target-at-least-one`, and `consecutive-clean-within-drafted`) so a
-verdict pins exactly the sub-rule it breaks. Seven **disk-evidence**
-invariants — the four §5.4 ones (`manifest-disk-bijection`,
-`done-flag-without-draft`, `compiled-matches-drafts`, `pending-turn-cleared`),
-`cursor-plan-present` (the scene/beat-plan-presence sub-clause of invariant 6,
-"zero until plans exist", added by task 2.1.4), `word-counts-match-drafts` (the
-disk-vs-table per-chapter word-count divergence added by task 2.3.2), and
-`log-present` (the partial-`init` bootstrap detector — `log.md` absent while
-`state.toml` is present — added by task 2.3.4) — need `working/` contents beyond
-`state.toml`. `validate_state`
-never emits any of them (a scope-boundary test pins that); task 2.3.2's
+verdict pins exactly the sub-rule it breaks. Eight **disk-evidence** invariants
+— the four §5.4 ones (`manifest-disk-bijection`, `done-flag-without-draft`,
+`compiled-matches-drafts`, `pending-turn-cleared`), `cursor-plan-present` (the
+scene/beat-plan-presence sub-clause of invariant 6, "zero until plans exist",
+added by task 2.1.4), `word-counts-match-drafts` (the disk-vs-table per-chapter
+word-count *value* divergence added by task 2.3.2), `log-present` (the
+partial-`init` bootstrap detector — `log.md` absent while `state.toml` is
+present — added by task 2.3.4), and `word-counts-cover-drafts` (the
+`[word_counts].by_chapter` *key-set* coverage divergence added by task
+2.3.6) — need `working/` contents beyond `state.toml`. `validate_state` never
+emits any of them (a scope-boundary test pins that); task 2.3.2's
 `check_disk_evidence` (`novel_ralph_skill/state/disk_evidence.py`)
-**implements** all seven, the §5.4 twin of `validate_state`, and disk-aware
-`check` unions the two verdicts. The production `DISK_EVIDENCE_INVARIANT_NAMES`
-tuple is pinned equal to the corpus oracle's disk-evidence subset by
+**implements** all eight, the §5.4 twin of `validate_state`, and disk-aware
+`check` unions the two verdicts. The
+production `DISK_EVIDENCE_INVARIANT_NAMES` tuple is pinned equal to the corpus
+oracle's disk-evidence subset by
 `test_owned_disk_evidence_names_equal_corpus_subset`, the same shared-vocabulary
 discipline the pure-state names follow.
 
@@ -427,6 +429,27 @@ the drafts — is exactly what task 2.3.2's disk-evidence
 mapping (over the shared chapter keys, never `current`, so it stays orthogonal
 to `by-chapter-sum`) against the recount of the on-disk drafts.
 
+Task 2.3.6 adds `word-counts-cover-drafts`, the orthogonal **key-set coverage**
+companion to that **shared-key value** check. The recount keys `by_chapter` by
+the manifest (one entry per manifest chapter), so the only way the table's key
+set can diverge from the recount — once the manifest and the on-disk chapter
+directories agree — is a hand-edited `[word_counts]` table that omits a drafted
+manifest chapter's key or carries a key the manifest never declared. The
+predicate compares the two key sets (the symmetric difference) and fires on
+either direction; `word-counts-match-drafts` owns the shared keys' values and
+`word-counts-cover-drafts` owns the symmetric-difference keys, so the two
+partition the recount-versus-table comparison. The cover predicate **defers** to
+`manifest-disk-bijection` when the manifest and the chapter directories are not
+in bijection: the recount keys off the then-untrustworthy manifest, so without
+the guard it would double-fire on every structural mismatch. Both divergence
+directions are repaired by the same `RECOUNT` that repairs the value divergence,
+because a recount re-keys `by_chapter` off the manifest — supplying any missing
+key and dropping any orphan key. Two first-class `INCOHERENT_VARIANTS` exercise
+the directions (`word-counts-cover-drafts-omits-drafted-chapter` and
+`word-counts-cover-drafts-extra-table-key`); the over- and under-counting
+`DIVERGENT_TABLE_VARIANTS` carry both a value gap and a key-count gap, so the two
+word-count predicates legitimately co-fire there.
+
 Six of `validate_state`'s structural predicates are **deliberate twins** of the
 corpus oracle's same-named predicates in `tests/working_corpus/_oracle.py`.
 This duplication is intentional, not an oversight: the oracle is an independent
@@ -439,25 +462,28 @@ not de-duplicate the twins — collapsing them would defeat the cross-check.
 
 The corpus oracle's **disk-evidence** predicates follow the same twin
 discipline, but against a different production module. After tasks 2.3.2/2.3.3
-the oracle reads the materialised `working/` tree for all seven §5.4
+the oracle reads the materialised `working/` tree for all eight §5.4
 disk-evidence invariants (`manifest-disk-bijection`, `done-flag-without-draft`,
 `compiled-matches-drafts`, `pending-turn-cleared`, `cursor-plan-present`,
-`word-counts-match-drafts`, and `log-present`), so these checks are
-**disk-vs-disk** twins of production `check_disk_evidence`
-(`novel_ralph_skill/state/disk_evidence.py`) — not twins of the pure-state
-`validate_state` the section above describes. The six manuscript-comparing
-twins glob `manuscript/chapter-*` and read each `draft.md` from disk on both
-sides, and the `log-present` twin (added by task 2.3.4 — the partial-`init`
-bootstrap where `state.toml` is present but `log.md` is absent) reads
-`log.md`'s presence on disk on both sides; in every case the cross-check is
-disk-vs-disk. The two disk-reading sides are pinned to agree on every corpus
-tree by
-`tests/test_novel_state_check_disk.py::test_union_detector_agrees_with_corpus_oracle`
-and `tests/test_disk_evidence.py::test_word_counts_twin_equals_corpus_oracle`,
-and the production tuple `DISK_EVIDENCE_INVARIANT_NAMES` is pinned equal to the
-oracle's disk-evidence subset (above). The independence rule is identical: the
-oracle reimplements the disk read rather than importing the production detector,
-so the cross-check stays genuine.
+`word-counts-match-drafts`, `log-present`, and `word-counts-cover-drafts`), so
+these checks are **disk-vs-disk** twins of production `check_disk_evidence`
+(`novel_ralph_skill/state/disk_evidence.py`) — the manuscript-comparing twins
+glob `manuscript/chapter-*` and read each `draft.md` from disk, and the
+`log-present` twin (added by task 2.3.4 — the partial-`init` bootstrap where
+`state.toml` is present but `log.md` is absent) reads `log.md`'s presence on disk;
+in every case the cross-check is disk-vs-disk, not against the pure-state
+`validate_state` the section above describes. The two
+disk-reading sides are pinned to agree on every corpus tree by
+`tests/test_novel_state_check_disk.py::test_union_detector_agrees_with_corpus_oracle`,
+`tests/test_disk_evidence.py::test_word_counts_twin_equals_corpus_oracle`, and
+`::test_word_counts_cover_twin_equals_corpus_oracle`, and the production tuple
+`DISK_EVIDENCE_INVARIANT_NAMES` is pinned equal to the oracle's disk-evidence
+subset (above). The independence rule is identical: the oracle reimplements the
+disk read rather than importing the production detector, so the cross-check stays
+genuine. The disk-reading twins live in `tests/working_corpus/_oracle_disk.py`
+(split out of `_oracle.py` for the 400-line cap and re-exported through it),
+colocating the manifest, word-count value, coverage, and `log.md` checks by
+feature.
 
 `novel-state check` is the first command to drive the shared `run` path: its
 entry point pre-parses the single `--human` flag off argv before `run` (so the

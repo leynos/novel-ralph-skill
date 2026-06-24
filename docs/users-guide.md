@@ -142,8 +142,14 @@ The disk-evidence names compare the recorded state against the `working/` tree:
 - `cursor-plan-present` — a non-zero scene or beat cursor has no on-disk
   `scenes.md`/`beats.md` plan for its chapter.
 - `word-counts-match-drafts` — the recorded per-chapter `[word_counts]` table
-  disagrees with the words actually on disk (a stale done-claim, or a real
-  `done.flag` over a draft the table under-counts).
+  disagrees, on a chapter both sides record, with the words actually on disk (a
+  stale done-claim, or a real `done.flag` over a draft the table under-counts).
+- `word-counts-cover-drafts` — the recorded `[word_counts].by_chapter` *key set*
+  diverges from the drafts: the table omits a drafted chapter, or carries an
+  entry for a chapter the manifest never declared. `novel-state reconcile`
+  repairs it with the same recount that repairs `word-counts-match-drafts`,
+  re-keying the table off the manifest so the missing key is supplied and any
+  orphan key dropped.
 
 `novel-state` also exposes three write subcommands that mutate the project —
 `init`, `set-cursor`, and `advance-phase` (roadmap task 2.2.2). Every one of
@@ -197,8 +203,9 @@ manuscript — the recovery routine you used to run by hand, now run as code. It
 re-derives the reconciliation from disk independently (it never trusts a
 payload from `check`), then:
 
-- when the `[word_counts]` table is stale against the drafts, it rewrites
-  `[word_counts]` from the drafts (a recount) and exits `0`;
+- when the `[word_counts]` table is stale against the drafts — whether on a
+  shared chapter's count or on the `by_chapter` key set (a missing or orphan
+  entry) — it rewrites `[word_counts]` from the drafts (a recount) and exits `0`;
 - when `state.toml` left an uncleared `[pending_turn]`, it completes or rolls
   the
   torn turn back (it never fabricates a draft or a `done.flag`) and exits `0`;

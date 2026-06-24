@@ -742,7 +742,7 @@ agent-improvised recovery routine. See novel-ralph-harness-design.md §4.1 and
     apply the same rule; and `state-layout.md`, design §5.4, and the 2.3.1
     D-CURRENT note agree on the `current` definition with no surviving
     contradiction.
-- [ ] 2.3.6. Detect `[word_counts].by_chapter` key-set divergence from the
+- [x] 2.3.6. Detect `[word_counts].by_chapter` key-set divergence from the
   manifest and on-disk drafts, not only shared-key value divergence.
   - Step-task (source: review:2.3.2; severity: low). The `check`
     `word-counts-match-drafts` predicate compares only the shared (intersection)

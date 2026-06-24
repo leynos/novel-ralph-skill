@@ -28,12 +28,14 @@ import typing as typ
 
 from ._library import PHASE_ORDER
 from ._oracle_disk import (
+    WORD_COUNTS_COVER_DRAFTS,
     _check_by_chapter_sum,
     _check_compiled_matches_drafts,
     _check_cursor_plan_present,
     _check_done_flag_without_draft,
     _check_log_present,
     _check_manifest_disk_bijection,
+    _check_word_counts_cover_drafts,
     _check_word_counts_match_drafts,
 )
 from ._specs import (
@@ -76,6 +78,11 @@ WORD_COUNTS_MATCH_DRAFTS = "word-counts-match-drafts"
 # Disk-evidence (roadmap task 2.3.4): the partial-``init`` bootstrap — ``log.md``
 # absent beside a present ``state.toml``. It reads the built tree for ``log.md``.
 LOG_PRESENT = "log-present"
+# ``WORD_COUNTS_COVER_DRAFTS`` (roadmap task 2.3.6) is defined in ``_oracle_disk``
+# beside the predicate that owns it and re-exported above so this module's
+# vocabulary and ``corpus_check`` keep referencing it. It is the ``by_chapter``
+# key-set coverage divergence — orthogonal to the shared-key value match
+# :data:`WORD_COUNTS_MATCH_DRAFTS` owns.
 
 CORPUS_INVARIANT_NAMES: tuple[str, ...] = (
     PHASE_IN_ENUM,
@@ -93,6 +100,7 @@ CORPUS_INVARIANT_NAMES: tuple[str, ...] = (
     PENDING_TURN_CLEARED,
     WORD_COUNTS_MATCH_DRAFTS,
     LOG_PRESENT,
+    WORD_COUNTS_COVER_DRAFTS,
 )
 
 
@@ -203,10 +211,10 @@ def _check_pending_turn_cleared(spec: WorkingTreeSpec) -> bool:
 
 # The structural checks that depend on the spec alone, keyed by invariant name.
 # ``BY_CHAPTER_SUM``, ``MANIFEST_DISK_BIJECTION``, ``CURSOR_PLAN_PRESENT``,
-# ``DONE_FLAG_WITHOUT_DRAFT``, ``COMPILED_MATCHES_DRAFTS`` and
-# ``WORD_COUNTS_MATCH_DRAFTS`` are disk-evidence checks (they read the materialised
-# ``working/`` tree), so they are applied separately in :func:`corpus_check`
-# rather than listed here.
+# ``DONE_FLAG_WITHOUT_DRAFT``, ``COMPILED_MATCHES_DRAFTS``,
+# ``WORD_COUNTS_MATCH_DRAFTS``, ``LOG_PRESENT`` and ``WORD_COUNTS_COVER_DRAFTS``
+# are disk-evidence checks (they read the materialised ``working/`` tree), so they
+# are applied separately in :func:`corpus_check` rather than listed here.
 _SPEC_CHECKS: tuple[tuple[str, cabc.Callable[[WorkingTreeSpec], bool]], ...] = (
     (PHASE_IN_ENUM, _check_phase_in_enum),
     (COMPLETED_PREFIX, _check_completed_prefix),
@@ -247,4 +255,5 @@ def corpus_check(spec: WorkingTreeSpec, working_dir: Path) -> tuple[str, ...]:
     passed[CURSOR_PLAN_PRESENT] = _check_cursor_plan_present(spec, working_dir)
     passed[WORD_COUNTS_MATCH_DRAFTS] = _check_word_counts_match_drafts(working_dir)
     passed[LOG_PRESENT] = _check_log_present(working_dir)
+    passed[WORD_COUNTS_COVER_DRAFTS] = _check_word_counts_cover_drafts(working_dir)
     return tuple(name for name in CORPUS_INVARIANT_NAMES if not passed[name])

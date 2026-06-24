@@ -22,9 +22,13 @@ D-COMPLETE) is total and deterministic:
    path is recomputable (``state.toml``/``log.md``), else
    :attr:`ReconcileAction.ROLLBACK_PENDING_TURN` (an unrecoverable artefact — a
    ``draft.md`` or a ``done.flag`` — did not land; D-COMPLETE).
-3. Else ``word-counts-match-drafts`` fired yields
+3. Else a ``word-counts`` disk-evidence violation — ``word-counts-match-drafts``
+   (shared-key value divergence) or ``word-counts-cover-drafts`` (key-set
+   coverage divergence; roadmap task 2.3.6) — yields
    :attr:`ReconcileAction.RECOUNT`, carrying the disk-derived ``current`` and
-   ``by_chapter`` so the mutator writes them without re-reading disk.
+   ``by_chapter`` so the mutator writes them without re-reading disk. A recount
+   re-keys ``by_chapter`` off the manifest, so the one action repairs both the
+   value and the coverage divergence.
 4. Else ``log-present`` fired yields :attr:`ReconcileAction.RECREATE_LOG`: the
    partial-``init`` bootstrap (``log.md`` absent beside a present ``state.toml``).
    ``log-present`` is **not** refuse-class — ``log.md`` is recomputable (empty at
@@ -45,16 +49,20 @@ import enum
 import typing as typ
 from pathlib import PurePosixPath
 
+from novel_ralph_skill.state._disk_word_counts import (
+    WORD_COUNTS_COVER_DRAFTS,
+    WORD_COUNTS_MATCH_DRAFTS,
+    disk_word_counts,
+)
 from novel_ralph_skill.state.disk_evidence import (
     COMPILED_MATCHES_DRAFTS,
     CURSOR_PLAN_PRESENT,
+    DISK_EVIDENCE_INVARIANT_NAMES,
     DONE_FLAG_WITHOUT_DRAFT,
     LOG_PRESENT,
     MANIFEST_DISK_BIJECTION,
     PENDING_TURN_CLEARED,
-    WORD_COUNTS_MATCH_DRAFTS,
     check_disk_evidence,
-    disk_word_counts,
 )
 
 if typ.TYPE_CHECKING:
@@ -79,6 +87,15 @@ _REFUSE_CLASS: frozenset[str] = frozenset({
 # Any other missing artefact (a ``draft.md`` body, a ``done.flag``) is
 # unrecoverable from disk, so the turn is rolled back instead.
 _RECOMPUTABLE_BASENAMES: frozenset[str] = frozenset({"state.toml", "log.md"})
+
+# The disk-evidence names a single ``RECOUNT`` repairs: the shared-key value
+# divergence and the key-set coverage divergence (roadmap task 2.3.6). A recount
+# rewrites ``current`` and re-keys ``by_chapter`` off the manifest, supplying any
+# missing key and dropping any orphan key, so one action repairs both.
+_RECOUNT_TRIGGERS: frozenset[str] = frozenset({
+    WORD_COUNTS_MATCH_DRAFTS,
+    WORD_COUNTS_COVER_DRAFTS,
+})
 
 
 class ReconcileAction(enum.StrEnum):
@@ -221,8 +238,8 @@ def derive_reconciliation(state: State, working_dir: Path) -> Reconciliation:
 
     Pure and total: returns a :class:`Reconciliation` for every ``State`` over any
     ``working_dir`` and never raises. The precedence (refuse-class → pending-turn →
-    recount → none) is fixed and deterministic (D-WORDCOUNT, D-REPORT, D-COMPLETE);
-    see the module docstring.
+    recount → recreate-log → none) is fixed and deterministic (D-WORDCOUNT,
+    D-REPORT, D-COMPLETE); see the module docstring.
 
     Parameters
     ----------
@@ -246,8 +263,13 @@ def derive_reconciliation(state: State, working_dir: Path) -> Reconciliation:
         return _classify_pending_turn(
             state.pending_turn, working_dir, [PENDING_TURN_CLEARED]
         )
-    if WORD_COUNTS_MATCH_DRAFTS in fired:
-        return _recount(state, working_dir, [WORD_COUNTS_MATCH_DRAFTS])
+    recount_names = [
+        name
+        for name in DISK_EVIDENCE_INVARIANT_NAMES
+        if name in _RECOUNT_TRIGGERS and name in fired
+    ]
+    if recount_names:
+        return _recount(state, working_dir, recount_names)
     if LOG_PRESENT in fired:
         return Reconciliation(
             action=ReconcileAction.RECREATE_LOG,

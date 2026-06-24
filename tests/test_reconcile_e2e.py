@@ -64,6 +64,57 @@ def test_entry_point_reconcile_reachable_repairs_and_exits_zero(
     )
 
 
+def test_entry_point_reconcile_repairs_cover_gap_then_check_clean(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Reconcile supplies a `by_chapter` key the table omitted, then check is clean.
+
+    Drives the roadmap task 2.3.6 headline through the entry point: a tree whose
+    ``[word_counts].by_chapter`` omits the drafted ``"04"`` key exits ``4`` on
+    ``word-counts-cover-drafts`` with a ``recount`` reconciliation; ``reconcile``
+    writes the missing key with its drafted count; and a re-``check`` exits ``0``.
+    """
+    spec, _expected = wc.INCOHERENT_VARIANTS[
+        "word-counts-cover-drafts-omits-drafted-chapter"
+    ]
+    working = wc.build_working_tree(spec, tmp_path)
+    monkeypatch.chdir(working.parent)
+
+    monkeypatch.setattr(sys, "argv", [_COMMAND, "check"])
+    with pytest.raises(SystemExit) as check_before:
+        stub.novel_state()
+    assert check_before.value.code == ExitCode.ACTIONABLE_FINDING
+    before_env = json.loads(capsys.readouterr().out)
+    before_result = typ.cast("dict[str, object]", before_env["result"])
+    assert "word-counts-cover-drafts" in typ.cast(
+        "list[str]", before_result["violations"]
+    )
+    reconciliation = typ.cast("dict[str, object]", before_result["reconciliation"])
+    assert reconciliation["action"] == "recount"
+
+    monkeypatch.setattr(sys, "argv", [_COMMAND, "reconcile"])
+    with pytest.raises(SystemExit) as reconcile_exit:
+        stub.novel_state()
+    assert reconcile_exit.value.code == ExitCode.SUCCESS
+    reconcile_result = typ.cast(
+        "dict[str, object]", json.loads(capsys.readouterr().out)["result"]
+    )
+    assert reconcile_result["action"] == "recount"
+    assert reconcile_result["by_chapter"] == {
+        "01": 32000,
+        "02": 32000,
+        "03": 32000,
+        "04": 4000,
+    }
+
+    monkeypatch.setattr(sys, "argv", [_COMMAND, "check"])
+    with pytest.raises(SystemExit) as check_after:
+        stub.novel_state()
+    assert check_after.value.code == ExitCode.SUCCESS
+
+
 def test_entry_point_reconcile_recreates_absent_log_md(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,

@@ -8,17 +8,20 @@ decides whether a :class:`~novel_ralph_skill.state.schema.State` contradicts
 view together and returns the disk-evidence invariants the tree violates (design
 §3.3, §5.4; roadmap task 2.3.2).
 
-It owns seven invariant names. Five are the names already reserved by the corpus
+It owns eight invariant names. Five are the names already reserved by the corpus
 oracle's ``CORPUS_INVARIANT_NAMES`` (``manifest-disk-bijection``,
 ``done-flag-without-draft``, ``compiled-matches-drafts``,
 ``pending-turn-cleared``, ``cursor-plan-present``); ``word-counts-match-drafts``
-was added by task 2.3.2 — the disk-vs-table per-chapter word-count divergence that
-realises the roadmap's done-claim case (ExecPlan Decision Log D-WORDCOUNT); and
-``log-present`` is **new this task** (2.3.4) — the partial-``init`` bootstrap
+was added by task 2.3.2 — the disk-vs-table per-chapter word-count *value*
+divergence that realises the roadmap's done-claim case (ExecPlan Decision Log
+D-WORDCOUNT); ``log-present`` (task 2.3.4) is the partial-``init`` bootstrap
 where ``state.toml`` is present but ``log.md`` is absent (``init`` writes
-``state.toml`` first, ``log.md`` second, and refuses re-runs). Each name is
-spelled exactly as the corpus oracle's matching entry, and the equality is pinned
-by a test (D-NAMES).
+``state.toml`` first, ``log.md`` second, and refuses re-runs); and
+``word-counts-cover-drafts`` (roadmap task 2.3.6) is the orthogonal *key-set*
+coverage divergence — a ``by_chapter`` table that omits a drafted manifest
+chapter or carries a key the manifest never declared. Each name is spelled
+exactly as the corpus oracle's matching entry, and the equality is pinned by a
+test (D-NAMES).
 
 The predicates are **deliberate twins** of the same-named checks in
 ``tests/working_corpus/_oracle.py`` (the oracle's disk-evidence checks read the
@@ -30,15 +33,16 @@ corpus tree by ``tests/test_novel_state_check_disk.py``'s agreement suite and th
 ``tests/test_disk_evidence.py`` twin-equality tests (the deliberate-twin policy,
 developers' guide §"Invariant validation").
 
-The six manuscript-comparing twins all read disk on both sides (roadmap task
+The manuscript-comparing twins all read disk on both sides (roadmap task
 2.3.3): the corpus ``_check_manifest_disk_bijection``,
 ``_check_done_flag_without_draft``, and ``_check_compiled_matches_drafts`` were
 rerouted from reading the ``WorkingTreeSpec`` to reading the materialised
 ``working/`` tree, joining the ``cursor-plan``, ``by-chapter-sum``, and
-``word-counts-match-drafts`` twins that already did. The seventh twin,
-``log-present`` (task 2.3.4), likewise reads disk on both sides — it compares
-``log.md``'s presence rather than the manuscript — so the cross-check is
-genuinely disk-vs-disk on every invariant.
+``word-counts-match-drafts`` twins that already did. The ``log-present`` twin
+(task 2.3.4) likewise reads disk on both sides — it compares ``log.md``'s
+presence rather than the manuscript — and the ``word-counts-cover-drafts`` twin
+(task 2.3.6) reads the manifest-keyed recount, so the cross-check is genuinely
+disk-vs-disk on every invariant.
 
 The detector is **total**: every predicate returns a ``Violation | None`` for
 every constructible ``State`` over any ``working_dir``. The word-count predicate
@@ -50,9 +54,18 @@ from __future__ import annotations
 
 import typing as typ
 
+from novel_ralph_skill.state._disk_paths import (
+    _chapter_dir_name,
+    _on_disk_chapter_numbers,
+)
+from novel_ralph_skill.state._disk_word_counts import (
+    WORD_COUNTS_COVER_DRAFTS,
+    WORD_COUNTS_MATCH_DRAFTS,
+    _check_word_counts_cover_drafts,
+    _check_word_counts_match_drafts,
+)
 from novel_ralph_skill.state.compile_model import concatenate_drafts
 from novel_ralph_skill.state.validate import Violation
-from novel_ralph_skill.state.wordcount import recount_words
 
 if typ.TYPE_CHECKING:
     import collections.abc as cabc
@@ -61,22 +74,25 @@ if typ.TYPE_CHECKING:
     from novel_ralph_skill.state.schema import State
 
 # The §5.4 disk-evidence invariant names this module owns. The first five are
-# the names the corpus oracle already reserved (``CORPUS_INVARIANT_NAMES``); the
-# sixth (``word-counts-match-drafts``) was added by task 2.3.2 (D-WORDCOUNT); the
-# seventh (``log-present``) is new this task (2.3.4). Each string equals the
-# oracle's matching entry (the equality is pinned by a test).
+# the names the corpus oracle already reserved (``CORPUS_INVARIANT_NAMES``);
+# ``word-counts-match-drafts`` was added by task 2.3.2 (D-WORDCOUNT);
+# ``log-present`` was added by task 2.3.4; and ``word-counts-cover-drafts`` is
+# new this task (2.3.6). The two ``word-counts-*`` names are defined beside their
+# predicates in ``_disk_word_counts`` and re-exported here so this module's
+# vocabulary stays single-homed. Each string equals the oracle's matching entry
+# (the equality is pinned by a test).
 MANIFEST_DISK_BIJECTION: typ.Final = "manifest-disk-bijection"
 DONE_FLAG_WITHOUT_DRAFT: typ.Final = "done-flag-without-draft"
 COMPILED_MATCHES_DRAFTS: typ.Final = "compiled-matches-drafts"
 PENDING_TURN_CLEARED: typ.Final = "pending-turn-cleared"
 CURSOR_PLAN_PRESENT: typ.Final = "cursor-plan-present"
-WORD_COUNTS_MATCH_DRAFTS: typ.Final = "word-counts-match-drafts"
 LOG_PRESENT: typ.Final = "log-present"
 
 # The owned set, in design §5.2/§5.4 order, for callers that need to distinguish
 # the disk-evidence verdict from the pure-state verdict. The order is the corpus
-# oracle's disk-evidence subset order, with the word-count name (task 2.3.2) and
-# the partial-``init`` ``log-present`` name (task 2.3.4) appended last, lowest
+# oracle's disk-evidence subset order, with the word-count value name (task
+# 2.3.2), the partial-``init`` ``log-present`` name (task 2.3.4), and the
+# key-set ``word-counts-cover-drafts`` name (task 2.3.6) appended last, lowest
 # precedence.
 DISK_EVIDENCE_INVARIANT_NAMES: tuple[str, ...] = (
     MANIFEST_DISK_BIJECTION,
@@ -86,29 +102,8 @@ DISK_EVIDENCE_INVARIANT_NAMES: tuple[str, ...] = (
     PENDING_TURN_CLEARED,
     WORD_COUNTS_MATCH_DRAFTS,
     LOG_PRESENT,
+    WORD_COUNTS_COVER_DRAFTS,
 )
-
-
-def _chapter_dir_name(number: int) -> str:
-    """Return the ``chapter-NN`` directory name for a one-based chapter number."""
-    return f"chapter-{number:02d}"
-
-
-def _on_disk_chapter_numbers(working_dir: Path) -> set[int]:
-    """Return the chapter numbers materialised under ``manuscript/``.
-
-    Globs ``manuscript/chapter-*`` directories and parses the two-digit suffix.
-    A directory whose suffix is not a valid ``chapter-NN`` integer is ignored, so
-    a stray non-chapter directory never crashes the bijection check.
-    """
-    numbers: set[int] = set()
-    for entry in (working_dir / "manuscript").glob("chapter-*"):
-        if not entry.is_dir():
-            continue
-        suffix = entry.name.removeprefix("chapter-")
-        if suffix.isdigit():
-            numbers.add(int(suffix))
-    return numbers
 
 
 def _check_manifest_disk_bijection(state: State, working_dir: Path) -> Violation | None:
@@ -252,71 +247,6 @@ def _check_cursor_plan_present(state: State, working_dir: Path) -> Violation | N
     )
 
 
-def disk_word_counts(
-    state: State, working_dir: Path
-) -> tuple[int, cabc.Mapping[str, int]]:
-    """Return the disk-derived ``(current, by_chapter)`` for ``state``'s manifest.
-
-    Reuses the shared :func:`~novel_ralph_skill.state.wordcount.recount_words`
-    over ``state.chapters`` — the one counting rule (``len(text.split())``) — so
-    the disk-vs-table divergence and the ``reconcile`` recount derive the same
-    numbers from the same reader (no second counter; D-WORDCOUNT). Exposed so the
-    shared reconciliation can carry the recount payload without re-reading disk.
-
-    Parameters
-    ----------
-    state : State
-        The parsed ``state.toml``; its ``chapters`` manifest keys the recount.
-    working_dir : pathlib.Path
-        The ``working/`` directory holding ``manuscript/``.
-
-    Returns
-    -------
-    tuple[int, collections.abc.Mapping[str, int]]
-        The recounted total and the ordered per-chapter mapping.
-    """
-    return recount_words(working_dir, state.chapters)
-
-
-def _check_word_counts_match_drafts(
-    state: State, working_dir: Path
-) -> Violation | None:
-    """Return a violation when the ``[word_counts]`` table is stale against drafts.
-
-    Recomputes the per-chapter token counts from the on-disk drafts via
-    :func:`disk_word_counts` and compares the recomputed ``by_chapter`` mapping
-    against ``state.word_counts.by_chapter``. When they differ, the table is
-    internally consistent but stale against the manuscript: the disk-vs-table
-    divergence that realises the roadmap's done-claim case and its §5.4 under-count
-    inverse (D-WORDCOUNT). This is the disk-reading signal the table-internal
-    ``by-chapter-sum`` invariant cannot see.
-
-    The comparison is over ``by_chapter`` **only**, never ``current``: ``current``
-    versus ``sum(by_chapter)`` is the orthogonal table-internal ``by-chapter-sum``
-    invariant's concern (D-WORDCOUNT). Keeping them orthogonal means a tree whose
-    ``current`` is hand-corrupted (the ``by-chapter-sum-mismatch`` variant) trips
-    only ``by-chapter-sum``, while a stale per-chapter table trips only this one; a
-    ``RECOUNT`` (which rewrites both ``current`` and ``by_chapter``) satisfies both
-    by construction. Twin of the corpus's new disk-reading
-    ``_check_word_counts_match_drafts``.
-
-    Only the **shared** chapter keys are compared. A key present in the
-    recount but absent from the table (or the reverse) is a manifest-to-disk
-    structural mismatch the ``manifest-disk-bijection`` contradiction owns, so this
-    value-divergence predicate stays silent on it — the two invariants do not
-    double-fire on one tree.
-    """
-    _current, by_chapter = disk_word_counts(state, working_dir)
-    table = dict(state.word_counts.by_chapter)
-    shared = set(by_chapter) & set(table)
-    if all(by_chapter[key] == table[key] for key in shared):
-        return None
-    return Violation(
-        invariant=WORD_COUNTS_MATCH_DRAFTS,
-        detail="[word_counts].by_chapter table is stale against the on-disk drafts",
-    )
-
-
 def _check_log_present(_state: State, working_dir: Path) -> Violation | None:
     """Return a violation when ``state.toml`` is present but ``log.md`` is absent.
 
@@ -347,6 +277,7 @@ _PREDICATES: tuple[cabc.Callable[[State, Path], Violation | None], ...] = (
     _check_pending_turn_cleared,
     _check_word_counts_match_drafts,
     _check_log_present,
+    _check_word_counts_cover_drafts,
 )
 
 

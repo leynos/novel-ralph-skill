@@ -34,12 +34,16 @@ from novel_ralph_skill.state import (
     DONE_FLAG_WITHOUT_DRAFT,
     MANIFEST_DISK_BIJECTION,
     PENDING_TURN_CLEARED,
+    WORD_COUNTS_COVER_DRAFTS,
     WORD_COUNTS_MATCH_DRAFTS,
     check_disk_evidence,
     concatenate_drafts,
     load_state,
 )
-from novel_ralph_skill.state.disk_evidence import _check_word_counts_match_drafts
+from novel_ralph_skill.state.disk_evidence import (
+    _check_word_counts_cover_drafts,
+    _check_word_counts_match_drafts,
+)
 
 if typ.TYPE_CHECKING:
     import collections.abc as cabc
@@ -99,6 +103,8 @@ def test_owned_disk_evidence_names_equal_corpus_subset(
         ("scene-cursor-without-plan", CURSOR_PLAN_PRESENT),
         ("beat-cursor-without-plan", CURSOR_PLAN_PRESENT),
         ("done-flag-real-draft-undercount", WORD_COUNTS_MATCH_DRAFTS),
+        ("word-counts-cover-drafts-omits-drafted-chapter", WORD_COUNTS_COVER_DRAFTS),
+        ("word-counts-cover-drafts-extra-table-key", WORD_COUNTS_COVER_DRAFTS),
     ],
 )
 def test_predicate_fires_on_its_variant(
@@ -197,3 +203,58 @@ def test_word_counts_twin_equals_corpus_oracle(
         )
         oracle_fires = WORD_COUNTS_MATCH_DRAFTS in wc.corpus_check(spec, working_dir)
         assert production_fires == oracle_fires, working_dir
+
+
+def test_word_counts_cover_twin_equals_corpus_oracle(
+    coherent_oracle_cases: list[tuple[WorkingTreeSpec, Path]],
+    incoherent_variant_names: tuple[str, ...],
+    incoherent_tree: cabc.Callable[[str], tuple[WorkingTreeSpec, Path, str]],
+) -> None:
+    """The production cover predicate equals the disk-reading corpus oracle.
+
+    Both sides read disk, so the test compares like with like on every corpus
+    tree — the coherent set and every ``INCOHERENT_VARIANTS`` member, including
+    the two coverage variants and the shared-key value-divergence variants. The
+    value-divergence members must keep the cover predicate **silent** (it owns
+    the symmetric-difference keys, never the shared keys' values), so this test
+    pins the orthogonality boundary against a regression where the cover
+    predicate fires on a value gap (roadmap task 2.3.6, advisory A3).
+    """
+    cases: list[tuple[WorkingTreeSpec, Path]] = list(coherent_oracle_cases)
+    for name in incoherent_variant_names:
+        spec, working_dir, _label = incoherent_tree(name)
+        cases.append((spec, working_dir))
+    for spec, working_dir in cases:
+        if not load_succeeds(working_dir):
+            continue
+        state = load_state(working_dir / "state.toml")
+        production_fires = (
+            _check_word_counts_cover_drafts(state, working_dir) is not None
+        )
+        oracle_fires = WORD_COUNTS_COVER_DRAFTS in wc.corpus_check(spec, working_dir)
+        assert production_fires == oracle_fires, working_dir
+
+
+@pytest.mark.parametrize(
+    "variant",
+    [
+        "done-flag-real-draft-undercount",
+        "done-claim-stale-word-counts",
+    ],
+)
+def test_cover_predicate_silent_on_value_only_divergence(
+    variant: str,
+    incoherent_tree: cabc.Callable[[str], tuple[WorkingTreeSpec, Path, str]],
+) -> None:
+    """A shared-key value gap never trips the key-set coverage predicate.
+
+    ``done-flag-real-draft-undercount`` and ``done-claim-stale-word-counts``
+    diverge from the drafts on a *shared* key's value, which
+    ``word-counts-match-drafts`` owns; the cover predicate compares only the key
+    sets, so it must stay silent on both (the partition the two word-count
+    predicates split, advisory A3).
+    """
+    _spec, working_dir, _label = incoherent_tree(variant)
+    state = load_state(working_dir / "state.toml")
+    assert _check_word_counts_cover_drafts(state, working_dir) is None, variant
+    assert WORD_COUNTS_COVER_DRAFTS not in _disk_verdict(working_dir), variant

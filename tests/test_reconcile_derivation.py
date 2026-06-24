@@ -64,6 +64,8 @@ _VARIANT_ACTIONS: dict[str, ReconcileAction] = {
     "uncleared-pending-turn": ReconcileAction.COMPLETE_PENDING_TURN,
     "done-flag-real-draft-undercount": ReconcileAction.RECOUNT,
     "done-claim-stale-word-counts": ReconcileAction.RECOUNT,
+    "word-counts-cover-drafts-omits-drafted-chapter": ReconcileAction.RECOUNT,
+    "word-counts-cover-drafts-extra-table-key": ReconcileAction.RECOUNT,
     "pending-turn-complete-recomputable": ReconcileAction.COMPLETE_PENDING_TURN,
     "pending-turn-rollback-unrecoverable": ReconcileAction.ROLLBACK_PENDING_TURN,
 }
@@ -132,6 +134,31 @@ def test_recount_carries_disk_derived_counts(tmp_path: Path) -> None:
         "02": 24000,
         "03": 20800,
     }
+
+
+def test_recount_supplies_missing_cover_key(tmp_path: Path) -> None:
+    """A coverage-gap ``RECOUNT`` re-keys ``by_chapter`` off the manifest.
+
+    The ``word-counts-cover-drafts-omits-drafted-chapter`` variant's table omits
+    the drafted ``"04"`` key; the recount re-keys off the manifest, so the
+    derived payload *includes* the previously-missing key with its drafted count.
+    The discrepancy carries the coverage invariant name.
+    """
+    spec, _expected = wc.INCOHERENT_VARIANTS[
+        "word-counts-cover-drafts-omits-drafted-chapter"
+    ]
+    working = wc.build_working_tree(spec, tmp_path)
+    state = load_state(working / "state.toml")
+    reconciliation = derive_reconciliation(state, working)
+    assert reconciliation.action == ReconcileAction.RECOUNT
+    assert reconciliation.discrepancies == ("word-counts-cover-drafts",)
+    assert reconciliation.recounted_by_chapter == {
+        "01": 32000,
+        "02": 32000,
+        "03": 32000,
+        "04": 4000,
+    }
+    assert reconciliation.recounted_current == 100000
 
 
 def test_partial_init_derives_recreate_log(tmp_path: Path) -> None:
@@ -245,3 +272,22 @@ def test_derivation_is_total_and_never_yields_none_on_a_violation(
         assert reconciliation.action != ReconcileAction.NONE
     else:
         assert reconciliation.action == ReconcileAction.NONE
+
+
+def test_recount_drops_orphan_cover_key(tmp_path: Path) -> None:
+    """A coverage-gap ``RECOUNT`` drops a table key the manifest never declared.
+
+    The ``word-counts-cover-drafts-extra-table-key`` variant's table carries an
+    orphan ``"05"`` key; the recount re-keys off the three-chapter manifest, so
+    the orphan key is absent from the derived payload.
+    """
+    spec, _expected = wc.INCOHERENT_VARIANTS["word-counts-cover-drafts-extra-table-key"]
+    working = wc.build_working_tree(spec, tmp_path)
+    state = load_state(working / "state.toml")
+    reconciliation = derive_reconciliation(state, working)
+    assert reconciliation.action == ReconcileAction.RECOUNT
+    assert reconciliation.discrepancies == ("word-counts-cover-drafts",)
+    by_chapter = reconciliation.recounted_by_chapter
+    assert by_chapter is not None
+    assert "05" not in by_chapter
+    assert set(by_chapter) == {"01", "02", "03"}

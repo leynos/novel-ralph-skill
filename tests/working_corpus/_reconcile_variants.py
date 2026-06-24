@@ -1,9 +1,11 @@
-"""The roadmap-2.3.2 reconciliation variant builders.
+"""The recount-repairable reconciliation variant builders.
 
-These build the four incoherent trees the ``reconcile`` mutator (roadmap task
-2.3.2) repairs or recovers: the over-count done-claim headline, the §5.4
-under-count worked case, and the complete/rollback pending-turn pair. They live
-beside the general §5.2/§5.4 variant builders in :mod:`._variants` (which
+These build the incoherent trees the ``reconcile`` mutator repairs or recovers:
+the roadmap-2.3.2 set (the over-count done-claim headline, the §5.4 under-count
+worked case, and the complete/rollback pending-turn pair) and the roadmap-2.3.6
+``word-counts-cover-drafts`` coverage pair (a table that omits a drafted manifest
+chapter, and a table carrying an orphan key the manifest never declared). They
+live beside the general §5.2/§5.4 variant builders in :mod:`._variants` (which
 registers them into ``INCOHERENT_VARIANTS``) rather than inside it so that module
 stays within the 400-line cap (AGENTS.md lines 24-27); both import the shared
 baseline anchor and helpers from :mod:`._variant_base`.
@@ -14,6 +16,7 @@ from __future__ import annotations
 import dataclasses as dc
 import typing as typ
 
+from ._specs import ChapterSpec
 from ._variant_base import BASE, BASE_CHAPTERS, with_chapters
 
 if typ.TYPE_CHECKING:
@@ -90,6 +93,78 @@ def done_claim_stale_word_counts() -> WorkingTreeSpec:
     return with_chapters(
         (empty, second, third),
         current_chapter=len(BASE_CHAPTERS),
+        by_chapter_override=table,
+        current_words_override=sum(table.values()),
+    )
+
+
+def cover_omits_drafted_chapter() -> WorkingTreeSpec:
+    """Return a tree whose ``by_chapter`` omits a drafted manifest chapter.
+
+    The tree drafts four chapters against the 80000 target — three of 32000 and a
+    *small* fourth of 4000 (live total 100000, ratio 1.25, every knitting gate
+    honestly ``True``) — and the override drops the small fourth chapter's ``"04"``
+    key from ``[word_counts].by_chapter`` while keeping its non-empty ``draft.md``
+    on disk. The manifest-keyed recount therefore carries ``"04"`` but the table
+    does not: the ``word-counts-cover-drafts`` coverage gap (roadmap task 2.3.6).
+
+    The omitted chapter is deliberately small so the surviving table sum
+    (``96000``, ratio ``1.2``) stays in the **same all-gates-``True`` band** as the
+    live total. This matters because the pure-state validator's
+    ``gate-ratio-consistent`` reads ``sum(by_chapter.values())`` — the *table*
+    sum, not the on-disk ``draft_words`` — so an omission that pushed the table
+    ratio below ``0.80`` would flip ``done_80`` and double-fire that invariant
+    (ExecPlan Surprise: the plan's Risk #2 conflated the oracle's draft-reading
+    gate check with the validator's table-reading one). ``current`` is pinned to
+    the reduced table sum so ``by-chapter-sum`` stays silent, the three retained
+    keys keep their honest counts so the shared-key value match
+    ``word-counts-match-drafts`` stays silent, and the manifest/disk bijection
+    holds so the cover predicate fires on the lone hand-edited-key divergence. A
+    ``RECOUNT`` re-keys ``by_chapter`` off the manifest, supplying the missing
+    ``"04"`` key.
+    """
+    chapters = tuple(
+        ChapterSpec(
+            number=index + 1,
+            slug=f"chapter-{index + 1:02d}",
+            title=f"Chapter {index + 1}",
+            target_words=words,
+            draft_words=words,
+            has_done_flag=False,
+        )
+        for index, words in enumerate((32000, 32000, 32000, 4000))
+    )
+    table = {f"{chapter.number:02d}": chapter.draft_words for chapter in chapters[:3]}
+    return with_chapters(
+        chapters,
+        current_chapter=len(chapters),
+        by_chapter_override=table,
+        current_words_override=sum(table.values()),
+    )
+
+
+def cover_extra_table_key() -> WorkingTreeSpec:
+    """Return a tree whose ``by_chapter`` carries a key with no manifest entry.
+
+    The override keeps each drafted chapter's honest count and adds a ``"05"`` key
+    the manifest never declares, so the table key set exceeds the manifest-keyed
+    recount key set — the ``word-counts-cover-drafts`` coverage gap in the
+    opposite direction (roadmap task 2.3.6). ``current`` is pinned to the new
+    table sum so ``by-chapter-sum`` stays silent; the orphan key is table-only (no
+    manifest entry and no ``manuscript/chapter-05`` directory) so
+    ``manifest-disk-bijection`` stays silent; the shared keys keep their honest
+    counts so ``word-counts-match-drafts`` stays silent. A ``RECOUNT`` re-keys
+    ``by_chapter`` off the manifest, dropping the orphan ``"05"`` key.
+    """
+    first, second, third = BASE_CHAPTERS
+    table = {
+        f"{first.number:02d}": first.draft_words,
+        f"{second.number:02d}": second.draft_words,
+        f"{third.number:02d}": third.draft_words,
+        "05": 100,
+    }
+    return with_chapters(
+        (first, second, third),
         by_chapter_override=table,
         current_words_override=sum(table.values()),
     )

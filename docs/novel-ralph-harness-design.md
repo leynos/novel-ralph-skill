@@ -547,7 +547,16 @@ agent judgement:
    corroborate (or a real `done.flag` over a draft the table under-counts) is
    detected by the `word-counts-match-drafts` disk-evidence invariant and
    repaired by re-deriving `[word_counts]` from the drafts — a recount fired by
-   genuine disk evidence. This repair rewrites `[word_counts]` **only** and
+   genuine disk evidence. The same `word_counts` signal now also covers
+   **key-set coverage** divergence (roadmap task 2.3.6): a hand-edited
+   `by_chapter` table that omits a drafted manifest chapter's key, or carries a
+   key the manifest never declared, is detected by the orthogonal
+   `word-counts-cover-drafts` invariant and repaired by the **same** recount,
+   which re-keys `by_chapter` off the manifest — supplying the missing key and
+   dropping the orphan. The value invariant owns the shared keys; the coverage
+   invariant owns the symmetric-difference keys; both defer to
+   `manifest-disk-bijection` when the manifest and the chapter directories
+   disagree. This repair rewrites `[word_counts]` **only** and
    never `[gates]`: a knitting gate flag records "threshold crossed **and** the
    pass integrated and logged", an agent action disk does not store, so
    synthesising it would violate "disk is authoritative, never the reverse".

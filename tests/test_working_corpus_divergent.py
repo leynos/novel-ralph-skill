@@ -65,15 +65,19 @@ class TestCorpusDivergentTable:
         The vocabulary order is ``consecutive-clean-within-drafted`` (index 5)
         before ``gate-ratio-consistent`` (index 9), and ``by-chapter-sum`` stays
         silent because ``current`` equals the override table sum (Decision Log
-        D3). Roadmap task 2.3.2's ``word-counts-match-drafts`` (index 13) now also
-        fires: the override table over-counts the on-disk drafts, which is exactly
-        the disk-vs-table per-chapter divergence that detector owns (D-WORDCOUNT).
+        D3). Roadmap task 2.3.2's ``word-counts-match-drafts`` (index 13) fires on
+        the over-counted shared-key values, and roadmap task 2.3.6's
+        ``word-counts-cover-drafts`` (index 14) fires too: the three-key override
+        table carries a ``"03"`` key the two-chapter manifest never declares, a
+        genuine key-set coverage gap orthogonal to the shared-key value gap (the
+        two word-count predicates legitimately co-fire here; ExecPlan Risk #3).
         """
         spec, working = divergent_table_tree(_OVER_COUNTING_KEY)
         assert check_corpus(spec, working) == (
             "consecutive-clean-within-drafted",
             "gate-ratio-consistent",
             "word-counts-match-drafts",
+            "word-counts-cover-drafts",
         )
 
     def test_divergent_table_not_in_incoherent_variants(
@@ -110,13 +114,19 @@ class TestCorpusDivergentTable:
         2.3.2's disk-evidence ``word-counts-match-drafts`` (index 13) also fires:
         the override table under-counts the on-disk drafts per chapter, which is
         exactly the disk-vs-table divergence that detector owns (D-WORDCOUNT),
-        symmetric to the over-counting tree. A drift in the gates or the drafts is
-        caught immediately by the exact expectation.
+        symmetric to the over-counting tree. Roadmap task 2.3.6's
+        ``word-counts-cover-drafts`` (index 14) fires too: the two-key override
+        table omits the ``"03"`` key the three-chapter manifest recount carries, a
+        key-set coverage gap orthogonal to the shared-key value gap (the two
+        word-count predicates legitimately co-fire here; ExecPlan Risk #3). A
+        drift in the gates or the drafts is caught immediately by the exact
+        expectation.
         """
         spec, working = divergent_table_tree(_UNDER_COUNTING_KEY)
         assert check_corpus(spec, working) == (
             "gate-ratio-consistent",
             "word-counts-match-drafts",
+            "word-counts-cover-drafts",
         )
 
     def test_divergent_table_validator_stays_silent(
