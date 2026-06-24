@@ -245,6 +245,41 @@ def test_advance_phase_success_into_drafting(
     assert check_code == ExitCode.SUCCESS
 
 
+def test_advance_phase_persists_phase_not_transition_labels(
+    phase_state_tree: cabc.Callable[[str], Path],
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """The on-disk write records ``phase``, never the ``from``/``to`` labels.
+
+    The ``{from, to}`` keys are *transition labels* the envelope reports, not
+    on-disk schema keys (design §3.1; developers-guide "State mutators"). This
+    proves that intent against the written ``state.toml``, not just in prose:
+    after a successful advance, ``[phase].current`` and ``[phase].completed``
+    are updated and no ``from``/``to`` key was persisted anywhere — at the top
+    level or inside any table (roadmap 1.3.5.2; audit:1.3.5).
+    """
+    working = phase_state_tree("premise")
+    monkeypatch.chdir(working.parent)
+    code, _ = _drive_and_capture(["advance-phase"], capsys)
+    assert code == ExitCode.SUCCESS
+
+    import tomllib
+
+    raw = tomllib.loads((working / "state.toml").read_text("utf-8"))
+    # The persisted representation of the transition is the phase table.
+    assert raw["phase"]["current"] == "treatment"
+    assert raw["phase"]["completed"] == ["premise"]
+    # The transition labels never reach disk: not at the top level, and not
+    # inside any persisted table.
+    assert "from" not in raw
+    assert "to" not in raw
+    for table_name, table in raw.items():
+        if isinstance(table, dict):
+            assert "from" not in table, f"unexpected 'from' key in [{table_name}]"
+            assert "to" not in table, f"unexpected 'to' key in [{table_name}]"
+
+
 def test_advance_phase_refuses_out_of_order(
     incoherent_tree: cabc.Callable[[str], tuple[WorkingTreeSpec, Path, str]],
     monkeypatch: pytest.MonkeyPatch,

@@ -306,14 +306,14 @@ drift and seeds the snapshot suite. See novel-ralph-harness-design.md §3 and §
     that names what they changed rather than an empty `violations` echo, the
     `violations` key is reserved for `check`, and the mutator result contract is
     recorded once for `recount`/`reconcile` to follow.
-  - [ ] 1.3.5.1. Record set-cursor's input-echo result coupling as a deliberate
+  - [x] 1.3.5.1. Record set-cursor's input-echo result coupling as a deliberate
     choice.
     - Addendum (from review:1.3.5; low). `set-cursor` echoes its input args as
       the success `result`; they equal the persisted scalars today, so note the
       coupling as a deliberate choice (rather than re-reading the written
       document) in the design or developers' guide so it is not a latent
       assumption. Lightweight addendum pass.
-  - [ ] 1.3.5.2. Assert advance-phase's `from`/`to` are transition labels, not
+  - [x] 1.3.5.2. Assert advance-phase's `from`/`to` are transition labels, not
     `state.toml` schema keys.
     - Addendum (from audit:1.3.5; low). Add an on-disk behavioural test that
       re-reads the written `state.toml` to assert `phase.current`/`phase.completed`

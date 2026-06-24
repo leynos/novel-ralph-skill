@@ -507,7 +507,15 @@ mutator:
   success `result` names *what it changed* and never echoes the `check` query's
   `violations` key (design §3.3; `docs/issues/audit-2.2.2.md` Finding 2).
   `set-cursor` returns `{current_chapter, current_scene, current_beat}` — the
-  cursor it set, read back to the on-disk drafting fields without translation;
+  cursor it set, read back to the on-disk drafting fields without translation.
+  That `result` echoes the validated *input* arguments rather than re-reading
+  the written document; this is a deliberate coupling, not a latent assumption.
+  Validation precedes the write (§3.4 above), so the echoed scalars equal the
+  persisted `[drafting]` cursor on every success and a diverging write is refused
+  before it lands; the cursor is plain scalars the mutator neither derives nor
+  normalises, so re-reading the document would add no guarantee. A future mutator
+  that *computes* or *normalises* a value before persisting it must report the
+  written value, not its input echo.
   `advance-phase` returns `{from, to}` — the transition it made, as the
   `Phase.value` strings. The `from`/`to` keys are *transition labels*, not
   on-disk schema keys: `state.toml` persists `phase.current` plus

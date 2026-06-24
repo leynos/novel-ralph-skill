@@ -178,6 +178,19 @@ is `phase.current` plus `phase.completed` (§5.1). A refusal carries no `result`
 payload at all: the exit-3 channel emits only `messages` naming the breached
 invariant (§3.2).
 
+`set-cursor`'s `result` echoes the validated *input* arguments
+(`current_chapter`, `current_scene`, `current_beat`) rather than re-reading them
+back from the written document. This input-echo coupling is a deliberate choice,
+not a latent assumption: validation runs *before* persistence (§3.4), so the
+echoed scalars equal the persisted `[drafting]` cursor whenever the write
+succeeds, and a write that would diverge is refused at exit 3 before it lands.
+Re-reading the document to make the envelope structurally independent of the
+input path would buy no extra guarantee here, because the cursor is a set of
+plain scalars the mutator neither derives nor normalises on write. Should a
+future mutator compute or normalise a value it persists — so the written form
+could differ from the input — that mutator must report the *written* value, not
+its input echo.
+
 Three `schema_version` numbers coexist and evolve independently: the envelope's
 (this contract), `state.toml`'s (§5.1), and each rule pack's (§6.1). The
 separation is deliberate — the envelope version tracks the command contract,

@@ -919,14 +919,14 @@ already captured in `tests/test_novel_state_violations_ownership.py`'s docstring
 and owned by roadmap tasks 2.3.1/2.3.2 (which inherit this task's mutator-result
 contract), so it is not re-filed here.
 
-- [ ] 1.3.5.1 — Record set-cursor's input-echo result coupling as a deliberate
+- [x] 1.3.5.1 — Record set-cursor's input-echo result coupling as a deliberate
   choice (from review:1.3.5, low). `set-cursor` echoes its input args as the
   success `result`; they equal the persisted scalars today, so note the coupling
   as a deliberate choice — rather than re-reading the written document to make
   the envelope structurally independent of the input path — in the design or
   developers' guide, so it is recorded as a decision and not a latent assumption.
   Gate with `make markdownlint` and `make nixie`.
-- [ ] 1.3.5.2 — Assert advance-phase's `from`/`to` are transition labels, not
+- [x] 1.3.5.2 — Assert advance-phase's `from`/`to` are transition labels, not
   `state.toml` schema keys (from audit:1.3.5, low). The from/to-are-not-schema-keys
   intent is documented across the design, the developers' guide, and the
   docstring but proven only in prose; add an on-disk behavioural test that
