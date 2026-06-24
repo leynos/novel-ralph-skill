@@ -879,7 +879,7 @@ novel-ralph-harness-design.md §4.2 and §2.3.
   - See novel-ralph-harness-design.md §4.2.
   - Success: each clause can be independently driven true and false from the
     §1.3.2 corpus, and the exit code is 0 only when every clause holds.
-  - [ ] 3.1.1.1. Reconcile the `done-conditions.md` reference predicate to the
+  - [x] 3.1.1.1. Reconcile the `done-conditions.md` reference predicate to the
     manifest chapter source.
     - Addendum (from review:3.1.1 / audit:3.1.1; low). The shipped predicate
       reads per-manifest chapters (`state.chapters`) while the reference

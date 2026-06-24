@@ -154,9 +154,11 @@ def novel_predicate(working_dir, state):
     if not state["gates"]["final"]["final_pass_complete"]:
         return False
 
-    # 2. Every planned chapter is drafted.
-    planned = parse_chapter_outline(working_dir / "plan/chapter-outline.md")
-    for chapter_id in planned:
+    # 2. Every planned chapter is drafted. The manifest (`state["chapters"]`,
+    # ordered ascending by `number`) is the authoritative chapter set; design
+    # §4.3 pins the chapter source to the manifest, not to outline prose.
+    for chapter in state["chapters"]:
+        chapter_id = chapter["number"]
         flag = working_dir / f"manuscript/chapter-{chapter_id}/done.flag"
         if not flag.exists():
             return False
@@ -176,8 +178,9 @@ def novel_predicate(working_dir, state):
     if compiled_diverges_from_chapter_drafts(working_dir):
         return False
 
-    # 5. No outstanding BLOCKER findings.
-    for chapter_id in planned:
+    # 5. No outstanding BLOCKER findings. Iterate the same manifest chapter set.
+    for chapter in state["chapters"]:
+        chapter_id = chapter["number"]
         notes = working_dir / f"manuscript/chapter-{chapter_id}/critic-notes.md"
         if notes.exists() and contains_unresolved_blocker(notes):
             return False

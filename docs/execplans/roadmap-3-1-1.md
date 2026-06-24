@@ -994,7 +994,7 @@ Lightweight post-merge corrections folded onto this completed task. Each runs as
 a no-plan, no-review addendum pass (roadmap sub-task under the `[x]` 3.1.1
 parent).
 
-- **Roadmap 3.1.1.1 — reconcile `done-conditions.md` to the manifest chapter
+- [x] **Roadmap 3.1.1.1 — reconcile `done-conditions.md` to the manifest chapter
   source** (from review:3.1.1 / audit:3.1.1; severity low). D-CLAUSES recorded
   that the shipped predicate reads per-manifest chapters (`state.chapters`)
   while the reference `novel_predicate` at
