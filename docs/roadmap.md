@@ -865,7 +865,7 @@ novel-ralph-harness-design.md §4.4, §6.1, and §1.
       breaching the AGENTS.md 400-line cap; extract the scalar-coercion helpers
       into a `rulepack/_coerce.py` leaf module so the cap is met. Lightweight
       addendum pass.
-- [ ] 5.1.2. Implement `desloppify` detection over the §6 offender table.
+- [x] 5.1.2. Implement `desloppify` detection over the §6 offender table.
   - Requires 5.1.1.
   - Emit structured output per hit — phrase, count, density per N words,
     threshold, pass or fail, and line numbers — for a chapter or the whole

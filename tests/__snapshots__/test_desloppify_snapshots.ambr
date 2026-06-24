@@ -1,0 +1,576 @@
+# serializer version: 1
+# name: test_clean_pass_envelope_snapshot
+  dict({
+    'command': 'desloppify',
+    'messages': list([
+      'no slop detected',
+    ]),
+    'ok': True,
+    'result': dict({
+      'findings': list([
+        dict({
+          'basis': 'manuscript',
+          'count': 0,
+          'density': None,
+          'lines': list([
+          ]),
+          'passed': True,
+          'phrase': "(?i)\\bit'?s not just\\b[^\\n]{0,80}?\\bit'?s\\b",
+          'rule_id': 'it-s-not-just',
+          'threshold': 0,
+        }),
+        dict({
+          'basis': 'manuscript',
+          'count': 0,
+          'density': None,
+          'lines': list([
+          ]),
+          'passed': True,
+          'phrase': '(?i)\\blet out a breath\\b',
+          'rule_id': 'let-out-a-breath',
+          'threshold': 0,
+        }),
+        dict({
+          'basis': 'manuscript',
+          'count': 0,
+          'density': None,
+          'lines': list([
+          ]),
+          'passed': True,
+          'phrase': '(?i)\\bshivers? (?:down|up) (?:her|his|their|my|your|the) spine\\b',
+          'rule_id': 'shivers-down-spine',
+          'threshold': 0,
+        }),
+        dict({
+          'basis': 'manuscript',
+          'count': 0,
+          'density': None,
+          'lines': list([
+          ]),
+          'passed': True,
+          'phrase': '(?i)\\bthe air was thick with\\b',
+          'rule_id': 'air-thick-with',
+          'threshold': 0,
+        }),
+        dict({
+          'basis': 'manuscript',
+          'count': 0,
+          'density': None,
+          'lines': list([
+          ]),
+          'passed': True,
+          'phrase': '(?i)\\bfound (?:her|him|them|my|our|your)sel(?:f|ves)[^\\S\\n]+\\w',
+          'rule_id': 'found-herself',
+          'threshold': 2,
+        }),
+        dict({
+          'basis': 'manuscript',
+          'count': 0,
+          'density': None,
+          'lines': list([
+          ]),
+          'passed': True,
+          'phrase': "(?i)\\bcould\\s?n'?t help but\\b",
+          'rule_id': 'couldnt-help-but',
+          'threshold': 1,
+        }),
+        dict({
+          'basis': 'per_page',
+          'count': 0,
+          'density': 0.0,
+          'lines': list([
+          ]),
+          'passed': True,
+          'phrase': '—',
+          'rule_id': 'em-dash',
+          'threshold': 5,
+        }),
+        dict({
+          'basis': 'manuscript',
+          'count': 0,
+          'density': None,
+          'lines': list([
+          ]),
+          'passed': True,
+          'phrase': '(?i)—?but that was just the beginning\\b',
+          'rule_id': 'but-that-was-just-the-beginning',
+          'threshold': 0,
+        }),
+        dict({
+          'basis': 'manuscript',
+          'count': 0,
+          'density': None,
+          'lines': list([
+          ]),
+          'passed': True,
+          'phrase': '(?i)\\band in that moment\\b',
+          'rule_id': 'and-in-that-moment',
+          'threshold': 0,
+        }),
+        dict({
+          'basis': 'manuscript',
+          'count': 0,
+          'density': None,
+          'lines': list([
+          ]),
+          'passed': True,
+          'phrase': '(?i)(?:^|[.!?]\\s+)some things\\b',
+          'rule_id': 'some-things',
+          'threshold': 0,
+        }),
+        dict({
+          'basis': 'manuscript',
+          'count': 0,
+          'density': None,
+          'lines': list([
+          ]),
+          'passed': True,
+          'phrase': '(?i)\\ba part of (?:her|him|them|me|us|you)\\b',
+          'rule_id': 'a-part-of-her',
+          'threshold': 1,
+        }),
+        dict({
+          'basis': 'manuscript',
+          'count': 0,
+          'density': None,
+          'lines': list([
+          ]),
+          'passed': True,
+          'phrase': '\\b(?:Tapestry|Symphony|Paradigm)\\b',
+          'rule_id': 'capitalised-abstract-noun',
+          'threshold': 1,
+        }),
+        dict({
+          'basis': 'manuscript',
+          'count': 0,
+          'density': None,
+          'lines': list([
+          ]),
+          'passed': True,
+          'phrase': '(?i)\\bsmirked\\b',
+          'rule_id': 'smirked',
+          'threshold': 1,
+        }),
+        dict({
+          'basis': 'manuscript',
+          'count': 0,
+          'density': None,
+          'lines': list([
+          ]),
+          'passed': True,
+          'phrase': '(?i)\\b\\w+ed\\b[^\\n]{0,12}?\\b(?:sadly|quietly|softly)\\b',
+          'rule_id': 'verb-ed-adverb',
+          'threshold': 2,
+        }),
+        dict({
+          'basis': 'manuscript',
+          'count': 0,
+          'density': None,
+          'lines': list([
+          ]),
+          'passed': True,
+          'phrase': '(?i)\\bthe silence stretched\\b',
+          'rule_id': 'the-silence-stretched',
+          'threshold': 0,
+        }),
+        dict({
+          'basis': 'manuscript',
+          'count': 0,
+          'density': None,
+          'lines': list([
+          ]),
+          'passed': True,
+          'phrase': '(?i)\\b(?:her|his|their|my|your) heart skipped\\b',
+          'rule_id': 'her-heart-skipped',
+          'threshold': 0,
+        }),
+        dict({
+          'basis': 'manuscript',
+          'count': 0,
+          'density': None,
+          'lines': list([
+          ]),
+          'passed': True,
+          'phrase': '(?i)\\bevery fib(?:re|er) of (?:her|his|their|my|your) being\\b',
+          'rule_id': 'every-fibre-of-her-being',
+          'threshold': 0,
+        }),
+        dict({
+          'basis': 'manuscript',
+          'count': 0,
+          'density': None,
+          'lines': list([
+          ]),
+          'passed': True,
+          'phrase': '(?i)\\bin a world where\\b',
+          'rule_id': 'in-a-world-where',
+          'threshold': 0,
+        }),
+        dict({
+          'basis': 'manuscript',
+          'count': 0,
+          'density': None,
+          'lines': list([
+          ]),
+          'passed': True,
+          'phrase': '(?i)\\btapestry of\\b',
+          'rule_id': 'tapestry-of',
+          'threshold': 0,
+        }),
+        dict({
+          'basis': 'manuscript',
+          'count': 0,
+          'density': None,
+          'lines': list([
+          ]),
+          'passed': True,
+          'phrase': '(?i)\\bsymphony of\\b',
+          'rule_id': 'symphony-of',
+          'threshold': 0,
+        }),
+        dict({
+          'basis': 'manuscript',
+          'count': 0,
+          'density': None,
+          'lines': list([
+          ]),
+          'passed': True,
+          'phrase': '(?i)\\ba delicate balance\\b',
+          'rule_id': 'a-delicate-balance',
+          'threshold': 0,
+        }),
+        dict({
+          'basis': 'manuscript',
+          'count': 0,
+          'density': None,
+          'lines': list([
+          ]),
+          'passed': True,
+          'phrase': '(?i)\\bnavigate the complexities\\b',
+          'rule_id': 'navigate-the-complexities',
+          'threshold': 0,
+        }),
+        dict({
+          'basis': 'manuscript',
+          'count': 0,
+          'density': None,
+          'lines': list([
+          ]),
+          'passed': True,
+          'phrase': '(?i)\\bspeaks volumes\\b',
+          'rule_id': 'speaks-volumes',
+          'threshold': 0,
+        }),
+        dict({
+          'basis': 'manuscript',
+          'count': 0,
+          'density': None,
+          'lines': list([
+          ]),
+          'passed': True,
+          'phrase': '(?i)\\bparadigm shift\\b',
+          'rule_id': 'paradigm-shift',
+          'threshold': 0,
+        }),
+      ]),
+      'pack': 'offenders',
+      'total_words': 18,
+      'violations': list([
+      ]),
+    }),
+    'schema_version': 1,
+    'working_dir': 'working',
+  })
+# ---
+# name: test_one_hit_past_threshold_envelope_snapshot
+  dict({
+    'command': 'desloppify',
+    'messages': list([
+      'smirked exceeds threshold (2 > 1)',
+    ]),
+    'ok': False,
+    'result': dict({
+      'findings': list([
+        dict({
+          'basis': 'manuscript',
+          'count': 0,
+          'density': None,
+          'lines': list([
+          ]),
+          'passed': True,
+          'phrase': "(?i)\\bit'?s not just\\b[^\\n]{0,80}?\\bit'?s\\b",
+          'rule_id': 'it-s-not-just',
+          'threshold': 0,
+        }),
+        dict({
+          'basis': 'manuscript',
+          'count': 0,
+          'density': None,
+          'lines': list([
+          ]),
+          'passed': True,
+          'phrase': '(?i)\\blet out a breath\\b',
+          'rule_id': 'let-out-a-breath',
+          'threshold': 0,
+        }),
+        dict({
+          'basis': 'manuscript',
+          'count': 0,
+          'density': None,
+          'lines': list([
+          ]),
+          'passed': True,
+          'phrase': '(?i)\\bshivers? (?:down|up) (?:her|his|their|my|your|the) spine\\b',
+          'rule_id': 'shivers-down-spine',
+          'threshold': 0,
+        }),
+        dict({
+          'basis': 'manuscript',
+          'count': 0,
+          'density': None,
+          'lines': list([
+          ]),
+          'passed': True,
+          'phrase': '(?i)\\bthe air was thick with\\b',
+          'rule_id': 'air-thick-with',
+          'threshold': 0,
+        }),
+        dict({
+          'basis': 'manuscript',
+          'count': 0,
+          'density': None,
+          'lines': list([
+          ]),
+          'passed': True,
+          'phrase': '(?i)\\bfound (?:her|him|them|my|our|your)sel(?:f|ves)[^\\S\\n]+\\w',
+          'rule_id': 'found-herself',
+          'threshold': 2,
+        }),
+        dict({
+          'basis': 'manuscript',
+          'count': 0,
+          'density': None,
+          'lines': list([
+          ]),
+          'passed': True,
+          'phrase': "(?i)\\bcould\\s?n'?t help but\\b",
+          'rule_id': 'couldnt-help-but',
+          'threshold': 1,
+        }),
+        dict({
+          'basis': 'per_page',
+          'count': 0,
+          'density': 0.0,
+          'lines': list([
+          ]),
+          'passed': True,
+          'phrase': '—',
+          'rule_id': 'em-dash',
+          'threshold': 5,
+        }),
+        dict({
+          'basis': 'manuscript',
+          'count': 0,
+          'density': None,
+          'lines': list([
+          ]),
+          'passed': True,
+          'phrase': '(?i)—?but that was just the beginning\\b',
+          'rule_id': 'but-that-was-just-the-beginning',
+          'threshold': 0,
+        }),
+        dict({
+          'basis': 'manuscript',
+          'count': 0,
+          'density': None,
+          'lines': list([
+          ]),
+          'passed': True,
+          'phrase': '(?i)\\band in that moment\\b',
+          'rule_id': 'and-in-that-moment',
+          'threshold': 0,
+        }),
+        dict({
+          'basis': 'manuscript',
+          'count': 0,
+          'density': None,
+          'lines': list([
+          ]),
+          'passed': True,
+          'phrase': '(?i)(?:^|[.!?]\\s+)some things\\b',
+          'rule_id': 'some-things',
+          'threshold': 0,
+        }),
+        dict({
+          'basis': 'manuscript',
+          'count': 0,
+          'density': None,
+          'lines': list([
+          ]),
+          'passed': True,
+          'phrase': '(?i)\\ba part of (?:her|him|them|me|us|you)\\b',
+          'rule_id': 'a-part-of-her',
+          'threshold': 1,
+        }),
+        dict({
+          'basis': 'manuscript',
+          'count': 0,
+          'density': None,
+          'lines': list([
+          ]),
+          'passed': True,
+          'phrase': '\\b(?:Tapestry|Symphony|Paradigm)\\b',
+          'rule_id': 'capitalised-abstract-noun',
+          'threshold': 1,
+        }),
+        dict({
+          'basis': 'manuscript',
+          'count': 2,
+          'density': None,
+          'lines': list([
+            dict({
+              'chapter': 1,
+              'line': 1,
+            }),
+            dict({
+              'chapter': 1,
+              'line': 2,
+            }),
+          ]),
+          'passed': False,
+          'phrase': '(?i)\\bsmirked\\b',
+          'rule_id': 'smirked',
+          'threshold': 1,
+        }),
+        dict({
+          'basis': 'manuscript',
+          'count': 0,
+          'density': None,
+          'lines': list([
+          ]),
+          'passed': True,
+          'phrase': '(?i)\\b\\w+ed\\b[^\\n]{0,12}?\\b(?:sadly|quietly|softly)\\b',
+          'rule_id': 'verb-ed-adverb',
+          'threshold': 2,
+        }),
+        dict({
+          'basis': 'manuscript',
+          'count': 0,
+          'density': None,
+          'lines': list([
+          ]),
+          'passed': True,
+          'phrase': '(?i)\\bthe silence stretched\\b',
+          'rule_id': 'the-silence-stretched',
+          'threshold': 0,
+        }),
+        dict({
+          'basis': 'manuscript',
+          'count': 0,
+          'density': None,
+          'lines': list([
+          ]),
+          'passed': True,
+          'phrase': '(?i)\\b(?:her|his|their|my|your) heart skipped\\b',
+          'rule_id': 'her-heart-skipped',
+          'threshold': 0,
+        }),
+        dict({
+          'basis': 'manuscript',
+          'count': 0,
+          'density': None,
+          'lines': list([
+          ]),
+          'passed': True,
+          'phrase': '(?i)\\bevery fib(?:re|er) of (?:her|his|their|my|your) being\\b',
+          'rule_id': 'every-fibre-of-her-being',
+          'threshold': 0,
+        }),
+        dict({
+          'basis': 'manuscript',
+          'count': 0,
+          'density': None,
+          'lines': list([
+          ]),
+          'passed': True,
+          'phrase': '(?i)\\bin a world where\\b',
+          'rule_id': 'in-a-world-where',
+          'threshold': 0,
+        }),
+        dict({
+          'basis': 'manuscript',
+          'count': 0,
+          'density': None,
+          'lines': list([
+          ]),
+          'passed': True,
+          'phrase': '(?i)\\btapestry of\\b',
+          'rule_id': 'tapestry-of',
+          'threshold': 0,
+        }),
+        dict({
+          'basis': 'manuscript',
+          'count': 0,
+          'density': None,
+          'lines': list([
+          ]),
+          'passed': True,
+          'phrase': '(?i)\\bsymphony of\\b',
+          'rule_id': 'symphony-of',
+          'threshold': 0,
+        }),
+        dict({
+          'basis': 'manuscript',
+          'count': 0,
+          'density': None,
+          'lines': list([
+          ]),
+          'passed': True,
+          'phrase': '(?i)\\ba delicate balance\\b',
+          'rule_id': 'a-delicate-balance',
+          'threshold': 0,
+        }),
+        dict({
+          'basis': 'manuscript',
+          'count': 0,
+          'density': None,
+          'lines': list([
+          ]),
+          'passed': True,
+          'phrase': '(?i)\\bnavigate the complexities\\b',
+          'rule_id': 'navigate-the-complexities',
+          'threshold': 0,
+        }),
+        dict({
+          'basis': 'manuscript',
+          'count': 0,
+          'density': None,
+          'lines': list([
+          ]),
+          'passed': True,
+          'phrase': '(?i)\\bspeaks volumes\\b',
+          'rule_id': 'speaks-volumes',
+          'threshold': 0,
+        }),
+        dict({
+          'basis': 'manuscript',
+          'count': 0,
+          'density': None,
+          'lines': list([
+          ]),
+          'passed': True,
+          'phrase': '(?i)\\bparadigm shift\\b',
+          'rule_id': 'paradigm-shift',
+          'threshold': 0,
+        }),
+      ]),
+      'pack': 'offenders',
+      'total_words': 6,
+      'violations': list([
+        'smirked',
+      ]),
+    }),
+    'schema_version': 1,
+    'working_dir': 'working',
+  })
+# ---

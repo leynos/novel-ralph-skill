@@ -32,13 +32,15 @@ from cuprum.program import Program
 
 from novel_ralph_skill.commands.names import COMMAND_NAMES
 
-# ``novel-state`` is excluded from the exit-``2`` loop: its real app resolves
-# ``./working/state.toml`` and exits ``3`` when run with no ``working/`` present
-# (Decision Log B6). Its coherent-tree exit-``0`` e2e lives in
-# ``tests/test_novel_state_check.py``. The four still-stubbed scripts keep the
+# ``novel-state`` and ``desloppify`` are excluded from the exit-``2`` loop: each
+# real app resolves ``./working/`` and exits per its own contract (``3`` when no
+# ``working/`` is present), not the stub's ``2`` (Decision Log B6; roadmap 5.1.2).
+# Their real e2es live in ``tests/test_novel_state_check.py`` and
+# ``tests/test_desloppify_e2e.py``. The three still-stubbed scripts keep the
 # exit-``2`` contract here.
+_REAL_COMMANDS: frozenset[str] = frozenset({"novel-state", "desloppify"})
 _STILL_STUBBED_NAMES: tuple[str, ...] = tuple(
-    name for name in COMMAND_NAMES if name != "novel-state"
+    name for name in COMMAND_NAMES if name not in _REAL_COMMANDS
 )
 
 if typ.TYPE_CHECKING:

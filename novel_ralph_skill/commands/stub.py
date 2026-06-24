@@ -101,8 +101,26 @@ def novel_compile() -> None:
 
 
 def desloppify() -> None:
-    """Console-script entry point for ``desloppify`` (stub; exits ``2``)."""
-    make_stub_app(_NAME_FOR["desloppify"])()
+    """Console-script entry point for ``desloppify`` (drives the real app).
+
+    Like ``novel_state``, ``desloppify`` is wired to its real Cyclopts app
+    (roadmap task 5.1.2): it pre-parses the ``--human`` global flag, then drives
+    the app through the shared :func:`run` wrapper, resolving the fixed
+    ``working/`` tree from the process cwd (Decision Log B3/B4). The four other
+    entry points remain stubs until their slices land.
+    """
+    human, residual = parse_global_flags(sys.argv[1:])
+    from novel_ralph_skill.commands import _desloppify
+
+    run(
+        _desloppify.build_app(),
+        residual,
+        RunContext(
+            command=_NAME_FOR["desloppify"],
+            working_dir=WORKING_DIR_NAME,
+            human=human,
+        ),
+    )
 
 
 def wordcount() -> None:

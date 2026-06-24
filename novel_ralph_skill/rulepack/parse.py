@@ -49,7 +49,7 @@ from novel_ralph_skill.rulepack.schema import (
 )
 
 if typ.TYPE_CHECKING:
-    from pathlib import Path
+    from importlib.resources.abc import Traversable
 
 # The complete v1 key vocabularies. An unknown key on either the pack table or a
 # rule entry is rejected (naming the offending level/rule) rather than silently
@@ -347,7 +347,7 @@ def parse_rulepack(raw: cabc.Mapping[str, object]) -> RulePack:
     return RulePack(schema_version=schema_version, pack=pack, rules=rules)
 
 
-def load_rulepack(path: Path) -> RulePack:
+def load_rulepack(path: Traversable) -> RulePack:
     """Read and parse a rule pack from ``path`` with ``tomllib``.
 
     A thin convenience over :func:`parse_rulepack`: it opens ``path`` in binary
@@ -357,10 +357,17 @@ def load_rulepack(path: Path) -> RulePack:
     structurally valid TOML that violates the schema propagates as the exit-2
     :class:`RulePackError` from :func:`parse_rulepack`.
 
+    ``path`` is typed as :class:`~importlib.resources.abc.Traversable` rather than
+    :class:`pathlib.Path` so a packaged rule pack resolved through
+    :func:`importlib.resources.files` (the §6 ``offenders.toml`` task 5.1.2 ships)
+    loads without an unsafe cast — a ``Path`` *is* a ``Traversable``, and this
+    function only needs the ``.open("rb")`` the protocol guarantees.
+
     Parameters
     ----------
-    path : pathlib.Path
-        The path to a rule-pack TOML file.
+    path : importlib.resources.abc.Traversable
+        The rule-pack TOML resource: a filesystem :class:`pathlib.Path` (from
+        ``--pack``) or a packaged resource (the shipped default).
 
     Returns
     -------

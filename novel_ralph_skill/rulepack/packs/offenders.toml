@@ -1,0 +1,182 @@
+# The §6 high-frequency-offender table, one [[rule]] per row, thresholds
+# verbatim. Patterns compile under re.compile() with no flags; (?i) is inline.
+# Multi-token spans use a bounded, lazy, non-newline window [^\n]{0,N}? so a
+# single line cannot over-match to a distant token (ExecPlan defect 3).
+schema_version = 1
+pack = "offenders"
+
+[[rule]]
+id = "it-s-not-just"
+# "It's not just… it's…" — bounded lazy window; v1 single-line only.
+pattern = '''(?i)\bit'?s not just\b[^\n]{0,80}?\bit'?s\b'''
+threshold = 0
+basis = "manuscript"
+
+[[rule]]
+id = "let-out-a-breath"
+pattern = '''(?i)\blet out a breath\b'''
+threshold = 0
+basis = "manuscript"
+
+[[rule]]
+id = "shivers-down-spine"
+# "shivers down [her] spine" — [her] pinned to possessive/article set;
+# allow shiver(s) and down/up (Decision Log).
+pattern = '''(?i)\bshivers? (?:down|up) (?:her|his|their|my|your|the) spine\b'''
+threshold = 0
+basis = "manuscript"
+
+[[rule]]
+id = "air-thick-with"
+pattern = '''(?i)\bthe air was thick with\b'''
+threshold = 0
+basis = "manuscript"
+
+[[rule]]
+id = "found-herself"
+# "found [herself]" + verb — reflexive-pronoun set, AND a required following
+# word token (the "+ verb" part of the §6 row). [^\S\n]+\w is a newline-safe
+# whitespace-then-word continuation: it is the regex-expressible proxy for
+# "+ verb" (stdlib re has no part-of-speech engine; same constraint as the
+# capitalised-abstract-noun row). It matches "found herself wondering" but NOT
+# the bare reflexive "found herself." / "found himself!" / "found herself,".
+# The [^\S\n] (whitespace except newline) keeps the continuation on the same
+# physical line, consistent with the line-by-line scan (Work item 1). The
+# deliberate narrowing of "+ verb" to "+ following word token" is pinned in the
+# Decision Log; the positive/negative matrix below asserts the chosen reading.
+pattern = '''(?i)\bfound (?:her|him|them|my|our|your)sel(?:f|ves)[^\S\n]+\w'''
+threshold = 2
+basis = "manuscript"
+
+[[rule]]
+id = "couldnt-help-but"
+# The §6 literal is the contraction "couldn't help but"; this pattern catches
+# the apostrophe form "couldn't" and the apostrophe-less "couldnt" (\s?n'?t
+# matches "n't"/"nt"). The expanded hedge "could not help but" is NOT matched
+# and is deliberately out of scope for this §6 row (Decision Log) — the §6
+# table row and the §1 canonical example are both the contraction. A negative
+# test in tests/test_offenders_pack.py pins "could not help but" → 0 hits.
+pattern = '''(?i)\bcould\s?n'?t help but\b'''
+threshold = 1
+basis = "manuscript"
+
+[[rule]]
+id = "em-dash"
+# The only per_page row; literal unspaced em dash. The df12 spaced en dash
+# ( – ) is deliberately out of scope (Decision Log).
+pattern = '''—'''
+threshold = 5
+basis = "per_page"
+page_words = 300
+
+[[rule]]
+id = "but-that-was-just-the-beginning"
+# "—but that was just the beginning"; leading em dash optional.
+pattern = '''(?i)—?but that was just the beginning\b'''
+threshold = 0
+basis = "manuscript"
+
+[[rule]]
+id = "and-in-that-moment"
+pattern = '''(?i)\band in that moment\b'''
+threshold = 0
+basis = "manuscript"
+
+[[rule]]
+id = "some-things"
+# "Some things…" (sententious) — sentence-initial; anchored to a line start
+# or after sentence punctuation to avoid mid-sentence "some things".
+pattern = '''(?i)(?:^|[.!?]\s+)some things\b'''
+threshold = 0
+basis = "manuscript"
+
+[[rule]]
+id = "a-part-of-her"
+pattern = '''(?i)\ba part of (?:her|him|them|me|us|you)\b'''
+threshold = 1
+basis = "manuscript"
+
+[[rule]]
+id = "capitalised-abstract-noun"
+# Narrowed to the closed set of §6 named offenders, proper-noun-cased; NOT a
+# part-of-speech check (Decision Log). Case-sensitive on purpose.
+pattern = '''\b(?:Tapestry|Symphony|Paradigm)\b'''
+threshold = 1
+basis = "manuscript"
+
+[[rule]]
+id = "smirked"
+pattern = '''(?i)\bsmirked\b'''
+threshold = 1
+basis = "manuscript"
+
+[[rule]]
+id = "verb-ed-adverb"
+# "[verb]-ed sadly/quietly/softly" — literal §6 reading: an -ed token then one
+# of the three named adverbs within a short non-newline window. The §4 "X said
+# with adverbs" tell ("she said sadly") is a different checklist item and is
+# out of scope here (Decision Log).
+pattern = '''(?i)\b\w+ed\b[^\n]{0,12}?\b(?:sadly|quietly|softly)\b'''
+threshold = 2
+basis = "manuscript"
+
+[[rule]]
+id = "the-silence-stretched"
+pattern = '''(?i)\bthe silence stretched\b'''
+threshold = 0
+basis = "manuscript"
+
+[[rule]]
+id = "her-heart-skipped"
+pattern = '''(?i)\b(?:her|his|their|my|your) heart skipped\b'''
+threshold = 0
+basis = "manuscript"
+
+[[rule]]
+id = "every-fibre-of-her-being"
+# en-GB "fibre"; allow US "fiber" so imported drafts are still caught.
+pattern = '''(?i)\bevery fib(?:re|er) of (?:her|his|their|my|your) being\b'''
+threshold = 0
+basis = "manuscript"
+
+[[rule]]
+id = "in-a-world-where"
+pattern = '''(?i)\bin a world where\b'''
+threshold = 0
+basis = "manuscript"
+
+[[rule]]
+id = "tapestry-of"
+pattern = '''(?i)\btapestry of\b'''
+threshold = 0
+basis = "manuscript"
+
+[[rule]]
+id = "symphony-of"
+pattern = '''(?i)\bsymphony of\b'''
+threshold = 0
+basis = "manuscript"
+
+[[rule]]
+id = "a-delicate-balance"
+pattern = '''(?i)\ba delicate balance\b'''
+threshold = 0
+basis = "manuscript"
+
+[[rule]]
+id = "navigate-the-complexities"
+pattern = '''(?i)\bnavigate the complexities\b'''
+threshold = 0
+basis = "manuscript"
+
+[[rule]]
+id = "speaks-volumes"
+pattern = '''(?i)\bspeaks volumes\b'''
+threshold = 0
+basis = "manuscript"
+
+[[rule]]
+id = "paradigm-shift"
+pattern = '''(?i)\bparadigm shift\b'''
+threshold = 0
+basis = "manuscript"

@@ -1,0 +1,151 @@
+"""End-to-end proof the installed ``desloppify`` ships its §6 pack (roadmap 5.1.2).
+
+This is the design §9 success criterion made executable and the defence of the
+ExecPlan Risk "pack not in wheel": build a wheel from this package, install it
+into a throwaway virtual environment, materialise a ``working/`` tree with a
+manifest and one offending draft, and run the installed ``desloppify`` **by
+absolute path** through a cuprum catalogue that **registers that exact path**.
+The registration is the execution gate (``cuprum/sh.py:make`` calls
+``catalogue.lookup``, which raises ``UnknownProgramError`` for any unregistered
+program), so the test reuses the ``single_program_catalogue`` fixture exactly as
+``tests/test_console_scripts_e2e.py`` and ``tests/test_novel_state_check.py`` do.
+
+An offending tree exits ``4`` and names the offending rule in the stdout JSON —
+proving the packaged ``offenders.toml`` travelled in the wheel — and a clean tree
+exits ``0``. This e2e is POSIX-only (ADR-006) and slow (build + venv + install),
+so it is skipped off POSIX and given an explicit 180s timeout that supersedes the
+30s project default.
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import shutil
+import typing as typ
+from pathlib import Path
+
+import pytest
+from cuprum import sh
+from cuprum.program import Program
+from cuprum.sh import ExecutionContext
+
+if typ.TYPE_CHECKING:
+    import collections.abc as cabc
+
+    from cuprum import ProgramCatalogue
+
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+
+def _materialise_working(dest: Path, baseline: Path, draft_text: str) -> None:
+    """Copy ``baseline`` to ``dest/working`` and overwrite each draft with text.
+
+    The corpus ``baseline_tree`` builds a coherent ``working/`` in the parent
+    process; copying it into the subprocess cwd (rather than hand-writing
+    ``state.toml``) keeps the e2e in lock-step with the real state schema, exactly
+    as ``tests/test_novel_state_check.py`` does. Every chapter draft is overwritten
+    with ``draft_text`` so the test controls exactly which offenders are present.
+    """
+    working = dest / "working"
+    shutil.copytree(baseline, working)
+    for chapter_dir in (working / "manuscript").glob("chapter-*"):
+        draft = chapter_dir / "draft.md"
+        if draft.exists():
+            draft.write_text(draft_text, encoding="utf-8")
+
+
+def _build_and_install_desloppify(
+    tmp_path: Path,
+    single_program_catalogue: cabc.Callable[[str, Program], ProgramCatalogue],
+    venv_scripts_dir: cabc.Callable[[Path], Path],
+) -> Path:
+    """Build a wheel, install it into a fresh venv, and return the ``desloppify``."""
+    venv_dir = tmp_path / "venv"
+    uv = sh.make(
+        Program("uv"),
+        catalogue=single_program_catalogue("desloppify-e2e", Program("uv")),
+    )
+    build = uv(
+        "build", "--wheel", str(_PROJECT_ROOT), "--out-dir", str(tmp_path / "wheels")
+    ).run_sync()
+    assert build.exit_code == 0, build.stderr
+    wheels = sorted((tmp_path / "wheels").glob("*.whl"))
+    assert len(wheels) == 1, f"expected one wheel, found {wheels}"
+
+    assert uv("venv", str(venv_dir)).run_sync().exit_code == 0
+    scripts_dir = venv_scripts_dir(venv_dir)
+    install = uv(
+        "pip", "install", "--python", str(scripts_dir / "python"), str(wheels[0])
+    ).run_sync()
+    assert install.exit_code == 0, install.stderr
+
+    script_path = scripts_dir / "desloppify"
+    assert script_path.exists(), f"desloppify not installed at {script_path}"
+    return script_path
+
+
+@pytest.mark.skipif(
+    os.name != "posix",
+    reason="console-script e2e is POSIX-only; see ADR 006",
+)
+@pytest.mark.slow
+@pytest.mark.timeout(180)
+def test_installed_desloppify_flags_offender(
+    tmp_path: Path,
+    baseline_tree: cabc.Callable[[], Path],
+    single_program_catalogue: cabc.Callable[[str, Program], ProgramCatalogue],
+    venv_scripts_dir: cabc.Callable[[Path], Path],
+) -> None:
+    """The installed ``desloppify`` flags an em-dash flood and exits ``4``.
+
+    Proves the packaged ``offenders.toml`` travels in the wheel: the subprocess
+    resolves the shipped pack via ``importlib.resources`` and reports the em-dash
+    finding. The 180s timeout supersedes the 30s project default.
+    """
+    script_path = _build_and_install_desloppify(
+        tmp_path, single_program_catalogue, venv_scripts_dir
+    )
+    dest = tmp_path / "run-flag"
+    dest.mkdir()
+    flood = "word—word—word—word—word—word—word " + "filler " * 20
+    _materialise_working(dest, baseline_tree(), flood)
+
+    prog = Program(str(script_path))
+    catalogue = single_program_catalogue("desloppify-run", prog)
+    result = sh.make(prog, catalogue=catalogue)().run_sync(
+        context=ExecutionContext(cwd=dest), capture=True
+    )
+    assert result.exit_code == 4, result.stderr
+    envelope = json.loads(result.stdout or "{}")
+    assert envelope["ok"] is False
+    assert "em-dash" in envelope["result"]["violations"]
+
+
+@pytest.mark.skipif(
+    os.name != "posix",
+    reason="console-script e2e is POSIX-only; see ADR 006",
+)
+@pytest.mark.slow
+@pytest.mark.timeout(180)
+def test_installed_desloppify_clean_tree_exits_zero(
+    tmp_path: Path,
+    baseline_tree: cabc.Callable[[], Path],
+    single_program_catalogue: cabc.Callable[[str, Program], ProgramCatalogue],
+    venv_scripts_dir: cabc.Callable[[Path], Path],
+) -> None:
+    """The installed ``desloppify`` exits ``0`` over offender-free prose."""
+    script_path = _build_and_install_desloppify(
+        tmp_path, single_program_catalogue, venv_scripts_dir
+    )
+    dest = tmp_path / "run-clean"
+    dest.mkdir()
+    _materialise_working(dest, baseline_tree(), "A calm sentence with plain words.\n")
+
+    prog = Program(str(script_path))
+    catalogue = single_program_catalogue("desloppify-run", prog)
+    result = sh.make(prog, catalogue=catalogue)().run_sync(
+        context=ExecutionContext(cwd=dest), capture=True
+    )
+    assert result.exit_code == 0, result.stderr
+    assert json.loads(result.stdout or "{}")["ok"] is True

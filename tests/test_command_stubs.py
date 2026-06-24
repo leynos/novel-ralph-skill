@@ -27,10 +27,15 @@ if typ.TYPE_CHECKING:
 # still-stubbed entry points keep the exit-``2`` contract; the real
 # ``novel-state`` callable is driven only by ``tests/test_novel_state_check.py``,
 # always under an explicit ``monkeypatch.chdir`` (advisory A6).
+# ``desloppify`` now drives its real app too (roadmap task 5.1.2): it resolves
+# ``./working/`` and exits per its own contract, not the stub's ``2``. It is
+# covered by ``tests/test_desloppify_command.py``; the three remaining scripts
+# keep the exit-``2`` stub contract here.
+_REAL_COMMANDS: frozenset[str] = frozenset({"novel-state", "desloppify"})
 STILL_STUBBED_ENTRY_POINTS: tuple[tuple[str, cabc.Callable[[], None]], ...] = tuple(
     (name, getattr(stub, func))
     for name, func in COMMAND_ENTRY_POINTS.items()
-    if name != "novel-state"
+    if name not in _REAL_COMMANDS
 )
 
 

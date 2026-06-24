@@ -85,9 +85,9 @@ Installing a wheel built from this package puts five console-scripts onto
 - `desloppify` — report prose tics.
 - `wordcount` — report per-chapter and cumulative word counts.
 
-`novel-done`, `novel-compile`, `desloppify`, and `wordcount` are still
-**stubs**: running one prints "`<name>` is not yet implemented" to standard
-error and exits with code `2`. Each will be filled in by a later release.
+`novel-done`, `novel-compile`, and `wordcount` are still **stubs**: running one
+prints "`<name>` is not yet implemented" to standard error and exits with code
+`2`. Each will be filled in by a later release.
 
 `novel-state` now has its first real subcommand, `novel-state check` (roadmap
 task 2.1.2). It validates the state coherence invariants of `./working/state.toml`
@@ -143,3 +143,27 @@ check` alone. The write subcommands (`init`, `set-cursor`, `advance-phase`,
 the cursor it set, `advance-phase` returns the `{from, to}` transition, and
 `recount` returns the `{current, by_chapter}` counts it wrote — so do not expect
 a `violations` key from a write.
+
+`desloppify` reports prose tics (roadmap task 5.1.2). It reads the chapter
+drafts under `./working/`, scans them against a versioned rule pack — the §6
+high-frequency-offender table shipped with the package by default — and reports
+a per-rule finding without editing the manuscript or touching `state.toml` (it
+is a detect-only checker). By default it scans the whole manuscript (every
+chapter in
+the `[chapters]` manifest); pass `--chapter N` to scan a single chapter, or
+`--pack PATH` to use a different rule pack. Like `novel-state check` it prints a
+one-line JSON envelope by default and a readable rendering under the global
+`--human` flag.
+
+`desloppify` uses the shared exit-code table:
+
+- `0` — every rule is within threshold; `result.violations` is empty.
+- `4` — one or more rules exceed threshold; the offending rule ids appear in
+  `result.violations` for the agent to adjudicate, and each finding's offending
+  `phrase` (the rule's pattern), hit count, threshold, per-page density, and
+  per-`{chapter, line}` matches are in `result.findings`.
+- `2` — a usage error: `--chapter N` names a chapter absent from the manifest,
+  or `--pack` points at a rule pack whose *content* is malformed.
+- `3` — a state or input error: `./working/state.toml` is missing or
+  unparseable, a chapter draft is unreadable, or `--pack` points at an absent or
+  undecodable file.

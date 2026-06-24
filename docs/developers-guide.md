@@ -176,8 +176,10 @@ with distribution in
   counts and the next gate distance. See design §4.5.
 
 As of roadmap task 1.2.1 these five names are wired as `[project.scripts]`
-console-scripts (`pyproject.toml`) but are still **stubs**: each is a minimal
-Cyclopts application defined by the shared `make_stub_app` factory in
+console-scripts (`pyproject.toml`). `novel-state` (task 2.1.2) and `desloppify`
+(task 5.1.2) now drive their real apps; the remaining three are still **stubs**:
+each stub is a minimal Cyclopts application defined by the shared `make_stub_app`
+factory in
 [`novel_ralph_skill/commands/stub.py`](../novel_ralph_skill/commands/stub.py)
 that prints "`<name>` is not yet implemented" to stderr and exits `2` until its
 real behaviour lands in a later slice. The build-and-install proof lives in
@@ -640,6 +642,22 @@ exit-code translation is the command body's job, exactly as for `parse_state`.
 Task 5.1.2 wires the `desloppify` command on top of `load_rulepack` and is
 responsible for catching these two errors (or extending the runner's `except`
 chain) to map each to its `ExitCode`.
+
+Task 5.1.2 ships the first rule pack:
+[`novel_ralph_skill/rulepack/packs/offenders.toml`](../novel_ralph_skill/rulepack/packs/offenders.toml),
+the §6 high-frequency-offender table transcribed one `[[rule]]` per row. It lives
+inside the package tree so it travels in the built wheel, and `desloppify`
+resolves it through `importlib.resources.files` rather than a relative path, so
+the installed console-script finds it. `desloppify` is the detect-only checker
+built on `load_rulepack` and the pure `detect(pack, chapters)` aggregation in
+[`novel_ralph_skill/rulepack/detect.py`](../novel_ralph_skill/rulepack/detect.py):
+it scans each chapter draft line by line (the loader compiles patterns with no
+flags, so `.` cannot cross a newline), counts each rule's non-overlapping hits,
+and reports a per-rule finding — count, threshold, per-page density, and the
+`{chapter, line}` of each match — in the shared envelope's `result`. It maps the
+two loader errors to their exit codes in the command body (`RulePackError` → exit
+2; `RulePackFileError` → exit 3) rather than extending the shared runner, keeping
+the `rulepack` → `contract` coupling out of the shared seam.
 
 ## GitHub Actions
 
