@@ -111,7 +111,7 @@ final_pass_complete = false
 [word_counts]
 # Updated each turn; used to determine knitting circle gates.
 target = 80000
-current = 24300                    # words in compiled.md (or sum of drafts)
+current = 24300                    # drafted sum (sum of by_chapter values)
 by_chapter = { "01" = 3200, "02" = 3500, "03" = 3700, ... }
 ```
 

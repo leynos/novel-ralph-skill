@@ -234,8 +234,9 @@ class WordCounts:
     target : int
         The target word count (``[word_counts].target``).
     current : int
-        The current word count, in ``compiled.md`` or the sum of drafts
-        (``[word_counts].current``).
+        The current word count: the drafted sum ``sum(by_chapter.values())``
+        (``[word_counts].current``). A bytes-divergent ``compiled.md`` is the
+        ``compiled-matches-drafts`` finding, not a ``current`` source.
     by_chapter : collections.abc.Mapping[str, int]
         The per-chapter word counts keyed by the zero-padded two-digit chapter
         string (``[word_counts].by_chapter``; e.g. ``{"01": 3200}``). Typed as a

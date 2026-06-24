@@ -287,12 +287,14 @@ All state mutation hides behind validated subcommands. Direct editing of
 
 `recount` eliminates hand-typed word counts entirely: the count is a pure
 aggregation over `working/manuscript/chapter-NN/draft.md` files, so the command
-owns it. `advance-phase` enforces the phase enum order, making the silent phase
-drift in the field report impossible; a skipping or out-of-order transition is
-refused with exit 3, not the benign code 1 (§3.2), so a rejected advance cannot
-be mistaken for progress. Advancing into `drafting` requires the chapter
-manifest (§5.1) to be populated, so compilation always has an authoritative
-ordering to follow.
+owns it. `current` is exactly that drafted sum (`sum(by_chapter.values())`), so
+§5.2 invariant 3 holds by construction; the compiled token count is never a
+`current` source. `advance-phase` enforces the phase enum order, making the
+silent phase drift in the field report impossible; a skipping or out-of-order
+transition is refused with exit 3, not the benign code 1 (§3.2), so a rejected
+advance cannot be mistaken for progress. Advancing into `drafting` requires the
+chapter manifest (§5.1) to be populated, so compilation always has an
+authoritative ordering to follow.
 
 State serialisation round-trips losslessly, preserving the on-disk formatting
 and comments. The mechanism is open question Q1, resolved in §5.3.
@@ -553,7 +555,11 @@ agent judgement:
    divergences** — where the recounted ratio crosses exactly the 30/50/80%
    thresholds the recorded gates already reflect — so the reconciled tree stays
    gate-consistent. A done-claim large enough to move a gate is reported and
-   escalated, not silently re-projected.
+   escalated, not silently re-projected. `current` is the drafted sum
+   `sum(by_chapter.values())`, never the compiled token count: a `compiled.md`
+   that is **not the byte-exact concatenation** of the present drafts is
+   surfaced as the `compiled-matches-drafts` finding (reported by `check` with
+   exit 4, refused by `reconcile`) and never redefines or recomputes `current`.
 2. **An uncleared `[pending_turn]`.** Completed (when every missing declared
    artefact is recomputable — `state.toml`/`log.md`) or rolled back (when an
    unrecoverable artefact, a `draft.md` or a `done.flag`, did not land),

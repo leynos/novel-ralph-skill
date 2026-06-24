@@ -717,7 +717,7 @@ agent-improvised recovery routine. See novel-ralph-harness-design.md §4.1 and
     `working/` deleted) or the recovery routine is documented in the users'
     guide, and `check` reports the partial bootstrap rather than leaving it
     silently unrecoverable.
-- [ ] 2.3.5. Settle the authoritative `current` definition when `compiled.md`
+- [x] 2.3.5. Settle the authoritative `current` definition when `compiled.md`
   diverges from the drafted sum, and align recount and reconcile on it.
   - Step-task (source: review:2.3.1; severity: low). `recount` deliberately
     scopes `word_counts.current` to `sum(by_chapter)` (2.3.1 Decision Log
