@@ -905,6 +905,13 @@ zero-padded chapter index, validated against the manifest — and gives
   - Success: compilation is deterministic — identical drafts and manifest
     produce a byte-identical `compiled.md` — regardless of directory listing
     order.
+  - [ ] 4.1.1.1. Add a coherence integration test driving `novel-compile` then
+    `novel-state check` end-to-end through the installed console scripts.
+    - Addendum (from review:4.1.1; low). The round-trip oracle is pinned at the
+      function level (`check_disk_evidence` over a freshly compiled tree); a thin
+      integration test driving both real entry points in sequence catches future
+      drift between the two commands' resolvers and envelopes the function-level
+      pin cannot see. Lightweight addendum pass.
 - [ ] 4.1.2. Implement the `--check` read-only divergence checker.
   - Requires 4.1.1 and 3.1.2.
   - Report divergence by calling the shared compile-and-hash routine from
@@ -1606,6 +1613,37 @@ the deterministic spine.
     `_desloppify.py` (and by the 7.10.1 `read_chapter_draft` reader); no site
     open-codes `chapter-{number:02d}`; and the state, desloppify, and wordcount
     suites stay green.
+- [ ] 7.10.3. Single-home the `manuscript/` directory segment and the
+  `compiled.md` leaf behind shared `manuscript_dir`/`compiled_path` accessors.
+  - Reroute (source: audit:4.1.1; severity: medium). The `"manuscript"` segment
+    and the `compiled.md` / `chapter-NN/draft.md` leaf paths are rebuilt ad hoc
+    across `_compile.py`, `disk_evidence.py` (×3), `compile_model.py`,
+    `wordcount.py`, and `_desloppify.py` (only `_chapter_dir_name` is already
+    extracted), so the write-path-to-detector contract — the literal
+    `"manuscript"`/`"compiled.md"` shared by the write path and the
+    `compiled-matches-drafts` §5.4 detector — is enforced solely by the
+    round-trip-oracle test, not a shared accessor; a relocation would need every
+    site touched and a missed one would silently diverge. This serves the
+    step-7.10 hypothesis — expressing the disk-path sourcing rule once and
+    sharing it — by giving the `manuscript/`/`compiled.md` segments the same
+    single-homed accessor treatment as the chapter-draft reader (7.10.1) and the
+    `chapter-NN` directory-name helper (7.10.2), all in `state/_disk_paths.py`.
+    It does not serve the settled step-4.1 deterministic-compilation hypothesis
+    where it was raised — the paths already round-trip correctly and the
+    contract holds — so it is rerouted here. Coordinate with the audit:4.1.1
+    Finding 2 follow-up so the `_COMPILED_REL` snapshot token is derived from the
+    same accessor rather than authored independently.
+  - Requires 4.1.1 and 2.3.1.
+  - See novel-ralph-harness-design.md §4.1, §4.3, and §5.4;
+    docs/issues/audit-4.1.1.md (Finding 1, Finding 2);
+    novel_ralph_skill/state/_disk_paths.py.
+  - Success: `manuscript_dir(working_dir)` and `compiled_path(working_dir)`
+    accessors live in `state/_disk_paths.py` beside `_chapter_dir_name`;
+    `_compile.py`, `disk_evidence.py`, `compile_model.py`, `wordcount.py`, and
+    `_desloppify.py` route through them; no site open-codes the `"manuscript"`
+    segment or the `compiled.md` leaf; the write/detector path contract is a
+    code-level single source of truth rather than a test-only invariant; and the
+    compile, state, desloppify, and wordcount suites stay green.
 
 ### 7.11. Harden torn-recount recovery into a single-pass repair
 

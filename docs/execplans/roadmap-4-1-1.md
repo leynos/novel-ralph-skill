@@ -899,3 +899,23 @@ def build_app() -> cyclopts.App: ...
 `novel_ralph_skill/commands/stub.py`'s `novel_compile()` entry point is rewired
 from the stub to a real `run`-driven driver; its signature (zero-argument entry
 point) is unchanged. No existing public signature changes.
+
+## Addenda (post-merge follow-ups)
+
+Lightweight addendum work items folded back onto this completed task from later
+reviews and audits of the `novel-compile` write path. Execute each as a small
+addendum pass — no plan or design-review cycle: make the change, run `make all`
+(plus `make markdownlint`/`make nixie` for Markdown), `coderabbit review
+--agent`, commit, and tick the matching roadmap sub-task on merge. Substantial,
+cross-cutting hygiene from the same audit (the `manuscript_dir`/`compiled_path`
+accessor consolidation, audit:4.1.1 Finding 1) is re-routed to roadmap step 7.10
+rather than folded here.
+
+- [ ] 4.1.1.1 — Add a coherence integration test that drives `novel-compile`
+  then `novel-state check` end-to-end through the installed console scripts
+  (from review:4.1.1, low). The round-trip oracle is pinned at the function
+  level (`check_disk_evidence` over a freshly compiled tree); a thin integration
+  test invoking both real entry points in sequence catches future drift between
+  the two commands' resolvers and envelopes that the function-level pin cannot
+  see. The function-level pin already covers the load-bearing invariant, so this
+  is defence-in-depth. Gate with `make all`.
