@@ -657,7 +657,7 @@ agent-improvised recovery routine. See novel-ralph-harness-design.md §4.1 and
     `check` itself writes nothing; a non-bijective manifest and a
     contradictory-evidence tree are each reported with exit 4 rather than
     silently repaired (the loud-reconciliation requirement).
-- [ ] 2.3.3. Add disk-authoritative cross-checks to the corpus oracle for the
+- [x] 2.3.3. Add disk-authoritative cross-checks to the corpus oracle for the
   §5.4 structural invariants.
   - Reroute (source: review:1.3.2; severity: medium). The §1.3.2 corpus oracle
     proves only spec-internal consistency for the structural invariants, but

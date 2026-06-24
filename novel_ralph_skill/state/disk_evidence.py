@@ -18,19 +18,21 @@ Decision Log D-WORDCOUNT). Each name is spelled exactly as the corpus oracle's
 matching entry, and the equality is pinned by a test (D-NAMES).
 
 The predicates are **deliberate twins** of the same-named checks in
-``tests/working_corpus/_oracle.py`` (the oracle reads the ``WorkingTreeSpec``;
-this detector reads the materialised ``State`` and disk). The duplication is
+``tests/working_corpus/_oracle.py`` (the oracle's disk-evidence checks read the
+materialised ``working/`` tree, this detector reads the materialised ``State``
+and the same disk). The duplication is
 intentional: the oracle is an independent cross-check and must not import the
 thing it checks, and vice versa. The two sides are pinned to agree on every
 corpus tree by ``tests/test_novel_state_check_disk.py``'s agreement suite and the
 ``tests/test_disk_evidence.py`` twin-equality tests (the deliberate-twin policy,
 developers' guide §"Invariant validation").
 
-Twin asymmetry (ExecPlan advisory A1): the corpus ``_check_manifest_disk_bijection``
-reads ``spec.chapters``/``spec.manifest_only_numbers`` (a *spec* check), while this
-detector reads disk; the builder materialises the spec faithfully, so the
-agreement test still holds. The ``done-flag``, ``compiled``, ``cursor-plan``, and
-``word-counts-match-drafts`` twins all read disk on both sides.
+All six twins now read disk on both sides (roadmap task 2.3.3): the corpus
+``_check_manifest_disk_bijection``, ``_check_done_flag_without_draft``, and
+``_check_compiled_matches_drafts`` were rerouted from reading the
+``WorkingTreeSpec`` to reading the materialised ``working/`` tree, joining the
+``cursor-plan``, ``by-chapter-sum``, and ``word-counts-match-drafts`` twins that
+already did, so the cross-check is genuinely disk-vs-disk on every invariant.
 
 The detector is **total**: every predicate returns a ``Violation | None`` for
 every constructible ``State`` over any ``working_dir``. The word-count predicate
@@ -105,8 +107,8 @@ def _check_manifest_disk_bijection(state: State, working_dir: Path) -> Violation
     and vice versa, and the manifest must be contiguous from 1 with no gaps. A
     manifest entry with no directory (the ``manifest-extra-entry`` variant) and a
     directory with no manifest entry (the ``draft-without-manifest-entry`` variant)
-    both break the bijection. Twin of the oracle's spec-reading
-    ``_check_manifest_disk_bijection`` (advisory A1).
+    both break the bijection. Disk-reading twin of the oracle's
+    ``_check_manifest_disk_bijection`` (both sides now read disk; roadmap 2.3.3).
     """
     manifest = {chapter.number for chapter in state.chapters}
     on_disk = _on_disk_chapter_numbers(working_dir)
@@ -129,9 +131,9 @@ def _check_done_flag_without_draft(state: State, working_dir: Path) -> Violation
     whitespace-split token count is zero — or beside no ``draft.md`` at all — is a
     contradiction: a chapter cannot be done with nothing drafted (design §5.4). A
     flag beside a *non-empty* draft is coherent and never fires (so the §5.4
-    under-count worked case lands as ``word-counts-match-drafts``, not here). Twin
-    of the oracle's ``_check_done_flag_without_draft`` (which keys on
-    ``has_done_flag and draft_words == 0``).
+    under-count worked case lands as ``word-counts-match-drafts``, not here).
+    Disk-reading twin of the oracle's ``_check_done_flag_without_draft`` (both
+    sides read each chapter's on-disk ``done.flag`` and ``draft.md``).
     """
     manuscript = working_dir / "manuscript"
     for chapter in state.chapters:
@@ -158,7 +160,7 @@ def _present_draft_bodies(state: State, working_dir: Path) -> list[str]:
 
     Reads each manifest chapter's ``draft.md`` as UTF-8 (an absent draft
     contributes the empty string), ordered by chapter number, so the concatenation
-    twin compares like with the corpus ``_present_draft_bodies``.
+    twin compares like with the corpus ``_disk_present_draft_bodies``.
     """
     manuscript = working_dir / "manuscript"
     bodies: list[str] = []
