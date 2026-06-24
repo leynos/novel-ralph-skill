@@ -878,6 +878,39 @@ novel-ralph-harness-design.md §4.4, §6.1, and §1.
   - See novel-ralph-harness-design.md §4.4 and §9.
   - Success: clean prose exits 0, a manuscript with violations exits 4, and a
     malformed invocation exits 2 — each distinguishable without parsing JSON.
+  - [ ] 5.1.2.1. Document the per-page density behaviour on short or near-empty
+    drafts in the users' guide.
+    - Addendum (from review:5.1.2; low). The §4.5 density formula lets a single
+      `per_page` offender trip the threshold on a sub-page draft because a
+      partial page still counts; add a one-paragraph note to the `desloppify`
+      users'-guide section so an operator scanning an early or short chapter is
+      not surprised by the design-correct extrapolation. Lightweight addendum
+      pass.
+  - [ ] 5.1.2.2. Tighten the snapshot volatile-field guard from a bare slash
+    check to a path/timestamp pattern.
+    - Addendum (from review:5.1.2; low). `tests/test_desloppify_snapshots.py`
+      asserts no `/` appears in the rendered envelope, so a future rule id, pack
+      name, or message carrying a slash would fail spuriously; replace the bare
+      slash check with a regex matching absolute-path or timestamp shapes so the
+      guard stays durable across packs. Lightweight addendum pass.
+  - [ ] 5.1.2.3. Reconcile the per-hit `phrase` wording across design §4.4, the
+    roadmap, and the emitted envelope.
+    - Addendum (from review:5.1.2; low). The envelope emits the rule's authored
+      pattern source under `phrase` while `rule_id` is the canonical slug;
+      reconcile the design §4.4 and roadmap 5.1.2 "phrase, count, density…"
+      wording with the shipped contract (and the users'-guide gloss) so the
+      §7.1 ai-isms and device-ledger packs inherit an unambiguous per-hit output
+      vocabulary rather than re-litigating whether `phrase`/`pattern` belongs in
+      the envelope. Lightweight addendum pass.
+  - [ ] 5.1.2.4. Correct the "cannot drift from `recount_words`" docstrings under
+    `--chapter` scope and test the per-page density message branch.
+    - Addendum (from audit:5.1.2; medium). `detect`'s "cannot drift from
+      `recount_words`" docstrings are misleading because `--chapter N` computes
+      per-page density over one chapter, not the manuscript total; reword them to
+      name the actual scope, and add a focused test for the untested
+      `_finding_message` per-page density branch
+      (`commands/_desloppify_report.py`). Both are localised to the 5.1.2
+      surface. Lightweight addendum pass.
 
 ## 6. Vertical slice 5: derived word counts and gate triggers
 
@@ -955,8 +988,8 @@ built once the spine is in place.
 ### 7.1. Configurable detection packs
 
 This step extends the phase 5 rule-pack engine with the moving-target and
-per-novel packs the design defers. See novel-ralph-harness-design.md §6.2 and
-§6.3.
+per-novel packs the design defers, and settles the per-hit output contract those
+packs inherit before they land. See novel-ralph-harness-design.md §6.2 and §6.3.
 
 - [ ] 7.1.1. Ship the versioned `ai-isms.toml` pack and update cadence.
   - Requires phase 5.
@@ -973,6 +1006,54 @@ per-novel packs the design defers. See novel-ralph-harness-design.md §6.2 and
   - See novel-ralph-harness-design.md §6.3.
   - Success: resolves open question Q3; a device spent beyond its ration is
     reported deterministically while the spend decision stays with the model.
+- [ ] 7.1.3. Decide whether the desloppify clean-pass output is slimmed to
+  non-zero findings before the multi-pack surface grows.
+  - Reroute (source: review:5.1.2; severity: low). Every clean scan currently
+    serialises all rules at `count: 0`, harmless for the single §6 pack but
+    growing linearly as the ai-isms and device-ledger packs ship; make the
+    deliberate full-audit-trail-versus-violations-only decision once, before the
+    multi-pack surface lands, so the per-hit payload contract is not changed
+    churnily later. This does not serve the settled step-5.1 hypothesis
+    (detection expressible as versioned data, already confirmed) — it is a
+    forward-looking payload-contract decision the §7.1 packs inherit, so it is
+    rerouted here rather than parked in 5.1.
+  - Requires 5.1.2.
+  - See novel-ralph-harness-design.md §4.4 and §6.2.
+  - Success: one decision records whether a clean `desloppify` envelope carries
+    every rule at `count: 0` or only over-threshold findings; the contract is
+    captured in the design or developers' guide; and 7.1.1/7.1.2 emit the chosen
+    shape.
+- [ ] 7.1.4. Add a matched-text span (or human label) to each desloppify per-hit
+  finding.
+  - Reroute (source: review:5.1.2; severity: low). The per-hit `phrase` field
+    exposes the rule's raw regex source (e.g. `(?i)\bsmirked\b`), not the actual
+    flagged words, so an adjudicating agent or human reading
+    `result.findings[].phrase` receives a pattern rather than the offender;
+    thread the matched span already available from `finditer` through `LineHit`
+    (or render a friendly per-rule label) under a distinct key, leaving the
+    stable `rule_id` contract unchanged. This enriches the per-hit output
+    contract the §7.1 packs inherit rather than confirming the settled step-5.1
+    hypothesis, so it is rerouted here.
+  - Requires 5.1.2.
+  - See novel-ralph-harness-design.md §4.4 and §6.2.
+  - Success: each `result.findings[]` carries the matched offender text (or a
+    human-readable label) under a distinct key, the existing `rule_id` and
+    `phrase` keys are unchanged, and the snapshot suite pins the enriched shape.
+- [ ] 7.1.5. Give `RuleFinding`/`LineHit` a canonical payload projection ahead of
+  the multi-pack work.
+  - Reroute (source: audit:5.1.2; severity: low). The desloppify report module
+    (`commands/_desloppify_report.py`) hand-projects every `RuleFinding`/`LineHit`
+    field, so no single place owns the JSON shape of a finding; before the
+    ai-isms and device-ledger packs add richer findings, consolidate the
+    projection beside the data shape so the payload and any schema cannot
+    diverge. This is cross-cutting contract-maintainability for the future packs,
+    not the settled step-5.1 hypothesis, so it is rerouted here and sequenced
+    before 7.1.4 enriches the per-hit fields.
+  - Requires 5.1.2.
+  - See novel-ralph-harness-design.md §4.4 and §6.1.
+  - Success: one canonical projection owns the JSON shape of a finding, the
+    report module consumes it rather than re-listing fields, and the desloppify
+    snapshot suite stays green.
 
 ### 7.2. Clean-context judgemental passes
 
@@ -1296,3 +1377,34 @@ spine.
     consumed by `recount`, `state/initial.py`, and the corpus builder; the
     initial-document docstring no longer flags a hand-copied twin; and the
     lossless round-trip and every current state and corpus test stay green.
+
+### 7.10. Unify chapter-draft sourcing under one shared reader
+
+This step answers whether the chapter-`draft.md` sourcing rule — the
+`working/manuscript/chapter-NN/draft.md` path derivation and the
+`FileNotFoundError`-as-absent-chapter fault boundary — can be expressed once and
+shared, so the design's "the two counts cannot drift" guarantee is made
+structurally true rather than enforced by hand-kept copies. Its outcome is a
+single `read_chapter_draft` seam every disk-reading command inherits. This is a
+deferred maintainability-hardening extension surfaced by the audit of step 5.1;
+it does not advance the settled step-5.1 detection-as-versioned-data hypothesis
+(the duplicated readers already behave identically and pass) and it does not gate
+the deterministic spine.
+
+- [ ] 7.10.1. Collapse the desloppify and wordcount chapter-draft readers onto
+  one shared helper.
+  - Reroute (source: audit:5.1.2; severity: medium). `_chapter_text`
+    (`commands/_desloppify.py`) and `_chapter_word_count`
+    (`state/wordcount.py`) each derive the `chapter-NN/draft.md` path and absorb
+    only `FileNotFoundError` as an undrafted chapter, so the design's
+    "cannot drift" guarantee currently rests on two hand-kept copies; a shared
+    `read_chapter_draft` helper in the state package makes the cross-module claim
+    structurally true and is also wanted by the forthcoming `wordcount`
+    surface (§4.5). This is cross-cutting DRY hygiene, not the settled step-5.1
+    hypothesis where it was raised, so it is deferred here.
+  - Requires 5.1.2 and 2.3.1.
+  - See novel-ralph-harness-design.md §4.1 and §4.5;
+    docs/execplans/roadmap-5-1-2.md.
+  - Success: one `read_chapter_draft` helper owns the `chapter-NN/draft.md` path
+    and the `FileNotFoundError`-as-absent boundary, both `desloppify` and
+    `wordcount` consume it, and the desloppify and wordcount suites stay green.
