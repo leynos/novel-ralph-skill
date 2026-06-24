@@ -126,6 +126,33 @@ Rules:
   way.
 ```
 
+### Resolving a BLOCKER
+
+The `novel-done` checker reads `critic-notes.md` to decide whether a chapter
+still carries an unresolved BLOCKER, so the producer (this critic loop) and the
+consumer (`done-conditions.md`, the `novel-done` predicate) share one convention
+for what "resolved" looks like on disk (roadmap 3.1.5; design §4.2):
+
+- A blocker is a `### Bn — <label>` finding heading under the `## BLOCKER`
+  section heading. The section is entered at a line whose stripped text equals
+  `## BLOCKER` and left at the next `##`-level heading; only `### Bn` headings
+  inside it count.
+- A finding is marked resolved by appending a single space and then exactly
+  `[resolved]` to its `### Bn — <label>` heading line, with **no trailing text
+  after the token** (so `### B1 — pacing sag [resolved]` is resolved, but
+  `### B1 — pacing sag [resolved] (see log 42)` is treated as unresolved by
+  design — the marker must be the final token).
+- The normal resolution path is simpler still: because the notes are overwritten
+  each pass, a fixed blocker usually vanishes from the next pass's notes
+  entirely. When the chapter has no blockers the critic writes exactly
+  `No BLOCKER. No MAJOR.` and emits no `## BLOCKER` section, which is clean by
+  construction. The in-place `[resolved]` token is for the cap-reached path,
+  where unresolved findings are logged rather than fixed (the pass cap of 4) and
+  a since-fixed finding must be marked closed without deleting it.
+- The token is case-sensitive and the only recognised spelling. Variants such as
+  `[RESOLVED]` or `(resolved)` are **not** recognised and leave the finding
+  unresolved.
+
 ### How the loop uses the output: spiteful critic
 
 The agent reads the critic-notes.md and acts:

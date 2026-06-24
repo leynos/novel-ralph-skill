@@ -88,17 +88,21 @@ def test_failers_each_break_exactly_one_clause(
 
 
 def test_blocker_edges(
-    blocker_edge_trees: cabc.Callable[[], tuple[Path, Path, Path]],
+    blocker_edge_trees: cabc.Callable[[], tuple[Path, Path, Path, Path]],
 ) -> None:
-    """A ``[resolved]`` BLOCKER holds; near-miss and incidental mentions do not.
+    """Resolved and sentinel trees hold; near-miss and incidental do not.
 
-    The incidental tree quotes ``[resolved]`` mid-line on a live BLOCKER, so the
-    positional rule keeps it unresolved (D-BLOCKER-POSITIONAL; audit-3.1.1
-    Finding 3); it differs from the all-hold tree only in the note body, so it
-    fails on exactly ``no_unresolved_blockers``.
+    All four trees are critic-personas-shaped (roadmap 3.1.5). The resolved tree
+    marks its ``### B1`` finding with a trailing ``[resolved]`` and holds; the
+    convergence-sentinel tree writes ``No BLOCKER. No MAJOR.`` and is clean by
+    construction (D-BLOCKER-SENTINEL). The near-miss tree mentions resolution
+    only in prose, and the incidental tree quotes ``[resolved]`` mid-line in the
+    finding label (D-BLOCKER-POSITIONAL); each differs from the all-hold tree
+    only in the note body, so each fails on exactly ``no_unresolved_blockers``.
     """
-    resolved, near_miss, incidental = blocker_edge_trees()
+    resolved, near_miss, incidental, sentinel = blocker_edge_trees()
     assert _evaluate(resolved).all_hold is True
+    assert _evaluate(sentinel).all_hold is True
     near = _evaluate(near_miss)
     assert near.failed_clause_names == ("no_unresolved_blockers",)
     incidental_clauses = _evaluate(incidental)
@@ -131,7 +135,7 @@ def test_reviews_oracle_twin_agrees(
 def test_blocker_oracle_twin_agrees(
     all_hold_tree: cabc.Callable[[], Path],
     done_predicate_failer_tree: cabc.Callable[[str], tuple[WorkingTreeSpec, Path]],
-    blocker_edge_trees: cabc.Callable[[], tuple[Path, Path, Path]],
+    blocker_edge_trees: cabc.Callable[[], tuple[Path, Path, Path, Path]],
     oracle_no_blockers: cabc.Callable[[Path], bool],
 ) -> None:
     """The BLOCKER-scan twin equals the production clause on every tree (D-TWIN)."""

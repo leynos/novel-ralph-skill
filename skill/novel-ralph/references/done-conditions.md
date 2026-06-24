@@ -188,11 +188,18 @@ def novel_predicate(working_dir, state):
     return True
 ```
 
-The shipped predicate pins `contains_unresolved_blocker` to a deterministic
-grammar: a `critic-notes.md` line is an unresolved BLOCKER when its stripped
-text starts with `BLOCKER` and does *not end with* the trailing `[resolved]`
-marker, so an incidental mid-line mention of the token does not clear the
-blocker (roadmap 3.1.4; design §4.2).
+The shipped predicate pins `contains_unresolved_blocker` to the spiteful
+critic's strict output format (`critic-personas.md`, "Resolving a BLOCKER";
+roadmap 3.1.5; design §4.2): an unresolved BLOCKER is a `### Bn — <label>`
+finding heading under the `## BLOCKER` section heading that is *not* marked
+resolved. A finding is resolved when its `### Bn` heading line ends with a space
+and then the `[resolved]` token and nothing after it, so an incidental mid-line
+mention of the token does not clear the blocker and trailing text after the
+token leaves it unresolved by design. The convergence sentinel
+`No BLOCKER. No MAJOR.` writes no `## BLOCKER` section and is therefore clean,
+and an absent `critic-notes.md` is clean. The token is case-sensitive; variants
+such as `[RESOLVED]` or `(resolved)` are out of scope and leave the finding
+unresolved.
 
 If any check fails, the agent identifies which one and acts on it. If all
 checks pass, the agent writes one final log entry:

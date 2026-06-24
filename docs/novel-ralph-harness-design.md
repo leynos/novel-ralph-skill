@@ -319,7 +319,15 @@ and comments. The mechanism is open question Q1, resolved in §5.3.
 > `no_unresolved_blockers` to a positional resolution marker — a BLOCKER line is
 > resolved only when its stripped text *ends with* the `[resolved]` token, so an
 > incidental mid-line mention no longer clears it — and pinned the false-clean
-> direction with a §1.3.2 corpus near-miss.
+> direction with a §1.3.2 corpus near-miss. Roadmap task 3.1.5 then realigned
+> `no_unresolved_blockers` to the spiteful critic's real output format: it now
+> parses the `## BLOCKER` section and its `### Bn` finding headings
+> (`critic-personas.md`), treating a finding as resolved by a trailing
+> space-then-`[resolved]` token on its heading line, with the convergence
+> sentinel `No BLOCKER. No MAJOR.` clean by construction. This supersedes the
+> 3.1.4 `BLOCKER`-prefix description, which matched no line the producer actually
+> emits, and writes the resolution convention once in `critic-personas.md` and
+> `done-conditions.md` so producer and consumer share one contract.
 
 `novel-done` is the done predicate as code, replacing the pseudocode in
 `done-conditions.md` and the ad-hoc shell the field report describes. It

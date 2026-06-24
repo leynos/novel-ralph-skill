@@ -91,34 +91,38 @@ def done_predicate_failer_tree(
 @pytest.fixture
 def blocker_edge_trees(
     tmp_path: Path,
-) -> cabc.Callable[[], tuple[Path, Path, Path]]:
-    """Return a factory building the resolved, near-miss, and incidental trees.
+) -> cabc.Callable[[], tuple[Path, Path, Path, Path]]:
+    """Return a factory building the resolved, near-miss, incidental, sentinel trees.
 
     Returns
     -------
-    Callable[[], tuple[Path, Path, Path]]
-        A callable
-        ``() -> (resolved_working, near_miss_working, incidental_working)``
-        building the three BLOCKER edge trees in separate subdirectories of
-        ``tmp_path``. The incidental tree pins the false-clean direction the
-        positional anchor closes (D-BLOCKER-POSITIONAL): a live BLOCKER quoting
-        ``[resolved]`` mid-line stays unresolved.
+    Callable[[], tuple[Path, Path, Path, Path]]
+        A callable building the four BLOCKER edge trees in separate
+        subdirectories of ``tmp_path``, returning
+        ``(resolved, near_miss, incidental, sentinel)``. All four are
+        critic-personas-shaped (roadmap 3.1.5): the resolved tree carries a
+        ``### B1 — … [resolved]`` finding; the near-miss tree a live finding that
+        mentions resolution only in prose; the incidental tree a live finding
+        whose label quotes ``[resolved]`` mid-line (the false-clean direction,
+        D-BLOCKER-POSITIONAL); and the sentinel tree the ``No BLOCKER. No MAJOR.``
+        convergence note (clean by construction, D-BLOCKER-SENTINEL).
     """
 
-    def _build() -> tuple[Path, Path, Path]:
-        """Build the resolved, near-miss, and incidental trees under ``tmp_path``."""
+    def _build() -> tuple[Path, Path, Path, Path]:
+        """Build the four BLOCKER edge trees under ``tmp_path``."""
         resolved = tmp_path / "resolved"
         near_miss = tmp_path / "near-miss"
         incidental = tmp_path / "incidental"
-        resolved.mkdir()
-        near_miss.mkdir()
-        incidental.mkdir()
+        sentinel = tmp_path / "sentinel"
+        for sub in (resolved, near_miss, incidental, sentinel):
+            sub.mkdir()
         return (
             wc.build_working_tree(wc.DONE_PREDICATE_RESOLVED_BLOCKER, resolved),
             wc.build_working_tree(wc.DONE_PREDICATE_NEAR_MISS_BLOCKER, near_miss),
             wc.build_working_tree(
                 wc.DONE_PREDICATE_INCIDENTAL_RESOLVED_BLOCKER, incidental
             ),
+            wc.build_working_tree(wc.DONE_PREDICATE_CONVERGENCE_SENTINEL, sentinel),
         )
 
     return _build

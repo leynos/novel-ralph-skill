@@ -1015,7 +1015,7 @@ novel-ralph-harness-design.md §4.2 and §2.3.
     reported as unresolved (the clause stays false), a genuinely resolved blocker
     still clears, the false-clean direction is pinned by a new §1.3.2 corpus
     near-miss, and the done-predicate suite stays green.
-- [ ] 3.1.5. Align the `no_unresolved_blockers` recogniser to the real
+- [x] 3.1.5. Align the `no_unresolved_blockers` recogniser to the real
   `critic-personas.md` output format and define the resolution producer contract.
   - Step-task (source: audit:3.1.4 / review:3.1.4; severity: high). Three
     near-identical proposals merged: the predicate's `no_unresolved_blockers`

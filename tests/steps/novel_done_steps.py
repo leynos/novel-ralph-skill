@@ -99,17 +99,42 @@ def single_failer_tree(clause: str, tmp_path: Path) -> _Outcome:
 
 
 @given(
-    'a working tree whose first chapter quotes "[resolved]" mid-BLOCKER',
+    'a working tree whose first chapter has a live "### B1" BLOCKER finding',
+    target_fixture="outcome",
+)
+def live_blocker_finding_tree(tmp_path: Path) -> _Outcome:
+    """Build the live-finding tree from real critic-personas-shaped output.
+
+    The first chapter's ``critic-notes.md`` is a ``## BLOCKER`` section with a
+    live ``### B1 — …`` finding (``UNRESOLVED_BLOCKER_NOTE``; roadmap 3.1.5), the
+    real producer format the old ``startswith("BLOCKER")`` grammar never caught
+    (audit-3.1.4 Finding 1). This is the externally observable proof that genuine
+    critic output now drives ``novel-done`` to exit ``1``.
+
+    Returns
+    -------
+    _Outcome
+        The built ``working/`` path; the exit code is filled in by the run step.
+    """
+    return _Outcome(
+        working=wc.build_working_tree(
+            wc.DONE_PREDICATE_FAILERS["no_unresolved_blockers"], tmp_path
+        )
+    )
+
+
+@given(
+    'a working tree whose first chapter quotes "[resolved]" mid-finding',
     target_fixture="outcome",
 )
 def incidental_resolved_blocker_tree(tmp_path: Path) -> _Outcome:
     """Build the incidental-resolution tree (the false-clean BLOCKER near-miss).
 
-    The first chapter's ``critic-notes.md`` holds a live BLOCKER that quotes
-    ``[resolved]`` mid-line, not as the trailing marker, so the positional rule
-    keeps it unresolved (D-BLOCKER-POSITIONAL; audit-3.1.1 Finding 3). This is a
-    deliberate twin of the ``no_unresolved_blockers`` failer, not a new member of
-    ``DONE_PREDICATE_FAILERS``.
+    The first chapter's ``critic-notes.md`` holds a live ``### B1`` finding whose
+    label quotes ``[resolved]`` mid-line, not as the trailing marker, so the
+    positional rule keeps it unresolved (D-BLOCKER-POSITIONAL; roadmap 3.1.5).
+    This is a deliberate twin of the ``no_unresolved_blockers`` failer, not a new
+    member of ``DONE_PREDICATE_FAILERS``.
 
     Returns
     -------

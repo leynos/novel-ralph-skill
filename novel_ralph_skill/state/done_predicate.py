@@ -44,6 +44,7 @@ from __future__ import annotations
 import dataclasses
 import typing as typ
 
+from novel_ralph_skill.state._blocker_notes import _body_has_unresolved_blocker
 from novel_ralph_skill.state._disk_paths import _chapter_dir_name
 from novel_ralph_skill.state.compile_model import (
     CompiledComparison,
@@ -60,18 +61,6 @@ if typ.TYPE_CHECKING:
 # the gate booleans and the ``reviews/knitting-NN.md`` file names so the two
 # cannot drift (``done-conditions.md`` lines 164-170; design §5.2 invariant 7).
 KNITTING_PERCENTAGES: typ.Final[tuple[int, int, int]] = (30, 50, 80)
-
-# The literal token marking a BLOCKER line resolved (ExecPlan
-# D-BLOCKER-POSITIONAL). A ``critic-notes.md`` line whose stripped text starts
-# with ``BLOCKER`` and does not *end with* this token is an unresolved blocker:
-# the token is a trailing marker the loop appends when it closes a blocker, so
-# an incidental mid-line quotation of it does not clear the blocker. The token
-# is the reference's spelling; the corpus pins both the trailing-marker edge
-# (a resolved spec) and the false-clean edge (an incidental near-miss spec).
-_BLOCKER_PREFIX: typ.Final = "BLOCKER"
-# why: the token spells a resolution marker, not a credential; the S105
-# hardcoded-password heuristic only sees the literal string assignment.
-_RESOLVED_TOKEN: typ.Final = "[resolved]"  # noqa: S105
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True, slots=True)
@@ -98,7 +87,8 @@ class DoneClauses:
         concatenation of the present drafts (the content comparison; 3.1.2
         D-CLAUSE-FN). An absent compile is false.
     no_unresolved_blockers : bool
-        No manifest chapter's ``critic-notes.md`` carries an unresolved BLOCKER.
+        No manifest chapter's ``critic-notes.md`` carries an unresolved ``### Bn``
+        finding under the ``## BLOCKER`` section (roadmap 3.1.5).
     """
 
     phase_is_done: bool
@@ -274,34 +264,31 @@ def compile_consistent(state: State, working_dir: Path) -> bool:
 
 
 def _contains_unresolved_blocker(notes_path: Path) -> bool:
-    """Return whether ``notes_path`` carries an unresolved BLOCKER line.
+    """Return whether ``notes_path`` carries an unresolved BLOCKER finding.
 
-    A line whose stripped text starts with ``BLOCKER`` (case-sensitive, the
-    reference's spelling) and does not *end with* the literal ``[resolved]``
-    token is an unresolved blocker (ExecPlan D-BLOCKER-POSITIONAL). The token is
-    a trailing marker the loop appends when it closes a blocker, so an incidental
-    mid-line quotation of it does not clear the blocker (the false-clean
-    direction the positional anchor closes). An absent file is clean (no
-    blockers), exactly as the reference treats a missing notes file; every other
-    read fault (an undecodable body, a permission error) propagates for the
-    command layer to route to exit ``3``.
+    The file-fault boundary only: an absent file is clean (no blockers), exactly
+    as the reference treats a missing notes file; every other read fault (an
+    undecodable body, a permission error) propagates for the command layer to
+    route to exit ``3`` (Constraint D-FAULT). The heading-based grammar is
+    delegated to the pure :func:`_body_has_unresolved_blocker`.
     """
     try:
         body = notes_path.read_text(encoding="utf-8")
     except FileNotFoundError:
         return False
-    return any(
-        stripped.startswith(_BLOCKER_PREFIX) and not stripped.endswith(_RESOLVED_TOKEN)
-        for stripped in (line.strip() for line in body.splitlines())
-    )
+    return _body_has_unresolved_blocker(body)
 
 
 def no_unresolved_blockers(state: State, working_dir: Path) -> bool:
     """Return whether no manifest chapter has an unresolved BLOCKER finding.
 
     Scans each manifest chapter's ``manuscript/chapter-NN/critic-notes.md`` for
-    an unresolved BLOCKER line (D-BLOCKER). An absent ``critic-notes.md`` is
-    clean; an empty manifest holds vacuously.
+    an unresolved ``### Bn`` finding under the ``## BLOCKER`` section, the
+    spiteful critic's strict output format (``critic-personas.md``, "Resolving a
+    BLOCKER"; roadmap 3.1.5). A finding is resolved by a trailing space-then
+    ``[resolved]`` token on its heading line. An absent ``critic-notes.md`` is
+    clean, as is the ``No BLOCKER. No MAJOR.`` convergence sentinel (which writes
+    no ``## BLOCKER`` section); an empty manifest holds vacuously.
     """
     manuscript = working_dir / "manuscript"
     return not any(

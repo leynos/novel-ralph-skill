@@ -576,19 +576,26 @@ reads the **manifest** (`state.chapters`) instead. This is design §4.3-conforma
 the manifest⇄directory bijection), recorded so a later docs pass can reconcile
 `done-conditions.md` to the manifest source.
 
-**The BLOCKER format.** An unresolved BLOCKER is a `critic-notes.md` line whose
-stripped text starts with `BLOCKER` (case-sensitive) and does *not end with* the
-literal `[resolved]` token. The token is a trailing marker the loop appends when
-it closes a blocker, so its *position* carries the meaning: an incidental
-mid-line quotation (for example `BLOCKER the ending still depends on the
-[resolved] issue`) no longer clears the blocker (roadmap 3.1.4 anchored the rule
-positionally; design §4.2; audit-3.1.1 Finding 3). An absent `critic-notes.md`
-is clean. The rule has documented limitations in *both* directions: a prose
-mention without the token stays unresolved (the false-dirty near-miss the corpus
-already pins), and case or alternative-spelling variants (`RESOLVED`,
-`(resolved)`) are still mis-classified (out of scope per D-BLOCKER-SCOPE). The
-corpus pins both BLOCKER edges — the false-dirty near-miss and the false-clean
-incidental mid-line mention — each a live blocker that stays unresolved.
+**The BLOCKER format.** An unresolved BLOCKER is a live `### Bn` finding heading
+under the `## BLOCKER` section of a `critic-notes.md` body — the spiteful
+critic's strict output format (`critic-personas.md`, "Resolving a BLOCKER";
+roadmap 3.1.5). The recogniser enters the section on a line whose stripped text
+equals `## BLOCKER`, leaves it on the next `##`-level heading, and treats a
+`### B<digit>` heading inside it as unresolved unless that heading ends with a
+single space then the `[resolved]` token. The token is a trailing marker, so its
+*position* carries the meaning: an incidental mid-line quotation (for example a
+finding label `### B1 — the ending still depends on the [resolved] issue`) does
+not clear the blocker. The convergence sentinel `No BLOCKER. No MAJOR.` writes no
+`## BLOCKER` section and is clean by construction, as is an absent
+`critic-notes.md`. The rule has documented limitations in *both* directions:
+a prose mention without the token stays unresolved (the false-dirty near-miss the
+corpus pins); trailing text after the token (for example
+`### B1 — label [resolved] (see log)`) is treated as unresolved by design,
+because the producer convention forbids it (D-BLOCKER-TRAILING; audit-3.1.4
+Finding 2); and case or alternative-spelling variants (`RESOLVED`, `(resolved)`)
+are out of scope and stay mis-classified (D-BLOCKER-CASE; audit-3.1.4 Finding 3).
+The corpus pins the resolved, near-miss, incidental, and convergence-sentinel
+edges, and a BDD scenario drives a live `### B1` finding to exit 1.
 
 **`compile_consistent` is the full content comparison (roadmap 3.1.2).** The
 clause is the single function `compile_consistent(state, working_dir)`: an absent

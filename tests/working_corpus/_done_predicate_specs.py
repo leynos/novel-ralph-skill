@@ -57,27 +57,69 @@ _DRAFTED_WORDS: tuple[int, ...] = (24000, 24000, 20800)
 # The three knitting percentages whose reviews the all-hold tree carries.
 ALL_KNITTING_REVIEWS: tuple[int, int, int] = (30, 50, 80)
 
-# A clean ``critic-notes.md`` body: a BLOCKER line resolved by the ``[resolved]``
-# token, proving the clause honours the resolution token (D-BLOCKER).
-RESOLVED_BLOCKER_NOTE: str = "BLOCKER the pacing sagged in the middle [resolved]\n"
+# These four note bodies are the spiteful critic's strict output format
+# (``critic-personas.md``, "Resolving a BLOCKER"; roadmap 3.1.5): a ``## BLOCKER``
+# section with ``### Bn — <label>`` findings, each with a quoted passage, a
+# ``What's wrong:`` line, and a ``Suggested action:`` line. A finding is resolved
+# by a trailing space-then-``[resolved]`` token on its ``### Bn`` heading.
 
-# An *unresolved* BLOCKER: a line that starts with ``BLOCKER`` and carries no
-# ``[resolved]`` token, so the ``no_unresolved_blockers`` clause is false.
-UNRESOLVED_BLOCKER_NOTE: str = "BLOCKER the climax contradicts chapter 2\n"
+# A clean ``critic-notes.md`` body: a ``### B1`` finding marked resolved by the
+# trailing ``[resolved]`` token, proving the clause honours the resolution marker.
+RESOLVED_BLOCKER_NOTE: str = (
+    "## BLOCKER\n"
+    "\n"
+    "### B1 — the pacing sagged in the middle [resolved]\n"
+    "> she walked, and walked, and walked some more\n"
+    "\n"
+    "What's wrong: three pages of travel with no event.\n"
+    "Suggested action: cut to the arrival.\n"
+)
 
-# A near-miss note: the body merely mentions resolution in prose, so the
-# substring rule still classifies the BLOCKER as unresolved (advisory A5).
+# An *unresolved* BLOCKER: a live ``### B1`` finding under ``## BLOCKER`` with no
+# ``[resolved]`` token, so the ``no_unresolved_blockers`` clause is false. This is
+# the real producer shape the old ``startswith("BLOCKER")`` grammar never caught
+# (audit-3.1.4 Finding 1).
+UNRESOLVED_BLOCKER_NOTE: str = (
+    "## BLOCKER\n"
+    "\n"
+    "### B1 — the climax contradicts chapter 2\n"
+    "> he had never met her before that night\n"
+    "\n"
+    "What's wrong: chapter 2 establishes they grew up together.\n"
+    "Suggested action: rewrite the climax or cut the contradiction.\n"
+)
+
+# A near-miss note: a live ``### B1`` finding whose body merely mentions
+# resolution in prose, with no trailing token, so the finding stays unresolved
+# (the false-dirty edge).
 NEAR_MISS_BLOCKER_NOTE: str = (
-    "BLOCKER the subplot dangles\nThe author says this was resolved later.\n"
+    "## BLOCKER\n"
+    "\n"
+    "### B1 — the subplot dangles\n"
+    "> the letter is never mentioned again\n"
+    "\n"
+    "What's wrong: the author says this was resolved later, but it is not.\n"
+    "Suggested action: pay off the letter or cut it.\n"
 )
 
-# An incidental-resolution note: a live BLOCKER that quotes the ``[resolved]``
-# token *mid-line*, not as the trailing marker. The substring rule wrongly
-# cleared it (the false-clean direction); the positional rule keeps it
-# unresolved (D-BLOCKER-POSITIONAL; audit-3.1.1 Finding 3).
+# An incidental-resolution note: a live ``### B1`` finding whose *label* quotes
+# the ``[resolved]`` token mid-line, not as the trailing marker, so the
+# positional rule keeps it unresolved (the false-clean direction;
+# D-BLOCKER-POSITIONAL; audit-3.1.4 Finding 1's predecessor).
 INCIDENTAL_RESOLVED_BLOCKER_NOTE: str = (
-    "BLOCKER the ending still depends on the [resolved] issue in chapter 2\n"
+    "## BLOCKER\n"
+    "\n"
+    "### B1 — the ending still depends on the [resolved] issue in chapter 2\n"
+    "> it all comes back to the thing we fixed earlier\n"
+    "\n"
+    "What's wrong: the payoff leans on an unestablished beat.\n"
+    "Suggested action: establish the beat or rewrite the ending.\n"
 )
+
+# The convergence sentinel: the critic writes ``No BLOCKER. No MAJOR.`` *instead
+# of* a ``## BLOCKER`` section, so the recogniser finds no findings and the clause
+# holds by construction (D-BLOCKER-SENTINEL).
+CONVERGENCE_SENTINEL_NOTE: str = "No BLOCKER. No MAJOR.\n"
 
 
 def _crossed_gates() -> tuple[bool, bool, bool]:
@@ -174,6 +216,13 @@ DONE_PREDICATE_NEAR_MISS_BLOCKER: WorkingTreeSpec = _note_on_first_chapter(
 # the ``no_unresolved_blockers`` clause.
 DONE_PREDICATE_INCIDENTAL_RESOLVED_BLOCKER: WorkingTreeSpec = _note_on_first_chapter(
     DONE_PREDICATE_ALL_HOLD, INCIDENTAL_RESOLVED_BLOCKER_NOTE
+)
+# A convergence tree: the first chapter's notes are the ``No BLOCKER. No MAJOR.``
+# sentinel, which writes no ``## BLOCKER`` section, so the clause holds and the
+# tree is fully done (D-BLOCKER-SENTINEL). It differs from the all-hold tree only
+# in carrying a (clean) note body.
+DONE_PREDICATE_CONVERGENCE_SENTINEL: WorkingTreeSpec = _note_on_first_chapter(
+    DONE_PREDICATE_ALL_HOLD, CONVERGENCE_SENTINEL_NOTE
 )
 
 # --- stale-compile specs (roadmap 3.1.2, D-CORPUS-STALE) ---------------------

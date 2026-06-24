@@ -11,8 +11,8 @@ as :mod:`._oracle_disk` twins ``disk_evidence``.
 The two twins mirror the production
 :func:`~novel_ralph_skill.state.done_predicate.knitting_gates_passed` review half
 and :func:`~novel_ralph_skill.state.done_predicate.no_unresolved_blockers`,
-re-implementing the existence read and the D-BLOCKER substring rule
-independently.
+re-implementing the existence read and the heading-based BLOCKER grammar
+independently (roadmap 3.1.5).
 """
 
 from __future__ import annotations
@@ -29,12 +29,14 @@ if typ.TYPE_CHECKING:
 # independent copy of the production ``KNITTING_PERCENTAGES`` a test pins equal.
 KNITTING_PERCENTAGES: tuple[int, int, int] = (30, 50, 80)
 
-# The D-BLOCKER-POSITIONAL format, re-spelled independently of the production
-# constants so the twin is a genuine cross-check rather than a re-export. The
-# token is a *trailing* marker: a line is resolved only when its stripped text
-# ends with it, so an incidental mid-line mention does not clear the blocker.
-_BLOCKER_PREFIX = "BLOCKER"
-_RESOLVED_TOKEN = "[resolved]"  # noqa: S105 - a resolution marker, not a credential
+# The heading-based BLOCKER grammar (roadmap 3.1.5), re-spelled independently of
+# the production constants so the twin is a genuine cross-check rather than a
+# re-export. An unresolved blocker is a ``### Bn`` finding under a ``## BLOCKER``
+# section whose heading does not end with a trailing space-then-``[resolved]``.
+_BLOCKER_HEADING = "## BLOCKER"
+# The leading space is part of the marker (a trailing space then the token), so
+# S105 does not fire on this assignment; no suppression is needed.
+_RESOLVED_MARK = " [resolved]"
 
 
 def reviews_all_present(working_dir: Path) -> bool:
@@ -57,15 +59,44 @@ def _manifest_numbers(working_dir: Path) -> list[int]:
     return sorted(chapter["number"] for chapter in state["chapters"])
 
 
+def _is_section_heading(stripped: str) -> bool:
+    """Return whether ``stripped`` is a ``##``-level (two-hash) section heading."""
+    return stripped.startswith("## ")
+
+
+def _is_live_finding(stripped: str) -> bool:
+    """Return whether ``stripped`` is an unresolved ``### Bn`` finding heading.
+
+    A finding heading is ``### B`` then a digit; it is resolved only when it ends
+    with a trailing space-then-``[resolved]`` marker.
+    """
+    head = "### B"
+    if (
+        not stripped.startswith(head)
+        or not stripped[len(head) : len(head) + 1].isdigit()
+    ):
+        return False
+    return not stripped.endswith(_RESOLVED_MARK)
+
+
 def _notes_has_unresolved_blocker(notes_path: Path) -> bool:
-    """Return whether ``notes_path`` carries an unresolved BLOCKER line."""
+    """Return whether ``notes_path`` carries an unresolved BLOCKER finding.
+
+    Independently re-spelled heading walker: enter the ``## BLOCKER`` section on
+    its exact heading, leave on the next ``##``-level heading, and report a live
+    ``### Bn`` finding inside it. The ``No BLOCKER. No MAJOR.`` sentinel writes no
+    section heading and is clean.
+    """
     if not notes_path.exists():
         return False
-    body = notes_path.read_text(encoding="utf-8")
-    return any(
-        stripped.startswith(_BLOCKER_PREFIX) and not stripped.endswith(_RESOLVED_TOKEN)
-        for stripped in (line.strip() for line in body.splitlines())
-    )
+    inside = False
+    for raw in notes_path.read_text(encoding="utf-8").splitlines():
+        stripped = raw.strip()
+        if _is_section_heading(stripped):
+            inside = stripped == _BLOCKER_HEADING
+        elif inside and _is_live_finding(stripped):
+            return True
+    return False
 
 
 def no_unresolved_blockers(working_dir: Path) -> bool:
