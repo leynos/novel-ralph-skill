@@ -2142,6 +2142,61 @@ they do not gate the deterministic spine.
     counter rather than open-coding `len(text.split())`; exactly one production
     counter for the token rule remains; and the disk-evidence, desloppify, and
     wordcount suites stay green.
+- [ ] 7.14.3. Introduce one `gate_triggers(ratio)` helper and reconcile
+  `GATE_THRESHOLDS` with `KNITTING_PERCENTAGES`.
+  - Reroute (source: audit:6.1.1; severity: medium; two near-identical findings
+    merged — the re-spelled trigger derivation and the two unsynchronised gate
+    encodings). The `tuple(ratio >= threshold for threshold in GATE_THRESHOLDS)`
+    trigger derivation is now spelled at three sites (audit-6.1.1 Finding 2 —
+    `_wordcount_report._gate_geometry`, `validate._check_gate_ratio_consistent`,
+    and the corpus oracle), and the same three gates are encoded twice in
+    unsynchronised forms (Finding 3 — `GATE_THRESHOLDS` ratios versus
+    `done_predicate.KNITTING_PERCENTAGES` integers) with nothing pinning
+    `GATE_THRESHOLDS[i] == KNITTING_PERCENTAGES[i] / 100`. The validator and the
+    new `wordcount` report must agree on the triggers but are tied only by a
+    shared constant, not a shared expression, so a tie-break or gate-set change
+    drifts easily before the done-condition checks accrete as a fourth consumer.
+    Promote a pure `gate_triggers(ratio)` helper into the `state` package beside
+    `GATE_THRESHOLDS`, route `_gate_geometry` and `_check_gate_ratio_consistent`
+    through it (the oracle stays an independent second opinion), and derive one
+    gate tuple from the other (or assert their equivalence). This is cross-cutting
+    word-count/gate single-source-of-truth hygiene, not the settled step-6.1
+    disk-derivation hypothesis where it was raised, so it is deferred here.
+  - Requires 6.1.1.
+  - See novel-ralph-harness-design.md §4.5 and §5.2;
+    docs/issues/audit-6.1.1.md (Findings 2 and 3);
+    novel_ralph_skill/state/validate.py;
+    novel_ralph_skill/state/done_predicate.py;
+    novel_ralph_skill/commands/_wordcount_report.py.
+  - Success: one pure `gate_triggers(ratio)` helper lives beside
+    `GATE_THRESHOLDS` and is consumed by `_gate_geometry` and
+    `_check_gate_ratio_consistent`; `GATE_THRESHOLDS` and `KNITTING_PERCENTAGES`
+    are tied by derivation or a single assertion so the two encodings cannot
+    drift; the `_cumulative_message` percentage rendering reads the canonical
+    percentage source rather than re-deriving `* 100`; and the validator,
+    wordcount, and corpus agreement suites stay green.
+- [ ] 7.14.4. Guard the single gate-threshold source with a literal-scanning
+  regression test over the wordcount command modules.
+  - Reroute (source: review:6.1.1; severity: low). The 6.1.1 execplan's
+    high-severity Risk is a second gate-threshold source drifting from
+    `GATE_THRESHOLDS`; the report tests assert the derived triggers agree
+    element-wise with `GATE_THRESHOLDS`, but nothing structurally stops a future
+    edit from hard-coding a `0.30`/`0.50`/`0.80` literal in a command module. Add
+    a lightweight source-scanning guard, modelled on the state-layout fence
+    scanner the 7.21.1 proposal also references, that asserts no re-spelled
+    gate-threshold literal appears in the wordcount command modules, so the
+    single-source invariant is test-enforced rather than convention-enforced.
+    This is cross-cutting maintainability hardening, not the settled step-6.1
+    disk-derivation hypothesis where it was raised, so it is deferred here.
+    Coordinate with 7.14.3 so the guard reflects the consolidated derivation.
+  - Requires 7.14.3.
+  - See novel-ralph-harness-design.md §4.5 and §5.2;
+    docs/execplans/roadmap-6-1-1.md (the Risks single-source-of-truth entry);
+    tests/test_state_layout_reference.py (the analogous fence scanner).
+  - Success: a regression test scans the wordcount command modules and fails if
+    a `0.30`/`0.50`/`0.80` gate-threshold literal is re-spelled outside the
+    shared `GATE_THRESHOLDS` source; a planted literal fails the guard; and the
+    wordcount and command suites stay green.
 
 ### 7.15. Harden the word-count disk-evidence predicates against redundant reads and a latent double-fire
 
@@ -2246,6 +2301,38 @@ the deterministic spine.
     `[project.scripts]` targets, and the import-laziness profile are preserved (or
     the laziness change is decided and recorded); and the entry-point, stub, and
     console-scripts e2e suites stay green.
+- [ ] 7.16.3. Consolidate the draft-read state-error wrapper shared by
+  `wordcount`, `recount`, and `desloppify`.
+  - Reroute (source: audit:6.1.1 Finding 1; severity: low). The
+    `STATE_INPUT_ERRORS` → `StateInputError` draft-read idiom — call a disk
+    reader, catch `STATE_INPUT_ERRORS`, and re-raise as `StateInputError` so an
+    undecodable draft reaches exit `3` rather than escaping to the benign exit
+    `1` — is now triplicated across `_wordcount._recount_or_state_error`,
+    `_recount._recount_or_state_error`, and `_desloppify.source_chapters`, with
+    `_wordcount` and `_desloppify` sharing an identical
+    `f"cannot read chapter drafts: {exc}"` message string; `wordcount` added the
+    third copy. Promote a single `read_drafts_or_state_error(working_dir,
+    manifest)` helper (or a `state_error_on(...)` context manager) into the
+    shared command home (`commands/novel_state.py` already exports
+    `STATE_INPUT_ERRORS` and `_load_or_state_error`, or the dedicated
+    state-sourcing module 7.16.1 carves out) and have all three call sites
+    delegate to it, keeping the one exit-`3` fault-routing rule in a single
+    place. This is cross-cutting command-layer DRY-and-layering hygiene, not the
+    settled step-6.1 disk-derivation hypothesis where it was raised, so it is
+    deferred here. Coordinate with 7.16.1 so the wrapper lands in the neutral
+    state-sourcing home rather than re-pinning it to `novel_state`.
+  - Requires 7.16.1.
+  - See novel-ralph-harness-design.md §3.2 and §4.5;
+    docs/issues/audit-6.1.1.md (Finding 1);
+    novel_ralph_skill/commands/_wordcount.py;
+    novel_ralph_skill/commands/_recount.py;
+    novel_ralph_skill/commands/_desloppify.py.
+  - Success: one `read_drafts_or_state_error` helper (or context manager) owns
+    the catch-and-re-raise-as-`StateInputError` draft-read idiom; `wordcount`,
+    `recount`, and `desloppify` delegate to it rather than each open-coding the
+    `try/except STATE_INPUT_ERRORS` tail; the one exit-`3` fault-routing rule
+    lives in a single place; and the wordcount, recount, and desloppify suites
+    stay green.
 
 ### 7.17. Reconcile the compile-divergence documentation with the byte-comparison implementation
 
@@ -2503,3 +2590,42 @@ spine.
     records carries a brief "superseded by `novel-done`" annotation pointing a
     future reader at the live source of truth; no historical record is gutted or
     renumbered; and `make markdownlint` and `make nixie` stay green.
+
+### 7.22. Settle a stable machine-payload number-formatting convention for the envelope
+
+This step answers whether the envelope contract can fix one house convention for
+the precision of derived numeric fields — for example percentages and ratios —
+so a non-terminating quotient cannot serialise as a long, churning float and
+make snapshots brittle or downstream parsing awkward. Its outcome is a single,
+documented rule (e.g. round percentages to a fixed decimal precision, or emit
+basis-point integers) applied uniformly across the commands that emit derived
+numbers, so the machine payloads are stable and predictable rather than
+each command choosing its own precision. This is a deferred
+envelope-contract-stability hardening extension surfaced by the review of step
+6.1.1; it does not advance the settled step-6.1 disk-derivation hypothesis (the
+report already derives the correct figures and passes) and it does not gate the
+deterministic spine.
+
+- [ ] 7.22.1. Adopt a fixed-precision convention for derived machine-payload
+  percentages across the envelope contract.
+  - Reroute (source: review:6.1.1; severity: low). `wordcount` (and potentially
+    other commands) emit raw, unrounded float percentages in the machine
+    `result`; for ratios that do not terminate this serialises long floats and
+    risks snapshot churn and awkward downstream parsing. Decide one house
+    convention for the precision of derived numeric envelope fields (e.g. round
+    percentages to two decimal places, or emit basis-point integers), record it
+    in the design or developers' guide as part of the envelope contract, and
+    apply it uniformly to every command that emits a derived percentage or ratio
+    so the machine payloads are stable. This is cross-cutting
+    envelope-contract-stability hygiene, not the settled step-6.1
+    disk-derivation hypothesis where it was raised, so it is deferred here.
+  - Requires 6.1.1.
+  - See novel-ralph-harness-design.md §3.1 and §4.5;
+    docs/adr-003-shared-interface-contract.md;
+    novel_ralph_skill/commands/_wordcount_report.py.
+  - Success: one fixed-precision (or basis-point) convention for derived
+    machine-payload percentages and ratios is recorded once in the envelope
+    contract documentation; every command emitting a derived percentage or ratio
+    applies it so a non-terminating quotient cannot serialise as a long churning
+    float; the wordcount snapshots are regenerated to the stable form; and
+    `make markdownlint` and `make nixie` stay green.
