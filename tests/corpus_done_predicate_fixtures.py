@@ -149,6 +149,28 @@ def sole_stale_compile_tree(tmp_path: Path) -> cabc.Callable[[], Path]:
 
 
 @pytest.fixture
+def obvious_stale_compile_tree(tmp_path: Path) -> cabc.Callable[[], Path]:
+    """Return a factory building the obvious-stale-compile ``novel-done`` tree.
+
+    Returns
+    -------
+    Callable[[], Path]
+        A callable ``() -> Path`` materialising
+        ``DONE_PREDICATE_OBVIOUS_STALE_COMPILE`` (every clause holds except
+        ``compile_consistent``, false on a byte- *and* count-divergent
+        ``compiled.md`` — the obvious control beside the subtle count-coincident
+        ``DONE_PREDICATE_SOLE_STALE_COMPILE``) and returning the ``working/``
+        path.
+    """
+
+    def _build() -> Path:
+        """Build the obvious-stale-compile tree under the test's ``tmp_path``."""
+        return wc.build_working_tree(wc.DONE_PREDICATE_OBVIOUS_STALE_COMPILE, tmp_path)
+
+    return _build
+
+
+@pytest.fixture
 def mid_draft_stale_tree(tmp_path: Path) -> cabc.Callable[[], Path]:
     """Return a factory building the mid-draft-stale ``novel-done`` tree.
 

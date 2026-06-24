@@ -130,6 +130,28 @@ def test_sole_stale_present_compile_exits_four(
     assert sum(1 for value in result.values() if value is False) == 1
 
 
+def test_obvious_stale_present_compile_exits_four(
+    obvious_stale_compile_tree: cabc.Callable[[], Path],
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """An obvious byte-and-count-divergent stale compile exits ``4`` (carve-out).
+
+    Pins ``DONE_PREDICATE_OBVIOUS_STALE_COMPILE`` (roadmap 3.1.2.1): the
+    plainly-wrong stale ``compiled.md`` control is now load-bearing, asserting the
+    sole ``compile_consistent`` divergence fires the exit-``4`` carve-out exactly
+    as its subtle count-coincident sibling does.
+    """
+    working = obvious_stale_compile_tree()
+    assert (working / "manuscript" / "compiled.md").exists()
+    code, envelope = _run_capture(working, monkeypatch, capsys)
+    assert code == ExitCode.ACTIONABLE_FINDING
+    assert envelope["ok"] is False
+    result = typ.cast("dict[str, object]", envelope["result"])
+    assert result["compile_consistent"] is False
+    assert sum(1 for value in result.values() if value is False) == 1
+
+
 def test_mid_draft_stale_compile_exits_one(
     mid_draft_stale_tree: cabc.Callable[[], Path],
     monkeypatch: pytest.MonkeyPatch,

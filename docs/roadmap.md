@@ -960,7 +960,7 @@ novel-ralph-harness-design.md §4.2 and §2.3.
     predicate-truthfulness property); the `novel-done` result size is
     independent of the chapter count; and an otherwise-complete tree with only a
     stale `compiled.md` exits 4 while a mid-draft tree exits 1.
-  - [ ] 3.1.2.1. Pin or drop the unused `DONE_PREDICATE_OBVIOUS_STALE_COMPILE`
+  - [x] 3.1.2.1. Pin or drop the unused `DONE_PREDICATE_OBVIOUS_STALE_COMPILE`
     corpus spec.
     - Addendum (from review:3.1.2; low). The obvious byte-and-count-divergent
       stale spec is exported through the corpus `__all__` but asserted on by no

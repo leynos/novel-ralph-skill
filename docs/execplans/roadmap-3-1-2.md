@@ -1140,7 +1140,7 @@ task 7.10.5; and the disk-bound Hypothesis deadline-profile work (`review:3.1.2`
 two near-identical proposals merged) to a new roadmap step 7.18. The one below is
 the small, localised fix tied to this task's corpus.
 
-- [ ] 3.1.2.1 — Pin or drop the unused `DONE_PREDICATE_OBVIOUS_STALE_COMPILE`
+- [x] 3.1.2.1 — Pin or drop the unused `DONE_PREDICATE_OBVIOUS_STALE_COMPILE`
   corpus spec (from review:3.1.2, low; two near-identical proposals merged). The
   obvious byte-and-count-divergent stale spec is exported through the corpus
   `__all__` but asserted on by no test, so it validates nothing while remaining
