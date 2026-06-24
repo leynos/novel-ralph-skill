@@ -693,6 +693,31 @@ agent-improvised recovery routine. See novel-ralph-harness-design.md §4.1 and
     `working/` deleted) or the recovery routine is documented in the users'
     guide, and `check` reports the partial bootstrap rather than leaving it
     silently unrecoverable.
+- [ ] 2.3.5. Settle the authoritative `current` definition when `compiled.md`
+  diverges from the drafted sum, and align recount and reconcile on it.
+  - Step-task (source: review:2.3.1; severity: low). `recount` deliberately
+    scopes `word_counts.current` to `sum(by_chapter)` (2.3.1 Decision Log
+    D-CURRENT), but `state-layout.md:114` still describes `current` as "words in
+    compiled.md (or sum of drafts)", and a present `compiled.md` token count can
+    diverge from `sum(by_chapter)` (separator joins, trailing whitespace). This
+    serves the step-2.3 hypothesis — state re-derivable from disk so it can
+    never drift from the manuscript — by deciding which on-disk quantity is
+    authoritative for `current` when the two diverge, so `recount` and the
+    `reconcile` task (2.3.2) cannot disagree on the `current` definition and the
+    reference prose stays truthful. Decide once whether `current` remains the
+    drafted sum (with `compiled.md` divergence surfaced as a reconciliation
+    finding, not a `current` source) or is redefined, and reconcile
+    `state-layout.md`, design §5.4, and the 2.3.1 D-CURRENT note to the chosen
+    rule.
+  - Requires 2.3.1 and 2.3.2.
+  - See novel-ralph-harness-design.md §4.1 and §5.4;
+    docs/execplans/roadmap-2-3-1.md (Decision Log D-CURRENT);
+    skill/novel-ralph/references/state-layout.md (line 114).
+  - Success: one decision records the authoritative `current` quantity when
+    `compiled.md` diverges from `sum(by_chapter)`; `recount` and `reconcile`
+    apply the same rule; and `state-layout.md`, design §5.4, and the 2.3.1
+    D-CURRENT note agree on the `current` definition with no surviving
+    contradiction.
 
 ## 3. Vertical slice 2: a single-source done predicate
 
@@ -1209,3 +1234,65 @@ gate the deterministic spine.
     home, and the developers' guide records when to carve a new corpus fixture
     plugin versus grow an existing one; every current corpus agreement suite
     stays green.
+
+### 7.8. Settle a harness-wide observability contract for the mutators
+
+This step answers whether the spine's mutators should emit a consistent
+structured operator log — beyond the human `messages` line each already
+returns — so the Ralph loop is observable when it runs unattended, or whether
+the JSON envelope alone is the agreed operability surface. Its outcome is one
+house-wide logging contract every mutator inherits, recorded once rather than
+bolted on per command. The current mutators (`set-cursor`, `advance-phase`,
+`recount`) emit only a human `messages` line with no structured operator log;
+this is a deferred operability-hardening extension surfaced by the review of
+step 2.3, and it does not gate the deterministic spine.
+
+- [ ] 7.8.1. Decide and document the structured-logging policy for the spine
+  mutators.
+  - Reroute (source: review:2.3.1; severity: low). `recount`, like
+    `set-cursor` and `advance-phase`, emits only a human `messages` line and no
+    structured operator log, so the Ralph loop has no consistent observability
+    surface beyond the JSON envelope. Make the house-wide decision once: adopt a
+    shared structured-logging approach across every mutator (a common log seam
+    the envelope helpers feed), or record the envelope as the agreed operability
+    surface with power-user logging explicitly out of scope — and capture it in
+    the developers' guide so later mutators inherit one contract rather than
+    accreting per-command logging.
+  - Requires 2.3.1.
+  - See novel-ralph-harness-design.md §3.1 and §3.2;
+    docs/adr-003-shared-interface-contract.md; docs/developers-guide.md.
+  - Success: the developers' guide states the mutator observability contract
+    explicitly, the existing mutators conform to whatever the contract decides,
+    and no later mutator re-litigates per-command logging.
+
+### 7.9. Centralise the shared tomlkit inline-table builder
+
+This step answers whether the `tomlkit` inline-table materialisation idiom —
+now hand-copied across the state writers and the corpus builder — can be
+collapsed onto a single state-package helper without disturbing the lossless
+round-trip the schema parser reads back, paralleling how the counting rule was
+centralised in `wordcount`. Its outcome is one home for the inline-table rule so
+a future change to the on-disk inline-table style is made once. This is a
+deferred maintainability-hardening extension surfaced by the audit of step 2.3;
+it does not advance the step-2.3 disk-re-derivation hypothesis (the inline
+tables already round-trip correctly) and it does not gate the deterministic
+spine.
+
+- [ ] 7.9.1. Collapse the duplicated `tomlkit` inline-table builders onto one
+  shared helper.
+  - Reroute (source: audit:2.3.1; severity: low). `recount`'s
+    `_inline_by_chapter` (`commands/_recount.py`) is the third copy of the same
+    inline-table idiom, alongside `_inline` in `state/initial.py` — whose
+    docstring already admits the drift — and `_inline` in the corpus builder
+    (`tests/working_corpus/_builder.py`). A single state-package helper consumed
+    by all three keeps the inline-table materialisation rule in one place,
+    mirroring how `wordcount` centralised the counting rule. This is
+    cross-cutting code hygiene, not the step-2.3 disk-re-derivation hypothesis
+    where it was raised, so it is deferred here.
+  - Requires 2.3.1.
+  - See novel-ralph-harness-design.md §5.3;
+    docs/adr-002-toml-round-trip-tomlkit.md.
+  - Success: one `tomlkit` inline-table helper lives in the state package and is
+    consumed by `recount`, `state/initial.py`, and the corpus builder; the
+    initial-document docstring no longer flags a hand-copied twin; and the
+    lossless round-trip and every current state and corpus test stay green.
