@@ -16,6 +16,7 @@ undecodable *file* raises :class:`RulePackFileError` (exit 3).
 from __future__ import annotations
 
 import re
+import types
 import typing as typ
 from pathlib import Path
 
@@ -290,3 +291,25 @@ def test_parse_rulepack_rejects_duplicate_ids_in_memory() -> None:
     with pytest.raises(RulePackError) as excinfo:
         parse_rulepack(raw)
     assert excinfo.value.rule_id == "tapestry"
+
+
+def test_parse_rulepack_accepts_an_abstract_mapping() -> None:
+    """The boundary honours its ``Mapping`` contract, not just a concrete ``dict``.
+
+    A :class:`types.MappingProxyType` wrapping a well-formed pack — a read-only
+    :class:`collections.abc.Mapping` that is *not* a ``dict`` — parses, proving
+    the guards match abstract shapes rather than the concrete types ``tomllib``
+    returns.
+    """
+    pack = parse_rulepack(types.MappingProxyType(_valid_mapping()))
+    assert pack.rules[0].id == "tapestry"
+
+
+def test_parse_rulepack_rejects_a_non_sequence_rule_value() -> None:
+    """A ``rule`` value that is not an array of tables is a pack-level fault."""
+    raw = _valid_mapping()
+    raw["rule"] = "not-an-array"
+    with pytest.raises(RulePackError) as excinfo:
+        parse_rulepack(raw)
+    assert excinfo.value.rule_id is None
+    assert any("array of tables" in message for message in excinfo.value.messages)

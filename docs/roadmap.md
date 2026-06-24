@@ -830,36 +830,36 @@ novel-ralph-harness-design.md §4.4, §6.1, and §1.
   - See novel-ralph-harness-design.md §6.1 and §10.
   - Success: a pack with an invalid regular expression fails loudly, naming the
     rule, rather than silently skipping it.
-  - [ ] 5.1.1.1. Document the on-disk rule-pack TOML format for pack authors.
+  - [x] 5.1.1.1. Document the on-disk rule-pack TOML format for pack authors.
     - Addendum (from audit:5.1.1; medium). Add a worked fenced TOML example to
       the developers' guide "Rule packs" section showing both bases and enumerate
       the v1 key vocabulary with the strict rules the loader enforces, so an
       author has a documented format to write against. Lightweight addendum pass.
-  - [ ] 5.1.1.2. Make `parse_rulepack`'s total exception surface explicit in its
+  - [x] 5.1.1.2. Make `parse_rulepack`'s total exception surface explicit in its
     docstring.
     - Addendum (from audit:5.1.1; low). State that `RulePackError` is the only
       exception the pure boundary raises and that file/decode faults belong to
       `load_rulepack` (`RulePackFileError`), pinning the contract task 5.1.2
       catches against. Lightweight addendum pass.
-  - [ ] 5.1.1.3. Route every per-rule diagnostic through the `_where(rule_id)`
+  - [x] 5.1.1.3. Route every per-rule diagnostic through the `_where(rule_id)`
     helper.
     - Addendum (from audit:5.1.1; low). Replace the six inline
       `f"rule {rule_id!r} …"` prefixes in the rule-specific helpers with
       `_where(rule_id)` so the rule-naming format has one home. Internal only;
       public behaviour unchanged. Lightweight addendum pass.
-  - [ ] 5.1.1.4. Reconcile `_entries`' concrete `list`/`dict` guard with the
+  - [x] 5.1.1.4. Reconcile `_entries`' concrete `list`/`dict` guard with the
     boundary's advertised `Mapping` input and pin it with a test.
     - Addendum (from audit:5.1.1; low). Pick one: tighten the documented contract
       to a `tomllib`-shaped mapping, or loosen the guards to the abstract shapes;
       then add the matching purity test for a non-`dict` mapping input so the
       contract is asserted rather than implied. Lightweight addendum pass.
-  - [ ] 5.1.1.5. Drop the redundant `str(...)` wrappers in the `RuleBasis`
+  - [x] 5.1.1.5. Drop the redundant `str(...)` wrappers in the `RuleBasis`
     diagnostic builders.
     - Addendum (from audit:5.1.1; low). `RuleBasis` is a `StrEnum`, so
       `repr(member)` and `basis!r` render identically; remove the defensive
       `str(...)` in `_resolve_basis` and `_resolve_page_words`. Cosmetic;
       behaviour unchanged. Lightweight addendum pass.
-  - [ ] 5.1.1.6. Split `rulepack/parse.py` to bring it under the 400-line file
+  - [x] 5.1.1.6. Split `rulepack/parse.py` to bring it under the 400-line file
     cap.
     - Addendum (from audit:1.3.5; low). `rulepack/parse.py` is 515 lines,
       breaching the AGENTS.md 400-line cap; extract the scalar-coercion helpers

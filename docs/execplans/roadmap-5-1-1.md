@@ -434,6 +434,19 @@ Thresholds that trigger escalation when breached.
   validating helpers out of `parse.py`) so 5.1.2 inherits a compliant module.
   Date/Author: 2026-06-23, fix agent.
 
+- Decision (addendum 5.1.1.5, 2026-06-24): the `str(...)` wrappers in the
+  `RuleBasis` diagnostic builders were **kept**, with a one-line `StrEnum` note
+  added at each site, rather than dropped. The audit's premise ("`repr(member)`
+  and `basis!r` render identically") does not hold on this Python: a `StrEnum`'s
+  `__repr__` is the Enum form (`<RuleBasis.PER_PAGE: 'per_page'>`), so dropping
+  `str(...)` would render that verbose form instead of the bare `'per_page'` a
+  pack author types — a regression in diagnostic readability, not a cosmetic
+  no-op. The sub-task's own text offers "add a one-line `StrEnum` note" as the
+  alternative; that path was taken. Verified empirically:
+  `repr(RuleBasis.PER_PAGE)` is `<RuleBasis.PER_PAGE: 'per_page'>` while
+  `repr(str(RuleBasis.PER_PAGE))` is `'per_page'`.
+  Date/Author: 2026-06-24, addendum agent.
+
 - Decision (mdformat churn, 2026-06-22): `make fmt` reflows every Markdown file
   in the tree (mdformat-all), not just touched files, so running it produces
   spurious churn across unrelated docs and re-wraps this ExecPlan. Per the
@@ -1132,7 +1145,7 @@ spanning `contract` and `rulepack`) was re-routed to roadmap step 1.3 (task
 already owned by roadmap task 7.1.1 and is dropped here. These five are the
 small fixes, doc gaps, and coverage only.
 
-- [ ] 5.1.1.1 — Document the on-disk rule-pack TOML format for pack authors
+- [x] 5.1.1.1 — Document the on-disk rule-pack TOML format for pack authors
   (from audit:5.1.1, medium). Add a worked fenced TOML example to the developers'
   guide "Rule packs" section showing both bases (a `manuscript` rule with
   `threshold = 0`, a `per_page` rule with `page_words`) and enumerate the v1 key
@@ -1140,18 +1153,18 @@ small fixes, doc gaps, and coverage only.
   `basis`/`page_words`) with the strict rules the loader enforces (`page_words`
   required iff `per_page`; ids unique; unknown keys rejected). Gate with
   `make markdownlint` and `make nixie`.
-- [ ] 5.1.1.2 — Make `parse_rulepack`'s total exception surface explicit (from
+- [x] 5.1.1.2 — Make `parse_rulepack`'s total exception surface explicit (from
   audit:5.1.1, low). Add one sentence to its `Raises`/`Notes` stating
   `RulePackError` is the only exception the pure boundary raises and that file
   and decode faults belong to `load_rulepack` (`RulePackFileError`), pinning the
   contract task 5.1.2 catches against. Gate with `interrogate` via `make all`.
-- [ ] 5.1.1.3 — Route every per-rule diagnostic through `_where(rule_id)` (from
+- [x] 5.1.1.3 — Route every per-rule diagnostic through `_where(rule_id)` (from
   audit:5.1.1, low). Replace the six inline `f"rule {rule_id!r} …"` prefixes in
   `_compile_pattern`, `_resolve_basis`, `_resolve_page_words`, `_rule`, and
   `_reject_duplicate_ids` with `_where(rule_id)`. Internal only; the public
   `error.rule_id` and existing substring assertions are unchanged. Gate with
   `make all`.
-- [ ] 5.1.1.4 — Reconcile `_entries`' concrete `list`/`dict` guard with the
+- [x] 5.1.1.4 — Reconcile `_entries`' concrete `list`/`dict` guard with the
   boundary's advertised `Mapping` input and pin it with a test (from audit:5.1.1,
   low; merges Findings 5 and 6). Pick one: tighten the documented contract to a
   `tomllib`-shaped mapping (arrays `list`, tables `dict`), or loosen the guards
@@ -1159,12 +1172,12 @@ small fixes, doc gaps, and coverage only.
   add the matching purity test — a `MappingProxyType` pack that loads, or a
   recognisable error on a non-`list` `rule` value — so the contract is asserted
   rather than implied. Gate with `pyright`/Ruff/`pytest` via `make all`.
-- [ ] 5.1.1.5 — Drop the redundant `str(...)` wrappers in the `RuleBasis`
+- [x] 5.1.1.5 — Drop the redundant `str(...)` wrappers in the `RuleBasis`
   diagnostic builders (from audit:5.1.1, low). `RuleBasis` is a `StrEnum`, so
   `repr(member)` and `basis!r` render identically; remove the `str(...)` in
   `_resolve_basis` and `_resolve_page_words` (or add a one-line `StrEnum` note).
   Cosmetic; the `unknown-basis` assertions are unchanged. Gate with `make all`.
-- [ ] 5.1.1.6 — Split `rulepack/parse.py` to bring it under the 400-line file
+- [x] 5.1.1.6 — Split `rulepack/parse.py` to bring it under the 400-line file
   cap (from audit:1.3.5, low; re-surfaced from audit:2.2.2 Finding 5).
   `novel_ralph_skill/rulepack/parse.py` is 515 lines, breaching the AGENTS.md
   400-line file cap. Extract the scalar-coercion helpers into a

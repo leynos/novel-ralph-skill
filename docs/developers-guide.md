@@ -577,6 +577,41 @@ allowed number of hits), and a counting `basis`; a `per_page` rule additionally
 carries a `page_words` page size. The typed, read-only model and its validating
 loader live in the `novel_ralph_skill.rulepack` package.
 
+A v1 pack is a TOML file carrying a top-level `schema_version` and `pack` name,
+followed by one or more `[[rule]]` tables. Each rule names an `id`, a
+regular-expression `pattern`, a non-negative `threshold`, and a `basis`; a
+`per_page` rule additionally carries a positive `page_words` page size. For
+example:
+
+```toml
+schema_version = 1
+pack = "ai-isms"
+
+# A manuscript-basis rule: zero hits tolerated across the whole manuscript.
+[[rule]]
+id = "tapestry"
+pattern = "\\btapestry\\b"
+threshold = 0
+basis = "manuscript"
+
+# A per-page-basis rule: up to five hits per 300-word page.
+[[rule]]
+id = "delve"
+pattern = "\\bdelve\\b"
+threshold = 5
+basis = "per_page"
+page_words = 300
+```
+
+The v1 key vocabulary is closed. The pack table accepts only `schema_version`,
+`pack`, and the `rule` array; each `[[rule]]` accepts only `id`, `pattern`,
+`threshold`, `basis`, and `page_words`. The loader enforces these rules
+strictly: `schema_version` must equal `1`; `page_words` is required for a
+`per_page` rule and rejected on any other basis; rule `id`s must be unique;
+`pattern` must compile; and any unknown key — a misspelled `thresold`, say —
+is rejected, naming the offending rule (or the pack level), rather than being
+silently ignored.
+
 `RuleBasis` is the closed two-member set of counting bases (`manuscript`,
 `per_page`); `Rule` and `RulePack` are frozen, slotted dataclasses, with each
 `Rule` carrying both the verbatim `pattern` (for reporting) and its compiled

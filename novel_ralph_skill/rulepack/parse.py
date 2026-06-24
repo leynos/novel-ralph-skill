@@ -27,10 +27,19 @@ the command body's job (task 5.1.2).
 
 from __future__ import annotations
 
+import collections.abc as cabc
 import re
 import tomllib
 import typing as typ
 
+from novel_ralph_skill.rulepack._coerce import (
+    _Mapping,
+    _reject_unknown_keys,
+    _require,
+    _require_int,
+    _require_str,
+    _where,
+)
 from novel_ralph_skill.rulepack.errors import RulePackError, RulePackFileError
 from novel_ralph_skill.rulepack.schema import (
     RULEPACK_SCHEMA_VERSION,
@@ -40,12 +49,7 @@ from novel_ralph_skill.rulepack.schema import (
 )
 
 if typ.TYPE_CHECKING:
-    import collections.abc as cabc
     from pathlib import Path
-
-# A decoded rule pack and each of its ``[[rule]]`` entries is a mapping; a single
-# alias documents that shape for the validating helpers below.
-type _Mapping = cabc.Mapping[str, object]
 
 # The complete v1 key vocabularies. An unknown key on either the pack table or a
 # rule entry is rejected (naming the offending level/rule) rather than silently
@@ -59,163 +63,6 @@ _RULE_KEYS: frozenset[str] = frozenset({
     "basis",
     "page_words",
 })
-
-
-def _where(rule_id: str | None) -> str:
-    """Return a message prefix naming the offending rule, or the pack level.
-
-    Every helper's error message starts with this so the message is
-    self-describing for the envelope task 5.1.2 builds — a per-rule fault names
-    the rule, a pack-level fault says so.
-
-    Parameters
-    ----------
-    rule_id : str | None
-        The offending rule's ``id``, or ``None`` for a pack-level fault.
-
-    Returns
-    -------
-    str
-        ``"rule '<id>'"`` for a per-rule fault, or ``"rule pack"`` otherwise.
-    """
-    return f"rule {rule_id!r}" if rule_id is not None else "rule pack"
-
-
-def _reject_unknown_keys(
-    mapping: _Mapping, allowed: frozenset[str], *, rule_id: str | None
-) -> None:
-    """Raise :class:`RulePackError` if ``mapping`` carries any key outside ``allowed``.
-
-    An unknown key is rejected rather than silently ignored so a misspelled
-    field (for example a rule carrying ``thresold`` or a pack carrying a stray
-    top-level ``extra``) fails loudly, naming the offending rule (or the pack
-    level). This is the strict loud-failure reading roadmap 5.1.1 demands.
-
-    Parameters
-    ----------
-    mapping : collections.abc.Mapping[str, object]
-        The decoded pack table or rule entry to inspect.
-    allowed : frozenset[str]
-        The complete set of known keys for this level.
-    rule_id : str | None
-        The offending rule's ``id``, or ``None`` for a pack-level fault.
-
-    Raises
-    ------
-    RulePackError
-        If ``mapping`` carries any key not in ``allowed``.
-    """
-    unknown = sorted(key for key in mapping if key not in allowed)
-    if unknown:
-        listed = ", ".join(repr(key) for key in unknown)
-        permitted = ", ".join(repr(key) for key in sorted(allowed))
-        msg = (
-            f"{_where(rule_id)} has unknown key(s) {listed}; "
-            f"allowed keys are {permitted}"
-        )
-        raise RulePackError(msg, rule_id=rule_id)
-
-
-def _require(mapping: _Mapping, key: str, *, rule_id: str | None) -> object:
-    """Return ``mapping[key]`` or raise :class:`RulePackError` naming the gap.
-
-    Used in place of ``mapping[key]`` so a missing field never surfaces as a raw
-    ``KeyError``; the raised error names ``key`` and the offending ``rule_id``.
-
-    Parameters
-    ----------
-    mapping : collections.abc.Mapping[str, object]
-        The decoded pack or rule entry to read.
-    key : str
-        The required key.
-    rule_id : str | None
-        The offending rule's ``id``, or ``None`` for a pack-level fault.
-
-    Returns
-    -------
-    object
-        The value at ``key``.
-
-    Raises
-    ------
-    RulePackError
-        If ``key`` is absent from ``mapping``.
-    """
-    if key not in mapping:
-        msg = f"{_where(rule_id)} is missing required key {key!r}"
-        raise RulePackError(msg, rule_id=rule_id)
-    return mapping[key]
-
-
-def _require_str(mapping: _Mapping, key: str, *, rule_id: str | None) -> str:
-    """Return ``mapping[key]`` as a ``str`` or raise naming the non-string field.
-
-    Parameters
-    ----------
-    mapping : collections.abc.Mapping[str, object]
-        The decoded pack or rule entry to read.
-    key : str
-        The required key.
-    rule_id : str | None
-        The offending rule's ``id``, or ``None`` for a pack-level fault.
-
-    Returns
-    -------
-    str
-        The string value at ``key``.
-
-    Raises
-    ------
-    RulePackError
-        If ``key`` is absent or its value is not a ``str``.
-    """
-    value = _require(mapping, key, rule_id=rule_id)
-    if not isinstance(value, str):
-        msg = (
-            f"{_where(rule_id)} key {key!r} must be a string, "
-            f"got {type(value).__name__}"
-        )
-        raise RulePackError(msg, rule_id=rule_id)
-    # The runtime guard above has already narrowed ``value`` to ``str``.
-    return value
-
-
-def _require_int(mapping: _Mapping, key: str, *, rule_id: str | None) -> int:
-    """Return ``mapping[key]`` as an ``int`` or raise naming the non-integer field.
-
-    Rejects ``bool`` explicitly: ``isinstance(True, int)`` is ``True`` in Python,
-    so a TOML ``true`` would otherwise be accepted as ``1``. A TOML float or
-    string for a numeric field raises rather than being coerced.
-
-    Parameters
-    ----------
-    mapping : collections.abc.Mapping[str, object]
-        The decoded pack or rule entry to read.
-    key : str
-        The required key.
-    rule_id : str | None
-        The offending rule's ``id``, or ``None`` for a pack-level fault.
-
-    Returns
-    -------
-    int
-        The integer value at ``key``.
-
-    Raises
-    ------
-    RulePackError
-        If ``key`` is absent, its value is a ``bool``, or its value is not an
-        ``int``.
-    """
-    value = _require(mapping, key, rule_id=rule_id)
-    if isinstance(value, bool) or not isinstance(value, int):
-        msg = (
-            f"{_where(rule_id)} key {key!r} must be an integer, "
-            f"got {type(value).__name__}"
-        )
-        raise RulePackError(msg, rule_id=rule_id)
-    # The runtime guard above has already narrowed ``value`` to ``int``.
-    return value
 
 
 def _entries(raw: _Mapping) -> cabc.Sequence[_Mapping]:
@@ -234,18 +81,27 @@ def _entries(raw: _Mapping) -> cabc.Sequence[_Mapping]:
     Raises
     ------
     RulePackError
-        If ``rule`` is absent, is not a list, is empty, or holds a non-mapping
-        entry. These are pack-level faults (``rule_id is None``).
+        If ``rule`` is absent, is not an array of tables, is empty, or holds a
+        non-mapping entry. These are pack-level faults (``rule_id is None``).
+
+    Notes
+    -----
+    The guards match the abstract shapes the boundary advertises — any
+    :class:`collections.abc.Sequence` that is not ``str``/``bytes`` for the
+    array, and any :class:`collections.abc.Mapping` for each entry — rather than
+    the concrete ``list``/``dict`` ``tomllib`` happens to return, so the boundary
+    honours the documented ``Mapping`` input contract (for example a
+    :class:`types.MappingProxyType`-wrapped pack loads).
     """
     value = _require(raw, "rule", rule_id=None)
-    if not isinstance(value, list):
+    if isinstance(value, (str, bytes)) or not isinstance(value, cabc.Sequence):
         msg = f"'rule' must be an array of tables, got {type(value).__name__}"
         raise RulePackError(msg, rule_id=None)
     if not value:
         msg = "'rule' array is empty; a pack must declare at least one rule"
         raise RulePackError(msg, rule_id=None)
     for index, entry in enumerate(value):
-        if not isinstance(entry, dict):
+        if not isinstance(entry, cabc.Mapping):
             msg = f"rule at index {index} must be a table, got {type(entry).__name__}"
             raise RulePackError(msg, rule_id=None)
     return typ.cast("cabc.Sequence[_Mapping]", value)
@@ -278,7 +134,7 @@ def _compile_pattern(pattern: str, *, rule_id: str) -> re.Pattern[str]:
     try:
         return re.compile(pattern)
     except re.error as exc:
-        msg = f"rule {rule_id!r} has an invalid pattern {pattern!r}: {exc}"
+        msg = f"{_where(rule_id)} has an invalid pattern {pattern!r}: {exc}"
         raise RulePackError(msg, rule_id=rule_id) from exc
 
 
@@ -305,8 +161,12 @@ def _resolve_basis(value: str, *, rule_id: str) -> RuleBasis:
     try:
         return RuleBasis(value)
     except ValueError as exc:
+        # ``str(member)`` is deliberate: ``RuleBasis`` is a ``StrEnum`` but its
+        # ``__repr__`` is the Enum form (``<RuleBasis.PER_PAGE: 'per_page'>``),
+        # not the string value, so ``str(member)`` renders the bare ``'per_page'``
+        # a pack author actually types.
         allowed = ", ".join(repr(str(member)) for member in RuleBasis)
-        msg = f"rule {rule_id!r} has unknown basis {value!r}; allowed: {allowed}"
+        msg = f"{_where(rule_id)} has unknown basis {value!r}; allowed: {allowed}"
         raise RulePackError(msg, rule_id=rule_id) from exc
 
 
@@ -343,12 +203,14 @@ def _resolve_page_words(
     if basis is RuleBasis.PER_PAGE:
         page_words = _require_int(entry, "page_words", rule_id=rule_id)
         if page_words <= 0:
-            msg = f"rule {rule_id!r} 'page_words' must be positive, got {page_words}"
+            msg = f"{_where(rule_id)} 'page_words' must be positive, got {page_words}"
             raise RulePackError(msg, rule_id=rule_id)
         return page_words
     if "page_words" in entry:
+        # ``str(basis)`` is deliberate: a ``StrEnum``'s ``__repr__`` is the Enum
+        # form, so ``str(basis)`` renders the bare ``'manuscript'`` value here.
         msg = (
-            f"rule {rule_id!r} carries 'page_words' but its basis is "
+            f"{_where(rule_id)} carries 'page_words' but its basis is "
             f"{str(basis)!r}; 'page_words' is only valid for 'per_page'"
         )
         raise RulePackError(msg, rule_id=rule_id)
@@ -390,7 +252,7 @@ def _rule(entry: _Mapping, *, index: int) -> Rule:
     pattern = _require_str(entry, "pattern", rule_id=rule_id)
     threshold = _require_int(entry, "threshold", rule_id=rule_id)
     if threshold < 0:
-        msg = f"rule {rule_id!r} 'threshold' must be non-negative, got {threshold}"
+        msg = f"{_where(rule_id)} 'threshold' must be non-negative, got {threshold}"
         raise RulePackError(msg, rule_id=rule_id)
     basis = _resolve_basis(
         _require_str(entry, "basis", rule_id=rule_id), rule_id=rule_id
@@ -428,7 +290,7 @@ def _reject_duplicate_ids(rules: cabc.Sequence[Rule]) -> None:
     seen: set[str] = set()
     for rule in rules:
         if rule.id in seen:
-            msg = f"rule {rule.id!r} is defined more than once; ids must be unique"
+            msg = f"{_where(rule.id)} is defined more than once; ids must be unique"
             raise RulePackError(msg, rule_id=rule.id)
         seen.add(rule.id)
 
@@ -460,6 +322,14 @@ def parse_rulepack(raw: cabc.Mapping[str, object]) -> RulePack:
         a malformed rule; if any rule field is missing, wrong-typed, or out of
         range; if the pack or any rule carries an unknown key; or if two rules
         share an ``id``.
+
+    Notes
+    -----
+    :class:`RulePackError` is the *only* exception this pure boundary raises:
+    every malformed-content fault is converted into it. File and decode faults
+    are not this function's concern — they belong to :func:`load_rulepack`, which
+    raises :class:`RulePackFileError`. Task 5.1.2 can therefore catch exactly
+    these two types and map each to its exit code.
     """
     _reject_unknown_keys(raw, _PACK_KEYS, rule_id=None)
     schema_version = _require_int(raw, "schema_version", rule_id=None)
