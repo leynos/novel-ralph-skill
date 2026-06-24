@@ -850,14 +850,14 @@ single whitespace-token counter) are cross-cutting hygiene that does not serve
 step 2.3's disk-re-derivation hypothesis, so they are re-routed to roadmap step
 7.14 rather than filed here.
 
-- [ ] 2.3.5.1 — Add a check/reconcile REFUSE assertion to case 1's divergent
+- [x] 2.3.5.1 — Add a check/reconcile REFUSE assertion to case 1's divergent
   `compiled.md` tree (from review:2.3.5, low). Case 1 documents in a comment that
   the same divergent `compiled.md` "would REFUSE under check/reconcile" but
   exercises only `recount` (which ignores it); case 3 covers the REFUSE on a
   different variant. Add the missing assertion (or reuse case 1's tree under
   `check`) so recount-ignores-it and check-refuses-it are proven on the *same*
   tree, closing the boundary loop. Gate with `make all`.
-- [ ] 2.3.5.2 — Harden the reconcile-path divergence guards against the
+- [x] 2.3.5.2 — Harden the reconcile-path divergence guards against the
   shared-oracle and shared-validator blind spots (from review:2.3.5, low). Two
   coupled residual weaknesses: case 2's recount==reconcile agreement test uses
   `recount_words` as both oracle and subject-under-guard, so it cannot detect a
@@ -870,7 +870,7 @@ step 2.3's disk-re-derivation hypothesis, so they are re-routed to roadmap step
   fixture so the reconcile guard is discriminating. Low priority; the current
   matrix already covers the realistic refactor surface and the limitation is
   documented in this plan. Gate with `make all`.
-- [ ] 2.3.5.3 — Move the D-TOKEN-EQUALITY rationale into the durable design doc
+- [x] 2.3.5.3 — Move the D-TOKEN-EQUALITY rationale into the durable design doc
   (from audit:2.3.5, low). The reason a `compiled.md` divergence can only come
   from non-whitespace content — so pinning `current` to the drafted sum loses no
   information — lives only in this ExecPlan and a test docstring, while design

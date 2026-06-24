@@ -289,7 +289,13 @@ All state mutation hides behind validated subcommands. Direct editing of
 aggregation over `working/manuscript/chapter-NN/draft.md` files, so the command
 owns it. `current` is exactly that drafted sum (`sum(by_chapter.values())`), so
 §5.2 invariant 3 holds by construction; the compiled token count is never a
-`current` source. `advance-phase` enforces the phase enum order, making the
+`current` source. Pinning `current` to the drafted sum loses no information,
+because for a byte-exact `compiled.md` the two counts are equal: the `"\n\n"`
+draft separator and any leading, trailing or interior whitespace never change a
+`str.split()` token count, so the compiled token count can diverge from the
+drafted sum only when `compiled.md` carries altered non-whitespace content — and
+that is precisely the `compiled-matches-drafts` finding, never a `current`
+source. `advance-phase` enforces the phase enum order, making the
 silent phase drift in the field report impossible; a skipping or out-of-order
 transition is refused with exit 3, not the benign code 1 (§3.2), so a rejected
 advance cannot be mistaken for progress. Advancing into `drafting` requires the
@@ -577,6 +583,11 @@ agent judgement:
    that is **not the byte-exact concatenation** of the present drafts is
    surfaced as the `compiled-matches-drafts` finding (reported by `check` with
    exit 4, refused by `reconcile`) and never redefines or recomputes `current`.
+   The byte-exact concatenation's token count equals the drafted sum — the
+   `"\n\n"` separator and any whitespace leave a `str.split()` count unchanged —
+   so this finding is the *only* way a compiled token count can diverge from the
+   drafted sum, and the drafted-sum rule therefore discards no count that disk
+   genuinely holds.
 2. **An uncleared `[pending_turn]`.** Completed (when every missing declared
    artefact is recomputable — `state.toml`/`log.md`) or rolled back (when an
    unrecoverable artefact, a `draft.md` or a `done.flag`, did not land),

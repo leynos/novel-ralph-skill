@@ -787,7 +787,7 @@ agent-improvised recovery routine. See novel-ralph-harness-design.md §4.1 and
     apply the same rule; and `state-layout.md`, design §5.4, and the 2.3.1
     D-CURRENT note agree on the `current` definition with no surviving
     contradiction.
-  - [ ] 2.3.5.1. Add a check/reconcile REFUSE assertion to case 1's divergent
+  - [x] 2.3.5.1. Add a check/reconcile REFUSE assertion to case 1's divergent
     `compiled.md` tree.
     - Addendum (from review:2.3.5; low). Case 1 only documents in a comment that
       the same divergent `compiled.md` "would REFUSE under check/reconcile" and
@@ -795,7 +795,7 @@ agent-improvised recovery routine. See novel-ralph-harness-design.md §4.1 and
       reuse case 1's tree under `check`) so recount-ignores and check-refuses are
       proven on the same tree, closing the boundary loop. Lightweight addendum
       pass.
-  - [ ] 2.3.5.2. Harden the reconcile-path divergence guards against the
+  - [x] 2.3.5.2. Harden the reconcile-path divergence guards against the
     shared-oracle and shared-validator blind spots.
     - Addendum (from review:2.3.5; low). Case 2's recount==reconcile agreement
       test uses `recount_words` as both oracle and subject, and the reconcile
@@ -805,7 +805,7 @@ agent-improvised recovery routine. See novel-ralph-harness-design.md §4.1 and
       pin `by_chapter` to the honest drafted sum independently of the `current`
       write for at least one fixture so the reconcile guard is discriminating.
       Lightweight addendum pass.
-  - [ ] 2.3.5.3. Move the D-TOKEN-EQUALITY rationale into the durable design doc.
+  - [x] 2.3.5.3. Move the D-TOKEN-EQUALITY rationale into the durable design doc.
     - Addendum (from audit:2.3.5; low). The reason a `compiled.md` divergence can
       only come from non-whitespace content — so pinning `current` to the drafted
       sum loses no information — lives only in the ExecPlan and a test docstring
