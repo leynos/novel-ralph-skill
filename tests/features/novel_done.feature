@@ -27,6 +27,12 @@ Feature: novel-done evaluates the six done clauses against disk
       | compile_consistent      |
       | no_unresolved_blockers  |
 
+  Scenario: a B1 finding resolved by a trailing token is declared done
+    Given a working tree whose first chapter has a "[resolved]" BLOCKER finding
+    When novel-done runs against that tree
+    Then novel-done exits 0
+    And the result reports "no_unresolved_blockers" true
+
   Scenario: a live B1 finding under BLOCKER keeps the predicate not done
     Given a working tree whose first chapter has a live "### B1" BLOCKER finding
     When novel-done runs against that tree

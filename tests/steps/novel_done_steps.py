@@ -124,6 +124,30 @@ def live_blocker_finding_tree(tmp_path: Path) -> _Outcome:
 
 
 @given(
+    'a working tree whose first chapter has a "[resolved]" BLOCKER finding',
+    target_fixture="outcome",
+)
+def resolved_blocker_tree(tmp_path: Path) -> _Outcome:
+    """Build the cap-reached resolution tree (the ``[resolved]`` exit-0 path).
+
+    The first chapter's ``critic-notes.md`` is a ``## BLOCKER`` section whose
+    ``### B1`` finding ends with the trailing space-then-``[resolved]`` token, so
+    the clause honours the resolution and the predicate exits ``0``
+    (``RESOLVED_BLOCKER_NOTE``; ``done-conditions.md`` cap-reached path; roadmap
+    3.1.5). The exit-0 direction is the one the harness loop terminates on, so
+    this end-to-end scenario pins it behaviourally (audit-3.1.5 Finding 2).
+
+    Returns
+    -------
+    _Outcome
+        The built ``working/`` path; the exit code is filled in by the run step.
+    """
+    return _Outcome(
+        working=wc.build_working_tree(wc.DONE_PREDICATE_RESOLVED_BLOCKER, tmp_path)
+    )
+
+
+@given(
     'a working tree whose first chapter quotes "[resolved]" mid-finding',
     target_fixture="outcome",
 )
@@ -235,3 +259,12 @@ def asserts_clause_false(clause: str, outcome: _Outcome) -> None:
     result = typ.cast("dict[str, object]", outcome.envelope["result"])
     key = _CLAUSE_FOR_FAILER.get(clause, clause)
     assert result[key] is False, f"expected {key!r} false, got {result}"
+
+
+@then(parsers.parse('the result reports "{clause}" true'))
+def asserts_clause_true(clause: str, outcome: _Outcome) -> None:
+    """Assert the envelope's ``result`` reports the named clause true."""
+    assert outcome.envelope is not None
+    result = typ.cast("dict[str, object]", outcome.envelope["result"])
+    key = _CLAUSE_FOR_FAILER.get(clause, clause)
+    assert result[key] is True, f"expected {key!r} true, got {result}"

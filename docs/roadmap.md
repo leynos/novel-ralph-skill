@@ -1058,7 +1058,7 @@ novel-ralph-harness-design.md §4.2 and §2.3.
     §1.3.2 corpus tree built from critic-personas-shaped output drives the clause
     both clean and dirty; an unresolved blocker in genuine critic output is
     reported (the clause stays false); and the done-predicate suite stays green.
-  - [ ] 3.1.5.1. Pin the decorated `## BLOCKER` heading false-clean direction with
+  - [x] 3.1.5.1. Pin the decorated `## BLOCKER` heading false-clean direction with
     an asserting-current-behaviour test.
     - Addendum (from review:3.1.5; low). The recogniser enters the section only
       on an exact `## BLOCKER` match, so a decorated heading
@@ -1067,7 +1067,7 @@ novel-ralph-harness-design.md §4.2 and §2.3.
       asserting-current-behaviour test so a future critic-prompt change emitting
       a decorated heading cannot silently re-open the exit-0 lie, mirroring how
       D-BLOCKER-CASE is pinned. Lightweight addendum pass.
-  - [ ] 3.1.5.2. Add an end-to-end novel-done scenario for the cap-reached
+  - [x] 3.1.5.2. Add an end-to-end novel-done scenario for the cap-reached
     `[resolved]` exit-0 path.
     - Addendum (from audit:3.1.5; low). The `[resolved]` token's purpose is the
       cap-reached resolution path, yet only a unit test covers it; the exit-0

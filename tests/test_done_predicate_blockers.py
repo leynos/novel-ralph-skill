@@ -178,6 +178,27 @@ def test_case_variant_token_stays_unresolved(tmp_path: Path) -> None:
         assert no_unresolved_blockers(state, working) is False
 
 
+def test_decorated_blocker_heading_is_clean(tmp_path: Path) -> None:
+    """A decorated ``## BLOCKER`` heading reads clean by design.
+
+    D-BLOCKER-FORMAT: the recogniser enters the section only on a line whose
+    stripped text equals ``## BLOCKER``, so a decorated heading such as
+    ``## BLOCKER (chapter 3)`` is not entered and a live ``### B1`` finding under
+    it does not fail the clause. This matches the producer contract
+    (``critic-personas.md``) but is single-sided, so — mirroring how
+    D-BLOCKER-CASE pins the case/variant limitation — this asserts the current
+    behaviour so a future critic-prompt change emitting a decorated heading
+    cannot silently re-open the exit-0 lie roadmap 3.1.5 closed (review:3.1.5).
+    """
+    state, working = _all_hold_tree(tmp_path)
+    first = min((working / "manuscript").glob("chapter-*"))
+    (first / "critic-notes.md").write_text(
+        "## BLOCKER (chapter 3)\n\n### B1 — the climax contradicts chapter 2\n",
+        encoding="utf-8",
+    )
+    assert no_unresolved_blockers(state, working) is True
+
+
 @settings(max_examples=200, deadline=None)
 @given(
     label=st.text(

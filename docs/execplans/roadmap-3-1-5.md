@@ -714,7 +714,7 @@ Lightweight post-merge corrections folded onto this completed task. Each runs as
 a no-plan, no-review addendum pass (roadmap sub-task under the `[x]` 3.1.5
 parent).
 
-- [ ] **Roadmap 3.1.5.1 — pin the decorated `## BLOCKER` heading false-clean
+- [x] **Roadmap 3.1.5.1 — pin the decorated `## BLOCKER` heading false-clean
   direction** (from review:3.1.5; severity low). The recogniser enters a section
   only on a line whose stripped text equals `## BLOCKER` (D-BLOCKER-FORMAT), so
   a decorated heading such as `## BLOCKER (chapter 3)` reads clean by design and
@@ -725,7 +725,7 @@ parent).
   mirroring how D-BLOCKER-CASE pins the case/variant limitation, so the limitation
   is explicit and tamper-evident. Test-only; no production change.
 
-- [ ] **Roadmap 3.1.5.2 — add an end-to-end novel-done scenario for the
+- [x] **Roadmap 3.1.5.2 — add an end-to-end novel-done scenario for the
   cap-reached `[resolved]` exit-0 path** (from audit:3.1.5; severity low). The
   `[resolved]` token's purpose is the cap-reached resolution path
   (`done-conditions.md:134-138`), yet only a unit test
