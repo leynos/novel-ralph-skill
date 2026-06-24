@@ -35,6 +35,11 @@ if typ.TYPE_CHECKING:
 
     from ._specs import WorkingTreeSpec
 
+# The decoded ``state.toml`` mapping, parsed once in :func:`corpus_check` and
+# threaded into the disk-evidence predicates so each reads the manifest and
+# ``[word_counts]`` tables from one parse rather than re-parsing (task 2.3.3.1).
+type State = dict[str, typ.Any]
+
 # The oracle's stable invariant-name vocabulary. Each string is the label
 # :func:`corpus_check` returns for the matching §5.2 / §5.4 violation; task
 # 2.1.2's validator keys its cross-check on these same strings.
@@ -108,16 +113,15 @@ def _check_completed_prefix(spec: WorkingTreeSpec) -> bool:
     return spec.phase_completed == expected
 
 
-def _check_by_chapter_sum(working_dir: Path) -> bool:
+def _check_by_chapter_sum(state: State) -> bool:
     """Return True when ``by_chapter`` sums to ``current`` on disk (invariant 3).
 
-    Reads the materialised ``state.toml`` and compares the sum of the written
-    ``[word_counts].by_chapter`` values against the written
-    ``[word_counts].current``. This is the genuine design §5.2 invariant 3 as it
-    appears on disk — exactly what task 2.1.2's validator will see — so a spec
-    with ``current_words_override`` set produces a real on-disk violation here.
+    Compares the sum of the materialised ``[word_counts].by_chapter`` values
+    against the written ``[word_counts].current``. This is the genuine design
+    §5.2 invariant 3 as it appears on disk — exactly what task 2.1.2's validator
+    will see — so a spec with ``current_words_override`` set produces a real
+    on-disk violation here.
     """
-    state = tomllib.loads((working_dir / "state.toml").read_text(encoding="utf-8"))
     word_counts = state["word_counts"]
     return sum(word_counts["by_chapter"].values()) == word_counts["current"]
 
@@ -167,15 +171,14 @@ def _on_disk_chapter_numbers(working_dir: Path) -> set[int]:
     return numbers
 
 
-def _check_manifest_disk_bijection(working_dir: Path) -> bool:
+def _check_manifest_disk_bijection(state: State, working_dir: Path) -> bool:
     """Return True when manifest entries and chapter dirs are in bijection (inv 5).
 
-    Reads the manifest from the materialised ``state.toml`` ``[chapters]`` array
-    and the on-disk side from a ``manuscript/chapter-*`` glob, then asserts the
-    two sets are equal and the manifest is contiguous from 1 with no gaps.
-    Disk-reading twin of production ``_check_manifest_disk_bijection``.
+    Reads the manifest from the parsed ``state.toml`` ``[chapters]`` array and the
+    on-disk side from a ``manuscript/chapter-*`` glob, then asserts the two sets
+    are equal and the manifest is contiguous from 1 with no gaps. Disk-reading
+    twin of production ``_check_manifest_disk_bijection``.
     """
-    state = tomllib.loads((working_dir / "state.toml").read_text(encoding="utf-8"))
     manifest = {chapter["number"] for chapter in state["chapters"]}
     if manifest != _on_disk_chapter_numbers(working_dir):
         return False
@@ -220,15 +223,14 @@ def _check_gate_ratio_consistent(spec: WorkingTreeSpec) -> bool:
     return all(flag == (ratio >= threshold) for flag, threshold in gates)
 
 
-def _check_done_flag_without_draft(working_dir: Path) -> bool:
+def _check_done_flag_without_draft(state: State, working_dir: Path) -> bool:
     """Return True when no ``done.flag`` sits beside an empty draft (§5.4).
 
-    For each manifest chapter (read from the materialised ``state.toml``), a
+    For each manifest chapter (read from the parsed ``state.toml``), a
     ``done.flag`` beside a ``draft.md`` whose whitespace-split token count is zero
     — or beside no ``draft.md`` at all — is a contradiction. Disk-reading twin of
     production ``_check_done_flag_without_draft`` (``disk_evidence.py``).
     """
-    state = tomllib.loads((working_dir / "state.toml").read_text(encoding="utf-8"))
     manuscript = working_dir / "manuscript"
     for chapter in state["chapters"]:
         chapter_dir = manuscript / chapter_dir_name(chapter["number"])
@@ -251,35 +253,32 @@ def _check_pending_turn_cleared(spec: WorkingTreeSpec) -> bool:
     return spec.pending_turn is None
 
 
-def _disk_drafts(working_dir: Path) -> list[tuple[int, str]]:
+def _disk_drafts(state: State, working_dir: Path) -> list[tuple[int, str]]:
     """Return ``(number, draft_text)`` per manifest chapter, in ascending order.
 
-    Reads the manifest from the materialised ``state.toml`` ``[chapters]`` array,
-    then each chapter's ``draft.md`` as UTF-8 (an absent draft contributing the
-    empty string). The shared read behind :func:`_disk_present_draft_bodies` and
+    Reads the manifest from the parsed ``state.toml`` ``[chapters]`` array, then
+    each chapter's ``draft.md`` as UTF-8 (an absent draft contributing the empty
+    string). The shared read behind :func:`_disk_present_draft_bodies` and
     :func:`_disk_by_chapter`, mirroring production ``recount_words``.
     """
-    state = tomllib.loads((working_dir / "state.toml").read_text(encoding="utf-8"))
     manuscript = working_dir / "manuscript"
     drafts: list[tuple[int, str]] = []
     for number in sorted(chapter["number"] for chapter in state["chapters"]):
         draft = manuscript / chapter_dir_name(number) / "draft.md"
-        drafts.append((
-            number,
-            draft.read_text(encoding="utf-8") if draft.exists() else "",
-        ))
+        text = draft.read_text(encoding="utf-8") if draft.exists() else ""
+        drafts.append((number, text))
     return drafts
 
 
-def _disk_present_draft_bodies(working_dir: Path) -> list[str]:
+def _disk_present_draft_bodies(state: State, working_dir: Path) -> list[str]:
     """Return present chapters' draft bodies via :func:`_disk_drafts`.
 
     Disk-reading twin of production ``_present_draft_bodies``.
     """
-    return [text for _number, text in _disk_drafts(working_dir)]
+    return [text for _number, text in _disk_drafts(state, working_dir)]
 
 
-def _check_compiled_matches_drafts(working_dir: Path) -> bool:
+def _check_compiled_matches_drafts(state: State, working_dir: Path) -> bool:
     """Return True when ``compiled.md`` is the concatenation of drafts (§4.3/§9).
 
     Recomputes the ordered :func:`concatenate_drafts` of the present drafts read
@@ -290,38 +289,35 @@ def _check_compiled_matches_drafts(working_dir: Path) -> bool:
     compiled_path = working_dir / "manuscript" / "compiled.md"
     if not compiled_path.exists():
         return True
-    expected = concatenate_drafts(_disk_present_draft_bodies(working_dir))
+    expected = concatenate_drafts(_disk_present_draft_bodies(state, working_dir))
     return compiled_path.read_text(encoding="utf-8") == expected
 
 
-def _disk_by_chapter(working_dir: Path) -> dict[str, int]:
+def _disk_by_chapter(state: State, working_dir: Path) -> dict[str, int]:
     """Return the per-chapter token counts read straight from the on-disk drafts.
 
     Reads each manifest chapter's ``draft.md`` from disk via :func:`_disk_drafts`
     (an absent draft counts ``0``) and takes its whitespace-split token count,
     keyed by the zero-padded two-digit string (production ``recount_words``).
     """
-    return {
-        f"{number:02d}": len(text.split()) for number, text in _disk_drafts(working_dir)
-    }
+    drafts = _disk_drafts(state, working_dir)
+    return {f"{number:02d}": len(text.split()) for number, text in drafts}
 
 
-def _check_word_counts_match_drafts(working_dir: Path) -> bool:
+def _check_word_counts_match_drafts(state: State, working_dir: Path) -> bool:
     """Return True when the ``[word_counts]`` table matches the on-disk drafts (§5.4).
 
     Recomputes the per-chapter token counts from disk via :func:`_disk_by_chapter`
     and compares the recomputed ``by_chapter`` mapping against the
-    ``[word_counts].by_chapter`` table read from the materialised ``state.toml``.
-    The comparison is over ``by_chapter`` **only**, never ``current`` —
-    ``current`` versus ``sum(by_chapter)`` is the orthogonal table-internal
-    ``by-chapter-sum`` check's concern (D-WORDCOUNT). Only the **shared** chapter
-    keys are compared, so a manifest-to-disk key mismatch (the
-    ``manifest-disk-bijection`` contradiction's concern) does not double-fire here.
-    Disk-reading twin of production ``_check_word_counts_match_drafts``.
+    ``[word_counts].by_chapter`` table from the parsed ``state.toml``. The
+    comparison is over ``by_chapter`` **only**, never ``current`` — ``current``
+    versus ``sum(by_chapter)`` is the orthogonal ``by-chapter-sum`` concern
+    (D-WORDCOUNT). Only the **shared** chapter keys are compared, so a
+    manifest-to-disk key mismatch (the ``manifest-disk-bijection`` concern) does
+    not double-fire here. Disk-reading twin of ``_check_word_counts_match_drafts``.
     """
-    state = tomllib.loads((working_dir / "state.toml").read_text(encoding="utf-8"))
     table = dict(state["word_counts"]["by_chapter"])
-    disk = _disk_by_chapter(working_dir)
+    disk = _disk_by_chapter(state, working_dir)
     shared = set(disk) & set(table)
     return all(disk[key] == table[key] for key in shared)
 
@@ -389,11 +385,15 @@ def corpus_check(spec: WorkingTreeSpec, working_dir: Path) -> tuple[str, ...]:
         The :data:`CORPUS_INVARIANT_NAMES` the tree violates, in vocabulary
         order.
     """
+    state_text = (working_dir / "state.toml").read_text(encoding="utf-8")
+    state: State = tomllib.loads(state_text)
     passed = {name: check(spec) for name, check in _SPEC_CHECKS}
-    passed[BY_CHAPTER_SUM] = _check_by_chapter_sum(working_dir)
-    passed[MANIFEST_DISK_BIJECTION] = _check_manifest_disk_bijection(working_dir)
-    passed[DONE_FLAG_WITHOUT_DRAFT] = _check_done_flag_without_draft(working_dir)
-    passed[COMPILED_MATCHES_DRAFTS] = _check_compiled_matches_drafts(working_dir)
+    passed[BY_CHAPTER_SUM] = _check_by_chapter_sum(state)
+    passed[MANIFEST_DISK_BIJECTION] = _check_manifest_disk_bijection(state, working_dir)
+    passed[DONE_FLAG_WITHOUT_DRAFT] = _check_done_flag_without_draft(state, working_dir)
+    passed[COMPILED_MATCHES_DRAFTS] = _check_compiled_matches_drafts(state, working_dir)
     passed[CURSOR_PLAN_PRESENT] = _check_cursor_plan_present(spec, working_dir)
-    passed[WORD_COUNTS_MATCH_DRAFTS] = _check_word_counts_match_drafts(working_dir)
+    passed[WORD_COUNTS_MATCH_DRAFTS] = _check_word_counts_match_drafts(
+        state, working_dir
+    )
     return tuple(name for name in CORPUS_INVARIANT_NAMES if not passed[name])

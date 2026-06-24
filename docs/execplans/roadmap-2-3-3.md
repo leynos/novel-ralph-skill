@@ -1250,7 +1250,7 @@ the open-coded `chapter-NN` directory-name production helper (audit:2.3.3, low)
 to roadmap step 7.10 (task 7.10.2, the chapter-draft-sourcing hypothesis); the two
 below are the small, localised follow-ups.
 
-- [ ] 2.3.3.1 — Consolidate the repeated per-predicate `state.toml` parse in the
+- [x] 2.3.3.1 — Consolidate the repeated per-predicate `state.toml` parse in the
   corpus oracle's disk-evidence checks into a single per-invocation read (from
   review:2.3.3, low). In `tests/working_corpus/_oracle.py` the disk-evidence
   predicates (`_check_by_chapter_sum`, `_check_manifest_disk_bijection`,
@@ -1263,7 +1263,7 @@ below are the small, localised follow-ups.
   no mirror. Keep every corpus agreement suite green. (If step 7.12's carve-out
   lands first, this is subsumed — the carve threads the single read as the
   predicates move; close this then.)
-- [ ] 2.3.3.2 — Document the disk-evidence disk-vs-disk twin discipline and
+- [x] 2.3.3.2 — Document the disk-evidence disk-vs-disk twin discipline and
   invariant 5's delivered status in the developers' guide (from audit:2.3.3,
   medium). After this task the corpus oracle reads disk for the §5.4 invariants,
   so its disk-evidence checks (`tests/working_corpus/_oracle.py`) are now

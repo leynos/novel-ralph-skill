@@ -349,8 +349,9 @@ the same shared-vocabulary discipline the pure-state names follow.
 
 The eight owned names map onto the design's seven §5.2 invariants (numbered by
 their order in the bullet list) as follows; invariant 4 splits into three
-sub-rules and invariant 5 is deferred, which is why the validator owns eight
-names but covers seven design invariants:
+sub-rules and invariant 5 is disk-evidence (owned by `check_disk_evidence`, not
+the pure-state validator), which is why the validator owns eight names but
+covers seven design invariants:
 
 | §5.2 invariant                     | Owned name(s) / status                                                                                   |
 | ---------------------------------- | -------------------------------------------------------------------------------------------------------- |
@@ -358,7 +359,7 @@ names but covers seven design invariants:
 | 2 (completed is enum prefix)       | `completed-prefix`                                                                                       |
 | 3 (`by_chapter` sums to `current`) | `by-chapter-sum`                                                                                         |
 | 4 (`consecutive_clean` bounds)     | `consecutive-clean-within-target`, `convergence-target-at-least-one`, `consecutive-clean-within-drafted` |
-| 5 (manifest-disk bijection)        | `manifest-disk-bijection` — deferred to task 2.3.2 (disk evidence)                                       |
+| 5 (manifest-disk bijection)        | `manifest-disk-bijection` — disk-evidence, delivered by tasks 2.3.2/2.3.3 (`check_disk_evidence`)        |
 | 6 (cursor coherent)                | `cursor-coherent`                                                                                        |
 | 7 (gate ratio consistent)          | `gate-ratio-consistent`                                                                                  |
 
@@ -432,6 +433,23 @@ its own copy of the rule. The two are pinned to agree on every corpus tree by
 editing either predicate keeps that contract test as the safety net, and each
 module carries a reciprocal cross-reference comment pointing at its twin. Do
 not de-duplicate the twins — collapsing them would defeat the cross-check.
+
+The corpus oracle's **disk-evidence** predicates follow the same twin
+discipline, but against a different production module. After tasks 2.3.2/2.3.3
+the oracle reads the materialised `working/` tree for all six §5.4 disk-evidence
+invariants (`manifest-disk-bijection`, `done-flag-without-draft`,
+`compiled-matches-drafts`, `pending-turn-cleared`, `cursor-plan-present`, and
+`word-counts-match-drafts`), so these checks are **disk-vs-disk** twins of
+production `check_disk_evidence` (`novel_ralph_skill/state/disk_evidence.py`) —
+both sides glob `manuscript/chapter-*` and read each `draft.md` from disk — not
+twins of the pure-state `validate_state` the section above describes. The two
+disk-reading sides are pinned to agree on every corpus tree by
+`tests/test_novel_state_check_disk.py::test_union_detector_agrees_with_corpus_oracle`
+and `tests/test_disk_evidence.py::test_word_counts_twin_equals_corpus_oracle`,
+and the production tuple `DISK_EVIDENCE_INVARIANT_NAMES` is pinned equal to the
+oracle's disk-evidence subset (above). The independence rule is identical: the
+oracle reimplements the disk read rather than importing the production detector,
+so the cross-check stays genuine.
 
 `novel-state check` is the first command to drive the shared `run` path: its
 entry point pre-parses the single `--human` flag off argv before `run` (so the

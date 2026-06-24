@@ -675,7 +675,7 @@ agent-improvised recovery routine. See novel-ralph-harness-design.md §4.1 and
     compiled checks read the materialised `working_dir`, and a tree whose
     `state.toml` claims agree with disk but whose disk evidence diverges is
     flagged by the oracle from disk alone.
-  - [ ] 2.3.3.1. Consolidate the repeated per-predicate `state.toml` parse in
+  - [x] 2.3.3.1. Consolidate the repeated per-predicate `state.toml` parse in
     the corpus oracle's disk-evidence checks into a single per-invocation read.
     - Addendum (from review:2.3.3; low). The disk-evidence predicates in
       `tests/working_corpus/_oracle.py` (`by-chapter-sum`, `manifest-disk-
@@ -685,7 +685,7 @@ agent-improvised recovery routine. See novel-ralph-harness-design.md §4.1 and
       and pass the decoded tables into the helpers. The production
       `disk_evidence.py` twin already takes a parsed `State` and needs no
       mirror. Lightweight addendum pass.
-  - [ ] 2.3.3.2. Document the disk-evidence disk-vs-disk twin discipline and
+  - [x] 2.3.3.2. Document the disk-evidence disk-vs-disk twin discipline and
     invariant 5's delivered status in the developers' guide.
     - Addendum (from audit:2.3.3; medium). After 2.3.3 the corpus oracle reads
       disk for the §5.4 invariants, so its disk-evidence checks are now
