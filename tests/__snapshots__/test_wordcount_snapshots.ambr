@@ -1,0 +1,40 @@
+# serializer version: 1
+# name: test_representative_tree_envelope_snapshot
+  dict({
+    'command': 'wordcount',
+    'messages': list([
+      'drafted 7000 of 20000 words (35.0% of target); next knitting gate at 50% (3000 words to go)',
+    ]),
+    'ok': True,
+    'result': dict({
+      'chapters': list([
+        dict({
+          'delta_against_target': -6000,
+          'number': 1,
+          'percent_of_chapter_target': 40.0,
+          'target_words': 10000,
+          'words': 4000,
+        }),
+        dict({
+          'delta_against_target': -7000,
+          'number': 2,
+          'percent_of_chapter_target': 30.0,
+          'target_words': 10000,
+          'words': 3000,
+        }),
+      ]),
+      'cumulative': dict({
+        'current': 7000,
+        'gate_triggered_30': True,
+        'gate_triggered_50': False,
+        'gate_triggered_80': False,
+        'next_gate_distance': 3000,
+        'next_gate_threshold': 0.5,
+        'percent_of_target': 35.0,
+        'target': 20000,
+      }),
+    }),
+    'schema_version': 1,
+    'working_dir': 'working',
+  })
+# ---

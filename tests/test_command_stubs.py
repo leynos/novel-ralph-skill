@@ -17,34 +17,50 @@ import pytest
 
 from novel_ralph_skill.commands import stub
 from novel_ralph_skill.commands.names import COMMAND_ENTRY_POINTS, COMMAND_NAMES
+from novel_ralph_skill.contract.exit_codes import ExitCode
 
 if typ.TYPE_CHECKING:
     import collections.abc as cabc
+    from pathlib import Path
 
-# ``novel-state`` is excluded: its entry point now drives the real app, which
-# resolves ``./working/state.toml`` and exits ``3`` (state error) when no
-# ``working/`` is present, not the stub's ``2`` (Decision Log B6). The
-# still-stubbed entry points keep the exit-``2`` contract; the real
-# ``novel-state`` callable is driven only by ``tests/test_novel_state_check.py``,
-# always under an explicit ``monkeypatch.chdir`` (advisory A6).
-# ``desloppify`` now drives its real app too (roadmap task 5.1.2): it resolves
-# ``./working/`` and exits per its own contract, not the stub's ``2``. It is
-# covered by ``tests/test_desloppify_command.py``. ``novel-compile`` (roadmap task
-# 4.1.1) likewise drives a real app and is covered by ``tests/test_compile_e2e.py``.
-# ``novel-done`` joins them (roadmap task 3.1.1): its entry point drives the real
-# done-predicate app and is covered by ``tests/test_novel_done_command.py``. The one
-# remaining script (``wordcount``) keeps the exit-``2`` stub contract here.
+# As of roadmap task 6.1.1 **all five** entry points drive their real Cyclopts
+# apps: each resolves ``./working/state.toml`` and exits ``3`` (state error) when
+# no ``working/`` is present, not the stub's ``2`` (Decision Log B6, D-TRIPWIRE).
+# ``wordcount`` is the last promotion (task 6.1.1), joining ``novel-state``
+# (2.1.2), ``desloppify`` (5.1.2), ``novel-compile`` (4.1.1), and ``novel-done``
+# (3.1.1). Each command's own behaviour is pinned by its dedicated suite
+# (``tests/test_novel_state_check.py``, ``tests/test_desloppify_command.py``,
+# ``tests/test_compile_e2e.py``, ``tests/test_novel_done_command.py``,
+# ``tests/test_wordcount_command.py``); ``test_entry_point_callable_drives_real_app``
+# below asserts the shared property that every entry point is real.
 _REAL_COMMANDS: frozenset[str] = frozenset({
     "novel-state",
     "desloppify",
     "novel-compile",
     "novel-done",
+    "wordcount",
 })
-STILL_STUBBED_ENTRY_POINTS: tuple[tuple[str, cabc.Callable[[], None]], ...] = tuple(
-    (name, getattr(stub, func))
-    for name, func in COMMAND_ENTRY_POINTS.items()
-    if name not in _REAL_COMMANDS
+# Promoting ``wordcount`` makes ``_REAL_COMMANDS`` cover every registered name,
+# so no entry point remains stubbed. The dual assertion lives in
+# ``test_entry_point_callable_drives_real_app`` below, parametrized over **all**
+# entry points and guarded by ``assert COMMAND_ENTRY_POINTS`` so the parametrize
+# set can never silently empty (Decision Log D-TRIPWIRE). The ``_REAL_COMMANDS``
+# set is retained as the documented expectation that every command is real; a
+# future regression that demoted one would drop it from the set and the
+# all-real assertion would fire.
+assert COMMAND_ENTRY_POINTS, "the command registry must not be empty"
+assert set(COMMAND_NAMES) <= _REAL_COMMANDS, "every command must be a real app"
+ALL_ENTRY_POINTS: tuple[tuple[str, cabc.Callable[[], None]], ...] = tuple(
+    (name, getattr(stub, func)) for name, func in COMMAND_ENTRY_POINTS.items()
 )
+
+# ``novel-state`` is a command-group app: a bare invocation with no subcommand
+# prints help and exits 0, so it only resolves ``./working/state.toml`` (and
+# reaches the exit-3 state-error path on an absent tree) when given a read-only
+# subcommand. The other four commands carry a default body, so a bare invocation
+# already drives their real path. This map supplies the extra argv token each
+# command needs to reach its state-resolving path under an absent ``working/``.
+_REAL_PATH_ARGV: dict[str, list[str]] = {"novel-state": ["check"]}
 
 
 @pytest.mark.parametrize("name", COMMAND_NAMES)
@@ -88,23 +104,42 @@ def test_meta_flags_exit_zero(name: str, flag: str) -> None:
     assert excinfo.value.code == 0
 
 
-@pytest.mark.filterwarnings(
-    "ignore:Cyclopts application invoked without tokens:UserWarning"
+@pytest.mark.parametrize(
+    "entry", ALL_ENTRY_POINTS, ids=[name for name, _ in ALL_ENTRY_POINTS]
 )
-@pytest.mark.parametrize(("name", "entry_point"), STILL_STUBBED_ENTRY_POINTS)
-def test_entry_point_callable_exits_two(
-    name: str,
-    entry_point: cabc.Callable[[], None],
+def test_entry_point_callable_drives_real_app(
+    entry: tuple[str, cabc.Callable[[], None]],
     capsys: pytest.CaptureFixture[str],
     monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
 ) -> None:
-    """Each still-stubbed console-script callable runs its app and exits ``2``."""
-    # The callable runs ``app()``, which parses ``sys.argv``; pin a clean,
-    # no-argument argv so the bare command-result path is exercised.
-    monkeypatch.setattr(sys, "argv", [name])
+    """Every console-script callable drives a real app, not the stub (D-TRIPWIRE).
+
+    ``wordcount`` was the last stub (roadmap task 6.1.1); promoting it empties the
+    old "still-stubbed" set, so the previous "still-stubbed exits 2" parametrize
+    would collect zero items and silently skip. This replacement asserts the dual:
+    under a clean argv and a cwd with no ``working/``, each real callable resolves
+    ``./working/state.toml``, finds it absent, and raises the exit-``3`` state-error
+    path — never the stub's ``2``, never a stub greeting on stderr. This is the
+    same real-callable behaviour ``tests/test_novel_state_check.py`` already pins
+    for ``novel-state`` under an explicit ``chdir``.
+    """
+    name, entry_point = entry
+    # An argv that reaches the command's state-resolving path (a read-only
+    # subcommand for the ``novel-state`` command group, bare otherwise); chdir
+    # into an empty tmp dir so ``./working/`` is absent and the real app takes its
+    # state-error route rather than a stub message.
+    monkeypatch.setattr(sys, "argv", [name, *_REAL_PATH_ARGV.get(name, [])])
+    monkeypatch.chdir(tmp_path)
     with pytest.raises(SystemExit) as excinfo:
         entry_point()
-    assert excinfo.value.code == stub.STUB_EXIT_CODE
+    assert excinfo.value.code == ExitCode.STATE_ERROR, (
+        f"{name} must take the real exit-3 state-error path, got {excinfo.value.code}"
+    )
     captured = capsys.readouterr()
-    assert name in captured.err
+    assert "not yet implemented" not in captured.err, (
+        f"{name} must not emit a stub greeting"
+    )
     assert "Traceback" not in captured.err
+    # The real apps emit their JSON envelope on stdout, never the stub's stderr.
+    assert "not yet implemented" not in captured.out

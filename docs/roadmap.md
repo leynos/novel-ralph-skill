@@ -1262,7 +1262,7 @@ This step answers whether progress and gate proximity can be derived purely
 from disk. Its outcome retires the last hand-computed determinism in the field
 report. See novel-ralph-harness-design.md §4.5.
 
-- [ ] 6.1.1. Implement `wordcount` reporting and gate-trigger derivation.
+- [x] 6.1.1. Implement `wordcount` reporting and gate-trigger derivation.
   - Requires phase 2.
   - Report per chapter and cumulatively: words, percentage of target, distance
     to the next knitting gate, and delta against the chapter target, deriving

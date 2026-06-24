@@ -1,13 +1,15 @@
 """Console-script entry points for the deterministic spine.
 
 The five console-scripts (``novel-state``, ``novel-done``, ``novel-compile``,
-``desloppify``, ``wordcount``) are wired here. ``novel-state`` (task 2.1.2),
-``desloppify`` (task 5.1.2), ``novel-compile`` (task 4.1.1), and ``novel-done``
-(task 3.1.1) drive their real Cyclopts apps through the shared
-:func:`~novel_ralph_skill.contract.runner.run` wrapper; only ``wordcount``
-remains a stub that reports "not yet implemented" and exits ``2`` until its
-slice lands. The shared :func:`make_stub_app` factory keeps the remaining stub
-definition consistent with the live apps so it cannot drift.
+``desloppify``, ``wordcount``) are wired here. As of roadmap task 6.1.1 **all
+five** drive their real Cyclopts apps through the shared
+:func:`~novel_ralph_skill.contract.runner.run` wrapper: ``novel-state``
+(task 2.1.2), ``desloppify`` (task 5.1.2), ``novel-compile`` (task 4.1.1),
+``novel-done`` (task 3.1.1), and now ``wordcount`` (task 6.1.1). No entry point
+remains a stub. The shared :func:`make_stub_app` factory is retained for the
+unit tests that pin the stub-result exit-code contract (the factory itself stays
+covered even though no live entry point uses it), so the stub vocabulary cannot
+silently drift.
 """
 
 from __future__ import annotations
@@ -133,5 +135,7 @@ def desloppify() -> None:
 
 
 def wordcount() -> None:
-    """Console-script entry point for ``wordcount`` (stub; exits ``2``)."""
-    make_stub_app(_NAME_FOR["wordcount"])()
+    """Console-script entry point for ``wordcount`` (drives via :func:`_drive`)."""
+    from novel_ralph_skill.commands import _wordcount
+
+    _drive(_NAME_FOR["wordcount"], _wordcount.build_app)

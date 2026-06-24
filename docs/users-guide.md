@@ -84,10 +84,24 @@ Installing a wheel built from this package puts five console-scripts onto
 - `desloppify` — report prose tics.
 - `wordcount` — report per-chapter and cumulative word counts.
 
-`wordcount` is still a **stub**: running it prints
-"`wordcount` is not yet implemented" to standard error and exits with code `2`.
-It will be filled in by a later release. `novel-done` (see below) and
-`novel-compile` now drive their real checkers.
+`wordcount` reports per-chapter and cumulative word counts (roadmap task 6.1.1).
+It is **read-only**: it reads the chapter drafts and `state.toml`, derives the
+report, and writes nothing on any path. The report carries, per chapter, the
+drafted words, the percentage of the chapter target, and the delta against that
+target; and cumulatively, the drafted total, the percentage of the novel target,
+which of the 30%, 50%, and 80% knitting-gate triggers the drafted ratio has
+reached, and the distance in words to the next gate. Past the final (80%) gate
+the next-gate threshold and distance are reported as `null` rather than a
+negative number. The triggers are *derived* from the drafted ratio; they are
+distinct from the recorded `[gates.knitting]` flags, which also record that the
+knitting pass was integrated. `wordcount` derives the geometry from the drafts
+and never reads, claims, or rewrites the recorded gate flags.
+
+In v1 `wordcount` takes no per-chapter flag; the report always covers the whole
+manuscript with per-chapter detail. It exits `0` on a report and `3` on a state
+or input fault — a missing or unparseable `state.toml`, an absent `working/`, or
+an unreadable or undecodable draft. An unknown `--option` is the shared exit-`2`
+usage channel. All five console-scripts now drive their real checkers.
 
 `novel-compile` regenerates `working/manuscript/compiled.md` by concatenating the
 chapter drafts in zero-padded chapter-index order (`chapter-01/draft.md`,
