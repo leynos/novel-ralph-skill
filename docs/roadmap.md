@@ -975,7 +975,7 @@ novel-ralph-harness-design.md §4.2 and §2.3.
     clause consume it (each supplying its own absent-file polarity); no third
     independent re-implementation survives; and the done-predicate and
     disk-evidence suites stay green.
-- [ ] 3.1.4. Anchor the unresolved-BLOCKER resolution rule positionally and
+- [x] 3.1.4. Anchor the unresolved-BLOCKER resolution rule positionally and
   cover the false-clean direction.
   - Step-task (source: review:3.1.1 / audit:3.1.1; severity: low). The
     `no_unresolved_blockers` clause clears a blocker whenever the literal

@@ -33,6 +33,7 @@ from novel_ralph_skill.state.compile_model import (
     present_draft_bodies,
 )
 from novel_ralph_skill.state.done_predicate import (
+    _RESOLVED_TOKEN,
     DoneClauses,
     all_chapters_flagged,
     compile_consistent,
@@ -256,6 +257,68 @@ def test_resolved_blocker_is_clean(tmp_path: Path) -> None:
         "BLOCKER the climax contradicts chapter 2 [resolved]\n", encoding="utf-8"
     )
     assert no_unresolved_blockers(state, working) is True
+
+
+def test_incidental_resolved_mention_stays_unresolved(tmp_path: Path) -> None:
+    """A live BLOCKER quoting ``[resolved]`` mid-line stays unresolved.
+
+    The resolution marker is positional (ExecPlan D-BLOCKER-POSITIONAL): a
+    ``[resolved]`` token that is not the trailing marker — here, prose that
+    incidentally quotes it — does not clear the blocker. This pins the
+    false-clean direction (audit-3.1.1 Finding 3): the substring rule wrongly
+    reported this tree done.
+    """
+    state, working = _all_hold_tree(tmp_path)
+    first = min((working / "manuscript").glob("chapter-*"))
+    (first / "critic-notes.md").write_text(
+        "BLOCKER the ending still depends on the [resolved] issue in chapter 2\n",
+        encoding="utf-8",
+    )
+    assert no_unresolved_blockers(state, working) is False
+
+
+@settings(
+    max_examples=50,
+    deadline=None,
+    suppress_health_check=[HealthCheck.function_scoped_fixture],
+)
+@given(
+    prefix=st.text(
+        alphabet=st.characters(
+            min_codepoint=0x20, max_codepoint=0x7E, exclude_characters="[]\n"
+        ),
+        max_size=40,
+    ),
+    suffix=st.text(
+        alphabet=st.characters(
+            min_codepoint=0x20, max_codepoint=0x7E, exclude_characters="[]\n"
+        ),
+        max_size=40,
+    ),
+)
+def test_blocker_resolution_is_positional(prefix: str, suffix: str) -> None:
+    """The token's *position* decides resolution; its presence does not.
+
+    Hypothesis is the right adversary here (``python-verification``): a
+    positional invariant over generated BLOCKER lines (ExecPlan
+    D-BLOCKER-POSITIONAL). The alphabet excludes ``[``, ``]`` and newlines so
+    neither field can introduce a spurious ``[resolved]`` token or split the
+    line; the false-case line ends in a fixed non-space sentinel so, after
+    ``.strip()``, the mid-line token is provably not the trailing marker
+    regardless of whether ``suffix`` is empty or whitespace-only (round-1
+    advisory A1).
+    """
+    with tempfile.TemporaryDirectory() as raw:
+        state, working = _all_hold_tree(Path(raw))
+        notes = min((working / "manuscript").glob("chapter-*")) / "critic-notes.md"
+        # Token strictly mid-line: stays unresolved (clause is False).
+        notes.write_text(
+            f"BLOCKER {prefix} {_RESOLVED_TOKEN} {suffix}X\n", encoding="utf-8"
+        )
+        assert no_unresolved_blockers(state, working) is False
+        # Token trailing: clears (clause is True).
+        notes.write_text(f"BLOCKER {prefix} {_RESOLVED_TOKEN}\n", encoding="utf-8")
+        assert no_unresolved_blockers(state, working) is True
 
 
 def test_undecodable_critic_notes_propagates(tmp_path: Path) -> None:

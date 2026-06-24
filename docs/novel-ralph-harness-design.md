@@ -315,7 +315,11 @@ and comments. The mechanism is open question Q1, resolved in §5.3.
 > present-but-stale compile is caught and a sole stale-present compile exits 4.
 > The cross-detector unification of this clause with the §5.4
 > `compiled-matches-drafts` detector (one shared `compiled_matches_drafts` helper)
-> lands with roadmap task 3.1.3.
+> lands with roadmap task 3.1.3. Roadmap task 3.1.4 tightened
+> `no_unresolved_blockers` to a positional resolution marker — a BLOCKER line is
+> resolved only when its stripped text *ends with* the `[resolved]` token, so an
+> incidental mid-line mention no longer clears it — and pinned the false-clean
+> direction with a §1.3.2 corpus near-miss.
 
 `novel-done` is the done predicate as code, replacing the pseudocode in
 `done-conditions.md` and the ad-hoc shell the field report describes. It

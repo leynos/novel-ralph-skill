@@ -569,11 +569,18 @@ the manifest⇄directory bijection), recorded so a later docs pass can reconcile
 `done-conditions.md` to the manifest source.
 
 **The BLOCKER format.** An unresolved BLOCKER is a `critic-notes.md` line whose
-stripped text starts with `BLOCKER` (case-sensitive) and does *not* contain the
-literal substring `[resolved]`. An absent `critic-notes.md` is clean. The rule is
-acknowledged brittle (a prose mention of `[resolved]`, or `RESOLVED`, would
-mis-classify); the corpus pins the edge with a near-miss spec whose body mentions
-resolution in prose yet stays an unresolved blocker.
+stripped text starts with `BLOCKER` (case-sensitive) and does *not end with* the
+literal `[resolved]` token. The token is a trailing marker the loop appends when
+it closes a blocker, so its *position* carries the meaning: an incidental
+mid-line quotation (for example `BLOCKER the ending still depends on the
+[resolved] issue`) no longer clears the blocker (roadmap 3.1.4 anchored the rule
+positionally; design §4.2; audit-3.1.1 Finding 3). An absent `critic-notes.md`
+is clean. The rule has documented limitations in *both* directions: a prose
+mention without the token stays unresolved (the false-dirty near-miss the corpus
+already pins), and case or alternative-spelling variants (`RESOLVED`,
+`(resolved)`) are still mis-classified (out of scope per D-BLOCKER-SCOPE). The
+corpus pins both BLOCKER edges — the false-dirty near-miss and the false-clean
+incidental mid-line mention — each a live blocker that stays unresolved.
 
 **`compile_consistent` is the full content comparison (roadmap 3.1.2).** The
 clause is the single function `compile_consistent(state, working_dir)`: an absent

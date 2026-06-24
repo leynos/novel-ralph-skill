@@ -99,6 +99,31 @@ def single_failer_tree(clause: str, tmp_path: Path) -> _Outcome:
 
 
 @given(
+    'a working tree whose first chapter quotes "[resolved]" mid-BLOCKER',
+    target_fixture="outcome",
+)
+def incidental_resolved_blocker_tree(tmp_path: Path) -> _Outcome:
+    """Build the incidental-resolution tree (the false-clean BLOCKER near-miss).
+
+    The first chapter's ``critic-notes.md`` holds a live BLOCKER that quotes
+    ``[resolved]`` mid-line, not as the trailing marker, so the positional rule
+    keeps it unresolved (D-BLOCKER-POSITIONAL; audit-3.1.1 Finding 3). This is a
+    deliberate twin of the ``no_unresolved_blockers`` failer, not a new member of
+    ``DONE_PREDICATE_FAILERS``.
+
+    Returns
+    -------
+    _Outcome
+        The built ``working/`` path; the exit code is filled in by the run step.
+    """
+    return _Outcome(
+        working=wc.build_working_tree(
+            wc.DONE_PREDICATE_INCIDENTAL_RESOLVED_BLOCKER, tmp_path
+        )
+    )
+
+
+@given(
     "an otherwise-complete working tree whose compiled.md is stale",
     target_fixture="outcome",
 )

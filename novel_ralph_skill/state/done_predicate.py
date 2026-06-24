@@ -61,11 +61,13 @@ if typ.TYPE_CHECKING:
 # cannot drift (``done-conditions.md`` lines 164-170; design §5.2 invariant 7).
 KNITTING_PERCENTAGES: typ.Final[tuple[int, int, int]] = (30, 50, 80)
 
-# The literal token marking a BLOCKER line resolved (ExecPlan D-BLOCKER). A
-# ``critic-notes.md`` line whose stripped text starts with ``BLOCKER`` and does
-# not contain this substring is an unresolved blocker. The token is the
-# reference's spelling; the corpus pins the substring rule's edge with a
-# near-miss spec.
+# The literal token marking a BLOCKER line resolved (ExecPlan
+# D-BLOCKER-POSITIONAL). A ``critic-notes.md`` line whose stripped text starts
+# with ``BLOCKER`` and does not *end with* this token is an unresolved blocker:
+# the token is a trailing marker the loop appends when it closes a blocker, so
+# an incidental mid-line quotation of it does not clear the blocker. The token
+# is the reference's spelling; the corpus pins both the trailing-marker edge
+# (a resolved spec) and the false-clean edge (an incidental near-miss spec).
 _BLOCKER_PREFIX: typ.Final = "BLOCKER"
 # why: the token spells a resolution marker, not a credential; the S105
 # hardcoded-password heuristic only sees the literal string assignment.
@@ -275,8 +277,11 @@ def _contains_unresolved_blocker(notes_path: Path) -> bool:
     """Return whether ``notes_path`` carries an unresolved BLOCKER line.
 
     A line whose stripped text starts with ``BLOCKER`` (case-sensitive, the
-    reference's spelling) and does not contain the literal ``[resolved]`` token
-    is an unresolved blocker (ExecPlan D-BLOCKER). An absent file is clean (no
+    reference's spelling) and does not *end with* the literal ``[resolved]``
+    token is an unresolved blocker (ExecPlan D-BLOCKER-POSITIONAL). The token is
+    a trailing marker the loop appends when it closes a blocker, so an incidental
+    mid-line quotation of it does not clear the blocker (the false-clean
+    direction the positional anchor closes). An absent file is clean (no
     blockers), exactly as the reference treats a missing notes file; every other
     read fault (an undecodable body, a permission error) propagates for the
     command layer to route to exit ``3``.
@@ -286,7 +291,7 @@ def _contains_unresolved_blocker(notes_path: Path) -> bool:
     except FileNotFoundError:
         return False
     return any(
-        stripped.startswith(_BLOCKER_PREFIX) and _RESOLVED_TOKEN not in stripped
+        stripped.startswith(_BLOCKER_PREFIX) and not stripped.endswith(_RESOLVED_TOKEN)
         for stripped in (line.strip() for line in body.splitlines())
     )
 

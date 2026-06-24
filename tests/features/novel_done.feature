@@ -27,6 +27,12 @@ Feature: novel-done evaluates the six done clauses against disk
       | compile_consistent      |
       | no_unresolved_blockers  |
 
+  Scenario: an incidental [resolved] mention does not clear a live BLOCKER
+    Given a working tree whose first chapter quotes "[resolved]" mid-BLOCKER
+    When novel-done runs against that tree
+    Then novel-done exits 1
+    And the result reports "no_unresolved_blockers" false
+
   Scenario: a stale compile in an otherwise-complete tree is an actionable finding
     Given an otherwise-complete working tree whose compiled.md is stale
     When novel-done runs against that tree

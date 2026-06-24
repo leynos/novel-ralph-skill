@@ -88,13 +88,21 @@ def test_failers_each_break_exactly_one_clause(
 
 
 def test_blocker_edges(
-    blocker_edge_trees: cabc.Callable[[], tuple[Path, Path]],
+    blocker_edge_trees: cabc.Callable[[], tuple[Path, Path, Path]],
 ) -> None:
-    """A ``[resolved]`` BLOCKER holds; a near-miss prose mention does not."""
-    resolved, near_miss = blocker_edge_trees()
+    """A ``[resolved]`` BLOCKER holds; near-miss and incidental mentions do not.
+
+    The incidental tree quotes ``[resolved]`` mid-line on a live BLOCKER, so the
+    positional rule keeps it unresolved (D-BLOCKER-POSITIONAL; audit-3.1.1
+    Finding 3); it differs from the all-hold tree only in the note body, so it
+    fails on exactly ``no_unresolved_blockers``.
+    """
+    resolved, near_miss, incidental = blocker_edge_trees()
     assert _evaluate(resolved).all_hold is True
     near = _evaluate(near_miss)
     assert near.failed_clause_names == ("no_unresolved_blockers",)
+    incidental_clauses = _evaluate(incidental)
+    assert incidental_clauses.failed_clause_names == ("no_unresolved_blockers",)
 
 
 def test_reviews_oracle_twin_agrees(
@@ -123,7 +131,7 @@ def test_reviews_oracle_twin_agrees(
 def test_blocker_oracle_twin_agrees(
     all_hold_tree: cabc.Callable[[], Path],
     done_predicate_failer_tree: cabc.Callable[[str], tuple[WorkingTreeSpec, Path]],
-    blocker_edge_trees: cabc.Callable[[], tuple[Path, Path]],
+    blocker_edge_trees: cabc.Callable[[], tuple[Path, Path, Path]],
     oracle_no_blockers: cabc.Callable[[Path], bool],
 ) -> None:
     """The BLOCKER-scan twin equals the production clause on every tree (D-TWIN)."""

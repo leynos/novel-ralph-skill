@@ -188,6 +188,12 @@ def novel_predicate(working_dir, state):
     return True
 ```
 
+The shipped predicate pins `contains_unresolved_blocker` to a deterministic
+grammar: a `critic-notes.md` line is an unresolved BLOCKER when its stripped
+text starts with `BLOCKER` and does *not end with* the trailing `[resolved]`
+marker, so an incidental mid-line mention of the token does not clear the
+blocker (roadmap 3.1.4; design §4.2).
+
 If any check fails, the agent identifies which one and acts on it. If all
 checks pass, the agent writes one final log entry:
 

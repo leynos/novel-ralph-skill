@@ -91,25 +91,34 @@ def done_predicate_failer_tree(
 @pytest.fixture
 def blocker_edge_trees(
     tmp_path: Path,
-) -> cabc.Callable[[], tuple[Path, Path]]:
-    """Return a factory building the ``[resolved]`` and near-miss BLOCKER trees.
+) -> cabc.Callable[[], tuple[Path, Path, Path]]:
+    """Return a factory building the resolved, near-miss, and incidental trees.
 
     Returns
     -------
-    Callable[[], tuple[Path, Path]]
-        A callable ``() -> (resolved_working, near_miss_working)`` building the
-        two BLOCKER edge trees in separate subdirectories of ``tmp_path``.
+    Callable[[], tuple[Path, Path, Path]]
+        A callable
+        ``() -> (resolved_working, near_miss_working, incidental_working)``
+        building the three BLOCKER edge trees in separate subdirectories of
+        ``tmp_path``. The incidental tree pins the false-clean direction the
+        positional anchor closes (D-BLOCKER-POSITIONAL): a live BLOCKER quoting
+        ``[resolved]`` mid-line stays unresolved.
     """
 
-    def _build() -> tuple[Path, Path]:
-        """Build the resolved and near-miss BLOCKER trees under ``tmp_path``."""
+    def _build() -> tuple[Path, Path, Path]:
+        """Build the resolved, near-miss, and incidental trees under ``tmp_path``."""
         resolved = tmp_path / "resolved"
         near_miss = tmp_path / "near-miss"
+        incidental = tmp_path / "incidental"
         resolved.mkdir()
         near_miss.mkdir()
+        incidental.mkdir()
         return (
             wc.build_working_tree(wc.DONE_PREDICATE_RESOLVED_BLOCKER, resolved),
             wc.build_working_tree(wc.DONE_PREDICATE_NEAR_MISS_BLOCKER, near_miss),
+            wc.build_working_tree(
+                wc.DONE_PREDICATE_INCIDENTAL_RESOLVED_BLOCKER, incidental
+            ),
         )
 
     return _build

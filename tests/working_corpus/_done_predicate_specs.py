@@ -71,6 +71,14 @@ NEAR_MISS_BLOCKER_NOTE: str = (
     "BLOCKER the subplot dangles\nThe author says this was resolved later.\n"
 )
 
+# An incidental-resolution note: a live BLOCKER that quotes the ``[resolved]``
+# token *mid-line*, not as the trailing marker. The substring rule wrongly
+# cleared it (the false-clean direction); the positional rule keeps it
+# unresolved (D-BLOCKER-POSITIONAL; audit-3.1.1 Finding 3).
+INCIDENTAL_RESOLVED_BLOCKER_NOTE: str = (
+    "BLOCKER the ending still depends on the [resolved] issue in chapter 2\n"
+)
+
 
 def _crossed_gates() -> tuple[bool, bool, bool]:
     """Return the knitting-gate booleans the drafted total honestly crosses."""
@@ -158,6 +166,14 @@ DONE_PREDICATE_RESOLVED_BLOCKER: WorkingTreeSpec = _note_on_first_chapter(
 )
 DONE_PREDICATE_NEAR_MISS_BLOCKER: WorkingTreeSpec = _note_on_first_chapter(
     DONE_PREDICATE_ALL_HOLD, NEAR_MISS_BLOCKER_NOTE
+)
+# An incidental-resolution tree: a live BLOCKER quoting ``[resolved]`` mid-line
+# stays *not* done. This pins the false-clean direction the positional anchor
+# closes (D-BLOCKER-POSITIONAL; audit-3.1.1 Finding 3); it differs from the
+# all-hold tree only in the first chapter's note body, so it fails on exactly
+# the ``no_unresolved_blockers`` clause.
+DONE_PREDICATE_INCIDENTAL_RESOLVED_BLOCKER: WorkingTreeSpec = _note_on_first_chapter(
+    DONE_PREDICATE_ALL_HOLD, INCIDENTAL_RESOLVED_BLOCKER_NOTE
 )
 
 # --- stale-compile specs (roadmap 3.1.2, D-CORPUS-STALE) ---------------------

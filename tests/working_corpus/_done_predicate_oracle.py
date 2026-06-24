@@ -29,8 +29,10 @@ if typ.TYPE_CHECKING:
 # independent copy of the production ``KNITTING_PERCENTAGES`` a test pins equal.
 KNITTING_PERCENTAGES: tuple[int, int, int] = (30, 50, 80)
 
-# The D-BLOCKER format, re-spelled independently of the production constants so
-# the twin is a genuine cross-check rather than a re-export.
+# The D-BLOCKER-POSITIONAL format, re-spelled independently of the production
+# constants so the twin is a genuine cross-check rather than a re-export. The
+# token is a *trailing* marker: a line is resolved only when its stripped text
+# ends with it, so an incidental mid-line mention does not clear the blocker.
 _BLOCKER_PREFIX = "BLOCKER"
 _RESOLVED_TOKEN = "[resolved]"  # noqa: S105 - a resolution marker, not a credential
 
@@ -61,7 +63,7 @@ def _notes_has_unresolved_blocker(notes_path: Path) -> bool:
         return False
     body = notes_path.read_text(encoding="utf-8")
     return any(
-        stripped.startswith(_BLOCKER_PREFIX) and _RESOLVED_TOKEN not in stripped
+        stripped.startswith(_BLOCKER_PREFIX) and not stripped.endswith(_RESOLVED_TOKEN)
         for stripped in (line.strip() for line in body.splitlines())
     )
 
