@@ -624,7 +624,7 @@ drift from the manuscript. Its outcome retires hand-typed word counts and the
 agent-improvised recovery routine. See novel-ralph-harness-design.md §4.1 and
 §5.4.
 
-- [ ] 2.3.1. Implement `recount` as a pure aggregation over chapter drafts.
+- [x] 2.3.1. Implement `recount` as a pure aggregation over chapter drafts.
   - Requires 2.2.1.
   - Re-derive `word_counts.current` and `by_chapter` from `draft.md` files and
     write the validated result.

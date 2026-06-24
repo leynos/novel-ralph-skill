@@ -85,6 +85,14 @@ def _setup_advance_phase(request: pytest.FixtureRequest) -> None:
     _monkeypatch(request).chdir(factory("premise").parent)
 
 
+def _setup_recount(request: pytest.FixtureRequest) -> None:
+    """``recount`` runs against the coherent baseline tree."""
+    factory = typ.cast(
+        "cabc.Callable[[], Path]", request.getfixturevalue("baseline_tree")
+    )
+    _monkeypatch(request).chdir(factory().parent)
+
+
 def _setup_check(request: pytest.FixtureRequest) -> None:
     """``check`` runs against the coherent baseline tree."""
     factory = typ.cast(
@@ -102,9 +110,10 @@ def _setup_check(request: pytest.FixtureRequest) -> None:
             _setup_set_cursor,
         ),
         (["advance-phase"], _setup_advance_phase),
+        (["recount"], _setup_recount),
         ([_CHECK_SUBCOMMAND], _setup_check),
     ],
-    ids=["init", "set-cursor", "advance-phase", "check"],
+    ids=["init", "set-cursor", "advance-phase", "recount", "check"],
 )
 def test_violations_belongs_to_check_alone(
     argv: list[str],

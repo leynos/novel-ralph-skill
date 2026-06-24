@@ -221,9 +221,10 @@ def build_app() -> cyclopts.App:
     print_error=False, help_on_error=False`` so the shared
     :func:`novel_ralph_skill.contract.runner.run` owns every exit and envelope
     (the ``wrapper_app`` fixture's contract). Exposes the read-only ``check``
-    subcommand and the ``init`` mutator (roadmap task 2.2.2); the remaining
-    mutators (``set-cursor``/``advance-phase``/``recount``/``reconcile``) land in
-    later work items and tasks.
+    subcommand, the ``init`` builder-mutator (roadmap task 2.2.2), the
+    ``set-cursor`` and ``advance-phase`` mutators (task 2.2.2), and the
+    ``recount`` mutator (task 2.3.1); the remaining ``reconcile`` mutator lands in
+    a later task.
 
     The signature is deliberately zero-argument and stable (later tasks import
     it): each body resolves its working directory from the process cwd (the fixed
@@ -234,7 +235,8 @@ def build_app() -> cyclopts.App:
     Returns
     -------
     cyclopts.App
-        The configured ``novel-state`` app exposing ``check`` and ``init``.
+        The configured ``novel-state`` app exposing ``check``, ``init``,
+        ``set-cursor``, ``advance-phase``, and ``recount``.
     """
     # Imported inside the builder, not at module top: the mutator module imports
     # ``STATE_INPUT_ERRORS``/``WORKING_DIR_NAME`` from this module, so a top-level
@@ -273,5 +275,12 @@ def build_app() -> cyclopts.App:
     def advance_phase() -> CommandOutcome:
         """Advance ``phase.current`` to the next member; refuse skips with exit 3."""
         return mutators.advance_phase()
+
+    @app.command
+    def recount() -> CommandOutcome:
+        """Re-derive ``[word_counts]`` from the chapter drafts; refuse with exit 3."""
+        from novel_ralph_skill.commands import _recount
+
+        return _recount.recount()
 
     return app

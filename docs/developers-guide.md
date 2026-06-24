@@ -200,11 +200,19 @@ helper are deferred to roadmap step 1.3.
 Read-only checkers (`novel-done`, `novel-state check`, `wordcount`,
 `desloppify`, `novel-compile --check`) write nothing, so the harness can call
 them freely. Mutators (`novel-state init`/`set-cursor`/`advance-phase`/
-`recount` /`reconcile` and `novel-compile`) are the only commands that touch
-`state.toml` or `compiled.md`, and they write atomically via a temporary file
-plus `Path.replace`, bracketed by a `[pending_turn]` intent record so a torn
-multi-file turn is recoverable. Keep this segregation honest: a command that
-detects a finding must not also repair it. See design §3.3 and §3.4.
+`recount`/`reconcile` and `novel-compile`) are the only commands that touch
+`state.toml` or `compiled.md`, and every write is atomic via a temporary file
+plus `Path.replace`. Only the *genuinely multi-file* writers (`reconcile` and
+`novel-compile`) bracket their writes with a `[pending_turn]` intent record so a
+torn multi-file turn is recoverable. The single-file mutators
+(`init`/`set-cursor`/`advance-phase`/`recount`) write one file per `Path.replace`
+and open **no** `[pending_turn]` bracket — `recount` re-derives only
+`[word_counts]` in `state.toml` (design §4.1 line 271), and a recount is named in
+design §3.4 lines 240-241 as *one write among several in a turn*, not the command
+writing several files; `init` writes `state.toml` *and* `log.md` yet still uses
+no bracket because each is a single `Path.replace` write. Keep this segregation
+honest: a command that detects a finding must not also repair it. See design §3.3
+and §3.4.
 
 ### The shared JSON envelope
 
@@ -469,8 +477,12 @@ builds the full required table set (`build_initial_document`), creates the
 Initialisation directory skeleton plus an empty `log.md`, and writes atomically.
 Each of these mutators writes a single file (`state.toml`, plus `init`'s
 `log.md`), already atomic via `Path.replace`, so none opens a `[pending_turn]`
-bracket — that belongs to the genuinely multi-file mutators (`recount`,
-`reconcile`).
+bracket — that belongs to the genuinely multi-file mutators (`reconcile` and
+`novel-compile`). `recount` is a single-file mutator too: it re-derives only
+`[word_counts]` in `state.toml` (design §4.1 line 271), and design §3.4 lines
+240-241 name a recount as *one write among several in a turn*, not the command
+writing several files, so it writes one `Path.replace` and opens no bracket,
+exactly like `set-cursor` and `advance-phase`.
 
 `advance-phase` takes no argument and always moves to the immediate successor,
 so a phase *skip* cannot be requested. "Refuses out-of-order completion" is
@@ -480,6 +492,23 @@ hunt for skip-rejection logic that cannot exist). The behavioural proof is the
 `pytest-bdd` scenario `tests/features/advance_phase_refusal.feature`, which
 advances the `completed-prefix-gap` corpus tree and asserts exit `3` with the
 prior state intact.
+
+`recount` re-derives `[word_counts]` from the chapter drafts so a human never
+types a word count by hand (design §4.1). It reads each manifest chapter's
+`working/manuscript/chapter-NN/draft.md`, takes the whitespace-split token count
+(`len(text.split())`) through the shared `recount_words` helper in the `state`
+package, and rewrites `[word_counts].current` and `[word_counts].by_chapter` in
+place. `by_chapter` is keyed by the chapter *manifest* (one entry per manifest
+chapter, `0` for an absent or empty `draft.md`), written in ascending key order
+so a second recount over unchanged drafts is byte-for-byte identical
+(idempotence); `current` is the drafted sum `sum(by_chapter.values())`, so §5.2
+invariant 3 holds by construction. The success `result` is write-shaped —
+`{current, by_chapter}`, the counts it wrote — never the checker's `violations`.
+An absent `draft.md` counts as `0`, but an unreadable or undecodable draft, a
+missing or structurally-incomplete `state.toml`, or a recount that would breach
+a §5.2 invariant each refuses with exit `3` (the state-error channel) and leaves
+the prior `state.toml` byte-for-byte intact. The behavioural proof is the
+`pytest-bdd` scenario `tests/features/recount.feature`.
 
 ### The state-layout direct-edit guard
 

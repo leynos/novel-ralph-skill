@@ -127,8 +127,19 @@ set, `done.flag`/`draft.md` consistency, and `compiled.md` freshness) are
 validated by a later release; `novel-state check` currently checks only the
 invariants decidable from `state.toml` alone.
 
+`novel-state recount` re-derives the word counts from the chapter drafts, so you
+never type a word count by hand. It reads each chapter's
+`working/manuscript/chapter-NN/draft.md`, counts its words, and rewrites
+`[word_counts].current` and `[word_counts].by_chapter` to match what is actually
+on disk (`current` is the sum of the per-chapter counts). It is idempotent:
+running it twice over unchanged drafts leaves `state.toml` byte-for-byte
+identical. Like the other write subcommands it writes nothing on refusal (exit
+`3`) — a missing or unparseable `state.toml`, an unreadable draft, or a recount
+that would leave the state incoherent each leaves the prior file untouched.
+
 `result.violations` is the *checker's* read shape: it belongs to `novel-state
-check` alone. The write subcommands (`init`, `set-cursor`, `advance-phase`)
-instead report *what they changed* in `result` — `set-cursor` returns the cursor
-it set, `advance-phase` returns the `{from, to}` transition — so do not expect a
-`violations` key from a write.
+check` alone. The write subcommands (`init`, `set-cursor`, `advance-phase`,
+`recount`) instead report *what they changed* in `result` — `set-cursor` returns
+the cursor it set, `advance-phase` returns the `{from, to}` transition, and
+`recount` returns the `{current, by_chapter}` counts it wrote — so do not expect
+a `violations` key from a write.

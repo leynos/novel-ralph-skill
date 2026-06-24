@@ -59,6 +59,17 @@ def _state_path() -> pathlib.Path:
     return pathlib.Path(WORKING_DIR_NAME) / "state.toml"
 
 
+def _working_dir() -> pathlib.Path:
+    """Return the fixed cwd-relative ``working/`` directory.
+
+    ``recount`` reads each chapter's ``draft.md`` under ``working/manuscript/``;
+    it resolves the root from the same ``WORKING_DIR_NAME`` constant
+    :func:`_state_path` uses, so the file it counts and the file it rewrites
+    share one cwd-relative root (Decision Log B4/B5; D-CWD).
+    """
+    return pathlib.Path(WORKING_DIR_NAME)
+
+
 def _load_document_or_state_error(path: pathlib.Path) -> TOMLDocument:
     """Load ``path`` into a ``tomlkit`` document, mapping faults to exit ``3``.
 

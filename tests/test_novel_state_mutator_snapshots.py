@@ -17,6 +17,7 @@ import re
 import typing as typ
 
 import pytest
+import working_corpus as wc
 
 from novel_ralph_skill.commands.novel_state import build_app
 from novel_ralph_skill.contract.exit_codes import ExitCode
@@ -131,4 +132,49 @@ def test_advance_phase_refusal_envelope_snapshot(
     code, raw = _drive(["advance-phase"])
     assert code == ExitCode.STATE_ERROR
     assert json.loads(raw)["ok"] is False
+    assert _normalise(raw) == snapshot
+
+
+def _recount_tree(tmp_path: Path) -> Path:
+    """Build a small two-chapter ``drafting`` tree (3 + 5 words) for the snapshot."""
+    chapters = tuple(
+        wc.ChapterSpec(
+            number=number,
+            slug=f"chapter-{number:02d}",
+            title=f"Chapter {number}",
+            target_words=20000,
+            draft_words=count,
+            has_done_flag=False,
+        )
+        for number, count in ((1, 3), (2, 5))
+    )
+    spec = wc.WorkingTreeSpec(
+        phase_current="drafting",
+        phase_completed=wc.PHASE_ORDER[:8],
+        chapters=chapters,
+        target_words=80000,
+        consecutive_clean=0,
+        convergence_target=1,
+        current_chapter=len(chapters),
+        by_chapter_override={"01": 999, "02": 999},
+        current_words_override=1998,
+    )
+    return wc.build_working_tree(spec, tmp_path)
+
+
+def test_recount_success_envelope_snapshot(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    snapshot: SnapshotAssertion,
+) -> None:
+    """Pin ``recount``'s success envelope: ``result`` names the counts it wrote."""
+    working = _recount_tree(tmp_path)
+    monkeypatch.chdir(working.parent)
+    code, raw = _drive(["recount"])
+    assert code == ExitCode.SUCCESS
+    # The write-shaped ``result`` names the counts and carries no ``violations``
+    # read shape (roadmap 1.3.5; audit-2.2.2 Finding 2).
+    result = typ.cast("dict[str, object]", json.loads(raw)["result"])
+    assert result == {"current": 8, "by_chapter": {"01": 3, "02": 5}}
+    assert "violations" not in result
     assert _normalise(raw) == snapshot

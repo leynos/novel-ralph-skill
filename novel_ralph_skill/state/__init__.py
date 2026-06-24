@@ -58,6 +58,7 @@ from novel_ralph_skill.state.validate import (
     Violation,
     validate_state,
 )
+from novel_ralph_skill.state.wordcount import recount_words
 
 __all__ = [
     "BY_CHAPTER_SUM",
@@ -93,6 +94,7 @@ __all__ = [
     "open_pending_turn",
     "parse_state",
     "pending_turn",
+    "recount_words",
     "validate_state",
     "write_document_atomically",
 ]
