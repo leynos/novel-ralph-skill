@@ -232,6 +232,13 @@ payload from `check`), then:
   plan-less cursor — it **refuses**: it writes no state change and exits `4`
   for you to adjudicate.
 
+The recreated `log.md` is **empty** save for the recovery receipt: the
+`log-present` detector fires solely on `log.md` absence and cannot tell a clean
+partial-`init` crash from a later loss of a populated log, so `RECREATE_LOG`
+always restores a fresh, empty file and exits `0`. Prior receipts are **not
+recoverable** by this repair; if you need them back, restore `log.md` from a
+backup before reconciling.
+
 Every repair or refusal is logged as a recovery receipt appended to
 `working/log.md`, and `reconcile` removes no file under `working/`. It is
 idempotent: running it twice over an already-reconciled tree is a no-op that

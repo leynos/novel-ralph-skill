@@ -1166,7 +1166,7 @@ no plan or design-review cycle: make the change, run `make all` (plus `make
 markdownlint`/`make nixie` for Markdown), `coderabbit review --agent`, commit,
 and tick the matching roadmap sub-task on merge.
 
-- [ ] 2.3.4.1 — Document that `reconcile`'s recreate-log restores an empty
+- [x] 2.3.4.1 — Document that `reconcile`'s recreate-log restores an empty
   `log.md` in the users' guide (from review:2.3.4, low). The `log-present`
   detector fires on `log.md` absence and cannot distinguish a clean
   partial-`init` crash from a later loss of a populated log; the `RECREATE_LOG`

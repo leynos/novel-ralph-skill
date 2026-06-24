@@ -754,7 +754,7 @@ agent-improvised recovery routine. See novel-ralph-harness-design.md §4.1 and
     `working/` deleted) or the recovery routine is documented in the users'
     guide, and `check` reports the partial bootstrap rather than leaving it
     silently unrecoverable.
-  - [ ] 2.3.4.1. Document that `reconcile`'s recreate-log restores an empty
+  - [x] 2.3.4.1. Document that `reconcile`'s recreate-log restores an empty
     `log.md` in the users' guide.
     - Addendum (from review:2.3.4; low). The `log-present` detector fires on
       `log.md` absence and cannot distinguish a clean partial-`init` crash from
