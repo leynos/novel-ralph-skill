@@ -1876,3 +1876,19 @@ No remaining undecided forks: the gate-staleness mechanism is pinned (a
 sub-threshold construction plus a post-repair gate-clean test, with gates never
 fabricated), the §5.4 narrowing has a gating design-doc deliverable, and the
 design's worked example is tested.
+
+## Addenda (post-merge follow-ups)
+
+Lightweight addendum work items surfaced by a test-quality benchmark of the
+reconcile behavioural suite. Execute each as a small addendum pass — no plan or
+design-review cycle: make the change, run `make all`, `coderabbit review
+--agent`, commit, and tick the matching roadmap sub-task on merge.
+
+- [ ] 2.3.2.1 — Strengthen the reconcile log-receipt assertion from the
+  substring `"recount" in log` to a structured receipt that pins the operation
+  and the repaired field set (the design's audited reconciliation entry).
+  Behaviour-preserving test change; gate with `make all`.
+- [ ] 2.3.2.2 — Add an assertion that every chapter `draft.md` is byte-for-byte
+  identical before and after `reconcile` (today only "no file removed" is
+  pinned, not draft byte-integrity; only `state.toml`/`log.md` should change).
+  Test-only change; gate with `make all`.

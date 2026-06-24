@@ -724,6 +724,19 @@ agent-improvised recovery routine. See novel-ralph-harness-design.md §4.1 and
     `check` itself writes nothing; a non-bijective manifest and a
     contradictory-evidence tree are each reported with exit 4 rather than
     silently repaired (the loud-reconciliation requirement).
+  - [ ] 2.3.2.1. Strengthen the reconcile log-receipt assertion from a substring
+    match to a structured receipt.
+    - Addendum (from test-quality benchmark; severity: low). The reconcile
+      behavioural test asserts `"recount" in log`, which any incidental line
+      satisfies; assert the structured reconciliation receipt the design
+      mandates (the operation plus the repaired field set) so the log contract
+      is actually pinned. Lightweight addendum pass.
+  - [ ] 2.3.2.2. Pin chapter-draft byte-integrity across a reconcile repair.
+    - Addendum (from test-quality benchmark; severity: low). The reconcile
+      behavioural test's `files_before <= after` proves no file was removed but
+      not that the chapter drafts stayed byte-for-byte unchanged (only
+      `state.toml`/`log.md` should change). Assert every `draft.md` is
+      byte-identical before and after `reconcile`. Lightweight addendum pass.
 - [x] 2.3.3. Add disk-authoritative cross-checks to the corpus oracle for the
   §5.4 structural invariants.
   - Reroute (source: review:1.3.2; severity: medium). The §1.3.2 corpus oracle
@@ -1200,6 +1213,31 @@ novel-ralph-harness-design.md §2.3 and §9.
   - See novel-ralph-harness-design.md §8.
   - Success: `make markdownlint` passes on the edited skill files and no prose
     copy of the predicate survives to diverge.
+- [ ] 6.2.4. Broaden the installed-binary e2e coverage to `recount` and the
+  exit-3 state-error paths.
+  - Requires 2.1.2 and 2.3.1.
+  - Today only the exit-0 path (and `desloppify`'s exit 4) crosses the real
+    wheel/venv subprocess boundary; `recount` is proven only through the
+    entry-point body, and the exit-3 state-error paths only in-process. Add a
+    `@slow` installed-binary e2e that runs `novel-state recount` over a built
+    wheel and asserts the JSON envelope, plus one that drives a missing or
+    unparseable `state.toml` through the installed binary and asserts exit 3.
+  - See novel-ralph-harness-design.md §9; adr-003-shared-interface-contract.md.
+  - Success: `recount` and at least one exit-3 state-error path are each
+    asserted against a real installed console-script, not only in-process.
+- [ ] 6.2.5. Add a torn-turn recovery scenario driven through a real command.
+  - Requires 2.2.2 and 2.3.2.
+  - The current torn-turn behavioural test exercises the `pending_turn()`
+    primitive directly against a literal `state.toml`, never crossing the
+    command boundary; the only real-crash coverage is an in-process integration
+    test. Add a scenario that interrupts a mutator mid-write (leaving a
+    populated `[pending_turn]` and partial artefacts on disk) and proves
+    `novel-state check` reports the torn turn and `novel-state reconcile`
+    completes or rolls it back per what landed — driven through the command
+    entry points, not the bracket primitive.
+  - See novel-ralph-harness-design.md §3.4 and §5.4.
+  - Success: a torn write produced by an actual mutator invocation is detected
+    by `check` and recovered by `reconcile`, asserted at the command boundary.
 
 ## 7. Deferred extensions after the deterministic spine
 
