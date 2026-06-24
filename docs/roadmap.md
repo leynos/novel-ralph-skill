@@ -643,7 +643,7 @@ agent-improvised recovery routine. See novel-ralph-harness-design.md §4.1 and
   - See novel-ralph-harness-design.md §4.1.
   - Success: `recount` is idempotent — a second run on unchanged drafts writes
     an identical file — and the by-chapter values sum to the current total.
-  - [ ] 2.3.1.1. Clear the pre-existing ty `possibly-missing-submodule` warning
+  - [x] 2.3.1.1. Clear the pre-existing ty `possibly-missing-submodule` warning
     on `_recount.py` by importing `tomlkit.items` explicitly.
     - Addendum (from review:2.3.4; low). `make typecheck` is not fully clean: ty
       warns that `tomlkit.items.InlineTable` (the return annotation of

@@ -936,7 +936,7 @@ no plan or design-review cycle: make the change, run `make all` (plus `make
 markdownlint`/`make nixie` for Markdown), `coderabbit review --agent`, commit,
 and tick the matching roadmap sub-task on merge.
 
-- [ ] 2.3.1.1 — Clear the pre-existing ty `possibly-missing-submodule` warning
+- [x] 2.3.1.1 — Clear the pre-existing ty `possibly-missing-submodule` warning
   on `commands/_recount.py` (from review:2.3.4, low). `make typecheck` is not
   fully clean: ty warns that `tomlkit.items.InlineTable` — the return annotation
   of `_inline_by_chapter` — relies on a submodule that may not have been

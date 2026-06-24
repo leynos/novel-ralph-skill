@@ -20,6 +20,7 @@ from __future__ import annotations
 import typing as typ
 
 import tomlkit
+import tomlkit.items
 
 from novel_ralph_skill.commands._state_mutators import (
     _load_document_or_state_error,
