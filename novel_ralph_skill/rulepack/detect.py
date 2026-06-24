@@ -124,11 +124,15 @@ class DetectionReport:
     pack : str
         The scanned pack's name, echoed for reporting.
     total_words : int
-        The whitespace-split token count summed across every scanned chapter,
+        The whitespace-split token count summed across every *scanned* chapter,
         the denominator the ``per_page`` density divides into pages. The token
         rule is ``len(text.split())``, the same rule
-        :func:`novel_ralph_skill.state.recount_words` uses, so the two counts
-        cannot drift (ExecPlan Risk "density computed inconsistently").
+        :func:`novel_ralph_skill.state.recount_words` uses, so the per-token
+        counting cannot drift (ExecPlan Risk "density computed inconsistently").
+        The *scope* differs by invocation, though: a whole-manuscript scan sums
+        every chapter and so matches ``recount_words``'s manuscript total, while
+        ``--chapter N`` scans one chapter and so divides density into *that
+        chapter's* word count, not the manuscript total.
     findings : tuple[RuleFinding, ...]
         One finding per rule, in the pack's authoring order.
     passed : bool
@@ -239,10 +243,13 @@ def detect(
 
     Pure — a pack and in-memory chapter text in, a :class:`DetectionReport` out —
     so any caller can reuse it without a filesystem. Each rule is scanned line by
-    line across every chapter (see the module docstring); the per-page density
-    uses ``total_words = sum(len(ch.text.split()) for ch in chapters)``, the same
-    token rule :func:`novel_ralph_skill.state.recount_words` applies, so the two
-    cannot drift.
+    line across every passed chapter (see the module docstring); the per-page
+    density uses ``total_words = sum(len(ch.text.split()) for ch in chapters)``,
+    the same token rule :func:`novel_ralph_skill.state.recount_words` applies, so
+    the per-token counting cannot drift. The denominator covers exactly the
+    chapters passed in: a whole-manuscript scan matches ``recount_words``'s
+    manuscript total, while a ``--chapter N`` scan passes one chapter and so
+    divides density into that chapter's words, not the manuscript total.
 
     Parameters
     ----------

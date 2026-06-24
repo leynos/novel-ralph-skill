@@ -253,11 +253,24 @@ under the global `--human` flag.
 
 - `0` — every rule is within threshold; `result.violations` is empty.
 - `4` — one or more rules exceed threshold; the offending rule ids appear in
-  `result.violations` for the agent to adjudicate, and each finding's offending
-  `phrase` (the rule's pattern), hit count, threshold, per-page density, and
-  per-`{chapter, line}` matches are in `result.findings`.
+  `result.violations` for the agent to adjudicate, and each finding's `rule_id`
+  (the canonical slug the `violations` list references), `phrase` (the rule's
+  authored pattern source — the regex that names the offender, not a literal
+  matched span), hit count, threshold, per-page density, and per-`{chapter,
+  line}` matches are in `result.findings`.
 - `2` — a usage error: `--chapter N` names a chapter absent from the manifest,
   or `--pack` points at a rule pack whose *content* is malformed.
 - `3` — a state or input error: `./working/state.toml` is missing or
   unparseable, a chapter draft is unreadable, or `--pack` points at an absent or
   undecodable file.
+
+A per-page rule reports density as hits per `page_words` tokens, and a partial
+page still counts: the scanned text is divided by `page_words` as a float rather
+than rounded up to a whole page. On a short or near-empty draft — an early
+chapter, or a `--chapter N` scan of a chapter barely begun — the scanned text is
+a fraction of one page, so a single offending hit extrapolates to a high
+per-page density and can trip the threshold. This is design-correct: the density
+measures the rate the tic appears at, not the raw count, so a draft that is one
+tenth of a page with one hit is reported at the same rate as a full page with
+ten. Do not be surprised when a short chapter trips a per-page rule on one hit;
+re-scan once the chapter is fuller to read the settled rate.

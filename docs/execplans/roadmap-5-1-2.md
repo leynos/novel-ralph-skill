@@ -1406,7 +1406,7 @@ shared-reader consolidation was re-routed to the new roadmap step 7.10. These
 four are the small doc fixes, the localised test refactor, and the coverage gap
 only.
 
-- [ ] 5.1.2.1 — Document the per-page density behaviour on short or near-empty
+- [x] 5.1.2.1 — Document the per-page density behaviour on short or near-empty
   drafts (from review:5.1.2, low; merges the two near-identical density-surprise
   proposals). The §4.5 density formula lets a single `per_page` offender trip the
   threshold on a sub-page draft because a partial page still counts; add a
@@ -1415,14 +1415,14 @@ only.
   extrapolation. (An optional minimum-page floor was weighed and left out of this
   lightweight pass: the behaviour is design-correct, so documentation suffices.)
   Gate with `make markdownlint` and `make nixie`.
-- [ ] 5.1.2.2 — Tighten the snapshot volatile-field guard from a bare slash check
+- [x] 5.1.2.2 — Tighten the snapshot volatile-field guard from a bare slash check
   to a path/timestamp pattern (from review:5.1.2, low).
   `tests/test_desloppify_snapshots.py`'s `_assert_no_volatile_fields` asserts no
   `/` appears in the rendered envelope, so a future rule id, pack name, or
   message carrying a slash would fail spuriously; replace the bare slash check
   with a regex matching absolute-path or timestamp shapes so the guard stays
   durable across packs. Test-only. Gate with `make all`.
-- [ ] 5.1.2.3 — Reconcile the per-hit `phrase` wording across design §4.4, the
+- [x] 5.1.2.3 — Reconcile the per-hit `phrase` wording across design §4.4, the
   roadmap, and the emitted envelope (from review:5.1.2, low). The envelope emits
   the rule's authored pattern source under `phrase` while `rule_id` is the
   canonical slug; reconcile the design §4.4 and roadmap 5.1.2 "phrase, count,
@@ -1430,7 +1430,7 @@ only.
   §7.1 ai-isms and device-ledger packs inherit an unambiguous per-hit output
   vocabulary. Doc-only; the code contract is unchanged here (a matched-text span
   is the separate 7.1.4 reroute). Gate with `make markdownlint` and `make nixie`.
-- [ ] 5.1.2.4 — Correct the "cannot drift from `recount_words`" docstrings under
+- [x] 5.1.2.4 — Correct the "cannot drift from `recount_words`" docstrings under
   `--chapter` scope and test the per-page density message branch (from
   audit:5.1.2, medium; merges audit Findings 3 and 4). `detect`'s "cannot drift
   from `recount_words`" docstrings are misleading because `--chapter N` computes

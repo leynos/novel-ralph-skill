@@ -377,9 +377,11 @@ verdict is computed identically wherever it is asked.
 
 `desloppify` runs the checklist's §6 high-frequency-offender table as a
 versioned rule pack over a chapter or the whole manuscript. It emits structured
-output per hit: phrase, count, density per N words, threshold, pass or fail,
-and line numbers. This replaces the improvised `grep` the field report blames
-for spurious whole-file output, non-zero-on-zero-match breakage, and glob
+output per hit: `phrase` (the rule's authored pattern source — the regex that
+names the offender, not a literal matched span), `rule_id` (the canonical slug
+the `violations` list references), count, density per N words, threshold, pass
+or fail, and line numbers. This replaces the improvised `grep` the field report
+blames for spurious whole-file output, non-zero-on-zero-match breakage, and glob
 expansion mid-scan.
 
 `desloppify` detects; it never edits and never judges. A hit is a report for

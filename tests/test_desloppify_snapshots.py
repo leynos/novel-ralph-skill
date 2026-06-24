@@ -16,6 +16,7 @@ deterministic ``(chapter, line)`` order.
 from __future__ import annotations
 
 import json
+import re
 import typing as typ
 
 import pytest
@@ -55,16 +56,36 @@ def _write_all_drafts(working: Path, text: str) -> None:
             draft.write_text(text, encoding="utf-8")
 
 
+# Matches the shapes that would churn a snapshot: an absolute or multi-segment
+# path (a leading-slash or ``/segment/`` run, so an incidental single slash in a
+# future rule id, pack name, or message does not trip the guard), an ISO-8601
+# date (``2026-06-24``), or a clock time (``12:34:56``).
+_VOLATILE_PATTERN = re.compile(
+    r"(?:^|[\"\s])/[^/\"\s]+"  # absolute path: a leading slash then a segment
+    r"|/[^/\"\s]+/"  # or a ``/segment/`` run inside a longer path
+    r"|\d{4}-\d{2}-\d{2}"  # ISO-8601 date
+    r"|\d{2}:\d{2}:\d{2}"  # clock time
+)
+
+
 def _assert_no_volatile_fields(envelope: dict[str, object]) -> None:
     """Assert the rendered envelope carries no timestamp or absolute path.
 
     Pins the invariant that nothing volatile can silently churn the snapshot, so
     a future field addition that introduces one fails here rather than in review.
     The ``working_dir`` is the fixed ``working`` constant; no other field carries
-    an absolute path, and there are no timestamps in this envelope.
+    an absolute path, and there are no timestamps in this envelope. The guard
+    matches absolute-path and timestamp *shapes* rather than a bare slash, so a
+    future rule id, pack name, or message that legitimately carries one slash
+    does not fail spuriously (addendum 5.1.2.2).
     """
     rendered = json.dumps(envelope)
-    assert "/" not in rendered, f"unexpected path token in envelope: {rendered}"
+    match = _VOLATILE_PATTERN.search(rendered)
+    assert match is None, (
+        f"unexpected volatile token {match.group()!r} in envelope: {rendered}"
+        if match is not None
+        else ""
+    )
     for key in ("timestamp", "created_at", "now", "time"):
         assert key not in rendered, f"unexpected volatile key {key!r} in envelope"
 

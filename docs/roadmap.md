@@ -934,7 +934,7 @@ novel-ralph-harness-design.md §4.4, §6.1, and §1.
   - See novel-ralph-harness-design.md §4.4 and §9.
   - Success: clean prose exits 0, a manuscript with violations exits 4, and a
     malformed invocation exits 2 — each distinguishable without parsing JSON.
-  - [ ] 5.1.2.1. Document the per-page density behaviour on short or near-empty
+  - [x] 5.1.2.1. Document the per-page density behaviour on short or near-empty
     drafts in the users' guide.
     - Addendum (from review:5.1.2; low). The §4.5 density formula lets a single
       `per_page` offender trip the threshold on a sub-page draft because a
@@ -942,14 +942,14 @@ novel-ralph-harness-design.md §4.4, §6.1, and §1.
       users'-guide section so an operator scanning an early or short chapter is
       not surprised by the design-correct extrapolation. Lightweight addendum
       pass.
-  - [ ] 5.1.2.2. Tighten the snapshot volatile-field guard from a bare slash
+  - [x] 5.1.2.2. Tighten the snapshot volatile-field guard from a bare slash
     check to a path/timestamp pattern.
     - Addendum (from review:5.1.2; low). `tests/test_desloppify_snapshots.py`
       asserts no `/` appears in the rendered envelope, so a future rule id, pack
       name, or message carrying a slash would fail spuriously; replace the bare
       slash check with a regex matching absolute-path or timestamp shapes so the
       guard stays durable across packs. Lightweight addendum pass.
-  - [ ] 5.1.2.3. Reconcile the per-hit `phrase` wording across design §4.4, the
+  - [x] 5.1.2.3. Reconcile the per-hit `phrase` wording across design §4.4, the
     roadmap, and the emitted envelope.
     - Addendum (from review:5.1.2; low). The envelope emits the rule's authored
       pattern source under `phrase` while `rule_id` is the canonical slug;
@@ -958,7 +958,7 @@ novel-ralph-harness-design.md §4.4, §6.1, and §1.
       §7.1 ai-isms and device-ledger packs inherit an unambiguous per-hit output
       vocabulary rather than re-litigating whether `phrase`/`pattern` belongs in
       the envelope. Lightweight addendum pass.
-  - [ ] 5.1.2.4. Correct the "cannot drift from `recount_words`" docstrings under
+  - [x] 5.1.2.4. Correct the "cannot drift from `recount_words`" docstrings under
     `--chapter` scope and test the per-page density message branch.
     - Addendum (from audit:5.1.2; medium). `detect`'s "cannot drift from
       `recount_words`" docstrings are misleading because `--chapter N` computes

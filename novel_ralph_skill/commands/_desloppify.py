@@ -23,8 +23,11 @@ an unreadable/undecodable pack file or an unreadable draft or an absent/unparsea
 error (exit 3); and a ``--chapter`` outside the manifest is a body-detected usage
 fault (exit 2) raised as :class:`DesloppifyUsageError`. The text-sourcing helper
 reuses ``recount``'s two conventions — the ``chapter-{number:02d}`` path
-derivation and the ``len(text.split())`` token rule — so the density word count
-cannot drift from ``recount`` (ExecPlan round-1 advisory).
+derivation and the ``len(text.split())`` token rule — so the per-token counting
+cannot drift from ``recount`` (ExecPlan round-1 advisory). The density
+*denominator* still tracks the scanned scope: a whole-manuscript scan sums every
+chapter (matching ``recount``'s manuscript total), while ``--chapter N`` divides
+density into that one chapter's words, not the manuscript total.
 """
 
 from __future__ import annotations
