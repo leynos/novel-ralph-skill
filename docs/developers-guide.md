@@ -510,7 +510,6 @@ such a `state.toml` is rejected at load (exit `3`) and the validator's
 `phase-in-enum` predicate only fires for a `State` constructed directly (as in
 the property suite), never for one loaded from disk.
 
-
 ### Done predicate (`novel-done`)
 
 `novel-done` (roadmap task 3.1.1) is the read-only done predicate as a
