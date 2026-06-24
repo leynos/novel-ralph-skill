@@ -8,6 +8,11 @@ console-script can read it. hatchling includes the non-``.py`` ``offenders.toml`
 under this already-shipped package directory by default
 (``pyproject`` ``packages = ["novel_ralph_skill"]``), so no build-config change is
 needed (ExecPlan Decision Log "the §6 offender pack ships at …packs/offenders.toml").
+
+A second pack now lives beside ``offenders.toml``: ``ai-isms.toml``, the opt-in
+AI-ism tell pack (roadmap task 7.1.1, design §6.2). It ships by the same default
+hatchling mechanism and is selected with ``desloppify --pack``; the default pack
+stays ``offenders.toml``.
 """
 
 from __future__ import annotations

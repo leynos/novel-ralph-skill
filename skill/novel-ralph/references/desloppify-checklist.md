@@ -287,6 +287,16 @@ The thresholds are deliberately tight. Most are zero because the phrase is
 dead. The few non-zero thresholds reflect that the phrase has legitimate uses,
 but only at the margin.
 
+This §6 table is shipped as the `offenders.toml` rule pack, which `desloppify`
+loads by default. The broader lexical *AI-isms* — phrasal tells such as
+"load-bearing" and "a testament to" — are now enforceable too, via a second
+pack, `novel_ralph_skill/rulepack/packs/ai-isms.toml`. It is opt-in: run
+`desloppify --pack novel_ralph_skill/rulepack/packs/ai-isms.toml` to scan a
+chapter against it. The pack is versioned data the maintainer keeps current; its
+update cadence and membership policy live in the developers' guide ("Rule packs
+and the loader boundary"). Keep working this prose checklist as well; the pack
+mechanizes only the lexical subset, not the paragraph- and chapter-level tells.
+
 ## Tone of the desloppify pass
 
 The pass is destructive. It removes more than it adds. If the chapter loses

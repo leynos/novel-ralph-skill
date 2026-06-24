@@ -1047,7 +1047,7 @@ This step extends the phase 5 rule-pack engine with the moving-target and
 per-novel packs the design defers, and settles the per-hit output contract those
 packs inherit before they land. See novel-ralph-harness-design.md §6.2 and §6.3.
 
-- [ ] 7.1.1. Ship the versioned `ai-isms.toml` pack and update cadence.
+- [x] 7.1.1. Ship the versioned `ai-isms.toml` pack and update cadence.
   - Requires phase 5.
   - Carry the 2026 tell set as data the maintainer owns, with `schema_version`
     versioning, so new tells land without touching the command.

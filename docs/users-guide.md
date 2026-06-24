@@ -196,9 +196,12 @@ a per-rule finding without editing the manuscript or touching `state.toml` (it
 is a detect-only checker). By default it scans the whole manuscript (every
 chapter in
 the `[chapters]` manifest); pass `--chapter N` to scan a single chapter, or
-`--pack PATH` to use a different rule pack. Like `novel-state check` it prints a
-one-line JSON envelope by default and a readable rendering under the global
-`--human` flag.
+`--pack PATH` to use a different rule pack. A second pack, `ai-isms.toml`, ships
+with the package and flags lexical AI-isms ("load-bearing", "a testament to");
+it is opt-in, selected with `--pack
+novel_ralph_skill/rulepack/packs/ai-isms.toml`. Like `novel-state check`
+`desloppify` prints a one-line JSON envelope by default and a readable rendering
+under the global `--human` flag.
 
 `desloppify` uses the shared exit-code table:
 

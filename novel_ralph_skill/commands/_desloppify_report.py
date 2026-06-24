@@ -59,6 +59,33 @@ def offenders_pack_path() -> Traversable:
     )
 
 
+def ai_isms_pack_path() -> Traversable:
+    """Return the packaged ``ai-isms.toml`` resource (design §6.2; roadmap 7.1.1).
+
+    Resolves the opt-in AI-ism pack shipped beside ``offenders.toml`` via
+    :mod:`importlib.resources`, the stdlib-only way that survives wheel
+    installation (the ai-isms e2e proves the pack travels). The pack lives at
+    ``novel_ralph_skill/rulepack/packs/ai-isms.toml`` and hatchling ships every
+    non-``.py`` file under the package by default, so it needs no build-config
+    change. It is opt-in via ``desloppify --pack``; the default pack stays
+    ``offenders.toml`` (ExecPlan scope; design §6.2).
+
+    Returns a :class:`~importlib.resources.abc.Traversable`, not a
+    :class:`pathlib.Path`, for the same reason :func:`offenders_pack_path` does:
+    a filesystem install yields a ``Path`` (which *is* a ``Traversable``) while a
+    zipped install would yield a different ``Traversable``, and ``load_rulepack``
+    only needs ``.open("rb")``, so the honest type avoids an unsafe cast.
+
+    Returns
+    -------
+    importlib.resources.abc.Traversable
+        The shipped ``ai-isms.toml`` resource, openable in binary mode.
+    """
+    return importlib.resources.files("novel_ralph_skill.rulepack.packs").joinpath(
+        "ai-isms.toml"
+    )
+
+
 def _finding_payload(finding: RuleFinding) -> dict[str, object]:
     """Project one :class:`RuleFinding` into its machine ``result`` payload.
 

@@ -393,8 +393,12 @@ whole field report at once. The roadmap must hold the parity-first line.
   are to be held as versioned data. What is the update mechanism, and who
   maintains the rule pack as new tells emerge?
   - *Why it matters:* G8; a stale rule pack silently misses tells.
-  - *Resolution:* record the cadence and ownership when the
-    configurable linter phase is scheduled.
+  - *Resolution:* **Resolved (roadmap 7.1.1).** The `ai-isms.toml` pack ships as
+    opt-in versioned data; the update cadence, ownership, and membership policy
+    are recorded in the developers' guide ("Rule packs and the loader boundary",
+    subsection "The ai-isms pack: cadence, ownership, and membership"). The skill
+    maintainer owns the pack, reviews it at least each release, and adds or
+    retires a cited, collocational tell by a data edit, never a code change.
   - *Owner:* skill maintainer.
 
 ## Appendices

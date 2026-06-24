@@ -1,0 +1,79 @@
+# The AI-ism tell pack: lexical/phrasal tells of LLM-default prose, distinct
+# from the §6 high-frequency offenders in offenders.toml (design §6.2). AI-isms
+# are a moving target the maintainer owns as versioned data, not code; the
+# update cadence and membership policy live in the developers' guide ("Rule
+# packs and the loader boundary").
+#
+# Every pattern compiles under re.compile() with NO flags; (?i) is inline.
+# CASING DIVERGENCE (deliberate, ExecPlan Decision Log): design §6.1's
+# illustrative pattern is case-SENSITIVE (\bload-bearing\b), and the developers'
+# guide worked example shows case-sensitive \btapestry\b and \bdelve\b. This
+# pack intentionally diverges by carrying inline (?i) on every row, for parity
+# with offenders.toml and because a manuscript capitalizes a tell at a sentence
+# start or in a chapter title ("Load-bearing assumptions"). The (?i) is inline,
+# never a compile flag.
+#
+# Every rule is COLLOCATIONAL — a multi-token AI-ism phrase, never a bare
+# standalone English word. Bare puffery words (delve, nestled, boasts) are
+# deliberately EXCLUDED (Decision Log): WP:AISIGNS lists them under AIPEACOCK as
+# words that recur in legitimate prose, and detect.py applies no semantic gate
+# (detect.py:147-200), so a bare-word rule would fire on ordinary fiction.
+#
+# Every id is disjoint from offenders.toml's 24 ids (test_ai_isms_pack.py pins
+# the disjointness so the two packs never double-count).
+schema_version = 1
+pack = "ai-isms"
+
+# Tier A — design §6.2 named examples NOT already in offenders.toml.
+# ("navigate the complexities", the third design example, is already
+# offenders.toml's navigate-the-complexities row, so it is honoured there, not
+# duplicated here.)
+
+[[rule]]
+id = "load-bearing"
+# source: design §6.2 (docs/novel-ralph-harness-design.md, named example).
+pattern = '''(?i)\bload-bearing\b'''
+threshold = 0
+basis = "manuscript"
+
+[[rule]]
+id = "a-testament-to"
+# source: design §6.2 (named example "a testament to"). Owns the live phrase
+# "is a testament to …"; disjoint from stands-as-a-testament below.
+pattern = '''(?i)\ba testament to\b'''
+threshold = 0
+basis = "manuscript"
+
+# Tier B — collocational additions, each cited to a named WP:AISIGNS list
+# (https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing, 2026-06-24).
+# Membership is the maintainer's to ratify (ExecPlan Tolerance: Tell-set
+# membership); each row is phrase-level, none a bare word.
+
+[[rule]]
+id = "stands-as-a-testament"
+# source: WP:AISIGNS AITREND "stands/serves as", "is a testament/reminder". The
+# "is" branch is deliberately omitted: it would match only the ungrammatical
+# "is as a testament", and the live "is a testament to" is owned by
+# a-testament-to above. The new coverage here is the editorialising
+# "stands/serves as a testament" template.
+pattern = '''(?i)\b(?:stands|serves) as a testament\b'''
+threshold = 0
+basis = "manuscript"
+
+[[rule]]
+id = "rich-tapestry"
+# source: WP:AISIGNS era list ("tapestry") plus the page's "rich tapestry of"
+# worked example. Narrowed to the collocation; distinct from offenders.toml's
+# tapestry-of row, which owns the bare "tapestry of …".
+pattern = '''(?i)\brich tapestry\b'''
+threshold = 0
+basis = "manuscript"
+
+[[rule]]
+id = "vital-role"
+# source: WP:AISIGNS AITREND "a vital/significant/crucial/pivotal/key
+# role/moment". Collocational template ("plays a vital role"); safe for fiction,
+# where a bare "role" is common but this verb+adjective+role phrase is not.
+pattern = '''(?i)\b(?:plays?|played) a (?:vital|pivotal|crucial|key) role\b'''
+threshold = 0
+basis = "manuscript"

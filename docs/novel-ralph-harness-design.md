@@ -589,7 +589,10 @@ AI-isms are a moving target, so they are data, not logic. The `ai-isms.toml`
 pack carries `schema_version` and is updated as new tells emerge without
 touching the skill or the command. The 2026 set (for example "load-bearing", "a
 testament to", "navigate the complexities") will be stale by 2027; the
-maintainer owns the pack and its cadence. Detection stays deterministic;
+maintainer owns the pack and its cadence. The concrete update cadence,
+ownership, and membership policy are recorded in the developers' guide ("Rule
+packs and the loader boundary", subsection "The ai-isms pack: cadence,
+ownership, and membership"), which resolves Q5. Detection stays deterministic;
 whether a flagged passive is justified remains the model's call.
 
 ### 6.3 Device ledger (resolves Q3)

@@ -697,6 +697,57 @@ two loader errors to their exit codes in the command body (`RulePackError` → e
 2; `RulePackFileError` → exit 3) rather than extending the shared runner, keeping
 the `rulepack` → `contract` coupling out of the shared seam.
 
+
+#### The ai-isms pack: cadence, ownership, and membership
+
+Roadmap task 7.1.1 ships a second packaged pack beside `offenders.toml`:
+[`novel_ralph_skill/rulepack/packs/ai-isms.toml`](../novel_ralph_skill/rulepack/packs/ai-isms.toml),
+the *AI-ism* tell pack (design §6.2). Where `offenders.toml` carries the §6
+prose-craft offenders, `ai-isms.toml` carries the lexical and phrasal tells of
+LLM-default prose — "load-bearing", "a testament to", and similar. It ships by
+the same default hatchling mechanism, travels in the wheel, and resolves through
+`importlib.resources.files`. It is **opt-in**: `desloppify` selects it only when
+given `--pack ai-isms.toml`, and the default pack stays `offenders.toml`.
+Combining both packs in one invocation is a separate roadmap item and is not yet
+supported.
+
+The AI-ism tell set is a *moving target* the maintainer owns as versioned data,
+not code (design §6.2). The cadence is:
+
+- **Owner.** The skill maintainer owns the pack and this policy.
+- **Review schedule.** The pack is reviewed at least once per release, and no
+  less than annually, as tells emerge or go stale. (AI-ism vocabulary dates: the
+  WP:AISIGNS field guide records, for instance, that "delve" was overused in
+  2023–2024 and then dropped off sharply in 2025.)
+- **Adding or retiring a tell** is a *data edit* — one TOML `[[rule]]` row plus
+  its positive and negative test rows in
+  [`tests/test_ai_isms_pack.py`](../tests/test_ai_isms_pack.py) — never a code
+  change. The loader, detector, and envelope are untouched.
+- **A schema change** (not expected) would bump `RULEPACK_SCHEMA_VERSION`; the
+  tell set evolves under the existing v1 schema by data edits alone.
+
+The **membership policy** keeps the next maintainer from inventing tells:
+
+- Every new tell must be cited to an authoritative source — the design's named
+  examples (§6.2), or a dated AI-ism field guide such as WP:AISIGNS
+  (<https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing>) — recorded in
+  a `# source:` comment above the row.
+- Every tell must be **collocational**: a multi-token phrase, never a bare
+  standalone English word. A bare word such as `delve`, `nestled`, or `boasts`
+  is rejected, because `detect.py` applies no semantic gate and such a rule fires
+  on legitimate fiction (WP:AISIGNS lists those words as recurring in ordinary
+  prose). A vocabulary tell is narrowed to its AI-ism collocation — `rich
+  tapestry`, not bare `tapestry`; `is a testament`, not bare `testament`.
+- Every id is disjoint from `offenders.toml`'s ids, so the two packs never
+  double-count; the validation suite asserts the disjointness.
+
+The ai-isms patterns diverge deliberately from design §6.1's case-sensitive
+illustration (and from the case-sensitive `\btapestry\b`/`\bdelve\b` worked
+example above): every ai-isms pattern carries the inline `(?i)` flag, for parity
+with `offenders.toml` and because a manuscript capitalizes a tell at a sentence
+start or in a chapter title. The inline `(?i)` is never a compile flag; the
+loader still compiles every pattern with no flags.
+
 ## GitHub Actions
 
 The generated repository includes GitHub Actions workflows and local composite

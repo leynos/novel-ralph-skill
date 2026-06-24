@@ -20,6 +20,7 @@ import typing as typ
 import pytest
 
 from novel_ralph_skill.commands._desloppify import build_app
+from novel_ralph_skill.commands._desloppify_report import ai_isms_pack_path
 from novel_ralph_skill.contract.exit_codes import ExitCode
 from novel_ralph_skill.contract.runner import RunContext, run
 
@@ -158,6 +159,54 @@ def test_absent_working_dir_exits_three(
         _run([])
     assert excinfo.value.code == ExitCode.STATE_ERROR
     assert _envelope(capsys)["ok"] is False
+
+
+def test_ai_isms_pack_flags_load_bearing(
+    baseline_tree: cabc.Callable[[], Path],
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """``--pack ai-isms.toml`` over a load-bearing draft exits ``4`` naming it.
+
+    Proves the shipped ai-isms pack is usable through the documented ``--pack``
+    flag (roadmap 7.1.1): an AI-ism in the manuscript drives an actionable
+    finding, exactly as an offender does for the default pack.
+    """
+    working = baseline_tree()
+    draft = "This paragraph is load-bearing in the argument.\n"
+    _first_chapter_dir(working).joinpath("draft.md").write_text(draft, encoding="utf-8")
+    for chapter_dir in sorted((working / "manuscript").glob("chapter-*"))[1:]:
+        other = chapter_dir / "draft.md"
+        if other.exists():
+            other.write_text("plain calm words here\n", encoding="utf-8")
+    monkeypatch.chdir(working.parent)
+    with pytest.raises(SystemExit) as excinfo:
+        _run(["--pack", str(ai_isms_pack_path())])
+    assert excinfo.value.code == ExitCode.ACTIONABLE_FINDING
+    envelope = _envelope(capsys)
+    assert envelope["ok"] is False
+    violations = typ.cast("list[str]", _result(envelope)["violations"])
+    assert "load-bearing" in violations, f"load-bearing not in violations {violations}"
+
+
+def test_ai_isms_pack_clean_tree_exits_zero(
+    baseline_tree: cabc.Callable[[], Path],
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """``--pack ai-isms.toml`` over AI-ism-free prose exits ``0`` with no findings."""
+    working = baseline_tree()
+    for chapter_dir in (working / "manuscript").glob("chapter-*"):
+        draft = chapter_dir / "draft.md"
+        if draft.exists():
+            draft.write_text("A calm sentence with plain words.\n", encoding="utf-8")
+    monkeypatch.chdir(working.parent)
+    with pytest.raises(SystemExit) as excinfo:
+        _run(["--pack", str(ai_isms_pack_path())])
+    assert excinfo.value.code == ExitCode.SUCCESS
+    envelope = _envelope(capsys)
+    assert envelope["ok"] is True
+    assert _result(envelope)["violations"] == []
 
 
 @pytest.mark.parametrize("flag", ["--help", "--version"])
