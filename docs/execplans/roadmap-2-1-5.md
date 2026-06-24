@@ -907,3 +907,46 @@ New public corpus surface (test-only; no production dependency added):
 No change to `novel_ralph_skill/` source, to `CORPUS_INVARIANT_NAMES`, to
 `corpus_check`, or to `PURE_STATE_INVARIANT_NAMES`. No new external dependency.
 `cuprum` is not used by this task (Decision Log D4).
+
+## Addenda (post-merge follow-ups)
+
+Lightweight addendum work items folded back onto this completed task from the
+post-merge review and audit of step 2.1 (`review:2.1.5`, `audit:2.1.5`).
+Execute each as a small addendum pass — no plan or design-review cycle: make the
+change, run `make all` (plus `make markdownlint`/`make nixie` for Markdown),
+`coderabbit review --agent`, commit, and tick the matching roadmap sub-task on
+merge. The substantial, cross-cutting follow-ups were re-routed off this task:
+the symmetric under-counting `by_chapter_override` corpus variant (review:2.1.5
+and audit:2.1.5, two near-identical proposals merged) to roadmap step 2.1
+(task 2.1.6, because it adds §1.3.2 corpus data and hardens the
+validator-versus-live-oracle cross-check that proves the step-2.1 hypothesis);
+the corpus tree-factory-closure consolidation and plugin-split convention
+(audit:2.1.5 and review:2.1.5) to a new roadmap step 7.7 (deferred
+test-maintainability hardening); and the scoped `mutmut` gate over
+`tests/working_corpus/_live_draft.py` (review:2.1.5) is already owned by roadmap
+task 7.6.1, which names that module among its mutation targets, so it is not
+re-filed here. The three below are the small, localised fixes.
+
+- [ ] 2.1.5.1 — Extract the divergent-table self-tests into a focused sibling
+  test module (from review:2.1.5, low). `tests/test_working_corpus.py` is 599
+  lines under an inline `# pylint: disable=too-many-lines` exemption; this
+  task's own Tolerances and Decision Log D5 named extraction to a focused
+  sibling test module as the sanctioned escalation path. Lift the
+  divergent-table self-test class into a new sibling module before the next
+  variant lands so the inline exemption can be relieved. Test-only. Gate with
+  `make all`.
+- [ ] 2.1.5.2 — De-future the live-draft oracle docstring's `by_chapter_override`
+  landmine framing (from review:2.1.5, low). `live_draft_owned`'s docstring in
+  `tests/working_corpus/_live_draft.py` still frames a `by_chapter_override`
+  variant as a "future" landmine ("A future `by_chapter_override` variant … is
+  therefore a finding to investigate"), but this task landed that variant.
+  Reword the stale "future" framing (and sweep any sibling occurrences) so the
+  documentation trail describes the variant that now exists. Docs/comment-only.
+  Gate with `make all`.
+- [ ] 2.1.5.3 — Make the divergent-table consumer iterate rather than
+  single-unpack the variant set (from review:2.1.5, low).
+  `tests/test_validate_state_live_draft.py` hard-codes
+  `(variant_name,) = divergent_table_variant_names`, so once task 2.1.6 adds the
+  second variant the unpack fails with an opaque `ValueError`. Iterate the
+  variant set (or pin an explicit single variant by name) to localise that
+  future failure ahead of 2.1.6. Test-only. Gate with `make all`.

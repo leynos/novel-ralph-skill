@@ -526,6 +526,51 @@ novel-ralph-harness-design.md §5.1 and §5.2.
     directly through the standard corpus loop (the live reader to table reader
     mutant is killed without the module-local fixture); and the module-local
     `divergent_table_tree` fixture is removed.
+  - [ ] 2.1.5.1. Extract the divergent-table self-tests into a focused sibling
+    test module.
+    - Addendum (from review:2.1.5; low). `tests/test_working_corpus.py` is 599
+      lines under an inline `too-many-lines` exemption and the 2.1.5 execplan
+      named extraction as the sanctioned escalation path; lift the
+      divergent-table self-test class into a focused sibling module so the
+      exemption can be relieved before the next variant lands. Lightweight
+      addendum pass.
+  - [ ] 2.1.5.2. De-future the live-draft oracle docstring's
+    `by_chapter_override` landmine framing.
+    - Addendum (from review:2.1.5; low). `live_draft_owned`'s docstring in
+      `tests/working_corpus/_live_draft.py` still frames the
+      `by_chapter_override` variant as a "future" landmine, but 2.1.5 landed
+      that variant; reword the stale "future" framing so the documentation trail
+      describes the variant that now exists. Lightweight addendum pass.
+  - [ ] 2.1.5.3. Make the divergent-table consumer iterate rather than
+    single-unpack the variant set.
+    - Addendum (from review:2.1.5; low). `test_validate_state_live_draft.py`
+      hard-codes `(variant_name,) = divergent_table_variant_names`, so the second
+      variant will break it with an opaque unpacking error; iterate the variant
+      set (or pin an explicit single variant) to localise that future failure.
+      Lightweight addendum pass.
+- [ ] 2.1.6. Add a symmetric under-counting divergent-table corpus variant so the
+  discrimination loop catches a mutant that mishandles only over-counts.
+  - The §1.3.2 corpus now owns a single over-counting `by_chapter_override`
+    divergent-table tree. Add a first-class sibling variant whose
+    `by_chapter_override` under-counts or omits a drafted chapter, so the table
+    mislabels the real drafts in the opposite direction; the
+    `DIVERGENT_TABLE_VARIANTS` category and `divergent_table_tree` factory accept
+    this by name. This serves the step-2.1 hypothesis — that the schema's
+    invariants can be expressed as a typed structure a validator enforces — by
+    exercising the validator's two table-based proxies
+    (`gate-ratio-consistent`, `consecutive-clean-within-drafted`) against a
+    genuinely divergent tree in the opposite direction, hardening the
+    validator-versus-live-oracle cross-check against a mutant that only
+    mishandles over-counts.
+  - Requires 2.1.5.
+  - See novel-ralph-harness-design.md §5.2 and §9;
+    docs/execplans/roadmap-2-1-5.md (the over-counting variant and its corpus
+    ownership constraints).
+  - Success: a first-class §1.3.2 corpus variant sets `by_chapter_override` so
+    the table under-counts or omits a drafted chapter; the whole-corpus
+    live-draft agreement test discriminates the live read from a table read on
+    this tree too; and a table-reading mutant of the live oracle that mishandles
+    only over-counts is killed by the under-counting variant.
 
 ### 2.2. Deliver lossless, atomic state mutation
 
@@ -1125,3 +1170,42 @@ the deterministic spine.
     reports its surviving mutants, each surviving mutant is either killed by a
     new test or recorded with a rationale, and the mutation configuration is
     captured so the run is repeatable.
+
+### 7.7. Consolidate the corpus fixture-plugin scaffolding
+
+This step answers whether the corpus's per-category fixture plugins and their
+near-identical "build named tree" tree-factory closures can be collapsed onto a
+shared helper, with a documented convention for when to carve a new plugin
+versus grow an existing one, so each future corpus category re-pays neither the
+duplication nor the ad-hoc plugin proliferation. Its outcome is a single home
+for the tree-factory pattern and a written split rationale future categories
+follow. This is a deferred maintainability-hardening extension surfaced by the
+audit of step 2.1; it does not advance the step-2.1 schema-and-validator
+hypothesis (the corpus and its plugins already exist and pass) and it does not
+gate the deterministic spine.
+
+- [ ] 7.7.1. Collapse the corpus tree-factory closures onto a shared helper and
+  document the plugin-split convention.
+  - Reroute (source: audit:2.1.5 / review:2.1.5; severity: low). Three corpus
+    fixture plugins (`corpus_fixtures`, `corpus_live_draft_fixtures`,
+    `corpus_divergent_fixtures`) now exist solely to respect the enforced
+    400-line module cap, and 2.1.5 added the fourth near-identical "build named
+    tree" factory closure plus "return variant keys" fixture; the duplication and
+    the cap-driven plugin proliferation are now an established pattern each future
+    category re-pays. A small shared helper in `working_corpus` collapsing the
+    closures, plus a short developers'-guide note on when to carve a new plugin
+    versus grow an existing one, gives the pattern and the subdirectory-isolation
+    rationale a single home. This is cross-cutting test-maintainability hardening,
+    not the step-2.1 schema hypothesis where it was raised, so it is deferred
+    here. Defer until at least one further corpus category (e.g. roadmap 2.3.3's
+    disk-authoritative oracle checks) has landed so the consolidation is driven
+    by a real fourth category rather than a speculative one.
+  - Requires 2.3.3.
+  - See novel-ralph-harness-design.md §9; docs/developers-guide.md
+    ("The `working/` fixture corpus"); docs/execplans/roadmap-2-1-5.md
+    (Decision Log D5, the size-split plugin rationale).
+  - Success: the per-category "build named tree" tree-factory closures share one
+    `working_corpus` helper, the subdirectory-isolation comment has a single
+    home, and the developers' guide records when to carve a new corpus fixture
+    plugin versus grow an existing one; every current corpus agreement suite
+    stays green.
