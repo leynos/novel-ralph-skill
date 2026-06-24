@@ -15,6 +15,7 @@ from __future__ import annotations
 import typing as typ
 
 from novel_ralph_skill.state import (
+    DISK_EVIDENCE_INVARIANT_NAMES,
     PHASE_IN_ENUM,
     load_state,
     validate_state,
@@ -22,6 +23,18 @@ from novel_ralph_skill.state import (
 
 if typ.TYPE_CHECKING:
     from pathlib import Path
+
+# The disk-evidence invariant names the §5.2 validator never owns — the
+# complement of the eight owned (pure-state) names within the full vocabulary.
+# Both agreement suites pin a variant labelled with one of these to two empty
+# owned verdicts that agree, so the set must be identical on each side; defining
+# it here once stops the two suites' copies drifting apart. It is derived from
+# the production split rather than hand-listed: the validator's
+# ``PURE_STATE_INVARIANT_NAMES`` (owned) and ``DISK_EVIDENCE_INVARIANT_NAMES``
+# (this complement) are the two halves of the same vocabulary, pinned disjoint
+# and complete by ``test_owned_names_equal_corpus_vocabulary``, so this set
+# cannot drift from the owned vocabulary.
+DISK_EVIDENCE_NAMES: frozenset[str] = frozenset(DISK_EVIDENCE_INVARIANT_NAMES)
 
 # The ``phase-in-enum`` invariant is enforced one layer earlier than the
 # validator: ``parse_state`` constructs ``Phase(current)`` and raises

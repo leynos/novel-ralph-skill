@@ -1241,7 +1241,7 @@ users'-guide verdict vocabulary) are not folded here: Finding 6's vocabulary
 enumeration already shipped in task 2.1.2.7, with its residual operator-meaning
 prose deferred to the broader users-guide update in task 2.2.2.1.
 
-- [ ] 2.1.3.1 — Consolidate the live-draft oracle's repeated `state.toml`
+- [x] 2.1.3.1 — Consolidate the live-draft oracle's repeated `state.toml`
   parsing and drop the third `by-chapter-sum` predicate twin (from audit:2.1.3,
   medium; Findings 1 and 3). In `tests/working_corpus/_live_draft.py`, parse
   `state.toml` once in `live_draft_owned` and pass the decoded
@@ -1251,7 +1251,7 @@ prose deferred to the broader users-guide update in task 2.2.2.1.
   `corpus_check(spec, working_dir)` already returns (line 184), so the
   table-internal read is no longer a third hand-copied twin. Test-only. Gate
   with `make all`.
-- [ ] 2.1.3.2 — Lift the shared disk-evidence invariant-name set into one home
+- [x] 2.1.3.2 — Lift the shared disk-evidence invariant-name set into one home
   for both agreement suites (from audit:2.1.3, medium; Finding 2). The identical
   five-element frozensets `_DISK_EVIDENCE_NAMES`
   (`tests/test_validate_state_live_draft.py`) and `_DEFERRED_INVARIANT_NAMES`
@@ -1261,7 +1261,7 @@ prose deferred to the broader users-guide update in task 2.2.2.1.
   `set(CORPUS_INVARIANT_NAMES) - set(PURE_STATE_INVARIANT_NAMES)` so it cannot
   drift from the owned vocabulary — and import it into both modules. Test-only.
   Gate with `make all`.
-- [ ] 2.1.3.3 — Promote the §5.2 gate thresholds to a public exported constant
+- [x] 2.1.3.3 — Promote the §5.2 gate thresholds to a public exported constant
   (from audit:2.1.3, low; Finding 4). `tests/test_validate_state_corpus.py` and
   `tests/test_validate_state_property.py` both import the module-private
   `_GATE_THRESHOLDS` from `novel_ralph_skill/state/validate.py` across the

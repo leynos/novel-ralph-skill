@@ -20,6 +20,7 @@ import typing as typ
 
 import pytest
 from _state_corpus_support import (
+    DISK_EVIDENCE_NAMES,
     PARSE_ENFORCED_INVARIANTS,
     PARSE_ERRORS,
     load_succeeds,
@@ -36,11 +37,11 @@ from novel_ralph_skill.state import (
     CURSOR_COHERENT,
     DISK_EVIDENCE_INVARIANT_NAMES,
     GATE_RATIO_CONSISTENT,
+    GATE_THRESHOLDS,
     PHASE_IN_ENUM,
     PURE_STATE_INVARIANT_NAMES,
     load_state,
 )
-from novel_ralph_skill.state.validate import _GATE_THRESHOLDS
 
 if typ.TYPE_CHECKING:
     import collections.abc as cabc
@@ -48,22 +49,14 @@ if typ.TYPE_CHECKING:
 
     from conftest import WorkingTreeSpec
 
-# The six disk-evidence invariant names this task does NOT own; the validator
-# must never emit any of them (the scope-boundary pin, protecting task 2.3.2's
-# surface). ``cursor-plan-present`` is the scene/beat-plan-presence sub-clause of
+# The disk-evidence invariant names this task does NOT own (the validator must
+# never emit any of them — the scope-boundary pin protecting task 2.3.2's
+# surface) live in ``_state_corpus_support`` as ``DISK_EVIDENCE_NAMES``, shared
+# with the live-draft suite and derived from the production owned/complement
+# split. ``cursor-plan-present`` is the scene/beat-plan-presence sub-clause of
 # design §5.2 invariant 6 — disk-evidence, so deferred to reconciliation task
 # 2.3.2 like the four §5.4 names. ``word-counts-match-drafts`` is task 2.3.2's
 # new disk-vs-table per-chapter word-count divergence (D-WORDCOUNT).
-_DEFERRED_INVARIANT_NAMES: frozenset[str] = frozenset(
-    {
-        "manifest-disk-bijection",
-        "done-flag-without-draft",
-        "compiled-matches-drafts",
-        "pending-turn-cleared",
-        "cursor-plan-present",
-        "word-counts-match-drafts",
-    },
-)
 
 
 def test_owned_names_equal_corpus_vocabulary(
@@ -85,12 +78,12 @@ def test_owned_names_equal_corpus_vocabulary(
         CURSOR_COHERENT,
         GATE_RATIO_CONSISTENT,
     }
-    assert owned == set(corpus_invariant_names) - _DEFERRED_INVARIANT_NAMES
+    assert owned == set(corpus_invariant_names) - DISK_EVIDENCE_NAMES
     assert set(PURE_STATE_INVARIANT_NAMES) == owned
     # Task 2.3.2's disk-evidence detector owns exactly the six deferred names; pin
     # the production ``DISK_EVIDENCE_INVARIANT_NAMES`` tuple equal to the oracle's
     # disk-evidence subset so the two vocabularies cannot drift (D-NAMES).
-    assert set(DISK_EVIDENCE_INVARIANT_NAMES) == _DEFERRED_INVARIANT_NAMES
+    assert set(DISK_EVIDENCE_INVARIANT_NAMES) == DISK_EVIDENCE_NAMES
     assert set(DISK_EVIDENCE_INVARIANT_NAMES) == set(corpus_invariant_names) - owned
 
 
@@ -105,7 +98,7 @@ def test_corpus_gate_thresholds_equal_production(
     finding 1). The corpus keeps its own copy on purpose; this test keeps it
     honest.
     """
-    assert corpus_gate_thresholds == _GATE_THRESHOLDS
+    assert corpus_gate_thresholds == GATE_THRESHOLDS
 
 
 def test_parse_errors_subset_of_production_state_input_errors() -> None:
@@ -207,4 +200,4 @@ def test_validator_never_emits_deferred_names(
         # exit-3 state-error channel), so it emits nothing — deferred or owned.
         if not load_succeeds(working_dir):
             continue
-        assert validator_verdict(working_dir) & _DEFERRED_INVARIANT_NAMES == set()
+        assert validator_verdict(working_dir) & DISK_EVIDENCE_NAMES == set()

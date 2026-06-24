@@ -440,7 +440,7 @@ novel-ralph-harness-design.md §5.1 and §5.2.
     against the materialised `state.toml`, matches the oracle's
     `CORPUS_INVARIANT_NAMES` labels exactly — coherent trees pass and each
     incoherent variant is rejected on its one named invariant.
-  - [ ] 2.1.3.1. Consolidate the live-draft oracle's repeated `state.toml`
+  - [x] 2.1.3.1. Consolidate the live-draft oracle's repeated `state.toml`
     parsing and drop the third `by-chapter-sum` predicate twin.
     - Addendum (from audit:2.1.3; medium). The three `_check_*_live` predicates
       in `tests/working_corpus/_live_draft.py` each re-parse `state.toml`; parse
@@ -448,7 +448,7 @@ novel-ralph-harness-design.md §5.1 and §5.2.
       `_check_by_chapter_sum_live` in favour of the `by-chapter-sum` verdict
       `corpus_check` already returns. Test-only cleanup of redundant reads and a
       hand-copied table twin. Lightweight addendum pass.
-  - [ ] 2.1.3.2. Lift the shared disk-evidence invariant-name set into one home
+  - [x] 2.1.3.2. Lift the shared disk-evidence invariant-name set into one home
     for both agreement suites.
     - Addendum (from audit:2.1.3; medium). `_DISK_EVIDENCE_NAMES` and
       `_DEFERRED_INVARIANT_NAMES` are identical five-element frozensets
@@ -456,7 +456,7 @@ novel-ralph-harness-design.md §5.1 and §5.2.
       set once in `tests/_state_corpus_support.py` (ideally as
       `set(CORPUS_INVARIANT_NAMES) - set(PURE_STATE_INVARIANT_NAMES)`) and import
       it into both. Test-only. Lightweight addendum pass.
-  - [ ] 2.1.3.3. Promote the §5.2 gate thresholds to a public exported constant.
+  - [x] 2.1.3.3. Promote the §5.2 gate thresholds to a public exported constant.
     - Addendum (from audit:2.1.3; low). Two test modules import the private
       `_GATE_THRESHOLDS` across the package boundary; export `GATE_THRESHOLDS`
       from `novel_ralph_skill.state` alongside the invariant-name constants and

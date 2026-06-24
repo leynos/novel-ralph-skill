@@ -15,14 +15,16 @@ on-disk ``draft.md`` bodies via :func:`live_draft_counts`, then reconciles the
 count. Both are genuinely independent of the ``[word_counts]`` table the validator
 trusts, so the cross-check catches a table-versus-real-drafts mislabel of either
 quantity. The table-internal ``by-chapter-sum`` coherence (``sum(by_chapter) ==
-current``) has no live analogue and is read from the table directly; the other
-five owned invariants are pure-state and reused from the spec-keyed
+current``) has no live analogue, so the live oracle does not reconcile it: it
+takes the verdict :func:`corpus_check` already returns. The other five owned
+invariants are pure-state and reused from the same spec-keyed
 :func:`corpus_check`.
 
 This module lives beside :mod:`._oracle` rather than inside it solely because the
-combined oracle would breach the 400-line module cap (AGENTS.md). It re-implements
-the table-coherence read locally rather than importing ``_oracle``'s private
-predicate, keeping the cross-check self-contained.
+combined oracle would breach the 400-line module cap (AGENTS.md). The two
+live-draft reconciliations parse the materialised ``state.toml`` once in
+:func:`live_draft_owned` and operate on the already-decoded ``[gates]`` and
+``[drafting]`` tables, so each predicate is a pure function over decoded data.
 """
 
 from __future__ import annotations
@@ -44,6 +46,7 @@ from ._oracle import (
 from ._specs import GATE_THRESHOLDS
 
 if typ.TYPE_CHECKING:
+    import collections.abc as cabc
     from pathlib import Path
 
     from ._specs import WorkingTreeSpec
@@ -92,77 +95,66 @@ def live_draft_counts(working_dir: Path) -> tuple[int, int]:
     return words_total, chapters_count
 
 
-def _check_by_chapter_sum_live(working_dir: Path) -> bool:
-    """Return True when ``by_chapter`` sums to ``current`` on disk (invariant 3).
-
-    The table-coherence half of the cross-check: it reads the materialised
-    ``state.toml`` and compares ``sum([word_counts].by_chapter)`` against
-    ``[word_counts].current``. This is table-internal — invariant 3 has no live
-    analogue, so it is the one owned name the live oracle does not reconcile
-    against the drafts. Re-implemented here (a deliberate twin of
-    ``_oracle._check_by_chapter_sum``) so the live cross-check is self-contained.
-    """
-    state = tomllib.loads((working_dir / "state.toml").read_text(encoding="utf-8"))
-    word_counts = state["word_counts"]
-    return sum(word_counts["by_chapter"].values()) == word_counts["current"]
-
-
-def _check_gate_ratio_live(working_dir: Path, drafted_words_total: int) -> bool:
+def _check_gate_ratio_live(
+    word_counts: cabc.Mapping[str, typ.Any],
+    gates: cabc.Mapping[str, typ.Any],
+    drafted_words_total: int,
+) -> bool:
     """Return True when each knitting gate matches the live drafted-words ratio.
 
     Reads ``[word_counts].target`` and the ``[gates.knitting]`` booleans from the
-    materialised ``state.toml``, then compares each boolean against
+    already-decoded ``state.toml`` tables, then compares each boolean against
     ``(drafted_words_total / target) >= threshold`` for its threshold in
     :data:`GATE_THRESHOLDS`. The numerator is the **live** drafted-words total
     recovered from the ``draft.md`` bodies, never ``sum(by_chapter.values())``.
     Short-circuits to consistent when ``target <= 0``, mirroring the validator's
     totality guard.
     """
-    state = tomllib.loads((working_dir / "state.toml").read_text(encoding="utf-8"))
-    target = state["word_counts"]["target"]
+    target = word_counts["target"]
     if target <= 0:
         return True
-    knitting = state["gates"]["knitting"]
+    knitting = gates["knitting"]
     ratio = drafted_words_total / target
     low, mid, high = GATE_THRESHOLDS
-    gates = (
+    knitting_gates = (
         (knitting["done_30"], low),
         (knitting["done_50"], mid),
         (knitting["done_80"], high),
     )
-    return all(flag == (ratio >= threshold) for flag, threshold in gates)
+    return all(flag == (ratio >= threshold) for flag, threshold in knitting_gates)
 
 
 def _check_consecutive_clean_live(
-    working_dir: Path, drafted_chapters_count: int
+    drafting: cabc.Mapping[str, typ.Any],
+    drafted_chapters_count: int,
 ) -> bool:
     """Return True when ``consecutive_clean`` is within the live drafted chapters.
 
-    Reads ``[drafting.critic].consecutive_clean`` from the materialised
-    ``state.toml`` (the field the builder writes and the validator reads; it is
-    part of the state under test, not a proxy) and compares it against the
-    **live** drafted-chapters count recovered from the ``draft.md`` bodies, never
-    against the count of ``by_chapter`` entries ``> 0``. This is the second proxy
-    the developers' guide names, reconciled against the live drafts.
+    Reads ``[drafting.critic].consecutive_clean`` from the already-decoded
+    ``state.toml`` ``[drafting]`` table (the field the builder writes and the
+    validator reads; it is part of the state under test, not a proxy) and compares
+    it against the **live** drafted-chapters count recovered from the ``draft.md``
+    bodies, never against the count of ``by_chapter`` entries ``> 0``. This is the
+    second proxy the developers' guide names, reconciled against the live drafts.
     """
-    state = tomllib.loads((working_dir / "state.toml").read_text(encoding="utf-8"))
-    clean = state["drafting"]["critic"]["consecutive_clean"]
+    clean = drafting["critic"]["consecutive_clean"]
     return clean <= drafted_chapters_count
 
 
 def live_draft_owned(spec: WorkingTreeSpec, working_dir: Path) -> set[str]:
     """Return the owned invariant names a tree violates under the live-draft read.
 
-    Overrides the three disk-reconcilable owned invariants:
-    ``by-chapter-sum`` (table ``sum(by_chapter) == current`` — table-internal, no
-    live analogue), ``gate-ratio-consistent`` (gate booleans vs
-    ``drafted_words_total / target`` against :data:`GATE_THRESHOLDS`), and
-    ``consecutive-clean-within-drafted`` (``[drafting.critic].consecutive_clean``
-    vs ``drafted_chapters_count``). It reuses the spec-keyed
-    :func:`corpus_check` (restricted to the owned set) for the other five
-    pure-state owned invariants (``phase-in-enum``, ``completed-prefix``,
+    Overrides the two disk-reconcilable owned invariants ``gate-ratio-consistent``
+    (gate booleans vs ``drafted_words_total / target`` against
+    :data:`GATE_THRESHOLDS`) and ``consecutive-clean-within-drafted``
+    (``[drafting.critic].consecutive_clean`` vs ``drafted_chapters_count``) with
+    the live-draft reads. It reuses the spec-keyed :func:`corpus_check`
+    (restricted to the owned set) for the other six owned invariants — the five
+    pure-state ones (``phase-in-enum``, ``completed-prefix``,
     ``consecutive-clean-within-target``, ``convergence-target-at-least-one``,
-    ``cursor-coherent``).
+    ``cursor-coherent``) and ``by-chapter-sum`` (table ``sum(by_chapter) ==
+    current`` — table-internal, with no live analogue, so the verdict
+    :func:`corpus_check` already returns is taken as is rather than recomputed).
 
     The invariant-7 numerator and the invariant-4c ceiling are BOTH honest-draft
     live quantities (the live drafted-words total ``sum(chapter.draft_words)`` and
@@ -180,20 +172,20 @@ def live_draft_owned(spec: WorkingTreeSpec, working_dir: Path) -> set[str]:
     The ``spec`` argument feeds only the :func:`corpus_check` reuse; the two
     live-draft proxy reconciliations (``gate-ratio-consistent``,
     ``consecutive-clean-within-drafted``) read disk and never the spec.
-    ``by-chapter-sum`` is independent of the spec but table-internal, not live;
-    the other five owned invariants are derived from the spec via
-    :func:`corpus_check` and are deliberately not spec-independent.
+    ``by-chapter-sum`` is independent of the spec but table-internal, not live, so
+    its verdict comes straight from :func:`corpus_check`; the other five owned
+    invariants are derived from the spec via :func:`corpus_check` and are
+    deliberately not spec-independent.
     """
     words_total, chapters_count = live_draft_counts(working_dir)
+    state = tomllib.loads((working_dir / "state.toml").read_text(encoding="utf-8"))
     spec_owned = set(corpus_check(spec, working_dir)) & _LIVE_DRAFT_OWNED_NAMES
-    # Override the three disk-reconcilable owned invariants with the live reads.
+    # Override the two live-reconcilable owned invariants with the live reads;
+    # ``by-chapter-sum`` keeps the table-internal verdict ``corpus_check`` returns.
     spec_owned.discard(GATE_RATIO_CONSISTENT)
     spec_owned.discard(CONSECUTIVE_CLEAN_WITHIN_DRAFTED)
-    spec_owned.discard(BY_CHAPTER_SUM)
-    if not _check_by_chapter_sum_live(working_dir):
-        spec_owned.add(BY_CHAPTER_SUM)
-    if not _check_gate_ratio_live(working_dir, words_total):
+    if not _check_gate_ratio_live(state["word_counts"], state["gates"], words_total):
         spec_owned.add(GATE_RATIO_CONSISTENT)
-    if not _check_consecutive_clean_live(working_dir, chapters_count):
+    if not _check_consecutive_clean_live(state["drafting"], chapters_count):
         spec_owned.add(CONSECUTIVE_CLEAN_WITHIN_DRAFTED)
     return spec_owned

@@ -70,7 +70,10 @@ PURE_STATE_INVARIANT_NAMES: tuple[str, ...] = (
 
 # The §5.2 knitting-gate thresholds (design §5.2 bullet 7): the 30%, 50%, and
 # 80% drafted-total ratios the three knitting-gate booleans must each match.
-_GATE_THRESHOLDS: tuple[float, float, float] = (0.30, 0.50, 0.80)
+# Public so cross-module callers (the corpus and property suites) and the corpus
+# oracle's independent copy can pin against one source of truth rather than
+# reaching across the package boundary for a module-private name.
+GATE_THRESHOLDS: tuple[float, float, float] = (0.30, 0.50, 0.80)
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True, slots=True)
@@ -263,14 +266,14 @@ def _check_gate_ratio_consistent(state: State) -> Violation | None:
     flags = (knitting.done_30, knitting.done_50, knitting.done_80)
     if all(
         flag == (ratio >= threshold)
-        for flag, threshold in zip(flags, _GATE_THRESHOLDS, strict=True)
+        for flag, threshold in zip(flags, GATE_THRESHOLDS, strict=True)
     ):
         return None
     return Violation(
         invariant=GATE_RATIO_CONSISTENT,
         detail=(
             f"knitting gates {flags} disagree with drafted ratio {ratio:.4f} "
-            f"against thresholds {_GATE_THRESHOLDS}"
+            f"against thresholds {GATE_THRESHOLDS}"
         ),
     )
 

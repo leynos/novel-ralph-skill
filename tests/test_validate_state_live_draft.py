@@ -50,6 +50,7 @@ from __future__ import annotations
 import typing as typ
 
 from _state_corpus_support import (
+    DISK_EVIDENCE_NAMES,
     PARSE_ENFORCED_INVARIANTS,
     load_succeeds,
     validator_verdict,
@@ -68,20 +69,10 @@ if typ.TYPE_CHECKING:
 
     from conftest import WorkingTreeSpec
 
-# The six disk-evidence invariant names the validator never owns; a variant
-# labelled with one of these yields two empty owned verdicts that agree.
-# ``word-counts-match-drafts`` is task 2.3.2's disk-vs-table per-chapter divergence
-# (D-WORDCOUNT).
-_DISK_EVIDENCE_NAMES: frozenset[str] = frozenset(
-    {
-        "manifest-disk-bijection",
-        "done-flag-without-draft",
-        "compiled-matches-drafts",
-        "pending-turn-cleared",
-        "cursor-plan-present",
-        "word-counts-match-drafts",
-    },
-)
+# The disk-evidence invariant names the validator never owns (a variant labelled
+# with one of these yields two empty owned verdicts that agree) live in
+# ``_state_corpus_support`` as ``DISK_EVIDENCE_NAMES``, shared with the corpus
+# suite and derived from the production owned/complement split.
 
 # Each divergent-table variant's verified live read and the owned verdict the
 # live-draft oracle returns on it (the table-reading validator stays silent on
@@ -166,7 +157,7 @@ def test_live_draft_agreement_over_whole_corpus(
         if expected in owned:
             assert oracle_owned == {expected}, name
         else:
-            assert expected in _DISK_EVIDENCE_NAMES, name
+            assert expected in DISK_EVIDENCE_NAMES, name
             assert oracle_owned == set(), name
 
 

@@ -38,6 +38,7 @@ from novel_ralph_skill.state import (
     CONVERGENCE_TARGET_AT_LEAST_ONE,
     CURSOR_COHERENT,
     GATE_RATIO_CONSISTENT,
+    GATE_THRESHOLDS,
     PHASE_IN_ENUM,
     PHASE_ORDER,
     ChapterEntry,
@@ -55,11 +56,10 @@ from novel_ralph_skill.state import (
     validate_state,
 )
 
-# Read the validator's own gate-threshold triple rather than redeclaring it: the
-# production constant is the single §5.2 source of truth, so this suite cannot
-# silently agree with a wrong validator by mirroring an independent copy
-# (audit:2.1.2 finding 1).
-from novel_ralph_skill.state.validate import _GATE_THRESHOLDS
+# ``GATE_THRESHOLDS`` is read from the validator's own public constant rather than
+# redeclared: it is the single §5.2 source of truth, so this suite cannot silently
+# agree with a wrong validator by mirroring an independent copy (audit:2.1.2
+# finding 1).
 
 
 def _by_chapter_key(number: int) -> str:
@@ -141,7 +141,7 @@ def _gates_for_ratio(ratio: float) -> tuple[bool, bool, bool]:
     (not ``>``), so a state landing ``ratio`` exactly on a threshold cannot
     self-falsify on a floating-point tie (Decision Log A5).
     """
-    low, mid, high = _GATE_THRESHOLDS
+    low, mid, high = GATE_THRESHOLDS
     return (ratio >= low, ratio >= mid, ratio >= high)
 
 
