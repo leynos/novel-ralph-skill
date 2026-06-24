@@ -1119,3 +1119,33 @@ Round 2 (2026-06-24). Resolves the round-1 Logisphere review
 - **A-4** — D-CARVE and Work items 3 and 4 now specify the absent sole-failure
   exit-`1` message reports the compile is *missing* rather than stale, so
   human-mode output is not misleading at the carve-out boundary.
+
+## Addenda (post-merge follow-ups)
+
+Lightweight addendum work items folded back onto this completed task from the
+post-merge review and audit of step 3.1 (`review:3.1.2`, `audit:3.1.2`). Execute
+each as a small addendum pass — no plan or design-review cycle: make the change,
+run `make all` (plus `make markdownlint`/`make nixie` for Markdown),
+`coderabbit review --agent`, commit, and tick the matching roadmap sub-task on
+merge. The substantial, cross-cutting follow-ups raised against this task were
+re-routed off it rather than folded here: the "compile-and-hash"→byte-comparison
+documentation reconciliation (`audit:3.1.2`, merged with `audit:3.1.3`) to a new
+roadmap step 7.17 (deferred documentation-truthfulness hardening); the
+`manuscript/compiled.md` path centralisation in `_disk_paths` (`audit:3.1.2`, and
+the related `review:3.1.2` fold-the-path-constant proposal) is already owned by
+the open roadmap task 7.10.3, whose Success clause requires that no site
+open-codes the `compiled.md` leaf, so it is not re-filed; the compile-present
+companion that avoids triple-statting `compiled.md` (`audit:3.1.2`) to roadmap
+task 7.10.5; and the disk-bound Hypothesis deadline-profile work (`review:3.1.2`,
+two near-identical proposals merged) to a new roadmap step 7.18. The one below is
+the small, localised fix tied to this task's corpus.
+
+- [ ] 3.1.2.1 — Pin or drop the unused `DONE_PREDICATE_OBVIOUS_STALE_COMPILE`
+  corpus spec (from review:3.1.2, low; two near-identical proposals merged). The
+  obvious byte-and-count-divergent stale spec is exported through the corpus
+  `__all__` but asserted on by no test, so it validates nothing while remaining
+  on the corpus public surface and misleads readers into assuming the obvious
+  divergent case is covered. Either pin it with a focused test (the
+  `compile_consistent` clause reports divergence and the otherwise-complete tree
+  exits 4) or drop it from the corpus so the exports stay load-bearing.
+  Test/corpus-only. Gate with `make all`.

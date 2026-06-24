@@ -796,3 +796,30 @@ Consumers, after this task:
 
 No new external dependency. Stdlib `enum` only. The corpus oracle
 (`tests/working_corpus/_oracle_disk.py`) is deliberately not a consumer.
+
+## Addenda (post-merge follow-ups)
+
+Lightweight addendum work items folded back onto this completed task from the
+post-merge review of step 3.1 (`review:3.1.3`). Execute each as a small addendum
+pass — no plan or design-review cycle: make the change, run `make all` (plus
+`make markdownlint`/`make nixie` for Markdown), `coderabbit review --agent`,
+commit, and tick the matching roadmap sub-task on merge. The
+`compile_consistent_exists`→`compile_consistent` rename this review anticipated
+(two near-identical `review:3.1.3` proposals) is **already delivered**: the
+shipped clause is named `compile_consistent` in
+`novel_ralph_skill/state/done_predicate.py` with no surviving `_exists` suffix in
+the code (only historical audit notes reference the old name), so it is dropped
+rather than re-filed. The one below is the small, localised fault-test addition.
+
+- [ ] 3.1.3.1 — Add a clause-boundary fault-propagation test for
+  `compile_consistent` with a present compile beside an unreadable draft (from
+  review:3.1.3, low). The shared `compiled_matches_drafts` helper propagates
+  `UnicodeDecodeError`/`OSError` when `compiled.md` is present beside an
+  undecodable `draft.md`, and the helper's own fault test covers the mechanism,
+  but the done-predicate suite pins clause-level propagation only for an
+  undecodable `compiled.md`; the present-compile-plus-unreadable-draft direction
+  at the `compile_consistent`/`evaluate_done` boundary — where the exit-3 routing
+  actually matters — is untested. Add the focused fault test (a present
+  `compiled.md` beside an undecodable `draft.md` raises through
+  `compile_consistent`) so the contract is pinned at the clause boundary.
+  Test-only. Gate with `make all`.

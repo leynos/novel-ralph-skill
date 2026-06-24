@@ -951,6 +951,14 @@ novel-ralph-harness-design.md §4.2 and §2.3.
     predicate-truthfulness property); the `novel-done` result size is
     independent of the chapter count; and an otherwise-complete tree with only a
     stale `compiled.md` exits 4 while a mid-draft tree exits 1.
+  - [ ] 3.1.2.1. Pin or drop the unused `DONE_PREDICATE_OBVIOUS_STALE_COMPILE`
+    corpus spec.
+    - Addendum (from review:3.1.2; low). The obvious byte-and-count-divergent
+      stale spec is exported through the corpus `__all__` but asserted on by no
+      test, so it validates nothing while still sitting on the corpus public
+      surface; either pin it with a test (the clause reports divergence and the
+      tree exits 4) or drop it so the corpus exports stay load-bearing.
+      Lightweight addendum pass.
 - [x] 3.1.3. Share the compiled-matches-drafts comparison between the §5.4
   detector and the `compile_consistent` clause.
   - Step-task (source: audit:3.1.1; severity: medium).
@@ -975,6 +983,16 @@ novel-ralph-harness-design.md §4.2 and §2.3.
     clause consume it (each supplying its own absent-file polarity); no third
     independent re-implementation survives; and the done-predicate and
     disk-evidence suites stay green.
+  - [ ] 3.1.3.1. Add a clause-boundary fault-propagation test for
+    `compile_consistent` with a present compile beside an unreadable draft.
+    - Addendum (from review:3.1.3; low). The shared
+      `compiled_matches_drafts` helper propagates `UnicodeDecodeError`/`OSError`
+      when `compiled.md` is present beside an undecodable `draft.md`, but the
+      done-predicate suite pins this only for an undecodable `compiled.md`; the
+      present-compile-plus-unreadable-draft direction at the clause boundary —
+      where the exit-3 routing actually matters — is untested. Add the focused
+      fault test so the contract is pinned at the `compile_consistent` boundary.
+      Lightweight addendum pass.
 - [x] 3.1.4. Anchor the unresolved-BLOCKER resolution rule positionally and
   cover the false-clean direction.
   - Step-task (source: review:3.1.1 / audit:3.1.1; severity: low). The
@@ -997,6 +1015,40 @@ novel-ralph-harness-design.md §4.2 and §2.3.
     reported as unresolved (the clause stays false), a genuinely resolved blocker
     still clears, the false-clean direction is pinned by a new §1.3.2 corpus
     near-miss, and the done-predicate suite stays green.
+- [ ] 3.1.5. Align the `no_unresolved_blockers` recogniser to the real
+  `critic-personas.md` output format and define the resolution producer contract.
+  - Step-task (source: audit:3.1.4 / review:3.1.4; severity: high). Three
+    near-identical proposals merged: the predicate's `no_unresolved_blockers`
+    clause matches lines whose stripped text starts with `BLOCKER` and ends with
+    a trailing `[resolved]` token, but `critic-personas.md` emits blockers as a
+    `## BLOCKER` section heading with `### B1 — <label>` findings and defines no
+    `[resolved]` marker, so the clause matches zero lines and reads clean against
+    genuine critic output — the exit-0 lie the clause exists to prevent, firing
+    on every real unresolved blocker. The invented line-prefix grammar (task
+    3.1.4, D-BLOCKER-SCOPE) hardened a format the producer never writes, and no
+    reference defines how a blocker is marked resolved. This serves the step-3.1
+    hypothesis — every done clause evaluated deterministically and truthfully
+    against disk — by making the BLOCKER clause sound against the format the
+    critic actually produces rather than conservative-but-decorative against live
+    input. Define the resolution convention in `critic-personas.md` (and
+    `done-conditions.md`), realign the recogniser to the heading-based
+    `## BLOCKER`/`### Bn` structure plus that documented resolution token, fold
+    in the deferred case-insensitive / alternative-spelling resolution-variant
+    decision (D-BLOCKER-SCOPE leaves `RESOLVED`/`(resolved)` out of scope in both
+    directions), and add a §1.3.2 corpus tree built from real
+    critic-personas-shaped output.
+  - Requires 3.1.4.
+  - See novel-ralph-harness-design.md §4.2;
+    skill/novel-ralph/references/critic-personas.md (the `## BLOCKER`/`### Bn`
+    format); skill/novel-ralph/references/done-conditions.md (the BLOCKER
+    substring rule); docs/issues/audit-3.1.4.md.
+  - Success: the resolution convention is defined once in `critic-personas.md`
+    and `done-conditions.md`; the `no_unresolved_blockers` recogniser parses the
+    real `## BLOCKER`/`### Bn` section structure and that documented resolution
+    token (with the case/alternative-spelling-variant decision recorded); a
+    §1.3.2 corpus tree built from critic-personas-shaped output drives the clause
+    both clean and dirty; an unresolved blocker in genuine critic output is
+    reported (the clause stays false); and the done-predicate suite stays green.
 
 ## 4. Vertical slice 3: deterministic, outline-ordered compilation
 
@@ -1813,6 +1865,29 @@ the deterministic spine.
     `working/reviews/` routes through it; no site open-codes the `"reviews"`
     segment; and the done-predicate, compile, state, and disk-evidence suites
     stay green.
+- [ ] 7.10.5. Carry a compile-present companion from the done predicate so the
+  command layer stops re-statting `compiled.md`.
+  - Reroute (source: audit:3.1.2; severity: low). `_novel_done` stats
+    `manuscript/compiled.md` existence three times per run
+    (`compile_consistent`, `_sole_stale_compile`, `_failed_clause_message`) to
+    reconstruct *why* `compile_consistent` is false, because `DoneClauses`
+    carries only the six clause booleans. Carrying a `compiled_present`
+    companion (or a small `CompileVerdict`) on the predicate result would let the
+    command layer read a field rather than re-statting disk. This serves the
+    step-7.10 hypothesis — expressing each disk-sourcing rule once so it cannot
+    be re-derived inconsistently — by collapsing the three `_novel_done` compile
+    stats onto one predicate-carried fact; it does not serve the settled step-3.1
+    done-predicate hypothesis where it was raised, and it pairs naturally with the
+    `compiled_path` accessor work (7.10.3).
+  - Requires 7.10.3 and 3.1.2.
+  - See novel-ralph-harness-design.md §4.2;
+    docs/issues/audit-3.1.2.md;
+    novel_ralph_skill/commands/_novel_done.py.
+  - Success: the done-predicate result carries a single `compiled_present`
+    companion (or `CompileVerdict`); `_novel_done`'s `_sole_stale_compile` and
+    `_failed_clause_message` read that field rather than re-statting
+    `compiled.md`; no command-layer site stats the compile leaf more than once
+    per run; and the done-predicate and `novel-done` suites stay green.
 
 ### 7.11. Harden torn-recount recovery into a single-pass repair
 
@@ -2109,3 +2184,83 @@ the deterministic spine.
     `[project.scripts]` targets, and the import-laziness profile are preserved (or
     the laziness change is decided and recorded); and the entry-point, stub, and
     console-scripts e2e suites stay green.
+
+### 7.17. Reconcile the compile-divergence documentation with the byte-comparison implementation
+
+This step answers whether the prose describing the compile-consistency
+mechanism can be made truthful — replacing the "compile-and-hash" / "digest"
+language across the design document, the developers' guide, the roadmap, and the
+`_compile.py` docstring with the "compile-and-compare" / byte-comparison the code
+actually performs — without weakening any guarantee the docs assert. Its outcome
+is a single, internally consistent description of the mechanism so the prose, the
+code (`D-BYTE-COMPARE`), and the still-open downstream `--check` task agree. This
+is a deferred documentation-truthfulness hardening extension surfaced by the
+audits of steps 3.1.2 and 3.1.3; it does not advance the settled step-3.1
+done-predicate hypothesis (the clause already compares bytes correctly and
+passes) and it does not gate the deterministic spine, but it should land before
+task 4.1.2 implements the `--check` checker against a "hash" spec that does not
+match reality.
+
+- [ ] 7.17.1. Replace the "compile-and-hash" / "digest" prose with the
+  byte-comparison the code performs across the four documents and the
+  `_compile.py` docstring.
+  - Reroute (source: audit:3.1.2 / audit:3.1.3; severity: medium; two
+    near-identical proposals merged). The `compile_consistent` clause and the
+    shared `compiled_matches_drafts` helper perform a direct byte comparison with
+    no `hashlib`, but the design document (§2.3/§4.2/§4.3, including "the
+    per-chapter hashes it computed internally"), the developers' guide
+    (line 329 "compile-and-hash routine", contradicting line 592's
+    "direct byte comparison, not a digest"), the roadmap prose, and the
+    `_compile.py` / `compile_model.py` docstrings all still describe a
+    "compile-and-hash" routine. A docs-only sweep dropping the "hash"/"digest"
+    language in favour of "compile-and-compare" / byte-comparison would make the
+    prose, the code (`D-BYTE-COMPARE`), and the open `--check` task (4.1.2) agree,
+    and removes the developers' guide self-contradiction. This is cross-cutting
+    documentation-truthfulness hygiene, not the settled step-3.1 done-predicate
+    hypothesis where it was raised, so it is deferred here.
+  - Requires 3.1.3.
+  - See novel-ralph-harness-design.md §2.3, §4.2, and §4.3;
+    docs/developers-guide.md (lines 329 and 592);
+    docs/issues/audit-3.1.2.md; docs/issues/audit-3.1.3.md;
+    novel_ralph_skill/state/compile_model.py;
+    novel_ralph_skill/commands/_compile.py.
+  - Success: no "compile-and-hash", "hash", or "digest" language describes the
+    compile-consistency mechanism in the design document, the developers' guide,
+    the roadmap prose, or the `_compile.py`/`compile_model.py` docstrings; the
+    prose describes the byte comparison (`D-BYTE-COMPARE`) the code performs; the
+    developers' guide no longer self-contradicts; and `make markdownlint` and
+    `make nixie` stay green.
+
+### 7.18. Make the disk-bound property tests inherit one deadline policy
+
+This step answers whether the deadline policy for filesystem-bound Hypothesis
+property tests can be expressed once — as a registered Hypothesis profile the
+disk-bound properties load — rather than re-declared per test, so a new
+disk-bound property cannot silently inherit the fragile 200ms default and flake
+CI. Its outcome is one named deadline policy the property suite shares, plus an
+audited sweep confirming every filesystem-touching `@given` test honours it. This
+is a deferred test-robustness hardening extension surfaced by the review of step
+3.1.2; it does not advance the settled step-3.1 done-predicate hypothesis (the
+properties already pass once their deadlines are relaxed) and it does not gate the
+deterministic spine.
+
+- [ ] 7.18.1. Register a shared Hypothesis profile for disk-bound property tests
+  and sweep for any property still inheriting the 200ms default.
+  - Reroute (source: review:3.1.2; severity: low; two near-identical proposals
+    merged). The 3.1.2 property test breached the default 200ms deadline because
+    it rebuilds a corpus tree per example, and several property tests independently
+    re-declare the same `@settings(deadline=None, max_examples=...,
+    suppress_health_check=[HealthCheck.function_scoped_fixture])`. Register one
+    named Hypothesis profile (via a `conftest` `register_profile`) so the deadline
+    policy is uniform and a new disk-bound property cannot silently inherit the
+    fragile default, and sweep every filesystem- or parse-touching `@given` test
+    to confirm it honours the policy. This is cross-cutting test-robustness
+    hygiene, not the settled step-3.1 done-predicate hypothesis where it was
+    raised, so it is deferred here.
+  - Requires 3.1.2.
+  - See novel-ralph-harness-design.md §9;
+    docs/execplans/roadmap-3-1-2.md.
+  - Success: one named Hypothesis profile lives in a shared `conftest` and the
+    disk-bound property tests load it rather than re-declaring the deadline
+    settings; an audit confirms every filesystem- or parse-touching `@given` test
+    honours the no-deadline policy; and the property suite stays green.
