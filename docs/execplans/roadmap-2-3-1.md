@@ -927,3 +927,19 @@ This revision affects no remaining-work estimate: the work-item count and order
 are unchanged; the edits add one documentation correction (a second guide line)
 to Work item 3 step 5, add one Decision-Log acknowledgement, and clarify the
 property test's oracle scope. No production-code or test-shape change.
+
+## Addenda (post-merge follow-ups)
+
+Lightweight addendum work items folded back onto this completed task from the
+reviews and audits of step 2.3's tasks. Execute each as a small addendum pass —
+no plan or design-review cycle: make the change, run `make all` (plus `make
+markdownlint`/`make nixie` for Markdown), `coderabbit review --agent`, commit,
+and tick the matching roadmap sub-task on merge.
+
+- [ ] 2.3.1.1 — Clear the pre-existing ty `possibly-missing-submodule` warning
+  on `commands/_recount.py` (from review:2.3.4, low). `make typecheck` is not
+  fully clean: ty warns that `tomlkit.items.InlineTable` — the return annotation
+  of `_inline_by_chapter` — relies on a submodule that may not have been
+  imported. Add a single explicit `import tomlkit.items` so the typecheck gate is
+  restored to clean. The warning is pre-existing (present on origin/main) and was
+  out of task 2.3.4's scope. Gate with `make all`.

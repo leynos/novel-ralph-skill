@@ -1157,3 +1157,20 @@ verbatim.
   state (including a `grep` that "two deterministically recomputable" returns no
   match). No work-item shape changed; the `log-present`/`RECREATE_LOG` design is
   unchanged.
+
+## Addenda (post-merge follow-ups)
+
+Lightweight addendum work items folded back onto this completed task from the
+reviews and audits of step 2.3's tasks. Execute each as a small addendum pass —
+no plan or design-review cycle: make the change, run `make all` (plus `make
+markdownlint`/`make nixie` for Markdown), `coderabbit review --agent`, commit,
+and tick the matching roadmap sub-task on merge.
+
+- [ ] 2.3.4.1 — Document that `reconcile`'s recreate-log restores an empty
+  `log.md` in the users' guide (from review:2.3.4, low). The `log-present`
+  detector fires on `log.md` absence and cannot distinguish a clean
+  partial-`init` crash from a later loss of a populated log; the `RECREATE_LOG`
+  repair always recreates an empty `log.md` and exits 0, which could surprise an
+  operator expecting prior receipts back. Add a one-paragraph note to the
+  `novel-state` users'-guide section that prior receipts are not recoverable.
+  Gate with `make markdownlint` and `make nixie`.

@@ -1090,3 +1090,23 @@ unaddressed 400-line file-size cap breach in `tests/working_corpus/_oracle.py`.
   Log entry, a Progress checkbox, a Tolerances scope note, and a `wc -l` cap
   check in Concrete steps. `disk_evidence.py` (346) and `_variants.py` (366)
   were verified not to need a split.
+
+## Addenda (post-merge follow-ups)
+
+Lightweight addendum work items folded back onto this completed task from the
+reviews and audits of step 2.3's tasks. Execute each as a small addendum pass —
+no plan or design-review cycle: make the change, run `make all` (plus `make
+markdownlint`/`make nixie` for Markdown), `coderabbit review --agent`, commit,
+and tick the matching roadmap sub-task on merge. The substantial robustness
+finding (audit-2.3.6 Findings 1-2: the redundant draft-tree read and the latent
+bijection contiguity double-fire) is cross-cutting hardening that does not serve
+step 2.3's disk-re-derivation hypothesis, so it is re-routed to roadmap step
+7.15 rather than filed here.
+
+- [ ] 2.3.6.1 — Add an entry-point e2e for the orphan-key (extra-table-key)
+  reconcile direction (from review:2.3.6, low). The omit-drafted-chapter
+  direction has a full `check`->`reconcile`->`check` entry-point e2e but the
+  orphan-drop direction (a `by_chapter` key absent from the manifest) is only
+  covered at the derivation/integration level. Add the symmetric e2e so the
+  user-visible orphan-drop path matches the plan's stated dual-direction
+  behavioural acceptance and is hardened end-to-end. Gate with `make all`.

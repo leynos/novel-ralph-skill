@@ -837,3 +837,43 @@ used by any module in scope (no `cuprum`/`sh`/`subprocess` import), matching the
   (591 passed / 1 skipped), `make markdownlint` / `make nixie` clean, coderabbit
   0 findings on WI1 and WI2. The repo-wide `make fmt` markdown churn was stashed
   and discarded per the recurring repository convention.
+
+## Addenda (post-merge follow-ups)
+
+Lightweight addendum work items folded back onto this completed task from the
+reviews and audits of step 2.3's tasks. Execute each as a small addendum pass —
+no plan or design-review cycle: make the change, run `make all` (plus `make
+markdownlint`/`make nixie` for Markdown), `coderabbit review --agent`, commit,
+and tick the matching roadmap sub-task on merge. The substantial DRY findings
+(audit-2.3.5 Findings 1-4: the `[word_counts]` write consolidation and the
+single whitespace-token counter) are cross-cutting hygiene that does not serve
+step 2.3's disk-re-derivation hypothesis, so they are re-routed to roadmap step
+7.14 rather than filed here.
+
+- [ ] 2.3.5.1 — Add a check/reconcile REFUSE assertion to case 1's divergent
+  `compiled.md` tree (from review:2.3.5, low). Case 1 documents in a comment that
+  the same divergent `compiled.md` "would REFUSE under check/reconcile" but
+  exercises only `recount` (which ignores it); case 3 covers the REFUSE on a
+  different variant. Add the missing assertion (or reuse case 1's tree under
+  `check`) so recount-ignores-it and check-refuses-it are proven on the *same*
+  tree, closing the boundary loop. Gate with `make all`.
+- [ ] 2.3.5.2 — Harden the reconcile-path divergence guards against the
+  shared-oracle and shared-validator blind spots (from review:2.3.5, low). Two
+  coupled residual weaknesses: case 2's recount==reconcile agreement test uses
+  `recount_words` as both oracle and subject-under-guard, so it cannot detect a
+  refactor that repoints the shared counting helper; and the reconcile-path
+  fail-red leans on `_refuse_if_incoherent`'s by-chapter-sum validator firing
+  (exit 3) before the test's own assertion, so a future refactor pointing both
+  `current` and `by_chapter` at compiled-derived values could pass the validator
+  and make the shared-oracle assertion tautological. Pin `by_chapter` to the
+  honest drafted sum independently of the `current` write for at least one
+  fixture so the reconcile guard is discriminating. Low priority; the current
+  matrix already covers the realistic refactor surface and the limitation is
+  documented in this plan. Gate with `make all`.
+- [ ] 2.3.5.3 — Move the D-TOKEN-EQUALITY rationale into the durable design doc
+  (from audit:2.3.5, low). The reason a `compiled.md` divergence can only come
+  from non-whitespace content — so pinning `current` to the drafted sum loses no
+  information — lives only in this ExecPlan and a test docstring, while design
+  §4.1/§5.4 assert only the conclusion. Add one sentence to §4.1/§5.4 so the
+  load-bearing rationale lives in the stated source of truth. Gate with `make
+  markdownlint` and `make nixie`.

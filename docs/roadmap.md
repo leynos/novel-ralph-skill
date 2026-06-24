@@ -620,6 +620,14 @@ novel-ralph-harness-design.md §3.4, §4.1, and §5.3.
       `commands/_state_mutators.py` `_state_path`); promote one accessor and
       route all four through it so the path has a single home. Lightweight
       addendum pass.
+  - [ ] 2.2.2.3. Correct the partial-init direction in roadmap-2-2-2 Decision
+    Log D3.
+    - Addendum (from review:2.3.4; low). D3 describes the realisable partial-init
+      as `log present, state absent`, but `init` writes `state.toml` first, so
+      the realisable case is the inverse (`state present, log absent`) that task
+      2.3.4 targets; correct the stale D3 prose in
+      `docs/execplans/roadmap-2-2-2.md` so it agrees with the implemented
+      direction. Lightweight addendum pass.
 
 ### 2.3. Deliver recount and disk-authoritative reconciliation
 
@@ -635,6 +643,13 @@ agent-improvised recovery routine. See novel-ralph-harness-design.md §4.1 and
   - See novel-ralph-harness-design.md §4.1.
   - Success: `recount` is idempotent — a second run on unchanged drafts writes
     an identical file — and the by-chapter values sum to the current total.
+  - [ ] 2.3.1.1. Clear the pre-existing ty `possibly-missing-submodule` warning
+    on `_recount.py` by importing `tomlkit.items` explicitly.
+    - Addendum (from review:2.3.4; low). `make typecheck` is not fully clean: ty
+      warns that `tomlkit.items.InlineTable` (the return annotation of
+      `_inline_by_chapter`) relies on a submodule that may not have been
+      imported; add a single explicit `import tomlkit.items` so the typecheck
+      gate is clean. Lightweight addendum pass.
 - [x] 2.3.2. Implement read-only reconciliation detection in `check` and the
   disk-authoritative write in `reconcile`.
   - Requires 2.1.2 and 2.3.1.
@@ -717,6 +732,14 @@ agent-improvised recovery routine. See novel-ralph-harness-design.md §4.1 and
     `working/` deleted) or the recovery routine is documented in the users'
     guide, and `check` reports the partial bootstrap rather than leaving it
     silently unrecoverable.
+  - [ ] 2.3.4.1. Document that `reconcile`'s recreate-log restores an empty
+    `log.md` in the users' guide.
+    - Addendum (from review:2.3.4; low). The `log-present` detector fires on
+      `log.md` absence and cannot distinguish a clean partial-`init` crash from
+      a later loss of a populated log; `reconcile` always recreates an empty
+      `log.md` and exits 0, which could surprise an operator expecting prior
+      receipts back. Add a one-paragraph users'-guide note that prior receipts
+      are not recoverable. Lightweight addendum pass.
 - [x] 2.3.5. Settle the authoritative `current` definition when `compiled.md`
   diverges from the drafted sum, and align recount and reconcile on it.
   - Step-task (source: review:2.3.1; severity: low). `recount` deliberately
@@ -742,6 +765,31 @@ agent-improvised recovery routine. See novel-ralph-harness-design.md §4.1 and
     apply the same rule; and `state-layout.md`, design §5.4, and the 2.3.1
     D-CURRENT note agree on the `current` definition with no surviving
     contradiction.
+  - [ ] 2.3.5.1. Add a check/reconcile REFUSE assertion to case 1's divergent
+    `compiled.md` tree.
+    - Addendum (from review:2.3.5; low). Case 1 only documents in a comment that
+      the same divergent `compiled.md` "would REFUSE under check/reconcile" and
+      exercises only `recount` (which ignores it); add the missing assertion (or
+      reuse case 1's tree under `check`) so recount-ignores and check-refuses are
+      proven on the same tree, closing the boundary loop. Lightweight addendum
+      pass.
+  - [ ] 2.3.5.2. Harden the reconcile-path divergence guards against the
+    shared-oracle and shared-validator blind spots.
+    - Addendum (from review:2.3.5; low). Case 2's recount==reconcile agreement
+      test uses `recount_words` as both oracle and subject, and the reconcile
+      fail-red leans on `_refuse_if_incoherent`'s by-chapter-sum validator firing
+      first, so a future refactor that repoints the shared helper or both
+      `current` and `by_chapter` at compiled-derived values could go undetected;
+      pin `by_chapter` to the honest drafted sum independently of the `current`
+      write for at least one fixture so the reconcile guard is discriminating.
+      Lightweight addendum pass.
+  - [ ] 2.3.5.3. Move the D-TOKEN-EQUALITY rationale into the durable design doc.
+    - Addendum (from audit:2.3.5; low). The reason a `compiled.md` divergence can
+      only come from non-whitespace content — so pinning `current` to the drafted
+      sum loses no information — lives only in the ExecPlan and a test docstring
+      while design §4.1/§5.4 assert only the conclusion; add one sentence to the
+      design so the load-bearing rationale lives in the source of truth.
+      Lightweight addendum pass.
 - [x] 2.3.6. Detect `[word_counts].by_chapter` key-set divergence from the
   manifest and on-disk drafts, not only shared-key value divergence.
   - Step-task (source: review:2.3.2; severity: low). The `check`
@@ -774,6 +822,14 @@ agent-improvised recovery routine. See novel-ralph-harness-design.md §4.1 and
     variant agree with the disk oracle across the whole-corpus agreement loop;
     and the existing shared-key `word-counts-match-drafts` and
     `manifest-disk-bijection` invariants stay unchanged.
+  - [ ] 2.3.6.1. Add an entry-point e2e for the orphan-key (extra-table-key)
+    reconcile direction.
+    - Addendum (from review:2.3.6; low). The omit-drafted-chapter direction has
+      a full `check`→`reconcile`→`check` entry-point e2e but the orphan-drop
+      direction (a table key absent from the manifest) is only covered at the
+      derivation/integration level; add the symmetric e2e so the user-visible
+      orphan-drop path matches the plan's dual-direction behavioural acceptance.
+      Lightweight addendum pass.
 
 ## 3. Vertical slice 2: a single-source done predicate
 
@@ -1686,3 +1742,100 @@ settled) and they do not gate the deterministic spine.
     false-positive rate against an ordinary-fiction corpus, any non-zero
     threshold is justified by that measurement and recorded with its rationale,
     and the ai-isms validation suite stays green.
+
+### 7.14. Consolidate the word-count single-source-of-truth seams
+
+This step answers whether each word-count rule the spine depends on — the
+`[word_counts]` validated write and the `len(text.split())` whitespace-token
+count — can be expressed once and shared, so a future layout or derivation
+change is made in one place rather than skewing hand-kept copies. Its outcome is
+a single enactment site for each rule, mirroring how `wordcount` already
+centralised the counting rule. These are deferred maintainability-hardening
+extensions surfaced by the audits of step 2.3; they do not advance the step-2.3
+disk-re-derivation hypothesis (the writes and counts already agree and pass) and
+they do not gate the deterministic spine.
+
+- [ ] 7.14.1. Consolidate the `[word_counts]` write across recount and reconcile
+  onto one shared validated writer.
+  - Reroute (source: audit:2.3.5 / audit:2.3.4; severity: medium). The two-line
+    `[word_counts]` write plus its validate-before-persist tail is open-coded at
+    three sites across `commands/_recount.py` and `commands/_reconcile.py`, and
+    `_recount_edit`/`_pending_turn_edit` are near-identical recount closures
+    (audit-2.3.5 Findings 1-3, re-flagged in audit-2.3.4). Task 2.3.5 pinned the
+    single authoritative `current` rule, yet three copies enact it, so a future
+    change skews easily. A shared `_write_word_counts_validated` helper gives the
+    rule one enactment site and collapses the two near-identical reconcile
+    closures (the function-local `disk_word_counts` import is naturally fixed in
+    the same pass). This is cross-cutting code hygiene, not the step-2.3
+    disk-re-derivation hypothesis where it was raised, so it is deferred here.
+  - Requires 2.3.5.
+  - See novel-ralph-harness-design.md §4.1 and §5.4;
+    docs/issues/audit-2.3.5.md; docs/issues/audit-2.3.4.md.
+  - Success: one `_write_word_counts_validated` helper owns the `[word_counts]`
+    write and its validate-before-persist tail; `recount` and `reconcile`
+    (including both reconcile recount closures) consume it rather than open-coding
+    the pair; the function-local `disk_word_counts` import is lifted; and the
+    recount, reconcile, and current-definition suites stay green.
+- [ ] 7.14.2. Route the `done-flag-without-draft` token count through one shared
+  whitespace-token counter.
+  - Reroute (source: audit:2.3.5 / audit:2.3.6; severity: low).
+    `disk_evidence._check_done_flag_without_draft` open-codes `len(text.split())`
+    instead of reusing `wordcount._chapter_word_count`, leaving two production
+    enactments of the one whitespace-token rule that 2.3.5's D-TOKEN-EQUALITY
+    guarantee and the word-count modules' "no second counter" claim both depend
+    on (audit-2.3.5 Finding 4, re-flagged as audit-2.3.6 Finding 4). Route the
+    predicate through `wordcount._chapter_word_count` (or an extracted
+    `_drafted_token_count`) so the production side has exactly one counter. This
+    is cross-cutting counting single-source-of-truth hygiene, not the step-2.3
+    disk-re-derivation hypothesis where it was raised, so it is deferred here.
+    Coordinate with step 7.10, which collapses the adjacent chapter-draft
+    *sourcing* readers.
+  - Requires 2.3.6.
+  - See novel-ralph-harness-design.md §4.1 and §4.5;
+    docs/issues/audit-2.3.5.md; docs/issues/audit-2.3.6.md;
+    docs/execplans/roadmap-2-3-5.md (Decision Log D-TOKEN-EQUALITY).
+  - Success: `_check_done_flag_without_draft` consumes the shared whitespace-token
+    counter rather than open-coding `len(text.split())`; exactly one production
+    counter for the token rule remains; and the disk-evidence, desloppify, and
+    wordcount suites stay green.
+
+### 7.15. Harden the word-count disk-evidence predicates against redundant reads and a latent double-fire
+
+This step answers whether the word-count disk-evidence predicates can read disk
+once and share a single bijection definition (set equality and contiguity), so a
+constructible non-contiguous manifest cannot bypass the cover predicate's
+deferral and make a co-occurring key-set mismatch double-fire two invariants —
+narrowing the orthogonality the §5.4 Constraints demand. Its outcome is one
+`manifest-disk-in-bijection` predicate both invariants consult and one draft-tree
+read per check, with the predicates aligned to their own docstrings. This is a
+deferred robustness-and-maintainability hardening extension surfaced by the
+review and audit of step 2.3.6; it does not advance the step-2.3 disk-re-derivation
+hypothesis (the predicates already return the correct verdicts on every current
+corpus tree and pass) and it does not gate the deterministic spine.
+
+- [ ] 7.15.1. Make the cover predicate read disk once and share one bijection
+  predicate (set equality and contiguity).
+  - Reroute (source: audit:2.3.6 / review:2.3.6; severity: medium). The
+    `word-counts-cover-drafts` cover predicate performs a redundant full
+    draft-tree read whose result is entirely discarded (audit Finding 1) and
+    hand-copies the bijection guard without the contiguity clause (audit Finding
+    2 / the review's latent double-fire): it defers to `manifest-disk-bijection`
+    only on set-inequality of manifest versus on-disk chapter dirs, so a
+    constructible non-contiguous manifest matching the disk dirs would bypass the
+    deferral and let a co-occurring `by_chapter` key-set mismatch double-fire both
+    invariants, narrowing the orthogonality the Constraints demand. Derive the
+    cover key set from the manifest with no disk read, and extract one
+    `manifest-disk-in-bijection` predicate (set equality AND contiguity) both
+    invariants consult; add a §1.3.2 corpus variant pinning the deferral. This is
+    cross-cutting robustness-and-maintainability hardening, not the step-2.3
+    disk-re-derivation hypothesis where it was raised, so it is deferred here.
+  - Requires 2.3.6.
+  - See novel-ralph-harness-design.md §5.4 and §9;
+    docs/issues/audit-2.3.6.md; docs/execplans/roadmap-2-3-6.md.
+  - Success: the cover predicate derives its key set from the manifest with no
+    redundant draft-tree read; one `manifest-disk-in-bijection` predicate (set
+    equality and contiguity) is consulted by both `word-counts-cover-drafts` and
+    `manifest-disk-bijection`; a non-contiguous manifest matching the disk dirs
+    defers to the bijection invariant rather than double-firing, pinned by a new
+    §1.3.2 corpus variant; and every current word-count and corpus agreement suite
+    stays green.

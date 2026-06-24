@@ -1598,3 +1598,11 @@ and the partial-`init` bootstrap recovery (review:2.2.2) to step 2.3
   the existing `_state_path` or a shared `WORKING_DIR_NAME`-anchored helper) and
   route all four call sites through it, removing the triplicated path
   construction without changing behaviour. Gate with `make all`.
+- [ ] 2.2.2.3 — Correct the partial-`init` direction in this plan's Decision Log
+  D3 (from review:2.3.4, low). D3 describes the realisable partial-`init` as
+  `log.md` present and `state.toml` absent, but `init` writes `state.toml` first,
+  so the realisable case is the inverse (`state.toml` present, `log.md` absent),
+  the direction task 2.3.4 actually targets and reconciles. D3 was intentionally
+  left untouched as out of scope when 2.3.4 landed; correct the stale D3 prose
+  here so this plan's Decision Log agrees with the implemented direction. Gate
+  with `make markdownlint` and `make nixie`.
