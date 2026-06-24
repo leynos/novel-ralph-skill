@@ -351,7 +351,7 @@ drift and seeds the snapshot suite. See novel-ralph-harness-design.md §3 and §
     bodies consume it rather than re-spelling the flags and the
     `parse_global_flags`/`run` plumbing, and the contract-runner and command
     suites stay green.
-  - [ ] 1.3.6.1. Add a structural tripwire pinning that the four `build_app()`
+  - [x] 1.3.6.1. Add a structural tripwire pinning that the four `build_app()`
     constructors and the four real entry points consume the centralisation.
     - Addendum (from review:1.3.6 and audit:1.3.6 Finding 3; severity: medium).
       The proof that `make_contract_app`/`_drive` are on the path is only
@@ -362,7 +362,7 @@ drift and seeds the snapshot suite. See novel-ralph-harness-design.md §3 and §
       production `build_app` apps carries the four-flag contract and each real
       entry point routes through `_drive`/`make_contract_app`. Lightweight
       addendum pass against the 1.3.6 execplan.
-  - [ ] 1.3.6.2. Document the four-flag cyclopts contract and `make_contract_app`
+  - [x] 1.3.6.2. Document the four-flag cyclopts contract and `make_contract_app`
     in ADR-003 and the developers' guide.
     - Addendum (from audit:1.3.6 Findings 1 and 6; severity: low). The four-flag
       requirement is now load-bearing contract machinery with a dedicated factory

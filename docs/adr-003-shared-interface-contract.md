@@ -102,6 +102,36 @@ tracks the on-disk schema, and a pack version tracks its own rule vocabulary,
 so revising a rule pack never forces a state migration. The contract is
 recorded in novel-ralph-harness-design.md §3.
 
+### The four-flag Cyclopts contract
+
+The exit-code table above is policy; this subsection records the construction
+contract that makes the policy enforceable. Every command runs its Cyclopts app
+through the shared `run` wrapper rather than calling the app directly, and
+`run` requires the app to have been built with four specific flags. Each flag
+exists so that `run` — not Cyclopts — owns every `sys.exit` and every envelope
+emission:
+
+| Flag                           | Rationale                                                                                                                       |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------- |
+| `result_action="return_value"` | Returns the body's value to `run` instead of Cyclopts calling `sys.exit` on it, so `run` can emit the success-path envelope.    |
+| `exit_on_error=False`          | Makes a usage fault raise a `CycloptsError` rather than exit 1, so `run` can translate it into the contract's exit 2 (Table 2). |
+| `print_error=False`            | Suppresses Cyclopts's Rich error panel so the diagnostic channel is the envelope `run` owns, never a second rendering.          |
+| `help_on_error=False`          | Suppresses the auto-printed help on a usage fault for the same single-owner reason.                                             |
+
+_Table 3: The four-flag construction contract every command's app must carry._
+
+This four-flag requirement is load-bearing contract machinery, so it has a
+single enforcement point: the `make_contract_app(name)` factory in
+`novel_ralph_skill/contract/runner.py`. Every command's `build_app()` calls the
+factory rather than constructing a bare `cyclopts.App`, so a future sixth
+command adopts all four flags by calling `make_contract_app` instead of
+re-spelling — or silently dropping — them. Table 2 is the exit-code policy the
+flags serve, not the flag specification itself; this table is the
+specification. A structural tripwire
+(`tests/test_contract_app_centralisation.py`) pins that the four production
+constructors and their four entry points consume the factory and the shared
+`run` seam.
+
 ## Goals and non-goals
 
 - Goals:

@@ -261,16 +261,25 @@ surface is the frozen `Envelope` dataclass and the `build_envelope` constructor
 single source of truth), the `render_machine` and `render_human` renderers, the
 `ENVELOPE_SCHEMA_VERSION` constant, the `ExitCode` enum and its `is_ok` helper,
 the `StateInputError` channel, the `CommandOutcome` and `RunContext` value
-types, the command-agnostic `parse_global_flags` splitter, and the `run`
-wrapper. A new command builds a Cyclopts app, returns a `CommandOutcome` from
-its body, and calls `run` rather than calling the app directly. Two
-consequences of `run` are load-bearing. First, `run` requires the caller to
-build the app with `result_action="return_value"` (plus
-`exit_on_error=False, print_error=False, help_on_error=False`) so that `run` —
-not Cyclopts — owns every `sys.exit` and envelope emission; without it
+types, the command-agnostic `parse_global_flags` splitter, the
+`make_contract_app` factory, and the `run` wrapper. A new command builds its
+Cyclopts app with `make_contract_app(name)`, returns a `CommandOutcome` from its
+body, and calls `run` rather than calling the app directly. Two consequences of
+`run` are load-bearing. First, `run` requires the app to carry four flags —
+`result_action="return_value"` plus
+`exit_on_error=False, print_error=False, help_on_error=False` — so that `run` —
+not Cyclopts — owns every `sys.exit` and envelope emission; without them
 Cyclopts's default `result_action` would exit on the body's return value and
-pre-empt the success-path envelope. Second, `run` translates Cyclopts's native
-exit-`1` usage errors into the contract's exit `2`.
+pre-empt the success-path envelope. Because this four-flag requirement is
+load-bearing, `make_contract_app` is its single enforcement point: every
+`build_app()` calls the factory rather than a bare `cyclopts.App`, so a future
+sixth command adopts all four flags by calling the factory instead of
+re-spelling them, and the structural tripwire
+`tests/test_contract_app_centralisation.py` pins that the constructors and entry
+points consume it. The per-flag rationale and the construction contract live in
+[adr-003-shared-interface-contract.md](adr-003-shared-interface-contract.md)
+Table 3. Second, `run` translates Cyclopts's native exit-`1` usage errors into
+the contract's exit `2`.
 
 `build_envelope` validates its `command` argument against `COMMAND_NAMES`, so
 `novel_ralph_skill/contract/` imports the registry from

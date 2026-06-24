@@ -883,7 +883,7 @@ each as a small addendum pass — no plan or design-review cycle: make the chang
 run `make all`, `coderabbit review --agent`, commit, and tick the roadmap
 sub-task on merge.
 
-- [ ] 1.3.6.1 — Add a structural tripwire pinning that the four `build_app()`
+- [x] 1.3.6.1 — Add a structural tripwire pinning that the four `build_app()`
   constructors and the four real entry points consume the centralisation (merges
   review:1.3.6 and audit:1.3.6 Finding 3, low and medium). The behavioural proof
   that `make_contract_app`/`_drive` are on the path is currently indirect
@@ -899,7 +899,7 @@ sub-task on merge.
   tripwire the factory makes possible, guarding the "constructors consume the
   factory" half of the 1.3.6 success criterion. Behaviour-preserving;
   test-only; gate with `make all`.
-- [ ] 1.3.6.2 — Document the four-flag cyclopts contract and `make_contract_app`
+- [x] 1.3.6.2 — Document the four-flag cyclopts contract and `make_contract_app`
   in ADR-003 and the developers' guide (from audit:1.3.6 Findings 1 and 6, low).
   The four-flag requirement is now load-bearing contract machinery with a
   dedicated factory but is undocumented in prose — the `runner.py` docstring
