@@ -927,7 +927,7 @@ test-maintainability hardening); and the scoped `mutmut` gate over
 task 7.6.1, which names that module among its mutation targets, so it is not
 re-filed here. The three below are the small, localised fixes.
 
-- [ ] 2.1.5.1 — Extract the divergent-table self-tests into a focused sibling
+- [x] 2.1.5.1 — Extract the divergent-table self-tests into a focused sibling
   test module (from review:2.1.5, low). `tests/test_working_corpus.py` is 599
   lines under an inline `# pylint: disable=too-many-lines` exemption; this
   task's own Tolerances and Decision Log D5 named extraction to a focused
@@ -935,7 +935,13 @@ re-filed here. The three below are the small, localised fixes.
   divergent-table self-test class into a new sibling module before the next
   variant lands so the inline exemption can be relieved. Test-only. Gate with
   `make all`.
-- [ ] 2.1.5.2 — De-future the live-draft oracle docstring's `by_chapter_override`
+  Addendum verification (2026-06-24): already delivered by the later roadmap
+  2.1.6 merge, which landed the under-counting variant. The
+  `TestCorpusDivergentTable` class now lives in
+  `tests/test_working_corpus_divergent.py`, and `tests/test_working_corpus.py`
+  carries no divergent-table self-test. `make all` is green at HEAD; no further
+  change is required for this sub-task.
+- [x] 2.1.5.2 — De-future the live-draft oracle docstring's `by_chapter_override`
   landmine framing (from review:2.1.5, low). `live_draft_owned`'s docstring in
   `tests/working_corpus/_live_draft.py` still frames a `by_chapter_override`
   variant as a "future" landmine ("A future `by_chapter_override` variant … is
@@ -943,10 +949,23 @@ re-filed here. The three below are the small, localised fixes.
   Reword the stale "future" framing (and sweep any sibling occurrences) so the
   documentation trail describes the variant that now exists. Docs/comment-only.
   Gate with `make all`.
-- [ ] 2.1.5.3 — Make the divergent-table consumer iterate rather than
+  Addendum verification (2026-06-24): already delivered by the later roadmap
+  2.1.6 merge. The `live_draft_owned` docstring now names both
+  `DIVERGENT_TABLE_VARIANTS` members in the present tense as findings to
+  investigate, and the `docs/developers-guide.md` "Invariant validation"
+  landmine paragraph likewise. A repository-wide sweep finds no remaining
+  "future" framing of a `by_chapter_override` variant. No further change is
+  required for this sub-task.
+- [x] 2.1.5.3 — Make the divergent-table consumer iterate rather than
   single-unpack the variant set (from review:2.1.5, low).
   `tests/test_validate_state_live_draft.py` hard-codes
   `(variant_name,) = divergent_table_variant_names`, so once task 2.1.6 adds the
   second variant the unpack fails with an opaque `ValueError`. Iterate the
   variant set (or pin an explicit single variant by name) to localise that
   future failure ahead of 2.1.6. Test-only. Gate with `make all`.
+  Addendum verification (2026-06-24): already delivered by the later roadmap
+  2.1.6 merge. `test_live_draft_discriminates_table_from_drafts` iterates
+  `for variant_name in divergent_table_variant_names:`, keying each variant's
+  expected verdict from `_DIVERGENT_EXPECTATIONS` and asserting any unpinned
+  variant announces itself, so there is no single-unpack to break. No further
+  change is required for this sub-task.

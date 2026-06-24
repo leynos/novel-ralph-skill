@@ -530,7 +530,7 @@ novel-ralph-harness-design.md §5.1 and §5.2.
     directly through the standard corpus loop (the live reader to table reader
     mutant is killed without the module-local fixture); and the module-local
     `divergent_table_tree` fixture is removed.
-  - [ ] 2.1.5.1. Extract the divergent-table self-tests into a focused sibling
+  - [x] 2.1.5.1. Extract the divergent-table self-tests into a focused sibling
     test module.
     - Addendum (from review:2.1.5; low). `tests/test_working_corpus.py` is 599
       lines under an inline `too-many-lines` exemption and the 2.1.5 execplan
@@ -538,14 +538,14 @@ novel-ralph-harness-design.md §5.1 and §5.2.
       divergent-table self-test class into a focused sibling module so the
       exemption can be relieved before the next variant lands. Lightweight
       addendum pass.
-  - [ ] 2.1.5.2. De-future the live-draft oracle docstring's
+  - [x] 2.1.5.2. De-future the live-draft oracle docstring's
     `by_chapter_override` landmine framing.
     - Addendum (from review:2.1.5; low). `live_draft_owned`'s docstring in
       `tests/working_corpus/_live_draft.py` still frames the
       `by_chapter_override` variant as a "future" landmine, but 2.1.5 landed
       that variant; reword the stale "future" framing so the documentation trail
       describes the variant that now exists. Lightweight addendum pass.
-  - [ ] 2.1.5.3. Make the divergent-table consumer iterate rather than
+  - [x] 2.1.5.3. Make the divergent-table consumer iterate rather than
     single-unpack the variant set.
     - Addendum (from review:2.1.5; low). `test_validate_state_live_draft.py`
       hard-codes `(variant_name,) = divergent_table_variant_names`, so the second
