@@ -1298,15 +1298,18 @@ novel-ralph-harness-design.md §2.3 and §9.
   - See novel-ralph-harness-design.md §7.2 and §9.
   - Success: a stale compile is caught, a crossed gate is reported, and an
     out-of-order phase advance is refused, all in one scripted pass.
-- [ ] 6.2.3. Correct the documented skill defects and point the prose at the
+- [x] 6.2.3. Correct the documented skill defects and point the prose at the
   commands.
   - Requires phase 3.
-  - Fix the `SKILL.md:107` phase mislabel (drafting is Phase 8, not Phase 7),
-    reduce both prose copies of the done predicate to a pointer at `novel-done`,
-    and remove the dead `state-layout.md:38` `plan.md` reference.
+  - The phase mislabel (drafting is Phase 8, not Phase 7) and the dead
+    per-chapter `plan.md` entry are already corrected in the skill files by
+    commit `916313c`; the remaining work is to reduce both prose copies of the
+    done predicate to a pointer at `novel-done` and the developers' guide clause
+    table.
   - See novel-ralph-harness-design.md §8.
-  - Success: `make markdownlint` passes on the edited skill files and no prose
-    copy of the predicate survives to diverge.
+  - Success: `make markdownlint` passes on the edited skill files and
+    `grep -rn "novel_predicate" skill/` returns no match, so no prose copy of
+    the predicate survives to diverge.
 - [ ] 6.2.4. Broaden the installed-binary e2e coverage to `recount` and the
   exit-3 state-error paths.
   - Requires 2.1.2 and 2.3.1.

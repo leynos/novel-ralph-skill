@@ -772,24 +772,25 @@ knitting, and fangirl reads are model judgement.*
 ## 8. Skill defects the rebuild corrects
 
 The rebuild corrects the defects the field report identified, all in the prose
-layer the commands replace. The reference files still carry these defects; the
-corrections to `SKILL.md` and `state-layout.md` are owned by roadmap task
-6.2.3, which runs once the commands the prose must point at exist. Until that
-task lands, this section is the record of what is wrong, not a claim that the
-reference files are already fixed.
+layer the commands replace. Two of the three were already corrected in the skill
+files by commit `916313c`; the remaining drift — the two-source done predicate
+— is consolidated by roadmap task 6.2.3, which runs once the command the prose
+must point at exists. This section records what each defect was and how it was
+closed.
 
-- **Phase mislabel.** `SKILL.md:107` calls drafting "Phase 7"; the drafting
-  section is Phase 8 (`SKILL.md:304`). Roadmap task 6.2.3 corrects the label in
-  `SKILL.md`.
+- **Phase mislabel.** The drafting prose once called drafting "Phase 7";
+  drafting is Phase 8. Already corrected in `SKILL.md` (the drafting sentence
+  reads "Phase 8", and the `Phase 7 — Chapter planning` / `Phase 8 — Drafting`
+  headings are correct), landed in commit `916313c`.
 - **Two-source done predicate.** The short-form predicate in `SKILL.md`
-  omits `final_pass_complete` and the gate booleans that the long-form
-  predicate in `done-conditions.md` requires. `novel-done` becomes the single
-  source of truth; roadmap task 6.2.3 reduces both prose copies to a pointer at
-  the command.
-- **Dead `plan.md` spec.** `state-layout.md:38` documents a per-chapter
-  `plan.md` the workflow never produces and nothing checks. The validated
-  schema omits it (§5.1); roadmap task 6.2.3 removes the stale entry from
-  `state-layout.md`.
+  omitted `final_pass_complete` and the gate booleans that the long-form
+  predicate in `done-conditions.md` required. `novel-done` is the single source
+  of truth; roadmap task 6.2.3 reduces both prose copies to a pointer at the
+  command and the developers' guide clause table.
+- **Dead `plan.md` spec.** `state-layout.md` once documented a per-chapter
+  `plan.md` the workflow never produces and nothing checks. The validated schema
+  omits it (§5.1). Already removed from `state-layout.md`, landed in commit
+  `916313c`.
 
 ## 9. Verification strategy
 

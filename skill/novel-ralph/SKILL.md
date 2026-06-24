@@ -39,8 +39,8 @@ requirements on every operation in this skill:
    unit — one scene drafted, one chapter critiqued, one beat written — then
    returns. Do not try to finish the novel in one turn.
 4. **Truthful done reporting.** The agent reports "done" only when the
-   predicate in `references/done-conditions.md` evaluates true against the
-   manuscript on disk. Aspirational completion is a failure.
+   `novel-done` command exits 0 against the manuscript on disk. Aspirational
+   completion is a failure.
 
 ## Governing principles
 
@@ -93,8 +93,8 @@ Every turn begins here. No exceptions.
 2. Read working/state.toml.
 3. Read working/log.md (last 200 lines) for recent context.
 4. Determine phase from state.phase.current.
-5. Read references/done-conditions.md to check whether the overall
-   predicate is satisfied. If yes, report done and stop.
+5. Run `novel-done` to check whether the overall predicate is satisfied. If it
+   exits 0, report done and stop.
 6. Otherwise, jump to the phase handler. Each phase has its own routine
    below.
 7. After completing one unit of work, append a log entry summarising
@@ -421,8 +421,7 @@ one final assembly:
    treatment. If not, decide whether the novel earned the new ending or the new
    ending is a drift artefact.
 
-**Exit:** `working/manuscript/compiled.md` exists; the done predicate in
-`references/done-conditions.md` evaluates true.
+**Exit:** `working/manuscript/compiled.md` exists; `novel-done` exits 0.
 
 ## State layout summary
 
@@ -454,18 +453,15 @@ working/
 
 ## Done predicate (short form)
 
-The novel is done when **all** of:
+The novel is done when the `novel-done` command exits 0. `novel-done` is the
+single source of truth for the novel-level predicate: it evaluates each clause
+against the files on disk and names any clause that is false. The authoritative
+six clauses and the disk source of each are tabulated in the developers' guide
+under "Done predicate (`novel-done`)".
 
-1. `state.phase.current == "done"`.
-2. Every chapter directory has `done.flag`.
-3. `working/reviews/knitting-30.md`, `knitting-50.md`, and
-   `knitting-80.md` exist and their integration is logged.
-4. `working/manuscript/compiled.md` exists and equals the
-   concatenation of chapter drafts.
-5. Phase 9's final pass is logged as complete.
-
-Truthful "done" means evaluating this on disk, not asserting. See
-`references/done-conditions.md` for the verification routine.
+Truthful "done" means running `novel-done`, not re-asserting a hand-kept list.
+See `references/done-conditions.md` for the phase-level and chapter-level done
+conditions and the BLOCKER resolution convention.
 
 ## Failure modes
 
@@ -540,4 +536,4 @@ Truthful "done" means evaluating this on disk, not asserting. See
   the start of every chapter plan.
 
 - **The "almost done" lie.** Truthful done is on disk, not in feeling.
-  Run the predicate.
+  Run `novel-done`.

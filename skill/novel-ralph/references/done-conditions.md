@@ -14,17 +14,10 @@ This reference defines the done predicate at three scales:
 ## How to evaluate
 
 Every turn, after the entry routine but before doing new work, evaluate the
-novel-level predicate. If it passes, write a final log entry and stop.
-Otherwise proceed.
-
-```python
-# Pseudocode for the predicate check
-def novel_is_done(working_dir):
-    state = read_state_toml(working_dir)
-    if state["phase"]["current"] != "done":
-        return False
-    return novel_predicate(working_dir, state)
-```
+novel-level predicate by running the `novel-done` command. If it exits 0
+(reports done), write a final log entry and stop. Otherwise proceed. `novel-done`
+is the single source of truth for the novel-level predicate; see
+[Novel-level predicate](#novel-level-predicate) below.
 
 Phase advancement past `final-pass` to `done` happens exactly once, at the end
 of Phase 9. Until then, the predicate is false.
@@ -145,48 +138,13 @@ A chapter is done when all of:
 ## Novel-level predicate
 
 The terminator. The agent declares done only when this evaluates true on disk.
-
-```python
-def novel_predicate(working_dir, state):
-    # 1. State machine reports done.
-    if state["phase"]["current"] != "done":
-        return False
-    if not state["gates"]["final"]["final_pass_complete"]:
-        return False
-
-    # 2. Every planned chapter is drafted. The manifest (`state["chapters"]`,
-    # ordered ascending by `number`) is the authoritative chapter set; design
-    # §4.3 pins the chapter source to the manifest, not to outline prose.
-    for chapter in state["chapters"]:
-        chapter_id = chapter["number"]
-        flag = working_dir / f"manuscript/chapter-{chapter_id:02d}/done.flag"
-        if not flag.exists():
-            return False
-
-    # 3. All three knitting passes ran.
-    for pct in (30, 50, 80):
-        review = working_dir / f"reviews/knitting-{pct}.md"
-        if not review.exists():
-            return False
-        if not state["gates"]["knitting"][f"done_{pct}"]:
-            return False
-
-    # 4. compiled.md exists and is consistent with chapter drafts.
-    compiled = working_dir / "manuscript/compiled.md"
-    if not compiled.exists():
-        return False
-    if compiled_diverges_from_chapter_drafts(working_dir):
-        return False
-
-    # 5. No outstanding BLOCKER findings. Iterate the same manifest chapter set.
-    for chapter in state["chapters"]:
-        chapter_id = chapter["number"]
-        notes = working_dir / f"manuscript/chapter-{chapter_id:02d}/critic-notes.md"
-        if notes.exists() and contains_unresolved_blocker(notes):
-            return False
-
-    return True
-```
+Do not re-implement the predicate here: run the `novel-done` command, which is
+the single source of truth for the novel-level clauses. Its six clauses and the
+disk source of each are tabulated in the developers' guide under
+"Done predicate (`novel-done`)"; the truth conditions are fixed by design §4.2
+and implemented in `novel_ralph_skill/state/done_predicate.py`. `novel-done`
+exits 0 when every clause holds and names any failed clause in its output, so
+the agent acts on the specific clause that is false.
 
 The shipped predicate pins `contains_unresolved_blocker` to the spiteful
 critic's strict output format (`critic-personas.md`, "Resolving a BLOCKER";

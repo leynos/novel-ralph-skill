@@ -559,9 +559,12 @@ live in `novel_ralph_skill/commands/_novel_done.py`, reusing `novel-state`'s
 seams; the `stub.py` `novel_done()` entry point drives it through the shared
 `run` wrapper exactly as `desloppify()` does.
 
-**The six clauses and their disk sources.** The clause names are fixed by design
-§4.2; their truth conditions are the `novel_predicate` body in
-`skill/novel-ralph/references/done-conditions.md` "Novel-level predicate":
+**The six clauses and their disk sources.** This table is the authoritative
+statement of the clause truth conditions: the clause names are fixed by design
+§4.2 and the conditions are implemented in
+`novel_ralph_skill/state/done_predicate.py`. The skill prose
+(`skill/novel-ralph/references/done-conditions.md` "Novel-level predicate") now
+points here rather than restating the clauses.
 
 - `phase_is_done` := `state.phase.current is Phase.DONE`;
 - `final_pass_complete` := `state.gates.final.final_pass_complete`;
@@ -577,13 +580,14 @@ seams; the `stub.py` `novel_done()` entry point drives it through the shared
   the ordered concatenation of the present drafts (the content comparison; see
   below).
 
-**Manifest, not outline (a deliberate divergence).** The reference predicate
-iterates planned chapters parsed from `plan/chapter-outline.md`; `novel-done`
-reads the **manifest** (`state.chapters`) instead. This is design §4.3-conformant
-(the manifest is the authoritative chapter set and order, there is no
-`parse_chapter_outline` in the codebase, and `novel-state check` already asserts
-the manifest⇄directory bijection), recorded so a later docs pass can reconcile
-`done-conditions.md` to the manifest source.
+**Manifest, not outline.** The chapter set the predicate iterates is the
+**manifest** (`state.chapters`), not outline prose. This is design
+§4.3-conformant: the manifest is the authoritative chapter set and order, there
+is no `parse_chapter_outline` in the codebase, and `novel-state check` already
+asserts the manifest⇄directory bijection. The skill reference
+(`done-conditions.md`) was reconciled to the manifest source by roadmap task
+3.1.1.1 and now points at `novel-done` for the predicate, so there is no second
+chapter-source statement left to diverge.
 
 **The BLOCKER format.** An unresolved BLOCKER is a live `### Bn` finding heading
 under the `## BLOCKER` section of a `critic-notes.md` body — the spiteful
