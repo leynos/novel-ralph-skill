@@ -1054,6 +1054,21 @@ packs inherit before they land. See novel-ralph-harness-design.md §6.2 and §6.
   - See novel-ralph-harness-design.md §6.2.
   - Success: resolves open question Q5; adding a tell is a data edit, not a
     code change.
+  - [ ] 7.1.1.1. Capture the maintainer's explicit ratification of the Tier B
+    ai-isms membership.
+    - Addendum (from review:7.1.1; low). Tier B
+      (`stands-as-a-testament`, `rich-tapestry`, `vital-role`) shipped as
+      "ratified-by-plan" because the maintainer was unreachable in the
+      autonomous run; obtain and record the human maintainer's ratification of
+      the shipped tell set so the maintainer-owned data-contract loop the plan
+      opened is closed. Lightweight addendum pass.
+  - [ ] 7.1.1.2. Note the one-pack-per-run limit in the users' guide and resolve
+    the developers' guide combine-packs cross-reference.
+    - Addendum (from audit:7.1.1; low). The developers' guide says combining
+      both packs in one invocation "is a separate roadmap item and is not yet
+      supported" but the item was unfiled; point that cross-reference at the
+      multi-pack task (7.1.7) and add a one-line note to the `desloppify` users'
+      guide section that a run scans a single pack. Lightweight addendum pass.
 - [ ] 7.1.2. Implement the per-novel `device-ledger.toml` enforcement.
   - Requires phase 5.
   - Enforce rationing — `max_count`, `allowed_chapters`,
@@ -1110,6 +1125,55 @@ packs inherit before they land. See novel-ralph-harness-design.md §6.2 and §6.
   - Success: one canonical projection owns the JSON shape of a finding, the
     report module consumes it rather than re-listing fields, and the desloppify
     snapshot suite stays green.
+- [ ] 7.1.6. Make the shipped ai-isms pack selectable through the CLI by a
+  symbolic `--pack` name without an install-path workaround.
+  - Step-task (source: audit:7.1.1; severity: high). After task 7.1.1 the
+    in-wheel `ai-isms.toml` is reachable only via the `importlib.resources`
+    resolver `ai_isms_pack_path()`, which is never wired into the command:
+    `--pack` is bound to `pathlib.Path`, and the users' guide, developers'
+    guide, and desloppify checklist all document a source-tree relative path
+    (`novel_ralph_skill/rulepack/packs/ai-isms.toml`) that does not exist after
+    `pip install`, so an installed user gets exit-3 "cannot read rule pack".
+    This serves the step-7.1 hypothesis — that the rule-pack engine can be
+    extended with the moving-target packs the design defers — by making the
+    deferred ai-isms pack actually reachable through the shipped command, the
+    completion of 7.1.1's stated observable success ("a novelist can run the
+    installed `desloppify --pack <ai-isms>`"). It is substantial — a CLI
+    resolution layer plus three document corrections pinned by a test — and
+    distinct from 7.1.3-7.1.5, which are payload-contract work. Add a symbolic
+    `--pack ai-isms` name that resolves shipped packs through the resolver,
+    falling back to a filesystem path for bespoke packs; correct the three
+    documents to the symbolic invocation; and pin the documented invocation with
+    a test.
+  - Requires 7.1.1.
+  - See novel-ralph-harness-design.md §6.2 and §4.4;
+    docs/adr-006-console-scripts-e2e-posix-policy.md;
+    docs/execplans/roadmap-7-1-1.md.
+  - Success: `desloppify --pack ai-isms` resolves the shipped pack on an
+    installed wheel and flags an ai-ism, a bespoke filesystem `--pack PATH`
+    still works, the users' guide / developers' guide / desloppify checklist
+    document the symbolic invocation rather than the non-existent source-tree
+    path, and a test pins the documented invocation.
+- [ ] 7.1.7. Support a multi-pack desloppify invocation that combines
+  `offenders.toml` and `ai-isms.toml` in one run.
+  - Step-task (source: review:7.1.1; severity: medium). Task 7.1.1 ships
+    ai-isms as opt-in via `--pack` precisely because a single combined run is
+    deferred; the disjointness guarantee the pack carries (its rule-id set is
+    disjoint from offenders) exists so the two packs can be applied together
+    without double-counting. This serves the step-7.1 hypothesis — that the
+    phase-5 rule-pack engine can be extended to apply the moving-target packs
+    the design defers — by extending the invocation surface to run both packs in
+    one scan while keeping the per-hit envelope contract the §7.1 packs inherit.
+    It is substantial (an engine-invocation surface plus envelope and exit-code
+    behaviour across multiple packs) and warrants its own plan and review.
+  - Requires 7.1.6.
+  - See novel-ralph-harness-design.md §6.1, §6.2, and §4.4;
+    docs/adr-003-shared-interface-contract.md.
+  - Success: a single `desloppify` invocation scans both `offenders.toml` and
+    `ai-isms.toml`, reports the union of findings without double-counting a
+    shared offender, keeps the §3.2 exit-code contract (4 on any violation, 0 on
+    a clean pass), and the developers' guide combine-packs cross-reference
+    resolves to this task.
 
 ### 7.2. Clean-context judgemental passes
 
@@ -1568,3 +1632,57 @@ does not gate the deterministic spine.
     next category, the disk-evidence helpers consume one per-invocation
     `state.toml` parse rather than re-reading it per predicate, and every current
     corpus agreement suite stays green.
+
+### 7.13. Harden the desloppify detector and packs against fiction false readings
+
+This step answers whether the deterministic desloppify detector and its
+moving-target packs can be made more truthful on real manuscripts — catching a
+tell hard-wrapped across a newline, and not firing on legitimate genre fiction
+that happens to use a pack's surface tokens — without breaching the
+detect-only, single-line, no-semantic-gate discipline the engine was built on.
+Its outcome is a detector and pack set whose false-negative and false-positive
+rates on prose are measured and bounded, rather than accepted as documented v1
+limitations. These are deferred detection-quality hardening extensions surfaced
+by the review of step 7.1; they do not advance the step-7.1 hypothesis (the
+moving-target packs already ship as versioned data and the per-hit contract is
+settled) and they do not gate the deterministic spine.
+
+- [ ] 7.13.1. Add line-wrap-tolerant matching for multi-token desloppify tells.
+  - Reroute (source: review:7.1.1; severity: low). `detect.py` documents that a
+    multi-token offender hard-wrapped across a newline is not detected in v1
+    (single-line `finditer`), and the ai-isms phrasal tells (e.g. "plays a
+    vital role") inherit this limitation. Severity is low because the writer's
+    drafts wrap at sentence or paragraph granularity, but a tracked follow-up is
+    warranted if false negatives surface. This does not serve the step-7.1
+    hypothesis — it is a detection-engine robustness improvement cross-cutting
+    every pack — so it is rerouted here rather than parked in 7.1. Add
+    line-wrap-tolerant matching for multi-token tells (a bounded join or
+    soft-wrap normalisation) without breaking the per-line line-number reporting
+    or the no-`re.DOTALL` discipline.
+  - Requires 5.1.2.
+  - See novel-ralph-harness-design.md §4.4 and §6.1;
+    novel_ralph_skill/rulepack/detect.py (the documented single-line limitation).
+  - Success: a multi-token tell hard-wrapped across a newline is detected, the
+    per-line line-number reporting and the no-flags/no-`re.DOTALL` compile
+    discipline still hold, and the existing desloppify suites stay green.
+- [ ] 7.13.2. Calibrate per-rule false-positive thresholds for fiction-prone
+  ai-isms collocations against an ordinary-fiction corpus.
+  - Reroute (source: review:7.1.1; severity: low). `vital-role` (and potential
+    future role/moment templates) can fire on legitimate theatrical fiction; a
+    small calibration corpus of ordinary genre fiction could justify per-rule
+    non-zero thresholds, reducing model-adjudication noise on novels
+    specifically. This does not serve the step-7.1 hypothesis — it is
+    pack-quality calibration of an already-shipped pack, a cross-cutting
+    detection-quality concern — so it is rerouted here. Assemble a small
+    ordinary-fiction corpus, measure each fiction-prone collocational rule's
+    false-positive rate against it, and set per-rule thresholds where a non-zero
+    bar is justified by the measured rate (recording the rationale per the
+    membership policy).
+  - Requires 7.1.1.
+  - See novel-ralph-harness-design.md §6.2;
+    novel_ralph_skill/rulepack/packs/ai-isms.toml; docs/developers-guide.md
+    ("Rule packs and the loader boundary").
+  - Success: each fiction-prone ai-isms collocation has a measured
+    false-positive rate against an ordinary-fiction corpus, any non-zero
+    threshold is justified by that measurement and recorded with its rationale,
+    and the ai-isms validation suite stays green.

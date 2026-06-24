@@ -697,7 +697,6 @@ two loader errors to their exit codes in the command body (`RulePackError` → e
 2; `RulePackFileError` → exit 3) rather than extending the shared runner, keeping
 the `rulepack` → `contract` coupling out of the shared seam.
 
-
 #### The ai-isms pack: cadence, ownership, and membership
 
 Roadmap task 7.1.1 ships a second packaged pack beside `offenders.toml`:

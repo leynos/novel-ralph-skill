@@ -956,3 +956,32 @@ Quality method (how we check):
   line 602 (both case-sensitive), not a `load-bearing` pattern. Corrected both
   citations to the actual `tapestry`/`delve` example lines and named the
   section.
+
+## Addenda (post-merge follow-ups)
+
+Lightweight addendum work items folded back onto this completed task from the
+review and audit of step 7.1. Execute each as a small addendum pass — no plan or
+design-review cycle: make the change, run `make all` (plus
+`make markdownlint`/`make nixie` for Markdown), `coderabbit review --agent`,
+commit, and tick the matching roadmap sub-task on merge. The substantial
+follow-ups — wiring the shipped pack to a symbolic `--pack ai-isms` selector
+(roadmap 7.1.6) and the multi-pack invocation surface (roadmap 7.1.7) — warrant
+their own plans and are filed as full step-7.1 tasks; these two are the small
+data-contract and documentation fixes only.
+
+- [ ] 7.1.1.1 — Capture the maintainer's explicit ratification of the Tier B
+  ai-isms membership (from review:7.1.1, low). Tier B
+  (`stands-as-a-testament`, `rich-tapestry`, `vital-role`) shipped as
+  "ratified-by-plan" because the maintainer was unreachable in the autonomous
+  run (Decision Log, 2026-06-24). Obtain and record the human maintainer's
+  explicit ratification of the shipped tell set in the developers' guide
+  membership policy (or this Decision Log), closing the maintainer-owned
+  data-contract loop the plan opened. Prose-only; gate with `make markdownlint`
+  and `make nixie`.
+- [ ] 7.1.1.2 — Note the one-pack-per-run limit in the users' guide and resolve
+  the developers' guide combine-packs cross-reference (from audit:7.1.1, low).
+  `docs/developers-guide.md` says combining both packs in one invocation "is a
+  separate roadmap item and is not yet supported" but the item was unfiled;
+  point that cross-reference at the multi-pack task (roadmap 7.1.7) and add a
+  one-line note to the `desloppify` users' guide section that a run scans a
+  single pack. Prose-only; gate with `make markdownlint` and `make nixie`.
