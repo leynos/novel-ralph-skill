@@ -987,3 +987,20 @@ A3 (cyclopts behaviour cited against the v4 API docs, not v5-develop); A4
 near-miss BLOCKER corpus spec pins the substring rule's edge). Initial draft was
 2026-06-24; this round revises the `compile_consistent` mechanism, the corpus
 strategy, and the citations.
+
+## Addenda
+
+Lightweight post-merge corrections folded onto this completed task. Each runs as
+a no-plan, no-review addendum pass (roadmap sub-task under the `[x]` 3.1.1
+parent).
+
+- **Roadmap 3.1.1.1 — reconcile `done-conditions.md` to the manifest chapter
+  source** (from review:3.1.1 / audit:3.1.1; severity low). D-CLAUSES recorded
+  that the shipped predicate reads per-manifest chapters (`state.chapters`)
+  while the reference `novel_predicate` at
+  `skill/novel-ralph/references/done-conditions.md:158,180` still parses
+  `plan/chapter-outline.md` through a `parse_chapter_outline` that does not exist
+  in the codebase, and flagged the reference for a later docs reconciliation. Edit
+  the reference predicate prose so it iterates the manifest chapter source rather
+  than the absent outline parse, keeping the design §4.3 chapter-source rule the
+  single described path. Docs-only; no code or test change.

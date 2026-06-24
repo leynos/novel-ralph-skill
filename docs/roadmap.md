@@ -320,6 +320,28 @@ drift and seeds the snapshot suite. See novel-ralph-harness-design.md §3 and §
       updated and no `from`/`to` keys were persisted, closing the prose-only gap
       between the docstring intent and the test surface. Lightweight addendum
       pass.
+- [ ] 1.3.6. Add a shared contract-app factory for the runner's required
+  four-flag `cyclopts.App`.
+  - Reroute (source: audit:3.1.1; severity: low). The runner's hard requirement
+    (`result_action='return_value'`, `exit_on_error=False`, `print_error=False`,
+    `help_on_error=False`) is re-spelled in four `build_app()` constructors and
+    validated only at runtime, and the four `stub.py` entry-point bodies copy the
+    `parse_global_flags`/`run` plumbing. This serves the step-1.3 hypothesis —
+    one envelope, output-mode switch, and exit-code helper serving all five
+    commands — by co-locating the four-flag contract with the runner that
+    enforces it, rather than the step-3.1 done-predicate hypothesis where it
+    surfaced. Add a `make_contract_app(name)` factory (plus an optional `_drive`
+    helper) and route every command's app construction and entry-point body
+    through it.
+  - Requires 1.3.1.
+  - See novel-ralph-harness-design.md §3.1 and §4;
+    docs/adr-003-shared-interface-contract.md;
+    docs/issues/audit-3.1.1.md (Finding 5).
+  - Success: a single `make_contract_app(name)` factory owns the four-flag
+    contract, the four `build_app()` constructors and the `stub.py` entry-point
+    bodies consume it rather than re-spelling the flags and the
+    `parse_global_flags`/`run` plumbing, and the contract-runner and command
+    suites stay green.
 
 ## 2. Vertical slice 1: trustworthy state through validated mutators
 
@@ -857,6 +879,16 @@ novel-ralph-harness-design.md §4.2 and §2.3.
   - See novel-ralph-harness-design.md §4.2.
   - Success: each clause can be independently driven true and false from the
     §1.3.2 corpus, and the exit code is 0 only when every clause holds.
+  - [ ] 3.1.1.1. Reconcile the `done-conditions.md` reference predicate to the
+    manifest chapter source.
+    - Addendum (from review:3.1.1 / audit:3.1.1; low). The shipped predicate
+      reads per-manifest chapters (`state.chapters`) while the reference
+      `novel_predicate` at `done-conditions.md:158,180` still parses
+      `plan/chapter-outline.md` via a non-existent `parse_chapter_outline`;
+      D-CLAUSES recorded this design §4.3-justified divergence and flagged it for
+      a docs pass. Reconcile the reference prose to the manifest source so it no
+      longer describes a parse path absent from the codebase. Lightweight
+      addendum pass.
 - [ ] 3.1.2. Implement the shared compile-and-hash routine and the
   compile-divergence clause.
   - Requires 3.1.1.
@@ -876,6 +908,52 @@ novel-ralph-harness-design.md §4.2 and §2.3.
     predicate-truthfulness property); the `novel-done` result size is
     independent of the chapter count; and an otherwise-complete tree with only a
     stale `compiled.md` exits 4 while a mid-draft tree exits 1.
+- [ ] 3.1.3. Share the compiled-matches-drafts comparison between the §5.4
+  detector and the `compile_consistent` clause.
+  - Step-task (source: audit:3.1.1; severity: medium).
+    `disk_evidence._check_compiled_matches_drafts` already implements the
+    compiled-versus-drafts comparison the `compile_consistent` clause is
+    scheduled to gain at task 3.1.2 (with the opposite absent-file polarity), so
+    3.1.2 would otherwise re-implement that comparison a third time with
+    divergent fault handling. This serves the step-3.1 hypothesis — every done
+    clause evaluated deterministically against disk — by giving the
+    compile-consistency clause one shared comparison so the predicate and the
+    §5.4 detector cannot disagree on what "compiled matches drafts" means. Factor
+    a shared `compiled_matches_drafts(state, working_dir)` helper into
+    `compile_model.py`, reconciling the absent-file polarity once, and have both
+    the §5.4 detector and the 3.1.2 clause consume it.
+  - Requires 3.1.1.
+  - See novel-ralph-harness-design.md §4.2, §4.3, and §5.4;
+    docs/issues/audit-3.1.1.md (Finding 2);
+    novel_ralph_skill/state/disk_evidence.py.
+  - Success: one `compiled_matches_drafts(state, working_dir)` helper in
+    `compile_model.py` owns the compiled-versus-drafts comparison; both
+    `disk_evidence._check_compiled_matches_drafts` and the `compile_consistent`
+    clause consume it (each supplying its own absent-file polarity); no third
+    independent re-implementation survives; and the done-predicate and
+    disk-evidence suites stay green.
+- [ ] 3.1.4. Anchor the unresolved-BLOCKER resolution rule positionally and
+  cover the false-clean direction.
+  - Step-task (source: review:3.1.1 / audit:3.1.1; severity: low). The
+    `no_unresolved_blockers` clause clears a blocker whenever the literal
+    `[resolved]` appears anywhere on a line, so a live blocker that incidentally
+    mentions `[resolved]` is wrongly declared clean — the exit-0 lie the
+    predicate exists to prevent — and that false-clean direction is untested. The
+    rule also mis-classifies prose mentions of resolution and case or format
+    variants. This serves the step-3.1 hypothesis — every done clause evaluated
+    deterministically and truthfully against disk — by making the BLOCKER clause
+    sound in both directions rather than only the false-positive one. Anchor the
+    resolution token to a positional marker (or a more precise grammar / a
+    structured marker), keep the existing near-miss corpus spec green, and add a
+    corpus near-miss exercising the false-clean direction.
+  - Requires 3.1.1.
+  - See novel-ralph-harness-design.md §4.2;
+    skill/novel-ralph/references/done-conditions.md (the BLOCKER substring rule);
+    docs/issues/audit-3.1.1.md (Finding 3).
+  - Success: a live BLOCKER line that incidentally contains `[resolved]` is
+    reported as unresolved (the clause stays false), a genuinely resolved blocker
+    still clears, the false-clean direction is pinned by a new §1.3.2 corpus
+    near-miss, and the done-predicate suite stays green.
 
 ## 4. Vertical slice 3: deterministic, outline-ordered compilation
 
@@ -1644,6 +1722,29 @@ the deterministic spine.
     segment or the `compiled.md` leaf; the write/detector path contract is a
     code-level single source of truth rather than a test-only invariant; and the
     compile, state, desloppify, and wordcount suites stay green.
+- [ ] 7.10.4. Single-home the `reviews/` directory segment behind a shared
+  `reviews_dir` accessor in `state/_disk_paths.py`.
+  - Reroute (source: audit:3.1.1; severity: medium). The 3.1.1 done predicate
+    added a `reviews/` knitting-review read, so the `reviews/` segment now joins
+    the `manuscript/`/`compiled.md` leaves that task 7.10.3 single-homes — rebuilt
+    by hand wherever a command reads `working/reviews/knitting-NN.md` rather than
+    routed through one accessor. This serves the step-7.10 hypothesis —
+    expressing the disk-path sourcing rule once and sharing it — by giving
+    `reviews/` the same single-homed `_disk_paths.py` treatment as
+    `manuscript_dir`/`compiled_path` (7.10.3) and the `chapter-NN` helper
+    (7.10.2), not the settled step-3.1 done-predicate hypothesis where it was
+    raised. Coordinate with 7.10.3 so the `manuscript/`, `compiled.md`, and
+    `reviews/` accessors land as one coherent disk-path layout in
+    `_disk_paths.py`.
+  - Requires 7.10.3 and 3.1.1.
+  - See novel-ralph-harness-design.md §4.1, §4.2, and §5.4;
+    docs/issues/audit-3.1.1.md (Finding 1);
+    novel_ralph_skill/state/_disk_paths.py.
+  - Success: a `reviews_dir(working_dir)` accessor lives in `state/_disk_paths.py`
+    beside `manuscript_dir`/`compiled_path`; every site reading
+    `working/reviews/` routes through it; no site open-codes the `"reviews"`
+    segment; and the done-predicate, compile, state, and disk-evidence suites
+    stay green.
 
 ### 7.11. Harden torn-recount recovery into a single-pass repair
 
