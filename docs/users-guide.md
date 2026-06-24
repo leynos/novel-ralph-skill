@@ -145,6 +145,41 @@ The disk-evidence names compare the recorded state against the `working/` tree:
   disagrees with the words actually on disk (a stale done-claim, or a real
   `done.flag` over a draft the table under-counts).
 
+`novel-state` also exposes three write subcommands that mutate the project —
+`init`, `set-cursor`, and `advance-phase` (roadmap task 2.2.2). Every one of
+them honours the same **validate-before-persist, write-nothing-on-refusal**
+contract: each derives the state its arguments would produce, checks it against
+the coherence invariants above, and writes atomically only when the result is
+coherent. A refusal exits `3` (the state-error channel), names the breached
+invariant on standard error, and changes nothing on disk, so the prior
+`state.toml` is left byte-for-byte intact. A missing or unparseable
+`state.toml` is itself an exit-`3` refusal. The sections below describe only
+each subcommand's own arguments and the extra refusals specific to it; the
+shared contract holds for all three.
+
+`novel-state init` bootstraps a fresh project: it creates the `working/`
+directory skeleton — the `characters/`, `world/`, `reader/`, `plan/`,
+`manuscript/`, and `reviews/` subdirectories plus an empty `log.md` — and writes
+a coherent initial `state.toml`. It takes `--title` (the novel title),
+`--slug` (the project slug), and `--target-word-count` (the target word count,
+defaulting to `80000`). To protect a live project, `init` *creates* but never
+overwrites: when `working/state.toml` already exists it refuses with exit `3`
+rather than clobbering it, so re-running `init` over an initialised project is
+safe.
+
+`novel-state set-cursor` moves the drafting cursor. It takes three integer
+options — `--chapter`, `--scene` (default `0`), and `--beat` (default `0`) — and
+records them as the `[drafting]` cursor. Per the shared contract it refuses (the
+`cursor-coherent` invariant) when the cursor is incoherent: a chapter past the
+end of the manifest, or a scene or beat set while the cursor names no chapter.
+
+`novel-state advance-phase` takes no arguments and always advances
+`phase.current` to the immediate next workflow phase, appending the phase it
+leaves to `phase.completed`. Because it can only ever step to the successor, a
+phase *skip* cannot be requested; it instead refuses (exit `3`) when advancing
+from the terminal `done` phase (which has no successor) and when advancing into
+`drafting` with an empty chapter manifest.
+
 `novel-state recount` re-derives the word counts from the chapter drafts, so
 you never type a word count by hand. It reads each chapter's
 `working/manuscript/chapter-NN/draft.md`, counts its words, and rewrites

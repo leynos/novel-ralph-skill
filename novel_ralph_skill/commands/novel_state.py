@@ -84,6 +84,29 @@ _DEFAULT_TARGET_WORD_COUNT = 80000
 # drift (Decision Log B4/B5). There is no ``--working-dir`` flag.
 WORKING_DIR_NAME = "working"
 
+
+def working_dir() -> pathlib.Path:
+    """Return the fixed cwd-relative ``working/`` directory (design line 151).
+
+    The single ``WORKING_DIR_NAME``-anchored accessor for the working root, so
+    ``_check``, ``init``, and the mutators resolve the same cwd-relative
+    directory rather than each rebuilding ``pathlib.Path(WORKING_DIR_NAME)``
+    (Decision Log B4/B5).
+    """
+    return pathlib.Path(WORKING_DIR_NAME)
+
+
+def state_path() -> pathlib.Path:
+    """Return the fixed cwd-relative ``working/state.toml`` path.
+
+    The single accessor every command routes through (``_check``, ``init``, and
+    the ``set-cursor``/``advance-phase``/``recount``/``reconcile`` mutators), so
+    the canonical ``state.toml`` path is constructed in exactly one place
+    (audit:1.3.5; audit:2.2.2 Finding 3).
+    """
+    return working_dir() / "state.toml"
+
+
 # The exceptions a missing or malformed ``state.toml`` raises through
 # ``load_state``; each is translated to ``StateInputError`` (the exit-``3``
 # state-error channel). Named once here so the "what counts as a state-input
@@ -195,17 +218,17 @@ def _check() -> CommandOutcome:
         When ``working/state.toml`` is missing or unparseable, or a chapter
         ``draft.md`` is unreadable (the exit-``3`` state-error channel).
     """
-    working_dir = pathlib.Path(WORKING_DIR_NAME)
-    state = _load_or_state_error(working_dir / "state.toml")
+    root = working_dir()
+    state = _load_or_state_error(state_path())
     pure_state = validate_state(state)
-    disk_evidence = _disk_evidence_or_state_error(state, working_dir)
+    disk_evidence = _disk_evidence_or_state_error(state, root)
     verdict = (*pure_state, *disk_evidence)
     result: dict[str, object] = {
         "violations": [violation.invariant for violation in verdict]
     }
     if disk_evidence:
         result["reconciliation"] = _render_reconciliation(
-            derive_reconciliation(state, working_dir)
+            derive_reconciliation(state, root)
         )
     # One verdict-driven constructor: an empty verdict is success, any violation
     # is an actionable finding (audit:2.1.2 finding 5).
@@ -247,10 +270,10 @@ def _init(*, title: str, slug: str, target_word_count: int) -> CommandOutcome:
     StateInputError
         When ``working/state.toml`` already exists (the exit-``3`` refusal).
     """
-    working = pathlib.Path(WORKING_DIR_NAME)
-    state_path = working / "state.toml"
-    if state_path.exists():
-        msg = f"refusing to overwrite existing {state_path}"
+    working = working_dir()
+    path = state_path()
+    if path.exists():
+        msg = f"refusing to overwrite existing {path}"
         raise StateInputError(msg)
     working.mkdir(parents=True, exist_ok=True)
     for name in _INIT_SUBDIRECTORIES:
@@ -262,14 +285,14 @@ def _init(*, title: str, slug: str, target_word_count: int) -> CommandOutcome:
         target_word_count=target_word_count,
         created_at=created_at,
     )
-    write_document_atomically(document, state_path)
+    write_document_atomically(document, path)
     # ``log.md`` is the turn log (state-layout.md "Initialisation" step 3); it is
     # not ``state.toml``, so the direct-edit guard does not apply to it.
     (working / "log.md").write_text("", encoding="utf-8")
     return CommandOutcome(
         code=ExitCode.SUCCESS,
         result={"working_dir": WORKING_DIR_NAME, "slug": slug},
-        messages=[f"initialised {state_path}"],
+        messages=[f"initialised {path}"],
     )
 
 

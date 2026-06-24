@@ -1576,7 +1576,7 @@ success-result vocabulary (audit Finding 2) to roadmap step 1.3 (task 1.3.5),
 and the partial-`init` bootstrap recovery (review:2.2.2) to step 2.3
 (task 2.3.4); the doc gap below is the small fix.
 
-- [ ] 2.2.2.1 — Document the `init`, `set-cursor`, and `advance-phase`
+- [x] 2.2.2.1 — Document the `init`, `set-cursor`, and `advance-phase`
   subcommands in the users' guide (from audit:2.2.2, high). Task 2.2.2 promoted
   three subcommands from stubs to shipping commands but updated only the
   developers' guide; `docs/users-guide.md` lines 92–128 still describe only
@@ -1589,7 +1589,7 @@ and the partial-`init` bootstrap recovery (review:2.2.2) to step 2.3
   the shared validate-before-persist, exit-`3` refusal, write-nothing contract
   once and reference it from each. Gate with `make markdownlint` and `make
   nixie`.
-- [ ] 2.2.2.2 — Route `_check`, `init`, and the two mutators through a single
+- [x] 2.2.2.2 — Route `_check`, `init`, and the two mutators through a single
   `working/state.toml` path accessor (from audit:1.3.5, low; re-surfaced from
   audit:2.2.2 Finding 3). The canonical path is constructed in three places —
   `commands/novel_state.py` `_check` (`pathlib.Path(WORKING_DIR_NAME) /

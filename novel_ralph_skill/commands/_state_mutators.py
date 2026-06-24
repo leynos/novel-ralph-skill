@@ -30,12 +30,16 @@ invariant, so a refusal leaves the prior ``state.toml`` byte-for-byte intact
 
 from __future__ import annotations
 
-import pathlib
 import typing as typ
 
 from novel_ralph_skill.commands.novel_state import (
     STATE_INPUT_ERRORS,
-    WORKING_DIR_NAME,
+)
+from novel_ralph_skill.commands.novel_state import (
+    state_path as _state_path,
+)
+from novel_ralph_skill.commands.novel_state import (
+    working_dir as _working_dir,
 )
 from novel_ralph_skill.contract.exit_codes import ExitCode
 from novel_ralph_skill.contract.runner import CommandOutcome, StateInputError
@@ -49,25 +53,25 @@ from novel_ralph_skill.state import (
 )
 
 if typ.TYPE_CHECKING:
+    import pathlib
+
     from tomlkit import TOMLDocument
 
     from novel_ralph_skill.state import State
 
-
-def _state_path() -> pathlib.Path:
-    """Return the fixed cwd-relative ``working/state.toml`` path."""
-    return pathlib.Path(WORKING_DIR_NAME) / "state.toml"
-
-
-def _working_dir() -> pathlib.Path:
-    """Return the fixed cwd-relative ``working/`` directory.
-
-    ``recount`` reads each chapter's ``draft.md`` under ``working/manuscript/``;
-    it resolves the root from the same ``WORKING_DIR_NAME`` constant
-    :func:`_state_path` uses, so the file it counts and the file it rewrites
-    share one cwd-relative root (Decision Log B4/B5; D-CWD).
-    """
-    return pathlib.Path(WORKING_DIR_NAME)
+# ``_state_path`` and ``_working_dir`` are re-exported from
+# :mod:`novel_ralph_skill.commands.novel_state` (the single accessor home) for
+# the sibling ``_recount``/``_reconcile`` mutator modules, which import them from
+# here; ``__all__`` marks the re-export so the unused-import lint does not fire.
+__all__ = [
+    "_load_document_or_state_error",
+    "_refuse_if_incoherent",
+    "_state_path",
+    "_state_view_or_state_error",
+    "_working_dir",
+    "advance_phase",
+    "set_cursor",
+]
 
 
 def _load_document_or_state_error(path: pathlib.Path) -> TOMLDocument:

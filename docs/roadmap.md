@@ -605,7 +605,7 @@ novel-ralph-harness-design.md §3.4, §4.1, and §5.3.
   - See novel-ralph-harness-design.md §4.1 and §3.2.
   - Success: a behavioural scenario shows an out-of-order `advance-phase` is
     refused with exit 3 and leaves the prior state intact.
-  - [ ] 2.2.2.1. Document the `init`, `set-cursor`, and `advance-phase`
+  - [x] 2.2.2.1. Document the `init`, `set-cursor`, and `advance-phase`
     subcommands in the users' guide.
     - Addendum (from audit:2.2.2; high). Task 2.2.2 promoted three subcommands
       from stubs to shipping commands but updated only the developers' guide;
@@ -613,7 +613,7 @@ novel-ralph-harness-design.md §3.4, §4.1, and §5.3.
       `novel-state` section with each subcommand's options, the directory
       skeleton `init` creates, and the shared validate-before-persist, exit-3
       refusal, write-nothing contract. Lightweight addendum pass.
-  - [ ] 2.2.2.2. Route `_check`, `init`, and the two mutators through a single
+  - [x] 2.2.2.2. Route `_check`, `init`, and the two mutators through a single
     `working/state.toml` path accessor.
     - Addendum (from audit:1.3.5; low). The canonical path is constructed in
       three places (`commands/novel_state.py` `_check` and `init`,
