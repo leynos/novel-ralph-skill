@@ -722,6 +722,38 @@ agent-improvised recovery routine. See novel-ralph-harness-design.md §4.1 and
     apply the same rule; and `state-layout.md`, design §5.4, and the 2.3.1
     D-CURRENT note agree on the `current` definition with no surviving
     contradiction.
+- [ ] 2.3.6. Detect `[word_counts].by_chapter` key-set divergence from the
+  manifest and on-disk drafts, not only shared-key value divergence.
+  - Step-task (source: review:2.3.2; severity: low). The `check`
+    `word-counts-match-drafts` predicate compares only the shared (intersection)
+    chapter keys (D-WC-SHARED-KEYS), and `manifest-disk-bijection` checks the
+    manifest against on-disk directories, not against the `by_chapter` key set,
+    so a state whose `[word_counts].by_chapter` omits a chapter that is drafted
+    on disk (or carries a key the manifest lacks) falls through every current
+    disk-evidence invariant. This serves the step-2.3 hypothesis — state
+    re-derivable from disk so it can never drift from the manuscript — by closing
+    the design §5.4 "state behind disk" key-coverage gap a `RECOUNT` would supply
+    (the missing key), so a chapter drafted on disk but absent from the table is
+    flagged rather than silently tolerated. It is substantial because it adds a
+    new disk-evidence coverage predicate (twinned against the per-chapter disk
+    oracle, distinct from the value-divergence `word-counts-match-drafts` check)
+    plus a first-class §1.3.2 corpus variant, and must keep `CORPUS_INVARIANT_NAMES`,
+    the agreement suites, and the existing `check`/`reconcile` behaviour green,
+    which warrants its own plan and review. Add a `word-counts-cover-drafts`
+    coverage predicate that reports a `by_chapter` key omitted relative to the
+    drafted manifest (and any table key absent from the manifest), repaired by
+    the same `RECOUNT`, and a corpus variant exercising both directions.
+  - Requires 2.3.2.
+  - See novel-ralph-harness-design.md §5.2 and §5.4;
+    docs/execplans/roadmap-2-3-2.md (Decision Log D-WC-SHARED-KEYS,
+    D-SCOPE/D-WORDCOUNT).
+  - Success: a state whose `[word_counts].by_chapter` omits a chapter with a
+    non-empty on-disk `draft.md` is detected by `check` with exit 4 on a named
+    coverage invariant and repaired by `reconcile` via `RECOUNT`; a table key
+    with no manifest entry is likewise flagged; the new predicate and its corpus
+    variant agree with the disk oracle across the whole-corpus agreement loop;
+    and the existing shared-key `word-counts-match-drafts` and
+    `manifest-disk-bijection` invariants stay unchanged.
 
 ## 3. Vertical slice 2: a single-source done predicate
 
@@ -1412,3 +1444,46 @@ the deterministic spine.
   - Success: one `read_chapter_draft` helper owns the `chapter-NN/draft.md` path
     and the `FileNotFoundError`-as-absent boundary, both `desloppify` and
     `wordcount` consume it, and the desloppify and wordcount suites stay green.
+
+### 7.11. Harden torn-recount recovery into a single-pass repair
+
+This step answers whether a torn `recount` turn whose `[pending_turn]` record is
+uncleared can be repaired by one `reconcile` pass, or whether the two-pass
+convergence the spine already guarantees is the agreed recovery contract. Its
+outcome is a single recorded decision on `COMPLETE_PENDING_TURN`'s re-derivation
+reach, revisited once rather than re-argued per recovery path. The current
+`_pending_turn_edit` re-derives `[word_counts]` only when `state.toml` is a
+*missing* declared path (Decision Log D-COMPLETE), so an uncleared record over a
+present-but-stale `state.toml` clears the record and relies on a second
+`reconcile` pass to recount (Decision Log D-SELF-CONVERGES); the spine therefore
+converges to a non-drifting state, but a single `reconcile` does not fully repair
+a torn recount. This is a deferred operability-hardening extension surfaced by
+the review of step 2.3; it does not advance the step-2.3 disk-re-derivation
+hypothesis (state already converges under harness re-entry) and it does not gate
+the deterministic spine.
+
+- [ ] 7.11.1. Decide and document whether `COMPLETE_PENDING_TURN` re-derives a
+  present-but-stale `[word_counts]` in one pass.
+  - Reroute (source: review:2.3.2; severity: low). A torn `recount` turn whose
+    record is uncleared resolves to `COMPLETE_PENDING_TURN`, but
+    `_pending_turn_edit` re-derives `[word_counts]` only when `state.toml` is a
+    *missing* declared path (D-COMPLETE), so it merely clears the record and
+    leans on a second `reconcile` pass (D-SELF-CONVERGES) to fix a still-stale
+    table. This is correct under harness re-entry — the state converges and never
+    drifts — so it does not advance the step-2.3 disk-re-derivation hypothesis;
+    it is a single-pass-repair operability and operator-clarity concern. Make the
+    house-wide decision once: either have `COMPLETE_PENDING_TURN` re-derive a
+    present-but-stale `[word_counts]` within the same pass (revisiting D-COMPLETE
+    and D-SELF-CONVERGES together so the dispatch and Decision Log agree), or
+    record two-pass convergence as the deliberate recovery contract with its
+    rationale, and capture the outcome in the developers' guide and the 2.3.2
+    execplan Decision Log so no later recovery path re-litigates it.
+  - Requires 2.3.2.
+  - See novel-ralph-harness-design.md §3.4 and §5.4;
+    docs/execplans/roadmap-2-3-2.md (Decision Log D-COMPLETE, D-SELF-CONVERGES);
+    docs/developers-guide.md.
+  - Success: one decision records whether a torn `recount` is repaired in a
+    single `reconcile` pass or by deliberate two-pass convergence; the
+    `COMPLETE_PENDING_TURN` dispatch conforms to whatever the decision settles;
+    and the developers' guide and the 2.3.2 Decision Log agree on the recovery
+    contract with no surviving contradiction.
