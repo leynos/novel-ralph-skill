@@ -1103,7 +1103,7 @@ bijection contiguity double-fire) is cross-cutting hardening that does not serve
 step 2.3's disk-re-derivation hypothesis, so it is re-routed to roadmap step
 7.15 rather than filed here.
 
-- [ ] 2.3.6.1 — Add an entry-point e2e for the orphan-key (extra-table-key)
+- [x] 2.3.6.1 — Add an entry-point e2e for the orphan-key (extra-table-key)
   reconcile direction (from review:2.3.6, low). The omit-drafted-chapter
   direction has a full `check`->`reconcile`->`check` entry-point e2e but the
   orphan-drop direction (a `by_chapter` key absent from the manifest) is only

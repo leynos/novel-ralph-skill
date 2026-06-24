@@ -844,7 +844,7 @@ agent-improvised recovery routine. See novel-ralph-harness-design.md §4.1 and
     variant agree with the disk oracle across the whole-corpus agreement loop;
     and the existing shared-key `word-counts-match-drafts` and
     `manifest-disk-bijection` invariants stay unchanged.
-  - [ ] 2.3.6.1. Add an entry-point e2e for the orphan-key (extra-table-key)
+  - [x] 2.3.6.1. Add an entry-point e2e for the orphan-key (extra-table-key)
     reconcile direction.
     - Addendum (from review:2.3.6; low). The omit-drafted-chapter direction has
       a full `check`→`reconcile`→`check` entry-point e2e but the orphan-drop
