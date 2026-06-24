@@ -675,6 +675,26 @@ agent-improvised recovery routine. See novel-ralph-harness-design.md §4.1 and
     compiled checks read the materialised `working_dir`, and a tree whose
     `state.toml` claims agree with disk but whose disk evidence diverges is
     flagged by the oracle from disk alone.
+  - [ ] 2.3.3.1. Consolidate the repeated per-predicate `state.toml` parse in
+    the corpus oracle's disk-evidence checks into a single per-invocation read.
+    - Addendum (from review:2.3.3; low). The disk-evidence predicates in
+      `tests/working_corpus/_oracle.py` (`by-chapter-sum`, `manifest-disk-
+      bijection`, `done-flag-without-draft`, `pending-turn-cleared`,
+      `compiled-matches-drafts`, `word-counts-match-drafts`) each re-read and
+      re-parse the materialised `state.toml`; parse it once per `corpus_check`
+      and pass the decoded tables into the helpers. The production
+      `disk_evidence.py` twin already takes a parsed `State` and needs no
+      mirror. Lightweight addendum pass.
+  - [ ] 2.3.3.2. Document the disk-evidence disk-vs-disk twin discipline and
+    invariant 5's delivered status in the developers' guide.
+    - Addendum (from audit:2.3.3; medium). After 2.3.3 the corpus oracle reads
+      disk for the §5.4 invariants, so its disk-evidence checks are now
+      disk-vs-disk twins of the production `check_disk_evidence`, not the
+      pure-state validator twins the guide describes; and the owned-name table
+      still marks invariant 5 "deferred to task 2.3.2" though 2.3.2/2.3.3 have
+      delivered it. Record the disk-vs-disk discipline and update the invariant-5
+      status so the policy lives in the source of truth, not only in source
+      docstrings. Lightweight addendum pass.
 - [ ] 2.3.4. Cover the partial-`init` bootstrap (`state.toml` present, `log.md`
   absent) in disk-authoritative reconciliation.
   - Reroute (source: review:2.2.2; severity: low). `init` writes `state.toml`
@@ -1444,6 +1464,28 @@ the deterministic spine.
   - Success: one `read_chapter_draft` helper owns the `chapter-NN/draft.md` path
     and the `FileNotFoundError`-as-absent boundary, both `desloppify` and
     `wordcount` consume it, and the desloppify and wordcount suites stay green.
+- [ ] 7.10.2. Consolidate the open-coded `chapter-NN` directory-name convention
+  onto one shared production helper.
+  - Reroute (source: audit:2.3.3; severity: low). The
+    `chapter-{number:02d}` directory-name idiom is open-coded across
+    `state/disk_evidence.py` (`_chapter_dir_name`), `state/wordcount.py`, and
+    `commands/_desloppify.py` (state-layout.md caps the width at two digits / 99
+    chapters), so a future width or prefix change risks being applied
+    inconsistently. A single shared directory-name helper in the state package,
+    consumed by all three sites, removes the skew risk. This is cross-cutting
+    production DRY hygiene serving the step-7.10 "express the chapter-draft
+    sourcing rule once and share it" hypothesis — the directory-name segment the
+    `read_chapter_draft` reader (7.10.1) derives — not the step-2.3
+    disk-re-derivation hypothesis where it was raised. Coordinate with 7.10.1 so
+    the shared reader consumes this helper rather than re-deriving the segment.
+  - Requires 2.3.1 and 5.1.2.
+  - See novel-ralph-harness-design.md §4.1 and §4.5;
+    skill/novel-ralph/references/state-layout.md (the two-digit chapter width).
+  - Success: one shared `chapter-NN` directory-name helper lives in the state
+    package and is consumed by `disk_evidence.py`, `wordcount.py`, and
+    `_desloppify.py` (and by the 7.10.1 `read_chapter_draft` reader); no site
+    open-codes `chapter-{number:02d}`; and the state, desloppify, and wordcount
+    suites stay green.
 
 ### 7.11. Harden torn-recount recovery into a single-pass repair
 
@@ -1487,3 +1529,42 @@ the deterministic spine.
     `COMPLETE_PENDING_TURN` dispatch conforms to whatever the decision settles;
     and the developers' guide and the 2.3.2 Decision Log agree on the recovery
     contract with no surviving contradiction.
+
+### 7.12. Carve the disk-evidence predicates out of the corpus oracle
+
+This step answers whether the corpus oracle's disk-evidence predicates can be
+grouped into a sibling module before the `tests/working_corpus/_oracle.py`
+400-line module cap forces an unplanned split mid-task. Its outcome is one
+restored-headroom home for the disk-vs-disk checks, carved deliberately rather
+than under cap pressure. The module sits at 399 of 400 lines after task 2.3.3,
+and the roadmap already anticipates a further corpus category (step 7.7) that
+would breach the pylint `max-module-lines` cap and the AGENTS.md file-size rule.
+This is a deferred test-maintainability-hardening extension surfaced by the
+audit of step 2.3; it does not advance the step-2.3 disk-re-derivation
+hypothesis (the disk-evidence checks already behave correctly and pass) and it
+does not gate the deterministic spine.
+
+- [ ] 7.12.1. Carve the disk-evidence predicates out of `_oracle.py` into an
+  `_oracle_disk.py` sibling and thread one per-invocation `state.toml` read.
+  - Reroute (source: audit:2.3.3 / review:2.3.3; severity: medium). `_oracle.py`
+    is at 399 of 400 lines after task 2.3.3, and the next corpus category would
+    breach the `max-module-lines` cap and AGENTS.md file-size rule mid-task. A
+    planned carve-out into an `_oracle_disk.py` sibling restores headroom and
+    groups the disk-vs-disk checks (`by-chapter-sum`, `manifest-disk-bijection`,
+    `done-flag-without-draft`, `pending-turn-cleared`, `compiled-matches-drafts`,
+    `word-counts-match-drafts`). Fold the review:2.3.3 read-consolidation into the
+    same move: each of these predicates currently re-parses the materialised
+    `state.toml`, so as they move, parse it once per `corpus_check` and pass the
+    decoded tables into the carved helpers (the production `disk_evidence.py`
+    twin already takes a parsed `State` and needs no mirror). This is
+    cross-cutting test-maintainability hardening, not the step-2.3
+    disk-re-derivation hypothesis where it was raised, so it is deferred here.
+    Coordinate with step 7.7 so the cap-driven corpus restructuring is done once.
+  - Requires 2.3.3.
+  - See novel-ralph-harness-design.md §5.4 and §9; docs/developers-guide.md
+    ("The `working/` fixture corpus"); docs/execplans/roadmap-2-3-3.md.
+  - Success: the disk-evidence predicates live in a focused `_oracle_disk.py`
+    sibling, `_oracle.py` is back under the 400-line cap with headroom for the
+    next category, the disk-evidence helpers consume one per-invocation
+    `state.toml` parse rather than re-reading it per predicate, and every current
+    corpus agreement suite stays green.

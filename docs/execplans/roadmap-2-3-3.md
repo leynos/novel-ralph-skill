@@ -1234,3 +1234,45 @@ fix-round-1 precedent in `docs/execplans/roadmap-1-3-2.md`. Confirmed
 test/corpus-only with no production-behaviour or design change, no new
 dependency, and no `cuprum` use (the oracle shells out to nothing and touches
 only the filesystem under `tmp_path`, per design §9 line 711).
+
+## Addenda (post-merge follow-ups)
+
+Lightweight addendum work items folded back onto this completed task from the
+post-merge review and audit of step 2.3. Execute each as a small addendum pass —
+no plan or design-review cycle: make the change, run `make all` (plus `make
+markdownlint`/`make nixie` for Markdown), `coderabbit review --agent`, commit,
+and tick the matching roadmap sub-task on merge. The substantial, cross-cutting
+follow-ups were re-routed off this task: the `_oracle.py` disk-evidence
+predicate carve-out into an `_oracle_disk.py` sibling (audit:2.3.3 / review:2.3.3,
+medium — a cap-driven test-maintainability split, which subsumes the
+read-consolidation below as the predicates move) to new roadmap step 7.12, and
+the open-coded `chapter-NN` directory-name production helper (audit:2.3.3, low)
+to roadmap step 7.10 (task 7.10.2, the chapter-draft-sourcing hypothesis); the two
+below are the small, localised follow-ups.
+
+- [ ] 2.3.3.1 — Consolidate the repeated per-predicate `state.toml` parse in the
+  corpus oracle's disk-evidence checks into a single per-invocation read (from
+  review:2.3.3, low). In `tests/working_corpus/_oracle.py` the disk-evidence
+  predicates (`_check_by_chapter_sum`, `_check_manifest_disk_bijection`,
+  `_check_done_flag_without_draft`, `_check_pending_turn_cleared`,
+  `_check_compiled_matches_drafts`, `_check_word_counts_match_drafts`) each call
+  `tomllib.loads((working_dir / "state.toml").read_text(...))` independently;
+  parse it once in `corpus_check` and pass the decoded tables into the helpers,
+  removing the redundant reads and the on-disk-convention drift surface. The
+  production `disk_evidence.py` twin already receives a parsed `State` and needs
+  no mirror. Keep every corpus agreement suite green. (If step 7.12's carve-out
+  lands first, this is subsumed — the carve threads the single read as the
+  predicates move; close this then.)
+- [ ] 2.3.3.2 — Document the disk-evidence disk-vs-disk twin discipline and
+  invariant 5's delivered status in the developers' guide (from audit:2.3.3,
+  medium). After this task the corpus oracle reads disk for the §5.4 invariants,
+  so its disk-evidence checks (`tests/working_corpus/_oracle.py`) are now
+  **disk-vs-disk** twins of the production `check_disk_evidence`
+  (`novel_ralph_skill/state/disk_evidence.py`), not the pure-state `validate_state`
+  twins the guide's twin-policy section describes. The guide's owned-name table
+  also still marks §5.2 invariant 5 "deferred to task 2.3.2" though 2.3.2/2.3.3
+  have delivered the §5.4 disk-evidence detectors. In
+  `docs/developers-guide.md` ("The `working/` fixture corpus" / twin policy),
+  add a paragraph recording the disk-vs-disk twin discipline and update the
+  invariant-5 status, so maintainers learn the policy from the source of truth
+  rather than only from source docstrings. Markdown-only.
