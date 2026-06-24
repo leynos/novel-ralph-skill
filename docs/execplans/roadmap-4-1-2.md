@@ -975,7 +975,7 @@ binding) is unchanged.
 Small, surgical corrections to this completed task, each run as a no-plan,
 no-review lightweight pass. Roadmap sub-tasks `4.1.2.1` and `4.1.2.2`.
 
-- **4.1.2.1 — Align design §4.3 prose with the delivered absent-compile
+- [x] **4.1.2.1 — Align design §4.3 prose with the delivered absent-compile
   polarity** (from review:4.1.2; low). Design §4.3 (line 374) describes
   `novel-compile --check` as "exiting 4 when the compile is stale", but the
   shipped and agreement-pinned behaviour also exits 4 when `compiled.md` is
@@ -985,7 +985,7 @@ no-review lightweight pass. Roadmap sub-tasks `4.1.2.1` and `4.1.2.2`.
   design no longer reads as a latent doc/behaviour mismatch a future reader could
   mistake for a bug. Documentation-only; run `make markdownlint` and `make
   nixie`.
-- **4.1.2.2 — Add an absent-compile case to the `novel-compile --check`
+- [x] **4.1.2.2 — Add an absent-compile case to the `novel-compile --check`
   entry-point e2e** (from review:4.1.2; low). `tests/test_compile_e2e.py` pins
   the `--check` current (exit `0`) and stale (exit `4`) branches through the real
   console-script body `stub.novel_compile()` but not the absent branch, which is

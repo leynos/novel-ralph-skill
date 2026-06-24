@@ -1120,7 +1120,7 @@ zero-padded chapter index, validated against the manifest — and gives
   - Success: `novel-compile --check` and the `novel-done` compile clause agree
     on every corpus fixture because they share one routine (the compile-fidelity
     property).
-  - [ ] 4.1.2.1. Align design §4.3 prose with the delivered absent-compile
+  - [x] 4.1.2.1. Align design §4.3 prose with the delivered absent-compile
     polarity.
     - Addendum (from review:4.1.2; low). Design §4.3 says `novel-compile --check`
       exits 4 "when the compile is stale", but the shipped, agreement-pinned
@@ -1128,7 +1128,7 @@ zero-padded chapter index, validated against the manifest — and gives
       `novel-done` compile clause); reword the sentence to "stale or absent" so
       the design no longer reads as a latent doc/behaviour mismatch. Lightweight
       addendum pass.
-  - [ ] 4.1.2.2. Add an absent-compile case to the `novel-compile --check`
+  - [x] 4.1.2.2. Add an absent-compile case to the `novel-compile --check`
     entry-point e2e.
     - Addendum (from review:4.1.2; low). `tests/test_compile_e2e.py` pins the
       `--check` current (exit 0) and stale (exit 4) branches through the real

@@ -8,8 +8,10 @@ the ordered draft concatenation. An empty-manifest tree refuses with exit ``3``.
 
 The ``--check`` entry-point cases pin the read-only divergence checker through
 the same real console-script body: a current compile exits ``0`` with
-``diverged: false`` and a present-but-stale compile exits ``4`` with
-``diverged: true``, each leaving ``compiled.md`` byte-for-byte unchanged. These
+``diverged: false``, while a present-but-stale compile and an absent compile each
+exit ``4`` with ``diverged: true`` (the absent case pins the polarity decision
+that ``ABSENT`` is a finding, not vacuously satisfied), leaving any present
+``compiled.md`` byte-for-byte unchanged and never writing an absent one. These
 are the only layer that exercises ``parse_global_flags`` + ``_drive`` (where
 ``--human`` is stripped and the residual argv, including ``--check``, is
 forwarded to ``run``), so they regression-pin that the kw-only ``--check`` flag
@@ -179,6 +181,33 @@ def test_entry_point_compile_check_stale_exits_four(
     assert compiled.read_bytes() == before, (
         "--check must not write through the entry point"
     )
+
+
+def test_entry_point_compile_check_absent_exits_four(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """``--check`` over an absent compile exits ``4`` through the entry point.
+
+    Pins the polarity decision (``ABSENT`` treated as a finding, not vacuously
+    satisfied) through the real console-script body: a tree carrying no
+    ``compiled.md`` exits ``4`` with ``diverged: true`` and no ``compiled.md`` is
+    written (``--check`` never regenerates).
+    """
+    working = _check_tree(None, tmp_path)
+    compiled = working / "manuscript" / "compiled.md"
+    assert not compiled.exists()
+    monkeypatch.chdir(working.parent)
+    monkeypatch.setattr(sys, "argv", [_COMMAND, "--check"])
+    with pytest.raises(SystemExit) as excinfo:
+        stub.novel_compile()
+    assert excinfo.value.code == ExitCode.ACTIONABLE_FINDING
+    envelope = json.loads(capsys.readouterr().out)
+    assert envelope["ok"] is False
+    result = typ.cast("dict[str, object]", envelope["result"])
+    assert result["diverged"] is True
+    assert not compiled.exists(), "--check must not write through the entry point"
 
 
 def test_entry_point_compile_empty_manifest_exits_three(

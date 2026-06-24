@@ -379,8 +379,8 @@ bounded result as a three-chapter one.
 
 `novel-compile` regenerates `working/manuscript/compiled.md` deterministically,
 with consistent separators. The `--check` flag makes it a read-only checker
-that reports divergence without writing, exiting 4 when the compile is stale so
-the agent knows to regenerate.
+that reports divergence without writing, exiting 4 when the compile is stale or
+absent so the agent knows to regenerate.
 
 Ordering is the part the field report and the review both flagged as
 under-specified, so it is pinned here. The order is the **numeric chapter
