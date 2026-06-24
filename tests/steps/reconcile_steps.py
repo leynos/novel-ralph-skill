@@ -23,6 +23,7 @@ from the assert/argument-count rules) and is imported into the scenario binder
 from __future__ import annotations
 
 import dataclasses as dc
+import re
 import typing as typ
 
 import pytest
@@ -44,9 +45,39 @@ class _Outcome:
 
     working: Path
     files_before: set[str]
+    drafts_before: dict[str, bytes]
     check_code: int | None = None
     reconcile_code: int | None = None
     recheck_code: int | None = None
+
+
+def _draft_bytes(working: Path) -> dict[str, bytes]:
+    """Return every chapter ``draft.md`` as raw bytes, keyed by relative path.
+
+    Drafts are author-owned narrative: ``reconcile`` may only rewrite
+    ``state.toml`` and ``log.md``, so capturing the exact bytes lets a later step
+    assert byte-for-byte draft integrity across the repair.
+    """
+    return {
+        str(p.relative_to(working)): p.read_bytes()
+        for p in working.rglob("draft.md")
+        if p.is_file()
+    }
+
+
+def _assert_drafts_unchanged(outcome: _Outcome) -> None:
+    """Assert every chapter ``draft.md`` is byte-for-byte identical post-reconcile.
+
+    ``reconcile`` repairs only the recomputable pair (``state.toml``/``log.md``);
+    the author-owned drafts must be untouched. Comparing the full path→bytes
+    mapping pins both that no draft body changed and that no ``draft.md`` was added
+    or removed, beyond the coarser "no file removed" check.
+    """
+    drafts_after = _draft_bytes(outcome.working)
+    assert drafts_after == outcome.drafts_before, (
+        "reconcile must leave every chapter draft.md byte-for-byte identical; "
+        "only state.toml and log.md may change"
+    )
 
 
 def _run(working: Path, command: str, monkeypatch: pytest.MonkeyPatch) -> int:
@@ -77,7 +108,9 @@ def stale_done_claim_tree(tmp_path: Path) -> _Outcome:
     spec, _expected = wc.INCOHERENT_VARIANTS["done-claim-stale-word-counts"]
     working = wc.build_working_tree(spec, tmp_path)
     files = {str(p.relative_to(working)) for p in working.rglob("*") if p.is_file()}
-    return _Outcome(working=working, files_before=files)
+    return _Outcome(
+        working=working, files_before=files, drafts_before=_draft_bytes(working)
+    )
 
 
 @given(
@@ -96,7 +129,9 @@ def partial_init_tree(tmp_path: Path) -> _Outcome:
     working = wc.build_working_tree(wc.COHERENT_BASELINE, tmp_path)
     (working / "log.md").unlink()
     files = {str(p.relative_to(working)) for p in working.rglob("*") if p.is_file()}
-    return _Outcome(working=working, files_before=files)
+    return _Outcome(
+        working=working, files_before=files, drafts_before=_draft_bytes(working)
+    )
 
 
 @then("reconcile exits 0 and recreates log.md")
@@ -117,6 +152,7 @@ def reconcile_recreate_log_keeps_files(outcome: _Outcome) -> None:
         if p.is_file()
     }
     assert outcome.files_before <= after, "reconcile must remove no working/ file"
+    _assert_drafts_unchanged(outcome)
     log = (outcome.working / "log.md").read_text(encoding="utf-8")
     assert "recreate-log" in log, "reconcile must append a recreate-log recovery entry"
 
@@ -155,15 +191,36 @@ def reconcile_repairs(outcome: _Outcome) -> None:
 
 @then("reconcile removes no working file and logs a recount recovery entry")
 def reconcile_logs_and_keeps_files(outcome: _Outcome) -> None:
-    """Assert no file was removed and a ``recount`` receipt was appended."""
+    """Assert no file removed and a structured ``recount`` receipt was appended.
+
+    The receipt is pinned as the design's audited reconciliation entry rather than
+    a bare ``recount`` substring: a single ``log.md`` line that names the
+    ``reconcile: recount`` operation and the repaired field set (``[word_counts]``,
+    with the disk-derived ``current`` total and chapter count). This survives a
+    behaviour-preserving refactor of the prose but fails if the operation or the
+    repaired fields drift.
+    """
     after = {
         str(p.relative_to(outcome.working))
         for p in outcome.working.rglob("*")
         if p.is_file()
     }
     assert outcome.files_before <= after, "reconcile must remove no working/ file"
+    _assert_drafts_unchanged(outcome)
     log = (outcome.working / "log.md").read_text(encoding="utf-8")
-    assert "recount" in log, "reconcile must append a recount recovery entry to log.md"
+    # The drafts hold {"01": 0, "02": 24000, "03": 20800} → 44800 across 3 chapters.
+    receipt = re.search(
+        r"^- \S+ reconcile: recount: "
+        r"recounting \[word_counts\] from the drafts: "
+        r"current 44800 across 3 chapters$",
+        log,
+        re.MULTILINE,
+    )
+    assert receipt is not None, (
+        "reconcile must append a structured recount receipt pinning the "
+        "reconcile: recount operation and the repaired [word_counts] field set "
+        f"(current 44800 across 3 chapters); got log.md:\n{log}"
+    )
 
 
 @then("a follow-up check exits 0")

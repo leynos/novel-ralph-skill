@@ -724,14 +724,14 @@ agent-improvised recovery routine. See novel-ralph-harness-design.md §4.1 and
     `check` itself writes nothing; a non-bijective manifest and a
     contradictory-evidence tree are each reported with exit 4 rather than
     silently repaired (the loud-reconciliation requirement).
-  - [ ] 2.3.2.1. Strengthen the reconcile log-receipt assertion from a substring
+  - [x] 2.3.2.1. Strengthen the reconcile log-receipt assertion from a substring
     match to a structured receipt.
     - Addendum (from test-quality benchmark; severity: low). The reconcile
       behavioural test asserts `"recount" in log`, which any incidental line
       satisfies; assert the structured reconciliation receipt the design
       mandates (the operation plus the repaired field set) so the log contract
       is actually pinned. Lightweight addendum pass.
-  - [ ] 2.3.2.2. Pin chapter-draft byte-integrity across a reconcile repair.
+  - [x] 2.3.2.2. Pin chapter-draft byte-integrity across a reconcile repair.
     - Addendum (from test-quality benchmark; severity: low). The reconcile
       behavioural test's `files_before <= after` proves no file was removed but
       not that the chapter drafts stayed byte-for-byte unchanged (only
