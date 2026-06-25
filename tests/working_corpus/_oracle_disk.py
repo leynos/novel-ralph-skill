@@ -70,19 +70,34 @@ def _on_disk_chapter_numbers(working_dir: Path) -> set[int]:
     return numbers
 
 
-def _check_manifest_disk_bijection(working_dir: Path) -> bool:
+def _check_manifest_disk_bijection(
+    working_dir: Path, *, relax_drafting: bool = False
+) -> bool:
     """Return True when manifest entries and chapter dirs are in bijection (inv 5).
 
     Reads the manifest from the materialised ``state.toml`` ``[chapters]`` array
-    and the on-disk side from a ``manuscript/chapter-*`` glob, then asserts the
-    two sets are equal and the manifest is contiguous from 1 with no gaps.
-    Disk-reading twin of production ``_check_manifest_disk_bijection``.
+    and the on-disk side from a ``manuscript/chapter-*`` glob, then classifies the
+    break into its two directions (``orphans = on_disk - manifest``,
+    ``missing = manifest - on_disk``) plus the contiguity-from-1 check, mirroring
+    production ``_check_manifest_disk_bijection``.
+
+    When ``relax_drafting`` is set and the materialised ``[phase].current`` is
+    ``drafting``, a break whose only broken direction is ``missing`` (no orphan,
+    contiguous manifest) is treated as coherent — the disk-subset-of-manifest
+    relaxation (ADR 009). The default (``relax_drafting=False``) is strict, so
+    ``corpus_check`` and the strict agreement suite read the unchanged bijection.
     """
     state = tomllib.loads((working_dir / "state.toml").read_text(encoding="utf-8"))
     manifest = {chapter["number"] for chapter in state["chapters"]}
-    if manifest != _on_disk_chapter_numbers(working_dir):
-        return False
-    return sorted(manifest) == list(range(1, len(manifest) + 1))
+    on_disk = _on_disk_chapter_numbers(working_dir)
+    orphans = on_disk - manifest
+    missing = manifest - on_disk
+    contiguous = sorted(manifest) == list(range(1, len(manifest) + 1))
+    coherent_subset = not orphans and contiguous
+    if coherent_subset and not missing:
+        return True
+    drafting = relax_drafting and state["phase"]["current"] == "drafting"
+    return drafting and coherent_subset
 
 
 def _check_done_flag_without_draft(working_dir: Path) -> bool:

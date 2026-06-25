@@ -42,6 +42,11 @@ documentation set.
   records `novel-state set-chapters`: its input shape, the exit-2/exit-3 split,
   directory creation, the manifest-at-intent-write ordering, and the torn-turn
   recovery precedence.
+- [ADR 009: the phase-gated drafting bijection relaxation](adr-009-drafting-bijection-relaxation.md)
+  records that during drafting `novel-state check` relaxes the manifest-to-disk
+  bijection to disk-subset-of-manifest behind a default-strict flag, leaving the
+  orphan and contiguity directions firing, `reconcile` strict, and the exact
+  bijection re-tightening at `final-pass` and `done`.
 
 ## Project guides
 

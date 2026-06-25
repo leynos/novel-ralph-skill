@@ -169,7 +169,13 @@ The pure-state names that can appear in `result.violations` are:
 The disk-evidence names compare the recorded state against the `working/` tree:
 
 - `manifest-disk-bijection` — the chapter manifest and the on-disk
-  `chapter-NN/` directories are not in one-to-one correspondence.
+  `chapter-NN/` directories are not in one-to-one correspondence. **During
+  drafting** this relaxes to a subset rule (ADR 009): `check` accepts a tree
+  whose on-disk chapters are a subset of the manifest, so a manifest entry that
+  has no directory yet does not flag while you are still drafting. A directory
+  with no manifest entry (an orphan) or a gap in the manifest still flags in
+  every phase, and the exact one-to-one correspondence is enforced again at
+  `final-pass` and `done`.
 - `done-flag-without-draft` — a chapter carries a `done.flag` beside an empty or
   absent `draft.md`.
 - `compiled-matches-drafts` — `compiled.md` is not the ordered concatenation of
@@ -187,6 +193,15 @@ The disk-evidence names compare the recorded state against the `working/` tree:
   repairs it with the same recount that repairs `word-counts-match-drafts`,
   re-keying the table off the manifest so the missing key is supplied and any
   orphan key dropped.
+
+For example, while you draft chapter by chapter the manifest holds every planned
+chapter but only the drafted-so-far directories exist on disk. With a manifest of
+chapters 1 to 3 and only `chapter-01/` and `chapter-02/` written, `novel-state
+check` exits `0` during drafting — the on-disk set is an honest subset of the
+manifest. Add a stray `chapter-09/` the manifest never declares and the same
+`check` exits `4` on `manifest-disk-bijection`. Advance the project to
+`final-pass` without writing `chapter-03/` and `check` exits `4` again, because
+every planned chapter must exist on disk before the final compile.
 
 `novel-state` also exposes three write subcommands that mutate the project —
 `init`, `set-cursor`, and `advance-phase` (roadmap task 2.2.2). Every one of

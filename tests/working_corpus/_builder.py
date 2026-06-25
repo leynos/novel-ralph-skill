@@ -157,7 +157,10 @@ def _build_state_document(spec: WorkingTreeSpec) -> tomlkit.TOMLDocument:
 def _write_chapter(chapter: ChapterSpec, manuscript: Path) -> None:
     """Write one chapter directory: draft, plan files, and ``done.flag``.
 
-    ``draft.md`` is suppressed entirely when ``write_draft`` is ``False`` so the
+    The whole directory is suppressed when ``write_directory`` is ``False`` so a
+    real manifest chapter has no on-disk presence (the ADR 009 missing-directory
+    subset; roadmap task 2.1.7). Otherwise the directory is created and
+    ``draft.md`` is suppressed only when ``write_draft`` is ``False`` so the
     directory has no draft at all (the design §5.4 ``done.flag``-beside-absent-
     ``draft.md`` case); otherwise it is written, empty when ``draft_words`` is 0.
     ``scenes.md`` and ``beats.md`` (the scene/beat plan files, ``state-layout.md``
@@ -167,6 +170,8 @@ def _write_chapter(chapter: ChapterSpec, manuscript: Path) -> None:
     a chapter without it has no notes file at all — the clean case the
     ``novel-done`` ``no_unresolved_blockers`` clause reads as having no blockers.
     """
+    if not chapter.write_directory:
+        return
     chapter_dir = manuscript / chapter_dir_name(chapter.number)
     chapter_dir.mkdir(parents=True, exist_ok=True)
     if chapter.write_draft:

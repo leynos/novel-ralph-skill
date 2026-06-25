@@ -341,6 +341,10 @@ def derive_reconciliation(state: State, working_dir: Path) -> Reconciliation:
     Reconciliation
         The action, discrepancies, detail, and action-specific payload.
     """
+    # Reconcile reads the STRICT bijection (default ``relax_drafting_bijection``;
+    # ADR 009 / D1): the torn ``set-chapters`` COMPLETE precedence below is driven
+    # by ``manifest-disk-bijection`` firing at ``phase=drafting``, so the
+    # user-facing ``check`` relaxation must not reach this caller.
     fired = [
         violation.invariant for violation in check_disk_evidence(state, working_dir)
     ]

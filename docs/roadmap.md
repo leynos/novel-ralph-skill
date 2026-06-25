@@ -684,7 +684,7 @@ novel-ralph-harness-design.md §5.1 and §5.2.
     live-draft agreement test discriminates the live read from a table read on
     this tree too; and a table-reading mutant of the live oracle that mishandles
     only over-counts is killed by the under-counting variant.
-- [ ] 2.1.7. Relax the manifest-disk bijection during drafting.
+- [x] 2.1.7. Relax the manifest-disk bijection during drafting.
   - Requires 2.1.2 and 2.2.3.
   - §5.2 invariant 5 requires an exact `[chapters]`-manifest-to-disk bijection,
     but during drafting the manifest holds every planned chapter while only the

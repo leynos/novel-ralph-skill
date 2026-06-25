@@ -164,6 +164,13 @@ def test_partial_directory_torn_turn_completes(
 
     The decisive round-2 B1 case: the partial-directory torn turn fires the
     bijection refuse-class, so it short-circuited to REFUSE under the old precedence.
+
+    This is also the ADR 009 / D1 reconcile-regression guard: the torn tree carries
+    ``phase=drafting``, exactly the phase the user-facing ``check`` now relaxes. The
+    relaxation is a default-strict flag on ``check_disk_evidence`` that only
+    ``check`` sets, so ``derive_reconciliation`` keeps reading the **strict**
+    bijection and this turn still COMPLETEs. A regression that leaked the relaxation
+    into reconcile would silently flip this COMPLETE into a REFUSE/NONE.
     """
     working = wc.build_working_tree(
         _torn_spec(on_disk=(1,), manifest_only=(2, 3)), tmp_path

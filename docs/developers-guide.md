@@ -589,7 +589,7 @@ covers seven design invariants:
 | 2 (completed is enum prefix)       | `completed-prefix`                                                                                       |
 | 3 (`by_chapter` sums to `current`) | `by-chapter-sum`                                                                                         |
 | 4 (`consecutive_clean` bounds)     | `consecutive-clean-within-target`, `convergence-target-at-least-one`, `consecutive-clean-within-drafted` |
-| 5 (manifest-disk bijection)        | `manifest-disk-bijection` — disk-evidence, delivered by tasks 2.3.2/2.3.3 (`check_disk_evidence`)        |
+| 5 (manifest-disk bijection)        | `manifest-disk-bijection` — disk-evidence (`check_disk_evidence`); **relaxed during drafting** (ADR 009) |
 | 6 (cursor coherent)                | `cursor-coherent`                                                                                        |
 | 7 (gate ratio consistent)          | `gate-ratio-consistent`                                                                                  |
 
@@ -709,6 +709,37 @@ genuine. The disk-reading twins live in `tests/working_corpus/_oracle_disk.py`
 (split out of `_oracle.py` for the 400-line cap and re-exported through it),
 colocating the manifest, word-count value, coverage, and `log.md` checks by
 feature.
+
+**The drafting bijection relaxation (ADR 009, task 2.1.7).** During drafting the
+manifest leads the on-disk directory set — the manifest holds every planned
+chapter the instant chapter planning finishes, but only the drafted-so-far
+`chapter-NN/` directories need exist — so the exact §5.2 invariant-5 bijection
+makes `check` exit `4` for the whole drafting phase. `check_disk_evidence` takes
+a keyword-only, default-strict `relax_drafting_bijection` flag: when it is set and
+`state.phase.current == drafting`, `manifest-disk-bijection` relaxes to
+disk-subset-of-manifest. The predicate splits the break into its two directions
+(`orphans = on_disk - manifest`, `missing = manifest - on_disk`) plus the
+manifest-contiguity check, and the relaxation suppresses **only** the
+`missing`-direction break; an orphan directory or a manifest gap still fires in
+every phase, and the exact bijection re-tightens at `final-pass`/`done` where the
+§4.3 compile-ordering guarantee requires every planned chapter on disk. Only the
+user-facing `check` passes the flag (`_disk_evidence_or_state_error`);
+`derive_reconciliation` keeps the strict default, so the torn `set-chapters`
+COMPLETE precedence (ADR 008) — whose decisive tree carries `phase=drafting` —
+reads the unchanged bijection. The oracle twin
+`_oracle_disk._check_manifest_disk_bijection` mirrors the split and the flag, and
+a relaxed agreement test pins the relaxed production path to the relaxed twin
+alongside the unchanged strict agreement suite.
+
+The relaxation's blast radius is exactly two disk-evidence invariants:
+`manifest-disk-bijection` itself, and `word-counts-cover-drafts`, which is **not
+enforced** during a relaxed subset. cover-drafts already **defers** on
+`manifest != on_disk` (above), and a relaxed drafting subset always satisfies
+that, so it never fired on a subset under the strict detector — the relaxation
+only removes the louder bijection signal that previously sat in front of the
+already-silent deferral. cover-drafts re-enforces the moment the tree returns to
+bijection and at `final-pass`/`done`. The remaining six disk-evidence predicates
+do not read the manifest⇄disk equality and are unchanged.
 
 `novel-state check` is the first command to drive the shared `run` path: its
 entry point pre-parses the single `--human` flag off argv before `run` (so the

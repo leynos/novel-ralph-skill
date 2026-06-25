@@ -46,7 +46,15 @@ _COMMAND = "novel-state"
 
 # The four word-count/pending-turn variants plus every other materialising tree
 # exercise the full cross-check; the coherent baseline anchors the NONE path.
-_CROSS_CHECK_VARIANTS: tuple[str, ...] = tuple(wc.INCOHERENT_VARIANTS)
+# ``manifest-extra-entry`` is excluded: it is a drafting-phase missing-directory
+# subset the user-facing ``check`` now relaxes (ADR 009 / D1), so ``check`` reports
+# ``none`` while the strict ``derive_reconciliation`` that ``reconcile`` runs still
+# REFUSEs — the deliberate strict/relaxed split, pinned by
+# ``test_relaxed_check_and_strict_reconcile_split`` below rather than this
+# action-agreement loop.
+_CROSS_CHECK_VARIANTS: tuple[str, ...] = tuple(
+    name for name in wc.INCOHERENT_VARIANTS if name != "manifest-extra-entry"
+)
 
 
 def _drive(
@@ -98,6 +106,36 @@ def test_check_and_reconcile_actions_agree(
     _code, reconcile_env = _drive(working, "reconcile", monkeypatch)
     enacted = typ.cast("dict[str, object]", reconcile_env["result"])["action"]
     assert enacted == expected, variant
+
+
+def test_relaxed_check_and_strict_reconcile_split(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """``check`` relaxes the drafting subset while ``reconcile`` stays strict (D1).
+
+    ``manifest-extra-entry`` is a drafting-phase tree with a manifest entry whose
+    directory is absent — the missing-directory direction the user-facing ``check``
+    now relaxes (ADR 009). So ``check`` exits ``0`` and reports ``none`` (no
+    reconciliation), while the strict ``derive_reconciliation`` that ``reconcile``
+    runs still REFUSEs (exit ``4``). This is the deliberate strict/relaxed split the
+    action-agreement loop excludes; it pins that the relaxation did not leak into
+    ``reconcile``.
+    """
+    working = wc.build_working_tree(
+        wc.INCOHERENT_VARIANTS["manifest-extra-entry"][0], tmp_path
+    )
+    state = load_state(working / "state.toml")
+    assert str(derive_reconciliation(state, working).action) == "refuse"
+
+    check_code, _check_env = _drive(working, "check", monkeypatch)
+    assert check_code == ExitCode.SUCCESS
+    assert _check_reported_action(working, monkeypatch) == "none"
+
+    reconcile_code, reconcile_env = _drive(working, "reconcile", monkeypatch)
+    assert reconcile_code == ExitCode.ACTIONABLE_FINDING
+    enacted = typ.cast("dict[str, object]", reconcile_env["result"])["action"]
+    assert enacted == "refuse"
 
 
 def test_second_reconcile_is_a_noop(

@@ -84,6 +84,15 @@ class ChapterSpec:
         the chapter directory has *no* ``draft.md`` — modelling the design §5.4
         ``done.flag`` beside an *absent* ``draft.md`` contradiction (which the
         always-written empty case alone cannot reach).
+    write_directory : bool
+        When true (the default), the builder creates the chapter's
+        ``manuscript/chapter-NN/`` directory; ``False`` suppresses the whole
+        directory so a *real* manifest chapter (with its ``slug``/``title``/
+        ``target_words`` and a ``by_chapter`` entry) has no on-disk presence —
+        the honest drafting-phase missing-directory subset the ADR 009 relaxation
+        accepts (roadmap task 2.1.7). Unlike ``manifest_only_numbers`` (a manifest
+        *placeholder* with no ``ChapterSpec``), this keeps a genuine planned-
+        but-undrafted chapter that the relaxed checker treats as coherent.
     has_scene_plan : bool
         When true, the builder writes ``scenes.md`` beside the draft — the
         on-disk scene plan (``state-layout.md`` line 38). Defaulting ``False``
@@ -114,6 +123,7 @@ class ChapterSpec:
     has_done_flag: bool
     in_manifest: bool = True
     write_draft: bool = True
+    write_directory: bool = True
     has_scene_plan: bool = False
     has_beat_plan: bool = False
     critic_notes: str | None = None

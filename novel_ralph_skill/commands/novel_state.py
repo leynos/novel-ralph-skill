@@ -198,10 +198,12 @@ def _disk_evidence_or_state_error(
     fault — an undecodable body (``UnicodeDecodeError``), a ``PermissionError`` —
     propagates. Wrapping it under ``STATE_INPUT_ERRORS`` routes those to the
     exit-``3`` state-error channel rather than letting them escape to exit ``1``,
-    exactly as the ``recount`` mutator wraps the same reader.
+    exactly as the ``recount`` mutator wraps the same reader. It passes
+    ``relax_drafting_bijection=True`` so the user-facing checker relaxes the
+    manifest-disk bijection during drafting (ADR 009; see :func:`_check`).
     """
     try:
-        return check_disk_evidence(state, working_dir)
+        return check_disk_evidence(state, working_dir, relax_drafting_bijection=True)
     except STATE_INPUT_ERRORS as exc:
         msg = f"cannot read disk evidence under {working_dir}: {exc}"
         raise StateInputError(msg) from exc
@@ -219,6 +221,11 @@ def _check() -> CommandOutcome:
     ``result.reconciliation`` so an operator sees the repair a stale tree implies.
     A coherent state returns exit ``0``; any violation returns exit ``4``. This is
     a checker: it writes nothing on any path (design §3.3).
+
+    During drafting the disk-evidence pass relaxes the manifest-disk bijection to
+    disk-subset-of-manifest (ADR 009): a mid-draft tree whose on-disk chapters lag
+    the manifest exits ``0``, but an orphan directory or a manifest gap still
+    exits ``4``.
 
     Returns
     -------

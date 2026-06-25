@@ -84,7 +84,10 @@ def _result(raw: str) -> dict[str, object]:
         ),
         ("uncleared-pending-turn", "pending-turn-cleared", "complete-pending-turn"),
         ("done-flag-empty-draft", "done-flag-without-draft", "refuse"),
-        ("manifest-extra-entry", "manifest-disk-bijection", "refuse"),
+        # An ORPHAN directory still fires the bijection in every phase (ADR 009);
+        # ``manifest-extra-entry`` (a manifest entry without a directory) is now
+        # the drafting-relaxed case, proven exit-0 below.
+        ("draft-without-manifest-entry", "manifest-disk-bijection", "refuse"),
         ("scene-cursor-without-plan", "cursor-plan-present", "refuse"),
         ("partial-init", "log-present", "recreate-log"),
     ],
@@ -104,6 +107,27 @@ def test_disk_evidence_tree_exits_four_with_reconciliation(
     reconciliation = typ.cast("dict[str, object]", result["reconciliation"])
     assert reconciliation["action"] == action, variant
     assert invariant in typ.cast("list[str]", reconciliation["discrepancies"]), variant
+
+
+def test_drafting_manifest_subset_exits_zero_through_check(
+    incoherent_tree: cabc.Callable[[str], tuple[WorkingTreeSpec, Path, str]],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A drafting tree whose disk is a manifest subset exits ``0`` (ADR 009).
+
+    ``manifest-extra-entry`` is a drafting-phase tree with a manifest entry whose
+    directory is absent (the missing-directory direction). The user-facing
+    ``check`` relaxes this to disk-subset-of-manifest during drafting, so the tree
+    exits ``0`` and, because the disk-evidence verdict is empty, carries no
+    ``reconciliation`` key. The strict detector still fires it (proven by
+    ``test_union_detector_agrees_with_corpus_oracle`` and ``test_disk_evidence``).
+    """
+    _spec, working, _expected = incoherent_tree("manifest-extra-entry")
+    code, raw = _drive_check(working, monkeypatch)
+    assert code == ExitCode.SUCCESS
+    result = _result(raw)
+    assert result["violations"] == []
+    assert "reconciliation" not in result
 
 
 def test_coherent_tree_carries_no_reconciliation(

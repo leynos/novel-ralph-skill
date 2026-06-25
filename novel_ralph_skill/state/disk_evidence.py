@@ -48,6 +48,16 @@ The detector is **total**: every predicate returns a ``Violation | None`` for
 every constructible ``State`` over any ``working_dir``. The word-count predicate
 reuses the shared :func:`~novel_ralph_skill.state.wordcount.recount_words`, the
 one counting rule (``len(text.split())``), so no second counter exists.
+
+:func:`check_disk_evidence` is **strict by default**. The keyword-only
+``relax_drafting_bijection`` flag (ADR 009; roadmap task 2.1.7) relaxes the
+``manifest-disk-bijection`` invariant to disk-subset-of-manifest while
+``state.phase.current == Phase.DRAFTING`` — a manifest entry without a directory
+stops firing, though an orphan directory and a manifest gap still fire in every
+phase. Only the user-facing ``check`` passes ``True``;
+``derive_reconciliation`` and the corpus agreement suite keep the strict default,
+so the torn ``set-chapters`` COMPLETE precedence (ADR 008) and the oracle twin are
+unaffected.
 """
 
 from __future__ import annotations
@@ -68,6 +78,7 @@ from novel_ralph_skill.state.compile_model import (
     CompiledComparison,
     compiled_matches_drafts,
 )
+from novel_ralph_skill.state.phase import Phase
 from novel_ralph_skill.state.validate import Violation
 
 if typ.TYPE_CHECKING:
@@ -109,20 +120,43 @@ DISK_EVIDENCE_INVARIANT_NAMES: tuple[str, ...] = (
 )
 
 
-def _check_manifest_disk_bijection(state: State, working_dir: Path) -> Violation | None:
+def _check_manifest_disk_bijection(
+    state: State, working_dir: Path, *, relax_drafting: bool = False
+) -> Violation | None:
     """Return a violation when manifest and chapter dirs are not in bijection.
 
     Every ``state.chapters`` entry must have its on-disk ``chapter-NN/`` directory
-    and vice versa, and the manifest must be contiguous from 1 with no gaps. A
-    manifest entry with no directory (the ``manifest-extra-entry`` variant) and a
-    directory with no manifest entry (the ``draft-without-manifest-entry`` variant)
-    both break the bijection. Disk-reading twin of the oracle's
-    ``_check_manifest_disk_bijection`` (both sides now read disk; roadmap 2.3.3).
+    and vice versa, and the manifest must be contiguous from 1 with no gaps. The
+    break is classified into its two directions: ``orphans = on_disk - manifest``
+    (a directory with no manifest entry, the ``draft-without-manifest-entry``
+    variant) and ``missing = manifest - on_disk`` (a manifest entry with no
+    directory, the ``manifest-extra-entry`` variant), plus the manifest-contiguity
+    check. The strict verdict fires when any of the three holds — equivalent to the
+    historical ``manifest == on_disk and contiguous``.
+
+    When ``relax_drafting`` is set and ``state.phase.current == Phase.DRAFTING``, a
+    break whose **only** broken direction is ``missing`` (no orphan, contiguous
+    manifest) returns ``None``: during drafting the on-disk chapter set may honestly
+    be a subset of the manifest (ADR 009; design §5.2 invariant 5). The orphan
+    direction and the contiguity check still fire in every phase, and the exact
+    bijection re-tightens at ``final-pass``/``done``. The default
+    (``relax_drafting=False``) is strict, so ``derive_reconciliation`` and the
+    corpus agreement suite read the unchanged bijection. Disk-reading twin of the
+    oracle's ``_check_manifest_disk_bijection`` (both sides read disk; roadmap
+    2.3.3, 2.1.7).
     """
     manifest = {chapter.number for chapter in state.chapters}
     on_disk = _on_disk_chapter_numbers(working_dir)
+    orphans = on_disk - manifest
+    missing = manifest - on_disk
     contiguous = sorted(manifest) == list(range(1, len(manifest) + 1))
-    if manifest == on_disk and contiguous:
+    # A subset (no orphan, contiguous manifest) whose only break is the
+    # missing-directory direction; the drafting relaxation suppresses exactly this.
+    coherent_subset = not orphans and contiguous
+    if coherent_subset and not missing:
+        return None
+    drafting = relax_drafting and state.phase.current == Phase.DRAFTING
+    if drafting and coherent_subset:
         return None
     return Violation(
         invariant=MANIFEST_DISK_BIJECTION,
@@ -258,11 +292,14 @@ def _check_log_present(_state: State, working_dir: Path) -> Violation | None:
     )
 
 
-# The per-invariant predicates, assembled in :data:`DISK_EVIDENCE_INVARIANT_NAMES`
-# order so the verdict order is deterministic (stable for the agreement suite and
-# any snapshot).
-_PREDICATES: tuple[cabc.Callable[[State, Path], Violation | None], ...] = (
-    _check_manifest_disk_bijection,
+# The seven non-bijection predicates, assembled in
+# :data:`DISK_EVIDENCE_INVARIANT_NAMES` order (minus the bijection, element 0). The
+# bijection predicate is lifted out of this loop because it alone takes the
+# keyword-only ``relax_drafting`` flag (ADR 009): a per-predicate kwarg cannot be
+# threaded through this uniform-signature tuple without widening every predicate.
+# ``check_disk_evidence`` calls the bijection first with the flag, then runs this
+# tail, so the union order stays byte-for-byte the historical single-loop order.
+_TAIL_PREDICATES: tuple[cabc.Callable[[State, Path], Violation | None], ...] = (
     _check_cursor_plan_present,
     _check_done_flag_without_draft,
     _check_compiled_matches_drafts,
@@ -272,8 +309,22 @@ _PREDICATES: tuple[cabc.Callable[[State, Path], Violation | None], ...] = (
     _check_word_counts_cover_drafts,
 )
 
+# The full predicate sequence, bijection first, for any reference that needs the
+# whole detector in :data:`DISK_EVIDENCE_INVARIANT_NAMES` order. The bijection is
+# stored with its default (strict) flag here; ``check_disk_evidence`` calls it
+# directly so it can thread the relaxation flag.
+_PREDICATES: tuple[cabc.Callable[[State, Path], Violation | None], ...] = (
+    _check_manifest_disk_bijection,
+    *_TAIL_PREDICATES,
+)
 
-def check_disk_evidence(state: State, working_dir: Path) -> tuple[Violation, ...]:
+
+def check_disk_evidence(
+    state: State,
+    working_dir: Path,
+    *,
+    relax_drafting_bijection: bool = False,
+) -> tuple[Violation, ...]:
     """Return the §5.4 disk-evidence invariants ``state`` violates against disk.
 
     An empty tuple means the state is coherent against the on-disk ``working/``
@@ -281,20 +332,34 @@ def check_disk_evidence(state: State, working_dir: Path) -> tuple[Violation, ...
     invariants (§5.2) are not checked here; ``check`` unions the two verdicts. The
     verdict is ordered by :data:`DISK_EVIDENCE_INVARIANT_NAMES`.
 
+    The bijection predicate is evaluated first and out of the
+    :data:`_TAIL_PREDICATES` loop so it can receive ``relax_drafting_bijection``;
+    because the bijection is element 0 of
+    :data:`DISK_EVIDENCE_INVARIANT_NAMES` and the tail keeps the remaining names in
+    order, the head-then-tail assembly reproduces the historical single-loop order
+    byte-for-byte.
+
     Parameters
     ----------
     state : State
         The parsed, typed ``state.toml`` to check against disk.
     working_dir : pathlib.Path
         The materialised ``working/`` directory holding ``manuscript/``.
+    relax_drafting_bijection : bool, optional
+        When ``True`` and ``state.phase.current == Phase.DRAFTING``, the
+        ``manifest-disk-bijection`` invariant relaxes to disk-subset-of-manifest:
+        a manifest entry without a directory no longer fires, though an orphan
+        directory or a manifest gap still do (ADR 009). Defaults to ``False``
+        (strict), which ``derive_reconciliation`` and the corpus agreement suite
+        rely on; only the user-facing ``check`` passes ``True``.
 
     Returns
     -------
     tuple[Violation, ...]
         The ordered disk-evidence violations, or an empty tuple when coherent.
     """
-    return tuple(
-        violation
-        for violation in (predicate(state, working_dir) for predicate in _PREDICATES)
-        if violation is not None
+    head = _check_manifest_disk_bijection(
+        state, working_dir, relax_drafting=relax_drafting_bijection
     )
+    tail = (predicate(state, working_dir) for predicate in _TAIL_PREDICATES)
+    return tuple(violation for violation in (head, *tail) if violation is not None)

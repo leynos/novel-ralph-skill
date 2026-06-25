@@ -39,14 +39,18 @@ if typ.TYPE_CHECKING:
 
 _COMMAND = "novel-state"
 
-# The seven refuse-class variants: the three §5.4 contradictions (with both
-# done-flag and both manifest directions) plus the two ``cursor-plan-present``
-# variants. Every one must exit 4 with action ``refuse`` in both commands.
+# The refuse-class variants that exit 4 with action ``refuse`` in BOTH commands.
+# ``manifest-extra-entry`` (a drafting missing-directory subset) is deliberately
+# excluded: the user-facing ``check`` now relaxes it to exit 0 (ADR 009 / D1) while
+# ``reconcile`` still REFUSEs, so it is no longer a both-commands refuse — that
+# split is pinned by ``test_manifest_extra_entry_reconcile_still_refuses`` below and
+# by ``test_reconcile_integration.test_relaxed_check_and_strict_reconcile_split``.
+# The orphan ``draft-without-manifest-entry`` keeps the bijection refuse-class
+# coverage for both commands.
 _REFUSE_VARIANTS: tuple[str, ...] = (
     "done-flag-empty-draft",
     "done-flag-absent-draft",
     "compiled-not-concatenation-of-drafts",
-    "manifest-extra-entry",
     "draft-without-manifest-entry",
     "scene-cursor-without-plan",
     "beat-cursor-without-plan",
@@ -120,6 +124,30 @@ def test_reconcile_refuse_leaves_state_and_logs_refusal(
     assert "refuse" in (working / "log.md").read_text(encoding="utf-8"), (
         "reconcile must append a refuse receipt to log.md"
     )
+
+
+def test_manifest_extra_entry_reconcile_still_refuses(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """``reconcile`` still REFUSEs the drafting missing-directory subset (ADR 009 / D1).
+
+    The user-facing ``check`` relaxes ``manifest-extra-entry`` (exit 0), but
+    ``reconcile`` reads the strict bijection, so it exits 4 with action ``refuse``,
+    leaves ``state.toml`` byte-for-byte unchanged, and logs the refusal. This pins
+    that the relaxation is scoped to ``check`` and never weakens the reconcile path.
+    """
+    spec, _expected = wc.INCOHERENT_VARIANTS["manifest-extra-entry"]
+    working = wc.build_working_tree(spec, tmp_path)
+    before = (working / "state.toml").read_bytes()
+
+    code, env = _drive(working, "reconcile", monkeypatch)
+    assert code == ExitCode.ACTIONABLE_FINDING
+    assert _action(env, from_check=False) == "refuse"
+    assert (working / "state.toml").read_bytes() == before, (
+        "reconcile must leave state.toml byte-for-byte unchanged on a refusal"
+    )
+    assert "refuse" in (working / "log.md").read_text(encoding="utf-8")
 
 
 def test_cursor_plan_present_never_none(
