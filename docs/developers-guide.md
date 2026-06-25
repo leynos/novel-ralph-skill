@@ -111,7 +111,6 @@ the validator suites), and the installed-binary crossing (the scope of task
 6.2.4). Read that docstring before extending the matrix, so a new cell lands in
 the covered surface rather than re-proving a gap another suite owns.
 
-
 ### The per-chapter deterministic-loop scenario
 
 [`tests/features/per_chapter_loop.feature`](../tests/features/per_chapter_loop.feature)
