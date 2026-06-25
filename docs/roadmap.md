@@ -1310,7 +1310,7 @@ novel-ralph-harness-design.md §2.3 and §9.
   - Success: `make markdownlint` passes on the edited skill files and
     `grep -rn "novel_predicate" skill/` returns no match, so no prose copy of
     the predicate survives to diverge.
-  - [ ] 6.2.3.1. Repoint the `SKILL.md` reference-files table row for
+  - [x] 6.2.3.1. Repoint the `SKILL.md` reference-files table row for
     done-conditions toward `novel-done` for novel-level completion.
     - Addendum (from review:6.2.3; low). `SKILL.md` "Reference files" still
       names `done-conditions.md` as the reference for "overall completion",
@@ -1319,7 +1319,7 @@ novel-ralph-harness-design.md §2.3 and §9.
       naming `novel-done` for the novel-level check removes the last soft
       pointer implying `done-conditions.md` holds the overall predicate.
       Lightweight addendum pass.
-  - [ ] 6.2.3.2. Reconcile design §8 and the developers' guide clause table
+  - [x] 6.2.3.2. Reconcile design §8 and the developers' guide clause table
     after this task.
     - Addendum (from audit:6.2.3; low). Design §8's two-source-predicate bullet
       still reads future-tense ("roadmap task 6.2.3 reduces both prose copies")

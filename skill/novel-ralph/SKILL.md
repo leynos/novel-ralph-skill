@@ -76,7 +76,8 @@ Read these as the workflow demands them. Do not pre-load everything.
 | Reference                     | When to read                                          | Path                                 |
 | ----------------------------- | ----------------------------------------------------- | ------------------------------------ |
 | State layout                  | First entry, and whenever state mutation is involved  | `references/state-layout.md`         |
-| Done conditions               | Every turn, when checking phase or overall completion | `references/done-conditions.md`      |
+| Novel-level completion        | Every turn, when checking overall completion          | `novel-done` command                 |
+| Phase & chapter done          | Every turn, when checking phase or chapter completion | `references/done-conditions.md`      |
 | Conflict & attractor analysis | Phase 3                                               | `references/conflict-attractor.md`   |
 | JTBD for fiction              | Phase 5                                               | `references/jtbd-novel.md`           |
 | Save the Cat beat sheet       | Phase 6                                               | `references/stc-beat-sheet.md`       |

@@ -620,11 +620,11 @@ points here rather than restating the clauses.
   booleans are all true *and* `reviews/knitting-{30,50,80}.md` all exist (the
   `(30, 50, 80)` percentages are taken from one `KNITTING_PERCENTAGES` constant
   shared between the booleans and the file names so they cannot drift);
-- `no_unresolved_blockers` := no manifest chapter's `critic-notes.md` carries an
-  unresolved BLOCKER;
 - `compile_consistent` := `manuscript/compiled.md` is present *and* byte-equal to
   the ordered concatenation of the present drafts (the content comparison; see
-  below).
+  below);
+- `no_unresolved_blockers` := no manifest chapter's `critic-notes.md` carries an
+  unresolved BLOCKER.
 
 **Manifest, not outline.** The chapter set the predicate iterates is the
 **manifest** (`state.chapters`), not outline prose. This is design
