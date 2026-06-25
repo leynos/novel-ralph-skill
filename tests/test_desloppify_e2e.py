@@ -15,6 +15,17 @@ proving the packaged ``offenders.toml`` travelled in the wheel — and a clean t
 exits ``0``. This e2e is POSIX-only (ADR-006) and slow (build + venv + install),
 so it is skipped off POSIX and given an explicit 180s timeout that supersedes the
 30s project default.
+
+This module also proves the per-novel device-ledger enforcement mode travels in
+the wheel (roadmap 7.1.2; the defence of the Risk "ledger does not work after
+install"): it writes a ``device-ledger.toml`` into the throwaway tree and runs the
+installed ``desloppify --ledger <tree>/device-ledger.toml``. Unlike the packs, the
+ledger is read from a filesystem ``--ledger PATH``, not the package tree, so this
+proves the *mode* (the command code) travels, not a packaged resource. The ledger
+e2e exercises a ``max_count`` over-spend only: every chapter draft is overwritten
+with the same text, so three identical ``sternum`` hits over ``max_count = 2`` is
+a robust over-ration regardless of chapter attribution, while a ``sternum``-free
+tree is the within-ration zero-spend case (ExecPlan WI6 / round-1 condition 2).
 """
 
 from __future__ import annotations
@@ -147,5 +158,99 @@ def test_installed_desloppify_clean_tree_exits_zero(
     result = sh.make(prog, catalogue=catalogue)().run_sync(
         context=ExecutionContext(cwd=dest), capture=True
     )
+    assert result.exit_code == 0, result.stderr
+    assert json.loads(result.stdout or "{}")["ok"] is True
+
+
+# A one-device ledger rationing ``sternum`` to two spends across the manuscript.
+# Three identical hits per draft is an over-ration regardless of attribution.
+_MAX_COUNT_LEDGER = """\
+schema_version = 1
+
+[[device]]
+id = "sternum"
+pattern = "\\\\bsternum\\\\b"
+max_count = 2
+"""
+
+
+def _run_installed_ledger(
+    script_path: Path,
+    dest: Path,
+    single_program_catalogue: cabc.Callable[[str, Program], ProgramCatalogue],
+) -> sh.CommandResult:
+    """Run the installed ``desloppify --ledger`` in ``dest`` and return the result.
+
+    Writes the test ledger into ``dest`` and runs the installed script by absolute
+    path through a catalogue that registers exactly that path (the cuprum
+    execution gate), exactly as the rule-pack e2e runs the bare command.
+    """
+    ledger_path = dest / "device-ledger.toml"
+    ledger_path.write_text(_MAX_COUNT_LEDGER, encoding="utf-8")
+    prog = Program(str(script_path))
+    catalogue = single_program_catalogue("desloppify-ledger-run", prog)
+    return sh.make(prog, catalogue=catalogue)("--ledger", str(ledger_path)).run_sync(
+        context=ExecutionContext(cwd=dest), capture=True
+    )
+
+
+@pytest.mark.skipif(
+    os.name != "posix",
+    reason="console-script e2e is POSIX-only; see ADR 006",
+)
+@pytest.mark.slow
+@pytest.mark.timeout(180)
+def test_installed_desloppify_ledger_flags_over_ration(
+    tmp_path: Path,
+    baseline_tree: cabc.Callable[[], Path],
+    single_program_catalogue: cabc.Callable[[str, Program], ProgramCatalogue],
+    venv_scripts_dir: cabc.Callable[[Path], Path],
+) -> None:
+    """The installed ``desloppify --ledger`` flags an over-ration and exits ``4``.
+
+    Proves the ledger enforcement mode travels in the wheel: the subprocess loads
+    the filesystem ledger via ``--ledger PATH`` and reports the over-ration
+    ``sternum``. The 180s timeout supersedes the 30s project default.
+    """
+    script_path = _build_and_install_desloppify(
+        tmp_path, single_program_catalogue, venv_scripts_dir
+    )
+    dest = tmp_path / "run-ledger-flag"
+    dest.mkdir()
+    # Three "sternum" per draft over max_count 2 is an over-ration.
+    _materialise_working(dest, baseline_tree(), "sternum\nsternum\nsternum\n")
+
+    result = _run_installed_ledger(script_path, dest, single_program_catalogue)
+    assert result.exit_code == 4, result.stderr
+    envelope = json.loads(result.stdout or "{}")
+    assert envelope["ok"] is False
+    assert "sternum" in envelope["result"]["violations"]
+
+
+@pytest.mark.skipif(
+    os.name != "posix",
+    reason="console-script e2e is POSIX-only; see ADR 006",
+)
+@pytest.mark.slow
+@pytest.mark.timeout(180)
+def test_installed_desloppify_ledger_within_ration_exits_zero(
+    tmp_path: Path,
+    baseline_tree: cabc.Callable[[], Path],
+    single_program_catalogue: cabc.Callable[[str, Program], ProgramCatalogue],
+    venv_scripts_dir: cabc.Callable[[Path], Path],
+) -> None:
+    """The installed ``desloppify --ledger`` exits ``0`` over a within-ration tree."""
+    script_path = _build_and_install_desloppify(
+        tmp_path, single_program_catalogue, venv_scripts_dir
+    )
+    dest = tmp_path / "run-ledger-clean"
+    dest.mkdir()
+    # No "sternum" anywhere: a zero-spend manuscript is within max_count 2. (Every
+    # draft carries the same text, so a positive per-draft count would multiply
+    # across chapters and breach the whole-manuscript ration; zero spends is the
+    # robust within-ration case here.)
+    _materialise_working(dest, baseline_tree(), "a plain calm line\n")
+
+    result = _run_installed_ledger(script_path, dest, single_program_catalogue)
     assert result.exit_code == 0, result.stderr
     assert json.loads(result.stdout or "{}")["ok"] is True

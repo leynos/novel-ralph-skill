@@ -295,20 +295,38 @@ pack; combining both packs in one invocation is not yet supported. Like
 `desloppify` prints a one-line JSON envelope by default and a readable rendering
 under the global `--human` flag.
 
+Pass `--ledger PATH` to enforce a per-novel *device ledger* instead of the
+rule-pack scan. A device ledger rations a book's signature devices — a recurring
+image, a key phrase, a bookend line — naming each device a regex `pattern` and a
+ration (`max_count`, `allowed_chapters`, `retired_after_chapter`, or
+`reserved_for_chapter`). The ledger is your own file (it is not shipped with the
+package); write it into `working/` and point `--ledger` at it. The current spend
+is recomputed from the chapter drafts on disk on every run, so the ledger cannot
+drift from the manuscript: removing a use from a draft and re-running drops the
+finding with no ledger edit. The ledger rations *across* the whole manuscript, so
+`--ledger` **cannot be combined with `--chapter`**; the combination is a usage
+error. An over-ration device appears in `result.violations`, exactly as an
+over-threshold rule does.
+
 `desloppify` uses the shared exit-code table:
 
-- `0` — every rule is within threshold; `result.violations` is empty.
-- `4` — one or more rules exceed threshold; the offending rule ids appear in
-  `result.violations` for the agent to adjudicate, and each finding's `rule_id`
-  (the canonical slug the `violations` list references), `phrase` (the rule's
-  authored pattern source — the regex that names the offender, not a literal
-  matched span), hit count, threshold, per-page density, and per-`{chapter,
-  line}` matches are in `result.findings`.
+- `0` — every rule is within threshold (or every device is within ration);
+  `result.violations` is empty.
+- `4` — one or more rules exceed threshold (or one or more devices exceed their
+  ration); the offending ids appear in `result.violations` for the agent to
+  adjudicate, and each finding's `rule_id`/`device_id` (the canonical slug the
+  `violations` list references), `phrase`/`pattern` (the authored pattern source
+  — the regex that names the offender, not a literal matched span), hit count,
+  and per-`{chapter, line}` matches are in `result.findings`. Rule findings also
+  carry `threshold` and per-page density; device findings carry the ration kind,
+  its bound, and the offending chapters for a window breach.
 - `2` — a usage error: `--chapter N` names a chapter absent from the manifest,
-  or `--pack` points at a rule pack whose *content* is malformed.
+  `--pack` points at a rule pack whose *content* is malformed, `--ledger` points
+  at a ledger whose *content* is malformed, or `--ledger` is combined with
+  `--chapter`.
 - `3` — a state or input error: `./working/state.toml` is missing or
-  unparseable, a chapter draft is unreadable, or `--pack` points at an absent or
-  undecodable file.
+  unparseable, a chapter draft is unreadable, or `--pack`/`--ledger` points at an
+  absent or undecodable file.
 
 A per-page rule reports density as hits per `page_words` tokens, and a partial
 page still counts: the scanned text is divided by `page_words` as a float rather

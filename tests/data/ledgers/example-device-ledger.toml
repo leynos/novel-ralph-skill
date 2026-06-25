@@ -1,0 +1,54 @@
+# Worked-example device ledger (design §6.3), transcribed for roadmap 7.1.2.
+#
+# A device ledger rations a novel's signature devices: a recurring image, a key
+# phrase, a bookend line. `desloppify --ledger <path>` recomputes each device's
+# spend FROM THE CHAPTER DRAFTS ON DISK on every run (so the ledger cannot drift
+# from the manuscript) and reports any device over its ration.
+#
+# COUNTING MODEL — read before authoring a pattern:
+#   * A "spend" is one literal `re.finditer` hit of the device's `pattern`.
+#   * Patterns are compiled with NO flags and scanned LINE BY LINE, so `.`
+#     cannot cross a newline; a multi-token device split across a hard line
+#     break is not counted in v1. Use a bounded non-newline window `[^\n]{0,N}?`
+#     for a multi-token device, never greedy `.*` or `(?s)`.
+#   * There is NO semantic gate: the count is the literal hit total, so a bare
+#     word such as `\bsternum\b` fires on every literal use of the word, not
+#     only the motif use. Narrow the pattern to the motif's collocation, as the
+#     `sternum` and `bloom` devices below do, so the ration counts the device,
+#     not the vocabulary.
+#
+# Each device carries at most ONE chapter-window constraint among
+# `allowed_chapters`, `retired_after_chapter`, and `reserved_for_chapter`;
+# `max_count` may pair with one window. A device with no ration is rejected.
+
+schema_version = 1
+
+# The sternum motif: a chest-pressure image rationed to three spends, only in
+# chapters 1, 3, and 8. The pattern is collocational (the image, not every
+# anatomical "sternum") so the count tracks the motif, not the word.
+[[device]]
+id = "sternum"
+pattern = "(?i)pressure[^\\n]{0,20}?sternum"
+max_count = 3
+allowed_chapters = [1, 3, 8]   # spent here; zero elsewhere
+
+# The bloom motif: a single permitted spend across the whole manuscript. Again
+# collocational (a bloom of something), not the bare botanical word.
+[[device]]
+id = "bloom"
+pattern = "(?i)bloom of[^\\n]{0,20}?(?:dread|warmth|colour)"
+max_count = 1
+
+# The thematic phrase "truth of the thing", retired after chapter 7: it may
+# appear in chapters 1-7 but never in chapter 8 onwards.
+[[device]]
+id = "truth-of-the-thing"
+pattern = "(?i)truth of the thing"
+retired_after_chapter = 7
+
+# The stated-theme bookend line, reserved for the penultimate chapter: every
+# spend must fall in chapter 12 and nowhere else.
+[[device]]
+id = "stated-theme-bookend"
+pattern = "(?i)the cost of remembering is remembering"
+reserved_for_chapter = 12

@@ -30,6 +30,8 @@ if typ.TYPE_CHECKING:
 
 _COMMAND = "desloppify"
 _BAD_PATTERN_PACK = "tests/data/rulepacks/bad-pattern.toml"
+_EXAMPLE_LEDGER = "tests/data/ledgers/example-device-ledger.toml"
+_TWO_WINDOWS_LEDGER = "tests/data/ledgers/two-windows.toml"
 
 
 def _run(argv: list[str], *, human: bool = False) -> None:
@@ -207,6 +209,57 @@ def test_ai_isms_pack_clean_tree_exits_zero(
     envelope = _envelope(capsys)
     assert envelope["ok"] is True
     assert _result(envelope)["violations"] == []
+
+
+def test_ledger_with_chapter_exits_two(
+    baseline_tree: cabc.Callable[[], Path],
+    project_root: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """``--ledger`` combined with ``--chapter`` exits ``2`` (usage error).
+
+    The device ledger rations across the whole manuscript, so a single-chapter
+    scan cannot compute the ration faithfully; the combination is a body-detected
+    usage fault (ExecPlan Decision Log "mutually exclusive with ``--chapter``").
+    """
+    working = baseline_tree()
+    ledger = (project_root / _EXAMPLE_LEDGER).resolve()
+    monkeypatch.chdir(working.parent)
+    with pytest.raises(SystemExit) as excinfo:
+        _run(["--ledger", str(ledger), "--chapter", "1"])
+    assert excinfo.value.code == ExitCode.USAGE_ERROR
+    assert _envelope(capsys)["ok"] is False
+
+
+def test_absent_ledger_file_exits_three(
+    baseline_tree: cabc.Callable[[], Path],
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A ``--ledger`` pointing at an absent file exits ``3`` (state error)."""
+    working = baseline_tree()
+    monkeypatch.chdir(working.parent)
+    with pytest.raises(SystemExit) as excinfo:
+        _run(["--ledger", "/no/such/ledger.toml"])
+    assert excinfo.value.code == ExitCode.STATE_ERROR
+    assert _envelope(capsys)["ok"] is False
+
+
+def test_malformed_ledger_exits_two(
+    baseline_tree: cabc.Callable[[], Path],
+    project_root: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A ``--ledger`` with malformed *content* exits ``2`` (usage error)."""
+    working = baseline_tree()
+    ledger = (project_root / _TWO_WINDOWS_LEDGER).resolve()
+    monkeypatch.chdir(working.parent)
+    with pytest.raises(SystemExit) as excinfo:
+        _run(["--ledger", str(ledger)])
+    assert excinfo.value.code == ExitCode.USAGE_ERROR
+    assert _envelope(capsys)["ok"] is False
 
 
 @pytest.mark.parametrize("flag", ["--help", "--version"])

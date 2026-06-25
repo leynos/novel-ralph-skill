@@ -702,6 +702,13 @@ The current count is recomputed from disk on every run, so the ledger cannot
 drift from the manuscript. Detection is deterministic; the decision to spend a
 device stays with the model.
 
+Roadmap task 7.1.2 implements this, resolving open question Q3: the developers'
+guide ("The device ledger and per-novel rationing") records the concrete
+enforcement — the closed key vocabulary, the constraint-combination semantics (at
+most one window constraint per device, `max_count` may pair with one window, a
+ration-less device rejected), the two-exit-code fault split, and the
+whole-manuscript `--ledger` mode (mutually exclusive with `--chapter`).
+
 ## 7. Clean-context sub-agent architecture (designed; built post-v1)
 
 The judgemental passes are designed here and sequenced after the deterministic

@@ -1,0 +1,10 @@
+# A device combining two window constraints (allowed_chapters AND
+# reserved_for_chapter). The loader rejects this as a LedgerError naming the
+# device (exit 2): a device may carry at most one window constraint.
+schema_version = 1
+
+[[device]]
+id = "sternum"
+pattern = "\\bsternum\\b"
+allowed_chapters = [1, 3]
+reserved_for_chapter = 12

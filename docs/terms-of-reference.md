@@ -377,8 +377,15 @@ whole field report at once. The roadmap must hold the parity-first line.
   recomputed from disk), and how is current count derived?
   - *Why it matters:* G8 and the highest-risk manual work in the field
     report depend on it; it gates a later roadmap phase.
-  - *Resolution:* design the schema in the technical design document;
-    defer enforcement to the relevant phase.
+  - *Resolution:* **Resolved (roadmap 7.1.2).** The schema is `schema_version`
+    plus one or more `[[device]]` tables, each carrying an `id`, a regex
+    `pattern`, and a ration — `max_count`, `allowed_chapters`,
+    `retired_after_chapter`, or `reserved_for_chapter` (at most one window
+    constraint, `max_count` may pair with one). `desloppify --ledger PATH`
+    enforces it, recomputing each device's current spend from the chapter drafts
+    on disk on every run, so the count cannot drift from the manuscript. The
+    concrete enforcement and constraint-combination semantics are recorded in the
+    developers' guide ("The device ledger and per-novel rationing").
   - *Owner:* design author.
 - **Q4 — Line-editor persona boundary.** Where exactly does the new
   micro-level line-editor's remit end and the spiteful critic's begin, given

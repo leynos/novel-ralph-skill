@@ -1,0 +1,9 @@
+# A non-positive max_count is incoherent: rejected, naming the device. A zero or
+# negative ration would forbid the device everywhere, a no-op the author did not
+# intend, so a max_count must be a positive integer.
+schema_version = 1
+
+[[device]]
+id = "bloom"
+pattern = "\\bbloom\\b"
+max_count = 0

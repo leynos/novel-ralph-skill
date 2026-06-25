@@ -13,7 +13,11 @@ with the exit-2 vs exit-3 fault split); and wiring the Cyclopts app and the
 :func:`novel_ralph_skill.contract.runner.run` wrapper renders. The envelope
 projection and the shipped-pack resolver (:func:`offenders_pack_path`) live in the
 sibling :mod:`novel_ralph_skill.commands._desloppify_report` so this module stays
-within the 400-line cap.
+within the 400-line cap. The ``--ledger PATH`` device-ledger enforcement mode
+(design §6.3; roadmap task 7.1.2) dispatches to the sibling
+:mod:`novel_ralph_skill.commands._desloppify_ledger`, which owns the ledger
+loading, whole-manuscript sourcing, and fault routing; this module only adds the
+flag and the ``--ledger`` + ``--chapter`` mutual-exclusion check.
 
 Fault routing follows the contract (design §3.2): a malformed pack
 (:class:`~novel_ralph_skill.rulepack.RulePackError`) is a usage error (exit 2);
@@ -262,12 +266,61 @@ def _desloppify(*, chapter: int | None, pack: pathlib.Path | None) -> CommandOut
     return report_outcome(detect(rulepack, chapters))
 
 
-def _scan_or_usage(*, chapter: int | None, pack: pathlib.Path | None) -> CommandOutcome:
-    """Run :func:`_desloppify`, mapping the body usage fault to exit ``2``.
+def _dispatch(
+    *, chapter: int | None, pack: pathlib.Path | None, ledger: pathlib.Path | None
+) -> CommandOutcome:
+    """Route to the ledger mode or the rule-pack scan per the flags (design §6.3).
 
-    A ``--chapter`` outside the manifest is detected in the body (not the Cyclopts
-    parser), so it cannot reach the runner's ``CycloptsError`` arm; this thin
-    adapter catches :class:`DesloppifyUsageError` and returns the exit-``2``
+    ``--ledger PATH`` runs the per-novel device-ledger enforcement; without it,
+    the default rule-pack scan runs unchanged. ``--ledger`` rations *across* the
+    whole manuscript (``max_count`` totals, chapter-window checks), so it cannot be
+    combined with the single-chapter ``--chapter`` scan: the combination is a
+    body-detected usage fault (exit ``2``), raised as :class:`DesloppifyUsageError`
+    and mapped by :func:`_scan_or_usage`, mirroring the existing bad-``--chapter``
+    rejection (ExecPlan Decision Log "mutually exclusive with ``--chapter``").
+
+    Parameters
+    ----------
+    chapter : int | None
+        The ``--chapter N`` selection, or ``None`` for the whole manuscript.
+    pack : pathlib.Path | None
+        An explicit ``--pack`` path, or ``None`` for the shipped §6 pack.
+    ledger : pathlib.Path | None
+        A ``--ledger PATH`` device ledger, or ``None`` for the rule-pack scan.
+
+    Returns
+    -------
+    CommandOutcome
+        The ledger-enforcement or rule-pack-scan outcome.
+
+    Raises
+    ------
+    DesloppifyUsageError
+        When ``--ledger`` is combined with ``--chapter`` (exit ``2``).
+    """
+    if ledger is not None:
+        if chapter is not None:
+            msg = (
+                "--ledger enforces the whole-manuscript device ration and cannot "
+                "be combined with --chapter"
+            )
+            raise DesloppifyUsageError(msg)
+        # Imported lazily so the ledger machinery loads only on the ledger path.
+        from novel_ralph_skill.commands._desloppify_ledger import ledger_scan
+
+        return ledger_scan(ledger)
+    return _desloppify(chapter=chapter, pack=pack)
+
+
+def _scan_or_usage(
+    *, chapter: int | None, pack: pathlib.Path | None, ledger: pathlib.Path | None
+) -> CommandOutcome:
+    """Run :func:`_dispatch`, mapping the body usage fault to exit ``2``.
+
+    A ``--chapter`` outside the manifest, or a ``--ledger`` + ``--chapter``
+    combination, is detected in the body (not the Cyclopts parser), so it cannot
+    reach the runner's ``CycloptsError`` arm; this thin adapter catches
+    :class:`DesloppifyUsageError` and returns the exit-``2``
     :class:`CommandOutcome` directly, keeping the runner untouched (ExecPlan WI4).
 
     Parameters
@@ -276,15 +329,17 @@ def _scan_or_usage(*, chapter: int | None, pack: pathlib.Path | None) -> Command
         The ``--chapter N`` selection, or ``None`` for the whole manuscript.
     pack : pathlib.Path | None
         An explicit ``--pack`` path, or ``None`` for the shipped §6 pack.
+    ledger : pathlib.Path | None
+        A ``--ledger PATH`` device ledger, or ``None`` for the rule-pack scan.
 
     Returns
     -------
     CommandOutcome
         The scan outcome, or an ``ExitCode.USAGE_ERROR`` outcome for a bad
-        ``--chapter``.
+        ``--chapter`` or a ``--ledger`` + ``--chapter`` combination.
     """
     try:
-        return _desloppify(chapter=chapter, pack=pack)
+        return _dispatch(chapter=chapter, pack=pack, ledger=ledger)
     except DesloppifyUsageError as exc:
         return CommandOutcome(
             code=ExitCode.USAGE_ERROR, messages=list(exc.messages) or [str(exc)]
@@ -310,9 +365,18 @@ def build_app() -> cyclopts.App:
 
     @app.default
     def _scan(
-        *, chapter: int | None = None, pack: pathlib.Path | None = None
+        *,
+        chapter: int | None = None,
+        pack: pathlib.Path | None = None,
+        ledger: pathlib.Path | None = None,
     ) -> CommandOutcome:
-        """Scan the manuscript for §6 offenders; exit 0/4 per the finding."""
-        return _scan_or_usage(chapter=chapter, pack=pack)
+        """Scan for §6 offenders, or enforce a device ledger; exit 0/4 per finding.
+
+        With ``--ledger PATH`` it enforces a per-novel device ledger over the whole
+        manuscript (design §6.3); without it, it scans the default §6 rule pack (or
+        an explicit ``--pack``). ``--ledger`` cannot be combined with ``--chapter``
+        (the ledger rations across the book): the combination exits ``2``.
+        """
+        return _scan_or_usage(chapter=chapter, pack=pack, ledger=ledger)
 
     return app

@@ -297,6 +297,18 @@ update cadence and membership policy live in the developers' guide ("Rule packs
 and the loader boundary"). Keep working this prose checklist as well; the pack
 mechanizes only the lexical subset, not the paragraph- and chapter-level tells.
 
+Device *rationing* — keeping a signature image, key phrase, or bookend line to a
+fixed number of uses, in a fixed set of chapters — is enforceable too, via
+`desloppify --ledger device-ledger.toml`. The ledger is **per-novel** and lives
+in `working/` (it is your own file, not shipped with the skill). Each
+`[[device]]` names a regex `pattern` and a ration: `max_count` (a total cap),
+`allowed_chapters` (the only chapters it may appear in), `retired_after_chapter`
+(no use after chapter N), or `reserved_for_chapter` (only chapter N). The count
+is recomputed from the chapter drafts on every run, so the ledger cannot drift
+from the manuscript. The ledger rations across the whole book, so `--ledger`
+cannot be combined with `--chapter`. The full rules live in the developers' guide
+("The device ledger and per-novel rationing").
+
 ## Tone of the desloppify pass
 
 The pass is destructive. It removes more than it adds. If the chapter loses

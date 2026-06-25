@@ -1,0 +1,8 @@
+# Structurally valid ledger whose device 'broken' carries an uncompilable
+# pattern. Loading this must raise LedgerError naming 'broken'.
+schema_version = 1
+
+[[device]]
+id = "broken"
+pattern = "a("
+max_count = 1

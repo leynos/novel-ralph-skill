@@ -1,0 +1,9 @@
+# A device that declares no ration at all. The loader rejects this as a
+# LedgerError naming the device (exit 2): a ration-less device is a no-op the
+# author did not intend, so it must declare at least one of max_count,
+# allowed_chapters, retired_after_chapter, or reserved_for_chapter.
+schema_version = 1
+
+[[device]]
+id = "sternum"
+pattern = "\\bsternum\\b"

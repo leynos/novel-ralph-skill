@@ -1,0 +1,13 @@
+# Two devices sharing id "x". A duplicate id is rejected, naming the colliding
+# id, so a later LedgerError(device_id="x") names exactly one device.
+schema_version = 1
+
+[[device]]
+id = "x"
+pattern = "\\bsternum\\b"
+max_count = 3
+
+[[device]]
+id = "x"
+pattern = "\\bbloom\\b"
+max_count = 1

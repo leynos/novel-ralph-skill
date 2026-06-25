@@ -1654,7 +1654,7 @@ packs inherit before they land. See novel-ralph-harness-design.md §6.2 and §6.
       supported" but the item was unfiled; point that cross-reference at the
       multi-pack task (7.1.7) and add a one-line note to the `desloppify` users'
       guide section that a run scans a single pack. Lightweight addendum pass.
-- [ ] 7.1.2. Implement the per-novel `device-ledger.toml` enforcement.
+- [x] 7.1.2. Implement the per-novel `device-ledger.toml` enforcement.
   - Requires phase 5.
   - Enforce rationing — `max_count`, `allowed_chapters`,
     `retired_after_chapter`, `reserved_for_chapter` — recomputing current

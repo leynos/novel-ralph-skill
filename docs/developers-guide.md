@@ -1103,6 +1103,82 @@ with `offenders.toml` and because a manuscript capitalizes a tell at a sentence
 start or in a chapter title. The inline `(?i)` is never a compile flag; the
 loader still compiles every pattern with no flags.
 
+
+### The device ledger and per-novel rationing
+
+Roadmap task 7.1.2 adds a parallel detection family: the *device ledger*, a
+per-novel `device-ledger.toml` that rations a book's signature devices — a
+recurring image, a key phrase, a bookend line — each of which is meant to land a
+fixed number of times, in a fixed set of chapters, and nowhere else (design
+§6.3, resolving open question Q3). Unlike the shipped rule packs, the ledger is
+**per-novel user data**: it is not packaged in the wheel and has no
+`importlib.resources` resolver. It is selected with `desloppify --ledger PATH`,
+where `PATH` is a filesystem path the novelist (or the harness) writes into
+`working/`. A run with no `--ledger` is the unchanged rule-pack scan.
+
+The ledger lives in a new package,
+[`novel_ralph_skill/ledger/`](../novel_ralph_skill/ledger/), modelled on the
+rule-pack package (schema → parse → detect → report) but carrying its own
+chapter-aware vocabulary that the closed v1 rule-pack schema cannot express
+(ADR-001/003/005 still hold: detect-only, the shared envelope contract, and the
+five-script command surface — the ledger is a flag on `desloppify`, never a
+sixth script). The TOML shape is `schema_version` plus one or more `[[device]]`
+tables, each with an `id`, a regex `pattern`, and a ration:
+
+```toml
+schema_version = 1
+
+[[device]]
+id = "sternum"
+pattern = "(?i)pressure[^\n]{0,20}?sternum"
+max_count = 3
+allowed_chapters = [1, 3, 8]
+```
+
+The **closed key vocabulary** is `id`, `pattern`, and the four rationing fields
+`max_count`, `allowed_chapters`, `retired_after_chapter`, and
+`reserved_for_chapter`. The **constraint-combination semantics** are:
+
+- a device must carry **at least one** of the four rationing fields — a
+  ration-less device is a no-op the author did not intend, so the loader rejects
+  it;
+- a device may carry **at most one** of the three *window* constraints
+  (`allowed_chapters`, `retired_after_chapter`, `reserved_for_chapter`);
+  `max_count` may pair with any one window. A device combining two window
+  constraints is rejected;
+- `max_count` — total hits across the manuscript must be `<= max_count`;
+  `allowed_chapters = [..]` — every hit's chapter must be in the set;
+  `retired_after_chapter = N` — no hit in any chapter `> N`;
+  `reserved_for_chapter = N` — every hit must be in chapter `N`.
+
+Like the rule-pack loader, malformed *content* fails loudly through a
+`LedgerError` the command maps to **exit 2**, naming the offending device; an
+absent, unreadable, or undecodable ledger *file* fails through a
+`LedgerFileError` mapped to **exit 3**. An over-ration device exits **4**, naming
+the device in `result.violations`; a within-ration manuscript exits **0**.
+
+Detection follows the same **line-by-line, no-flags, no-semantic-gate** model as
+the rule-pack detector. A *spend* is one literal `finditer` hit of the device's
+pattern, counted line by line so `.` cannot cross a newline and each hit's
+`{chapter, line}` is exact; a multi-token device must use a bounded non-newline
+window `[^\n]{0,N}?`, never greedy `.*`. There is **no semantic gate**: a bare
+word such as `\bsternum\b` fires on every literal use of the word, not only the
+motif use, so an author narrows the pattern to the motif's collocation
+knowingly. The current spend is **recomputed from the chapter drafts on disk on
+every run** (design §6.3), so the ledger cannot drift from the manuscript:
+editing a draft to remove a spend and re-running drops the finding with no ledger
+edit. Whether a device *should* have been spent stays the model's call (ADR-001).
+
+The ledger is a **whole-manuscript** concern — it rations *across* the book — so
+`--ledger` is **mutually exclusive with `--chapter`**: a single-chapter scan
+cannot total `max_count` or evaluate a chapter window faithfully, so the
+combination is an exit-2 usage fault rather than a silently wrong count. Each
+window constraint is read **negatively** (a hit outside the window is a
+violation); there is no "must appear" floor, so a `reserved_for_chapter` bookend
+the author forgot entirely passes silently. That is design-conformant (§6.3
+specifies no floor); a "must appear" floor is the highest-value future
+enhancement, recorded here so the limitation is explicit, not accidental.
+
 ## GitHub Actions
 
 The generated repository includes GitHub Actions workflows and local composite

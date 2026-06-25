@@ -1,0 +1,69 @@
+"""The two typed failure channels of the device-ledger loader (design §10).
+
+A device ledger can fail to load in two distinct ways, and the design splits
+them onto two exit codes (design §3.2, §10). This module gives each its own
+typed exception so the ``desloppify --ledger`` command (roadmap task 7.1.2) maps
+each to the right
+:class:`~novel_ralph_skill.contract.exit_codes.ExitCode` without re-parsing a
+message, mirroring ``novel_ralph_skill/rulepack/errors.py``:
+
+- :class:`LedgerError` — the ledger *content* is malformed (a bad
+  ``schema_version``, a missing or wrong-typed field, an uncompilable
+  ``pattern``, a device with no ration, a device combining two window
+  constraints, or a non-positive bound). The command maps this to
+  ``ExitCode.USAGE_ERROR`` (exit 2), naming the offending device.
+- :class:`LedgerFileError` — the ledger *file* is absent, unreadable, or holds
+  undecodable TOML. The command maps this to ``ExitCode.STATE_ERROR`` (exit 3).
+
+Both share the
+:class:`~novel_ralph_skill.contract.errors.EnvelopeMessagesError` base from the
+``contract`` layer (the ``ledger`` → ``contract`` dependency direction; design
+§3.1): they store human-prose ``messages`` on the instance for the envelope the
+command will build. The loader itself never calls :func:`sys.exit` and emits no
+envelope; exit-code translation is the command body's job.
+"""
+
+from __future__ import annotations
+
+from novel_ralph_skill.contract.errors import EnvelopeMessagesError
+
+
+class LedgerError(EnvelopeMessagesError):
+    """Malformed device-ledger *content*: the command maps this to exit 2.
+
+    Raised by the loader when a decoded device ledger violates the v1 schema — a
+    bad ``schema_version``, a missing or wrong-typed field, a ``pattern`` that
+    will not compile, a device that carries no ration, a device combining two
+    window constraints, a non-positive bound, or a duplicated id. ``device_id``
+    names the offending device for a per-device fault, or is ``None`` for a
+    ledger-level fault (such as a bad ``schema_version`` or an empty ``device``
+    array).
+    """
+
+    def __init__(self, *messages: str, device_id: str | None = None) -> None:
+        """Record the offending device and the human-prose messages.
+
+        Parameters
+        ----------
+        *messages : str
+            Human-oriented notes describing the content fault, for the envelope
+            the ``desloppify --ledger`` command (task 7.1.2) will build.
+        device_id : str | None
+            The ``id`` of the offending device, or ``None`` for a ledger-level
+            fault that names no single device.
+        """
+        super().__init__(*messages)
+        self.device_id: str | None = device_id
+
+
+class LedgerFileError(EnvelopeMessagesError):
+    """An absent, unreadable, or undecodable ledger file: maps to exit 3.
+
+    Raised by :func:`~novel_ralph_skill.ledger.parse.load_ledger` when the ledger
+    file is missing, cannot be read, or holds TOML that ``tomllib`` cannot
+    decode. A decode fault is an input fault (exit 3), kept distinct from a
+    *structurally valid* TOML that violates the schema (which is
+    :class:`LedgerError`, exit 2). The human-prose ``messages`` are recorded once
+    by the
+    :class:`~novel_ralph_skill.contract.errors.EnvelopeMessagesError` base.
+    """
