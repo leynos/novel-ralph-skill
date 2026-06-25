@@ -1,15 +1,23 @@
 """Step definitions for the torn-turn ROLLBACK scenario at the command boundary.
 
-These prove the roadmap 6.2.7 success clause — the symmetric half of the
-disposition task 6.2.5 proved for COMPLETE. A *real* §3.4 ``pending_turn``
-bracket raises mid-turn over a coherent baseline, declaring an unrecoverable
-``draft.md`` that never lands, and leaves an uncleared
-``operation="write-draft"`` ``[pending_turn]`` on disk (the on-disk signature of
-a torn turn whose missing artefact is unrecoverable). ``check`` reports it (exit
-``4`` with a ``rollback-pending-turn`` reconciliation), and ``reconcile`` rolls
-it back in a single pass (exit ``0``): the record is cleared, a
-``rollback-pending-turn`` receipt is appended to ``log.md``, and a follow-up
-``check`` is coherent (exit ``0``).
+These prove the roadmap 6.2.7 and 6.2.13 success clauses — the symmetric half of
+the disposition task 6.2.5 proved for COMPLETE — for *both* unrecoverable
+triggers. A *real* §3.4 ``pending_turn`` bracket raises mid-turn over a coherent
+baseline, declaring an unrecoverable artefact (a ``draft.md`` body or a
+``done.flag``) that never lands, and leaves an uncleared ``[pending_turn]`` on
+disk (the on-disk signature of a torn turn whose missing artefact is
+unrecoverable). ``check`` reports it (exit ``4`` with a ``rollback-pending-turn``
+reconciliation), and ``reconcile`` rolls it back in a single pass (exit ``0``):
+the record is cleared, a ``rollback-pending-turn`` receipt is appended to
+``log.md``, and a follow-up ``check`` is coherent (exit ``0``).
+
+A ``Scenario Outline`` runs both triggers from this one module: the ``draft.md``
+row roadmap task 6.2.7 already proved, and the ``done.flag`` row roadmap task
+6.2.13 adds (closing ``docs/issues/audit-6.2.7.md`` Finding 3, which recorded the
+``done.flag`` trigger as covered only by the in-process classifier test). Both
+basenames lie outside ``{state.toml, log.md}``, so both classify
+``ROLLBACK_PENDING_TURN`` — the symmetry the parametrised proof pins at the
+command boundary.
 
 No v1 command opens a forward bracket declaring an unrecoverable artefact — the
 only command that opens a bracket at all is ``reconcile``, and it declares only
@@ -17,8 +25,8 @@ the recomputable ``state.toml``/``log.md`` — so a crashed *command* always
 classifies COMPLETE, never ROLLBACK (ExecPlan Decisions D-MECH, D-PRODUCER). The
 faithful real producer for ROLLBACK is therefore the design §3.4 ``pending_turn``
 context manager raising mid-turn, exactly as :mod:`tests.steps.torn_turn_steps`
-drives it, here declaring an unrecoverable ``draft.md`` and paired with
-command-boundary recovery.
+drives it, here declaring an unrecoverable artefact (a ``draft.md`` or a
+``done.flag``) per the ``Examples`` row and paired with command-boundary recovery.
 
 Recovery is asserted under a *single* pass (D-ONEPASS): the torn record sits
 over an otherwise-coherent tree, so one ``reconcile`` clears the record and the
@@ -49,7 +57,7 @@ import typing as typ
 
 import pytest
 import working_corpus as wc
-from pytest_bdd import given, then, when
+from pytest_bdd import given, parsers, then, when
 
 from novel_ralph_skill.commands.novel_state import build_app
 from novel_ralph_skill.contract.exit_codes import ExitCode
@@ -62,11 +70,12 @@ if typ.TYPE_CHECKING:
 
 _COMMAND = "novel-state"
 
-# The unrecoverable artefact the torn turn declares but never lands: a chapter
-# the coherent baseline never materialises, so its basename is not in
-# {"state.toml", "log.md"} and the missing path is unrecoverable → ROLLBACK
-# (mirroring the pending-turn-rollback-unrecoverable corpus variant).
-_UNRECOVERABLE_DRAFT = "working/manuscript/chapter-99/draft.md"
+# The unrecoverable artefacts the torn turn may declare but never land are
+# threaded per-row from the feature's ``Examples`` table: a chapter the coherent
+# baseline never materialises, so the declared basename (``draft.md`` or
+# ``done.flag``) is not in {"state.toml", "log.md"} and the missing path is
+# unrecoverable → ROLLBACK (mirroring the pending-turn-rollback-unrecoverable
+# corpus variant). Both rows pin chapter-99, which is absent from the manifest.
 
 
 class _TornError(RuntimeError):
@@ -75,11 +84,13 @@ class _TornError(RuntimeError):
 
 @dc.dataclass(slots=True)
 class _Outcome:
-    """The torn tree plus the per-command exit codes captured across the steps."""
+    """The torn tree, the per-row declared turn, and the captured exit codes."""
 
     working: Path
     files_before: set[str]
     drafts_before: dict[str, bytes]
+    declared_path: str
+    operation: str
     check_code: int | None = None
     check_envelope: dict[str, object] = dc.field(default_factory=dict)
     reconcile_code: int | None = None
@@ -133,27 +144,36 @@ def _run_capturing(
 
 
 @given(
-    "a real pending_turn bracket raises mid-turn declaring an unrecoverable draft",
+    parsers.parse(
+        "a real pending_turn bracket raises mid-turn declaring an "
+        'unrecoverable "{declared_path}" via "{operation}"'
+    ),
     target_fixture="outcome",
 )
-def torn_rollback_tree(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> _Outcome:
+def torn_rollback_tree(
+    declared_path: str,
+    operation: str,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> _Outcome:
     """Raise inside a real §3.4 ``pending_turn`` bracket to leave a ROLLBACK record.
 
     Builds the coherent baseline tree, then enters the §3.4 ``pending_turn``
-    context manager over its ``state.toml`` declaring an unrecoverable
-    ``draft.md`` (a chapter the baseline never materialises) and raises a
-    ``_TornError`` before clean exit. The bracket persists its intent record
-    *before* yielding, so the raise leaves the populated ``operation="write-draft"``
-    record on disk — a genuine torn turn produced by the production primitive,
-    not a hand-planted fixture field (Decisions D-MECH, D-PRODUCER). Because the
-    declared ``draft.md`` never lands and is unrecoverable, the derivation
-    classifies the record ``ROLLBACK_PENDING_TURN`` (D-COHERENT).
+    context manager over its ``state.toml`` declaring the per-row unrecoverable
+    artefact (a ``draft.md`` body or a ``done.flag`` for a chapter the baseline
+    never materialises) and raises a ``_TornError`` before clean exit. The bracket
+    persists its intent record *before* yielding, so the raise leaves the populated
+    record on disk — a genuine torn turn produced by the production primitive, not
+    a hand-planted fixture field (Decisions D-MECH, D-PRODUCER). Because the
+    declared artefact never lands and is unrecoverable, the derivation classifies
+    the record ``ROLLBACK_PENDING_TURN`` (D-COHERENT), identically for both rows.
 
     Returns
     -------
     _Outcome
-        The torn ``working/`` path and the files and draft bytes present after the
-        torn write; the run steps fill in the exit codes.
+        The torn ``working/`` path, the declared turn (path and operation), and the
+        files and draft bytes present after the torn write; the run steps fill in
+        the exit codes.
     """
     working = wc.build_working_tree(wc.COHERENT_BASELINE, tmp_path)
     drafts_before = _draft_bytes(working)
@@ -165,36 +185,48 @@ def torn_rollback_tree(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> _Outc
         pytest.raises(_TornError),
         pending_turn(
             working / "state.toml",
-            operation="write-draft",
-            paths=[_UNRECOVERABLE_DRAFT],
+            operation=operation,
+            paths=[declared_path],
         ),
     ):
-        msg = "write-draft step died mid-turn before the draft landed"
+        msg = f"{operation} step died mid-turn before {declared_path} landed"
         raise _TornError(msg)
 
     return _Outcome(
-        working=working, files_before=files_before, drafts_before=drafts_before
+        working=working,
+        files_before=files_before,
+        drafts_before=drafts_before,
+        declared_path=declared_path,
+        operation=operation,
     )
 
 
-@then("the torn turn leaves an uncleared write-draft pending_turn on disk")
-def torn_leaves_record(outcome: _Outcome) -> None:
-    """Assert the torn turn left a populated ``operation="write-draft"`` record.
+@then(
+    parsers.parse(
+        'the torn turn leaves an uncleared "{operation}" pending_turn '
+        'declaring "{declared_path}"'
+    )
+)
+def torn_leaves_record(operation: str, declared_path: str, outcome: _Outcome) -> None:
+    """Assert the torn turn left a populated record naming the per-row turn.
 
     This is the producer half — the real-torn-turn origin the roadmap clause
     demands — asserted on disk: the interrupted bracket must leave its own intent
-    record naming the declared unrecoverable ``draft.md``, the on-disk signature of
-    a recoverable torn turn rather than a corrupted state.
+    record naming the in-flight operation and the declared unrecoverable artefact
+    (a ``draft.md`` body or a ``done.flag``), the on-disk signature of a recoverable
+    torn turn rather than a corrupted state. The expected operation and path are
+    threaded from the ``Examples`` row, so both triggers assert against their own
+    declared turn rather than a constant.
     """
     interrupted = load_state(outcome.working / "state.toml")
     assert interrupted.pending_turn is not None, (
         "the torn pending_turn bracket must leave a populated record"
     )
-    assert interrupted.pending_turn.operation == "write-draft", (
-        "the leftover record must name write-draft as the in-flight operation"
+    assert interrupted.pending_turn.operation == operation, (
+        f"the leftover record must name {operation} as the in-flight operation"
     )
-    assert tuple(interrupted.pending_turn.paths) == (_UNRECOVERABLE_DRAFT,), (
-        "the leftover record must declare the unrecoverable draft.md path"
+    assert tuple(interrupted.pending_turn.paths) == (declared_path,), (
+        f"the leftover record must declare the unrecoverable {declared_path} path"
     )
 
 

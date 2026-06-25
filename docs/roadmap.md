@@ -1594,7 +1594,7 @@ novel-ralph-harness-design.md §2.3 and §9.
     by `check` and rolled back by `reconcile` at the command boundary, with the
     partial artefact preserved on disk and unreferenced by state, closing the
     leaves-partial-artefacts-in-place half of the §5.4 rollback surface.
-- [ ] 6.2.13. Add a command-boundary ROLLBACK scenario for an unrecoverable
+- [x] 6.2.13. Add a command-boundary ROLLBACK scenario for an unrecoverable
   `done.flag` (not only `draft.md`).
   - Step-task (source: audit:6.2.7; severity: low).
     `_classify_pending_turn` treats both `draft.md` and `done.flag` as
