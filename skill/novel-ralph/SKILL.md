@@ -23,6 +23,27 @@ loop that re-enters the model on each turn until the work is truthfully
 finished. The skill is the orchestrator: it owns the phase machine, the state
 layout, the chapter drafting inner loop, and the adversarial review pipeline.
 
+## Setup
+
+The deterministic harness is five console-scripts — `novel-state`,
+`novel-done`, `novel-compile`, `desloppify`, and `wordcount` — provided by the
+`novel-ralph-skill` package. Install them and confirm they are on your `PATH`
+**before** starting the workflow:
+
+```bash
+# From a checkout of the novel-ralph-skill repository:
+uv tool install --from . novel-ralph-skill
+# (once published, `uv tool install novel-ralph-skill` is enough)
+novel-state --version   # confirm the install resolves
+```
+
+Invoke the commands by **bare name** (`novel-state init …`, `novel-done`,
+`novel-compile`, …). They operate on the `working/` directory of the current
+working directory, so run them from the novel's root. If any command reports
+"command not found", the package is not installed — install it as above rather
+than falling back to `uv run`, `python -m`, or an ad-hoc script, so the agent
+always exercises the installed contract.
+
 ## Harness contract
 
 The harness re-enters the agent repeatedly with a thin prompt of the form

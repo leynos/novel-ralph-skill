@@ -680,6 +680,26 @@ novel-ralph-harness-design.md §3.4, §4.1, and §5.3.
       2.3.4 targets; correct the stale D3 prose in
       `docs/execplans/roadmap-2-2-2.md` so it agrees with the implemented
       direction. Lightweight addendum pass.
+- [ ] 2.2.3. Decide and implement how the `[chapters]` manifest is populated.
+  - Requires 2.1.1 and 2.2.2.
+  - The design says the chapter manifest is "written when chapter planning
+    completes" (§5.1), and `novel-compile`, `novel-state check`, and `recount`
+    all depend on it — but no command writes it and direct `state.toml` edits
+    are forbidden by the state-layout guard, so a chapter planned in
+    `working/plan/chapter-outline.md` has no sanctioned path into `[chapters]`,
+    which blocks the per-chapter drafting loop (demonstrated: with a draft on
+    disk but an empty manifest, `check` exits 4 on `manifest-disk-bijection`,
+    `novel-compile` exits 3, and `recount` returns an empty map). Record the
+    decision as an ADR — a new `novel-state` mutator that ingests the outline
+    into `[chapters]` (e.g. `plan-chapters`/`set-manifest`) versus an explicitly
+    guard-exempt agent-write during chapter planning — implement it, and bridge
+    it in `SKILL.md` Phase 7 so the agent records chapters as part of completing
+    chapter planning.
+  - See novel-ralph-harness-design.md §4.1, §5.1, and §5.2.
+  - Success: a chapter planned in `chapter-outline.md` reaches the `[chapters]`
+    manifest through a sanctioned path (no guarded direct edit), after which
+    `novel-state check`, `recount`, and `novel-compile` operate correctly on the
+    real chapter directories — proven by an end-to-end test.
 
 ### 2.3. Deliver recount and disk-authoritative reconciliation
 
