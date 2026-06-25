@@ -1381,7 +1381,7 @@ novel-ralph-harness-design.md §2.3 and §9.
     unparseable `state.toml` against a real installed console-script over a built
     wheel, not only in-process, closing the installed exit-3 asymmetry left after
     6.2.4.
-- [ ] 6.2.7. Add a reconcile-boundary `ROLLBACK_PENDING_TURN` recovery scenario.
+- [x] 6.2.7. Add a reconcile-boundary `ROLLBACK_PENDING_TURN` recovery scenario.
   - Step-task (source: review:6.2.5; severity: low). Task 6.2.5 proves the
     `COMPLETE` disposition (both declared artefacts present) at the `reconcile`
     command boundary, but design §5.4 also covers the `ROLLBACK` disposition (an
