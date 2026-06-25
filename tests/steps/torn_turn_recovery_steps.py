@@ -82,6 +82,7 @@ class _Outcome:
     check_code: int | None = None
     check_envelope: dict[str, object] = dc.field(default_factory=dict)
     recovered: bool = False
+    recovery_passes: int = 0
     recheck_code: int | None = None
 
 
@@ -235,10 +236,13 @@ def reconcile_re_runs(outcome: _Outcome, monkeypatch: pytest.MonkeyPatch) -> Non
     Mirrors the harness's idempotent re-entry: each ``reconcile`` must exit ``0``;
     the loop stops once a follow-up ``check`` exits ``0`` (the crashed recount
     converges in two passes — clear the leftover record, then re-apply the
-    recount; D-CONVERGE). ``recovered`` records whether the bounded loop converged.
+    recount; D-CONVERGE). ``recovered`` records whether the bounded loop converged
+    and ``recovery_passes`` the number of ``reconcile`` passes it took, so the exact
+    two-pass count is pinned downstream rather than only the bound.
     """
     for _attempt in range(_MAX_RECOVERY_ATTEMPTS):
         code = _run(outcome.working, "reconcile", monkeypatch)
+        outcome.recovery_passes += 1
         assert code == ExitCode.SUCCESS, "each recovery reconcile must exit 0"
         if _run(outcome.working, "check", monkeypatch) == ExitCode.SUCCESS:
             outcome.recovered = True
@@ -255,8 +259,15 @@ def reconcile_clears_record(outcome: _Outcome) -> None:
     The recovered tree must carry no uncleared ``[pending_turn]`` and its
     ``[word_counts]`` must hold the disk-derived recount the original drift
     needed, proving recovery both cleared the torn record *and* re-applied the
-    still-pending recount (the two-pass convergence).
+    still-pending recount. Convergence must take *exactly* two passes (clear the
+    leftover record, then re-apply the recount; D-CONVERGE), so a regression that
+    silently raises the re-entry pass count fails loudly rather than passing green
+    inside the bound.
     """
+    assert outcome.recovery_passes == 2, (
+        "the crashed recount must converge in exactly two reconcile passes, took "
+        f"{outcome.recovery_passes}"
+    )
     recovered = load_state(outcome.working / "state.toml")
     assert recovered.pending_turn is None, (
         "the recovered tree must carry no uncleared pending_turn record"

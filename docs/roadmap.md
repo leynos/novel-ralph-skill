@@ -1352,7 +1352,7 @@ novel-ralph-harness-design.md §2.3 and §9.
   - See novel-ralph-harness-design.md §3.4 and §5.4.
   - Success: a torn write produced by an actual mutator invocation is detected
     by `check` and recovered by `reconcile`, asserted at the command boundary.
-  - [ ] 6.2.5.1. Pin the two-pass convergence count in the torn-turn recovery
+  - [x] 6.2.5.1. Pin the two-pass convergence count in the torn-turn recovery
     tests.
     - Addendum (from review:6.2.5; low). `test_reconcile_integration.py` and the
       new torn-turn BDD steps document and rely on exactly two-pass convergence

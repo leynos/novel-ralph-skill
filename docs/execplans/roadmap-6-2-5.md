@@ -723,7 +723,7 @@ recovery scenario (roadmap 6.2.7), the reconcile-family command-driver plugin
 repaired counts (roadmap 7.23.4) — warrant their own plans and are filed as full
 tasks; this is the small assertion-tightening only.
 
-- [ ] 6.2.5.1 — Pin the two-pass convergence count in the torn-turn recovery
+- [x] 6.2.5.1 — Pin the two-pass convergence count in the torn-turn recovery
   tests (from review:6.2.5, low). `test_reconcile_integration.py` and the new
   torn-turn BDD steps document and rely on exactly two-pass convergence (clear
   the leftover record, then re-apply recount) but only assert convergence within

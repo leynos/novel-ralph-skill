@@ -169,14 +169,22 @@ def test_interrupted_reconcile_leaves_recoverable_record(
 
     # Fresh reconcile runs (production behaviour restored) converge the tree, the
     # harness re-entry model: clear the leftover record, then re-apply the recount.
+    # The bound (range(3)) is a safety net against an infinite loop; convergence
+    # must take *exactly* two passes, so a regression that silently needs more
+    # re-entry passes is pinned, not masked by the bound.
     monkeypatch.setattr(_reconcile, "_append_recovery_entry", real_append)
+    passes = 0
     for _attempt in range(3):
         code, _env = _drive(working, "reconcile", monkeypatch)
+        passes += 1
         assert code == ExitCode.SUCCESS, "each recovery reconcile must exit 0"
         if _drive(working, "check", monkeypatch)[0] == ExitCode.SUCCESS:
             break
     else:
         pytest.fail("repeated reconcile did not converge the interrupted tree")
+    assert passes == 2, (
+        f"the interrupted recount must converge in exactly two passes, took {passes}"
+    )
 
     recovered = load_state(working / "state.toml")
     assert recovered.pending_turn is None, "the recovered tree must be settled"
