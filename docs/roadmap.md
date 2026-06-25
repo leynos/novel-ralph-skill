@@ -1662,6 +1662,23 @@ packs inherit before they land. See novel-ralph-harness-design.md §6.2 and §6.
   - See novel-ralph-harness-design.md §6.3.
   - Success: resolves open question Q3; a device spent beyond its ration is
     reported deterministically while the spend decision stays with the model.
+  - [ ] 7.1.2.1. Fix the recurring MD012 double-blank in the developers' guide
+    left by the 7.1.2 merge.
+    - Addendum (from audit:7.1.2; medium). The 7.1.2 commit left a second
+      consecutive blank line above the device-ledger heading, reddening the
+      whole-tree `make markdownlint` gate on `main` (the same MD012 defect
+      audit:7.1.1 Finding 7 caught before it); delete the surplus blank line. The
+      structural prevention is owned by roadmap 7.24.3 and is not duplicated here.
+      Lightweight addendum pass.
+  - [ ] 7.1.2.2. Reject `--pack` combined with `--ledger` as an exit-2 usage
+    error.
+    - Addendum (from review:7.1.2; low). On the ledger path `_dispatch` never
+      reads `pack`, so an operator's `--pack` selection is silently dropped,
+      contradicting the developers' guide framing of `--ledger` as a scan
+      "instead of the rule-pack scan"; raise a body-detected
+      `DesloppifyUsageError` mirroring the existing `--ledger` + `--chapter`
+      rejection so the combination exits 2 and names the conflict. Lightweight
+      addendum pass.
 - [ ] 7.1.3. Decide whether the desloppify clean-pass output is slimmed to
   non-zero findings before the multi-pack surface grows.
   - Reroute (source: review:5.1.2; severity: low). Every clean scan currently
@@ -1759,6 +1776,29 @@ packs inherit before they land. See novel-ralph-harness-design.md §6.2 and §6.
     shared offender, keeps the §3.2 exit-code contract (4 on any violation, 0 on
     a clean pass), and the developers' guide combine-packs cross-reference
     resolves to this task.
+- [ ] 7.1.8. Add an optional must-appear ration floor to the device-ledger window
+  constraints.
+  - Step-task (source: review:7.1.2; severity: low). Task 7.1.2 reads every
+    window constraint purely negatively (a hit outside the window violates), so
+    a `reserved_for_chapter` bookend the author forgot entirely passes silently;
+    the developers' guide records a "must appear" floor as the highest-value
+    future enhancement and design §6.3 specifies no floor today, so this is a
+    deliberate, design-conformant extension rather than a defect. This serves the
+    step-7.1 hypothesis — that the phase-5 rule-pack engine can be extended with
+    the per-novel packs the design defers — by extending the device-ledger pack
+    with a new optional floor field and an under-floor breach path, while keeping
+    the recompute-from-disk-every-run discipline 7.1.2 settled. It is substantial
+    (a schema field, a new breach direction, an envelope finding shape, and a
+    design §6.3 amendment) and warrants its own plan and review.
+  - Requires 7.1.2.
+  - See novel-ralph-harness-design.md §6.3; docs/developers-guide.md
+    ("The device ledger and per-novel rationing", the must-appear-floor note).
+  - Success: a new optional must-appear floor field lets a device demand a
+    minimum spend (e.g. a `reserved_for_chapter` bookend that must land); a
+    device that lands fewer times than its floor is reported deterministically on
+    a distinct under-floor breach with exit 4; the negative-window reads are
+    unchanged; design §6.3 and the developers' guide record the floor; and the
+    existing ledger suites stay green.
 
 ### 7.2. Clean-context judgemental passes
 
@@ -2367,6 +2407,26 @@ settled) and they do not gate the deterministic spine.
     false-positive rate against an ordinary-fiction corpus, any non-zero
     threshold is justified by that measurement and recorded with its rationale,
     and the ai-isms validation suite stays green.
+- [ ] 7.13.3. Extend line-wrap-tolerant matching to the device-ledger detector so
+  the two detector families stay aligned.
+  - Reroute (source: review:7.1.2; severity: low). The ledger detector's
+    `_scan_device` scans line-by-line with no-flags compilation, exactly like the
+    rule-pack `_scan_rule`, so a multi-token device split across a hard line break
+    is not counted and authors must use a bounded `[^\n]{0,N}?` window; this v1
+    limitation is documented in both the ledger `detect.py` docstring and the
+    worked example. This does not serve the step-7.1 hypothesis — it is the
+    ledger-family counterpart of the rule-pack detector-robustness work, a
+    cross-cutting detection-engine improvement — so it is rerouted here. Apply the
+    same line-wrap-tolerant matching 7.13.1 lands for the rule-pack detector to
+    the ledger detector, coordinating the two so the device and rule-pack families
+    share one wrap-handling discipline rather than diverging.
+  - Requires 7.13.1.
+  - See novel-ralph-harness-design.md §6.3;
+    novel_ralph_skill/ledger/detect.py (the documented single-line limitation).
+  - Success: a multi-token device hard-wrapped across a newline is detected by the
+    ledger detector, its `{chapter, line}` reporting and the no-flags/no-`re.DOTALL`
+    compile discipline still hold, the ledger and rule-pack families share the
+    same wrap-handling approach, and the existing ledger suites stay green.
 
 ### 7.14. Consolidate the word-count single-source-of-truth seams
 
@@ -3213,3 +3273,42 @@ of step 6.2; it does not advance the step-6.2 combinatorial-surface hypothesis
     `nixie`) so a whole-tree doc-lint regression fails the author's pre-merge gate
     rather than surfacing only in the post-merge audit; a planted MD012
     double-blank reddens `make all`; and the gate stays green on a clean tree.
+
+### 7.25. Consolidate the rule-pack and device-ledger loader and scan primitives
+
+This step answers whether the two detection-pack families — the rule pack and
+the device ledger — can share one set of TOML-loading and scanning primitives
+without collapsing their distinct typed error channels and operator messages,
+before a third pack family under design §§6-7 clones a third copy. Its outcome
+is a single home for the coercion, entry-extraction, pattern-compilation,
+duplicate-id rejection, file-fault, and per-line scan logic the two packages
+currently duplicate near-verbatim. This is a deferred code-maintainability
+hardening extension surfaced by the audit of step 7.1; it does not advance the
+step-7.1 hypothesis (the per-novel ledger pack already ships and the per-hit
+contract is settled) and it does not gate the deterministic spine.
+
+- [ ] 7.25.1. Consolidate the rule-pack and device-ledger TOML-loading and scan
+  primitives onto shared, error-factory-parameterised helpers.
+  - Reroute (source: audit:7.1.2; severity: medium). `_coerce` (an explicit
+    "deliberate near-copy"), `_entries`, `_compile_pattern`,
+    `_reject_duplicate_ids`, the `load_*` file-fault body, and the per-line
+    `_scan_*` are duplicated near-verbatim across the `rulepack` and `ledger`
+    packages, differing only in error type and noun. This does not serve the
+    step-7.1 hypothesis — it is cross-cutting code-quality consolidation, not the
+    per-novel-pack extension — so it is rerouted here. Extract shared coercion
+    primitives parameterised on an error factory plus a shared `scan_pattern`,
+    routing both packages through them while keeping each package's typed error
+    channel (`RulePackError`/`RulePackFileError` versus
+    `LedgerError`/`LedgerFileError`) and its device/rule-specific messages
+    unchanged, so a third pack family inherits the primitives instead of
+    cloning a third copy.
+  - Requires 7.1.2.
+  - See novel-ralph-harness-design.md §6.1, §6.2, and §6.3;
+    novel_ralph_skill/rulepack/ (`_coerce.py`, `parse.py`, `detect.py`);
+    novel_ralph_skill/ledger/ (`_coerce.py`, `parse.py`, `detect.py`).
+  - Success: one shared module owns the coercion, entry-extraction,
+    pattern-compilation, duplicate-id, file-fault, and per-line scan primitives;
+    both the rule-pack and ledger packages consume them rather than carrying
+    near-verbatim copies; each package's typed error type, exit-code mapping, and
+    operator messages are unchanged; and the rule-pack and ledger suites stay
+    green.

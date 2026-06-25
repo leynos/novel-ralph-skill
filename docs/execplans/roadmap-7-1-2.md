@@ -1080,3 +1080,32 @@ Quality method (how we check):
   the constraint-combination semantics fixed in the Decision Log (at most one
   window constraint per device, `max_count` may pair with one window, a
   ration-less device rejected) with the ambiguity Tolerance pre-tripped.
+
+## Addenda (post-merge follow-ups)
+
+Lightweight addendum work items folded back onto this completed task from the
+review and audit of step 7.1. Execute each as a small addendum pass — no plan or
+design-review cycle: make the change, run `make all` (plus
+`make markdownlint`/`make nixie` for Markdown), `coderabbit review --agent`,
+commit, and tick the matching roadmap sub-task on merge. The substantial
+follow-ups surfaced alongside these — the must-appear ration floor (roadmap
+7.1.8), the ledger detector's line-wrap limitation (roadmap 7.13.3), and the
+rule-pack/ledger loader-and-scan primitive consolidation (roadmap 7.25.1) —
+warrant their own plans and are filed as full tasks; this is the small
+fault-routing and gate correction only.
+
+- [ ] 7.1.2.1 — Fix the recurring MD012 double-blank in `developers-guide.md`
+  introduced by the 7.1.2 merge (from audit:7.1.2, medium). The 7.1.2 commit left
+  a second consecutive blank line above the "The device ledger and per-novel
+  rationing" heading, reddening the whole-tree `make markdownlint` gate on `main`
+  (the same MD012 defect audit:7.1.1 Finding 7 caught before it); delete the
+  surplus blank line so the documentation gate is green. The structural
+  prevention — folding the doc-lint gates into the author's pre-merge gate — is
+  owned by roadmap 7.24.3 and is not duplicated here. Gate with `make markdownlint`.
+- [ ] 7.1.2.2 — Reject `--pack` combined with `--ledger` as an exit-2 usage error
+  (from review:7.1.2, low). On the ledger path `_dispatch` returns `ledger_scan`
+  and never reads `pack`, so an operator's `--pack` selection is silently dropped,
+  contradicting the developers' guide framing of `--ledger` as a scan "instead of
+  the rule-pack scan"; raise a body-detected `DesloppifyUsageError` mirroring the
+  existing `--ledger` + `--chapter` rejection so the combination exits 2 and names
+  the conflict rather than ignoring the pack. Gate with `make all`.

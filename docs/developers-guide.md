@@ -1103,7 +1103,6 @@ with `offenders.toml` and because a manuscript capitalizes a tell at a sentence
 start or in a chapter title. The inline `(?i)` is never a compile flag; the
 loader still compiles every pattern with no flags.
 
-
 ### The device ledger and per-novel rationing
 
 Roadmap task 7.1.2 adds a parallel detection family: the *device ledger*, a
