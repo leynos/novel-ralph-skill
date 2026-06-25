@@ -84,7 +84,6 @@ discharges the duplication and cross-module-import findings recorded in
 `pyproject` parse and the divergent dependency-name normaliser, both now folded
 onto the shared fixtures).
 
-
 ### The combinatorial command-surface matrix
 
 [`tests/test_command_surface_matrix.py`](../tests/test_command_surface_matrix.py)
