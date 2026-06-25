@@ -1963,6 +1963,20 @@ packs inherit before they land. See novel-ralph-harness-design.md §6.2 and §6.
     a distinct under-floor breach with exit 4; the negative-window reads are
     unchanged; design §6.3 and the developers' guide record the floor; and the
     existing ledger suites stay green.
+- [ ] 7.1.9. Ship a filter-word and copular-overuse density pack.
+  - Requires 5.1.2.
+  - The shipped packs catch fixed clichés but nothing for the most common
+    prose-slop dimension: overuse of filter words and copular verbs (`was`,
+    `just`, `really`, `felt`, `looked`, `seemed`, `started to`, `began to`). Add
+    a versioned `filter-words.toml` pack of `per_page` density rules — each a
+    word-boundaried pattern with a tuned threshold so the rule flags *overuse*,
+    not every legitimate use — selectable like the ai-isms pack (7.1.6) and
+    combinable (7.1.7). Calibrate thresholds against the working/ fixture corpus
+    to avoid fiction false-positives (cf. 7.13).
+  - See novel-ralph-harness-design.md §6.1 and adr-001-deterministic-judgemental-boundary.md.
+  - Success: `novel desloppify --pack filter-words.toml` flags a `was`-heavy or
+    filter-word-heavy draft with per-rule density and threshold, passes a clean
+    draft, and the thresholds do not fire on a calibrated corpus baseline.
 
 ### 7.2. Clean-context judgemental passes
 
@@ -3597,3 +3611,32 @@ from §7.25 (the loader and scan primitives, explicitly not the projection) and
     per-hit payload projection is unchanged; the §3.2 exit-code contract and the
     slimmed clean-pass findings contract are preserved; and the desloppify and
     ledger suites (including the snapshot suites) stay green.
+
+### 7.28. Extend desloppify to sentence-level structural detection
+
+This step answers whether the deterministic detector can catch structural prose
+slop that no per-line pattern can express — chiefly repeated sentence openers
+(`She… She… She…`) — by adding a sentence-aware detection mode alongside the
+existing `manuscript`/`per_page` pattern bases. Its outcome is that mechanical,
+countable structural repetition is caught deterministically rather than left to
+the judgemental line-editor pass (§7.2), per ADR 001.
+
+- [ ] 7.28.1. Add a structural sentence-opener detection mode to desloppify.
+  - Requires 5.1.2.
+  - The detector is line-based `re.finditer` with a closed `RuleBasis` of
+    `manuscript`/`per_page`, so it can anchor a pattern to sentence-initial
+    position but cannot compare openers across sentences; repeated sentence
+    openers and other cross-sentence repetition are therefore undetectable. Add
+    a sentence-aware detection mode (a new `RuleBasis` or rule kind) that
+    segments the text into sentences and flags runs of consecutive sentences
+    sharing an opening token (configurable run length and scope), reported as a
+    deterministic finding with line numbers and the repeated opener. Record the
+    detection model extension and the sentence-segmentation choice (stdlib-only,
+    no new heavy dependency) as an ADR. Keep the existing pattern bases and all
+    current packs unchanged.
+  - See novel-ralph-harness-design.md §6.1, §6.3, and
+    adr-001-deterministic-judgemental-boundary.md.
+  - Success: a draft with three or more consecutive sentences opening on the same
+    word is flagged deterministically with the run and line numbers; a varied
+    draft passes; the existing `manuscript`/`per_page` rules and packs are
+    unaffected; and the segmentation adds no heavy dependency.
