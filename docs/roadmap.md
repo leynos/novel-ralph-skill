@@ -234,21 +234,47 @@ docs/scripting-standards.md.
       `novel`, exits 2) yet is unpinned, so a regression in `_command_name_for`
       or the parent's command routing could go uncaught. Lightweight addendum
       pass.
-- [ ] 1.2.13. Migrate the e2e and contract suites to `novel` and remove the
-  legacy entry points.
+- [ ] 1.2.13. Migrate the e2e and contract suites to invoke `novel <sub>`.
   - Requires 1.2.12.
-  - Migrate the installed-binary e2e tests and the contract/command-name suites
-    to invoke `novel <sub>`, then remove the five legacy `[project.scripts]`
-    entries (`novel-state`, `novel-done`, `novel-compile`, `desloppify`,
-    `wordcount`) and the transitional legacy-name superset added in 1.2.12, so
-    `novel` is the only entry point.
+  - Re-point the installed-binary e2e tests and the contract/command-name suites
+    to invoke `novel <sub>` instead of the legacy console-scripts. This is an
+    ADDITIVE migration: the five legacy `[project.scripts]` entries and the
+    `COMMAND_NAMES`/`COMMAND_ENTRY_POINTS` symbols stay in place (removed in
+    1.2.15), so the legacy-vs-multiplexer parity tests still have their oracle
+    and the change is low-risk and independently landable. Do not delete any
+    entry point or registry symbol here.
+  - See adr-007-command-surface-novel-multiplexer.md and AGENTS.md (testing).
+  - Success: every e2e and contract test invokes `novel <sub>`; the legacy entry
+    points and registry symbols are untouched and still pass; `make all`
+    (including the installed-binary e2e) is green.
+- [ ] 1.2.15. Remove the legacy entry points and command-name registry symbols.
+  - Requires 1.2.13.
+  - Remove the five legacy `[project.scripts]` entries (`novel-state`,
+    `novel-done`, `novel-compile`, `desloppify`, `wordcount`), the transitional
+    legacy-name superset, and the now-dead `COMMAND_NAMES`/`COMMAND_ENTRY_POINTS`/
+    `STUB_MODULE` symbols, so `novel` is the only entry point. Do the removal
+    complete-by-construction: (1) first enumerate every consumer of those symbols
+    with a grep that states the expected consumer set; (2) re-point each consumer
+    AND drop the symbol from its import line in the same step, so no import line
+    is left dangling; (3) gate the `names.py` deletion behind a grep that must
+    return no match in `tests/` and `novel_ralph_skill/` before it runs — a
+    leftover import would otherwise pass every earlier step and collapse `make
+    all` at collection time only when the symbol is deleted. Rework the
+    legacy-vs-multiplexer parity tests, which lose their legacy oracle here: the
+    plan must specify the replacement concretely — either a reusable per-operation
+    expectation (expected exit code AND envelope, modulo `command`, on the
+    drafting corpus tree) or, if the envelope-equality coverage is consciously
+    dropped, justify the reduced exit-code-and-command-name assertion in the
+    execplan Decision Log. Make that judgement in the plan, not in the
+    implementer.
   - See adr-007-command-surface-novel-multiplexer.md and AGENTS.md (testing).
   - Success: `uv tool install` puts exactly one command, `novel`, on `PATH`; no
-    `novel-x`, `desloppify`, or `wordcount` entry point remains; every test
-    invokes `novel <sub>`; and `make all` (including the installed-binary e2e)
-    is green.
+    `novel-x`/`desloppify`/`wordcount` entry point and no `COMMAND_NAMES`/
+    `COMMAND_ENTRY_POINTS` symbol remains; the parity coverage is preserved or its
+    reduction is justified in the Decision Log; and `make all` (including the
+    installed-binary e2e) is green.
 - [ ] 1.2.14. Sweep the design and skill prose to the `novel` multiplexer.
-  - Requires 1.2.13.
+  - Requires 1.2.15.
   - Update the design prose and diagrams and `SKILL.md` (including the Setup
     section and every bare `novel-x` reference) from the `novel-x` form to the
     `novel x` form, so no documentation describes the retired separate scripts.
