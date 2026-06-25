@@ -53,6 +53,7 @@ from novel_ralph_skill.commands._state_mutators import (
 from novel_ralph_skill.contract.exit_codes import ExitCode
 from novel_ralph_skill.contract.runner import CommandOutcome
 from novel_ralph_skill.state import (
+    SET_CHAPTERS_OPERATION,
     ReconcileAction,
     Reconciliation,
     clear_pending_turn,
@@ -147,6 +148,22 @@ def _recount_edit(
     return _edit
 
 
+def _create_missing_chapter_dirs(
+    reconciliation: Reconciliation, working_dir: pathlib.Path
+) -> None:
+    """Materialise the missing ``chapter-NN/`` dirs a torn ``set-chapters`` declares.
+
+    Derives the directories from ``reconciliation.missing_paths`` (the
+    declared-but-missing chapter-dir paths, ``working/…``-rooted), not a re-read
+    manifest, so the recovery fabricates no agent judgement — the manifest is
+    already on disk (D10). Creation is idempotent (``mkdir(parents=True,
+    exist_ok=True)``) and deletes nothing (Constraint "no deletion").
+    """
+    for path in reconciliation.missing_paths:
+        relative = path.removeprefix("working/")
+        (working_dir / relative).mkdir(parents=True, exist_ok=True)
+
+
 def _pending_turn_edit(
     reconciliation: Reconciliation,
     working_dir: pathlib.Path,
@@ -155,18 +172,30 @@ def _pending_turn_edit(
 
     For a COMPLETE whose missing declared paths include ``state.toml``, the edit
     re-derives ``[word_counts]`` from the drafts (the recomputable artefact). For a
-    ROLLBACK, or a COMPLETE whose only missing artefact is the ``log.md`` receipt
-    (written by the bracket's own step 3), the edit makes no further state change.
-    The bracket's step 1 has already replaced the torn ``[pending_turn]`` with
-    reconcile's own record, and step 4 clears it, so the torn record is gone either
-    way; this edit never deletes a ``working/`` file (Constraint "no deletion").
+    COMPLETE of a torn ``set-chapters`` turn (Work item 3a) the edit instead creates
+    each missing ``chapter-NN/`` directory the persisted manifest declares (ADR 008,
+    D8). For a ROLLBACK, or a COMPLETE whose only missing artefact is the ``log.md``
+    receipt (written by the bracket's own step 3), the edit makes no further state
+    change. The bracket's step 1 has already replaced the torn ``[pending_turn]``
+    with reconcile's own record, and step 4 clears it, so the torn record is gone
+    either way; this edit never deletes a ``working/`` file (Constraint "no
+    deletion").
     """
     writes_state = any(
         path.endswith("state.toml") for path in reconciliation.missing_paths
     )
+    completes_set_chapters = (
+        reconciliation.action is ReconcileAction.COMPLETE_PENDING_TURN
+        and reconciliation.operation == SET_CHAPTERS_OPERATION
+    )
 
     def _edit(document: TOMLDocument) -> None:
-        """Re-derive ``[word_counts]`` when ``state.toml`` is a missing artefact."""
+        """Recompute ``[word_counts]`` or create the torn turn's chapter directories."""
+        if completes_set_chapters:
+            # The chapter dirs are deterministic, manifest-derived artefacts; the
+            # persisted manifest is the agent's judgement and is left untouched.
+            _create_missing_chapter_dirs(reconciliation, working_dir)
+            return
         if not writes_state:
             return
         from novel_ralph_skill.state import disk_word_counts

@@ -237,10 +237,10 @@ yet done" of code 1 and looping on.
 Read-only checkers are strictly separated from mutators so the harness can call
 checkers freely without side effects:
 
-| Class               | Commands and subcommands                                                                               | Writes                                         |
-| ------------------- | ------------------------------------------------------------------------------------------------------ | ---------------------------------------------- |
-| Checker (read-only) | `novel-done`, `novel-state check`, `wordcount`, `desloppify` (detect), `novel-compile --check`         | None                                           |
-| Mutator             | `novel-state init` / `set-cursor` / `advance-phase` / `recount` / `reconcile`, `novel-compile` (write) | `state.toml`, `working/manuscript/compiled.md` |
+| Class               | Commands and subcommands                                                                                                | Writes                                                                           |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| Checker (read-only) | `novel-done`, `novel-state check`, `wordcount`, `desloppify` (detect), `novel-compile --check`                          | None                                                                             |
+| Mutator             | `novel-state init` / `set-cursor` / `advance-phase` / `recount` / `reconcile` / `set-chapters`, `novel-compile` (write) | `state.toml`, `working/manuscript/chapter-NN/`, `working/manuscript/compiled.md` |
 
 ### 3.4 Atomic writes
 
@@ -289,6 +289,7 @@ All state mutation hides behind validated subcommands. Direct editing of
 | `set-cursor`    | Mutator | Advance the drafting cursor (chapter, scene, beat); refuses incoherent cursors                                                                    |
 | `advance-phase` | Mutator | Move `phase.current` to the next enum member; refuses skips and out-of-order completion                                                           |
 | `recount`       | Mutator | Re-derive `word_counts.current` and `by_chapter` from chapter drafts on disk                                                                      |
+| `set-chapters`  | Mutator | Populate the `[chapters]` manifest from the agent's plan, create the chapter directories, and refuse an incoherent plan (§5.1; ADR 008)           |
 | `check`         | Checker | Validate every invariant (§5.2), assert the chapter-manifest-to-disk bijection (§5.2), and report any divergence from disk (§5.4) without writing |
 | `reconcile`     | Mutator | Write the disk-authoritative reconciliation `check` reports, bringing `state.toml` back into agreement with disk (§5.4)                           |
 
@@ -454,8 +455,12 @@ The validated schema adds three fields beyond the reference structure:
 
 - `[chapters]` — the chapter manifest: an ordered record of each planned
   chapter (number, slug, title, target words), written by the validated
-  chapter-manifest command (roadmap 2.2.3) when chapter planning completes —
-  never by a direct `state.toml` edit, per ADR 001. It is the authoritative set
+  chapter-manifest command `novel-state set-chapters` (roadmap 2.2.3; ADR 008)
+  when chapter planning completes — never by a direct `state.toml` edit, per
+  ADR 001. `set-chapters` also creates the on-disk `chapter-NN/` directories and
+  persists the populated manifest **at the intent write** (together with the
+  `[pending_turn]` record, before any directory), because the manifest is the
+  agent's non-recomputable judgement (ADR 008; §5.4). It is the authoritative set
   against which `novel-state check`
   validates the on-disk chapter directories (§5.2), and its order mirrors the
   zero-padded directory index `novel-compile` uses (§4.3).
@@ -614,9 +619,26 @@ agent judgement:
    drafted sum, and the drafted-sum rule therefore discards no count that disk
    genuinely holds.
 2. **An uncleared `[pending_turn]`.** Completed (when every missing declared
-   artefact is recomputable — `state.toml`/`log.md`) or rolled back (when an
-   unrecoverable artefact, a `draft.md` or a `done.flag`, did not land),
-   exactly as above.
+   artefact is recomputable — `state.toml`/`log.md`, **and now an empty
+   `chapter-NN/` directory declared by a torn `set-chapters` turn**) or rolled
+   back (when an unrecoverable artefact, a `draft.md` or a `done.flag`, did not
+   land), exactly as above. A torn `set-chapters` turn (roadmap 2.2.3; ADR 008)
+   is the case that amends the recomputable-artefact set: because `set-chapters`
+   persists its populated manifest *at the intent write* (before any directory),
+   a crash in the directory-creation window leaves the agent's judgement on disk
+   with only empty, manifest-derived directories outstanding. Those directories
+   carry no judgement and are wholly derivable from the persisted manifest —
+   recomputable exactly like `log.md` — so `reconcile` COMPLETEs the turn by
+   creating them. This pairs with a **scoped precedence change**: the
+   `manifest-disk-bijection` refuse-class normally dominates (a non-bijective
+   manifest is a loud error), but a `set-chapters` `[pending_turn]` whose *only*
+   fired refuse-class violation is a `manifest-disk-bijection` **fully explained
+   by** its declared-but-missing chapter directories is classified ahead of the
+   refuse arm and COMPLETEs. Any *unexplained* bijection break — a stray draft,
+   an orphan directory, a manifest gap the pending turn does not account for, or
+   a second refuse-class violation — still REFUSEs, so the §5.4 invariant that
+   disk contradictions `reconcile` cannot resolve are refused is preserved
+   (ADR 008).
 3. **A `log.md` absent beside a present `state.toml`.** The partial-`init`
    bootstrap: `init` writes `state.toml` first and `log.md` second and refuses
    any re-run while `state.toml` exists (roadmap task 2.3.4), so a crash between

@@ -261,6 +261,17 @@ class WordCounts:
         object.__setattr__(self, "by_chapter", freeze_mapping(self.by_chapter))
 
 
+SET_CHAPTERS_OPERATION: typ.Final = "set-chapters"
+"""The ``[pending_turn].operation`` tag the ``set-chapters`` mutator brackets with.
+
+Named once here, beside :class:`PendingTurn`, so the writer
+(:mod:`novel_ralph_skill.commands._set_chapters`) and the reconcile derivation
+(:mod:`novel_ralph_skill.state.reconcile`) key the torn-turn recovery on one
+literal rather than repeating the string (roadmap task 2.2.3; ExecPlan Decision
+Log D8).
+"""
+
+
 @dataclasses.dataclass(frozen=True, kw_only=True, slots=True)
 class PendingTurn:
     """The ``[pending_turn]`` table: an in-flight multi-file write intent.

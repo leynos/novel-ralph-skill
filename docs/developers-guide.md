@@ -279,10 +279,12 @@ with distribution in
 [adr-004-distribution-console-scripts.md](adr-004-distribution-console-scripts.md)):
 
 - `novel-state` — the only path that mutates `state.toml`. Subcommands
-  `init`, `set-cursor`, `advance-phase`, and `recount` are mutators; `check` is
-  a read-only checker that reports divergence from disk and exits 4;
-  `reconcile` is the mutator that writes the disk-authoritative reconciliation
-  `check` reports. See design §4.1 and §5.4.
+  `init`, `set-cursor`, `advance-phase`, `recount`, and `set-chapters` are
+  mutators; `check` is a read-only checker that reports divergence from disk and
+  exits 4; `reconcile` is the mutator that writes the disk-authoritative
+  reconciliation `check` reports. `set-chapters` populates the `[chapters]`
+  manifest from the agent's plan and creates the chapter directories (roadmap
+  2.2.3; ADR 008). See design §4.1, §5.1, and §5.4.
 - `novel-done` — the done predicate as code, evaluated per clause against
   disk. See design §4.2.
 - `novel-compile` — regenerates `working/manuscript/compiled.md`
@@ -321,12 +323,13 @@ helper are deferred to roadmap step 1.3.
 
 Read-only checkers (`novel-done`, `novel-state check`, `wordcount`,
 `desloppify`, `novel-compile --check`) write nothing, so the harness can call
-them freely. Mutators (`novel-state init`/`set-cursor`/`advance-phase`/
-`recount`/`reconcile` and `novel-compile`) are the only commands that touch
-`state.toml` or `compiled.md`, and every write is atomic via a temporary file
-plus `Path.replace`. Only the *genuinely multi-file* writer (`reconcile`)
-brackets its writes with a `[pending_turn]` intent record so a torn multi-file
-turn is recoverable. The single-file mutators (`init`/`set-cursor`/
+them freely. Mutators (`novel-state
+init`/`set-cursor`/`advance-phase`/`recount`/`reconcile`/`set-chapters` and
+`novel-compile`) are the only commands that touch `state.toml` or `compiled.md`,
+and every write is atomic via a temporary file plus `Path.replace`. The
+*genuinely multi-file* writers — `reconcile` and `set-chapters` — bracket their
+writes with a `[pending_turn]` intent record so a torn multi-file turn is
+recoverable. The single-file mutators (`init`/`set-cursor`/
 `advance-phase`/`recount`/`novel-compile`) write one file per `Path.replace` and
 open **no** `[pending_turn]` bracket — `recount` re-derives only
 `[word_counts]` in `state.toml` (design §4.1 line 271), and a recount is named
@@ -362,6 +365,27 @@ subsequent `reconcile` re-derives and finishes, and a completed run leaves a
 coherent tree with the receipt on disk. `reconcile` deletes no `working/` file
 on any path; a rollback clears the record and leaves the partial artefacts in
 place, unreferenced.
+
+`set-chapters` (roadmap task 2.2.3; ADR 008) is the second genuinely multi-file
+mutator: it writes `state.toml`, creates the `working/manuscript/chapter-NN/`
+directories, and appends a `log.md` receipt under its own `[pending_turn]`
+bracket. Its ordering **deliberately differs** from `reconcile`'s. `reconcile`'s
+payload (the recount) is recomputable from disk, so it persists last; a crash in
+the window loses nothing the next `reconcile` cannot re-derive. `set-chapters`'s
+payload (slug, title, target words) is the agent's *judgement*, recoverable from
+nowhere else, so the populated `[chapters]` manifest is edited into the document
+and persisted **together with** the `[pending_turn]` record in the *first* atomic
+write, before any directory is created — then the directories are created, the
+receipt is appended, and the bracket clears last. Every torn state from the first
+write onward therefore carries the full manifest on disk with only empty,
+manifest-derived directories outstanding. Those empty directories are recomputable
+*given the persisted manifest* — they carry no agent judgement and are wholly
+derivable from it, exactly like `log.md` — so `reconcile` COMPLETEs a torn
+`set-chapters` turn by creating them. This is the scoped precedence branch in
+`derive_reconciliation`: a `set-chapters` `[pending_turn]` whose only fired
+refuse-class violation is a `manifest-disk-bijection` fully explained by its
+missing chapter directories is classified ahead of the bijection REFUSE; any
+unexplained break still REFUSEs (design §5.4; ADR 008).
 
 ### The shared JSON envelope
 

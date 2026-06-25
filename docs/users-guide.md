@@ -234,6 +234,32 @@ refusal (exit `3`) — a missing or unparseable `state.toml`, an unreadable
 draft, or a recount that would leave the state incoherent each leaves the prior
 file untouched.
 
+`novel-state set-chapters` (roadmap task 2.2.3) populates the `[chapters]`
+manifest from your chapter plan — the one sanctioned way a planned chapter
+reaches `[chapters]` (never a hand edit). You pass the plan as a single JSON
+array argument:
+
+```bash
+novel-state set-chapters --chapters '[
+  {"number": 1, "slug": "the-summons", "title": "The Summons", "target_words": 3200},
+  {"number": 2, "slug": "the-road", "title": "The Road", "target_words": 2800}
+]'
+```
+
+On success (exit `0`) it writes `[chapters]` in ascending number order, creates
+the on-disk `working/manuscript/chapter-NN/` directories, appends a `log.md`
+receipt, and returns the written chapters in `result.chapters`; a follow-up
+`novel-state check` then exits `0` because the manifest and the directories are
+in bijection. It refuses with exit `3` — writing nothing — when the plan is
+incoherent (numbers not contiguous from 1, a duplicate number or slug, a
+non-positive target, or an empty plan) or when `[chapters]` is **already
+populated** (`set-chapters` is a one-shot populate, not an editor; re-planning is
+a separate concern). A malformed `--chapters` argument — JSON that does not
+parse, or a missing or wrong-typed field — is a usage error and exits `2`. If the
+command is interrupted mid-write, recover by running `novel-state reconcile`
+(which completes the torn turn by creating the missing chapter directories),
+never by re-running `set-chapters` or editing the tree by hand.
+
 `novel-state reconcile` (roadmap task 2.3.2) carries out the repair
 `novel-state check` reports when `state.toml` has drifted from the on-disk
 manuscript — the recovery routine you used to run by hand, now run as code. It
@@ -245,7 +271,11 @@ payload from `check`), then:
   entry) — it rewrites `[word_counts]` from the drafts (a recount) and exits `0`;
 - when `state.toml` left an uncleared `[pending_turn]`, it completes or rolls
   the
-  torn turn back (it never fabricates a draft or a `done.flag`) and exits `0`;
+  torn turn back (it never fabricates a draft or a `done.flag`) and exits `0`.
+  This includes a torn `set-chapters` turn — a populated manifest with one or
+  more `chapter-NN/` directories still missing: `reconcile` completes it by
+  creating the missing, manifest-derived directories and clearing the record
+  (ADR 008);
 - when `log.md` is absent beside a present `state.toml` — the partial-`init`
   bootstrap, where a crash struck between `init`'s two writes (`state.toml`
   first, `log.md` second) and re-running `init` refuses — it recreates an empty
@@ -272,12 +302,13 @@ judgement, not a deterministic recompute.
 
 `result.violations` is the *checker's* read shape: it belongs to
 `novel-state check` alone. The write subcommands (`init`, `set-cursor`,
-`advance-phase`, `recount`, `reconcile`) instead report *what they changed* in
-`result` — `set-cursor` returns the cursor it set, `advance-phase` returns the
-`{from, to}` transition, `recount` returns the `{current, by_chapter}` counts
-it wrote, and `reconcile` returns the `{action, discrepancies, detail}` it
-enacted (plus the written counts for a recount) — so do not expect a
-`violations` key from a write.
+`advance-phase`, `recount`, `reconcile`, `set-chapters`) instead report *what
+they changed* in `result` — `set-cursor` returns the cursor it set,
+`advance-phase` returns the `{from, to}` transition, `recount` returns the
+`{current, by_chapter}` counts it wrote, `reconcile` returns the
+`{action, discrepancies, detail}` it enacted (plus the written counts for a
+recount), and `set-chapters` returns the `{chapters}` it wrote — so do not
+expect a `violations` key from a write.
 
 `desloppify` reports prose tics (roadmap task 5.1.2). It reads the chapter
 drafts under `./working/`, scans them against a versioned rule pack — the §6

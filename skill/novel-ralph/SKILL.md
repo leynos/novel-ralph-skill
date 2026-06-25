@@ -320,8 +320,31 @@ For each chapter (typically 20–35 for a novel of 80–100k words), record:
   beats.
 - **Target word count.**
 
+Once the outline is complete, record the planned chapters in `[chapters]` by
+running `novel-state set-chapters` — **never** by hand-editing `state.toml`. Pass
+the whole plan as one single-quoted JSON array so a ~35-chapter plan quotes
+cleanly:
+
+```bash
+novel-state set-chapters --chapters '[
+  {"number": 1, "slug": "the-summons", "title": "The Summons", "target_words": 3200},
+  {"number": 2, "slug": "the-road", "title": "The Road", "target_words": 2800}
+]'
+```
+
+Each object carries `number` (one-based, contiguous from 1), `slug`
+(filesystem-safe, unique), `title`, and `target_words` (at least 1). The command
+populates `[chapters]`, creates the `working/manuscript/chapter-NN/` directories,
+and exits `0`; an incoherent plan (a gap, a duplicate number or slug, a
+non-positive target) or an already-populated manifest is refused with exit `3`
+and writes nothing, and a malformed `--chapters` argument exits `2`. If the
+command is interrupted mid-write, recover by running `novel-state reconcile`
+(which completes the torn turn) — never by re-running `set-chapters` or editing
+the tree by hand.
+
 **Exit:** chapter-outline.md exists; every STC beat is covered by at least one
-chapter; every chapter has a non-trivial outcome.
+chapter; every chapter has a non-trivial outcome; and `[chapters]` is populated
+via `novel-state set-chapters` so `novel-state check` exits `0`.
 
 ### Phase 8 — Drafting (the inner Ralph loop)
 

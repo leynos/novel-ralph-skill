@@ -27,8 +27,9 @@ carries — see the ``Carried gaps`` section below.
 Read surface (the phase-sensitive query commands). ``novel-state`` is a
 multi-subcommand surface; this matrix treats its ``check`` *query* as the
 phase-read unit and excludes its mutators (``init``, ``set-cursor``,
-``advance-phase``, ``recount``, ``reconcile``), which are command/query
-segregated (§3.3) and owned by their own suites and by tasks 6.2.2/6.2.5. The
+``advance-phase``, ``recount``, ``reconcile``, ``set-chapters``), which are
+command/query segregated (§3.3) and owned by their own suites and by tasks
+6.2.2/6.2.5. The
 other four commands register a single default callback. ``novel-compile`` is
 driven with ``["--check"]`` (the read-only divergence checker), **never** ``[]``:
 the bare ``[]`` argv runs the write path, which mutates ``compiled.md`` and emits
@@ -53,8 +54,9 @@ snapshot still pins it verbatim.
 Carried gaps (documented rather than silently omitted, §9 lines 819-821):
 
 - **Mutator x phase** cross-products. ``novel-state``'s mutators (``init``,
-  ``set-cursor``, ``advance-phase``, ``recount``, ``reconcile``) and
-  ``novel-compile``'s write path are command/query segregated (§3.3) and are not
+  ``set-cursor``, ``advance-phase``, ``recount``, ``reconcile``, ``set-chapters``)
+  and ``novel-compile``'s write path are command/query segregated (§3.3) and are
+  not
   the phase-read surface this task targets; they are covered by their own suites
   and by tasks 6.2.2/6.2.5.
 - **Exhaustive eleven-phase cross-product** for the manifest-sensitive commands.

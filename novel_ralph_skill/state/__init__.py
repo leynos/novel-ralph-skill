@@ -19,6 +19,9 @@ live in the ``commands`` package.
 
 from __future__ import annotations
 
+from novel_ralph_skill.state._disk_paths import (
+    _chapter_dir_name as chapter_dir_name,
+)
 from novel_ralph_skill.state._disk_word_counts import (
     WORD_COUNTS_COVER_DRAFTS,
     WORD_COUNTS_MATCH_DRAFTS,
@@ -59,6 +62,7 @@ from novel_ralph_skill.state.reconcile import (
     derive_reconciliation,
 )
 from novel_ralph_skill.state.schema import (
+    SET_CHAPTERS_OPERATION,
     ChapterEntry,
     CriticState,
     Drafting,
@@ -109,6 +113,7 @@ __all__ = [
     "PHASE_IN_ENUM",
     "PHASE_ORDER",
     "PURE_STATE_INVARIANT_NAMES",
+    "SET_CHAPTERS_OPERATION",
     "WORD_COUNTS_COVER_DRAFTS",
     "WORD_COUNTS_MATCH_DRAFTS",
     "ChapterEntry",
@@ -130,6 +135,7 @@ __all__ = [
     "Violation",
     "WordCounts",
     "build_initial_document",
+    "chapter_dir_name",
     "check_disk_evidence",
     "clear_pending_turn",
     "compiled_matches_drafts",

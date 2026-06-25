@@ -11,14 +11,49 @@ the AGENTS.md 400-line cap once the §5.4 word-count twins are split out).
 from __future__ import annotations
 
 import typing as typ
+from pathlib import PurePosixPath
 
 if typ.TYPE_CHECKING:
+    import collections.abc as cabc
     from pathlib import Path
 
 
 def _chapter_dir_name(number: int) -> str:
     """Return the ``chapter-NN`` directory name for a one-based chapter number."""
     return f"chapter-{number:02d}"
+
+
+def _chapter_number_of(pure: PurePosixPath) -> int | None:
+    """Return the chapter number of a ``manuscript/chapter-NN`` path, else ``None``.
+
+    ``None`` signals a path that is not a well-formed chapter directory under
+    ``manuscript/`` (so the caller treats the declaration as malformed).
+    """
+    if pure.parent.name != "manuscript" or not pure.name.startswith("chapter-"):
+        return None
+    suffix = pure.name.removeprefix("chapter-")
+    return int(suffix) if suffix.isdigit() else None
+
+
+def _declared_chapter_numbers(paths: cabc.Sequence[str]) -> set[int] | None:
+    """Return the chapter numbers a ``set-chapters`` turn's ``chapter-NN/`` paths name.
+
+    Each declared chapter path ends in ``manuscript/chapter-NN``; the trailing
+    ``NN`` is parsed back to an integer. A ``state.toml`` path is skipped. Returns
+    ``None`` when *any* other path is not a well-formed ``chapter-NN`` directory
+    under ``manuscript/``, so a malformed declaration falls through to REFUSE rather
+    than being silently treated as explained (roadmap task 2.2.3, Work item 3a).
+    """
+    numbers: set[int] = set()
+    for path in paths:
+        pure = PurePosixPath(path)
+        if pure.name == "state.toml":
+            continue
+        number = _chapter_number_of(pure)
+        if number is None:
+            return None
+        numbers.add(number)
+    return numbers
 
 
 def _on_disk_chapter_numbers(working_dir: Path) -> set[int]:

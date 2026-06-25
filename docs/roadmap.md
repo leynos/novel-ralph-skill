@@ -724,7 +724,7 @@ novel-ralph-harness-design.md §3.4, §4.1, and §5.3.
       2.3.4 targets; correct the stale D3 prose in
       `docs/execplans/roadmap-2-2-2.md` so it agrees with the implemented
       direction. Lightweight addendum pass.
-- [ ] 2.2.3. Implement the validated chapter-manifest mutator that populates
+- [x] 2.2.3. Implement the validated chapter-manifest mutator that populates
   `[chapters]`.
   - Requires 2.1.1 and 2.2.2.
   - The chapter manifest is the one piece of state with no command to write it,

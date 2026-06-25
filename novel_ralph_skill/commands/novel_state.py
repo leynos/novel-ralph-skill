@@ -33,8 +33,10 @@ existing one). Its ``set-cursor`` and ``advance-phase`` siblings — the two
 mutators that load, edit, and re-write an existing ``state.toml`` — live in
 :mod:`novel_ralph_skill.commands._state_mutators` and are registered here; the
 ``recount`` mutator (task 2.3.1) lives in
-:mod:`novel_ralph_skill.commands._recount` and the ``reconcile`` mutator (task
-2.3.2) in :mod:`novel_ralph_skill.commands._reconcile`, both registered here too.
+:mod:`novel_ralph_skill.commands._recount`, the ``reconcile`` mutator (task
+2.3.2) in :mod:`novel_ralph_skill.commands._reconcile`, and the ``set-chapters``
+chapter-manifest mutator (task 2.2.3) in
+:mod:`novel_ralph_skill.commands._set_chapters`, all registered here too.
 """
 
 from __future__ import annotations
@@ -44,6 +46,15 @@ import pathlib
 import tomllib
 import typing as typ
 
+# ``ChapterPlanEntry`` is imported as a *runtime* module global (not under
+# ``TYPE_CHECKING``) because Cyclopts resolves the ``list[ChapterPlanEntry]``
+# annotation of the ``set-chapters`` subcommand against this function's module
+# ``__globals__`` (``get_type_hints``). It lives in a dependency-free leaf module,
+# so this import does not create the ``_set_chapters`` -> ``_state_mutators`` ->
+# ``novel_state`` cycle a direct ``_set_chapters`` import would.
+from novel_ralph_skill.commands._chapter_plan_entry import (
+    ChapterPlanEntry,  # noqa: TC001 - runtime global for Cyclopts annotation resolution
+)
 from novel_ralph_skill.contract.exit_codes import ExitCode
 from novel_ralph_skill.contract.runner import (
     CommandOutcome,
@@ -308,9 +319,9 @@ def build_app() -> cyclopts.App:
     :func:`novel_ralph_skill.contract.runner.run` owns every exit and envelope.
     Exposes the read-only ``check``
     subcommand, the ``init`` builder-mutator (roadmap task 2.2.2), the
-    ``set-cursor`` and ``advance-phase`` mutators (task 2.2.2), and the
-    ``recount`` mutator (task 2.3.1); the remaining ``reconcile`` mutator lands in
-    a later task.
+    ``set-cursor`` and ``advance-phase`` mutators (task 2.2.2), the
+    ``recount`` mutator (task 2.3.1), the ``reconcile`` mutator (task 2.3.2), and
+    the ``set-chapters`` chapter-manifest mutator (task 2.2.3).
 
     The signature is deliberately zero-argument and stable (later tasks import
     it): each body resolves its working directory from the process cwd (the fixed
@@ -322,7 +333,8 @@ def build_app() -> cyclopts.App:
     -------
     cyclopts.App
         The configured ``novel-state`` app exposing ``check``, ``init``,
-        ``set-cursor``, ``advance-phase``, ``recount``, and ``reconcile``.
+        ``set-cursor``, ``advance-phase``, ``recount``, ``reconcile``, and
+        ``set-chapters``.
     """
     # Imported inside the builder, not at module top: the mutator module imports
     # ``STATE_INPUT_ERRORS``/``WORKING_DIR_NAME`` from this module, so a top-level
@@ -369,5 +381,12 @@ def build_app() -> cyclopts.App:
         from novel_ralph_skill.commands import _reconcile
 
         return _reconcile.reconcile()
+
+    @app.command(name="set-chapters")
+    def set_chapters(*, chapters: list[ChapterPlanEntry]) -> CommandOutcome:
+        """Populate [chapters] from the agent's plan; refuse an incoherent plan."""
+        from novel_ralph_skill.commands import _set_chapters
+
+        return _set_chapters.set_chapters(chapters=chapters)
 
     return app

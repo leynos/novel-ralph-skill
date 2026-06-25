@@ -36,6 +36,12 @@ documentation set.
 - [ADR 006: console-scripts e2e is POSIX-only](adr-006-console-scripts-e2e-posix-policy.md)
   records why the wheel-build end-to-end test runs only where
   `os.name == "posix"`.
+- [ADR 007: command surface — a single `novel` multiplexer](adr-007-command-surface-novel-multiplexer.md)
+  supersedes ADR 005 and folds the surface into one `novel` multiplexer.
+- [ADR 008: the validated chapter-manifest mutator](adr-008-chapter-manifest-mutator.md)
+  records `novel-state set-chapters`: its input shape, the exit-2/exit-3 split,
+  directory creation, the manifest-at-intent-write ordering, and the torn-turn
+  recovery precedence.
 
 ## Project guides
 
