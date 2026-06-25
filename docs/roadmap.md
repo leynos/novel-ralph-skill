@@ -1744,6 +1744,22 @@ packs inherit before they land. See novel-ralph-harness-design.md §6.2 and §6.
     every rule at `count: 0` or only over-threshold findings; the contract is
     captured in the design or developers' guide; and 7.1.1/7.1.2 emit the chosen
     shape.
+  - [ ] 7.1.3.1. Extend the ledger snapshot fixture to a multi-device pack.
+    - Addendum (from review:7.1.3; low). The `_LEDGER` snapshot fixture is
+      single-device, so the end-to-end ledger envelope never exercises a passing
+      sibling device dropping out under violations-only slimming; add a
+      multi-device ledger fixture so the snapshot layer gets the same sibling-drop
+      coverage the rule-pack path's one-hit snapshot enjoys. Lightweight addendum
+      pass.
+  - [ ] 7.1.3.2. Derive the desloppify/ledger exit code from the slimmed failed
+    filter.
+    - Addendum (from audit:7.1.3; low). Both `report_outcome` and
+      `ledger_report_outcome` derive the exit code from `report.passed` while
+      `violations`/`findings` derive from the `failed` filter, leaving a latent
+      self-contradictory `ok: true` envelope with non-empty `violations`; compute
+      the code from the same `failed` list so the exit code and `violations`
+      cannot diverge by construction, and add a unit test pinning the invariant.
+      Lightweight addendum pass.
 - [ ] 7.1.4. Add a matched-text span (or human label) to each desloppify per-hit
   finding.
   - Reroute (source: review:5.1.2; severity: low). The per-hit `phrase` field
@@ -3434,3 +3450,50 @@ spine.
     each spelling the `{action, discrepancies, detail}` shape; the CQS read/write
     vocabulary split and the exit-code policy are unchanged; no behaviour changes;
     and the check, reconcile, and disk-evidence suites stay green.
+
+### 7.27. Single-home the finding-outcome envelope projection
+
+This step answers whether the desloppify and device-ledger success/finding
+envelope projections — `report_outcome` and `ledger_report_outcome`, made
+verbatim-identical in skeleton by the 7.1.3 slimming — can be reduced to one
+shared contract-package builder, so the violations-findings-messages assembly
+the two packs inherit cannot drift across the two files by hand. Its outcome is
+one home for the failed-filter, exit-code, `violations`/`findings`/`messages`
+skeleton, with each package injecting only its per-hit payload, id accessor,
+extra result keys, and clean-pass message. This is a deferred
+maintainability-hardening extension surfaced by the audit of step 7.1; it does
+not advance the step-7.1 hypothesis (the per-hit output contract is already
+settled by 7.1.3) and it does not gate the deterministic spine. It is distinct
+from §7.25 (the loader and scan primitives, explicitly not the projection) and
+§7.26 (the reconciliation payload projection).
+
+- [ ] 7.27.1. Extract the shared finding-outcome envelope skeleton into a
+  contract-package builder and route both projections through it.
+  - Reroute (source: audit:7.1.3; severity: medium). After 7.1.3, `report_outcome`
+    (`commands/_desloppify_report.py`) and `ledger_report_outcome`
+    (`ledger/report.py`) are verbatim-identical in skeleton — the failed filter,
+    the code ternary, and the `violations`/`findings`/`messages` assembly —
+    differing only in the per-hit payload, the id accessor (`rule_id` versus
+    `device_id`), extra result keys, and the clean-pass string. Without a shared
+    builder the multi-pack surface (7.1.6/7.1.7) and any change to the
+    violations-findings relationship must be kept in lockstep across two files by
+    hand. This does not serve the step-7.1 hypothesis — the per-hit output
+    contract is already settled — so it is rerouted here as cross-cutting
+    maintainability. Extract the shared skeleton into a contract-package builder
+    that injects each package's payload projection, id accessor, extra result
+    keys, and clean-pass message, leaving the per-hit payload untouched. The
+    exit-code-from-`failed` derivation tracked as addendum 7.1.3.2 folds into this
+    builder if 7.27.1 lands after it; if 7.27.1 lands first, derive the code from
+    the same `failed` list the builder filters.
+  - Requires 7.1.2.
+  - See novel-ralph-harness-design.md §4.4, §6.1, §6.2, and §6.3;
+    docs/adr-003-shared-interface-contract.md;
+    novel_ralph_skill/commands/_desloppify_report.py;
+    novel_ralph_skill/ledger/report.py.
+  - Success: one shared contract-package builder owns the failed-filter,
+    exit-code, and `violations`/`findings`/`messages` skeleton; both
+    `report_outcome` and `ledger_report_outcome` consume it, injecting only their
+    per-hit payload, id accessor, extra result keys, and clean-pass message; the
+    per-hit payload projection is unchanged; the §3.2 exit-code contract and the
+    slimmed clean-pass findings contract are preserved; and the desloppify and
+    ledger suites (including the snapshot suites) stay green.

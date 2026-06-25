@@ -926,3 +926,35 @@ red-green ordering, the Work item 2 validation paragraph, and the Risks
 over-ration ledger `.ambr` regenerates and to spell out per-block which `.ambr`
 blocks actually change. No work-item structure, scope, or file count changed; the
 edit set remains eight files.
+
+## Addenda
+
+Post-merge corrections folded onto this completed task. Each runs as a
+lightweight addendum pass (no plan, no design-review cycle): the change, the
+gates, and a merge. They are tracked as nested sub-tasks under 7.1.3 on the
+roadmap.
+
+- 7.1.3.1 — Extend the ledger snapshot fixture to a multi-device pack
+  (from review:7.1.3; low). The `_LEDGER` snapshot fixture
+  (`tests/test_ledger_snapshots.py:35-42`) is single-device (`sternum`), so the
+  end-to-end ledger envelope never exercises a passing sibling device dropping
+  out under violations-only slimming — only the new unit test covers that drop.
+  Round 3 of this plan corrected the over-ration test precisely because the
+  single-device fixture cannot show the drop. Add a multi-device ledger fixture
+  (one over-ration device beside an in-ration sibling) so the snapshot layer
+  gets the same sibling-drop coverage the rule-pack path's one-hit snapshot
+  enjoys, and regenerate the affected `.ambr` block. Test/fixture-only.
+
+- 7.1.3.2 — Derive the desloppify/ledger exit code from the slimmed failed
+  filter (from audit:7.1.3; low). In both `report_outcome`
+  (`commands/_desloppify_report.py`) and `ledger_report_outcome`
+  (`ledger/report.py`) the exit `code` derives from `report.passed` while
+  `violations`/`findings` derive independently from the `failed` filter, leaving
+  a latent path where a report whose `passed` disagrees with its findings emits
+  a self-contradictory `ok: true` envelope with non-empty `violations`. Compute
+  `code` from the same `failed` list (`SUCCESS` when empty else
+  `ACTIONABLE_FINDING`) so the exit code and `violations` cannot diverge by
+  construction, and add a unit test pinning the invariant. If the
+  finding-outcome envelope-projection consolidation (phase 7 reroute) lands
+  first, this derivation folds into the shared builder there. Localised
+  correctness fix plus one unit test.
