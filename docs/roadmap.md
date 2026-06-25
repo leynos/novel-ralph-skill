@@ -750,6 +750,15 @@ novel-ralph-harness-design.md §3.4, §4.1, and §5.3.
     through the command (no hand-edit); the command refuses a non-contiguous or
     incomplete manifest with exit 3; and `check`, `recount`, and `novel-compile`
     then operate correctly on the real chapter directories — proven end-to-end.
+  - [ ] 2.2.3.1. Make chapter-slug handling and documentation consistent with the
+    opaque `[novel].slug` stance.
+    - Addendum (from audit:2.2.3; low). `ChapterPlanEntry.slug` and
+      `ChapterEntry.slug` are documented "filesystem-safe" but nothing validates
+      them, while the opaque-slug decision is recorded only for `[novel].slug`;
+      soften the docstrings and record the opaque stance in ADR 008 / the
+      developers' guide, and add the `slug` field to SKILL Phase 7's outline
+      checklist, which omits it though set-chapters requires it. Lightweight
+      addendum pass.
 - [ ] 2.2.4. Add CLI mutators for the gate and drafting sub-state.
   - Requires 2.2.2.
   - The gate flags (`gates.knitting.done_30`/`done_50`/`done_80`,
@@ -3731,3 +3740,86 @@ the judgemental line-editor pass (§7.2), per ADR 001.
     word is flagged deterministically with the run and line numbers; a varied
     draft passes; the existing `manuscript`/`per_page` rules and packs are
     unaffected; and the segmentation adds no heavy dependency.
+
+### 7.29. Harden and consolidate the multi-file mutator write seam
+
+This step answers whether the shared multi-file mutator write seam — the
+`[pending_turn]` intent record, the mid-turn artefact writes, and the `log.md`
+receipt append that `set-chapters`, `reconcile`, and `recount` each drive — can
+be made fault-robust and single-homed: routing an uncaught I/O fault to the
+structured exit-3 envelope, refusing to clobber another operation's uncleared
+record, and owning the receipt-append idiom in one place. Its outcome is one
+hardened write seam every bracketed mutator inherits, so the torn-turn recovery
+posture and the failure UX are uniform rather than per-command. These are
+deferred reliability- and maintainability-hardening extensions surfaced by the
+review and audit of step 2.2; they do not advance the settled step-2.2
+write-discipline hypothesis (the mutators already write losslessly and atomically
+and leave a recoverable `[pending_turn]` on a crash) and they do not gate the
+deterministic spine.
+
+- [ ] 7.29.1. Route uncaught I/O faults in the multi-file mutators to the exit-3
+  envelope channel.
+  - Reroute (source: review:2.2.3; severity: minor). All multi-file mutators
+    (`set-chapters`, `reconcile`, `recount`) let an `OSError` during their
+    mid-turn writes escape `contract/runner.py::run`, so an operator hitting a
+    disk-full or permission fault sees a raw Python traceback and exit 1 instead
+    of a structured exit-3 envelope; the torn-turn `[pending_turn]` discipline
+    keeps the state recoverable, but the failure UX is poor and inconsistent with
+    the contract. This is cross-cutting reliability hardening of the shared write
+    seam, not the settled step-2.2 lossless-and-atomic hypothesis where it was
+    raised, so it is deferred here. Wrap the write seam so an I/O fault routes to
+    `StateInputError` (exit 3) with a recovery hint pointing at `reconcile`.
+  - Requires 2.2.1.
+  - See novel-ralph-harness-design.md §3.2, §3.4, and §5.3;
+    docs/adr-003-shared-interface-contract.md;
+    novel_ralph_skill/contract/runner.py;
+    novel_ralph_skill/state/document.py.
+  - Success: an `OSError` during a multi-file mutator's mid-turn write is reported
+    as a structured exit-3 envelope with a recovery hint pointing at `reconcile`
+    rather than a raw traceback and exit 1; `set-chapters`, `reconcile`, and
+    `recount` share the one fault-routing rule; and a fault-injection test proves
+    the envelope for each.
+- [ ] 7.29.2. Guard the multi-file mutators against overwriting a foreign
+  uncleared `[pending_turn]`.
+  - Reroute (source: audit:2.2.3; severity: low). `open_pending_turn`
+    (`state/document.py`) unconditionally overwrites any existing
+    `[pending_turn]`, so a multi-file mutator (now `set-chapters` as well as
+    `reconcile`) can silently clobber a different operation's torn-turn record,
+    losing the recovery evidence the next turn needs. This is cross-cutting
+    write-seam reliability hardening of a pre-existing posture surfaced by 2.2.3,
+    not the settled step-2.2 lossless-and-atomic hypothesis where it was raised,
+    so it is deferred here. Add a shared `assert_no_pending_turn` /
+    refuse-with-exit-3 precondition so a mutator declines to open its own record
+    over a foreign uncleared one and directs the operator at `reconcile`.
+  - Requires 2.2.1 and 2.3.2.
+  - See novel-ralph-harness-design.md §3.4 and §5.4;
+    docs/adr-003-shared-interface-contract.md;
+    novel_ralph_skill/state/document.py.
+  - Success: a multi-file mutator invoked over an uncleared `[pending_turn]` left
+    by a different operation refuses with exit 3 and a recovery hint rather than
+    overwriting the record; a mutator re-opening its own matching record is
+    unaffected; and a behavioural test proves both the refusal and the preserved
+    foreign record.
+- [ ] 7.29.3. Extract a shared timestamped `log.md` receipt-append helper for the
+  multi-file mutators.
+  - Reroute (source: audit:2.2.3; severity: medium). `set-chapters` (2.2.3) and
+    `reconcile` (2.3.2) carry near-identical private `_append_receipt`
+    (`commands/_set_chapters.py`) and `_append_recovery_entry`
+    (`commands/_reconcile.py`) helpers differing only in the operation prefix, and
+    the `set-chapters` docstring already admits it mirrors `reconcile`'s.
+    Centralizing a single `append_log_receipt` seam in `state/document.py` removes
+    the duplication and gives the next multi-file mutator a ready,
+    contract-correct seam. This is cross-cutting write-seam DRY hygiene, not the
+    settled step-2.2 lossless-and-atomic hypothesis where it was raised, so it is
+    deferred here.
+  - Requires 2.2.3 and 2.3.2.
+  - See novel-ralph-harness-design.md §3.4 and §5.3;
+    docs/adr-002-toml-round-trip-tomlkit.md;
+    novel_ralph_skill/state/document.py;
+    novel_ralph_skill/commands/_set_chapters.py;
+    novel_ralph_skill/commands/_reconcile.py.
+  - Success: one `append_log_receipt` helper in `state/document.py` owns the
+    timestamped `log.md` append; `set-chapters` and `reconcile` delegate to it
+    rather than each carrying a private copy; the operation-prefix difference is
+    a parameter rather than a duplicated body; and the set-chapters and reconcile
+    suites stay green.

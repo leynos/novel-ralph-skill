@@ -1665,3 +1665,22 @@ points B1/B2/B3 resolved):
   3a (precedence) are the substantive redesigns. No undecided forks remain;
   every load-bearing claim is verified against source (S5 corrected, D10's seam
   check) or pinned by a named test.
+
+## Addenda
+
+Lightweight, no-plan/no-review follow-up passes against this completed task.
+Each runs as a single focused commit gated by `make all` and `make audit`.
+
+- **2.2.3.1 — Make chapter-slug handling and documentation consistent with the
+  opaque `[novel].slug` stance** (from audit:2.2.3; severity low). The
+  `ChapterPlanEntry.slug` (`commands/_chapter_plan_entry.py`) and
+  `ChapterEntry.slug` (`state/schema.py`) docstrings describe the field as
+  "filesystem-safe", but nothing validates that claim, and the opaque-slug
+  decision is recorded only for `[novel].slug`. Reconcile the two: soften the
+  "filesystem-safe" docstrings so they no longer over-claim, record the opaque
+  chapter-slug stance alongside the `[novel].slug` decision in
+  `docs/adr-008-chapter-manifest-mutator.md` and the developers' guide, and add
+  the `slug` field to SKILL Phase 7's outline checklist
+  (`skill/novel-ralph/SKILL.md` "Phase 7 — Chapter planning"), which currently
+  omits it though `set-chapters` requires it. Documentation-and-docstring
+  reconciliation only; no validation rule is added and no behaviour changes.
