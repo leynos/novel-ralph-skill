@@ -699,26 +699,32 @@ novel-ralph-harness-design.md §3.4, §4.1, and §5.3.
       2.3.4 targets; correct the stale D3 prose in
       `docs/execplans/roadmap-2-2-2.md` so it agrees with the implemented
       direction. Lightweight addendum pass.
-- [ ] 2.2.3. Decide and implement how the `[chapters]` manifest is populated.
+- [ ] 2.2.3. Implement the validated chapter-manifest mutator that populates
+  `[chapters]`.
   - Requires 2.1.1 and 2.2.2.
-  - The design says the chapter manifest is "written when chapter planning
-    completes" (§5.1), and `novel-compile`, `novel-state check`, and `recount`
-    all depend on it — but no command writes it and direct `state.toml` edits
-    are forbidden by the state-layout guard, so a chapter planned in
-    `working/plan/chapter-outline.md` has no sanctioned path into `[chapters]`,
-    which blocks the per-chapter drafting loop (demonstrated: with a draft on
-    disk but an empty manifest, `check` exits 4 on `manifest-disk-bijection`,
-    `novel-compile` exits 3, and `recount` returns an empty map). Record the
-    decision as an ADR — a new `novel-state` mutator that ingests the outline
-    into `[chapters]` (e.g. `plan-chapters`/`set-manifest`) versus an explicitly
-    guard-exempt agent-write during chapter planning — implement it, and bridge
-    it in `SKILL.md` Phase 7 so the agent records chapters as part of completing
-    chapter planning.
-  - See novel-ralph-harness-design.md §4.1, §5.1, and §5.2.
-  - Success: a chapter planned in `chapter-outline.md` reaches the `[chapters]`
-    manifest through a sanctioned path (no guarded direct edit), after which
-    `novel-state check`, `recount`, and `novel-compile` operate correctly on the
-    real chapter directories — proven by an end-to-end test.
+  - The chapter manifest is the one piece of state with no command to write it,
+    so a chapter planned in `working/plan/chapter-outline.md` has no sanctioned
+    path into `[chapters]` and the per-chapter drafting loop is blocked
+    (demonstrated: with a draft on disk but an empty manifest, `check` exits 4 on
+    `manifest-disk-bijection`, `novel-compile` exits 3, and `recount` returns an
+    empty map). Per ADR 001 all state mutation goes through validated commands
+    and direct `state.toml` edits are guarded against, so the manifest is no
+    exception — the decision is settled in favour of a command, not a
+    guard-exempt agent-write. Add a validated `novel state` mutator (e.g.
+    `set-chapters`/`plan-chapters`) that ingests the agent's chapter plan
+    (number, slug, title, target words) and writes `[chapters]` atomically,
+    validating at write time — contiguous numbering from 1, unique numbers, and
+    the required fields present — refusing an incoherent plan with exit 3, with
+    the log receipt and `[pending_turn]` discipline. Record the command's input
+    shape and behaviour as an ADR, and bridge it in `SKILL.md` Phase 7 so the
+    agent records chapters by running the command, never by hand-editing
+    `state.toml`.
+  - See novel-ralph-harness-design.md §4.1, §5.1, §5.2, and
+    adr-001-deterministic-judgemental-boundary.md.
+  - Success: a chapter planned in `chapter-outline.md` reaches `[chapters]` only
+    through the command (no hand-edit); the command refuses a non-contiguous or
+    incomplete manifest with exit 3; and `check`, `recount`, and `novel-compile`
+    then operate correctly on the real chapter directories — proven end-to-end.
 
 ### 2.3. Deliver recount and disk-authoritative reconciliation
 

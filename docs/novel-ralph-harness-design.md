@@ -453,8 +453,10 @@ appear here.
 The validated schema adds three fields beyond the reference structure:
 
 - `[chapters]` — the chapter manifest: an ordered record of each planned
-  chapter (number, slug, title, target words), written when chapter planning
-  completes. It is the authoritative set against which `novel-state check`
+  chapter (number, slug, title, target words), written by the validated
+  chapter-manifest command (roadmap 2.2.3) when chapter planning completes —
+  never by a direct `state.toml` edit, per ADR 001. It is the authoritative set
+  against which `novel-state check`
   validates the on-disk chapter directories (§5.2), and its order mirrors the
   zero-padded directory index `novel-compile` uses (§4.3).
 - `[drafting.critic].convergence_target` — the configured ceiling for
