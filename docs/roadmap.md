@@ -1575,7 +1575,7 @@ novel-ralph-harness-design.md §2.3 and §9.
     against a real installed console-script over a built wheel, not only
     in-process, closing the installed exit-3 asymmetry across all five
     state-input commands.
-- [ ] 6.2.12. Add a command-boundary ROLLBACK scenario where the unrecoverable
+- [x] 6.2.12. Add a command-boundary ROLLBACK scenario where the unrecoverable
   artefact partially landed.
   - Step-task (source: review:6.2.7; severity: low). Task 6.2.7 proves the
     `ROLLBACK` disposition only where the declared `draft.md` never materialises;
