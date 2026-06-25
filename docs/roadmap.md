@@ -199,7 +199,7 @@ docs/scripting-standards.md.
     a second, weaker copy of the PEP 508 distribution-name normaliser; lifting a
     `dist_name` fixture into `conftest` and migrating the module onto the
     `pyproject`/`toml_table` fixtures removes both duplications in one move.
-- [ ] 1.2.12. Stand up the `novel` multiplexer dispatcher and entry point
+- [x] 1.2.12. Stand up the `novel` multiplexer dispatcher and entry point
   (ADR 007).
   - Requires 1.2.1 and 1.2.4.
   - Per `docs/adr-007-command-surface-novel-multiplexer.md` (superseding ADR

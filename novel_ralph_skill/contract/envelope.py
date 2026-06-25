@@ -16,7 +16,7 @@ import json
 import typing as typ
 
 from novel_ralph_skill._freeze import freeze_mapping, freeze_sequence
-from novel_ralph_skill.commands.names import COMMAND_NAMES
+from novel_ralph_skill.commands.names import ENVELOPE_COMMAND_NAMES
 from novel_ralph_skill.contract.exit_codes import ExitCode, is_ok
 
 if typ.TYPE_CHECKING:
@@ -80,12 +80,16 @@ def build_envelope(  # noqa: PLR0913  # pylint: disable=too-many-arguments
     ``ok`` is derived from :func:`is_ok` so a caller cannot set it
     inconsistently with the exit code, and ``command`` is validated against the
     single source of truth
-    (:data:`novel_ralph_skill.commands.names.COMMAND_NAMES`).
+    (:data:`novel_ralph_skill.commands.names.ENVELOPE_COMMAND_NAMES`). That guard
+    is the superset of the legacy five and the spaced ``novel <verb>`` subcommand
+    names, so both the legacy entry points and the multiplexer validate during the
+    1.2.12 -> 1.2.13 transition (ADR 007; ExecPlan Decision Log D1).
 
     Parameters
     ----------
     command : str
-        The console-script name; must be a member of ``COMMAND_NAMES``.
+        The console-script or spaced subcommand name; must be a member of
+        ``ENVELOPE_COMMAND_NAMES``.
     working_dir : str
         The working directory the command operated on.
     code : ExitCode
@@ -104,10 +108,10 @@ def build_envelope(  # noqa: PLR0913  # pylint: disable=too-many-arguments
     Raises
     ------
     ValueError
-        If ``command`` is not one of the five registered command names.
+        If ``command`` is not one of the registered command names.
     """
-    if command not in COMMAND_NAMES:
-        msg = f"unknown command {command!r}; expected one of {COMMAND_NAMES}"
+    if command not in ENVELOPE_COMMAND_NAMES:
+        msg = f"unknown command {command!r}; expected one of {ENVELOPE_COMMAND_NAMES}"
         raise ValueError(msg)
     return Envelope(
         command=command,

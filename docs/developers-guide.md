@@ -319,6 +319,46 @@ entry point cannot silently drift. Edit a command name there, not in five
 places. The JSON envelope, the `--human` switch, and the shared exit-code
 helper are deferred to roadmap step 1.3.
 
+### The `novel` multiplexer
+
+[adr-007-command-surface-novel-multiplexer.md](adr-007-command-surface-novel-multiplexer.md)
+(superseding ADR 005) fixes the final command surface as a single `novel`
+multiplexer — `novel state …`, `novel done`, `novel compile`,
+`novel desloppify`, and `novel wordcount` — rather than five separate scripts.
+Roadmap task 1.2.12 stands up that multiplexer additively:
+[`novel_ralph_skill/commands/novel.py`](../novel_ralph_skill/commands/novel.py)
+builds a parent contract app via `make_contract_app("novel")` and mounts each
+operation's existing `build_app` as a sub-app
+(`app.command(novel_state.build_app(), name="state")`, and likewise for the four
+leaf verbs). The multiplexer is a **pure dispatch layer**: it adds no command
+logic, reuses each `build_app` unchanged, and emits the same envelope and exit
+codes the legacy scripts produce. Mounting copies only the child's group and
+version defaults — never its contract flags — so each mounted leaf keeps its
+four-flag contract and the parent returns the leaf body's `CommandOutcome` to the
+shared `run` wrapper unchanged (verified against the locked Cyclopts 4.18.0).
+
+`novel`'s `main` entry point generalises the `stub.py` `_drive` shape: it splits
+`--human` off `sys.argv` first (so `run` stamps the human selection even on the
+body-less usage and state-error arms), then derives the spaced command name from
+the residual argv through `_command_name_for` before driving the parent through
+`run` once. The name derivation consults the registry, not inline literals:
+`names.py` now carries `SUBCOMMAND_NAMES` (the five spaced `novel <verb>` names)
+and the `ENVELOPE_COMMAND_NAMES` superset (the legacy five, the spaced names, and
+the bare `"novel"`); `build_envelope` validates `command` against that superset,
+so the legacy entry points (which stamp `"novel-state"` etc.) and the multiplexer
+(which stamps `"novel state"` etc.) both validate during the transition. The
+legacy five `[project.scripts]` entries stay registered and working through task
+1.2.12 — `project_scripts_table()` lists them plus the new `novel` — so the task
+is independently landable; their removal and the prose sweep onto the spaced form
+are roadmap tasks 1.2.13 and 1.2.14. The dispatch proof lives in
+[`tests/test_multiplexer_dispatch.py`](../tests/test_multiplexer_dispatch.py)
+(the multiplexer shape, the four-flag contract tripwire, and the name mapping)
+and
+[`tests/test_multiplexer_behaviour.py`](../tests/test_multiplexer_behaviour.py)
+(in-process legacy-versus-multiplexer envelope equality over the corpus, across
+every exit arm), sharing the `driver` fixture from the registered plugin
+[`tests/multiplexer_support.py`](../tests/multiplexer_support.py).
+
 ### Checker/mutator segregation
 
 Read-only checkers (`novel-done`, `novel-state check`, `wordcount`,

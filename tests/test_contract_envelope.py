@@ -15,7 +15,11 @@ import typing as typ
 
 import pytest
 
-from novel_ralph_skill.commands.names import COMMAND_NAMES
+from novel_ralph_skill.commands.names import (
+    COMMAND_NAMES,
+    ENVELOPE_COMMAND_NAMES,
+    SUBCOMMAND_NAMES,
+)
 from novel_ralph_skill.contract.envelope import (
     ENVELOPE_SCHEMA_VERSION,
     build_envelope,
@@ -78,6 +82,51 @@ def test_build_envelope_rejects_unknown_command() -> None:
             result={},
             messages=[],
         )
+
+
+@pytest.mark.parametrize("command", list(ENVELOPE_COMMAND_NAMES))
+def test_build_envelope_accepts_the_superset(command: str) -> None:
+    """Every member of the envelope-guard superset is accepted (ADR 007).
+
+    The guard is the legacy five plus the spaced ``novel <verb>`` names plus the
+    bare ``"novel"`` surface, so both the legacy entry points and the multiplexer
+    validate during the 1.2.12 -> 1.2.13 transition (Decision Log D1).
+
+    Parameters
+    ----------
+    command : str
+        A registered command or spaced subcommand name under test.
+
+    Returns
+    -------
+    None
+        The assertion raises on failure.
+    """
+    env = build_envelope(
+        command=command,
+        working_dir="working",
+        code=ExitCode.SUCCESS,
+        result={},
+        messages=[],
+    )
+    assert env.command == command
+
+
+def test_envelope_guard_is_the_decoupled_superset() -> None:
+    """The guard superset contains every legacy and spaced subcommand name.
+
+    Pins the Work item 2 decoupling: the ``[project.scripts]`` legacy five and
+    the spaced subcommand vocabulary are both subsumed by the envelope guard, and
+    the bare ``"novel"`` surface is present for the body-less help/version arms.
+
+    Returns
+    -------
+    None
+        The assertion raises on failure.
+    """
+    assert set(COMMAND_NAMES) <= set(ENVELOPE_COMMAND_NAMES)
+    assert set(SUBCOMMAND_NAMES) <= set(ENVELOPE_COMMAND_NAMES)
+    assert "novel" in ENVELOPE_COMMAND_NAMES
 
 
 def test_build_envelope_stamps_schema_version() -> None:

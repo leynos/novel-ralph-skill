@@ -58,6 +58,11 @@ pytest_plugins = (
     "corpus_divergent_fixtures",
     "corpus_done_predicate_fixtures",
     "installed_binary_fixtures",
+    # The multiplexer dispatch ``driver`` fixture and five-operation registry
+    # (roadmap 1.2.12) live in ``tests/multiplexer_support.py`` so the unit and
+    # behavioural multiplexer suites each stay within the 400-line cap; a
+    # registered plugin keeps the fixture available by name to both.
+    "multiplexer_support",
 )
 
 if typ.TYPE_CHECKING:
