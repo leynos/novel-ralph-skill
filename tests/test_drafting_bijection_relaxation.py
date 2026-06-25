@@ -91,6 +91,14 @@ def _bijection_verdict(working_dir: Path, *, relax: bool) -> set[str]:
     return set() if violation is None else {violation.invariant}
 
 
+def _bijection_detail(working_dir: Path, *, relax: bool) -> str:
+    """Return the fired bijection violation's detail text for a tree."""
+    state = load_state(working_dir / "state.toml")
+    violation = _check_manifest_disk_bijection(state, working_dir, relax_drafting=relax)
+    assert violation is not None, "expected a fired bijection violation"
+    return violation.detail
+
+
 def test_strict_default_fires_on_drafting_subset(tmp_path: Path) -> None:
     """The strict default still fires the bijection on a drafting subset.
 
@@ -146,6 +154,26 @@ def test_relaxed_flag_still_fires_on_non_contiguous_manifest(tmp_path: Path) -> 
         tmp_path, phase="drafting", on_disk=(1,), manifest_only=(3,)
     )
     assert _bijection_verdict(working, relax=True) == {MANIFEST_DISK_BIJECTION}
+
+
+def test_bijection_detail_names_each_broken_direction(tmp_path: Path) -> None:
+    """The fired detail appends the broken direction(s) the predicate computed.
+
+    A strict-default tree carrying an orphan directory, a missing manifest entry,
+    and a manifest gap fires all three directions, so the enriched detail
+    (audit:2.1.7 Finding 2) leads with the historical summary and appends each
+    broken direction. Manifest ``{1,2,4}`` (gap at 3) with on-disk ``{1,2,9}``
+    (chapter 9 orphan, chapter 4 missing) exercises every clause at once.
+    """
+    working = _build_bijection_tree(
+        tmp_path, phase="drafting", on_disk=(1, 2), manifest_only=(4,)
+    )
+    (working / "manuscript" / "chapter-09").mkdir()
+    detail = _bijection_detail(working, relax=False)
+    assert detail.startswith("manifest chapters [1, 2, 4] are not in bijection")
+    assert "orphan directories [9]" in detail
+    assert "manifest entries without directories [4]" in detail
+    assert "non-contiguous manifest" in detail
 
 
 @pytest.mark.parametrize("phase", ["final-pass", "done"])

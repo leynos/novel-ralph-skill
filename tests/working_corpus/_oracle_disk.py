@@ -90,6 +90,9 @@ def _check_manifest_disk_bijection(
     state = tomllib.loads((working_dir / "state.toml").read_text(encoding="utf-8"))
     manifest = {chapter["number"] for chapter in state["chapters"]}
     on_disk = _on_disk_chapter_numbers(working_dir)
+    # Deliberate independent twin of production ``_classify_bijection``
+    # (``novel_ralph_skill.state._disk_paths``); kept un-shared so the oracle never
+    # imports the thing it checks (the deliberate-twin discipline).
     orphans = on_disk - manifest
     missing = manifest - on_disk
     contiguous = sorted(manifest) == list(range(1, len(manifest) + 1))

@@ -724,7 +724,7 @@ novel-ralph-harness-design.md §5.1 and §5.2.
   - Success: `check` passes mid-draft when the on-disk chapters are a subset of
     the manifest, still flags an on-disk chapter absent from the manifest, and
     enforces exact bijection at done — proven by tests.
-  - [ ] 2.1.7.1. Extract a shared manifest-disk bijection classifier and name the
+  - [x] 2.1.7.1. Extract a shared manifest-disk bijection classifier and name the
     broken direction in the violation detail.
     - Addendum (from audit:2.1.7 Findings 1 and 2; low). The
       orphans/missing/contiguous/coherent-subset classification is computed inline
@@ -736,7 +736,7 @@ novel-ralph-harness-design.md §5.1 and §5.2.
       oracle twin staying a deliberate independent reimplementation, with a
       mirror comment) and add a `describe()`-driven directional detail. Pure
       refactor, no behavioural change. Lightweight addendum pass.
-  - [ ] 2.1.7.2. Extend the relaxed corpus agreement suite to a missing-directory
+  - [x] 2.1.7.2. Extend the relaxed corpus agreement suite to a missing-directory
     subset at final-pass and done.
     - Addendum (from review:2.1.7; low). The relaxed production-vs-oracle
       agreement is asserted against coherent exact-bijection trees at the terminal

@@ -61,6 +61,7 @@ import typing as typ
 from pathlib import PurePosixPath
 
 from novel_ralph_skill.state._disk_paths import (
+    _classify_bijection,
     _declared_chapter_numbers,
     _on_disk_chapter_numbers,
 )
@@ -221,19 +222,21 @@ def _set_chapters_turn_explains_bijection(
     fired_refuse = {name for name in fired if name in _REFUSE_CLASS}
     if fired_refuse != {MANIFEST_DISK_BIJECTION}:
         return False
-    manifest = {chapter.number for chapter in state.chapters}
-    contiguous = sorted(manifest) == list(range(1, len(manifest) + 1))
-    if not contiguous:
-        return False
-    on_disk = _on_disk_chapter_numbers(working_dir)
-    if not on_disk <= manifest:
+    break_ = _classify_bijection(
+        (chapter.number for chapter in state.chapters),
+        _on_disk_chapter_numbers(working_dir),
+    )
+    # The manifest must be contiguous from 1 with the on-disk set its subset (no
+    # orphan) — exactly ``coherent_subset`` — before the missing dirs can explain
+    # the break.
+    if not break_.coherent_subset:
         return False
     missing_declared = _declared_chapter_numbers(
         _missing_declared_paths(pending.paths, working_dir)
     )
     if missing_declared is None:
         return False
-    return manifest - on_disk == missing_declared
+    return break_.missing == missing_declared
 
 
 def _classify_pending_turn(

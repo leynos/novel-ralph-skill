@@ -66,6 +66,7 @@ import typing as typ
 
 from novel_ralph_skill.state._disk_paths import (
     _chapter_dir_name,
+    _classify_bijection,
     _on_disk_chapter_numbers,
 )
 from novel_ralph_skill.state._disk_word_counts import (
@@ -127,12 +128,10 @@ def _check_manifest_disk_bijection(
 
     Every ``state.chapters`` entry must have its on-disk ``chapter-NN/`` directory
     and vice versa, and the manifest must be contiguous from 1 with no gaps. The
-    break is classified into its two directions: ``orphans = on_disk - manifest``
-    (a directory with no manifest entry, the ``draft-without-manifest-entry``
-    variant) and ``missing = manifest - on_disk`` (a manifest entry with no
-    directory, the ``manifest-extra-entry`` variant), plus the manifest-contiguity
-    check. The strict verdict fires when any of the three holds — equivalent to the
-    historical ``manifest == on_disk and contiguous``.
+    break is classified by :func:`_classify_bijection` into its two directions
+    (``orphans = on_disk - manifest``, ``missing = manifest - on_disk``) plus the
+    contiguity check. The strict verdict fires when any of the three holds —
+    equivalent to the historical ``manifest == on_disk and contiguous``.
 
     When ``relax_drafting`` is set and ``state.phase.current == Phase.DRAFTING``, a
     break whose **only** broken direction is ``missing`` (no orphan, contiguous
@@ -145,25 +144,18 @@ def _check_manifest_disk_bijection(
     oracle's ``_check_manifest_disk_bijection`` (both sides read disk; roadmap
     2.3.3, 2.1.7).
     """
-    manifest = {chapter.number for chapter in state.chapters}
-    on_disk = _on_disk_chapter_numbers(working_dir)
-    orphans = on_disk - manifest
-    missing = manifest - on_disk
-    contiguous = sorted(manifest) == list(range(1, len(manifest) + 1))
-    # A subset (no orphan, contiguous manifest) whose only break is the
-    # missing-directory direction; the drafting relaxation suppresses exactly this.
-    coherent_subset = not orphans and contiguous
-    if coherent_subset and not missing:
+    break_ = _classify_bijection(
+        (chapter.number for chapter in state.chapters),
+        _on_disk_chapter_numbers(working_dir),
+    )
+    if break_.is_bijection:
         return None
     drafting = relax_drafting and state.phase.current == Phase.DRAFTING
-    if drafting and coherent_subset:
+    if drafting and break_.coherent_subset:
         return None
     return Violation(
         invariant=MANIFEST_DISK_BIJECTION,
-        detail=(
-            f"manifest chapters {sorted(manifest)} are not in bijection with the "
-            f"on-disk chapter directories {sorted(on_disk)}"
-        ),
+        detail=break_.describe(),
     )
 
 

@@ -1053,7 +1053,7 @@ on-disk drafted subset and so serves the step-2.3 "state re-derivable from disk"
 hypothesis, not the step-2.1 schema hypothesis it was raised under. The two
 below are the small, localised follow-ups owned by this task.
 
-- [ ] 2.1.7.1 — Extract a shared manifest-disk bijection classifier and name the
+- [x] 2.1.7.1 — Extract a shared manifest-disk bijection classifier and name the
   broken direction in the violation detail (from audit:2.1.7 Findings 1 and 2,
   low). The orphans/missing/contiguous/coherent-subset classification is computed
   inline in both production sites
@@ -1073,7 +1073,7 @@ below are the small, localised follow-ups owned by this task.
   where the relaxation did not suppress them, non-contiguous manifest), keeping
   the existing summary line as the lead so snapshot churn is bounded to an
   appended clause. Pure refactor with no behavioural change. Gate with `make all`.
-- [ ] 2.1.7.2 — Extend the relaxed corpus agreement suite to a missing-directory
+- [x] 2.1.7.2 — Extend the relaxed corpus agreement suite to a missing-directory
   subset at final-pass and done (from review:2.1.7, low). The relaxed
   production-vs-oracle agreement is asserted against coherent exact-bijection
   trees at the terminal phases, not against a missing-directory subset that must

@@ -8,6 +8,10 @@ and prove the relaxation through a coherent drafting-subset corpus tree:
   ``final-pass``/``done`` exact-bijection trees, the relaxed production
   ``check_disk_evidence(..., relax_drafting_bijection=True)`` agrees with the
   relaxed oracle twin on the ``manifest-disk-bijection`` name;
+- the **terminal missing-directory agreement** test pins the same twins in
+  lock-step on a ``final-pass``/``done`` subset where the exact bijection must
+  *re-tighten* — a manifest entry without a directory that fires under the relaxed
+  flag at the terminal phases (review:2.1.7, closing the last untested corner);
 - the **positive drafting-subset** case asserts the FULL relaxed verdict tuple is
   empty on a coherent subset (a real planned-but-undrafted chapter 3 present in
   the manifest but absent on disk), and that the SAME tree under the strict default
@@ -80,6 +84,52 @@ def _coherent_drafting_subset_spec() -> wc.WorkingTreeSpec:
         final_pass_complete=False,
         compiled=None,
     )
+
+
+def _terminal_missing_directory_subset_spec(phase: str) -> wc.WorkingTreeSpec:
+    """Return a terminal-phase tree whose manifest holds a directory-less entry.
+
+    Built from the coherent ``final-pass``/``done`` baseline by appending one
+    ``manifest_only_numbers`` entry: a manifest chapter the builder writes no
+    ``chapter-NN/`` directory for, so manifest is a strict superset of the on-disk
+    set (the missing-directory direction). Every other disk-evidence predicate
+    stays coherent — the undrafted chapter contributes no draft, ``done.flag``,
+    ``by_chapter`` key, or ``compiled.md`` body — so the bijection is the only
+    invariant that fires, and it must re-tighten at the terminal phases where the
+    relaxation no longer applies (ADR 009 / D3).
+    """
+    baseline = wc.PHASE_STATES[phase]
+    next_number = len(baseline.chapters) + 1
+    return dc.replace(baseline, manifest_only_numbers=(next_number,))
+
+
+@pytest.mark.parametrize("phase", ["final-pass", "done"])
+def test_relaxed_twins_agree_on_terminal_missing_directory_subset(
+    phase: str, tmp_path: Path
+) -> None:
+    """The relaxed twins fire in lock-step on a terminal missing-directory subset.
+
+    The relaxed agreement suite above pins the twins on coherent exact-bijection
+    trees at ``final-pass``/``done``; this closes the last untested corner of the
+    relaxed twin (review:2.1.7) — the terminal phases where the bijection must
+    *re-tighten*. A manifest entry without a directory is coherent only while
+    ``drafting``, so at ``final-pass``/``done`` both the relaxed production detector
+    and the relaxed oracle twin must fire ``manifest-disk-bijection`` together.
+    Both sides read the same materialised tree (deliberate-twin discipline).
+    """
+    working = wc.build_working_tree(
+        _terminal_missing_directory_subset_spec(phase), tmp_path
+    )
+    state = load_state(working / "state.toml")
+
+    production_fires = MANIFEST_DISK_BIJECTION in {
+        v.invariant
+        for v in check_disk_evidence(state, working, relax_drafting_bijection=True)
+    }
+    oracle_coherent = _oracle_bijection(working, relax_drafting=True)
+    assert production_fires is not oracle_coherent, phase
+    # The exact bijection is mandatory at the terminal phases, so both twins fire.
+    assert production_fires, phase
 
 
 def test_positive_drafting_subset_relaxed_verdict_is_empty(tmp_path: Path) -> None:
