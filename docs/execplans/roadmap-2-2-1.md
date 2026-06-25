@@ -984,3 +984,23 @@ a routine addition (round-2 pre-mortem).
 Effect on remaining work: work item 3 gains a leading dependency commit; the
 total file/line budget rises accordingly. No other work item changes. The plan
 remains DRAFT pending re-review.
+
+## Addenda
+
+Each addendum is a lightweight, no-plan, no-review correction folded onto this
+completed task and tracked by a nested sub-task on the roadmap.
+
+- Addendum 2.2.1.1 (from review:1.2.13; severity: medium). The two Hypothesis
+  property tests in `tests/test_state_document.py` —
+  `test_noop_round_trip_is_byte_identical` and
+  `test_surgical_mutation_rewrites_only_the_value` — carry no `@settings`
+  override, so each example inherits the default 200ms Hypothesis deadline.
+  Under `pytest -n auto` the per-example `tomllib`/`tomlkit` round-trip
+  intermittently breaches that deadline, turning `make all` non-deterministically
+  red even though the tests pass in isolation. Relax the deadline for these
+  round-trip checks (e.g. `@settings(deadline=None)`) so the shared gate stays
+  deterministic. Scope is the two `@given` tests in
+  `tests/test_state_document.py`; no production code changes. This is a localised
+  gate-stabilisation pass; the systemic shared-deadline-profile consolidation is
+  the separate roadmap step 7.18. Lightweight addendum pass against this
+  execplan: the change, the gates, and a merge.

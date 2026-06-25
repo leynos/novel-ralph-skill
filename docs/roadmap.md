@@ -282,6 +282,28 @@ docs/scripting-standards.md.
   - Success: no `novel-state`/`novel-done`/`novel-compile`/`desloppify`/
     `wordcount` console-script reference survives in the design or `SKILL.md`;
     `make markdownlint` and `make nixie` pass on the edited docs.
+- [ ] 1.2.16. Sweep the users' and developers' guides to the `novel` multiplexer
+  surface.
+  - Remediation (source: audit:1.2.13; severity: medium). Task 1.2.14's wording
+    and success criterion cover only the design document and `SKILL.md`, leaving
+    `docs/users-guide.md` (which still presents the legacy five console-scripts
+    as the user-facing surface, with zero references to the `novel` multiplexer)
+    and
+    `docs/developers-guide.md` untracked; this sibling task closes that gap so no
+    guide describes the retired separate scripts. Gated behind 1.2.15 so the prose
+    flips once the legacy scripts are actually retired. This serves the step-1.2
+    hypothesis — whether the installed console-scripts packaging supports the
+    harness's invocation model — by making the user- and developer-facing
+    documentation describe the single `novel` surface that the packaging ships,
+    rather than the retired per-command scripts.
+  - Requires 1.2.15.
+  - See novel-ralph-harness-design.md §4 and
+    adr-007-command-surface-novel-multiplexer.md.
+  - Success: no `novel-state`/`novel-done`/`novel-compile`/`desloppify`/
+    `wordcount` console-script reference survives in `docs/users-guide.md` or
+    `docs/developers-guide.md` (each is rewritten to the `novel <sub>` form,
+    including the user-facing command list and any developer scaffolding
+    references); `make markdownlint` and `make nixie` pass on the edited docs.
 
 ### 1.3. Build the shared contract scaffolding and test corpus
 
@@ -805,6 +827,14 @@ novel-ralph-harness-design.md §3.4, §4.1, and §5.3.
     on-disk formatting and comments byte-for-byte (the round-trip property), and
     a write interrupted before completion leaves a populated `[pending_turn]`
     record for the next turn to reconcile.
+  - [ ] 2.2.1.1. Relax the Hypothesis deadline on the `state.toml` round-trip
+    property tests.
+    - Addendum (from review:1.2.13; medium). The two `@given` property tests in
+      `tests/test_state_document.py` inherit the default 200ms deadline, so the
+      per-example `tomllib`/`tomlkit` round-trip intermittently breaches it under
+      `pytest -n auto` and turns `make all` non-deterministically red; relax the
+      deadline (e.g. `@settings(deadline=None)`) so the shared gate stays
+      deterministic. Lightweight addendum pass.
 - [x] 2.2.2. Implement `init`, `set-cursor`, and `advance-phase`.
   - Requires 2.1.2 and 2.2.1.
   - `init` creates `working/` and an initial state; `set-cursor` refuses
@@ -3712,6 +3742,34 @@ it does not gate the deterministic spine.
     `chapter-99/draft.md`/`chapter-99/done.flag` literals or re-deriving the
     exclusion rule in comments; no rollback test re-literalises the trigger
     basename; and the reconcile-family suites stay green.
+- [ ] 7.23.9. Sweep the legacy `novel-state` naming residue from the
+  installed-binary e2e test scaffolding.
+  - Reroute (source: review:1.2.13; severity: low). The
+    `tmp_path_factory.mktemp("novel-state-install")` label in
+    `tests/installed_binary_fixtures.py` and the `single_program_catalogue`
+    labels (`"novel-state-run"`, `"novel-state-bijection-e2e"`,
+    `"novel-state-e2e"`) across the installed e2e modules read as stale
+    scaffolding names once 1.2.15 retires the legacy scripts and the single
+    `novel` surface is the sole entry point; they are cosmetic catalogue/temp-dir
+    labels, not the
+    parametrize IDs that legitimately carry the legacy oracle command names. This
+    is a cosmetic naming sweep that does not advance the step-1.2 packaging
+    hypothesis where it was raised, so it is rerouted here: it serves the step-7.23
+    hypothesis — collapsing the installed-binary e2e scaffolding onto shared,
+    drift-free homes — by retiring the stale `novel-state-*` labels in step with
+    the consolidation. Coordinate with 7.23.1 so the renamed labels land on the
+    shared catalogue builder rather than the per-module copies. Do not touch the
+    `tests/__snapshots__/*.ambr` parametrize IDs, which are the legacy oracle's
+    command names and stay until their owning suites migrate.
+  - Requires 1.2.15 and 7.23.1.
+  - See novel-ralph-harness-design.md §9; docs/developers-guide.md
+    ("Shared test scaffolding"); tests/installed_binary_fixtures.py.
+  - Success: no `novel-state-install`/`novel-state-run`/`novel-state-bijection-e2e`/
+    `novel-state-e2e` cosmetic scaffolding label survives in the installed-binary
+    e2e modules or `tests/installed_binary_fixtures.py` (each renamed to a
+    surface-neutral label such as `novel-install`/`novel-run`); the
+    `tests/__snapshots__/*.ambr` parametrize IDs are untouched; and the
+    installed-binary e2e suites stay green.
 
 ### 7.24. Harden the workflow and matrix gates against silent drift
 
