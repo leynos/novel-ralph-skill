@@ -646,6 +646,31 @@ novel-ralph-harness-design.md §5.1 and §5.2.
     live-draft agreement test discriminates the live read from a table read on
     this tree too; and a table-reading mutant of the live oracle that mishandles
     only over-counts is killed by the under-counting variant.
+- [ ] 2.1.7. Relax the manifest-disk bijection during drafting.
+  - Requires 2.1.2 and 2.2.3.
+  - §5.2 invariant 5 requires an exact `[chapters]`-manifest-to-disk bijection,
+    but during drafting the manifest holds every planned chapter while only the
+    drafted-so-far `chapter-NN/` directories exist, so `novel-state check` fails
+    `manifest-disk-bijection` (exit 4) for the whole drafting phase — beta
+    testing found `check` unusable mid-draft. Record an ADR and implement: while
+    `phase.current == drafting`, relax to disk-subset-of-manifest (every on-disk
+    chapter maps to a manifest entry, but not every manifest entry needs a
+    directory yet), tightening back to exact bijection at final-pass and done.
+  - See novel-ralph-harness-design.md §5.2 and §5.4.
+  - Success: `check` passes mid-draft when the on-disk chapters are a subset of
+    the manifest, still flags an on-disk chapter absent from the manifest, and
+    enforces exact bijection at done — proven by tests.
+- [ ] 2.1.8. Reconcile state-layout.md with the emitted state schema.
+  - Requires 2.1.1.
+  - `novel-state init` emits `chapters = []` (top-level) and
+    `[drafting.critic].convergence_target`, both absent from
+    `skill/novel-ralph/references/state-layout.md` (schema drift found in beta
+    testing). Document both in the reference so it matches the shipped schema,
+    and add a guard test that fails if the emitted schema drifts from the
+    reference again.
+  - See novel-ralph-harness-design.md §5.1.
+  - Success: `state-layout.md` documents `chapters` and `convergence_target`, and
+    a test pins the reference against what `init` emits.
 
 ### 2.2. Deliver lossless, atomic state mutation
 
@@ -725,6 +750,22 @@ novel-ralph-harness-design.md §3.4, §4.1, and §5.3.
     through the command (no hand-edit); the command refuses a non-contiguous or
     incomplete manifest with exit 3; and `check`, `recount`, and `novel-compile`
     then operate correctly on the real chapter directories — proven end-to-end.
+- [ ] 2.2.4. Add CLI mutators for the gate and drafting sub-state.
+  - Requires 2.2.2.
+  - The gate flags (`gates.knitting.done_30`/`done_50`/`done_80`,
+    `gates.final.final_pass_complete`) and the drafting sub-state
+    (`drafting.critic.pass`, `drafting.fangirl.last_chapter_passed`) have no CLI
+    mutator, so beta testing forced hand-edits of `state.toml` — a direct
+    ADR-001 violation and contrary to the skill's "always exercise the installed
+    contract". Add validated `novel state` mutators (e.g. `set-gate`,
+    `complete-final-pass`, `set-fangirl`, `set-critic-pass`) with the same
+    write-time validation, atomic-write, and log-receipt discipline as the
+    existing mutators.
+  - See adr-001-deterministic-judgemental-boundary.md and
+    novel-ralph-harness-design.md §4.1 and §5.1.
+  - Success: every gate and drafting sub-state field is settable through a
+    command, no field requires a hand-edit, `check` stays coherent across the
+    mutations, and behavioural tests cover each mutator.
 
 ### 2.3. Deliver recount and disk-authoritative reconciliation
 
@@ -940,6 +981,19 @@ agent-improvised recovery routine. See novel-ralph-harness-design.md §4.1 and
       derivation/integration level; add the symmetric e2e so the user-visible
       orphan-drop path matches the plan's dual-direction behavioural acceptance.
       Lightweight addendum pass.
+- [ ] 2.3.7. Make recount's gate-ratio refusal actionable and document the
+  recount-gate coupling.
+  - Requires 2.3.1.
+  - `recount` exits 3 `gate-ratio-consistent` when the recount would cross a
+    30/50/80% threshold while the gate flag is still false (correctly forcing
+    the knitting pass), but beta testing found the message cryptic and the
+    recount-to-gate coupling undocumented. Make the message actionable — name
+    the crossed threshold and the required knitting-gate action — and document
+    the coupling in the developers' and users' guides and the skill.
+  - See novel-ralph-harness-design.md §4.1 and §5.2.
+  - Success: the refusal names the threshold and the remedy, the recount-gate
+    coupling is documented, and a behavioural test asserts the actionable
+    message.
 
 ## 3. Vertical slice 2: a single-source done predicate
 
@@ -1318,6 +1372,20 @@ report. See novel-ralph-harness-design.md §4.5.
   - See novel-ralph-harness-design.md §4.5 and §9.
   - Success: at a manuscript exactly on a gate threshold the corresponding gate
     is reported as just reached, and the next-gate distance is non-negative.
+- [ ] 6.1.2. Calibrate the skill for drafting deflation.
+  - Requires 6.1.1.
+  - Beta testing showed the drafting-plus-desloppify loop is net-deflationary:
+    per-scene estimates ran ~20-30% high, the spiteful critic cut 10-20% per
+    chapter as designed, chapters landed at 60-85% of target, and the finished
+    book reached only ~90% of target (26,990 of 30,000) even after a manual
+    expansion pass. Adjust the skill — either inflate the Phase 6/7 chapter
+    targets by roughly +20%, or add an explicit "expand to target" step in the
+    Phase 8/9 drafting and final flow — so the finished book reliably hits
+    target. This is a `SKILL.md` workflow change, not a CLI change.
+  - See SKILL.md Phases 6-9 and novel-ralph-harness-design.md §7.2.
+  - Success: `SKILL.md` carries an explicit deflation-compensation mechanism
+    (inflated planning targets or an expand-to-target step) with the rationale
+    recorded.
 
 ### 6.2. Prove the spine end-to-end across the combinatorial surface
 
@@ -1762,6 +1830,19 @@ and adr-003-shared-interface-contract.md.
   - Success: `SKILL.md` documents the exit-code table, the envelope schema, and
     the run-from-root / check-exit-code discipline once; `make markdownlint` and
     `make nixie` pass on the edited skill.
+- [ ] 6.3.4. Resolve `working/` robustly and surface the resolved path.
+  - Requires 1.2.12.
+  - Commands resolve `working/` relative to the current directory with no upward
+    search, so beta testing hit a stray `cd` that silently broke them (resolving
+    `working/working/…`). Either resolve `working/` by searching upward from the
+    current directory (as git finds `.git`), or always report the resolved
+    absolute `working_dir` in the envelope so a misresolution is visible — pick
+    one and justify it.
+  - See novel-ralph-harness-design.md §3.
+  - Success: running from a subdirectory of the novel root resolves the correct
+    `working/` (upward search), or the envelope `working_dir` is the absolute
+    resolved path; running from inside `working/` no longer silently looks for
+    `working/working`.
 
 ## 7. Deferred extensions after the deterministic spine
 
@@ -1977,6 +2058,16 @@ packs inherit before they land. See novel-ralph-harness-design.md §6.2 and §6.
   - Success: `novel desloppify --pack filter-words.toml` flags a `was`-heavy or
     filter-word-heavy draft with per-rule density and threshold, passes a clean
     draft, and the thresholds do not fire on a calibrated corpus baseline.
+- [ ] 7.1.10. Document the desloppify `--ledger` pack schema with a complete
+  example.
+  - Requires 7.1.2.
+  - `desloppify --ledger` requires a top-level `schema_version` and a
+    per-`[[device]]` `id`, neither documented in `desloppify-checklist.md`, so
+    beta testing had to iterate to discover them. Add a complete,
+    copy-pasteable `--ledger` schema example to the reference.
+  - See novel-ralph-harness-design.md §6.3.
+  - Success: the reference carries a complete, valid ledger example that loads
+    first time.
 
 ### 7.2. Clean-context judgemental passes
 
