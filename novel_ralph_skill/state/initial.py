@@ -90,6 +90,10 @@ def _drafting_table() -> tomlitems.Table:
     table["current_scene"] = 0
     table["current_beat"] = 0
     critic = tomlkit.table()
+    # ``pass`` seeds at 1: passes are numbered from 1, so the first pass is
+    # numbered 1 and pending (not run), matching the corpus builder and the
+    # reference (audit:2.1.8 Findings 1 and 2; state-layout.md "Critic
+    # sub-state").
     critic["pass"] = 1
     critic["consecutive_clean"] = 0
     critic["convergence_target"] = _DEFAULT_CONVERGENCE_TARGET

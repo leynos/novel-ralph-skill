@@ -88,7 +88,7 @@ current_scene = 2                  # 0 if scene plan not yet drafted
 current_beat = 4                   # 0 if beats not yet drafted
 
 [drafting.critic]
-pass = 1                           # 0 means no pass run yet
+pass = 1                           # current pass number; seeds at 1 (pending)
 consecutive_clean = 0              # passes with no BLOCKER/MAJOR
 convergence_target = 1             # ceiling for consecutive_clean (default 1)
 last_finding_counts = {            # most recent pass result
@@ -122,6 +122,12 @@ number = 1
 slug = "the-summons"               # filesystem-safe identifier
 title = "The Summons"
 target_words = 3200
+
+# Transient intent record; present only mid-mutation, absent once settled.
+# Written before any artefact, cleared after every artefact is verified.
+[pending_turn]
+operation = "set-chapters"                  # the mutation in flight
+paths = ["working/manuscript/chapter-01"]   # the paths it will write
 ```
 
 ### Phase enum
@@ -169,7 +175,9 @@ Each sub-step is its own state transition, logged.
 ### Critic sub-state
 
 `drafting.critic.pass` is the current pass number for the current chapter.
-Resets to 0 when advancing to a new chapter.
+Passes are numbered from 1, so a fresh `state.toml` and each new chapter seed
+`pass = 1` — the first pass, pending rather than run. It increments as the
+spiteful critic loop runs.
 
 `consecutive_clean` is currently always 0 or 1 (one clean pass is sufficient
 for convergence). Reserved for future tightening if the loop turns out to be
@@ -204,6 +212,26 @@ chapter planning completes — never by a direct `state.toml` edit, per ADR-001
 and ADR-008 — because the manifest is the agent's non-recomputable judgement
 (design §5.1). A freshly initialised `state.toml` carries an empty
 `chapters = []`; `set-chapters` populates it.
+
+### Pending turn
+
+The `[pending_turn]` table is a transient intent record for a multi-file
+mutation (design §3.4). A single `state.toml` rename is atomic, but a turn that
+touches several files — a draft, a `done.flag`, a recount — is not atomic as a
+whole. So a mutator opens `[pending_turn]` *before* it writes any other
+artefact, naming the `operation` in flight and the `paths` it will write, and
+clears the record once every artefact is written and verified. It is present
+**only** while a multi-file mutation is mid-write; a settled `state.toml`
+carries no `[pending_turn]` at all, and a freshly initialised one never writes
+it. On the next turn, an uncleared `[pending_turn]` is the signature of a torn
+turn: `novel-state check` reads it, compares the named paths against disk, and
+reports the reconciliation `novel-state reconcile` carries out (design §5.1,
+§5.4).
+
+Because `novel-state init` never emits `[pending_turn]`, the emitted-schema
+drift guard (`tests/test_state_layout_schema_guard.py`) cannot cover it; this
+subsection is the only reconciliation between the reference and the transient
+on-disk shape design §5.1 names.
 
 ## log.md
 

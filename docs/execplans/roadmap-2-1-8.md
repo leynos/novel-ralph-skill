@@ -1252,7 +1252,7 @@ hardens a documentation-drift tripwire rather than advancing the step-2.1
 schema-validator hypothesis. The three below are the small, localised fixes tied
 to this completed task.
 
-- [ ] 2.1.8.1 — Document `[pending_turn]` in `state-layout.md` to fully
+- [x] 2.1.8.1 — Document `[pending_turn]` in `state-layout.md` to fully
   reconcile the reference with design §5.1 (from review:2.1.8, low). Design §5.1
   names three fields added beyond the reference structure (`[chapters]`,
   `convergence_target`, and `[pending_turn]`); this task documented the first
@@ -1264,7 +1264,7 @@ to this completed task.
   because `init` never emits `[pending_turn]`. Docs-only; cite design §5.1 and
   §3.4. Gate with `make markdownlint` and `make nixie`.
 
-- [ ] 2.1.8.2 — Reconcile the initial `[drafting.critic].pass` seed with its
+- [x] 2.1.8.2 — Reconcile the initial `[drafting.critic].pass` seed with its
   documented "no pass run yet" semantics and pin the initial critic sub-state
   (from audit:2.1.8, Findings 1 and 2, both low). `novel_ralph_skill/state/
   initial.py` `_drafting_table` emits `critic["pass"] = 1`, but the reference
@@ -1282,7 +1282,7 @@ to this completed task.
   intended values. Small value-only slice. Gate with `make all` (plus
   `make markdownlint`/`make nixie` for the reference edit).
 
-- [ ] 2.1.8.3 — Document the state-layout schema-drift guard in the developers'
+- [x] 2.1.8.3 — Document the state-layout schema-drift guard in the developers'
   guide alongside the direct-edit guard (from audit:2.1.8, Finding 3, low). The
   guide carries a dedicated "The state-layout direct-edit guard" subsection for
   the sibling write-recipe guard but none for this task's schema-drift guard

@@ -754,7 +754,7 @@ novel-ralph-harness-design.md §5.1 and §5.2.
   - See novel-ralph-harness-design.md §5.1.
   - Success: `state-layout.md` documents `chapters` and `convergence_target`, and
     a test pins the reference against what `init` emits.
-  - [ ] 2.1.8.1. Document `[pending_turn]` in `state-layout.md` to fully
+  - [x] 2.1.8.1. Document `[pending_turn]` in `state-layout.md` to fully
     reconcile the reference with design §5.1.
     - Addendum (from review:2.1.8; low). Design §5.1 names three fields added
       beyond the reference structure (`[chapters]`, `convergence_target`, and
@@ -764,7 +764,7 @@ novel-ralph-harness-design.md §5.1 and §5.2.
       `[pending_turn]` intent record so the reference mirrors the transient
       on-disk shape, not only the `init` shape; the emitted-drift guard cannot
       cover it because `init` never emits it. Lightweight addendum pass.
-  - [ ] 2.1.8.2. Reconcile the initial `[drafting.critic].pass` seed with its
+  - [x] 2.1.8.2. Reconcile the initial `[drafting.critic].pass` seed with its
     documented "no pass run yet" semantics and pin the initial critic sub-state.
     - Addendum (from audit:2.1.8, Findings 1 and 2; low). `init` emits
       `pass = 1` while `state-layout.md` documents `0` as "no pass run yet" — a
@@ -776,7 +776,7 @@ novel-ralph-harness-design.md §5.1 and §5.2.
       lower-risk option (b) keeps `pass = 1` and corrects the reference comment
       and prose), then add an initial-document test pinning the three critic
       fields. Lightweight addendum pass.
-  - [ ] 2.1.8.3. Document the state-layout schema-drift guard in the developers'
+  - [x] 2.1.8.3. Document the state-layout schema-drift guard in the developers'
     guide alongside the direct-edit guard.
     - Addendum (from audit:2.1.8, Finding 3; low). The guide has a dedicated
       subsection for the sibling write-recipe guard but none for the new

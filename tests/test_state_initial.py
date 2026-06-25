@@ -49,6 +49,12 @@ def test_initial_document_parses_then_carries_initial_fields() -> None:
     assert state.word_counts.target == 80000
     assert state.word_counts.current == 0
     assert state.word_counts.by_chapter == {}
+    # The initial critic sub-state is pinned by value (audit:2.1.8 Findings 1
+    # and 2): ``pass`` seeds at 1 — the first pass is numbered 1 and pending,
+    # not run — with no clean passes yet and the default convergence ceiling.
+    assert state.drafting.critic.pass_number == 1
+    assert state.drafting.critic.consecutive_clean == 0
+    assert state.drafting.critic.convergence_target == 1
 
 
 def test_initial_state_is_coherent() -> None:

@@ -1058,6 +1058,40 @@ the known inventory of skill markdown files, so adding or removing a reference
 fails that test and forces a human to inspect the new file and confirm the glob
 caught it.
 
+### The state-layout schema-drift guard
+
+The direct-edit guard keeps hand-edit recipes out of the references;
+a sibling guard keeps the `## state.toml schema` fence in `state-layout.md`
+honest about what `novel-state init` actually emits. Beta testing of roadmap
+task 2.1.8 found the emitted document carrying fields the reference never
+described, so
+[`tests/test_state_layout_schema_guard.py`](../tests/test_state_layout_schema_guard.py)
+locks the two together. It derives the required leaf-name and table-header nets
+from the **serialised** `build_initial_document(...)` dump
+(`tomlkit.dumps(...)`) — the exact textual shape the fence must mirror — and
+asserts each emitted leaf appears as a `name =` line and each emitted table
+header as a `[header]` line inside the extracted fence. Adding an emitted field
+to `init` therefore obliges a matching line in the fence, or the guard fails
+`make test`.
+
+Two emitted-versus-fence shape mismatches are deliberate exclusions, both
+justified by the design's chosen rendering:
+
+- **`gates`** is a parent-only table carrying no scalar leaf, so `tomlkit.dumps`
+  emits no bare `[gates]` line — only `[gates.knitting]` and `[gates.final]`
+  (design §5.1). Deriving the header net from the dump excludes `gates` (and any
+  future parent-only table) automatically, with no special-case.
+- **`chapters`** serialises as the empty leaf line `chapters = []`, but the
+  reference documents the *populated* manifest as a `[[chapters]]` block, so
+  `chapters` is the one emitted leaf the guard drops from the required-leaf set;
+  its sub-fields are checked separately against `ChapterEntry`.
+
+The transient `[pending_turn]` table is **not** covered: `init` never emits it,
+so the dump-derived nets structurally cannot require it (the reference documents
+it by hand instead — see `state-layout.md` "Pending turn"). The
+table-aware, per-occurrence hardening of this guard is deferred to roadmap task
+7.30. See design §5.1 and roadmap task 2.1.8.
+
 ### Rule packs and the loader boundary
 
 A *rule pack* is a versioned TOML file of prose-detection rules that
