@@ -234,7 +234,7 @@ docs/scripting-standards.md.
       `novel`, exits 2) yet is unpinned, so a regression in `_command_name_for`
       or the parent's command routing could go uncaught. Lightweight addendum
       pass.
-- [ ] 1.2.13. Migrate the e2e and contract suites to invoke `novel <sub>`.
+- [x] 1.2.13. Migrate the e2e and contract suites to invoke `novel <sub>`.
   - Requires 1.2.12.
   - Re-point the installed-binary e2e tests and the contract/command-name suites
     to invoke `novel <sub>` instead of the legacy console-scripts. This is an

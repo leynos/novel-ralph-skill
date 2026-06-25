@@ -7,10 +7,12 @@ state-or-input error (exit 3, ``StateInputError``) on a missing or unparseable
 ``state.toml`` or an absent working directory (design 3.2; ADR-003 3.1). Task
 6.2.8 crossed both arms in-process for all five read commands. This module
 crosses the **installed** half of that gap for one representative command,
-``novel-state``, over a built wheel: it observes the real console-script exiting
-2 on a malformed invocation and 3 on an absent ``working/``, each in machine and
-human mode, asserting the ``--human`` stamp survives the subprocess boundary and
-that the ``ok: false`` envelope skeleton matches the in-process contract.
+``novel state`` (driven through the single ``novel`` multiplexer per roadmap task
+1.2.13), over a built wheel: it observes the real console-script exiting 2 on a
+malformed invocation and 3 on an absent ``working/``, each in machine and human
+mode, asserting the ``--human`` stamp survives the subprocess boundary and that
+the ``ok: false`` envelope skeleton matches the in-process contract. The
+dispatcher stamps the spaced ``"novel state"`` name into every envelope.
 
 The arms are command-agnostic — they are stamped by the shared ``run`` wrapper,
 not by any command body — so 6.2.8's all-five in-process proof makes one
@@ -49,10 +51,15 @@ pytestmark = pytest.mark.skipif(
     reason="installed-binary e2e is POSIX-only; see ADR 006",
 )
 
-_COMMAND = "novel-state"
-# ``novel-state`` is a command-group app: a bare ``novel-state`` prints help and
-# exits 0, so a read subcommand routes the invocation onto the real path (the
-# same reason ``test_console_scripts_e2e.py`` records for ``_REAL_PATH_ARGV``).
+_COMMAND = "novel state"
+# ``novel state`` is a command-group sub-app of the ``novel`` multiplexer: a bare
+# ``novel state`` prints help and exits 0, so a read subcommand routes the
+# invocation onto the real path (the same reason ``test_console_scripts_e2e.py``
+# records for ``_REAL_PATH_ARGV``). The run argv mounts the ``state`` verb ahead
+# of the read subcommand, so the builder receives ``("state", "check", …)`` and
+# the dispatcher stamps the spaced ``"novel state"`` name into every envelope,
+# including the body-less exit-2/exit-3 arms (ExecPlan Decision Log D3).
+_MOUNT_VERB: tuple[str, ...] = ("state",)
 _READ_SUBCOMMAND: tuple[str, ...] = ("check",)
 
 
@@ -91,7 +98,7 @@ def run_installed(
     single_program_catalogue: cabc.Callable[[str, Program], ProgramCatalogue],
     installed_novel_state: Path,
 ) -> cabc.Callable[[Path, tuple[str, ...]], sh.CommandResult]:
-    """Return a runner for the installed ``novel-state`` over a built wheel.
+    """Return a runner for the installed ``novel`` multiplexer over a built wheel.
 
     Closes over the module-scoped install and the one-program catalogue builder
     so callers pass only ``(run_dir, argv)`` — keeping every consumer within the
@@ -103,7 +110,7 @@ def run_installed(
     single_program_catalogue : Callable[[str, Program], ProgramCatalogue]
         The one-project catalogue builder from ``tests/conftest.py``.
     installed_novel_state : Path
-        The absolute path of the installed ``novel-state`` console-script,
+        The absolute path of the installed ``novel`` multiplexer console-script,
         supplied by the module-scoped ``installed_novel_state`` fixture.
 
     Returns
@@ -112,7 +119,7 @@ def run_installed(
         A runner taking ``(run_dir, argv)`` and returning the command result.
     """
     prog = Program(str(installed_novel_state))
-    catalogue = single_program_catalogue("novel-state-error-arm", prog)
+    catalogue = single_program_catalogue("novel-error-arm", prog)
     builder = sh.make(prog, catalogue=catalogue)
 
     def _run(run_dir: Path, argv: tuple[str, ...]) -> sh.CommandResult:
@@ -152,14 +159,14 @@ def _run_installed_arm(
     Returns
     -------
     sh.CommandResult
-        The result of running the installed ``novel-state`` for this arm.
+        The result of running the installed ``novel state`` for this arm.
     """
     run_dir = tmp_path / arm.label
     run_dir.mkdir(exist_ok=True)
     if arm.build_working:
         wc.build_working_tree(wc.PHASE_STATES["drafting"], run_dir)
     human_prefix = ("--human",) if human else ()
-    argv = (*human_prefix, *_READ_SUBCOMMAND, *arm.extra_argv)
+    argv = (*_MOUNT_VERB, *human_prefix, *_READ_SUBCOMMAND, *arm.extra_argv)
     return run_installed(run_dir, argv)
 
 
@@ -173,7 +180,7 @@ def test_installed_error_arm_machine_envelope(
 ) -> None:
     """The installed binary stamps the machine ``ok: false`` envelope per arm.
 
-    The installed ``novel-state`` exits with the arm's code (2 usage, 3 state)
+    The installed ``novel state`` exits with the arm's code (2 usage, 3 state)
     and prints the machine envelope to stdout: the named command, ``ok: false``,
     ``working_dir == "working"``, ``result == {}``, and exactly one message
     whose text begins with the arm's stable prefix (the message field is the
@@ -217,7 +224,7 @@ def test_installed_error_arm_human_stamp(
     """The ``--human`` stamp reaches the body-less arm over the subprocess boundary.
 
     Prepending ``--human`` on the installed binary's argv renders the
-    line-oriented report beginning ``command: novel-state`` even on the
+    line-oriented report beginning ``command: novel state`` even on the
     body-less diagnostic arms, proving the global flag survives the subprocess
     boundary (the design 3.2 / ADR-003 3.1 point this task anchors). The
     rendering also carries the diagnostic message, not merely the header, so the

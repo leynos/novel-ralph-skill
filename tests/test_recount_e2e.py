@@ -127,7 +127,7 @@ def test_installed_novel_state_recount_exits_zero(
 
     prog = Program(str(installed_novel_state))
     catalogue = single_program_catalogue("novel-state-run", prog)
-    result = sh.make(prog, catalogue=catalogue)("recount").run_sync(
+    result = sh.make(prog, catalogue=catalogue)("state", "recount").run_sync(
         context=ExecutionContext(cwd=run_dir), capture=True
     )
     assert result.exit_code == 0, result.stderr
@@ -177,7 +177,7 @@ def test_installed_novel_state_recount_state_error_exits_three(
 
     prog = Program(str(installed_novel_state))
     catalogue = single_program_catalogue("novel-state-run", prog)
-    result = sh.make(prog, catalogue=catalogue)("recount").run_sync(
+    result = sh.make(prog, catalogue=catalogue)("state", "recount").run_sync(
         context=ExecutionContext(cwd=run_dir), capture=True
     )
     assert result.exit_code == 3, result.stderr

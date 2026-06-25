@@ -105,7 +105,7 @@ def test_installed_novel_state_set_chapters_exits_zero(
     prog = Program(str(installed_novel_state))
     catalogue = single_program_catalogue("novel-state-run", prog)
     result = sh.make(prog, catalogue=catalogue)(
-        "set-chapters", "--chapters", _PLAN_JSON
+        "state", "set-chapters", "--chapters", _PLAN_JSON
     ).run_sync(context=ExecutionContext(cwd=run_dir), capture=True)
     assert result.exit_code == 0, result.stderr
     envelope = json.loads(result.stdout or "{}")
@@ -144,7 +144,7 @@ def test_installed_novel_state_set_chapters_shape_fault_exits_two(
     prog = Program(str(installed_novel_state))
     catalogue = single_program_catalogue("novel-state-run", prog)
     result = sh.make(prog, catalogue=catalogue)(
-        "set-chapters", "--chapters", chapters_arg
+        "state", "set-chapters", "--chapters", chapters_arg
     ).run_sync(context=ExecutionContext(cwd=run_dir), capture=True)
     assert result.exit_code == 2, result.stderr
     assert json.loads(result.stdout or "{}")["ok"] is False, (
@@ -181,7 +181,7 @@ def test_installed_novel_state_set_chapters_incoherent_exits_three(
     prog = Program(str(installed_novel_state))
     catalogue = single_program_catalogue("novel-state-run", prog)
     result = sh.make(prog, catalogue=catalogue)(
-        "set-chapters", "--chapters", non_contiguous
+        "state", "set-chapters", "--chapters", non_contiguous
     ).run_sync(context=ExecutionContext(cwd=run_dir), capture=True)
     assert result.exit_code == 3, result.stderr
     assert json.loads(result.stdout or "{}")["ok"] is False, (

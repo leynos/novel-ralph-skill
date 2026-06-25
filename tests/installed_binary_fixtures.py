@@ -1,9 +1,15 @@
-"""Pytest fixture plugin exposing the installed ``novel-state`` console-script.
+"""Pytest fixture plugin exposing the installed ``novel`` multiplexer script.
 
 This module is a pytest plugin registered through ``pytest_plugins`` in
 ``tests/conftest.py`` (roadmap 6.2.4). It owns ``installed_novel_state``, the
 module-scoped fixture that builds a wheel, installs it into a fresh ``uv`` venv,
-and returns the absolute path of the installed ``novel-state`` console-script. It
+and returns the absolute path of the installed ``novel`` console-script. Roadmap
+task 1.2.13 re-points the fixture from the legacy ``novel-state`` script onto the
+single ``novel`` multiplexer (the shipping surface): consumers now drive
+``novel state …`` instead of ``novel-state …``. The fixture *name* is unchanged
+so the five consumer modules bind it by the same parameter name; only the
+resolved script basename changes. The legacy per-command scripts still ship in
+the wheel until task 1.2.15, but the e2e drives the ``novel`` surface. It
 retires the former cross-module ``_build_and_install_novel_state`` helper that
 ``test_reconcile_e2e.py`` imported from ``test_novel_state_check.py`` in breach of
 the developers-guide "Shared test scaffolding" rule; consumers now receive the
@@ -91,7 +97,7 @@ def _venv_scripts_dir(venv_dir: Path) -> Path:
 
 @pytest.fixture(scope="module")
 def installed_novel_state(tmp_path_factory: pytest.TempPathFactory) -> Path:
-    """Build the wheel and install ``novel-state`` once per module; return its path.
+    """Build the wheel and install ``novel`` once per module; return its path.
 
     The wheel build, venv create, and install are the slow part of every installed
     e2e, so they run once per consuming module and every test reuses the one
@@ -111,7 +117,7 @@ def installed_novel_state(tmp_path_factory: pytest.TempPathFactory) -> Path:
     Returns
     -------
     Path
-        The absolute path to the installed ``novel-state`` console-script.
+        The absolute path to the installed ``novel`` multiplexer console-script.
     """
     build_root = tmp_path_factory.mktemp("novel-state-install")
     project_root = Path(__file__).resolve().parent.parent
@@ -140,8 +146,8 @@ def installed_novel_state(tmp_path_factory: pytest.TempPathFactory) -> Path:
         uv("pip", "install", "--python", str(scripts_dir / "python"), str(wheels[0]))
     )
 
-    script_path = scripts_dir / "novel-state"
+    script_path = scripts_dir / "novel"
     if not script_path.exists():
-        msg = f"novel-state not installed at {script_path}"
+        msg = f"novel not installed at {script_path}"
         raise AssertionError(msg)
     return script_path

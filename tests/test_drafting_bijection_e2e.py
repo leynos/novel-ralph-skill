@@ -100,7 +100,7 @@ def _run_check(
     """Run the installed ``novel-state check`` with ``working_parent`` as the cwd."""
     prog = Program(str(installed_novel_state))
     catalogue = single_program_catalogue("novel-state-bijection-e2e", prog)
-    return sh.make(prog, catalogue=catalogue)("check").run_sync(
+    return sh.make(prog, catalogue=catalogue)("state", "check").run_sync(
         context=ExecutionContext(cwd=working_parent), capture=True
     )
 

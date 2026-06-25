@@ -221,9 +221,9 @@ def test_installed_novel_state_reconcile_recreates_absent_log_md(
     prog = Program(str(installed_novel_state))
     catalogue = single_program_catalogue("novel-state-run", prog)
 
-    reconcile_result = sh.make(prog, catalogue=catalogue)("reconcile").run_sync(
-        context=ExecutionContext(cwd=dest), capture=True
-    )
+    reconcile_result = sh.make(prog, catalogue=catalogue)(
+        "state", "reconcile"
+    ).run_sync(context=ExecutionContext(cwd=dest), capture=True)
     assert reconcile_result.exit_code == 0, reconcile_result.stderr
     reconcile_env = json.loads(reconcile_result.stdout or "{}")
     assert reconcile_env["ok"] is True
@@ -234,7 +234,7 @@ def test_installed_novel_state_reconcile_recreates_absent_log_md(
         "the installed run must recreate log.md"
     )
 
-    check_result = sh.make(prog, catalogue=catalogue)("check").run_sync(
+    check_result = sh.make(prog, catalogue=catalogue)("state", "check").run_sync(
         context=ExecutionContext(cwd=dest), capture=True
     )
     assert check_result.exit_code == 0, check_result.stderr
@@ -283,7 +283,7 @@ def test_installed_novel_state_reconcile_state_error_exits_three(
 
     prog = Program(str(installed_novel_state))
     catalogue = single_program_catalogue("novel-state-run", prog)
-    result = sh.make(prog, catalogue=catalogue)("reconcile").run_sync(
+    result = sh.make(prog, catalogue=catalogue)("state", "reconcile").run_sync(
         context=ExecutionContext(cwd=run_dir), capture=True
     )
     assert result.exit_code == 3, result.stderr
@@ -318,15 +318,15 @@ def test_installed_novel_state_reconcile_repairs_stale_tree(
     prog = Program(str(installed_novel_state))
     catalogue = single_program_catalogue("novel-state-run", prog)
 
-    reconcile_result = sh.make(prog, catalogue=catalogue)("reconcile").run_sync(
-        context=ExecutionContext(cwd=dest), capture=True
-    )
+    reconcile_result = sh.make(prog, catalogue=catalogue)(
+        "state", "reconcile"
+    ).run_sync(context=ExecutionContext(cwd=dest), capture=True)
     assert reconcile_result.exit_code == 0, reconcile_result.stderr
     reconcile_env = json.loads(reconcile_result.stdout or "{}")
     assert reconcile_env["ok"] is True
     assert typ.cast("dict[str, object]", reconcile_env["result"])["action"] == "recount"
 
-    check_result = sh.make(prog, catalogue=catalogue)("check").run_sync(
+    check_result = sh.make(prog, catalogue=catalogue)("state", "check").run_sync(
         context=ExecutionContext(cwd=dest), capture=True
     )
     assert check_result.exit_code == 0, check_result.stderr

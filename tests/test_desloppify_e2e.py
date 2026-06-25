@@ -1,10 +1,11 @@
-"""End-to-end proof the installed ``desloppify`` ships its §6 pack (roadmap 5.1.2).
+"""End-to-end proof installed ``novel desloppify`` ships its §6 pack (roadmap 5.1.2).
 
 This is the design §9 success criterion made executable and the defence of the
 ExecPlan Risk "pack not in wheel": build a wheel from this package, install it
 into a throwaway virtual environment, materialise a ``working/`` tree with a
-manifest and one offending draft, and run the installed ``desloppify`` **by
-absolute path** through a cuprum catalogue that **registers that exact path**.
+manifest and one offending draft, and run the installed ``novel desloppify``
+**by absolute path** through a cuprum catalogue that **registers that exact
+path** (the single ``novel`` script with the ``desloppify`` mount verb).
 The registration is the execution gate (``cuprum/sh.py:make`` calls
 ``catalogue.lookup``, which raises ``UnknownProgramError`` for any unregistered
 program), so the test reuses the ``single_program_catalogue`` fixture exactly as
@@ -19,7 +20,7 @@ so it is skipped off POSIX and given an explicit 180s timeout that supersedes th
 This module also proves the per-novel device-ledger enforcement mode travels in
 the wheel (roadmap 7.1.2; the defence of the Risk "ledger does not work after
 install"): it writes a ``device-ledger.toml`` into the throwaway tree and runs the
-installed ``desloppify --ledger <tree>/device-ledger.toml``. Unlike the packs, the
+installed ``novel desloppify --ledger <tree>/device-ledger.toml``. Unlike the packs, the
 ledger is read from a filesystem ``--ledger PATH``, not the package tree, so this
 proves the *mode* (the command code) travels, not a packaged resource. The ledger
 e2e exercises a ``max_count`` over-spend only: every chapter draft is overwritten
@@ -66,12 +67,17 @@ def _materialise_working(dest: Path, baseline: Path, draft_text: str) -> None:
             draft.write_text(draft_text, encoding="utf-8")
 
 
-def _build_and_install_desloppify(
+def _build_and_install_novel(
     tmp_path: Path,
     single_program_catalogue: cabc.Callable[[str, Program], ProgramCatalogue],
     venv_scripts_dir: cabc.Callable[[Path], Path],
 ) -> Path:
-    """Build a wheel, install it into a fresh venv, and return the ``desloppify``."""
+    """Build a wheel, install it into a fresh venv, and return the ``novel`` script.
+
+    Roadmap task 1.2.13 drives ``novel desloppify`` through the single ``novel``
+    multiplexer, so the helper resolves the ``novel`` console-script rather than
+    the legacy ``desloppify`` script (which still ships until task 1.2.15).
+    """
     venv_dir = tmp_path / "venv"
     uv = sh.make(
         Program("uv"),
@@ -91,8 +97,8 @@ def _build_and_install_desloppify(
     ).run_sync()
     assert install.exit_code == 0, install.stderr
 
-    script_path = scripts_dir / "desloppify"
-    assert script_path.exists(), f"desloppify not installed at {script_path}"
+    script_path = scripts_dir / "novel"
+    assert script_path.exists(), f"novel not installed at {script_path}"
     return script_path
 
 
@@ -108,13 +114,13 @@ def test_installed_desloppify_flags_offender(
     single_program_catalogue: cabc.Callable[[str, Program], ProgramCatalogue],
     venv_scripts_dir: cabc.Callable[[Path], Path],
 ) -> None:
-    """The installed ``desloppify`` flags an em-dash flood and exits ``4``.
+    """The installed ``novel desloppify`` flags an em-dash flood and exits ``4``.
 
     Proves the packaged ``offenders.toml`` travels in the wheel: the subprocess
     resolves the shipped pack via ``importlib.resources`` and reports the em-dash
     finding. The 180s timeout supersedes the 30s project default.
     """
-    script_path = _build_and_install_desloppify(
+    script_path = _build_and_install_novel(
         tmp_path, single_program_catalogue, venv_scripts_dir
     )
     dest = tmp_path / "run-flag"
@@ -124,7 +130,7 @@ def test_installed_desloppify_flags_offender(
 
     prog = Program(str(script_path))
     catalogue = single_program_catalogue("desloppify-run", prog)
-    result = sh.make(prog, catalogue=catalogue)().run_sync(
+    result = sh.make(prog, catalogue=catalogue)("desloppify").run_sync(
         context=ExecutionContext(cwd=dest), capture=True
     )
     assert result.exit_code == 4, result.stderr
@@ -145,8 +151,8 @@ def test_installed_desloppify_clean_tree_exits_zero(
     single_program_catalogue: cabc.Callable[[str, Program], ProgramCatalogue],
     venv_scripts_dir: cabc.Callable[[Path], Path],
 ) -> None:
-    """The installed ``desloppify`` exits ``0`` over offender-free prose."""
-    script_path = _build_and_install_desloppify(
+    """The installed ``novel desloppify`` exits ``0`` over offender-free prose."""
+    script_path = _build_and_install_novel(
         tmp_path, single_program_catalogue, venv_scripts_dir
     )
     dest = tmp_path / "run-clean"
@@ -155,7 +161,7 @@ def test_installed_desloppify_clean_tree_exits_zero(
 
     prog = Program(str(script_path))
     catalogue = single_program_catalogue("desloppify-run", prog)
-    result = sh.make(prog, catalogue=catalogue)().run_sync(
+    result = sh.make(prog, catalogue=catalogue)("desloppify").run_sync(
         context=ExecutionContext(cwd=dest), capture=True
     )
     assert result.exit_code == 0, result.stderr
@@ -179,7 +185,7 @@ def _run_installed_ledger(
     dest: Path,
     single_program_catalogue: cabc.Callable[[str, Program], ProgramCatalogue],
 ) -> sh.CommandResult:
-    """Run the installed ``desloppify --ledger`` in ``dest`` and return the result.
+    """Run installed ``novel desloppify --ledger`` in ``dest``; return the result.
 
     Writes the test ledger into ``dest`` and runs the installed script by absolute
     path through a catalogue that registers exactly that path (the cuprum
@@ -189,9 +195,9 @@ def _run_installed_ledger(
     ledger_path.write_text(_MAX_COUNT_LEDGER, encoding="utf-8")
     prog = Program(str(script_path))
     catalogue = single_program_catalogue("desloppify-ledger-run", prog)
-    return sh.make(prog, catalogue=catalogue)("--ledger", str(ledger_path)).run_sync(
-        context=ExecutionContext(cwd=dest), capture=True
-    )
+    return sh.make(prog, catalogue=catalogue)(
+        "desloppify", "--ledger", str(ledger_path)
+    ).run_sync(context=ExecutionContext(cwd=dest), capture=True)
 
 
 @pytest.mark.skipif(
@@ -206,13 +212,13 @@ def test_installed_desloppify_ledger_flags_over_ration(
     single_program_catalogue: cabc.Callable[[str, Program], ProgramCatalogue],
     venv_scripts_dir: cabc.Callable[[Path], Path],
 ) -> None:
-    """The installed ``desloppify --ledger`` flags an over-ration and exits ``4``.
+    """The installed ``novel desloppify --ledger`` flags an over-ration and exits ``4``.
 
     Proves the ledger enforcement mode travels in the wheel: the subprocess loads
     the filesystem ledger via ``--ledger PATH`` and reports the over-ration
     ``sternum``. The 180s timeout supersedes the 30s project default.
     """
-    script_path = _build_and_install_desloppify(
+    script_path = _build_and_install_novel(
         tmp_path, single_program_catalogue, venv_scripts_dir
     )
     dest = tmp_path / "run-ledger-flag"
@@ -239,8 +245,8 @@ def test_installed_desloppify_ledger_within_ration_exits_zero(
     single_program_catalogue: cabc.Callable[[str, Program], ProgramCatalogue],
     venv_scripts_dir: cabc.Callable[[Path], Path],
 ) -> None:
-    """The installed ``desloppify --ledger`` exits ``0`` over a within-ration tree."""
-    script_path = _build_and_install_desloppify(
+    """Installed ``novel desloppify --ledger`` exits ``0`` over a within-ration tree."""
+    script_path = _build_and_install_novel(
         tmp_path, single_program_catalogue, venv_scripts_dir
     )
     dest = tmp_path / "run-ledger-clean"

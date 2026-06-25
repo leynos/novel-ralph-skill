@@ -1,10 +1,11 @@
-"""End-to-end proof the installed ``wordcount`` reports over a real wheel/venv.
+"""End-to-end proof installed ``novel wordcount`` reports over a real wheel/venv.
 
 This is the design §9 installed-binary success criterion for ``wordcount``
-(roadmap tasks 6.1.1, 6.2.6): build a wheel from this package, install it into a
+(roadmap tasks 6.1.1, 6.2.6), re-pointed onto the single ``novel`` multiplexer
+(roadmap task 1.2.13): build a wheel from this package, install it into a
 throwaway virtual environment, materialise a ``working/`` tree, and run the
-installed ``wordcount`` **by absolute path** through a cuprum catalogue that
-**registers that exact path**. The registration is the execution gate
+installed ``novel wordcount`` **by absolute path** through a cuprum catalogue
+that **registers that exact path**. The registration is the execution gate
 (``cuprum/sh.py:make`` calls ``catalogue.lookup``, which raises
 ``UnknownProgramError`` for any unregistered program), so the tests reuse the
 ``single_program_catalogue`` fixture exactly as ``tests/test_desloppify_e2e.py``
@@ -17,7 +18,7 @@ Two installed proofs live here:
   cumulative report with ``gate_triggered_80: true`` and a non-negative
   ``next_gate_distance`` (``null`` past the final gate); and
 - the exit-3 path (roadmap 6.2.6): a ``working/`` whose ``state.toml`` is missing
-  or unparseable drives the installed ``wordcount`` to exit ``3`` with an
+  or unparseable drives the installed ``novel wordcount`` to exit ``3`` with an
   ``ok: false`` envelope and no traceback, mirroring the ``recount`` proof so
   each of ``recount``, ``reconcile``, and ``wordcount`` anchors its exit-3
   state-or-input-error path at the packaging boundary (audit Finding 6).
@@ -48,12 +49,17 @@ if typ.TYPE_CHECKING:
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 
-def _build_and_install_wordcount(
+def _build_and_install_novel(
     tmp_path: Path,
     single_program_catalogue: cabc.Callable[[str, Program], ProgramCatalogue],
     venv_scripts_dir: cabc.Callable[[Path], Path],
 ) -> Path:
-    """Build a wheel, install it into a fresh venv, and return the ``wordcount``."""
+    """Build a wheel, install it into a fresh venv, and return the ``novel`` script.
+
+    Roadmap task 1.2.13 drives ``novel wordcount`` through the single ``novel``
+    multiplexer, so the helper resolves the ``novel`` console-script rather than
+    the legacy ``wordcount`` script (which still ships until task 1.2.15).
+    """
     venv_dir = tmp_path / "venv"
     uv = sh.make(
         Program("uv"),
@@ -73,8 +79,8 @@ def _build_and_install_wordcount(
     ).run_sync()
     assert install.exit_code == 0, install.stderr
 
-    script_path = scripts_dir / "wordcount"
-    assert script_path.exists(), f"wordcount not installed at {script_path}"
+    script_path = scripts_dir / "novel"
+    assert script_path.exists(), f"novel not installed at {script_path}"
     return script_path
 
 
@@ -90,14 +96,14 @@ def test_installed_wordcount_reports_gate_triggers(
     single_program_catalogue: cabc.Callable[[str, Program], ProgramCatalogue],
     venv_scripts_dir: cabc.Callable[[Path], Path],
 ) -> None:
-    """The installed ``wordcount`` reports the cumulative gate triggers and exits 0.
+    """Installed ``novel wordcount`` reports the cumulative gate triggers; exits 0.
 
     The corpus baseline is drafted past the 80% gate, so the report carries
     ``gate_triggered_80: true`` and a per-chapter table that sums to ``current``.
     Proves the real ``wordcount`` travels in the wheel and runs end-to-end. The
     180s timeout supersedes the 30s project default.
     """
-    script_path = _build_and_install_wordcount(
+    script_path = _build_and_install_novel(
         tmp_path, single_program_catalogue, venv_scripts_dir
     )
     dest = tmp_path / "run-report"
@@ -106,7 +112,7 @@ def test_installed_wordcount_reports_gate_triggers(
 
     prog = Program(str(script_path))
     catalogue = single_program_catalogue("wordcount-run", prog)
-    result = sh.make(prog, catalogue=catalogue)().run_sync(
+    result = sh.make(prog, catalogue=catalogue)("wordcount").run_sync(
         context=ExecutionContext(cwd=dest), capture=True
     )
     assert result.exit_code == 0, result.stderr
@@ -137,7 +143,7 @@ def test_installed_wordcount_state_error_exits_three(
     single_program_catalogue: cabc.Callable[[str, Program], ProgramCatalogue],
     venv_scripts_dir: cabc.Callable[[Path], Path],
 ) -> None:
-    """The installed ``wordcount`` exits ``3`` on a bad ``state.toml``.
+    """The installed ``novel wordcount`` exits ``3`` on a bad ``state.toml``.
 
     Two fault shapes drive the exit-3 state-or-input-error channel (design §3.2;
     ADR-003 Table 2 row 3): a ``working/`` with no ``state.toml`` (``state_bytes
@@ -147,17 +153,18 @@ def test_installed_wordcount_state_error_exits_three(
     pin both shapes to exit ``3``; this proof re-asserts the same boundary at the
     real packaging layer. Verification choice: the boundary is a small, enumerable
     pair, so a two-case ``parametrize`` is the right adversary, not Hypothesis.
-    Unlike ``reconcile`` (a ``novel-state`` subcommand), ``wordcount`` is its own
-    top-level console-script invoked with no subcommand, so it runs with the empty
-    call ``()``; it is built by this module's function-scoped
-    ``_build_and_install_wordcount`` helper (not the ``novel-state`` fixture),
-    matching the convention the happy-path proof above already adopts. Each case
+    Like ``state reconcile``, ``wordcount`` is now a subcommand of the single
+    ``novel`` multiplexer, run as ``novel wordcount`` with no further arguments
+    (the ``wordcount`` mount verb alone); it is built by this module's
+    function-scoped ``_build_and_install_novel`` helper (not the
+    ``installed_novel_state`` fixture), matching the convention the happy-path
+    proof above already adopts. Each case
     asserts exit ``3``, an ``ok: false`` envelope, and no traceback on stderr
     (design §10 — a state fault yields a message, not a stack trace); the message
     string is left unpinned because the contract does not fix its wording. The
     180s timeout supersedes the 30s project default.
     """
-    script_path = _build_and_install_wordcount(
+    script_path = _build_and_install_novel(
         tmp_path, single_program_catalogue, venv_scripts_dir
     )
     run_dir = tmp_path / "run-state-error"
@@ -168,7 +175,7 @@ def test_installed_wordcount_state_error_exits_three(
 
     prog = Program(str(script_path))
     catalogue = single_program_catalogue("wordcount-run", prog)
-    result = sh.make(prog, catalogue=catalogue)().run_sync(
+    result = sh.make(prog, catalogue=catalogue)("wordcount").run_sync(
         context=ExecutionContext(cwd=run_dir), capture=True
     )
     assert result.exit_code == 3, result.stderr

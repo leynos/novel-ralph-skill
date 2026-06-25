@@ -21,15 +21,19 @@ steps call it for its side effect and never assign the capture by hand;
 byte-identical (ExecPlan Decision Log, roadmap 6.2.9).
 
 The wheel/venv build is supplied by the module-scoped ``installed_novel_state``
-fixture (``tests/installed_binary_fixtures.py``); the four sibling scripts
-(``novel-done``, ``wordcount``, ``desloppify``, ``novel-compile``) resolve from
-the same ``bin/`` directory (``installed_novel_state.parent``), so one venv
-install yields all five scripts with no second wheel build (Surprises). Each
-script is run by absolute path through a single-program cuprum catalogue with
-``ExecutionContext(cwd=run_dir)`` so it resolves ``./working/state.toml``,
+fixture (``tests/installed_binary_fixtures.py``), which now returns the single
+``novel`` multiplexer script (roadmap task 1.2.13). Every loop operation resolves
+that one ``novel`` script from the venv ``bin/`` directory
+(``installed_novel_state.parent``) and drives it with the operation's mount-verb
+argv (``state recount``, ``done``, ``wordcount``, ``desloppify``, ``compile
+--check``), so one venv install drives all five subcommands with no second wheel
+build. Each run goes by absolute path through a single-program cuprum catalogue
+with ``ExecutionContext(cwd=run_dir)`` so it resolves ``./working/state.toml``,
 mirroring ``tests/test_recount_e2e.py`` and ``tests/test_console_scripts_e2e.py``.
-``novel-compile`` is always driven with ``--check`` — its bare invocation writes
-``compiled.md`` (ExecPlan D-CHECK-ARGV).
+``compile`` is always driven with ``--check`` — its bare invocation writes
+``compiled.md`` (ExecPlan D-CHECK-ARGV). The ``_LOOP_ARGV`` dict keys stay the
+legacy operation labels purely as argv source and capture key, so the
+``Then``-step capture lookups remain byte-identical.
 
 This module is kept separate from the in-process step module so the cuprum
 imports and the installed fixtures do not load on every in-process run. It lives
@@ -61,15 +65,20 @@ if typ.TYPE_CHECKING:
 # The drafted totals every installed assertion pins, matching the in-process pins.
 _DRAFTED_TOTAL: typ.Final = 68800
 
-# Each loop command maps to the extra argv the installed script needs: ``recount``
-# selects the ``novel-state`` subcommand, ``--check`` selects the read-only compile
-# surface, and the other three run bare.
+# Each loop command maps to the full argv the single ``novel`` multiplexer needs:
+# the mount verb that selects the operation, plus any extra tokens. ``state
+# recount`` selects the recount subcommand of the ``state`` sub-app, ``compile
+# --check`` selects the read-only divergence checker, and the other three run with
+# their mount verb alone (roadmap task 1.2.13). The dict **keys** stay the legacy
+# operation labels: they serve only as the argv source and the capture key here
+# (the script basename is now the single ``novel`` script for every command), so
+# the ``Then``-step capture lookups remain byte-identical (ExecPlan WI7).
 _LOOP_ARGV: typ.Final[dict[str, tuple[str, ...]]] = {
-    "novel-state": ("recount",),
-    "novel-done": (),
-    "wordcount": (),
-    "desloppify": (),
-    "novel-compile": ("--check",),
+    "novel-state": ("state", "recount"),
+    "novel-done": ("done",),
+    "wordcount": ("wordcount",),
+    "desloppify": ("desloppify",),
+    "novel-compile": ("compile", "--check"),
 }
 
 
@@ -107,9 +116,10 @@ def _run_installed_argv(
     a single-program cuprum catalogue with ``ExecutionContext(cwd=run_dir)`` so it
     resolves ``./working/state.toml``, and parses its machine-mode stdout as the
     JSON envelope, exactly as the existing installed e2es do. The script filename,
-    the argv, and the capture key are separated so a single script (``novel-state``)
-    can be driven with different subcommands (``recount`` vs ``advance-phase``)
-    under distinct capture keys. The ``(exit_code, envelope, stderr)`` tuple is
+    the argv, and the capture key are separated so the single ``novel`` script can
+    be driven with different subcommand argv (``state recount`` vs ``state
+    advance-phase``) under distinct capture keys. The ``(exit_code, envelope,
+    stderr)`` tuple is
     written into ``installed.captures[capture_key]`` and also returned, so callers
     may use the helper for its side effect alone.
     """
@@ -134,13 +144,15 @@ def _run_installed(
 ) -> tuple[int, dict[str, object], str]:
     """Run a loop command by name; return ``(exit_code, env, stderr)``.
 
-    Delegates to :func:`_run_installed_argv`, using ``command_name`` as the script
-    filename, argv key, and capture key alike — the clean-pass and stale-compile
-    loops use one script per command, so the three coincide there.
+    Delegates to :func:`_run_installed_argv`, always resolving the single ``novel``
+    multiplexer script (roadmap task 1.2.13) and using ``command_name`` as both the
+    ``_LOOP_ARGV`` key (which now carries the mount-verb argv) and the capture key.
+    The capture key stays the legacy operation label so every ``Then``-step lookup
+    resolves unchanged.
     """
     return _run_installed_argv(
         installed,
-        command_name,
+        "novel",
         _LOOP_ARGV[command_name],
         capture_key=command_name,
     )
@@ -345,17 +357,18 @@ def installed_out_of_order_tree(
 
 @when("the installed advance-phase runs over the out-of-order tree")
 def run_installed_advance_phase(installed: _Installed) -> None:
-    """Drive the installed ``novel-state advance-phase`` over the out-of-order tree.
+    """Drive the installed ``novel state advance-phase`` over the out-of-order tree.
 
-    The script file is ``novel-state``; the ``("advance-phase",)`` argv selects the
-    mutator subcommand; the capture key is the distinct ``"advance-phase"`` (the
-    in-process refused step keys identically) so it never collides with the
-    clean-pass ``novel-state``/recount capture.
+    The script file is the single ``novel`` multiplexer; the ``("state",
+    "advance-phase")`` argv mounts the ``state`` sub-app and selects the mutator
+    subcommand; the capture key is the distinct ``"advance-phase"`` (the in-process
+    refused step keys identically) so it never collides with the clean-pass
+    recount capture.
     """
     _run_installed_argv(
         installed,
-        "novel-state",
-        ("advance-phase",),
+        "novel",
+        ("state", "advance-phase"),
         capture_key="advance-phase",
     )
 

@@ -1,12 +1,12 @@
-"""End-to-end proof the installed ``desloppify`` ships its ai-isms pack (7.1.1).
+"""End-to-end proof installed ``novel desloppify`` ships its ai-isms pack (7.1.1).
 
 This is the defence of the ExecPlan high-severity Risk "pack not in wheel" for the
 second packaged pack: build a wheel from this package, install it into a throwaway
 virtual environment, resolve the installed ``ai-isms.toml`` through the *installed*
 package's :func:`ai_isms_pack_path` resolver (proving the pack travelled and is
 reachable via ``importlib.resources`` after a real install), then run the installed
-``desloppify --pack <that path>`` over a ``working/`` tree whose draft carries an
-AI-ism.
+``novel desloppify --pack <that path>`` (the single ``novel`` script with the
+``desloppify`` mount verb) over a ``working/`` tree whose draft carries an AI-ism.
 
 The run goes through a cuprum catalogue that **registers the exact absolute script
 path** — the registration is the execution gate (``cuprum/sh.py:make`` calls
@@ -119,8 +119,9 @@ def _resolve_installed_pack(venv_python: Path) -> Path:
 def _build_and_install(tmp_path: Path) -> tuple[Path, Path]:
     """Build a wheel, install it into a fresh venv, and return script + pack paths.
 
-    Returns the installed ``desloppify`` script path and the installed
-    ``ai-isms.toml`` path resolved by the installed package's resolver.
+    Returns the installed ``novel`` multiplexer script path (driven as ``novel
+    desloppify`` per roadmap task 1.2.13) and the installed ``ai-isms.toml`` path
+    resolved by the installed package's resolver.
     """
     venv_dir = tmp_path / "venv"
     uv = sh.make(
@@ -142,8 +143,8 @@ def _build_and_install(tmp_path: Path) -> tuple[Path, Path]:
     ).run_sync()
     assert install.exit_code == 0, install.stderr
 
-    script_path = scripts_dir / "desloppify"
-    assert script_path.exists(), f"desloppify not installed at {script_path}"
+    script_path = scripts_dir / "novel"
+    assert script_path.exists(), f"novel not installed at {script_path}"
 
     pack_path = _resolve_installed_pack(venv_python)
     return script_path, pack_path
@@ -235,9 +236,9 @@ def test_installed_desloppify_ai_isms(
 
     prog = Program(str(script_path))
     catalogue = _one_program_catalogue("ai-isms-run", prog)
-    result = sh.make(prog, catalogue=catalogue)("--pack", str(pack_path)).run_sync(
-        context=ExecutionContext(cwd=dest), capture=True
-    )
+    result = sh.make(prog, catalogue=catalogue)(
+        "desloppify", "--pack", str(pack_path)
+    ).run_sync(context=ExecutionContext(cwd=dest), capture=True)
     assert result.exit_code == case.exit_code, result.stderr
     envelope = json.loads(result.stdout or "{}")
     # ``ok`` is exactly "exit code 0", so derive it from the expected code.

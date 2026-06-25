@@ -1,8 +1,8 @@
-"""End-to-end proof the installed ``novel-done`` evaluates the predicate (3.1.1).
+"""End-to-end proof installed ``novel done`` evaluates the predicate (3.1.1).
 
 This is the design §4.2 success criterion made executable: build a wheel from this
 package, install it into a throwaway virtual environment, materialise a real
-``working/`` tree, and run the installed ``novel-done`` **by absolute path**
+``working/`` tree, and run the installed ``novel done`` **by absolute path**
 through a cuprum catalogue that **registers that exact path**. The registration is
 the execution gate, so the test reuses the ``single_program_catalogue`` fixture
 exactly as ``tests/test_desloppify_e2e.py`` and ``tests/test_console_scripts_e2e.py``
@@ -55,12 +55,17 @@ def _materialise_working(dest: Path, source_working: Path) -> None:
     shutil.copytree(source_working, dest / "working")
 
 
-def _build_and_install_novel_done(
+def _build_and_install_novel(
     tmp_path: Path,
     single_program_catalogue: cabc.Callable[[str, Program], ProgramCatalogue],
     venv_scripts_dir: cabc.Callable[[Path], Path],
 ) -> Path:
-    """Build a wheel, install it into a fresh venv, and return the ``novel-done``."""
+    """Build a wheel, install it into a fresh venv, and return the ``novel`` script.
+
+    Roadmap task 1.2.13 drives ``novel done`` through the single ``novel``
+    multiplexer, so the helper resolves the ``novel`` console-script rather than
+    the legacy ``novel-done`` script (which still ships until task 1.2.15).
+    """
     venv_dir = tmp_path / "venv"
     uv = sh.make(
         Program("uv"),
@@ -80,8 +85,8 @@ def _build_and_install_novel_done(
     ).run_sync()
     assert install.exit_code == 0, install.stderr
 
-    script_path = scripts_dir / "novel-done"
-    assert script_path.exists(), f"novel-done not installed at {script_path}"
+    script_path = scripts_dir / "novel"
+    assert script_path.exists(), f"novel not installed at {script_path}"
     return script_path
 
 
@@ -90,10 +95,10 @@ def _run_in(
     cwd: Path,
     catalogue_builder: cabc.Callable[[str, Program], ProgramCatalogue],
 ) -> CommandResult:
-    """Run the installed ``novel-done`` with ``cwd`` set; capture the result."""
+    """Run installed ``novel done`` with ``cwd`` set; capture the result."""
     prog = Program(str(script_path))
     catalogue = catalogue_builder("novel-done-run", prog)
-    return sh.make(prog, catalogue=catalogue)().run_sync(
+    return sh.make(prog, catalogue=catalogue)("done").run_sync(
         context=ExecutionContext(cwd=cwd), capture=True
     )
 
@@ -106,8 +111,8 @@ def test_installed_novel_done_all_hold_exits_zero(
     single_program_catalogue: cabc.Callable[[str, Program], ProgramCatalogue],
     venv_scripts_dir: cabc.Callable[[Path], Path],
 ) -> None:
-    """The installed ``novel-done`` exits ``0`` over an all-six-clauses-hold tree."""
-    script_path = _build_and_install_novel_done(
+    """The installed ``novel done`` exits ``0`` over an all-six-clauses-hold tree."""
+    script_path = _build_and_install_novel(
         tmp_path, single_program_catalogue, venv_scripts_dir
     )
     dest = tmp_path / "run-done"
@@ -128,8 +133,8 @@ def test_installed_novel_done_absent_compile_exits_one(
     single_program_catalogue: cabc.Callable[[str, Program], ProgramCatalogue],
     venv_scripts_dir: cabc.Callable[[Path], Path],
 ) -> None:
-    """The installed ``novel-done`` exits ``1`` when ``compiled.md`` is absent."""
-    script_path = _build_and_install_novel_done(
+    """The installed ``novel done`` exits ``1`` when ``compiled.md`` is absent."""
+    script_path = _build_and_install_novel(
         tmp_path, single_program_catalogue, venv_scripts_dir
     )
     _spec, source = done_predicate_failer_tree("compile_consistent")
@@ -152,8 +157,8 @@ def test_installed_novel_done_sole_stale_compile_exits_four(
     single_program_catalogue: cabc.Callable[[str, Program], ProgramCatalogue],
     venv_scripts_dir: cabc.Callable[[Path], Path],
 ) -> None:
-    """The installed ``novel-done`` exits ``4`` over a sole stale-present compile."""
-    script_path = _build_and_install_novel_done(
+    """The installed ``novel done`` exits ``4`` over a sole stale-present compile."""
+    script_path = _build_and_install_novel(
         tmp_path, single_program_catalogue, venv_scripts_dir
     )
     dest = tmp_path / "run-stale"
@@ -175,8 +180,8 @@ def test_installed_novel_done_mid_draft_stale_exits_one(
     single_program_catalogue: cabc.Callable[[str, Program], ProgramCatalogue],
     venv_scripts_dir: cabc.Callable[[Path], Path],
 ) -> None:
-    """The installed ``novel-done`` exits ``1`` over a mid-draft stale compile."""
-    script_path = _build_and_install_novel_done(
+    """The installed ``novel done`` exits ``1`` over a mid-draft stale compile."""
+    script_path = _build_and_install_novel(
         tmp_path, single_program_catalogue, venv_scripts_dir
     )
     dest = tmp_path / "run-mid-draft"

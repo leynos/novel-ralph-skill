@@ -330,7 +330,7 @@ def test_installed_novel_state_check_exits_zero(
 
     prog = Program(str(installed_novel_state))
     catalogue = single_program_catalogue("novel-state-run", prog)
-    result = sh.make(prog, catalogue=catalogue)("check").run_sync(
+    result = sh.make(prog, catalogue=catalogue)("state", "check").run_sync(
         context=ExecutionContext(cwd=dest), capture=True
     )
     assert result.exit_code == 0, result.stderr
