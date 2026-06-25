@@ -199,25 +199,48 @@ docs/scripting-standards.md.
     a second, weaker copy of the PEP 508 distribution-name normaliser; lifting a
     `dist_name` fixture into `conftest` and migrating the module onto the
     `pyproject`/`toml_table` fixtures removes both duplications in one move.
-- [ ] 1.2.12. Collapse the five console-scripts into a single `novel`
-  multiplexer (ADR 007).
+- [ ] 1.2.12. Stand up the `novel` multiplexer dispatcher and entry point
+  (ADR 007).
   - Requires 1.2.1 and 1.2.4.
   - Per `docs/adr-007-command-surface-novel-multiplexer.md` (superseding ADR
-    005), replace the five `[project.scripts]` entries with a single `novel`
-    entry that dispatches into the existing Cyclopts apps as a `state` subgroup
-    plus four leaf verbs (`novel done`, `novel compile`, `novel desloppify`,
-    `novel wordcount`). Update the command-name single source of truth
-    (`novel_ralph_skill/commands/names.py`); migrate the installed-binary e2e
-    tests and the contract suite to invoke `novel <sub>`; and sweep the design
-    prose and diagrams and `SKILL.md` (including the Setup section and every bare
-    `novel-x` reference) to the `novel x` form. The shared scaffolding, envelope,
-    and exit-code policy (ADR 003) are unchanged.
-  - See novel-ralph-harness-design.md §4 and docs/adr-007-command-surface-novel-multiplexer.md.
-  - Success: `uv tool install` puts exactly one command, `novel`, on `PATH`;
-    `novel state init`, `novel done`, `novel compile`, `novel desloppify`, and
-    `novel wordcount` all work with the unchanged envelope and exit codes; no
-    `novel-x`, `desloppify`, or `wordcount` entry point remains; and `make all`
-    (including the installed-binary e2e) is green.
+    005), add a single `novel` Cyclopts dispatcher that mounts the existing apps
+    as a `state` subgroup plus four leaf verbs (`novel done`, `novel compile`,
+    `novel desloppify`, `novel wordcount`), and register it as a `novel`
+    `[project.scripts]` entry. Make the command-name single source of truth
+    (`novel_ralph_skill/commands/names.py`) carry the new spaced subcommand
+    names additively, and re-point the envelope command-name guard onto the
+    superset. The five legacy `novel-x`/`desloppify`/`wordcount` entry points
+    stay registered for now (removed in 1.2.13) so this task is independently
+    landable. Add the multiplexer dispatch tests (unit + in-process behavioural
+    over the corpus, exit-2/3/0 arms). Scope this task to the dispatcher only —
+    do not migrate the e2e/contract suites or sweep the docs here.
+  - See novel-ralph-harness-design.md §4 and adr-007-command-surface-novel-multiplexer.md.
+  - Success: `novel state init`, `novel done`, `novel compile`,
+    `novel desloppify`, and `novel wordcount` all dispatch correctly with the
+    unchanged envelope and exit codes; the multiplexer tests pass; the five
+    legacy entry points still work; and `make all` is green.
+- [ ] 1.2.13. Migrate the e2e and contract suites to `novel` and remove the
+  legacy entry points.
+  - Requires 1.2.12.
+  - Migrate the installed-binary e2e tests and the contract/command-name suites
+    to invoke `novel <sub>`, then remove the five legacy `[project.scripts]`
+    entries (`novel-state`, `novel-done`, `novel-compile`, `desloppify`,
+    `wordcount`) and the transitional legacy-name superset added in 1.2.12, so
+    `novel` is the only entry point.
+  - See adr-007-command-surface-novel-multiplexer.md and AGENTS.md (testing).
+  - Success: `uv tool install` puts exactly one command, `novel`, on `PATH`; no
+    `novel-x`, `desloppify`, or `wordcount` entry point remains; every test
+    invokes `novel <sub>`; and `make all` (including the installed-binary e2e)
+    is green.
+- [ ] 1.2.14. Sweep the design and skill prose to the `novel` multiplexer.
+  - Requires 1.2.13.
+  - Update the design prose and diagrams and `SKILL.md` (including the Setup
+    section and every bare `novel-x` reference) from the `novel-x` form to the
+    `novel x` form, so no documentation describes the retired separate scripts.
+  - See novel-ralph-harness-design.md §4 and adr-007-command-surface-novel-multiplexer.md.
+  - Success: no `novel-state`/`novel-done`/`novel-compile`/`desloppify`/
+    `wordcount` console-script reference survives in the design or `SKILL.md`;
+    `make markdownlint` and `make nixie` pass on the edited docs.
 
 ### 1.3. Build the shared contract scaffolding and test corpus
 
