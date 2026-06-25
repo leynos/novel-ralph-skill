@@ -1236,3 +1236,61 @@ The two-item decomposition, the no-runtime-code constraint, the documentation
 edit (work item 1, which documents the populated `[[chapters]]` manifest and the
 `convergence_target` line), and the validation commands (`make all`, then
 `make markdownlint` and `make nixie`) are unchanged.
+
+## Addenda (post-merge follow-ups)
+
+Lightweight addendum work items folded back onto this completed task from the
+post-merge review and audit of step 2.1 (`review:2.1.8`, `audit:2.1.8`). Execute
+each as a small addendum pass — no plan or design-review cycle: make the change,
+run `make all` (plus `make markdownlint`/`make nixie` for Markdown),
+`coderabbit review --agent`, commit, and tick the matching roadmap sub-task on
+merge. The substantial, cross-cutting follow-up was re-routed off this task: the
+table-aware `(table, name)`-keyed leaf net and generic inline-table walk for the
+schema-drift guard (`review:2.1.8`, two near-identical proposals merged) went to
+a new roadmap step 7.30 (deferred schema-drift-guard hardening), because it
+hardens a documentation-drift tripwire rather than advancing the step-2.1
+schema-validator hypothesis. The three below are the small, localised fixes tied
+to this completed task.
+
+- [ ] 2.1.8.1 — Document `[pending_turn]` in `state-layout.md` to fully
+  reconcile the reference with design §5.1 (from review:2.1.8, low). Design §5.1
+  names three fields added beyond the reference structure (`[chapters]`,
+  `convergence_target`, and `[pending_turn]`); this task documented the first
+  two because `init` emits them, leaving the transient mid-mutation
+  `[pending_turn]` intent record (§3.4) undocumented in the authoritative
+  on-disk reference. Add a `[pending_turn]` schema entry and a short prose
+  subsection so the reference mirrors the transient on-disk shape, not only the
+  `init` shape; note that the emitted-drift guard structurally cannot cover it
+  because `init` never emits `[pending_turn]`. Docs-only; cite design §5.1 and
+  §3.4. Gate with `make markdownlint` and `make nixie`.
+
+- [ ] 2.1.8.2 — Reconcile the initial `[drafting.critic].pass` seed with its
+  documented "no pass run yet" semantics and pin the initial critic sub-state
+  (from audit:2.1.8, Findings 1 and 2, both low). `novel_ralph_skill/state/
+  initial.py` `_drafting_table` emits `critic["pass"] = 1`, but the reference
+  documents `pass = 0` as "no pass run yet" — a schema-vs-reference value
+  inconsistency of exactly the class this task set out to close, missed because
+  the new guard checks key presence, not field values, and the initial critic
+  sub-state (`pass`, `consecutive_clean`, `convergence_target`) is pinned by no
+  test. Decide the intended value across `initial.py`, the corpus builder
+  (`tests/working_corpus/_builder.py`), and the reference; the audit's
+  lower-risk option (b) keeps `pass = 1` (the first pass is numbered 1 and is
+  pending, not run) and corrects the reference comment and prose, recording the
+  rationale beside the emitter. Then add a focused assertion to
+  `test_initial_document_parses_then_carries_initial_fields` (or a sibling)
+  pinning `pass`, `consecutive_clean`, and `convergence_target` to their
+  intended values. Small value-only slice. Gate with `make all` (plus
+  `make markdownlint`/`make nixie` for the reference edit).
+
+- [ ] 2.1.8.3 — Document the state-layout schema-drift guard in the developers'
+  guide alongside the direct-edit guard (from audit:2.1.8, Finding 3, low). The
+  guide carries a dedicated "The state-layout direct-edit guard" subsection for
+  the sibling write-recipe guard but none for this task's schema-drift guard
+  (`tests/test_state_layout_schema_guard.py`), the only tripwire preventing the
+  `## state.toml schema` fence drifting from what `init` emits. Add a short "The
+  state-layout schema-drift guard" subsection stating that the guard derives the
+  required leaf and header nets from the serialised `build_initial_document(...)`
+  dump, that adding an emitted field obliges a matching line in the fence, and
+  that the two documented exclusions (`gates` parent-only header, `chapters`
+  empty-array leaf) are deliberate; cross-reference design §5.1 and roadmap
+  2.1.8. Docs-only. Gate with `make markdownlint` and `make nixie`.

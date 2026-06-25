@@ -728,6 +728,37 @@ novel-ralph-harness-design.md §5.1 and §5.2.
   - See novel-ralph-harness-design.md §5.1.
   - Success: `state-layout.md` documents `chapters` and `convergence_target`, and
     a test pins the reference against what `init` emits.
+  - [ ] 2.1.8.1. Document `[pending_turn]` in `state-layout.md` to fully
+    reconcile the reference with design §5.1.
+    - Addendum (from review:2.1.8; low). Design §5.1 names three fields added
+      beyond the reference structure (`[chapters]`, `convergence_target`, and
+      `[pending_turn]`); 2.1.8 documented the first two because `init` emits
+      them, leaving `[pending_turn]` — the transient mid-mutation intent record
+      (§3.4) — undocumented in the authoritative on-disk reference. Document the
+      `[pending_turn]` intent record so the reference mirrors the transient
+      on-disk shape, not only the `init` shape; the emitted-drift guard cannot
+      cover it because `init` never emits it. Lightweight addendum pass.
+  - [ ] 2.1.8.2. Reconcile the initial `[drafting.critic].pass` seed with its
+    documented "no pass run yet" semantics and pin the initial critic sub-state.
+    - Addendum (from audit:2.1.8, Findings 1 and 2; low). `init` emits
+      `pass = 1` while `state-layout.md` documents `0` as "no pass run yet" — a
+      schema-vs-reference value inconsistency of the class 2.1.8 set out to
+      close, missed because the new guard checks key presence, not field values,
+      and the initial critic sub-state (`pass`, `consecutive_clean`,
+      `convergence_target`) is pinned by no test. Decide the intended value and
+      make `initial.py`, the corpus builder, and the reference agree (the audit's
+      lower-risk option (b) keeps `pass = 1` and corrects the reference comment
+      and prose), then add an initial-document test pinning the three critic
+      fields. Lightweight addendum pass.
+  - [ ] 2.1.8.3. Document the state-layout schema-drift guard in the developers'
+    guide alongside the direct-edit guard.
+    - Addendum (from audit:2.1.8, Finding 3; low). The guide has a dedicated
+      subsection for the sibling write-recipe guard but none for the new
+      schema-drift guard from 2.1.8, the only tripwire preventing the reference
+      fence drifting from what `init` emits; the two guards both scan
+      `state-layout.md` and are easily confused, so the missing paired entry is
+      a discoverability gap a developer hits only when `make test` fails. A
+      docs-only addition. Lightweight addendum pass.
 
 ### 2.2. Deliver lossless, atomic state mutation
 
@@ -3964,3 +3995,40 @@ deterministic spine.
     rather than each carrying a private copy; the operation-prefix difference is
     a parameter rather than a duplicated body; and the set-chapters and reconcile
     suites stay green.
+
+### 7.30. Harden the state-layout schema-drift guard against table-blind masking
+
+This step answers whether the emitted-schema-drift guard
+(`tests/test_state_layout_schema_guard.py`, task 2.1.8) can be made fully
+table-aware so a future emitted leaf can never be masked by a same-named
+documented leaf under a different table, and so a second inline table's inner
+keys cannot escape the net. The guard today keys its leaf net on the bare leaf
+name and harvests inner keys from the single hardcoded inline table
+`last_finding_counts`; both are honestly accepted today as negligible
+(collision probability is low and only one inline table exists), but neither
+serves the step-2.1 schema-validator hypothesis — they are cross-cutting
+test-robustness hardening of a documentation-drift tripwire, surfaced by the
+2.1.8 review. They are filed here so they sequence after the guard exists and
+block nothing earlier.
+
+- [ ] 7.30.1. Key the schema-drift guard's leaf net on `(table-path, leaf)`
+  pairs and walk inline tables generically.
+  - Reroute (source: review:2.1.8; severity: low; two near-identical proposals
+    merged). The guard's leaf net is keyed on leaf name only, so a new emitted
+    leaf whose name collides with an existing documented leaf under a different
+    table passes silently (verified: a hypothetical `gates.final.current` would
+    pass because `current` is documented under `[phase]`). It also hardcodes the
+    single nested inline table `last_finding_counts` when harvesting inner keys,
+    so a second inline table's inner keys would be uncovered. This is
+    test-robustness hardening of the schema-drift guard, not the step-2.1
+    schema-validator hypothesis where it was raised, so it is deferred here.
+  - Requires 2.1.8.
+  - See novel-ralph-harness-design.md §5.1;
+    tests/test_state_layout_schema_guard.py.
+  - Success: the leaf net is keyed on `(table-path, leaf)` pairs so a same-named
+    leaf under a different table is required to be documented under that table
+    (the `gates.final.current` masking case is caught); inline-table inner keys
+    are harvested by a generic walk rather than a hardcoded
+    `last_finding_counts` path, so a second inline table's inner keys are
+    covered; and the schema-guard suite stays green against the current
+    documented reference.
