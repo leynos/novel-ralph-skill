@@ -84,6 +84,34 @@ discharges the duplication and cross-module-import findings recorded in
 `pyproject` parse and the divergent dependency-name normaliser, both now folded
 onto the shared fixtures).
 
+
+### The combinatorial command-surface matrix
+
+[`tests/test_command_surface_matrix.py`](../tests/test_command_surface_matrix.py)
+(roadmap task 6.2.1) is the single home for the `command x output-mode x phase`
+matrix described in
+[novel-ralph-harness-design.md](novel-ralph-harness-design.md) §2.3. It drives
+each of the five **read** surfaces — `novel-state check`, `novel-done`,
+`wordcount`, `novel-compile --check`, and `desloppify` — in-process through the
+shared `run` seam across the eleven coherent `working_corpus` phase states, in
+both machine and human output modes. It snapshots the machine-mode envelope per
+cell, asserts the `--human` rendering is present (non-empty, names the command),
+and carries semantic branch assertions pinned to the verified per-phase
+envelopes: the phase-keyed `phase_is_done` clause, the coherent `novel-state
+check` result, the `wordcount` zero-progress versus populated branches, the
+`novel-compile --check` exit-3/4/0 split, and the shape-stable-but-value-varying
+`desloppify` report.
+
+The matrix deliberately bounds its surface and documents the combinatorial gaps
+it carries rather than omitting them silently (design §9): the module docstring's
+`Carried gaps` section enumerates the mutator-by-phase cross-products (covered by
+their own suites and by tasks 6.2.2/6.2.5), the exhaustive eleven-phase
+cross-product for the manifest-sensitive commands (which collapse to their
+manifest branches), the incoherent-variant-by-phase cross-products (covered by
+the validator suites), and the installed-binary crossing (the scope of task
+6.2.4). Read that docstring before extending the matrix, so a new cell lands in
+the covered surface rather than re-proving a gap another suite owns.
+
 ### The `working/` fixture corpus
 
 The [`working_corpus`](../tests/working_corpus) package (roadmap task 1.3.2) is

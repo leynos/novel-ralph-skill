@@ -1281,7 +1281,7 @@ This step answers whether the five commands behave correctly across the full
 the confidence the harness needs to gate on the spine unattended. See
 novel-ralph-harness-design.md §2.3 and §9.
 
-- [ ] 6.2.1. Build the combinatorial command-surface test suite.
+- [x] 6.2.1. Build the combinatorial command-surface test suite.
   - Requires phase 5 and 6.1.1.
   - Snapshot the machine-mode JSON envelope per command, assert the `--human`
     mode for presence, and carry semantic assertions over the
