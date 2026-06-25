@@ -219,6 +219,21 @@ docs/scripting-standards.md.
     `novel desloppify`, and `novel wordcount` all dispatch correctly with the
     unchanged envelope and exit codes; the multiplexer tests pass; the five
     legacy entry points still work; and `make all` is green.
+  - [ ] 1.2.12.1. Guard `_command_name_for` against future multi-token global
+    flags.
+    - Addendum (from review:1.2.12; low). `_command_name_for` treats every
+      dash-prefixed token as a value-less global flag, true only because
+      `--human` is the lone global flag today; a later value-carrying global
+      flag could have its value misread as the subcommand verb. Add a small
+      guard or a comment pinning the single-value-less-flag assumption.
+      Lightweight addendum pass.
+  - [ ] 1.2.12.2. Pin a bare unknown top-level verb arm (`novel bogus`) in the
+    multiplexer behavioural suite.
+    - Addendum (from review:1.2.12; low). The usage-fault suite covers sub-verb
+      and option faults but not a leading unknown verb; the path works (stamps
+      `novel`, exits 2) yet is unpinned, so a regression in `_command_name_for`
+      or the parent's command routing could go uncaught. Lightweight addendum
+      pass.
 - [ ] 1.2.13. Migrate the e2e and contract suites to `novel` and remove the
   legacy entry points.
   - Requires 1.2.12.
@@ -3003,6 +3018,60 @@ the deterministic spine.
     `_compile` and `_novel_done` consume; no site open-codes the path twice or
     re-stats the compile leaf in a racy in-body check; and the desloppify,
     wordcount, compile, and done-predicate suites stay green.
+- [ ] 7.16.5. Collapse the `novel.main`/`stub._drive` entry-point duplication
+  into one shared drive seam.
+  - Reroute (source: audit:1.2.12; severity: medium). `novel.main` and
+    `stub._drive` share a byte-identical parse-`--human`, resolve-command-name,
+    drive-via-`run` body; the duplication survives task 1.2.13, which removes
+    the legacy `novel-x` entry points but not `_drive`. Generalise `_drive` to
+    take a name resolver, or lift the shared body into a contract-level `drive()`
+    helper, so the multiplexer entry point and the (1.2.13-residual) stub body
+    consume one seam. This serves the step-7.16 command-facade single-home
+    hypothesis — that the near-identical entry-point bodies collapse into one
+    explicit home so a refactor of one cannot silently break the other — not the
+    step-1.2 packaging-supports-invocation hypothesis where it was raised; it is
+    a natural follow-on to 1.2.13. Coordinate with 7.16.2 so the
+    registry-driven entry-point table and the multiplexer entry point share the
+    one drive seam.
+  - Requires 1.2.13 and 7.16.2.
+  - See novel-ralph-harness-design.md §4;
+    docs/adr-007-command-surface-novel-multiplexer.md;
+    novel_ralph_skill/commands/novel.py (`main`);
+    novel_ralph_skill/commands/stub.py (`_drive`).
+  - Success: the parse-`--human`/resolve-name/drive-via-`run` body lives in one
+    shared drive seam parametrised by the command-name resolver; `novel.main`
+    and the residual `stub` entry-point body both delegate to it rather than
+    re-spelling the plumbing; the import-laziness profile is preserved (or its
+    change is decided and recorded); and the multiplexer, stub, and
+    console-scripts suites stay green.
+- [ ] 7.16.6. Relocate `WORKING_DIR_NAME` and the command-name vocabulary into
+  the contract package.
+  - Reroute (source: audit:1.2.12; severity: medium). `WORKING_DIR_NAME` is a
+    contract-level constant living in the `novel_state` command module, and
+    `contract/envelope.py` reaches up into `commands.names` for the envelope
+    guard — a `contract`→`commands` layering inversion (documented as benign in
+    sub-task 1.3.1.2, but not repaired). Relocate both the working-dir constant
+    and the command-name vocabulary into the `contract` package so the envelope
+    guard no longer depends on the command layer and no command depends on a
+    sibling command module for the working-dir name; this also gives task 1.2.13
+    a single contract-package edit for the legacy-name drop. This serves the
+    step-7.16 command-facade single-home hypothesis — shared seams lifted into
+    explicit, neutrally-named homes with the dependency direction made
+    deliberate — not the step-1.2 packaging-supports-invocation hypothesis where
+    it was raised. Coordinate with 7.16.1 so the state-sourcing module consumes
+    the relocated `WORKING_DIR_NAME` rather than re-pinning it to `novel_state`.
+  - Requires 1.3.1 and 7.16.1.
+  - See novel-ralph-harness-design.md §3.1 and §4;
+    docs/adr-003-shared-interface-contract.md;
+    novel_ralph_skill/commands/novel_state.py (`WORKING_DIR_NAME`);
+    novel_ralph_skill/contract/envelope.py;
+    novel_ralph_skill/commands/names.py.
+  - Success: `WORKING_DIR_NAME` and the command-name vocabulary live in the
+    `contract` package; `contract/envelope.py` validates `command` against a
+    contract-owned name set with no import of `commands.names`; no command
+    depends on a sibling command module for the working-dir name; the
+    `contract`→`commands` edge documented in 1.3.1.2 is removed; and the
+    contract, command, registry, and envelope suites stay green.
 
 ### 7.17. Reconcile the compile-divergence documentation with the byte-comparison implementation
 
