@@ -717,7 +717,7 @@ novel-ralph-harness-design.md §5.1 and §5.2.
       phases, not against a subset that must fire there; add a terminal-phase
       subset agreement row so the last untested corner of the relaxed twin
       lock-step is closed. Lightweight addendum pass.
-- [ ] 2.1.8. Reconcile state-layout.md with the emitted state schema.
+- [x] 2.1.8. Reconcile state-layout.md with the emitted state schema.
   - Requires 2.1.1.
   - `novel-state init` emits `chapters = []` (top-level) and
     `[drafting.critic].convergence_target`, both absent from

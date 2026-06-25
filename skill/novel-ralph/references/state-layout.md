@@ -90,6 +90,7 @@ current_beat = 4                   # 0 if beats not yet drafted
 [drafting.critic]
 pass = 1                           # 0 means no pass run yet
 consecutive_clean = 0              # passes with no BLOCKER/MAJOR
+convergence_target = 1             # ceiling for consecutive_clean (default 1)
 last_finding_counts = {            # most recent pass result
     blocker = 0,
     major = 2,
@@ -113,6 +114,14 @@ final_pass_complete = false
 target = 80000
 current = 24300                    # drafted sum (sum of by_chapter values)
 by_chapter = { "01" = 3200, "02" = 3500, "03" = 3700, ... }
+
+# Ordered chapter manifest, written only by `novel-state set-chapters`.
+# One [[chapters]] entry per planned chapter; never edited by hand.
+[[chapters]]
+number = 1
+slug = "the-summons"               # filesystem-safe identifier
+title = "The Summons"
+target_words = 3200
 ```
 
 ### Phase enum
@@ -166,6 +175,12 @@ Resets to 0 when advancing to a new chapter.
 for convergence). Reserved for future tightening if the loop turns out to be
 too easy on chapters.
 
+`convergence_target` is the configured ceiling for `consecutive_clean` (default
+1), replacing the previously hard-coded literal. Raising it tightens the
+convergence bar — `novel-state check` requires
+`0 ≤ consecutive_clean ≤ convergence_target` and rejects a target below 1 — so
+the bar can be lifted without editing the validator (design §5.1).
+
 `last_finding_counts` is the most recent critic pass's tally. Used for logging
 and for deciding whether to re-run after edits.
 
@@ -177,6 +192,18 @@ respectively, and the corresponding gate is still false. After the pass is
 integrated and logged, the gate flips to true.
 
 `final_pass_complete` flips to true at the end of Phase 9.
+
+### Chapter manifest
+
+The `[chapters]` array is the ordered record of each planned chapter — its
+`number`, `slug`, `title`, and `target_words`. It is the authoritative set
+against which `novel-state check` validates the on-disk `chapter-NN/`
+directories, and its order mirrors the zero-padded directory index
+`novel-compile` follows. It is written only by `novel-state set-chapters` when
+chapter planning completes — never by a direct `state.toml` edit, per ADR-001
+and ADR-008 — because the manifest is the agent's non-recomputable judgement
+(design §5.1). A freshly initialised `state.toml` carries an empty
+`chapters = []`; `set-chapters` populates it.
 
 ## log.md
 
