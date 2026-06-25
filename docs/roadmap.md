@@ -1290,7 +1290,7 @@ novel-ralph-harness-design.md §2.3 and §9.
   - Success: the `command × output-mode × phase` matrix is covered, with the
     knowingly carried gaps (exhaustive phase cross-products) documented rather
     than silently omitted.
-- [ ] 6.2.2. Build the end-to-end per-chapter deterministic-loop scenario.
+- [x] 6.2.2. Build the end-to-end per-chapter deterministic-loop scenario.
   - Requires 6.2.1.
   - Drive a chapter from `recount` through `novel-done`, `wordcount`,
     `desloppify`, and `novel-compile --check` on a real `working/` tree,

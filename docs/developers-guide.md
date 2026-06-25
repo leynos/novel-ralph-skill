@@ -111,6 +111,52 @@ the validator suites), and the installed-binary crossing (the scope of task
 6.2.4). Read that docstring before extending the matrix, so a new cell lands in
 the covered surface rather than re-proving a gap another suite owns.
 
+
+### The per-chapter deterministic-loop scenario
+
+[`tests/features/per_chapter_loop.feature`](../tests/features/per_chapter_loop.feature)
+(roadmap task 6.2.2) is the end-to-end home for the per-chapter pipeline of
+[novel-ralph-harness-design.md](novel-ralph-harness-design.md) §7.2 (Figure 3).
+Where the command-surface matrix proves each command's envelope per phase in
+isolation, this feature proves the deterministic commands **compose**: it drives
+`recount`, `novel-done`, `wordcount`, `desloppify`, and `novel-compile --check`
+as one ordered drive over a real `working_corpus` tree through the shared command
+boundary (`run`), exactly as the existing command-boundary BDD suites do. A
+clean-pass scenario drives all five read surfaces over the fully-drafted all-hold
+tree, and three focused scenarios pin the §9 deterministic decisions that gate
+the loop, each over the corpus tree that exhibits exactly it: a stale compile is
+caught (`novel-done` and `novel-compile --check` both exit 4; §4.2, §4.3, §10);
+a crossed knitting gate is reported (`wordcount` carries
+`gate_triggered_30/50/80`; §4.5); and an out-of-order phase advance is refused
+(`advance-phase` exits 3 with `state.toml` byte-for-byte intact; §3.2, §4.1).
+The steps live under
+[`tests/steps/per_chapter_loop_steps.py`](../tests/steps/per_chapter_loop_steps.py)
+and bind through the bare, mark-free
+[`tests/test_per_chapter_loop_bdd.py`](../tests/test_per_chapter_loop_bdd.py), so
+the in-process scenarios run on every platform under the global 30s timeout.
+
+The installed re-drive crosses the real wheel/venv packaging boundary §9 names as
+the end-to-end loop scope (the matrix carries this as a documented gap). It lives
+in its **own** feature,
+[`tests/features/per_chapter_loop_installed.feature`](../tests/features/per_chapter_loop_installed.feature),
+re-driving the clean pass and the stale-compile catch through the installed
+console-scripts over a built wheel. This split exists to carry the per-scenario
+marks: an installed BDD scenario that needs `@pytest.mark.slow`,
+`@pytest.mark.timeout(180)`, and a POSIX `@pytest.mark.skipif` must live in its
+own feature and `@scenario`-decorated binder
+([`tests/test_per_chapter_loop_installed_bdd.py`](../tests/test_per_chapter_loop_installed_bdd.py)),
+because the repo has no per-scenario Gherkin-tag marking idiom and a co-housed
+module-level `pytestmark` POSIX skip would wrongly skip the cross-platform
+in-process scenarios. A `@scenario`-decorated function "behaves like a normal
+test function" (pytest-bdd 8.1.0), so the stacked marks attach as on a plain
+pytest test — the same mechanism the installed e2es
+([`tests/test_console_scripts_e2e.py`](../tests/test_console_scripts_e2e.py),
+[`tests/test_recount_e2e.py`](../tests/test_recount_e2e.py)) use. The
+wheel-free `test_installed_scenario_carries_marks` guard asserts the bound item
+keeps those three marks, so a future edit that drops one fails a named test
+rather than silently weakening the installed boundary. Follow this convention
+when adding any installed BDD scenario.
+
 ### The `working/` fixture corpus
 
 The [`working_corpus`](../tests/working_corpus) package (roadmap task 1.3.2) is
