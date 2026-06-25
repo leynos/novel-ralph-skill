@@ -1702,6 +1702,61 @@ novel-ralph-harness-design.md §2.3 and §9.
     partial-landed `done.flag` cell of the §5.4 rollback surface left after 6.2.12
     and 6.2.13.
 
+### 6.3. Make the command contract uniform, actionable, and self-documenting
+
+This step answers whether every command presents an identical exit-code and
+envelope contract, fails with actionable messages, and is documented once
+without per-command drift — the properties an agent depends on when driving the
+harness unattended. Its outcome is a contract a dogfooding agent can trust:
+loud, consistent, and self-describing. Surfaced by dogfooding (a wrong-directory
+invocation that read as a silent failure because the error was a raw errno and
+the skill never said to check exit codes). See novel-ralph-harness-design.md §3
+and adr-003-shared-interface-contract.md.
+
+- [ ] 6.3.1. Make state-input (exit-3) error messages actionable across every
+  command.
+  - Requires 2.2.2 and 1.2.12.
+  - A missing or unreadable `working/state.toml` currently surfaces the raw
+    `OSError` string (`[Errno 2] No such file or directory: 'working/state.toml'`)
+    in the envelope `messages`. Replace it, at the shared state-loading boundary
+    so every command benefits, with an actionable message naming the directory
+    and the remedy — e.g. `no novel working/ found in <cwd>; run from the novel
+    root, or 'novel state init' to create one`.
+  - See novel-ralph-harness-design.md §3.2 and §3.4.
+  - Success: a behavioural test drives a command from a directory with no
+    `working/` and asserts exit 3 with an actionable message that names the cwd
+    and the remedy, with no raw `Errno`/traceback text, for at least one command
+    of each class (mutator, checker, reader).
+- [ ] 6.3.2. Pin cross-command exit-code and envelope-schema consistency with a
+  shared behavioural suite and snapshots.
+  - Requires phase 5, 6.1.1, and 1.2.12.
+  - Assert, across all five commands as one parametrised pytest-bdd suite plus
+    syrupy snapshots, that the contract is identical between commands: the
+    exit-code-to-`ok` mapping (0/1 → benign, 2/3/4 → `ok:false`), the envelope
+    field set and order (`command`, `schema_version`, `ok`, `working_dir`,
+    `result`, `messages`), the field types, and the shape of each error channel
+    (usage → 2, state/input → 3, actionable finding → 4). The suite must fail if
+    any command drifts from the shared envelope or exit-code table.
+  - See adr-003-shared-interface-contract.md and novel-ralph-harness-design.md §3.
+  - Success: a single cross-command suite (pytest-bdd scenarios + syrupy
+    snapshots) pins the exit-code and envelope contract for every command and
+    fails on any per-command divergence.
+- [ ] 6.3.3. Document the unified contract and command-invocation discipline in
+  the skill.
+  - Requires 6.3.2.
+  - Add a single authoritative description of the exit-code table and the
+    envelope schema to `SKILL.md` (or a reference it links once), so no
+    per-command prose copy can drift, and add the command-invocation discipline
+    a dogfooding agent needs: run every command from the novel root; after each
+    invocation check the exit code and the envelope `ok`; a non-zero exit (or
+    `ok:false`) is a stop-and-fix, never an assumed success. Also record the
+    install-currency note (the `uv tool` binary does not auto-update; reinstall
+    with `--force`, or pin a version, before a dogfood session).
+  - See novel-ralph-harness-design.md §3 and §8.
+  - Success: `SKILL.md` documents the exit-code table, the envelope schema, and
+    the run-from-root / check-exit-code discipline once; `make markdownlint` and
+    `make nixie` pass on the edited skill.
+
 ## 7. Deferred extensions after the deterministic spine
 
 Idea: if the deterministic spine is already trustworthy and boring to operate,
