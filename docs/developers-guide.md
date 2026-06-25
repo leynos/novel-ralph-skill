@@ -47,6 +47,13 @@ raises `ScopeMismatch`), the plugin inlines their logic as two private helpers,
 mirroring `test_ai_isms_e2e.py`'s `installed_desloppify`. The fixture is
 POSIX-only per ADR-006; consuming modules keep their own POSIX skip guard.
 
+[`tests/test_console_scripts_error_arms_e2e.py`](../tests/test_console_scripts_error_arms_e2e.py)
+is the home for the installed command-agnostic error-arm proofs: it consumes
+the `installed_novel_state` and `single_program_catalogue` fixtures by name to
+cross the usage error (exit 2) and the state-or-input error (exit 3) over the
+installed `novel-state` in both output modes, and carries the same `slow` /
+`timeout(180)` / POSIX-`skipif` marks as the other installed e2es.
+
 Test modules consume these by fixture name — list the fixture as a test or
 helper parameter — and never by importing from another test module or from
 `conftest` itself. Importing helpers from `conftest` is fragile across pytest

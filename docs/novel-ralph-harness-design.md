@@ -850,7 +850,16 @@ would buy confidence the simpler commands do not need.
   `{current, by_chapter}` envelope, and refuses a missing or unparseable
   `state.toml` by exiting 3 with an `ok: false` envelope and no traceback — the
   mutator-refusal-is-3 rule (§3.2) and the unparseable-state failure mode (§10)
-  observed against a real installed console-script.
+  observed against a real installed console-script. The two command-agnostic
+  diagnostic arms the runner stamps *before any command body runs* — the usage
+  error (exit 2) and the state-or-input error (exit 3) — are proven at this
+  boundary too: the installed `novel-state` exits 2 on a malformed invocation
+  (an unknown option) and 3 on an absent `working/`, each in machine and human
+  mode, with the `--human` stamp and the `ok: false` envelope shape pinned. This
+  closes the in-process-versus-binary asymmetry these arms carried after the
+  in-process command-surface matrix crossed them (6.2.8); the boundary now
+  anchors the §3.2 / ADR-003 §3.1 contract for the diagnostic arms exactly as
+  the matrix anchors it in-process.
 
 External executables, where any command grows them, are mocked with `cmd-mox`
 at the cuprum catalogue boundary; v1 commands shell out to nothing, so the

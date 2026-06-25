@@ -1532,7 +1532,7 @@ novel-ralph-harness-design.md §2.3 and §9.
       capture-contract helper "if a third loop boundary appears" — is deferred to
       step 7.23 (shared command-driving scaffolding) and not folded here.
       Lightweight addendum pass.
-- [ ] 6.2.10. Cross the installed-binary command-agnostic error arms (exit 2 and
+- [x] 6.2.10. Cross the installed-binary command-agnostic error arms (exit 2 and
   exit 3) over a built wheel.
   - Step-task (source: review:6.2.8; severity: low). Task 6.2.8 closes the
     in-process exit-2/exit-3 matrix gap for the runner's command-agnostic
