@@ -1360,7 +1360,7 @@ novel-ralph-harness-design.md §2.3 and §9.
       convergence within a bound (`range(3)`); tighten both to the exact pass
       count so a regression that silently raises the re-entry passes the harness
       needs to converge fails loudly. Lightweight addendum pass.
-- [ ] 6.2.6. Extend the installed-binary exit-3 coverage to `reconcile` and
+- [x] 6.2.6. Extend the installed-binary exit-3 coverage to `reconcile` and
   `wordcount`.
   - Step-task (source: audit:6.2.4 Finding 6; severity: low). Task 6.2.4 added
     installed-binary exit-3 proofs for `recount` only, yet `reconcile` and

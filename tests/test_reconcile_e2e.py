@@ -1,4 +1,4 @@
-"""End-to-end reachability of ``novel-state reconcile`` (roadmap 2.3.2, 2.3.4).
+"""End-to-end reachability of ``novel-state reconcile`` (roadmap 2.3.2, 2.3.4, 6.2.6).
 
 Proofs of the externally observable command-line behaviour of the subcommand:
 
@@ -10,7 +10,13 @@ Proofs of the externally observable command-line behaviour of the subcommand:
   installs the wheel into a fresh venv, materialises a stale or log-absent tree
   under the subprocess cwd, runs the installed ``novel-state reconcile`` (exit
   ``0``), and confirms a follow-up ``check`` is coherent (exit ``0``) — the
-  recovery routine running as a real installed command, not a Python import.
+  recovery routine running as a real installed command, not a Python import;
+- the installed exit-3 proof (roadmap 6.2.6): the installed ``novel-state
+  reconcile`` run over a ``working/`` whose ``state.toml`` is missing or
+  unparseable exits ``3`` with an ``ok: false`` envelope and no traceback,
+  mirroring the ``recount`` proof so each of ``recount``, ``reconcile``, and
+  ``wordcount`` anchors its exit-3 state-or-input-error path at the packaging
+  boundary (audit Finding 6).
 
 The built-and-installed ``novel-state`` script is supplied by the module-scoped
 ``installed_novel_state`` fixture (``tests/installed_binary_fixtures.py``), so the
@@ -232,6 +238,57 @@ def test_installed_novel_state_reconcile_recreates_absent_log_md(
         context=ExecutionContext(cwd=dest), capture=True
     )
     assert check_result.exit_code == 0, check_result.stderr
+
+
+@pytest.mark.skipif(
+    os.name != "posix",
+    reason="console-script e2e is POSIX-only; see ADR 006",
+)
+@pytest.mark.slow
+@pytest.mark.timeout(180)
+@pytest.mark.parametrize(
+    "state_bytes",
+    [None, b"not = toml ="],
+    ids=["missing-state", "unparseable-state"],
+)
+def test_installed_novel_state_reconcile_state_error_exits_three(
+    state_bytes: bytes | None,
+    tmp_path: Path,
+    single_program_catalogue: cabc.Callable[[str, Program], ProgramCatalogue],
+    installed_novel_state: Path,
+) -> None:
+    """The installed ``novel-state reconcile`` exits ``3`` on a bad ``state.toml``.
+
+    Two fault shapes drive the exit-3 state-or-input-error channel (design §3.2;
+    ADR-003 Table 2 row 3): a ``working/`` with no ``state.toml`` (``state_bytes
+    is None``) and a ``working/state.toml`` of invalid TOML (``b"not = toml ="``).
+    A mutator that refuses an incoherent request exits ``3``, never ``1`` (design
+    §3.2), so driving the named mutator over each fault proves the
+    mutator-refusal-is-3 rule at the installed boundary. Verification choice: the
+    boundary is a small, enumerable pair, so a two-case ``parametrize`` is the
+    right adversary, not Hypothesis — the in-process reconcile exit-3 coverage
+    already exists. The installed script runs with cuprum's
+    ``ExecutionContext(cwd=run_dir)`` so it resolves ``./working/state.toml``.
+    Each case asserts exit ``3``, an ``ok: false`` envelope, and no traceback on
+    stderr (design §10 — a state fault yields a message, not a stack trace); the
+    message string is left unpinned because the contract does not fix its wording.
+    The module-scoped ``installed_novel_state`` fixture supplies the script path
+    (built once per module); the 180s timeout supersedes the 30s project default.
+    """
+    run_dir = tmp_path / "run"
+    working_dir = run_dir / "working"
+    working_dir.mkdir(parents=True)
+    if state_bytes is not None:
+        (working_dir / "state.toml").write_bytes(state_bytes)
+
+    prog = Program(str(installed_novel_state))
+    catalogue = single_program_catalogue("novel-state-run", prog)
+    result = sh.make(prog, catalogue=catalogue)("reconcile").run_sync(
+        context=ExecutionContext(cwd=run_dir), capture=True
+    )
+    assert result.exit_code == 3, result.stderr
+    assert json.loads(result.stdout or "{}")["ok"] is False
+    assert "Traceback" not in (result.stderr or "")
 
 
 @pytest.mark.skipif(

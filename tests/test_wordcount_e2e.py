@@ -1,21 +1,30 @@
 """End-to-end proof the installed ``wordcount`` reports over a real wheel/venv.
 
 This is the design §9 installed-binary success criterion for ``wordcount``
-(roadmap task 6.1.1): build a wheel from this package, install it into a throwaway
-virtual environment, materialise a coherent ``working/`` tree, and run the
+(roadmap tasks 6.1.1, 6.2.6): build a wheel from this package, install it into a
+throwaway virtual environment, materialise a ``working/`` tree, and run the
 installed ``wordcount`` **by absolute path** through a cuprum catalogue that
 **registers that exact path**. The registration is the execution gate
 (``cuprum/sh.py:make`` calls ``catalogue.lookup``, which raises
-``UnknownProgramError`` for any unregistered program), so the test reuses the
+``UnknownProgramError`` for any unregistered program), so the tests reuse the
 ``single_program_catalogue`` fixture exactly as ``tests/test_desloppify_e2e.py``
 and ``tests/test_console_scripts_e2e.py`` do.
 
-The corpus baseline tree is drafted past the 80% knitting gate, so the installed
-binary exits ``0`` and its stdout JSON envelope carries the cumulative report with
-``gate_triggered_80: true`` and a non-negative ``next_gate_distance`` (``null``
-past the final gate). This e2e is POSIX-only (ADR-006) and slow (build + venv +
-install), so it is skipped off POSIX and given an explicit 180s timeout that
-supersedes the 30s project default.
+Two installed proofs live here:
+
+- the happy path: the corpus baseline tree is drafted past the 80% knitting gate,
+  so the installed binary exits ``0`` and its stdout JSON envelope carries the
+  cumulative report with ``gate_triggered_80: true`` and a non-negative
+  ``next_gate_distance`` (``null`` past the final gate); and
+- the exit-3 path (roadmap 6.2.6): a ``working/`` whose ``state.toml`` is missing
+  or unparseable drives the installed ``wordcount`` to exit ``3`` with an
+  ``ok: false`` envelope and no traceback, mirroring the ``recount`` proof so
+  each of ``recount``, ``reconcile``, and ``wordcount`` anchors its exit-3
+  state-or-input-error path at the packaging boundary (audit Finding 6).
+
+Both e2es are POSIX-only (ADR-006) and slow (build + venv + install), so they are
+skipped off POSIX and given an explicit 180s timeout that supersedes the 30s
+project default.
 """
 
 from __future__ import annotations
@@ -109,3 +118,59 @@ def test_installed_wordcount_reports_gate_triggers(
     assert distance is None or distance >= 0, "next-gate distance is non-negative"
     chapters = envelope["result"]["chapters"]
     assert sum(row["words"] for row in chapters) == cumulative["current"]
+
+
+@pytest.mark.skipif(
+    os.name != "posix",
+    reason="console-script e2e is POSIX-only; see ADR 006",
+)
+@pytest.mark.slow
+@pytest.mark.timeout(180)
+@pytest.mark.parametrize(
+    "state_bytes",
+    [None, b"not = toml ="],
+    ids=["missing-state", "unparseable-state"],
+)
+def test_installed_wordcount_state_error_exits_three(
+    state_bytes: bytes | None,
+    tmp_path: Path,
+    single_program_catalogue: cabc.Callable[[str, Program], ProgramCatalogue],
+    venv_scripts_dir: cabc.Callable[[Path], Path],
+) -> None:
+    """The installed ``wordcount`` exits ``3`` on a bad ``state.toml``.
+
+    Two fault shapes drive the exit-3 state-or-input-error channel (design §3.2;
+    ADR-003 Table 2 row 3): a ``working/`` with no ``state.toml`` (``state_bytes
+    is None``) and a ``working/state.toml`` of invalid TOML (``b"not = toml ="``).
+    The in-process ``test_absent_working_dir_exits_three`` and
+    ``test_unparseable_state_exits_three`` (``tests/test_wordcount_command.py``)
+    pin both shapes to exit ``3``; this proof re-asserts the same boundary at the
+    real packaging layer. Verification choice: the boundary is a small, enumerable
+    pair, so a two-case ``parametrize`` is the right adversary, not Hypothesis.
+    Unlike ``reconcile`` (a ``novel-state`` subcommand), ``wordcount`` is its own
+    top-level console-script invoked with no subcommand, so it runs with the empty
+    call ``()``; it is built by this module's function-scoped
+    ``_build_and_install_wordcount`` helper (not the ``novel-state`` fixture),
+    matching the convention the happy-path proof above already adopts. Each case
+    asserts exit ``3``, an ``ok: false`` envelope, and no traceback on stderr
+    (design §10 — a state fault yields a message, not a stack trace); the message
+    string is left unpinned because the contract does not fix its wording. The
+    180s timeout supersedes the 30s project default.
+    """
+    script_path = _build_and_install_wordcount(
+        tmp_path, single_program_catalogue, venv_scripts_dir
+    )
+    run_dir = tmp_path / "run-state-error"
+    working_dir = run_dir / "working"
+    working_dir.mkdir(parents=True)
+    if state_bytes is not None:
+        (working_dir / "state.toml").write_bytes(state_bytes)
+
+    prog = Program(str(script_path))
+    catalogue = single_program_catalogue("wordcount-run", prog)
+    result = sh.make(prog, catalogue=catalogue)().run_sync(
+        context=ExecutionContext(cwd=run_dir), capture=True
+    )
+    assert result.exit_code == 3, result.stderr
+    assert json.loads(result.stdout or "{}")["ok"] is False
+    assert "Traceback" not in (result.stderr or "")
