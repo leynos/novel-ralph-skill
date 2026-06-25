@@ -1481,6 +1481,57 @@ novel-ralph-harness-design.md §2.3 and §9.
     report are each proven over the real installed console-script boundary, or the
     in-process-only bound is named in the Carried gaps section so it is carried
     knowingly rather than silently.
+  - [ ] 6.2.9.1. Split `tests/steps/per_chapter_loop_installed_steps.py` before
+    it breaches the 400-line module cap.
+    - Addendum (from review:6.2.9; low). At 383 of 400 lines the next installed
+      arm risks breaching the AGENTS.md module-size gate mid-task; extract the
+      run/build helpers (the `_run_installed_argv`/`_run_installed`/
+      `_build_installed` seam) from the step definitions into a small support
+      module so future installed work stays within bounds. Lightweight addendum
+      pass.
+  - [ ] 6.2.9.2. Correct the execplan framing of where the refused-advance exit-3
+    is stamped.
+    - Addendum (from review:6.2.9; low). The 6.2.9 execplan (lines 28-34) frames
+      the refused-advance exit-3 as runner-stamped "before the command body runs
+      (global-flag pre-parse)", but for the `completed-prefix-gap` case the exit-3
+      originates from a domain `StateInputError` raised inside `advance_phase`
+      (`_refuse_if_incoherent(prior)`) and is translated by the runner; reword the
+      prose to distinguish the two exit-3 paths (pre-parse global-flag errors
+      versus in-body domain refusals) so a later reader does not misread the
+      contract surface. Lightweight addendum pass.
+  - [ ] 6.2.9.3. Enforce the installed step helper's capture-key single-write
+    contract structurally.
+    - Addendum (from review:6.2.9; low). `_run_installed_argv` is a command/query
+      hybrid (it writes `installed.captures[capture_key]` and returns the tuple)
+      whose single-write contract is guarded only by the module docstring; a
+      future maintainer copying a `When` step could re-add `captures[...] =` and
+      double-write silently. Add a small assertion that the `capture_key` is not
+      already written this run so the contract is enforced rather than only
+      documented. Lightweight addendum pass.
+  - [ ] 6.2.9.4. Parametrise the two duplicated installed-scenario mark-guard
+    tests.
+    - Addendum (from audit:6.2.9 Finding 3; low). The two `*_carries_marks` tests
+      in `tests/test_per_chapter_loop_installed_bdd.py` are near-identical clones
+      differing only in the bound function and message noun, and the developers'
+      guide instructs contributors to add a guard per installed scenario, so the
+      clone pattern grows one copy per future scenario; collapse them to one
+      `@pytest.mark.parametrize`d test over `(function, label)` pairs so adding
+      a scenario is a one-line append, keeping each scenario named in the test
+      id. Lightweight addendum pass.
+      Lightweight addendum pass.
+  - [ ] 6.2.9.5. Document the installed crossed-gate folding and step-harness
+    conventions adjacent to the code.
+    - Addendum (from audit:6.2.9 Findings 2, 4, 5; low). Three consistency notes
+      share a root cause — rationale that lives only in the developers' guide, not
+      next to the code: (1) add a one-line feature-header comment recording that
+      the installed feature folds the crossed-gate into the clean-pass scenario
+      rather than a standalone scenario (asymmetric with the in-process feature),
+      and (2) sanction the `_run_installed_argv` command/query hybrid as a
+      deliberate test-helper exception in the developers' guide's test-helper
+      conventions. The audit's third, conditional note — extracting a shared
+      capture-contract helper "if a third loop boundary appears" — is deferred to
+      step 7.23 (shared command-driving scaffolding) and not folded here.
+      Lightweight addendum pass.
 - [ ] 6.2.10. Cross the installed-binary command-agnostic error arms (exit 2 and
   exit 3) over a built wheel.
   - Step-task (source: review:6.2.8; severity: low). Task 6.2.8 closes the

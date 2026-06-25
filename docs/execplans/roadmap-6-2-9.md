@@ -910,3 +910,56 @@ Revision 2 (2026-06-25) — resolves the round-1 design-review blocking points.
 Revision 1 (2026-06-25). Initial draft: established the work-item decomposition,
 recorded the S1 discovery that the crossed gate is already installed-proven, and
 pinned the locked external surfaces.
+
+## Addenda
+
+Post-merge remediation items filed against this completed task. Each is a
+lightweight addendum pass: no plan or design-review cycle, just the change, the
+gates, and a merge. The roadmap carries the matching nested sub-task.
+
+- **6.2.9.1 — Split `tests/steps/per_chapter_loop_installed_steps.py` before it
+  breaches the 400-line module cap** (from review:6.2.9; severity: low). At 383
+  of 400 lines the next installed arm risks breaching the AGENTS.md module-size
+  gate mid-task. Extract the run/build helpers (the `_run_installed_argv`/
+  `_run_installed`/`_build_installed` seam) from the step definitions into a
+  small support module so future installed work stays within bounds.
+- **6.2.9.2 — Correct the execplan framing of where the refused-advance exit-3
+  is stamped** (from review:6.2.9; severity: low). The framing above (Context and
+  orientation; the WI-1 prose) describes the refused-advance exit-3 as
+  runner-stamped "before the command body runs (the global-flag pre-parse)". For
+  the `completed-prefix-gap` case the exit-3 actually originates from a domain
+  `StateInputError` raised inside `advance_phase` (`_refuse_if_incoherent(prior)`)
+  and is translated by the runner. Reword the prose to distinguish the two
+  distinct exit-3 paths — pre-parse global-flag (usage/`--human`) errors versus
+  in-body domain refusals — so a later reader does not draw the wrong conclusion
+  about the contract surface.
+- **6.2.9.3 — Enforce the installed step helper's capture-key single-write
+  contract structurally** (from review:6.2.9; severity: low).
+  `_run_installed_argv` is a command/query hybrid: it writes
+  `installed.captures[capture_key]` and returns the tuple, with the single-write
+  contract guarded only by the module docstring. A future maintainer copying a
+  `When` step could re-add `captures[...] =` and double-write silently. Add a
+  small assertion that `capture_key` is not already present in
+  `installed.captures` for this run, so the contract is enforced rather than only
+  documented.
+- **6.2.9.4 — Parametrise the two duplicated installed-scenario mark-guard
+  tests** (from audit:6.2.9 Finding 3; severity: low). The two `*_carries_marks`
+  tests in `tests/test_per_chapter_loop_installed_bdd.py` are near-identical
+  clones differing only in the bound function and message noun, and the
+  developers' guide instructs contributors to add a guard per installed scenario,
+  so the clone pattern grows one copy per future scenario. Collapse them to one
+  `@pytest.mark.parametrize`d test over `(function, label)` pairs so adding a
+  scenario is a one-line append, keeping each scenario named in the test id.
+- **6.2.9.5 — Document the installed crossed-gate folding and step-harness
+  conventions adjacent to the code** (from audit:6.2.9 Findings 2, 4, 5; severity:
+  low). Three consistency notes share a root cause — rationale that lives only in
+  the developers' guide, not next to the code: (1) add a one-line feature-header
+  comment in `per_chapter_loop_installed.feature` recording that the installed
+  feature folds the crossed-gate into the clean-pass scenario rather than a
+  standalone scenario (asymmetric with the in-process feature), and (2) sanction
+  the `_run_installed_argv` command/query hybrid as a deliberate test-helper
+  exception in the developers' guide's test-helper conventions. The audit's
+  third, conditional note — optionally extracting a shared capture-contract
+  helper "if a third loop boundary appears" — is deferred to step 7.23 (shared
+  command-driving test scaffolding), whose hypothesis it serves, and is not
+  folded here.
