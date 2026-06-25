@@ -59,13 +59,13 @@ process emits one envelope by construction; `novel --help` lists everything;
 only `novel` reaches `PATH`. Costs a one-time rename of every `novel-x` reference
 to `novel x` across code, tests, the design, and the skill.
 
-| Topic                       | A: namespace two scripts        | B: `novel` multiplexer            |
-| --------------------------- | ------------------------------- | --------------------------------- |
-| `PATH` names                | Five (`novel-…`)                | One (`novel`)                     |
-| Structural uniformity       | Asymmetric (state alone nests)  | Uniform (state subgroup + verbs)  |
-| Envelope consistency        | Convention (shared module)      | Structural + shared module        |
-| Discoverability             | Five names                      | `novel --help`                    |
-| One-time rename cost        | Two entry points               | Whole surface                      |
+| Topic                 | A: namespace two scripts   | B: `novel` multiplexer     |
+| --------------------- | -------------------------- | -------------------------- |
+| `PATH` names          | Five `novel-*` scripts     | One (`novel`)              |
+| Structural uniformity | Asymmetric (state nests)   | Uniform (state + verbs)    |
+| Envelope consistency  | Convention (shared module) | Structural + shared module |
+| Discoverability       | Five names on PATH         | `novel --help`             |
+| One-time rename cost  | Two entry points           | Whole surface              |
 
 _Table 1: Comparison of options._
 
