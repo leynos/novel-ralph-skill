@@ -1,4 +1,134 @@
 # serializer version: 1
+# name: test_error_arm_machine_envelope[desloppify-state]
+  dict({
+    'command': 'desloppify',
+    'messages': list([
+      '<redacted>',
+    ]),
+    'ok': False,
+    'result': dict({
+    }),
+    'schema_version': 1,
+    'working_dir': 'working',
+  })
+# ---
+# name: test_error_arm_machine_envelope[desloppify-usage]
+  dict({
+    'command': 'desloppify',
+    'messages': list([
+      '<redacted>',
+    ]),
+    'ok': False,
+    'result': dict({
+    }),
+    'schema_version': 1,
+    'working_dir': 'working',
+  })
+# ---
+# name: test_error_arm_machine_envelope[novel-compile-state]
+  dict({
+    'command': 'novel-compile',
+    'messages': list([
+      '<redacted>',
+    ]),
+    'ok': False,
+    'result': dict({
+    }),
+    'schema_version': 1,
+    'working_dir': 'working',
+  })
+# ---
+# name: test_error_arm_machine_envelope[novel-compile-usage]
+  dict({
+    'command': 'novel-compile',
+    'messages': list([
+      '<redacted>',
+    ]),
+    'ok': False,
+    'result': dict({
+    }),
+    'schema_version': 1,
+    'working_dir': 'working',
+  })
+# ---
+# name: test_error_arm_machine_envelope[novel-done-state]
+  dict({
+    'command': 'novel-done',
+    'messages': list([
+      '<redacted>',
+    ]),
+    'ok': False,
+    'result': dict({
+    }),
+    'schema_version': 1,
+    'working_dir': 'working',
+  })
+# ---
+# name: test_error_arm_machine_envelope[novel-done-usage]
+  dict({
+    'command': 'novel-done',
+    'messages': list([
+      '<redacted>',
+    ]),
+    'ok': False,
+    'result': dict({
+    }),
+    'schema_version': 1,
+    'working_dir': 'working',
+  })
+# ---
+# name: test_error_arm_machine_envelope[novel-state-state]
+  dict({
+    'command': 'novel-state',
+    'messages': list([
+      '<redacted>',
+    ]),
+    'ok': False,
+    'result': dict({
+    }),
+    'schema_version': 1,
+    'working_dir': 'working',
+  })
+# ---
+# name: test_error_arm_machine_envelope[novel-state-usage]
+  dict({
+    'command': 'novel-state',
+    'messages': list([
+      '<redacted>',
+    ]),
+    'ok': False,
+    'result': dict({
+    }),
+    'schema_version': 1,
+    'working_dir': 'working',
+  })
+# ---
+# name: test_error_arm_machine_envelope[wordcount-state]
+  dict({
+    'command': 'wordcount',
+    'messages': list([
+      '<redacted>',
+    ]),
+    'ok': False,
+    'result': dict({
+    }),
+    'schema_version': 1,
+    'working_dir': 'working',
+  })
+# ---
+# name: test_error_arm_machine_envelope[wordcount-usage]
+  dict({
+    'command': 'wordcount',
+    'messages': list([
+      '<redacted>',
+    ]),
+    'ok': False,
+    'result': dict({
+    }),
+    'schema_version': 1,
+    'working_dir': 'working',
+  })
+# ---
 # name: test_machine_envelope_matrix[desloppify-chapter-planning]
   dict({
     'command': 'desloppify',

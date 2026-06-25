@@ -7,6 +7,18 @@ already covers (design §2.3 lines 125-129; §9 lines 817-821). It contributes t
 cross-product view the per-command suites do not: each of the five read commands
 driven across the eleven coherent phase states, in both output modes.
 
+Beyond the body-produced ``command x output-mode x phase`` cells (exit 0/1/4),
+the matrix also crosses the two **command-agnostic diagnostic arms** the shared
+``run`` wrapper stamps *before or instead of* a command body returning a value
+(§3.2 lines 203-230; §9 lines 822-826): the usage-error arm (exit 2,
+``CycloptsError``, triggered by an unknown option) and the state-error arm (exit
+3, ``StateInputError``, triggered by an absent ``working/``). Both are crossed
+with every read command in both output modes, proving the ``--human`` stamp
+reaches the body-less arms (ADR-003 §3.1). Their ``messages`` field is the only
+platform/command-variable datum (the exit-3 errno text and the exit-2 suggestion
+suffix), so the snapshot redacts it and the message is asserted by its stable,
+command-body-owned prefix.
+
 The surface is bounded deliberately. The design carries the exhaustive
 cross-product gaps "knowingly rather than silently" (§9 lines 819-821), so this
 module documents exactly which cells are covered and which combinatorial gaps it
@@ -159,6 +171,62 @@ _CELLS: tuple[tuple[_ReadCommand, str], ...] = tuple(
 )
 
 
+class _ErrorArm(typ.NamedTuple):
+    """One command-agnostic diagnostic arm of the shared ``run`` wrapper.
+
+    The two arms (``_USAGE_ARM`` and ``_STATE_ARM``) are the envelopes ``run``
+    stamps *before or instead of* a command body returning a value (§3.2 lines
+    203-230; ``runner.py`` lines 225-239). Both are command-agnostic: driven
+    through ``run``, every read command yields the same exit code, the same
+    ``ok: false`` skeleton, an empty ``result``, and a message whose stable
+    prefix is identical across all five commands (ExecPlan Surprises). The only
+    field that varies is ``messages`` — the exit-3 errno text and the exit-2
+    suggestion suffix (``novel-compile --check`` appends "Did you mean
+    --no-check?") — so the snapshot redacts it and the message is asserted by
+    its command-body-owned prefix instead.
+
+    Bundling the arm into a single parametrize cell with its command (see
+    ``_ERROR_CELLS``) keeps the drive helper's and tests' parameter lists within
+    the project's argument-count gate (Pylint ``too-many-arguments``).
+    """
+
+    label: str
+    extra_argv: list[str]
+    build_working: bool
+    expected_code: ExitCode
+    message_prefix: str
+
+
+# Usage (exit 2): an unknown option appended to the read argv faults at parse
+# before the body runs, so a real ``working/`` tree leaves only the argv at fault.
+_USAGE_ARM = _ErrorArm(
+    label="usage",
+    extra_argv=["--nope"],
+    build_working=True,
+    expected_code=ExitCode.USAGE_ERROR,
+    message_prefix="Unknown option:",
+)
+# State (exit 3): a cwd with no ``working/`` makes every body raise
+# ``StateInputError`` when it tries to load ``working/state.toml``.
+_STATE_ARM = _ErrorArm(
+    label="state",
+    extra_argv=[],
+    build_working=False,
+    expected_code=ExitCode.STATE_ERROR,
+    message_prefix="cannot load working/state.toml",
+)
+
+_ErrorCell = tuple[_ReadCommand, _ErrorArm]
+
+_ERROR_ARMS: tuple[_ErrorArm, ...] = (_USAGE_ARM, _STATE_ARM)
+_ERROR_CELLS: tuple[_ErrorCell, ...] = tuple(
+    (command, arm) for command in _READ_REGISTRY for arm in _ERROR_ARMS
+)
+_ERROR_CELL_IDS: tuple[str, ...] = tuple(
+    f"{command.name}-{arm.label}" for command in _READ_REGISTRY for arm in _ERROR_ARMS
+)
+
+
 def _build_phase_tree(phase: str, tmp_path: Path) -> Path:
     """Build the coherent ``working/`` tree for ``phase`` under ``tmp_path``.
 
@@ -305,6 +373,99 @@ def test_human_mode_presence_matrix(
     command, phase = cell
     working = _build_phase_tree(phase, tmp_path)
     _code, rendered = drive(command, working, human=True)
+    assert rendered.strip(), "human mode must render a non-empty report"
+    assert command.name in rendered
+
+
+def _drive_error_cell(
+    cell: _ErrorCell, tmp_path: Path, drive: _Driver, *, human: bool
+) -> tuple[int, str]:
+    """Drive an ``(command, arm)`` error cell; return ``(code, out)``.
+
+    For ``build_working=False`` the cell needs a cwd with no ``working/``: it
+    builds a bare per-arm directory and passes a synthetic ``working`` path under
+    it that is **not** materialised, so ``working.parent`` is that empty cwd. The
+    ``drive`` fixture only reads ``working.parent`` and never stats ``working``
+    itself, so it is reused unchanged. Bundling ``cell`` keeps this helper at four
+    parameters (three positional plus one keyword-only), within the Pylint
+    ``too-many-arguments``/``too-many-positional-arguments`` gate.
+
+    Parameters
+    ----------
+    cell : _ErrorCell
+        The ``(command, arm)`` pair to drive.
+    tmp_path : Path
+        The per-test temporary directory.
+    drive : _Driver
+        The in-process driver fixture.
+    human : bool
+        Whether to render the human rather than the machine envelope.
+
+    Returns
+    -------
+    tuple[int, str]
+        The exit code and the rendered stdout.
+    """
+    command, arm = cell
+    root = tmp_path / arm.label
+    root.mkdir(exist_ok=True)
+    if arm.build_working:
+        working = wc.build_working_tree(wc.PHASE_STATES["drafting"], root)
+    else:
+        working = root / "working"  # deliberately NOT created
+    argv = [*command.argv, *arm.extra_argv]
+    return drive(command._replace(argv=argv), working, human=human)
+
+
+@pytest.mark.parametrize("cell", _ERROR_CELLS, ids=_ERROR_CELL_IDS)
+def test_error_arm_machine_envelope(
+    cell: _ErrorCell,
+    tmp_path: Path,
+    drive: _Driver,
+    snapshot: SnapshotAssertion,
+) -> None:
+    """Snapshot the machine-mode envelope for both diagnostic arms per command.
+
+    Crosses the two command-agnostic arms ``run`` stamps before the body returns
+    — usage (exit 2) and state (exit 3) — with every read command (§3.2 lines
+    203-230; §9 lines 822-826). Each snapshot redacts ``messages`` (the only
+    platform/command-variable field — exit-3 errno text, exit-2 suggestion
+    suffix) and is **paired** with semantic assertions on the envelope skeleton
+    and the command-body-owned message prefix, so no behaviour is snapshot-only
+    (AGENTS.md). The ``len(messages) == 1`` assertion restores the count signal
+    the redaction would otherwise collapse.
+    """
+    command, arm = cell
+    code, raw = _drive_error_cell(cell, tmp_path, drive, human=False)
+    envelope = typ.cast("dict[str, object]", json.loads(raw))
+    assert code == arm.expected_code
+    assert envelope["command"] == command.name
+    assert envelope["ok"] is False
+    assert envelope["working_dir"] == "working"
+    assert envelope["result"] == {}
+    messages = typ.cast("list[str]", envelope["messages"])
+    assert len(messages) == 1
+    assert messages[0].startswith(arm.message_prefix)
+    redacted = {**envelope, "messages": ["<redacted>"]}
+    _assert_no_volatile_fields(redacted)
+    assert redacted == snapshot
+
+
+@pytest.mark.parametrize("cell", _ERROR_CELLS, ids=_ERROR_CELL_IDS)
+def test_error_arm_human_presence(
+    cell: _ErrorCell,
+    tmp_path: Path,
+    drive: _Driver,
+) -> None:
+    """Assert ``--human`` renders a non-empty body for both diagnostic arms.
+
+    Proves the ``--human`` stamp reaches the body-less arms (§3.2 lines 203-230;
+    ADR-003 §3.1): the same presence contract ``test_human_mode_presence_matrix``
+    uses, now over the exit-2/exit-3 envelopes ``run`` produces when the body
+    never returns a ``result``.
+    """
+    command, _arm = cell
+    _code, rendered = _drive_error_cell(cell, tmp_path, drive, human=True)
     assert rendered.strip(), "human mode must render a non-empty report"
     assert command.name in rendered
 

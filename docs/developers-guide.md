@@ -101,6 +101,17 @@ check` result, the `wordcount` zero-progress versus populated branches, the
 `novel-compile --check` exit-3/4/0 split, and the shape-stable-but-value-varying
 `desloppify` report.
 
+Beyond the body-produced envelopes (exit 0/1/4), the matrix also crosses the
+two command-agnostic diagnostic arms the shared `run` wrapper stamps before the
+body returns a value (design §3.2 and §9): the usage-error arm (exit 2, an
+unknown option) and the state-error arm (exit 3, an absent `working/`). Both are
+crossed with every read command in both output modes, so the `--human` selection
+is proven to reach these body-less envelopes too. The machine-mode snapshot
+redacts the `messages` field — the only platform- and command-variable datum,
+carrying the errno text and the usage suggestion suffix — and pins the envelope
+skeleton (`command`, `ok: false`, `working_dir`, empty `result`) while the
+message is asserted by its stable prefix.
+
 The matrix deliberately bounds its surface and documents the combinatorial gaps
 it carries rather than omitting them silently (design §9): the module docstring's
 `Carried gaps` section enumerates the mutator-by-phase cross-products (covered by

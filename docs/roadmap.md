@@ -1398,7 +1398,7 @@ novel-ralph-harness-design.md §2.3 and §9.
   - Success: a torn turn whose declared artefact did not land is detected by
     `check` and rolled back by `reconcile` at the command boundary, closing the
     symmetric `ROLLBACK` half of the disposition 6.2.5 proved for `COMPLETE`.
-- [ ] 6.2.8. Extend the command-surface matrix to a minimal error-mode slice, or
+- [x] 6.2.8. Extend the command-surface matrix to a minimal error-mode slice, or
   record the omission as a carried gap.
   - Step-task (source: audit:6.2.1 Finding 5; severity: low). The combinatorial
     matrix never crosses the runner's command-agnostic exit-2 (`CycloptsError`)
