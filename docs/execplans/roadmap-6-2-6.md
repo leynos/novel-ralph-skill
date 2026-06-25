@@ -643,3 +643,26 @@ Round-2 revision (2026-06-25), in response to the round-1 Logisphere review
   matched the green existing tests and the wheel. Only the verification trail an
   implementer follows was corrected, so following the citations now lands on the
   exact `capture=True` API the tests use.
+
+## Addenda
+
+Post-merge remediation items filed against this completed task. Each is a
+lightweight addendum pass: no plan or design-review cycle, just the change, the
+gates, and a merge. The roadmap carries the matching nested sub-task.
+
+- **6.2.6.1 — Add a missing-state-only in-process exit-3 test for `wordcount`**
+  (from review:6.2.6; severity: low). The missing-state case (a `working/`
+  directory present but `state.toml` absent) is proven in-process for `wordcount`
+  only indirectly via the absent-working-dir and unparseable-state tests; the
+  precise present-working-dir-without-`state.toml` shape is pinned in-process for
+  `recount` but not directly for `wordcount`. Add a direct in-process assertion
+  so the installed proof's truth is self-contained per command rather than
+  resting on the shared boundary argument.
+- **6.2.6.2 — Assert a non-empty human-facing message in the installed exit-3
+  envelopes across `recount`, `reconcile`, and `wordcount`** (from review:6.2.6;
+  severity: low). The installed exit-3 proofs assert exit 3 + `ok:false` + no
+  `Traceback` but pin no message content, yet design §10 requires a state fault
+  to yield a message, not a stack trace; a regression emitting an empty or
+  unhelpful operator message would pass today. Add a small shared assertion that
+  each installed exit-3 envelope carries a non-empty `messages` entry, extended
+  across the `recount` proof 6.2.4 added.

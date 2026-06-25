@@ -794,3 +794,17 @@ modes.
   - No cuprum API is used (the matrix is in-process; module docstring line 31).
 
 No new module, no new public API, no new dependency is introduced.
+
+## Addenda
+
+Post-merge remediation items filed against this completed task. Each is a
+lightweight addendum pass: no plan or design-review cycle, just the change, the
+gates, and a merge. The roadmap carries the matching nested sub-task.
+
+- **6.2.8.1 — De-duplicate the near-degenerate error-arm snapshots in the
+  command-surface matrix** (from audit:6.2.8; severity: low). The ten
+  `test_error_arm_machine_envelope` snapshots redact the only command-variable
+  field, leaving each differing solely by a `command` string the test body
+  already asserts field-by-field, so they re-pin a skeleton with no added signal.
+  Replace the ten `.ambr` blocks with one in-code expected-skeleton assertion
+  templated on `command.name`/`working_dir`.

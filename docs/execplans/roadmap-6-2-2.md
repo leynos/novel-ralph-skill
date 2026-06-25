@@ -1077,3 +1077,17 @@ Pinned external APIs (all locked, all proven in-repo):
   production change); the Scope tolerance is updated to 7 files accordingly. No
   ground-truth pin changed; the in-process scenario behaviour and corpus usage
   are unchanged.
+
+## Addenda
+
+Post-merge remediation items filed against this completed task. Each is a
+lightweight addendum pass: no plan or design-review cycle, just the change, the
+gates, and a merge. The roadmap carries the matching nested sub-task.
+
+- **6.2.2.3 — Assert recount's no-op invariant at the installed boundary**
+  (from review:6.2.2; severity: low). The installed clean-pass scenario drives
+  `recount` (a mutator) before the read commands and relies on the in-process
+  Risk-2 argument that it is a no-op over the all-hold tree. Add an explicit
+  installed assertion that the recounted `{current, by_chapter}` equals the
+  drafted totals, so the no-op property is proven at the real wheel boundary
+  rather than inferred from the in-process suite.

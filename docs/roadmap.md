@@ -1298,6 +1298,13 @@ novel-ralph-harness-design.md §2.3 and §9.
   - See novel-ralph-harness-design.md §7.2 and §9.
   - Success: a stale compile is caught, a crossed gate is reported, and an
     out-of-order phase advance is refused, all in one scripted pass.
+  - [ ] 6.2.2.3. Assert recount's no-op invariant at the installed boundary.
+    - Addendum (from review:6.2.2; low). The installed clean-pass scenario drives
+      `recount` (a mutator) before the read commands and relies on the in-process
+      Risk-2 argument that it is a no-op over the all-hold tree; add an explicit
+      installed assertion that the recounted `{current, by_chapter}` equals the
+      drafted totals so the no-op property is proven at the real wheel boundary
+      rather than inferred from the in-process suite. Lightweight addendum pass.
 - [x] 6.2.3. Correct the documented skill defects and point the prose at the
   commands.
   - Requires phase 3.
@@ -1381,6 +1388,24 @@ novel-ralph-harness-design.md §2.3 and §9.
     unparseable `state.toml` against a real installed console-script over a built
     wheel, not only in-process, closing the installed exit-3 asymmetry left after
     6.2.4.
+  - [ ] 6.2.6.1. Add a missing-state-only in-process exit-3 test for `wordcount`.
+    - Addendum (from review:6.2.6; low). The missing-state case (a `working/`
+      directory present but `state.toml` absent) is proven in-process for
+      `wordcount` only indirectly via the absent-working-dir and unparseable-state
+      tests; the precise present-working-dir-without-`state.toml` shape is pinned
+      in-process for `recount` but not directly for `wordcount`. Add a direct
+      in-process assertion so the installed proof's truth is self-contained per
+      command rather than resting on the shared boundary argument. Lightweight
+      addendum pass.
+  - [ ] 6.2.6.2. Assert a non-empty human-facing message in the installed exit-3
+    envelopes across `recount`, `reconcile`, and `wordcount`.
+    - Addendum (from review:6.2.6; low). The installed exit-3 proofs assert
+      exit 3 with `ok:false` and no `Traceback` but pin no message content, yet
+      design §10 requires a state fault to yield a message, not a stack trace; a
+      regression emitting an empty or unhelpful operator message would pass
+      today. Add a small shared assertion that each installed exit-3 envelope
+      carries a non-empty `messages` entry, extended across the recount proof
+      6.2.4 added. Lightweight addendum pass.
 - [x] 6.2.7. Add a reconcile-boundary `ROLLBACK_PENDING_TURN` recovery scenario.
   - Step-task (source: review:6.2.5; severity: low). Task 6.2.5 proves the
     `COMPLETE` disposition (both declared artefacts present) at the `reconcile`
@@ -1398,6 +1423,15 @@ novel-ralph-harness-design.md §2.3 and §9.
   - Success: a torn turn whose declared artefact did not land is detected by
     `check` and rolled back by `reconcile` at the command boundary, closing the
     symmetric `ROLLBACK` half of the disposition 6.2.5 proved for `COMPLETE`.
+  - [ ] 6.2.7.1. Strengthen the rollback no-deletion assertion to also forbid
+    fabrication.
+    - Addendum (from review:6.2.7; low). Design §5.4 item 2 says rolling back
+      removes nothing and fabricates nothing; the scenario asserts non-removal via
+      a subset check (`files_before <= after`) and draft-byte equality but does
+      not directly assert that no unexpected `working/` file is created during
+      rollback. Tighten the assertion so the after-set difference is limited to
+      `{state.toml, log.md}`, catching a fabrication regression. Lightweight
+      addendum pass.
 - [x] 6.2.8. Extend the command-surface matrix to a minimal error-mode slice, or
   record the omission as a carried gap.
   - Step-task (source: audit:6.2.1 Finding 5; severity: low). The combinatorial
@@ -1418,6 +1452,117 @@ novel-ralph-harness-design.md §2.3 and §9.
     (asserting the `--human` stamp and envelope shape on the command-agnostic
     diagnostic arms) or its Carried gaps section names the error-mode omission
     explicitly, so the bound is carried knowingly rather than silently.
+  - [ ] 6.2.8.1. De-duplicate the near-degenerate error-arm snapshots in the
+    command-surface matrix.
+    - Addendum (from audit:6.2.8; low). The ten `test_error_arm_machine_envelope`
+      snapshots redact the only command-variable field, leaving each differing
+      solely by a `command` string the test body already asserts field-by-field,
+      so they re-pin a skeleton with no added signal. Replace the ten `.ambr`
+      blocks with one in-code expected-skeleton assertion templated on
+      `command.name`/`working_dir`. Lightweight addendum pass.
+- [ ] 6.2.9. Extend the installed per-chapter loop re-drive to the refused-advance
+  and crossed-gate decisions.
+  - Step-task (source: audit:6.2.2 Finding 7; severity: low). The installed
+    wheel/venv re-drive of the per-chapter loop covers only the clean pass and
+    the stale-compile catch; the refused out-of-order `advance-phase` (exit 3,
+    stamped by `contract/runner.py` before the body runs) and the crossed-gate
+    report are exactly the POSIX exit-code-translation behaviour the installed
+    boundary exists to prove, yet remain in-process-only. This advances the
+    step-6.2 hypothesis — that the five commands behave correctly across the full
+    `command × output-mode × phase` surface, not just in isolation — by crossing
+    the refused-advance and crossed-gate decisions over the real installed
+    boundary rather than inferring them from the in-process suite. Either add
+    the installed re-drive of both decisions or record the in-process-only bound
+    as a carried gap per design §9.
+  - Requires 6.2.2.
+  - See novel-ralph-harness-design.md §9 and §2.3;
+    docs/issues/audit-6.2.2.md (Finding 7).
+  - Success: the refused out-of-order `advance-phase` (exit 3) and the crossed-gate
+    report are each proven over the real installed console-script boundary, or the
+    in-process-only bound is named in the Carried gaps section so it is carried
+    knowingly rather than silently.
+- [ ] 6.2.10. Cross the installed-binary command-agnostic error arms (exit 2 and
+  exit 3) over a built wheel.
+  - Step-task (source: review:6.2.8; severity: low). Task 6.2.8 closes the
+    in-process exit-2/exit-3 matrix gap for the runner's command-agnostic
+    diagnostic arms, but the installed-binary crossing — the same arms over a
+    console-script entry point on a built wheel — is untested; 6.2.4's installed
+    coverage proves only body-produced envelopes. This advances the step-6.2
+    hypothesis — that the five commands behave correctly across the full
+    `command × output-mode × phase` surface, not just in isolation — by closing
+    the symmetry between the in-process error-mode matrix and the installed-binary
+    matrix for the two command-agnostic diagnostic arms the harness gates on. Add
+    a `@slow` installed-binary e2e that drives a usage error (exit 2) and a
+    state-input fault (exit 3) through a console-script over a built wheel and
+    asserts the `--human` stamp and envelope shape on both arms.
+  - Requires 6.2.4 and 6.2.8.
+  - See novel-ralph-harness-design.md §9 and §2.3;
+    docs/adr-003-shared-interface-contract.md.
+  - Success: the command-agnostic exit-2 and exit-3 diagnostic arms are each
+    asserted against a real installed console-script over a built wheel, with the
+    `--human` stamp and envelope shape pinned, closing the in-process-versus-binary
+    asymmetry left after 6.2.8.
+- [ ] 6.2.11. Add an installed-binary exit-3 e2e proof for `desloppify`, the fifth
+  state-input command.
+  - Step-task (source: audit:6.2.6; severity: low). After 6.2.6 the installed
+    exit-3 proofs cover `recount`, `reconcile`, and `wordcount`, but `desloppify`
+    — which also reads `working/` and a pack file and can exit 3 — carries only
+    in-process exit-3 coverage. This advances the step-6.2 hypothesis — that the
+    five commands behave correctly across the full
+    `command × output-mode × phase` surface, not just in isolation — by closing
+    the remaining installed-versus-in-process asymmetry the 6.2.6 work set out to
+    narrow, proving the last state-input command's exit-3 fault routing at the real
+    packaging boundary. Best sequenced after the shared `run_installed` helper
+    (7.23.2) so it is a few-line addition rather than a fourth copy of the build
+    scaffolding. Add a `@slow` installed-binary e2e that drives a missing or
+    unparseable `state.toml` through the installed `desloppify` console-script and
+    asserts exit 3, mirroring the recount/reconcile/wordcount proofs.
+  - Requires 6.2.6 and 7.23.2.
+  - See novel-ralph-harness-design.md §9 and §2.3;
+    docs/adr-003-shared-interface-contract.md.
+  - Success: `desloppify` asserts exit 3 on a missing or unparseable `state.toml`
+    against a real installed console-script over a built wheel, not only
+    in-process, closing the installed exit-3 asymmetry across all five
+    state-input commands.
+- [ ] 6.2.12. Add a command-boundary ROLLBACK scenario where the unrecoverable
+  artefact partially landed.
+  - Step-task (source: review:6.2.7; severity: low). Task 6.2.7 proves the
+    `ROLLBACK` disposition only where the declared `draft.md` never materialises;
+    design §5.4's clause that rollback "leaves the partial artefacts in place" is
+    unexercised at the command boundary. This advances the step-6.2 hypothesis —
+    that the five commands behave correctly across the full
+    `command × output-mode × phase` surface, not just in isolation — by proving
+    the second half of the rollback operational surface: a torn turn whose partial
+    `draft.md` did land must be preserved on disk, unreferenced by state, once the
+    record is cleared. Add a sibling scenario, driven through the command entry
+    points, where a partial `draft.md` materialised before the crash and assert
+    `reconcile` rolls back the record while leaving the partial artefact in place.
+  - Requires 6.2.7.
+  - See novel-ralph-harness-design.md §3.4 and §5.4.
+  - Success: a torn turn whose declared `draft.md` partially landed is detected
+    by `check` and rolled back by `reconcile` at the command boundary, with the
+    partial artefact preserved on disk and unreferenced by state, closing the
+    leaves-partial-artefacts-in-place half of the §5.4 rollback surface.
+- [ ] 6.2.13. Add a command-boundary ROLLBACK scenario for an unrecoverable
+  `done.flag` (not only `draft.md`).
+  - Step-task (source: audit:6.2.7; severity: low).
+    `_classify_pending_turn` treats both `draft.md` and `done.flag` as
+    unrecoverable `ROLLBACK` triggers, but task 6.2.7 proves only the `draft.md`
+    trigger end-to-end through the runner; the `done.flag` trigger remains
+    in-process-only via the pure classifier test. This advances the step-6.2
+    hypothesis — that the five commands behave correctly across the full
+    `command × output-mode × phase` surface, not just in isolation — by closing
+    the command-boundary half of the `ROLLBACK` disposition for the second
+    trigger, the same narrowing 6.2.7 was created to close for `draft.md`. A
+    parametrisation over `(declared_path, expected_basename)` covers both
+    triggers with one step module.
+  - Requires 6.2.7.
+  - See novel-ralph-harness-design.md §3.4 and §5.4;
+    docs/issues/audit-6.2.7.md.
+  - Success: an unrecoverable `done.flag` torn turn is detected by `check` and
+    rolled back by `reconcile` at the command boundary, parametrised alongside the
+    `draft.md` trigger so both `ROLLBACK` triggers are proven end-to-end through
+    the runner rather than only in-process.
 
 ## 7. Deferred extensions after the deterministic spine
 
@@ -2703,6 +2848,27 @@ spine.
     records carries a brief "superseded by `novel-done`" annotation pointing a
     future reader at the live source of truth; no historical record is gutted or
     renumbered; and `make markdownlint` and `make nixie` stay green.
+- [ ] 7.21.3. Add a shared clause-completeness assertion helper for `novel-done`'s
+  done-predicate result.
+  - Reroute (source: review:6.2.2; severity: low). Several suites (6.2.1, 6.2.2)
+    assert `novel-done`'s six done clauses via `all(result.values())` or
+    individual flags, which pass vacuously if a clause key is dropped or renamed.
+    A shared helper that also pins the expected clause-key set would make a
+    dropped or renamed clause fail loudly rather than passing silently. This
+    serves the step-7.21 hypothesis — keeping the done-predicate single-source
+    consolidation drift-free by an automated guard — by extending the same
+    drift-proofing to the clause-key set the suites assert against, so the §4.2
+    contract is hardened across suites; it is cross-cutting, not specific to one
+    completed task, so it is deferred here. Add a shared assertion helper that
+    pins the canonical clause-key set and have the done-predicate suites use it.
+  - Requires 6.2.3.
+  - See novel-ralph-harness-design.md §4.2;
+    docs/developers-guide.md (the done-clause table);
+    docs/issues/audit-6.2.2.md.
+  - Success: a shared assertion helper pins the canonical done-clause key set;
+    the 6.2.1 and 6.2.2 done-predicate suites assert through it rather than over
+    `all(result.values())` alone; a dropped or renamed clause key fails the helper
+    loudly; and the done-predicate suites stay green.
 
 ### 7.22. Settle a stable machine-payload number-formatting convention for the envelope
 
@@ -2875,6 +3041,56 @@ it does not gate the deterministic spine.
     `test_novel_done_snapshots.py`, and `test_compile_check_snapshots.py` consume
     it rather than each carrying a copy; no third copy of the volatile-guard
     pattern accretes; and the snapshot and matrix suites stay green.
+- [ ] 7.23.6. Consolidate the in-process command-boundary driver into one shared
+  registered test helper.
+  - Reroute (source: audit:6.2.2 Findings 1, 2, 4, 5, 8; severity: medium). The
+    run-and-capture seam — `chdir` + `redirect_stdout` +
+    `pytest.raises(SystemExit)` + `json.loads(... or '{}')` over
+    `run(build_app(), argv, RunContext(...))` — is duplicated across five step
+    modules (`per_chapter_loop`, `torn_turn_recovery`, `compile`, `advance_phase`,
+    `reconcile`), with the `_result` unwrap and the no-traceback check duplicated
+    further; the 6.2.2 `_BUILD_APPS`-keyed `_run_capturing` is already the general
+    form. Promote it, `_result`, and `assert_no_traceback` into a
+    `tests/command_driver.py` registered plugin so the six copies of an invariant
+    that can drift live once, mirroring how `conftest.py` consolidated the
+    cross-module import six prior audits flagged. This serves the step-7.23
+    hypothesis — collapsing the command-driving test scaffolding onto shared,
+    registered homes — not the step-6.2 surface hypothesis where it was raised,
+    so it is rerouted here. Coordinate with 7.23.5 (the in-process matrix drive)
+    and 7.23.3 (the reconcile-family driver) so the seams converge on one home
+    rather than three.
+  - Requires 7.23.5.
+  - See novel-ralph-harness-design.md §9; docs/developers-guide.md
+    ("Shared test scaffolding"); docs/issues/audit-6.2.2.md (Findings 1, 2, 4, 5,
+    8).
+  - Success: one registered `tests/command_driver.py` helper owns the in-process
+    run-and-capture seam, the `_result` unwrap, and the `assert_no_traceback`
+    check; `per_chapter_loop`, `torn_turn_recovery`, `compile`, `advance_phase`,
+    and `reconcile` delegate to it rather than each carrying a copy; no module
+    re-open-codes the seam; and the affected suites stay green.
+- [ ] 7.23.7. Make `working_corpus` the source of truth for the drafted-words
+  totals the per-chapter loop asserts against.
+  - Reroute (source: audit:6.2.2 Finding 3; severity: medium). The drafted total
+    `68800` and the per-chapter table are transcribed as literals in both 6.2.2
+    step modules while the docstring claims they are derived from the corpus's
+    module-private `_DRAFTED_WORDS`; a rebalance of `_DRAFTED_WORDS` would silently
+    desync the loop assertions from the tree they are built against. Expose a
+    public accessor (`DRAFTED_WORDS` / `drafted_total()` / `drafted_by_chapter()`)
+    so the totals are the corpus's owned fact and the step modules assert against
+    it. This serves the step-7.23 hypothesis — letting the corpus own each
+    variant's expected data so the command-driving tests stop re-literalising
+    it — by removing a class of opaque drift when the corpus drafts change; it
+    does not serve the step-6.2 surface hypothesis where it was raised.
+    Coordinate with 7.23.4 (the corpus-owned repaired-recount data) so the
+    drafted and repaired totals share one ownership convention.
+  - Requires 6.2.2.
+  - See novel-ralph-harness-design.md §9; docs/developers-guide.md
+    ("The `working/` fixture corpus"); docs/issues/audit-6.2.2.md (Finding 3).
+  - Success: the `working_corpus` package exposes the drafted-words total and the
+    per-chapter drafted table as a public accessor; both 6.2.2 step modules assert
+    against the corpus-owned data rather than re-literalising `68800` or the
+    per-chapter table; no test hard-codes the drafted totals; and the per-chapter
+    loop suites stay green.
 
 ### 7.24. Harden the workflow and matrix gates against silent drift
 
@@ -2924,3 +3140,25 @@ of step 6.2; it does not advance the step-6.2 combinatorial-surface hypothesis
     `_DRAFTING_ERA_PHASES` from the `working_corpus` (or asserts their
     relationship) so a corpus change that desyncs them fails loudly here rather
     than silently, and the matrix suite stays green.
+- [ ] 7.24.3. Run the documentation lint gates inside the author's pre-merge code
+  gate, not only the post-merge audit.
+  - Reroute (source: audit:6.2.2 Finding 10 / audit:6.2.1 Finding 6; severity:
+    medium; two near-identical proposals merged). Two consecutive tasks (6.2.1 and
+    6.2.2) each landed the identical MD012 double-blank regression in
+    `developers-guide.md`, each greening its own task-scoped gate while leaving
+    whole-tree `markdownlint` red on `main` until the post-merge audit caught it.
+    This serves the step-7.24 hypothesis — making a class of silent drift fail
+    loudly through a mechanical guard rather than relying on a reviewer to spot
+    it — by folding the doc-lint gates (`make markdownlint`, and `make nixie`)
+    into the default `make all` so the author's pre-merge gate fails on the
+    regression instead of the post-merge audit. Wire the documentation lint gates
+    into the aggregate code-gate target so a doc regression reddens the author's
+    gate.
+  - Requires 6.2.1.
+  - See AGENTS.md "Quality gates"; the project `Makefile` (`all` target);
+    docs/issues/audit-6.2.2.md (Finding 10); docs/issues/audit-6.2.1.md
+    (Finding 6).
+  - Success: `make all` runs the documentation lint gates (`markdownlint` and
+    `nixie`) so a whole-tree doc-lint regression fails the author's pre-merge gate
+    rather than surfacing only in the post-merge audit; a planted MD012
+    double-blank reddens `make all`; and the gate stays green on a clean tree.
