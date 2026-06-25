@@ -562,3 +562,23 @@ Verification adversaries (Hypothesis / CrossHair / mutmut):
 ## Revision note
 
 Initial draft (2026-06-25). First planning round for roadmap task 6.2.13.
+
+## Addenda (post-merge follow-ups)
+
+Lightweight addendum work items folded back onto this completed task from the
+post-merge audit of step 6.2 (`audit:6.2.12`). Execute each as a small addendum
+pass — no plan or design-review cycle: make the change, run `make all` (plus
+`make markdownlint`/`make nixie` for Markdown), `coderabbit review --agent`,
+commit, and tick the matching roadmap sub-task on merge. The substantial
+follow-up raised alongside this — the partial-landed `done.flag` ROLLBACK
+scenario, which advances the step-6.2 surface hypothesis — was re-routed to a new
+roadmap task 6.2.14 (it warrants its own plan and review); the one below is the
+small docs gap.
+
+- [ ] 6.2.13.1 — Refresh the developers' guide torn-turn behavioural-scenario note
+  to enumerate the complete scenario family (from audit:6.2.12, low). The guide
+  names only the first torn-turn scenario, but after 6.2.7, 6.2.12, and 6.2.13
+  the suite covers the COMPLETE, never-landed-ROLLBACK, and
+  partial-landed-ROLLBACK halves of the §5.4 reconciliation surface; enumerate
+  the full scenario family so the developer documentation map stays current.
+  Gate with `make markdownlint` and `make nixie`.

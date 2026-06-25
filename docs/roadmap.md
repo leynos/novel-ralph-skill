@@ -1553,6 +1553,24 @@ novel-ralph-harness-design.md §2.3 and §9.
     asserted against a real installed console-script over a built wheel, with the
     `--human` stamp and envelope shape pinned, closing the in-process-versus-binary
     asymmetry left after 6.2.8.
+  - [ ] 6.2.10.1. Cross the installed error arms over a second installed command
+    as a command-sensitivity tripwire.
+    - Addendum (from review:6.2.10; low). Decision D-ONECMD crosses only
+      `novel-state` on the empirical 6.2.8 finding that the arms are
+      command-agnostic; extend the installed error-arm matrix to a second
+      installed command (e.g. `desloppify`, which already has an installed
+      fixture) so a future change making the shared runner's arms
+      command-sensitive is caught rather than silently uncovered. Lightweight
+      addendum pass.
+  - [ ] 6.2.10.2. Pin `schema_version` (and field order) at the installed-binary
+    boundary for the diagnostic arms.
+    - Addendum (from review:6.2.10; low). The in-process matrix pins the full
+      envelope including `schema_version` via snapshot, but the installed-boundary
+      error-arm proofs assert only the command/ok/working_dir/result/messages
+      skeleton; add a `schema_version` assertion (or a redacted boundary
+      snapshot) so the boundary proof is a complete mirror of the in-process
+      contract and a schema bump or field-order regression cannot survive
+      packaging unobserved. Lightweight addendum pass.
 - [ ] 6.2.11. Add an installed-binary exit-3 e2e proof for `desloppify`, the fifth
   state-input command.
   - Step-task (source: audit:6.2.6; severity: low). After 6.2.6 the installed
@@ -1614,6 +1632,36 @@ novel-ralph-harness-design.md §2.3 and §9.
     rolled back by `reconcile` at the command boundary, parametrised alongside the
     `draft.md` trigger so both `ROLLBACK` triggers are proven end-to-end through
     the runner rather than only in-process.
+  - [ ] 6.2.13.1. Refresh the developers' guide torn-turn behavioural-scenario
+    note to enumerate the complete scenario family.
+    - Addendum (from audit:6.2.12; low). The guide names only the first torn-turn
+      scenario, but after 6.2.7, 6.2.12, and 6.2.13 the suite covers the
+      COMPLETE, never-landed-ROLLBACK, and partial-landed-ROLLBACK halves of the
+      §5.4 reconciliation surface; enumerate the full scenario family so the
+      developer documentation map stays current. Lightweight addendum pass.
+- [ ] 6.2.14. Add a command-boundary partial-landed ROLLBACK scenario for an
+  unrecoverable `done.flag`.
+  - Step-task (source: review:6.2.12; severity: low). `_classify_pending_turn`
+    treats both `draft.md` and `done.flag` as unrecoverable `ROLLBACK` triggers,
+    and 6.2.12 closed the partial-landed cell only for `draft.md` while 6.2.13
+    closed the never-landed cell for `done.flag`; the partial-landed `done.flag`
+    cell remains unexercised at the command boundary. This advances the step-6.2
+    hypothesis — that the five commands behave correctly across the full
+    `command × output-mode × phase` surface, not just in isolation — by closing
+    the last open cell of the torn-turn ROLLBACK disposition matrix at the
+    command boundary, the sibling of the partial-landed `draft.md` proof 6.2.12
+    added. Add
+    a scenario, driven through the command entry points, where a partial
+    `done.flag` materialised before the crash and assert `check` reports the torn
+    turn and `reconcile` rolls back the record while leaving the partial artefact
+    in place, unreferenced by state.
+  - Requires 6.2.12 and 6.2.13.
+  - See novel-ralph-harness-design.md §3.4 and §5.4.
+  - Success: a torn turn whose declared `done.flag` partially landed is detected
+    by `check` and rolled back by `reconcile` at the command boundary, with the
+    partial artefact preserved on disk and unreferenced by state, closing the
+    partial-landed `done.flag` cell of the §5.4 rollback surface left after 6.2.12
+    and 6.2.13.
 
 ## 7. Deferred extensions after the deterministic spine
 
@@ -3089,6 +3137,11 @@ it does not gate the deterministic spine.
     a private production symbol, and the draft-bytes/present-files corpus helpers
     are duplicated across `tests/steps/torn_turn_recovery_steps.py`,
     `tests/steps/reconcile_steps.py`, and `tests/test_reconcile_integration.py`,
+    and — after 6.2.12 and 6.2.13 — across
+    `tests/steps/torn_turn_rollback_steps.py` and
+    `tests/steps/torn_turn_rollback_partial_steps.py` (a four-way copy of
+    `_run_capturing`), so the duplication this task collapses is now load-bearing
+    rather than speculative (re-flagged by review:6.2.12 and audit:6.2.13),
     contravening the developers'-guide "shared scaffolding belongs in conftest or
     a registered plugin" rule (D-DUP deferred this deliberately). A single
     registered plugin exposing a `drive()` fixture, a
@@ -3104,9 +3157,10 @@ it does not gate the deterministic spine.
   - Success: one registered plugin exposes the `drive()` fixture, the
     `crash_after_recovery_receipt()` crash-injection fixture, and the
     `draft_bytes`/`present_files` helpers; `torn_turn_recovery_steps.py`,
-    `reconcile_steps.py`, and `test_reconcile_integration.py` delegate to it
-    rather than each carrying a copy; the private production-seam coupling has a
-    single owner; and the reconcile-family suites stay green.
+    `reconcile_steps.py`, `test_reconcile_integration.py`,
+    `torn_turn_rollback_steps.py`, and `torn_turn_rollback_partial_steps.py`
+    delegate to it rather than each carrying a copy; the private production-seam
+    coupling has a single owner; and the reconcile-family suites stay green.
 - [ ] 7.23.4. Make the `working_corpus` package the source of truth for each
   variant's expected repaired recount.
   - Reroute (source: audit:6.2.5 Finding 6 / review:6.2.5; severity: low). The
@@ -3202,6 +3256,34 @@ it does not gate the deterministic spine.
     against the corpus-owned data rather than re-literalising `68800` or the
     per-chapter table; no test hard-codes the drafted totals; and the per-chapter
     loop suites stay green.
+- [ ] 7.23.8. Expose the ROLLBACK-triggering unrecoverable basenames as
+  corpus constants.
+  - Reroute (source: review:6.2.13; severity: low; two near-identical proposals
+    merged). The torn-turn rollback step modules hand-pick the
+    `working/manuscript/chapter-99/draft.md` and `.../done.flag` literals and
+    re-derive the `_RECOMPUTABLE_BASENAMES`-exclusion rule (`{state.toml, log.md}`)
+    in an inline comment, rather than importing the unrecoverable basenames from
+    `working_corpus`, so the same re-literalised-corpus-knowledge class
+    audit-6.2.7 Finding 4 named for the recount target now applies to the ROLLBACK
+    triggers. The proposals claim 7.23.4 already owns this, but 7.23.4's scope is
+    the expected repaired *recount counts*, not the unrecoverable trigger
+    basenames, so this is unowned. This serves the step-7.23 hypothesis — letting
+    the corpus own each variant's expected data so the command-driving tests stop
+    re-literalising it — by giving the ROLLBACK-trigger basenames a single
+    corpus-owned source; it does not serve the step-6.2 surface hypothesis where
+    it was raised. Coordinate with 7.23.4 so the corpus-owned basenames and the
+    corpus-owned repaired counts share one ownership convention.
+  - Requires 7.23.3.
+  - See novel-ralph-harness-design.md §5.4; docs/developers-guide.md
+    ("The `working/` fixture corpus"); docs/issues/audit-6.2.7.md (Finding 4);
+    novel_ralph_skill/state/reconcile.py (`_RECOMPUTABLE_BASENAMES`).
+  - Success: the `working_corpus` package exposes the ROLLBACK-triggering
+    unrecoverable basenames (`draft.md`, `done.flag`) as named constants derived
+    from (or pinned equal to) the production `_RECOMPUTABLE_BASENAMES`-exclusion
+    rule; the torn-turn rollback step modules import them rather than hand-picking
+    `chapter-99/draft.md`/`chapter-99/done.flag` literals or re-deriving the
+    exclusion rule in comments; no rollback test re-literalises the trigger
+    basename; and the reconcile-family suites stay green.
 
 ### 7.24. Harden the workflow and matrix gates against silent drift
 
@@ -3312,3 +3394,43 @@ contract is settled) and it does not gate the deterministic spine.
     near-verbatim copies; each package's typed error type, exit-code mapping, and
     operator messages are unchanged; and the rule-pack and ledger suites stay
     green.
+
+### 7.26. Single-home the reconciliation payload projection
+
+This step answers whether the `Reconciliation`-to-`{action, discrepancies,
+detail}` payload serialisation — currently spelled across the `check`,
+`reconcile`, refuse, and NONE arms — can be reduced to one canonical projection
+beside `Reconciliation`, so the `check` read-shape and the `reconcile`
+write-shape cannot drift on payload shape, matching the canonical-projection
+pattern of tasks 7.1.5 (`RuleFinding`/`LineHit`) and 7.19 (compile currency). Its
+outcome is one home for the reconciliation payload, with the CQS read/write
+vocabulary split and the exit-code policy untouched. This is a deferred
+maintainability-hardening extension surfaced by the audit of step 6.2; it does
+not advance the step-6.2 combinatorial-surface hypothesis (the `check` and
+`reconcile` arms already agree and pass) and it does not gate the deterministic
+spine.
+
+- [ ] 7.26.1. Extract a single `Reconciliation` payload projection and route the
+  four arms through it.
+  - Reroute (source: audit:6.2.13; severity: low). audit-2.3.2 Finding 2 recorded
+    the four-site duplication of the `Reconciliation`-to-dict serialisation
+    (`_render_reconciliation`, `_write_outcome`, `_refuse_outcome`, and the NONE
+    arm) but, unlike the sibling `[word_counts]` theme (task 7.14.1) and the
+    compile-projection theme (task 7.19), it was never promoted to a roadmap task;
+    it remains open and untracked, and the 6.2.13 scenario exercises the `check`
+    read-shape arm directly. A single `to_payload()` / `reconciliation_payload()`
+    projection beside `Reconciliation` in `state/reconcile.py` — keeping the CQS
+    read/write vocabulary split and the exit codes untouched — would stop `check`
+    and `reconcile` drifting on payload shape. This serves the consolidation
+    hypothesis (a canonical projection per the 7.1.5/7.19 precedent), not the
+    step-6.2 surface hypothesis where it was raised, so it is rerouted here.
+  - Requires 2.3.2.
+  - See novel-ralph-harness-design.md §3.3 and §5.4;
+    docs/issues/audit-2.3.2.md (Finding 2);
+    novel_ralph_skill/state/reconcile.py.
+  - Success: one `to_payload()` / `reconciliation_payload()` projection lives
+    beside `Reconciliation` in `state/reconcile.py`; `_render_reconciliation`,
+    `_write_outcome`, `_refuse_outcome`, and the NONE arm consume it rather than
+    each spelling the `{action, discrepancies, detail}` shape; the CQS read/write
+    vocabulary split and the exit-code policy are unchanged; no behaviour changes;
+    and the check, reconcile, and disk-evidence suites stay green.

@@ -1073,3 +1073,34 @@ Round 2 (2026-06-25), resolving the design review (round 1):
   verbatim with no per-file ignore or Pylint disable, mirroring the conformant
   in-process precedent `_drive_error_cell`. Work item 2 (docs) is unchanged in
   scope. The 3-file Tolerance and all other constraints stand.
+
+## Addenda (post-merge follow-ups)
+
+Lightweight addendum work items folded back onto this completed task from the
+post-merge review of step 6.2 (`review:6.2.10`). Execute each as a small
+addendum pass — no plan or design-review cycle: make the change, run `make all`
+(plus `make markdownlint`/`make nixie` for Markdown), `coderabbit review
+--agent`, commit, and tick the matching roadmap sub-task on merge. Both are small
+extensions to this task's installed error-arm proof; the substantial,
+cross-cutting follow-ups raised against step 6.2 were re-routed off this task
+(the reconciliation payload projection to new roadmap step 7.26, the
+ROLLBACK-trigger basename corpus constants to roadmap task 7.23.8).
+
+- [ ] 6.2.10.1 — Cross the installed error arms over a second installed command
+  as a command-sensitivity tripwire (from review:6.2.10, low). Decision D-ONECMD
+  crosses only `novel-state` on the empirical 6.2.8 finding that the arms are
+  command-agnostic (stamped by the shared run wrapper, not command bodies);
+  extend the installed error-arm matrix to a second installed command (e.g.
+  `desloppify`, which already has an installed fixture) so a future change making
+  the runner's arms command-sensitive — a command overriding `--human` pre-parse
+  or the `working_dir` default — is caught rather than silently uncovered. Gate
+  with `make all`.
+- [ ] 6.2.10.2 — Pin `schema_version` (and field order) at the installed-binary
+  boundary for the diagnostic arms (from review:6.2.10, low). The in-process
+  matrix pins the full envelope including `schema_version` via snapshot, but the
+  installed-boundary error-arm proofs assert only the
+  command/ok/working_dir/result/messages skeleton; add a `schema_version`
+  assertion (or a redacted boundary snapshot) so the boundary proof is a complete
+  mirror of the in-process contract and a schema-version bump or field-order
+  regression cannot survive packaging unobserved at the subprocess boundary. Gate
+  with `make all`.
