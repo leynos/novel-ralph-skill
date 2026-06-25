@@ -1671,8 +1671,8 @@ points B1/B2/B3 resolved):
 Lightweight, no-plan/no-review follow-up passes against this completed task.
 Each runs as a single focused commit gated by `make all` and `make audit`.
 
-- **2.2.3.1 — Make chapter-slug handling and documentation consistent with the
-  opaque `[novel].slug` stance** (from audit:2.2.3; severity low). The
+- [x] **2.2.3.1 — Make chapter-slug handling and documentation consistent with
+  the opaque `[novel].slug` stance** (from audit:2.2.3; severity low). The
   `ChapterPlanEntry.slug` (`commands/_chapter_plan_entry.py`) and
   `ChapterEntry.slug` (`state/schema.py`) docstrings describe the field as
   "filesystem-safe", but nothing validates that claim, and the opaque-slug

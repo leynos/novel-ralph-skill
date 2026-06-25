@@ -33,7 +33,9 @@ class ChapterPlanEntry:
     number : int
         The one-based chapter number; the manifest is ordered ascending by it.
     slug : str
-        The filesystem-safe chapter identifier.
+        The chapter identifier, stored verbatim. The schema treats it as an
+        opaque string; slug shape is the agent's responsibility, as for
+        ``[novel].slug``.
     title : str
         The chapter title.
     target_words : int

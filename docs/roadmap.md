@@ -864,7 +864,7 @@ novel-ralph-harness-design.md §3.4, §4.1, and §5.3.
     through the command (no hand-edit); the command refuses a non-contiguous or
     incomplete manifest with exit 3; and `check`, `recount`, and `novel-compile`
     then operate correctly on the real chapter directories — proven end-to-end.
-  - [ ] 2.2.3.1. Make chapter-slug handling and documentation consistent with the
+  - [x] 2.2.3.1. Make chapter-slug handling and documentation consistent with the
     opaque `[novel].slug` stance.
     - Addendum (from audit:2.2.3; low). `ChapterPlanEntry.slug` and
       `ChapterEntry.slug` are documented "filesystem-safe" but nothing validates

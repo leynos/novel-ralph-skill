@@ -39,7 +39,8 @@ class NovelMeta:
     title : str
         The novel's working title (``[novel].title``).
     slug : str
-        The filesystem-safe identifier (``[novel].slug``).
+        The identifier (``[novel].slug``), stored verbatim. The schema treats
+        it as an opaque string; slug validation is not a §5.2 invariant.
     target_word_count : int
         The target length in words (``[novel].target_word_count``).
     created_at : str
@@ -79,7 +80,9 @@ class ChapterEntry:
     number : int
         The one-based chapter number; the manifest is ordered ascending by it.
     slug : str
-        The filesystem-safe chapter identifier.
+        The chapter identifier, stored verbatim. The schema treats it as an
+        opaque string; slug shape is the agent's responsibility, as for
+        ``[novel].slug``.
     title : str
         The chapter title.
     target_words : int

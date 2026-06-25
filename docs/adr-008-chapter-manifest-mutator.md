@@ -89,6 +89,14 @@ so the §5.2 manifest-to-disk bijection holds immediately. It also seeds
 instant the command returns and `check` exits 0; zero is the honest count for a
 planned, undrafted chapter, and `current` stays 0 = sum.
 
+The chapter `slug` is an **opaque string**, stored verbatim and never used to
+derive a path: the `chapter-NN/` directory name is built from the chapter
+*number*, so the slug never reaches the filesystem. Manifest coherence checks
+slug *uniqueness* only; slug *shape* is the agent's responsibility, mirroring
+the `[novel].slug` stance recorded for `init` (`state/initial.py`). The schema
+therefore does not promise a filesystem-safe slug, and nothing validates that
+claim — this is a deliberate decision, not an oversight.
+
 ### One-shot populate, not an editor
 
 When `[chapters]` is already non-empty, `set-chapters` refuses with exit 3:

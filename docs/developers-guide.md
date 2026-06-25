@@ -427,6 +427,14 @@ refuse-class violation is a `manifest-disk-bijection` fully explained by its
 missing chapter directories is classified ahead of the bijection REFUSE; any
 unexplained break still REFUSEs (design §5.4; ADR 008).
 
+The chapter `slug` is an **opaque string**: it is stored verbatim and never
+seeds a path, because the `chapter-NN/` directory name derives from the chapter
+*number*, not the slug. Manifest coherence enforces slug *uniqueness* only; slug
+*shape* is the agent's responsibility, mirroring the `[novel].slug` stance for
+`init`. The schema docstrings therefore describe the slug as an opaque,
+stored-verbatim identifier rather than a "filesystem-safe" one, since nothing
+validates that claim (ADR 008).
+
 ### The shared JSON envelope
 
 Every command emits the same machine-mode JSON envelope —

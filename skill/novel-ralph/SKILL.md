@@ -306,6 +306,9 @@ For each chapter (typically 20–35 for a novel of 80–100k words), record:
 
 - **Chapter number and title** (working title acceptable; titles can
   be revised later).
+- **Slug.** A short, unique identifier for the chapter, stored verbatim
+  (`set-chapters` requires it). Its shape is your responsibility; a hyphenated
+  lower-case form such as `the-summons` reads well.
 - **POV character.**
 - **Setting.** Where, when, weather, time of day.
 - **Premise of the chapter.** What does this chapter exist to do for
@@ -332,11 +335,12 @@ novel-state set-chapters --chapters '[
 ]'
 ```
 
-Each object carries `number` (one-based, contiguous from 1), `slug`
-(filesystem-safe, unique), `title`, and `target_words` (at least 1). The command
-populates `[chapters]`, creates the `working/manuscript/chapter-NN/` directories,
-and exits `0`; an incoherent plan (a gap, a duplicate number or slug, a
-non-positive target) or an already-populated manifest is refused with exit `3`
+Each object carries `number` (one-based, contiguous from 1), `slug` (an opaque
+identifier, stored verbatim; unique), `title`, and `target_words` (at least 1).
+The command populates `[chapters]`, creates the
+`working/manuscript/chapter-NN/` directories, and exits `0`; an incoherent plan
+(a gap, a duplicate number or slug, a non-positive target) or an
+already-populated manifest is refused with exit `3`
 and writes nothing, and a malformed `--chapters` argument exits `2`. If the
 command is interrupted mid-write, recover by running `novel-state reconcile`
 (which completes the torn turn) — never by re-running `set-chapters` or editing
