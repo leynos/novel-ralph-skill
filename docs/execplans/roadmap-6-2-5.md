@@ -709,3 +709,24 @@ No new production interface, no new dependency, no new console-script.
   pending-turn at the command boundary. Added `Decision Log` entry D-COVERAGE.
   No work item, scope, tolerance, or test changed — only the justifying claim
   was made truthful; the existing scope already implied the corrected reality.
+
+## Addenda (post-merge follow-ups)
+
+Lightweight addendum work items folded back onto this completed task from the
+review of step 6.2. Execute each as a small addendum pass — no plan or
+design-review cycle: make the change, run `make all` (plus
+`make markdownlint`/`make nixie` for Markdown), `coderabbit review --agent`,
+commit, and tick the matching roadmap sub-task on merge. The substantial
+follow-ups surfaced alongside these — the reconcile-boundary `ROLLBACK`
+recovery scenario (roadmap 6.2.7), the reconcile-family command-driver plugin
+(roadmap 7.23.3), and making the corpus the source of truth for the expected
+repaired counts (roadmap 7.23.4) — warrant their own plans and are filed as full
+tasks; this is the small assertion-tightening only.
+
+- [ ] 6.2.5.1 — Pin the two-pass convergence count in the torn-turn recovery
+  tests (from review:6.2.5, low). `test_reconcile_integration.py` and the new
+  torn-turn BDD steps document and rely on exactly two-pass convergence (clear
+  the leftover record, then re-apply recount) but only assert convergence within
+  a bound (`range(3)`); tighten both assertions to the exact pass count so a
+  regression that silently raises the number of re-entry passes the harness needs
+  to converge fails loudly rather than passing green. Gate with `make all`.

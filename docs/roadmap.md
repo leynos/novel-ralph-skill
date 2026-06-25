@@ -1352,6 +1352,72 @@ novel-ralph-harness-design.md §2.3 and §9.
   - See novel-ralph-harness-design.md §3.4 and §5.4.
   - Success: a torn write produced by an actual mutator invocation is detected
     by `check` and recovered by `reconcile`, asserted at the command boundary.
+  - [ ] 6.2.5.1. Pin the two-pass convergence count in the torn-turn recovery
+    tests.
+    - Addendum (from review:6.2.5; low). `test_reconcile_integration.py` and the
+      new torn-turn BDD steps document and rely on exactly two-pass convergence
+      (clear the leftover record, then re-apply recount) but only assert
+      convergence within a bound (`range(3)`); tighten both to the exact pass
+      count so a regression that silently raises the re-entry passes the harness
+      needs to converge fails loudly. Lightweight addendum pass.
+- [ ] 6.2.6. Extend the installed-binary exit-3 coverage to `reconcile` and
+  `wordcount`.
+  - Step-task (source: audit:6.2.4 Finding 6; severity: low). Task 6.2.4 added
+    installed-binary exit-3 proofs for `recount` only, yet `reconcile` and
+    `wordcount` share the same state-input boundary and exit-3 contract and have
+    only happy-path installed proofs. This advances the step-6.2 hypothesis —
+    that the five commands behave correctly across the full `command × output-mode
+    × phase` surface, not just in isolation — by closing the installed-binary
+    exit-3 asymmetry across the commands the harness branches on for every
+    invocation, hardening the packaging boundary the unattended gate trusts. Add
+    `@slow` installed-binary e2e proofs that drive a missing or unparseable
+    `state.toml` through the installed `novel-state reconcile` and `wordcount`
+    console-scripts and assert exit 3, mirroring the `recount` proof 6.2.4 added.
+  - Requires 6.2.4.
+  - See novel-ralph-harness-design.md §9 and §2.3;
+    docs/adr-003-shared-interface-contract.md;
+    docs/issues/audit-6.2.4.md (Finding 6).
+  - Success: `reconcile` and `wordcount` each assert exit 3 on a missing or
+    unparseable `state.toml` against a real installed console-script over a built
+    wheel, not only in-process, closing the installed exit-3 asymmetry left after
+    6.2.4.
+- [ ] 6.2.7. Add a reconcile-boundary `ROLLBACK_PENDING_TURN` recovery scenario.
+  - Step-task (source: review:6.2.5; severity: low). Task 6.2.5 proves the
+    `COMPLETE` disposition (both declared artefacts present) at the `reconcile`
+    command boundary, but design §5.4 also covers the `ROLLBACK` disposition (an
+    unrecoverable `draft.md`/`done.flag` did not land), which has no
+    reconcile-command-boundary coverage. This advances the step-6.2 hypothesis —
+    that the five commands behave correctly across the full surface, not just in
+    isolation — by proving the symmetric half of the torn-turn recovery story at
+    the same command boundary 6.2.5 covered for `COMPLETE`. Add a sibling
+    scenario that crashes `reconcile` after declaring a path that does not
+    materialise, driven through the command entry points, and proves `check`
+    reports the torn turn and `reconcile` rolls it back per what landed.
+  - Requires 6.2.5.
+  - See novel-ralph-harness-design.md §3.4 and §5.4.
+  - Success: a torn turn whose declared artefact did not land is detected by
+    `check` and rolled back by `reconcile` at the command boundary, closing the
+    symmetric `ROLLBACK` half of the disposition 6.2.5 proved for `COMPLETE`.
+- [ ] 6.2.8. Extend the command-surface matrix to a minimal error-mode slice, or
+  record the omission as a carried gap.
+  - Step-task (source: audit:6.2.1 Finding 5; severity: low). The combinatorial
+    matrix never crosses the runner's command-agnostic exit-2 (`CycloptsError`)
+    and exit-3 (`StateInputError`) diagnostic arms — the very envelopes that stamp
+    `--human` before the body runs — and the Carried gaps section does not name
+    the omission. This advances the step-6.2 hypothesis — that the five commands
+    behave correctly across the full `command × output-mode × phase` surface —
+    by extending the matrix's surface to the command-agnostic error-mode
+    envelopes the harness gates on, or by recording the bound explicitly per the
+    design's §9 "carried knowingly rather than silently" principle. Either add a
+    minimal exit-2/exit-3 envelope slice to the matrix or name the omission in the
+    Carried gaps section.
+  - Requires 6.2.1.
+  - See novel-ralph-harness-design.md §9 and §2.3;
+    docs/issues/audit-6.2.1.md (Finding 5).
+  - Success: the matrix either crosses a minimal exit-2/exit-3 error-mode slice
+    (asserting the `--human` stamp and envelope shape on the command-agnostic
+    diagnostic arms) or its Carried gaps section names the error-mode omission
+    explicitly, so the bound is carried knowingly rather than silently.
 
 ## 7. Deferred extensions after the deterministic spine
 
@@ -1686,6 +1752,25 @@ deterministic spine.
     `pytest-bdd` version pin and its guard move together with any bump, and the
     `PytestRemovedIn10Warning` is either resolved or filtered with a recorded
     reason.
+- [ ] 7.5.3. Constrain the `make fmt` mdformat pass so it stops reflowing every
+  tracked Markdown file.
+  - Reroute (source: review:6.2.4; severity: low). The 6.2.4 retrospective
+    records that `make fmt` rewrote every Markdown file in the tree, forcing a
+    stash of spurious churn and a manual rewrap of execplan lines — a recurring
+    trap for every agent touching docs. This serves the step-7.5 hypothesis —
+    that the documentation gates can be made robust to predictable churn without
+    weakening their guarantees — by constraining the formatter to the files a
+    change actually touches rather than the whole tree, so a docs edit no longer
+    drags spurious reflow churn through the gate. Constrain mdformat to changed
+    files (or remove it from the default `fmt` target) without weakening the
+    markdownlint check the committed Markdown is still held to.
+  - Requires 1.3.1.
+  - See AGENTS.md "Markdown guidance"; the project `Makefile` (`fmt` target);
+    docs/execplans/roadmap-6-2-4.md (retrospective).
+  - Success: `make fmt` no longer reflows tracked Markdown files outside the
+    current change set, a docs edit produces no spurious whole-tree Markdown
+    churn, and `make markdownlint` still holds the committed Markdown to the same
+    standard.
 
 ### 7.6. Harden the state-validation lane against inert assertions
 
@@ -2333,6 +2418,34 @@ the deterministic spine.
     `try/except STATE_INPUT_ERRORS` tail; the one exit-`3` fault-routing rule
     lives in a single place; and the wordcount, recount, and desloppify suites
     stay green.
+- [ ] 7.16.4. Route the remaining command bodies through the shared
+  `working_dir`/`state_path` accessors and a single `compiled.md` path accessor.
+  - Reroute (source: audit:6.2.1 Findings 1-3; severity: medium). `_desloppify`
+    and `_wordcount` bypass the documented single-source `working_dir()` /
+    `state_path()` accessors with an inline
+    `pathlib.Path(WORKING_DIR_NAME) / "state.toml"`, and `manuscript/compiled.md`
+    is a five-site magic path (spelled two ways inside `_compile` alone, plus a
+    duplicated `exists()` stat in `_novel_done` carrying an in-body race). This
+    serves the step-7.16 command-facade single-home hypothesis — that the
+    state-sourcing seams have explicit neutral homes so a refactor of one command
+    cannot silently break the others — by routing the inline reconstructions
+    through the `working_dir`/`state_path` accessors task 7.16.1 carves out, and
+    by giving the `compiled.md` leaf a single owner and retiring the in-body
+    race; it does not serve the step-6.2 combinatorial-surface hypothesis where
+    it was raised. Coordinate with 7.10.3 so the `compiled.md` leaf is single-homed
+    behind the same `compiled_path` accessor rather than a parallel one.
+  - Requires 7.16.1 and 7.10.3.
+  - See novel-ralph-harness-design.md §4.1 and §5.4;
+    docs/issues/audit-6.2.1.md (Findings 1-3);
+    novel_ralph_skill/commands/_desloppify.py;
+    novel_ralph_skill/commands/_wordcount.py;
+    novel_ralph_skill/commands/_novel_done.py.
+  - Success: `_desloppify` and `_wordcount` source `state.toml` through the
+    shared `working_dir`/`state_path` accessors rather than inline
+    reconstructions; the `compiled.md` location has a single accessor owner that
+    `_compile` and `_novel_done` consume; no site open-codes the path twice or
+    re-stats the compile leaf in a racy in-body check; and the desloppify,
+    wordcount, compile, and done-predicate suites stay green.
 
 ### 7.17. Reconcile the compile-divergence documentation with the byte-comparison implementation
 
@@ -2629,3 +2742,185 @@ deterministic spine.
     applies it so a non-terminating quotient cannot serialise as a long churning
     float; the wordcount snapshots are regenerated to the stable form; and
     `make markdownlint` and `make nixie` stay green.
+
+### 7.23. Consolidate the spine's end-to-end and command-driving test scaffolding
+
+This step answers whether the end-to-end suite's installed-binary build/install
+scaffolding and the reconcile-family command-driving helpers — now duplicated
+across the e2e modules, the BDD step suites, and the integration tests — can be
+collapsed onto shared, registered homes per the developers'-guide
+shared-scaffolding rule, with the corpus owning each variant's expected counts,
+so each future end-to-end consumer re-pays neither the duplication nor the
+private-seam coupling. Its outcome is a single binary-parametrised fixture
+factory for the installed-binary crossing, a single registered command-driver
+plugin for the reconcile family, and a corpus that is the source of truth for the
+repaired counts. This is a deferred test-maintainability-hardening extension
+surfaced by the reviews and audits of step 6.2; it does not advance the
+step-6.2 hypothesis — that the five commands behave correctly across the full
+`command × output-mode × phase` surface (that surface is proven and gated) — and
+it does not gate the deterministic spine.
+
+- [ ] 7.23.1. Consolidate the installed-binary e2e build/install scaffolding into
+  one binary-parametrised fixture and shared pure builders.
+  - Reroute (source: audit:6.2.4 Findings 1, 2, 5 / review:6.2.4; severity:
+    high). The wheel-build/venv-install body is duplicated across six sites and
+    the `installed_binary_fixtures` plugin re-inlines two conftest fixtures, so
+    there are now three byte-identical copies of the one-program
+    `ProgramCatalogue` builder (`conftest.single_program_catalogue`,
+    `installed_binary_fixtures._one_program_catalogue`,
+    `test_ai_isms_e2e._one_program_catalogue`) and two copies of the
+    venv-scripts-dir resolver, a divergence risk the post-merge audits repeatedly
+    flag (WI1 step 2 deferred the fold-out to keep the blast radius small). A
+    single binary-parametrised module-scoped fixture factory in
+    `tests/installed_binary_fixtures.py`, plus shared pure builders for the
+    catalogue and the scripts-dir resolver that both the function-scoped conftest
+    fixtures and the module-scoped plugin delegate to, would collapse five
+    near-identical helpers to one and let `installed_novel_state` become a thin
+    alias. This serves the step-7.23 hypothesis — collapsing the e2e scaffolding
+    onto shared homes — not the step-6.2 combinatorial-surface hypothesis where
+    it was raised, so it is rerouted here.
+  - Requires 6.2.4.
+  - See novel-ralph-harness-design.md §9; docs/developers-guide.md
+    ("Shared test scaffolding"); docs/issues/audit-6.2.4.md (Findings 1, 2, 5).
+  - Success: a single binary-parametrised module-scoped fixture factory owns the
+    wheel-build/venv-install scaffolding; shared pure builders own the
+    one-program catalogue and the venv-scripts-dir resolver, consumed by both the
+    function-scoped conftest fixtures and the module-scoped plugin; the
+    byte-identical copies in `installed_binary_fixtures` and `test_ai_isms_e2e`
+    are retired; and the installed-binary e2e suites stay green.
+- [ ] 7.23.2. Add a shared `run_installed` helper and unify the installed-binary
+  e2e builds to module scope.
+  - Reroute (source: audit:6.2.4 Findings 3, 4; severity: medium). The
+    run-installed-script incantation recurs about a dozen times across the e2e
+    modules, and three e2e modules rebuild the wheel per test where module scope
+    would build once. This serves the step-7.23 hypothesis — collapsing the e2e
+    scaffolding onto shared homes — by centralising the run convention in one
+    `run_installed` helper and removing redundant slow per-test wheel rebuilds;
+    it does not serve the step-6.2 surface hypothesis where it was raised.
+    Coordinate with 7.23.1 so the helper consumes the shared fixture factory.
+  - Requires 7.23.1.
+  - See novel-ralph-harness-design.md §9; docs/developers-guide.md
+    ("Shared test scaffolding"); docs/issues/audit-6.2.4.md (Findings 3, 4).
+  - Success: one shared `run_installed` helper owns the installed-script run
+    convention every e2e site delegates to, the installed-binary e2e builds are
+    uniformly module-scoped so each wheel is built once per module rather than per
+    test, and the e2e suites stay green with no increase in total wheel builds.
+- [ ] 7.23.3. Consolidate the reconcile-family command-driving scaffolding into
+  one single registered plugin.
+  - Reroute (source: audit:6.2.5 Findings 1, 2, 3 / review:6.2.5; severity:
+    medium). The command-runner wrapper, the crash-injection seam reaching into
+    a private production symbol, and the draft-bytes/present-files corpus helpers
+    are duplicated across `tests/steps/torn_turn_recovery_steps.py`,
+    `tests/steps/reconcile_steps.py`, and `tests/test_reconcile_integration.py`,
+    contravening the developers'-guide "shared scaffolding belongs in conftest or
+    a registered plugin" rule (D-DUP deferred this deliberately). A single
+    registered plugin exposing a `drive()` fixture, a
+    `crash_after_recovery_receipt()` context-manager fixture, and
+    `draft_bytes`/`present_files` helpers would collapse four-plus copies to one
+    and give the private-seam coupling a single owner, matching the precedent set
+    by `installed_binary_fixtures.py` for the e2e suites. This serves the
+    step-7.23 hypothesis — collapsing the command-driving scaffolding onto a
+    registered home — not the step-6.2 surface hypothesis where it was raised.
+  - Requires 6.2.5.
+  - See novel-ralph-harness-design.md §9; docs/developers-guide.md
+    ("Shared test scaffolding"); docs/issues/audit-6.2.5.md (Findings 1, 2, 3).
+  - Success: one registered plugin exposes the `drive()` fixture, the
+    `crash_after_recovery_receipt()` crash-injection fixture, and the
+    `draft_bytes`/`present_files` helpers; `torn_turn_recovery_steps.py`,
+    `reconcile_steps.py`, and `test_reconcile_integration.py` delegate to it
+    rather than each carrying a copy; the private production-seam coupling has a
+    single owner; and the reconcile-family suites stay green.
+- [ ] 7.23.4. Make the `working_corpus` package the source of truth for each
+  variant's expected repaired recount.
+  - Reroute (source: audit:6.2.5 Finding 6 / review:6.2.5; severity: low). The
+    done-claim-stale-word-counts recount target and its `44800`/three-chapter
+    total are re-literalised across at least four reconcile-family test sites
+    (including the `_RECOUNT_TARGET = {01:0, 02:24000, 03:20800}` literal in
+    `torn_turn_recovery_steps.py`), even though the corpus already owns the
+    drafts; the corpus should expose the expected repaired counts (e.g. the
+    `_expected` element callers currently discard) and let tests assert against
+    it. This serves the step-7.23 hypothesis — letting the corpus own each
+    variant's expected data so the command-driving tests stop re-literalising
+    it — by removing a class of opaque drift when the corpus drafts change; it
+    does not serve the step-6.2 surface hypothesis where it was raised.
+  - Requires 7.23.3.
+  - See novel-ralph-harness-design.md §9; docs/developers-guide.md
+    ("The `working/` fixture corpus"); docs/issues/audit-6.2.5.md (Finding 6).
+  - Success: the `working_corpus` package exposes each variant's expected
+    repaired recount as data; the reconcile-family tests (including the
+    torn-turn recovery steps) assert against the corpus-owned counts rather than
+    re-literalising the `44800`/three-chapter total or the per-chapter targets;
+    no test hard-codes the expected repaired counts; and the reconcile-family
+    suites stay green.
+- [ ] 7.23.5. Promote the in-process matrix drive and volatile-field-guard helpers
+  to a shared conftest fixture.
+  - Reroute (source: review:6.2.1; severity: low). The in-process
+    drive/chdir/capture fixture, the volatile-field guard
+    (`_assert_no_volatile_fields`), and the `_build_phase_tree` helper in
+    `tests/test_command_surface_matrix.py` duplicate the established pattern from
+    `test_novel_done_snapshots.py` and `test_compile_check_snapshots.py`; the
+    execplan's Constraint deliberately kept them local until a second consumer
+    existed, and the matrix is that second consumer (AGENTS.md "Shared test
+    scaffolding" favours one conftest home once a second consumer exists). This
+    serves the step-7.23 hypothesis — collapsing the command-driving scaffolding
+    onto a shared home — by promoting the in-process drive and volatile guard to
+    `conftest` before a third copy accretes; it does not serve the step-6.2
+    surface hypothesis where it was raised.
+  - Requires 6.2.1.
+  - See novel-ralph-harness-design.md §9; docs/developers-guide.md
+    ("Shared test scaffolding"); docs/execplans/roadmap-6-2-1.md (the
+    keep-it-local Constraint).
+  - Success: the in-process drive/capture fixture and the volatile-field guard
+    live in one `conftest` home; `test_command_surface_matrix.py`,
+    `test_novel_done_snapshots.py`, and `test_compile_check_snapshots.py` consume
+    it rather than each carrying a copy; no third copy of the volatile-guard
+    pattern accretes; and the snapshot and matrix suites stay green.
+
+### 7.24. Harden the workflow and matrix gates against silent drift
+
+This step answers whether two classes of silent drift the spine's bookkeeping
+relies on staying consistent — an ExecPlan marked COMPLETE while its roadmap
+checkbox is still unticked, and the command-surface matrix's hardcoded phase
+sets diverging from the `working_corpus` — can be made to fail loudly through a
+mechanical guard rather than relying on a reviewer to spot them. Its outcome is
+a pair of lightweight invariants that catch the drift at gate time. This is a
+deferred workflow-and-test-integrity-hardening extension surfaced by the review
+of step 6.2; it does not advance the step-6.2 combinatorial-surface hypothesis
+(the surface is proven and gated) and it does not gate the deterministic spine.
+
+- [ ] 7.24.1. Add a gate that fails when an ExecPlan reads COMPLETE while its
+  roadmap checkbox is still unticked.
+  - Reroute (source: review:6.2.1; severity: low). The 6.2.1 implementation left
+    `docs/roadmap.md` unticked despite its ExecPlan reading COMPLETE — a class of
+    bookkeeping drift easy to miss in review that undermines the roadmap as the
+    workflow's source of truth for task selection. This serves the step-7.24
+    hypothesis — making a class of silent bookkeeping drift fail loudly at gate
+    time — by adding a lightweight consistency check that cross-references each
+    ExecPlan's status against its roadmap checkbox. Add a `make`/CI guard that
+    fails when an ExecPlan is marked COMPLETE while its matching roadmap task is
+    still `- [ ]`.
+  - Requires 6.2.1.
+  - See AGENTS.md "Quality gates"; docs/roadmap.md; docs/execplans/.
+  - Success: a `make`/CI guard fails when any ExecPlan reads COMPLETE while its
+    matching roadmap checkbox is unticked, passes when the two agree, and is
+    wired into the documentation gate set so the drift is caught mechanically
+    rather than in review.
+- [ ] 7.24.2. Add an invariant test that the matrix's phase-set constants stay
+  consistent with the `working_corpus`.
+  - Reroute (source: review:6.2.1; severity: low). The machine matrix's expected
+    ok-sign for `novel-compile` is hardcoded via `_COMPILE_OK_PHASES` while the
+    semantic-branch tests key on `_DRAFTING_ERA_PHASES`, so a future
+    `working_corpus` change could desync them silently (one updated, the other
+    not). This serves the step-7.24 hypothesis — making a class of silent drift
+    fail loudly — by deriving these sets from the corpus, or asserting their
+    relationship, so a corpus change that desyncs them reddens a test rather than
+    passing unnoticed. Add a small invariant test that derives
+    `_COMPILE_OK_PHASES` and `_DRAFTING_ERA_PHASES` from the corpus or asserts the
+    relationship between them.
+  - Requires 6.2.1.
+  - See novel-ralph-harness-design.md §9;
+    tests/test_command_surface_matrix.py.
+  - Success: an invariant test derives the matrix's `_COMPILE_OK_PHASES` and
+    `_DRAFTING_ERA_PHASES` from the `working_corpus` (or asserts their
+    relationship) so a corpus change that desyncs them fails loudly here rather
+    than silently, and the matrix suite stays green.
