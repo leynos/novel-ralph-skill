@@ -701,7 +701,7 @@ directs. No implementation performed; awaiting design review / approval.
 Lightweight, post-merge corrections folded onto this completed task. Each runs
 as a no-plan, no-review pass: make the change, run the gates, merge.
 
-- Roadmap 1.2.12.1 — guard `_command_name_for` against future multi-token
+- [x] Roadmap 1.2.12.1 — guard `_command_name_for` against future multi-token
   global flags (from review:1.2.12; low). `_command_name_for` treats every
   dash-prefixed token as a value-less global flag, true today because
   `--human` is the only global flag and carries no separate value. Should a
@@ -710,7 +710,7 @@ as a no-plan, no-review pass: make the change, run the gates, merge.
   single-value-less-flag assumption) so the latent regression cannot land
   silently when the global-flag surface grows. Scope: `commands/novel.py`
   `_command_name_for`, plus a focused unit assertion; one focused commit.
-- Roadmap 1.2.12.2 — pin a bare unknown top-level verb arm (from review:1.2.12;
+- [x] Roadmap 1.2.12.2 — pin a bare unknown top-level verb arm (from review:1.2.12;
   low). The behavioural usage-fault suite covers sub-verb and option faults
   (`novel state bogus`, `novel done extra`, `novel --bad-option`) but not a
   leading unknown verb (`novel bogus`). The path works (the probe shows

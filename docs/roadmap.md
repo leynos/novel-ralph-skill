@@ -219,7 +219,7 @@ docs/scripting-standards.md.
     `novel desloppify`, and `novel wordcount` all dispatch correctly with the
     unchanged envelope and exit codes; the multiplexer tests pass; the five
     legacy entry points still work; and `make all` is green.
-  - [ ] 1.2.12.1. Guard `_command_name_for` against future multi-token global
+  - [x] 1.2.12.1. Guard `_command_name_for` against future multi-token global
     flags.
     - Addendum (from review:1.2.12; low). `_command_name_for` treats every
       dash-prefixed token as a value-less global flag, true only because
@@ -227,7 +227,7 @@ docs/scripting-standards.md.
       flag could have its value misread as the subcommand verb. Add a small
       guard or a comment pinning the single-value-less-flag assumption.
       Lightweight addendum pass.
-  - [ ] 1.2.12.2. Pin a bare unknown top-level verb arm (`novel bogus`) in the
+  - [x] 1.2.12.2. Pin a bare unknown top-level verb arm (`novel bogus`) in the
     multiplexer behavioural suite.
     - Addendum (from review:1.2.12; low). The usage-fault suite covers sub-verb
       and option faults but not a leading unknown verb; the path works (stamps

@@ -119,3 +119,26 @@ def test_command_name_for_uses_the_registry_not_literals(
     stamps cannot drift from the single source of truth.
     """
     assert novel._command_name_for(spaced_argv) in SUBCOMMAND_NAMES
+
+
+@pytest.mark.parametrize(
+    "residual",
+    [
+        ["bogus"],
+        ["foo.toml"],
+        ["--config", "foo.toml"],
+    ],
+    ids=["unknown-verb", "stray-value", "value-carrying-flag-leak"],
+)
+def test_command_name_for_falls_back_on_unrecognised_tokens(
+    residual: list[str],
+) -> None:
+    """An unrecognised leading token resolves to the bare ``novel`` surface name.
+
+    Pins the single-value-less-global-flag assumption (roadmap 1.2.12.1): a stray
+    value left by a hypothetical value-carrying global flag (``--config
+    foo.toml``) — or any unknown verb — must never be stamped as a subcommand
+    name. The guard falls back to ``"novel"`` so the latent regression cannot land
+    silently when the global-flag surface grows.
+    """
+    assert novel._command_name_for(residual) == "novel"

@@ -101,10 +101,23 @@ def _command_name_for(residual: list[str]) -> str:
     is returned so the body-less help/version/usage arms still stamp a
     registry-valid command name.
 
+    The first non-flag token is treated as the verb on the assumption that every
+    *global* flag is value-less (it carries no separate value token). That holds
+    today: ``--human`` is the only global flag and
+    :func:`novel_ralph_skill.contract.runner.parse_global_flags` strips it whole.
+    Should a future global flag carry its own value (``--config foo.toml``), that
+    value would survive into the residual argv and be misread here as the verb.
+    The guard below pins the assumption: it resolves only registry-known verbs,
+    falling back to the bare ``"novel"`` surface name for any unrecognised token,
+    so a stray value can never be stamped as a subcommand name. A value-carrying
+    global flag must therefore strip its value in ``parse_global_flags`` *and* be
+    routed here explicitly before this function can see it.
+
     Parameters
     ----------
     residual : list[str]
-        The argv with ``--human`` already split off (the tokens ``run`` parses).
+        The argv with every value-less global flag (today only ``--human``)
+        already split off (the tokens ``run`` parses).
 
     Returns
     -------
@@ -114,6 +127,9 @@ def _command_name_for(residual: list[str]) -> str:
     verb = next((token for token in residual if not token.startswith("-")), None)
     if verb is None:
         return MULTIPLEXER_NAME
+    # Resolve only registry-known verbs; any other token (an unknown verb, or a
+    # stray value left by a hypothetical value-carrying global flag) falls back
+    # to the bare surface name rather than being stamped as a subcommand.
     return _SUBCOMMAND_FOR_VERB.get(verb, MULTIPLEXER_NAME)
 
 

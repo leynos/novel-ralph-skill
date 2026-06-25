@@ -211,6 +211,31 @@ def test_multiplexer_usage_faults_exit_two(
     assert case.fault.lower() in " ".join(envelope["messages"]).lower()
 
 
+def test_multiplexer_unknown_top_level_verb_exits_two_as_novel(
+    driver: Driver,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """A leading unknown verb (``novel bogus``) exits 2 stamped as ``novel``.
+
+    The sub-verb and option faults are pinned above, but a leading unknown verb
+    routes through ``_command_name_for``'s default branch and the parent's
+    command routing differently (it never resolves a mount). This arm pins that
+    path (roadmap 1.2.12.2): the fault maps to exit 2 with the usage envelope and
+    the bare ``novel`` command name, so a regression in either the default branch
+    or the parent routing cannot go uncaught.
+    """
+    _chdir_to_drafting(monkeypatch, tmp_path)
+
+    code, out = driver.mux(["bogus"])
+
+    assert code == ExitCode.USAGE_ERROR
+    envelope = json.loads(out)
+    assert envelope["ok"] is False
+    assert envelope["command"] == "novel"
+    assert "unknown command" in " ".join(envelope["messages"]).lower()
+
+
 def test_multiplexer_missing_working_exits_three(
     driver: Driver,
     monkeypatch: pytest.MonkeyPatch,
