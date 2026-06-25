@@ -1339,7 +1339,7 @@ novel-ralph-harness-design.md §2.3 and §9.
   - See novel-ralph-harness-design.md §9; adr-003-shared-interface-contract.md.
   - Success: `recount` and at least one exit-3 state-error path are each
     asserted against a real installed console-script, not only in-process.
-- [ ] 6.2.5. Add a torn-turn recovery scenario driven through a real command.
+- [x] 6.2.5. Add a torn-turn recovery scenario driven through a real command.
   - Requires 2.2.2 and 2.3.2.
   - The current torn-turn behavioural test exercises the `pending_turn()`
     primitive directly against a literal `state.toml`, never crossing the
