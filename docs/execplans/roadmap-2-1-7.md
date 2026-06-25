@@ -1037,3 +1037,48 @@ invariant name `manifest-disk-bijection`
 (`disk_evidence.MANIFEST_DISK_BIJECTION`) is unchanged. The oracle twin
 `tests/working_corpus/_oracle_disk.py::_check_manifest_disk_bijection` mirrors the
 production split and relaxation.
+
+## Addenda (post-merge follow-ups)
+
+Lightweight addendum work items folded back onto this completed task from the
+post-merge review and audit of step 2.1 (`review:2.1.7`, `audit:2.1.7`). Execute
+each as a small addendum pass — no plan or design-review cycle: make the change,
+run `make all` (plus `make markdownlint`/`make nixie` for Markdown),
+`coderabbit review --agent`, commit, and tick the matching roadmap sub-task on
+merge. The substantial, cross-cutting follow-up was re-routed off this task: the
+`word-counts-cover-drafts` detector redesign (review:2.1.7, two near-identical
+proposals merged), which ADR 009 explicitly defers, went to roadmap step 2.3
+(task 2.3.8), because it re-keys a disk-evidence coverage detector off the
+on-disk drafted subset and so serves the step-2.3 "state re-derivable from disk"
+hypothesis, not the step-2.1 schema hypothesis it was raised under. The two
+below are the small, localised follow-ups owned by this task.
+
+- [ ] 2.1.7.1 — Extract a shared manifest-disk bijection classifier and name the
+  broken direction in the violation detail (from audit:2.1.7 Findings 1 and 2,
+  low). The orphans/missing/contiguous/coherent-subset classification is computed
+  inline in both production sites
+  (`disk_evidence._check_manifest_disk_bijection` and
+  `reconcile._set_chapters_turn_explains_bijection`), with the contiguity-from-1
+  literal `sorted(manifest) == list(range(1, len(manifest) + 1))` byte-identical
+  across them; and `_check_manifest_disk_bijection` discards the direction it has
+  just classified when it builds the `Violation`, leaving the generic "not in
+  bijection" summary. Extract a pure `_classify_bijection(manifest, on_disk)`
+  helper in `disk_evidence.py` returning a frozen break record (orphans, missing,
+  contiguous, a `coherent_subset` property, and a `describe()` method); have both
+  production sites consume it so the coherence notion lives once; leave the corpus
+  oracle twin (`tests/working_corpus/_oracle_disk.py`) a deliberate independent
+  reimplementation, adding a one-line mirror comment in each pointing at the
+  other. Enrich the bijection detail to append the broken direction(s) the
+  predicate computed (orphan directories, manifest entries without directories
+  where the relaxation did not suppress them, non-contiguous manifest), keeping
+  the existing summary line as the lead so snapshot churn is bounded to an
+  appended clause. Pure refactor with no behavioural change. Gate with `make all`.
+- [ ] 2.1.7.2 — Extend the relaxed corpus agreement suite to a missing-directory
+  subset at final-pass and done (from review:2.1.7, low). The relaxed
+  production-vs-oracle agreement is asserted against coherent exact-bijection
+  trees at the terminal phases, not against a missing-directory subset that must
+  fire there; both predicates are byte-mirror twins so the risk is low. Add a
+  terminal-phase (`final-pass`/`done`) subset agreement row so the production
+  detector and the corpus oracle twin are pinned in lock-step on a tree where the
+  exact bijection must re-tighten, closing the last untested corner of the
+  relaxed twin. Test/corpus-only. Gate with `make all`.

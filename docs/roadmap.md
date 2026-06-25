@@ -698,6 +698,25 @@ novel-ralph-harness-design.md §5.1 and §5.2.
   - Success: `check` passes mid-draft when the on-disk chapters are a subset of
     the manifest, still flags an on-disk chapter absent from the manifest, and
     enforces exact bijection at done — proven by tests.
+  - [ ] 2.1.7.1. Extract a shared manifest-disk bijection classifier and name the
+    broken direction in the violation detail.
+    - Addendum (from audit:2.1.7 Findings 1 and 2; low). The
+      orphans/missing/contiguous/coherent-subset classification is computed inline
+      in both production sites (`disk_evidence._check_manifest_disk_bijection` and
+      `reconcile._set_chapters_turn_explains_bijection`), with the contiguity-from-1
+      literal byte-identical, and the predicate discards the direction it just
+      classified when building the `Violation`; extract a pure
+      `_classify_bijection` helper consumed by both production sites (the corpus
+      oracle twin staying a deliberate independent reimplementation, with a
+      mirror comment) and add a `describe()`-driven directional detail. Pure
+      refactor, no behavioural change. Lightweight addendum pass.
+  - [ ] 2.1.7.2. Extend the relaxed corpus agreement suite to a missing-directory
+    subset at final-pass and done.
+    - Addendum (from review:2.1.7; low). The relaxed production-vs-oracle
+      agreement is asserted against coherent exact-bijection trees at the terminal
+      phases, not against a subset that must fire there; add a terminal-phase
+      subset agreement row so the last untested corner of the relaxed twin
+      lock-step is closed. Lightweight addendum pass.
 - [ ] 2.1.8. Reconcile state-layout.md with the emitted state schema.
   - Requires 2.1.1.
   - `novel-state init` emits `chapters = []` (top-level) and
@@ -1041,6 +1060,36 @@ agent-improvised recovery routine. See novel-ralph-harness-design.md §4.1 and
   - Success: the refusal names the threshold and the remedy, the recount-gate
     coupling is documented, and a behavioural test asserts the actionable
     message.
+- [ ] 2.3.8. Re-key `word-counts-cover-drafts` off the on-disk drafted subset so
+  it stays enforced during a relaxed drafting subset.
+  - Reroute (source: review:2.1.7; severity: low; two near-identical proposals
+    merged). ADR 009 (Known risks, Outstanding decisions) records that
+    `word-counts-cover-drafts` is un-enforced during a relaxed drafting subset
+    because `_check_word_counts_cover_drafts` recomputes `by_chapter` by keying
+    off the manifest and defers on any `manifest != on_disk` tree, which a relaxed
+    subset always is; a `by_chapter` key-set drift on a mid-draft tree is
+    therefore not caught until the tree returns to bijection or reaches
+    final-pass/done. ADR 009 explicitly defers this detector redesign to a later
+    roadmap task. This does not serve the step-2.1 schema hypothesis it was raised
+    under; it serves the step-2.3 hypothesis — state re-derivable from disk so it
+    can never drift from the manuscript — by re-keying the coverage detector off
+    the on-disk drafted subset so the §5.4 stale-table coverage holds across the
+    whole drafting phase rather than only at bijection or final-pass. It is
+    substantial because it redesigns the cover-drafts detector and its corpus twin
+    and must keep the strict-default `manifest-disk-bijection` relaxation,
+    `CORPUS_INVARIANT_NAMES`, the agreement suites, and the existing
+    `check`/`reconcile` behaviour green, which warrants its own plan and review.
+  - Requires 2.3.6 and 2.1.7.
+  - See novel-ralph-harness-design.md §5.2 and §5.4;
+    docs/adr-009-drafting-bijection-relaxation.md (Known risks and limitations;
+    Outstanding decisions); docs/execplans/roadmap-2-3-6.md.
+  - Success: while `phase.current == drafting` and the on-disk chapters are a
+    subset of the manifest, `word-counts-cover-drafts` keys off the on-disk
+    drafted subset rather than the full manifest, so a `by_chapter` key omitted
+    relative to a drafted chapter is flagged mid-draft and repaired by `reconcile`
+    via `RECOUNT`; the detector and its corpus twin agree across the whole-corpus
+    agreement loop; and the `manifest-disk-bijection` relaxation,
+    `word-counts-match-drafts`, and the reconcile precedence stay unchanged.
 
 ## 3. Vertical slice 2: a single-source done predicate
 
