@@ -1727,7 +1727,7 @@ packs inherit before they land. See novel-ralph-harness-design.md §6.2 and §6.
       `DesloppifyUsageError` mirroring the existing `--ledger` + `--chapter`
       rejection so the combination exits 2 and names the conflict. Lightweight
       addendum pass.
-- [ ] 7.1.3. Decide whether the desloppify clean-pass output is slimmed to
+- [x] 7.1.3. Decide whether the desloppify clean-pass output is slimmed to
   non-zero findings before the multi-pack surface grows.
   - Reroute (source: review:5.1.2; severity: low). Every clean scan currently
     serialises all rules at `count: 0`, harmless for the single §6 pack but

@@ -701,12 +701,15 @@ def test_desloppify_shape_across_phases(tmp_path: Path, drive: _Driver) -> None:
     """``desloppify`` is shape-stable across phases; only ``total_words`` varies.
 
     Drives ``desloppify`` across all eleven phases and asserts exit 0, ``ok``
-    true, the stable ``result`` key set, an empty ``violations`` list, and the
-    full 24-rule shipped pack on every phase — a zero-chapter scan still emits
-    every rule (§4.4; §3.3 checker read shape). The one phase-varying datum is
-    ``total_words``: 0 for the eight empty-manifest pre-drafting phases and 68800
-    for the three drafting-era phases. So desloppify is shape-invariant but **not**
-    value-invariant across phases.
+    true, the stable ``result`` key set, an empty ``violations`` list, and an
+    empty slimmed ``findings`` trail on every phase. Each phase is a clean pass,
+    so the clean-pass findings contract (roadmap 7.1.3) slims the trail to the
+    over-threshold rules — none here — even though the detection core still
+    aggregates the full 24-rule shipped pack (§4.4; §3.3 checker read shape). The
+    ``findings`` key stays present; only its contents collapse to ``[]``. The one
+    phase-varying datum is ``total_words``: 0 for the eight empty-manifest
+    pre-drafting phases and 68800 for the three drafting-era phases. So desloppify
+    is shape-invariant but **not** value-invariant across phases.
     """
     command = _BY_NAME["desloppify"]
     for phase in wc.PHASE_ORDER:
@@ -714,6 +717,6 @@ def test_desloppify_shape_across_phases(tmp_path: Path, drive: _Driver) -> None:
         assert code == ExitCode.SUCCESS
         assert set(result) == {"pack", "total_words", "violations", "findings"}
         assert result["violations"] == []
-        assert len(typ.cast("list[object]", result["findings"])) == 24
+        assert result["findings"] == []
         expected_words = 68800 if phase in _DRAFTING_ERA_PHASES else 0
         assert result["total_words"] == expected_words

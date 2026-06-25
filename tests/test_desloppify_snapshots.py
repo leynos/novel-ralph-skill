@@ -106,7 +106,12 @@ def test_clean_pass_envelope_snapshot(
     assert envelope["ok"] is True
     result = typ.cast("dict[str, object]", envelope["result"])
     assert result["violations"] == []
+    # The clean-pass findings contract (roadmap 7.1.3, developers' guide):
+    # a clean scan slims its audit trail to the over-threshold rules, so a
+    # slop-free manuscript emits an empty findings list. This explicit guard is
+    # load-bearing: the basis-type loop below is a no-op once findings is empty.
     findings = typ.cast("list[dict[str, object]]", result["findings"])
+    assert findings == []
     for finding in findings:
         assert isinstance(finding["basis"], str), "basis must serialise as a str"
     _assert_no_volatile_fields(envelope)
@@ -139,6 +144,10 @@ def test_one_hit_past_threshold_envelope_snapshot(
     result = typ.cast("dict[str, object]", envelope["result"])
     assert result["violations"] == ["smirked"]
     findings = typ.cast("list[dict[str, object]]", result["findings"])
+    # Slimmed trail: only the single over-threshold rule survives (roadmap
+    # 7.1.3), so the findings list is exactly the one failing ``smirked`` entry
+    # with no passing rules alongside it.
+    assert len(findings) == 1
     smirked = next(f for f in findings if f["rule_id"] == "smirked")
     assert isinstance(smirked["basis"], str), "basis must serialise as a str"
     # The enumerated per-hit ``phrase`` (design §4.4) carries the rule's pattern.

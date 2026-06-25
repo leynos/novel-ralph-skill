@@ -8,27 +8,6 @@
     'ok': True,
     'result': dict({
       'findings': list([
-        dict({
-          'bound': None,
-          'count': 2,
-          'device_id': 'sternum',
-          'lines': list([
-            dict({
-              'chapter': 1,
-              'line': 1,
-            }),
-            dict({
-              'chapter': 1,
-              'line': 2,
-            }),
-          ]),
-          'max_count': 2,
-          'offending_chapters': list([
-          ]),
-          'passed': True,
-          'pattern': '\\bsternum\\b',
-          'ration_kind': 'max_count',
-        }),
       ]),
       'violations': list([
       ]),

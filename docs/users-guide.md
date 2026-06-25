@@ -311,7 +311,8 @@ over-threshold rule does.
 `desloppify` uses the shared exit-code table:
 
 - `0` — every rule is within threshold (or every device is within ration);
-  `result.violations` is empty.
+  `result.violations` is empty, and `result.findings` is empty too — a clean
+  pass carries only the over-threshold findings, of which there are none.
 - `4` — one or more rules exceed threshold (or one or more devices exceed their
   ration); the offending ids appear in `result.violations` for the agent to
   adjudicate, and each finding's `rule_id`/`device_id` (the canonical slug the

@@ -6,15 +6,17 @@ This module holds the pure projection from a
 ``ledger`` package (not beside the rule-pack projection) because the ledger emits
 its **own** payload: it must NOT reuse or alter the rule-pack ``_finding_payload``
 (ExecPlan Constraint: do not pre-empt the per-hit payload-contract decisions
-7.1.3/7.1.4/7.1.5). The ledger payload carries a full audit trail (every device's
-finding, including passing devices); the round-1 review notes 7.1.3's clean-pass
-slimming may later revisit this, and the WI5 snapshot is the churn-absorbing seam.
+7.1.4/7.1.5). Roadmap 7.1.3 has now slimmed the audit trail: ``findings`` carries
+only the over-ration devices, uniformly with the rule-pack path, so a
+within-ration manuscript emits ``findings: []`` (the clean-pass findings
+contract; developers' guide "The clean-pass findings contract"). The detection
+core still aggregates a finding for every device; only this projection slims.
 
 The projection follows the contract (design §3.1, §3.2; ADR-003): ``result``
 carries the machine payload the harness reads — the over-ration ``violations``
-list and the full per-device ``findings`` — while ``messages`` carries human prose
-the harness never parses (one line per over-ration device naming the breach). A
-clean ledger exits ``0``; any over-ration device exits ``4``.
+list and the slimmed per-device ``findings`` trail — while ``messages`` carries
+human prose the harness never parses (one line per over-ration device naming the
+breach). A clean ledger exits ``0``; any over-ration device exits ``4``.
 """
 
 from __future__ import annotations
@@ -108,8 +110,11 @@ def ledger_report_outcome(report: LedgerReport) -> CommandOutcome:
     A clean report exits ``0``; any over-ration device exits ``4``
     (``ACTIONABLE_FINDING``). ``result`` carries the machine payload — the
     over-ration ``violations`` list (the checker read shape, design §3.3) and the
-    full per-device ``findings`` — while ``messages`` carries human prose: one line
-    per over-ration device, or a single clean note.
+    slimmed per-device ``findings`` trail — while ``messages`` carries human prose:
+    one line per over-ration device, or a single clean note. Per the clean-pass
+    findings contract (roadmap 7.1.3; developers' guide "The clean-pass findings
+    contract"), ``findings`` lists only the over-ration devices, so a clean ledger
+    emits ``findings: []``; the detection core still aggregates every device.
 
     Parameters
     ----------
@@ -128,7 +133,12 @@ def ledger_report_outcome(report: LedgerReport) -> CommandOutcome:
         code=code,
         result={
             "violations": [finding.device_id for finding in failed],
-            "findings": [_finding_payload(finding) for finding in report.findings],
+            # Slim the audit trail to the over-ration devices (the clean-pass
+            # findings contract, roadmap 7.1.3; developers' guide "The clean-pass
+            # findings contract"), so a within-ration manuscript emits
+            # ``findings: []``. The detection core still aggregates every device;
+            # only this projection slims, in lockstep with the rule-pack path.
+            "findings": [_finding_payload(finding) for finding in failed],
         },
         messages=[_finding_message(finding) for finding in failed]
         or ["no rationing breaches detected"],

@@ -122,6 +122,11 @@ def test_clean_ledger_envelope_snapshot(
     assert envelope["ok"] is True, "a clean ledger envelope reports ok=True"
     result = typ.cast("dict[str, object]", envelope["result"])
     assert result["violations"] == [], "a clean ledger has no violations"
+    # The ledger path obeys the same clean-pass findings contract as the
+    # rule-pack path (roadmap 7.1.3): a within-ration scan slims its trail to
+    # the over-ration devices, so the sole passing ``sternum`` device drops out
+    # and the findings list is empty.
+    assert result["findings"] == [], "a within-ration ledger slims to no findings"
     _assert_no_volatile_fields(envelope)
     assert envelope == snapshot, "the clean ledger envelope shape must match"
 

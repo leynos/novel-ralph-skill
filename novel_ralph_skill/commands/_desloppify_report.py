@@ -10,8 +10,10 @@ within the 400-line cap (AGENTS.md "clear file boundaries"), exactly as
 
 The projection follows the contract (design §3.1, §3.3; ADR-003): ``result``
 carries the machine payload the harness reads — ``pack``, ``total_words``, the
-failed-rule ``violations`` list, and the full per-rule ``findings`` — while
-``messages`` carries human prose the harness never parses. Each finding emits the
+failed-rule ``violations`` list, and the slimmed ``findings`` trail (only the
+over-threshold rules, per the clean-pass findings contract, roadmap 7.1.3; see
+the developers' guide "The clean-pass findings contract") — while ``messages``
+carries human prose the harness never parses. Each finding emits the
 fields design §4.4 enumerates per hit: ``phrase`` (the rule's authored pattern
 source), ``count``, ``density`` per N words, ``threshold``, ``passed``, and the
 ``lines`` numbers. ``basis`` is emitted as an explicit string so a future
@@ -156,9 +158,12 @@ def report_outcome(report: DetectionReport) -> CommandOutcome:
     A clean report exits ``0``; any rule over threshold exits ``4``
     (``ACTIONABLE_FINDING``). ``result`` carries the machine payload — ``pack``,
     ``total_words``, the failed-rule ``violations`` list (the checker read shape,
-    design §3.3), and the full per-rule ``findings`` — while ``messages`` carries
+    design §3.3), and the slimmed ``findings`` trail — while ``messages`` carries
     human prose: one line per failed rule, or a single clean-pass note (design
-    §3.1; ADR-003).
+    §3.1; ADR-003). Per the clean-pass findings contract (roadmap 7.1.3;
+    developers' guide "The clean-pass findings contract"), ``findings`` lists
+    only the over-threshold rules, so a clean pass emits ``findings: []``; the
+    detection core still aggregates a finding for every rule.
 
     Parameters
     ----------
@@ -179,7 +184,13 @@ def report_outcome(report: DetectionReport) -> CommandOutcome:
             "pack": report.pack,
             "total_words": report.total_words,
             "violations": [finding.rule_id for finding in failed],
-            "findings": [_finding_payload(finding) for finding in report.findings],
+            # Slim the audit trail to the over-threshold findings (the clean-pass
+            # findings contract, roadmap 7.1.3; developers' guide "The clean-pass
+            # findings contract"). ``findings`` is projected from the same
+            # ``failed`` filter that feeds ``violations``, so a clean pass emits
+            # ``findings: []``. The detection core still aggregates every rule;
+            # only this projection slims.
+            "findings": [_finding_payload(finding) for finding in failed],
         },
         messages=[_finding_message(finding) for finding in failed]
         or ["no slop detected"],

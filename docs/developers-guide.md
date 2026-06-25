@@ -1047,10 +1047,38 @@ built on `load_rulepack` and the pure `detect(pack, chapters)` aggregation in
 it scans each chapter draft line by line (the loader compiles patterns with no
 flags, so `.` cannot cross a newline), counts each rule's non-overlapping hits,
 and reports a per-rule finding — count, threshold, per-page density, and the
-`{chapter, line}` of each match — in the shared envelope's `result`. It maps the
+`{chapter, line}` of each match — for every rule. The envelope's `result.findings`
+carries only the over-threshold subset of those findings (see
+[the clean-pass findings contract](#the-clean-pass-findings-contract-roadmap-task-713)
+below). It maps the
 two loader errors to their exit codes in the command body (`RulePackError` → exit
 2; `RulePackFileError` → exit 3) rather than extending the shared runner, keeping
 the `rulepack` → `contract` coupling out of the shared seam.
+
+#### The clean-pass findings contract (roadmap task 7.1.3)
+
+`result.findings` carries **only the over-threshold findings**. A clean pass
+emits `findings: []` and `violations: []` at exit `0`; the detection core still
+aggregates a finding for *every* rule, but the envelope projection slims the
+trail to the rules that actually breached. This is the authoritative contract:
+the design (§3.1, §4.4) and the ledger section below merely reference it.
+
+The rationale is that `result` carries only **machine-actionable** data (design
+§3.1): the harness gates on `ok` and reads `result.violations` (§3.3), so a rule
+within threshold — by construction `count: 0` or below its limit — is never
+read. The full audit trail of passing rules is **recoverable** from data the
+operator already owns: the rule pack is versioned, and any non-clean envelope
+still lists every offending rule in full. Carrying every passing rule would also
+make the payload grow linearly with pack size and pack count, so a clean
+multi-pack scan would serialize dozens of `count: 0` rows no consumer reads;
+slimming keeps a clean scan at `findings: []` regardless of how many rules ship.
+
+The decision applies **uniformly** to both the rule-pack path and the
+`desloppify --ledger` path (see [the device ledger](#the-device-ledger-and-per-novel-rationing)
+below), so the §7.1 packs — `ai-isms.toml`, `device-ledger.toml`, and the future
+multi-pack run — all inherit one shape. The multi-pack surface (roadmap tasks
+7.1.6 and 7.1.7) inherits this contract; it is settled here once and is not
+re-litigated there.
 
 #### The ai-isms pack: cadence, ownership, and membership
 
@@ -1162,6 +1190,11 @@ Like the rule-pack loader, malformed *content* fails loudly through a
 absent, unreadable, or undecodable ledger *file* fails through a
 `LedgerFileError` mapped to **exit 3**. An over-ration device exits **4**, naming
 the device in `result.violations`; a within-ration manuscript exits **0**.
+
+The ledger path obeys the same
+[clean-pass findings contract](#the-clean-pass-findings-contract-roadmap-task-713)
+as the rule-pack path: `result.findings` carries only the over-ration devices, so
+a within-ration manuscript emits `findings: []` and `violations: []` at exit `0`.
 
 Detection follows the same **line-by-line, no-flags, no-semantic-gate** model as
 the rule-pack detector. A *spend* is one literal `finditer` hit of the device's
