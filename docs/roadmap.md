@@ -199,6 +199,25 @@ docs/scripting-standards.md.
     a second, weaker copy of the PEP 508 distribution-name normaliser; lifting a
     `dist_name` fixture into `conftest` and migrating the module onto the
     `pyproject`/`toml_table` fixtures removes both duplications in one move.
+- [ ] 1.2.12. Collapse the five console-scripts into a single `novel`
+  multiplexer (ADR 007).
+  - Requires 1.2.1 and 1.2.4.
+  - Per `docs/adr-007-command-surface-novel-multiplexer.md` (superseding ADR
+    005), replace the five `[project.scripts]` entries with a single `novel`
+    entry that dispatches into the existing Cyclopts apps as a `state` subgroup
+    plus four leaf verbs (`novel done`, `novel compile`, `novel desloppify`,
+    `novel wordcount`). Update the command-name single source of truth
+    (`novel_ralph_skill/commands/names.py`); migrate the installed-binary e2e
+    tests and the contract suite to invoke `novel <sub>`; and sweep the design
+    prose and diagrams and `SKILL.md` (including the Setup section and every bare
+    `novel-x` reference) to the `novel x` form. The shared scaffolding, envelope,
+    and exit-code policy (ADR 003) are unchanged.
+  - See novel-ralph-harness-design.md §4 and docs/adr-007-command-surface-novel-multiplexer.md.
+  - Success: `uv tool install` puts exactly one command, `novel`, on `PATH`;
+    `novel state init`, `novel done`, `novel compile`, `novel desloppify`, and
+    `novel wordcount` all work with the unchanged envelope and exit codes; no
+    `novel-x`, `desloppify`, or `wordcount` entry point remains; and `make all`
+    (including the installed-binary e2e) is green.
 
 ### 1.3. Build the shared contract scaffolding and test corpus
 

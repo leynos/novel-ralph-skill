@@ -264,14 +264,21 @@ did not" from a silent corruption into a declared, inspectable state.
 
 ## 4. The deterministic commands
 
-The five commands form the v1 spine. Each is a Cyclopts application exposed as
-a console-script in `novel_ralph_skill`. None invokes an external process for
+The deterministic spine is a single `novel` multiplexer, exposed as one
+console-script in `novel_ralph_skill`, with five operations: a `state` subgroup
+and four leaf verbs (`novel done`, `novel compile`, `novel desloppify`,
+`novel wordcount`). The single entry point gives `PATH` one name, makes the
+shared envelope structural as well as convention-enforced, and offers a
+discoverable `novel --help`; the choice of one multiplexer over five separate
+scripts is recorded in
+[ADR 007](adr-007-command-surface-novel-multiplexer.md) (superseding ADR 005).
+Each operation is a Cyclopts application; none invokes an external process for
 its core logic, so cuprum is required only where a command shells out (none do
 in v1); filesystem work uses `pathlib`. The build-and-install proof
 (`tests/test_console_scripts_e2e.py`) runs on POSIX only, per
 `docs/adr-006-console-scripts-e2e-posix-policy.md`.
 
-### 4.1 `novel-state`
+### 4.1 `novel state`
 
 All state mutation hides behind validated subcommands. Direct editing of
 `state.toml` is eliminated.
@@ -305,7 +312,7 @@ authoritative ordering to follow.
 State serialisation round-trips losslessly, preserving the on-disk formatting
 and comments. The mechanism is open question Q1, resolved in §5.3.
 
-### 4.2 `novel-done`
+### 4.2 `novel done`
 
 > Implementation status: roadmap task 3.1.1 shipped five sound clauses plus an
 > existence-only `compile_consistent`; roadmap task 3.1.2 then swapped that clause
@@ -375,7 +382,7 @@ hashes it computed internally. The payload's size is therefore fixed: it does
 not grow with the chapter count, so a hundred-chapter novel returns the same
 bounded result as a three-chapter one.
 
-### 4.3 `novel-compile`
+### 4.3 `novel compile`
 
 `novel-compile` regenerates `working/manuscript/compiled.md` deterministically,
 with consistent separators. The `--check` flag makes it a read-only checker
@@ -401,7 +408,7 @@ result — lives in one shared routine that both `novel-compile` (write and
 `--check`) and the `novel-done` compile clause (§4.2) call, so a divergence
 verdict is computed identically wherever it is asked.
 
-### 4.4 `desloppify`
+### 4.4 `novel desloppify`
 
 `desloppify` runs the checklist's §6 high-frequency-offender table as a
 versioned rule pack over a chapter or the whole manuscript. It emits structured
@@ -419,7 +426,7 @@ benign "not yet done" of code 1 and from the usage error (code 2) a malformed
 rule pack raises. The rule-pack schema and the later-phase passive, filtering,
 and AI-isms packs are designed in §6.
 
-### 4.5 `wordcount`
+### 4.5 `novel wordcount`
 
 `wordcount` reports, per chapter and cumulatively: words, percentage of target,
 distance to the next knitting gate, and delta against the chapter target. The
