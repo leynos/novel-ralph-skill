@@ -969,7 +969,7 @@ follow-ups — wiring the shipped pack to a symbolic `--pack ai-isms` selector
 their own plans and are filed as full step-7.1 tasks; these two are the small
 data-contract and documentation fixes only.
 
-- [ ] 7.1.1.1 — Capture the maintainer's explicit ratification of the Tier B
+- [x] 7.1.1.1 — Capture the maintainer's explicit ratification of the Tier B
   ai-isms membership (from review:7.1.1, low). Tier B
   (`stands-as-a-testament`, `rich-tapestry`, `vital-role`) shipped as
   "ratified-by-plan" because the maintainer was unreachable in the autonomous
@@ -978,7 +978,7 @@ data-contract and documentation fixes only.
   membership policy (or this Decision Log), closing the maintainer-owned
   data-contract loop the plan opened. Prose-only; gate with `make markdownlint`
   and `make nixie`.
-- [ ] 7.1.1.2 — Note the one-pack-per-run limit in the users' guide and resolve
+- [x] 7.1.1.2 — Note the one-pack-per-run limit in the users' guide and resolve
   the developers' guide combine-packs cross-reference (from audit:7.1.1, low).
   `docs/developers-guide.md` says combining both packs in one invocation "is a
   separate roadmap item and is not yet supported" but the item was unfiled;

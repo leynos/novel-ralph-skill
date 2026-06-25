@@ -963,8 +963,9 @@ LLM-default prose — "load-bearing", "a testament to", and similar. It ships by
 the same default hatchling mechanism, travels in the wheel, and resolves through
 `importlib.resources.files`. It is **opt-in**: `desloppify` selects it only when
 given `--pack ai-isms.toml`, and the default pack stays `offenders.toml`.
-Combining both packs in one invocation is a separate roadmap item and is not yet
-supported.
+Combining both packs in one invocation is roadmap task 7.1.7 (the multi-pack
+`desloppify` surface) and is not yet supported: a single run scans exactly one
+pack.
 
 The AI-ism tell set is a *moving target* the maintainer owns as versioned data,
 not code (design §6.2). The cadence is:
@@ -995,6 +996,13 @@ The **membership policy** keeps the next maintainer from inventing tells:
   tapestry`, not bare `tapestry`; `is a testament`, not bare `testament`.
 - Every id is disjoint from `offenders.toml`'s ids, so the two packs never
   double-count; the validation suite asserts the disjointness.
+
+The shipped Tier B tell set — `stands-as-a-testament`, `rich-tapestry`, and
+`vital-role` — was **ratified by the skill maintainer** on 2026-06-25, closing
+the maintainer-owned data contract the original task opened. (Task 7.1.1 first
+shipped Tier B as "ratified-by-plan" because the maintainer was unreachable in
+the autonomous run; this records the explicit human ratification.) Future
+additions follow the membership policy above and are ratified the same way.
 
 The ai-isms patterns diverge deliberately from design §6.1's case-sensitive
 illustration (and from the case-sensitive `\btapestry\b`/`\bdelve\b` worked

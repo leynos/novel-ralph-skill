@@ -1377,7 +1377,7 @@ packs inherit before they land. See novel-ralph-harness-design.md §6.2 and §6.
   - See novel-ralph-harness-design.md §6.2.
   - Success: resolves open question Q5; adding a tell is a data edit, not a
     code change.
-  - [ ] 7.1.1.1. Capture the maintainer's explicit ratification of the Tier B
+  - [x] 7.1.1.1. Capture the maintainer's explicit ratification of the Tier B
     ai-isms membership.
     - Addendum (from review:7.1.1; low). Tier B
       (`stands-as-a-testament`, `rich-tapestry`, `vital-role`) shipped as
@@ -1385,7 +1385,7 @@ packs inherit before they land. See novel-ralph-harness-design.md §6.2 and §6.
       autonomous run; obtain and record the human maintainer's ratification of
       the shipped tell set so the maintainer-owned data-contract loop the plan
       opened is closed. Lightweight addendum pass.
-  - [ ] 7.1.1.2. Note the one-pack-per-run limit in the users' guide and resolve
+  - [x] 7.1.1.2. Note the one-pack-per-run limit in the users' guide and resolve
     the developers' guide combine-packs cross-reference.
     - Addendum (from audit:7.1.1; low). The developers' guide says combining
       both packs in one invocation "is a separate roadmap item and is not yet

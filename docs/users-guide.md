@@ -289,7 +289,9 @@ the `[chapters]` manifest); pass `--chapter N` to scan a single chapter, or
 `--pack PATH` to use a different rule pack. A second pack, `ai-isms.toml`, ships
 with the package and flags lexical AI-isms ("load-bearing", "a testament to");
 it is opt-in, selected with `--pack
-novel_ralph_skill/rulepack/packs/ai-isms.toml`. Like `novel-state check`
+novel_ralph_skill/rulepack/packs/ai-isms.toml`. A single run scans exactly one
+pack; combining both packs in one invocation is not yet supported. Like
+`novel-state check`
 `desloppify` prints a one-line JSON envelope by default and a readable rendering
 under the global `--human` flag.
 
