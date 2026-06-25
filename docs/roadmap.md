@@ -1460,7 +1460,7 @@ novel-ralph-harness-design.md §2.3 and §9.
       so they re-pin a skeleton with no added signal. Replace the ten `.ambr`
       blocks with one in-code expected-skeleton assertion templated on
       `command.name`/`working_dir`. Lightweight addendum pass.
-- [ ] 6.2.9. Extend the installed per-chapter loop re-drive to the refused-advance
+- [x] 6.2.9. Extend the installed per-chapter loop re-drive to the refused-advance
   and crossed-gate decisions.
   - Step-task (source: audit:6.2.2 Finding 7; severity: low). The installed
     wheel/venv re-drive of the per-chapter loop covers only the clean pass and

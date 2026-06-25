@@ -146,11 +146,18 @@ and bind through the bare, mark-free
 the in-process scenarios run on every platform under the global 30s timeout.
 
 The installed re-drive crosses the real wheel/venv packaging boundary §9 names as
-the end-to-end loop scope (the matrix carries this as a documented gap). It lives
+the end-to-end loop scope. It lives
 in its **own** feature,
 [`tests/features/per_chapter_loop_installed.feature`](../tests/features/per_chapter_loop_installed.feature),
-re-driving the clean pass and the stale-compile catch through the installed
-console-scripts over a built wheel. This split exists to carry the per-scenario
+re-driving three of the four in-process deterministic decisions through the
+installed console-scripts over a built wheel (roadmap tasks 6.2.2 and 6.2.9):
+the clean pass; the **crossed knitting gate**, proven *as part of* the clean
+pass via the installed `wordcount` gates-crossed assertion (`gate_triggered_30/
+50/80`; §4.5), not as a standalone scenario; the stale-compile catch (`novel-done`
+and `novel-compile --check` exit 4; §4.2, §4.3); and — closing the audit-6.2.2
+Finding 7 gap — the **refused out-of-order `advance-phase`** (exit 3 with
+`state.toml` byte-for-byte intact and no traceback; §3.2, §4.1, §5.4). This split
+exists to carry the per-scenario
 marks: an installed BDD scenario that needs `@pytest.mark.slow`,
 `@pytest.mark.timeout(180)`, and a POSIX `@pytest.mark.skipif` must live in its
 own feature and `@scenario`-decorated binder
@@ -161,11 +168,13 @@ in-process scenarios. A `@scenario`-decorated function "behaves like a normal
 test function" (pytest-bdd 8.1.0), so the stacked marks attach as on a plain
 pytest test — the same mechanism the installed e2es
 ([`tests/test_console_scripts_e2e.py`](../tests/test_console_scripts_e2e.py),
-[`tests/test_recount_e2e.py`](../tests/test_recount_e2e.py)) use. The
-wheel-free `test_installed_scenario_carries_marks` guard asserts the bound item
-keeps those three marks, so a future edit that drops one fails a named test
-rather than silently weakening the installed boundary. Follow this convention
-when adding any installed BDD scenario.
+[`tests/test_recount_e2e.py`](../tests/test_recount_e2e.py)) use. A wheel-free
+`*_carries_marks` guard per installed scenario
+(`test_installed_scenario_carries_marks` and
+`test_installed_advance_refused_carries_marks`) asserts the bound item keeps
+those three marks, so a future edit that drops one fails a named test rather than
+silently weakening the installed boundary. Follow this convention when adding any
+installed BDD scenario.
 
 ### The `working/` fixture corpus
 

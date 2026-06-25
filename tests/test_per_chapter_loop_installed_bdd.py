@@ -48,6 +48,27 @@ def test_installed_per_chapter_loop() -> None:
     """Bind the installed loop scenario, carrying the slow/timeout/POSIX marks."""
 
 
+@pytest.mark.slow
+@pytest.mark.timeout(180)
+@pytest.mark.skipif(
+    os.name != "posix",
+    reason="installed loop e2e is POSIX-only; see ADR 006",
+)
+@scenario(
+    "features/per_chapter_loop_installed.feature",
+    "the installed loop refuses an out-of-order advance-phase",
+)
+def test_installed_advance_phase_refused() -> None:
+    """Bind the installed refused-advance scenario, carrying the same three marks.
+
+    This closes audit-6.2.2 Finding 7: the runner-stamped exit-3 refusal of an
+    out-of-order ``advance-phase`` (design §3.2, §4.1) is now proven over the real
+    installed console-script, not only in-process. The module-scoped
+    ``installed_novel_state`` fixture means this scenario reuses the same wheel
+    build and venv install as the clean-pass scenario, so no second wheel is built.
+    """
+
+
 def test_installed_scenario_carries_marks() -> None:
     """Guard that the installed scenario keeps its slow, timeout, and POSIX marks.
 
@@ -72,5 +93,26 @@ def test_installed_scenario_carries_marks() -> None:
     marks = {mark.name for mark in applied}
     assert marks >= _REQUIRED_MARKS, (
         f"the installed scenario must keep {sorted(_REQUIRED_MARKS)}; "
+        f"got {sorted(marks)}"
+    )
+
+
+def test_installed_advance_refused_carries_marks() -> None:
+    """Guard that the refused-advance scenario keeps its slow/timeout/POSIX marks.
+
+    Mirrors ``test_installed_scenario_carries_marks`` for the second installed
+    scenario (roadmap 6.2.9). Dropping a mark from ``test_installed_advance_phase_
+    refused`` would run its wheel build on a non-POSIX leg or under the global 30s
+    timeout rather than the 180s budget, with no scenario failing; this wheel-free
+    guard, read off the bound function's ``pytestmark``, fails instead (ExecPlan
+    Risk 1). It runs on every platform.
+    """
+    applied = typ.cast(
+        "cabc.Sequence[pytest.MarkDecorator]",
+        getattr(test_installed_advance_phase_refused, "pytestmark", ()),
+    )
+    marks = {mark.name for mark in applied}
+    assert marks >= _REQUIRED_MARKS, (
+        f"the refused-advance scenario must keep {sorted(_REQUIRED_MARKS)}; "
         f"got {sorted(marks)}"
     )

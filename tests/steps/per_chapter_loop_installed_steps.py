@@ -1,12 +1,24 @@
-"""Installed-binary step definitions for the per-chapter loop (roadmap 6.2.2).
+"""Installed-binary step definitions for the per-chapter loop (roadmap 6.2.2, 6.2.9).
 
-These re-drive the headline clean pass and the stale-compile catch of the
-in-process scenarios through the **installed** console-scripts over a built
-wheel, the real wheel/venv packaging boundary design §9 lines 835-847 names as
-the end-to-end loop scope. Where the in-process steps cross the Cyclopts app and
-the shared ``run`` wrapper, these cross the installed entry points an operator
-and the harness actually invoke, so the harness-trusted exit codes are proven at
-the packaging boundary, not only in-process (ExecPlan Decision Log; ADR-003).
+These re-drive the deterministic decisions of the in-process scenarios through
+the **installed** console-scripts over a built wheel, the real wheel/venv
+packaging boundary design §9 lines 835-847 names as the end-to-end loop scope.
+Where the in-process steps cross the Cyclopts app and the shared ``run`` wrapper,
+these cross the installed entry points an operator and the harness actually
+invoke, so the harness-trusted exit codes are proven at the packaging boundary,
+not only in-process (ExecPlan Decision Log; ADR-003). They cover the headline
+clean pass (folding in the crossed knitting gate via the wordcount gates-crossed
+assertion), the stale-compile catch, and the refused out-of-order ``advance-phase``
+(exit 3, ``state.toml`` byte-for-byte intact; design §3.2, §4.1, §5.4) that closes
+audit-6.2.2 Finding 7.
+
+Running an installed script is centralised in ``_run_installed_argv``, which
+separates the script filename, the argv, and the capture key — three values the
+single ``command_name`` argument of the older ``_run_installed`` conflated. The
+helper writes its own ``installed.captures[capture_key]`` entry, so the ``When``
+steps call it for its side effect and never assign the capture by hand;
+``_run_installed`` delegates to it, keeping the clean-pass and stale-compile loops
+byte-identical (ExecPlan Decision Log, roadmap 6.2.9).
 
 The wheel/venv build is supplied by the module-scoped ``installed_novel_state``
 fixture (``tests/installed_binary_fixtures.py``); the four sibling scripts
@@ -68,6 +80,9 @@ class _Installed:
     ``scripts_dir`` is the venv ``bin/`` holding all five console-scripts;
     ``run_dir`` is the per-test cwd whose ``working/`` tree each script resolves.
     The captures accumulate across the ``When`` steps for the ``Then`` assertions.
+    ``state_before`` records the prior ``state.toml`` bytes for the refused-advance
+    scenario so a ``Then`` step can prove the refused mutator left the file intact
+    (design §5.4); the clean-pass and stale-compile givens leave it ``None``.
     """
 
     scripts_dir: Path
@@ -76,29 +91,58 @@ class _Installed:
     captures: dict[str, tuple[int, dict[str, object], str]] = dc.field(
         default_factory=dict
     )
+    state_before: bytes | None = None
+
+
+def _run_installed_argv(
+    installed: _Installed,
+    script_name: str,
+    argv: tuple[str, ...],
+    *,
+    capture_key: str,
+) -> tuple[int, dict[str, object], str]:
+    """Run ``script_name`` with ``argv``; store the capture under ``capture_key``.
+
+    Resolves the sibling script from the shared ``bin/`` directory, runs it through
+    a single-program cuprum catalogue with ``ExecutionContext(cwd=run_dir)`` so it
+    resolves ``./working/state.toml``, and parses its machine-mode stdout as the
+    JSON envelope, exactly as the existing installed e2es do. The script filename,
+    the argv, and the capture key are separated so a single script (``novel-state``)
+    can be driven with different subcommands (``recount`` vs ``advance-phase``)
+    under distinct capture keys. The ``(exit_code, envelope, stderr)`` tuple is
+    written into ``installed.captures[capture_key]`` and also returned, so callers
+    may use the helper for its side effect alone.
+    """
+    script_path = installed.scripts_dir / script_name
+    prog = Program(str(script_path))
+    catalogue = installed.catalogue(f"per-chapter-loop-{capture_key}", prog)
+    result = sh.make(prog, catalogue=catalogue)(*argv).run_sync(
+        context=ExecutionContext(cwd=installed.run_dir), capture=True
+    )
+    envelope = json.loads(result.stdout or "{}")
+    capture = (
+        result.exit_code,
+        typ.cast("dict[str, object]", envelope),
+        result.stderr or "",
+    )
+    installed.captures[capture_key] = capture
+    return capture
 
 
 def _run_installed(
     installed: _Installed, command_name: str
 ) -> tuple[int, dict[str, object], str]:
-    """Run an installed script by absolute path; return ``(exit_code, env, stderr)``.
+    """Run a loop command by name; return ``(exit_code, env, stderr)``.
 
-    Resolves the sibling script from the shared ``bin/`` directory, runs it through
-    a single-program cuprum catalogue with ``ExecutionContext(cwd=run_dir)`` so it
-    resolves ``./working/state.toml``, and parses its machine-mode stdout as the
-    JSON envelope, exactly as the existing installed e2es do.
+    Delegates to :func:`_run_installed_argv`, using ``command_name`` as the script
+    filename, argv key, and capture key alike — the clean-pass and stale-compile
+    loops use one script per command, so the three coincide there.
     """
-    script_path = installed.scripts_dir / command_name
-    prog = Program(str(script_path))
-    catalogue = installed.catalogue(f"per-chapter-loop-{command_name}", prog)
-    result = sh.make(prog, catalogue=catalogue)(*_LOOP_ARGV[command_name]).run_sync(
-        context=ExecutionContext(cwd=installed.run_dir), capture=True
-    )
-    envelope = json.loads(result.stdout or "{}")
-    return (
-        result.exit_code,
-        typ.cast("dict[str, object]", envelope),
-        result.stderr or "",
+    return _run_installed_argv(
+        installed,
+        command_name,
+        _LOOP_ARGV[command_name],
+        capture_key=command_name,
     )
 
 
@@ -164,7 +208,7 @@ def installed_clean_tree(
 def run_installed_clean_spine(installed: _Installed) -> None:
     """Drive all five installed scripts over the clean tree, capturing each result."""
     for command_name in _LOOP_ARGV:
-        installed.captures[command_name] = _run_installed(installed, command_name)
+        _run_installed(installed, command_name)
 
 
 @then("every installed loop command exits 0 with no traceback")
@@ -234,8 +278,8 @@ def run_installed_stale(installed: _Installed) -> None:
     surface the stale ``compiled.md`` as an actionable finding; their captures
     feed the exit-4 assertions in the following step.
     """
-    installed.captures["novel-done"] = _run_installed(installed, "novel-done")
-    installed.captures["novel-compile"] = _run_installed(installed, "novel-compile")
+    _run_installed(installed, "novel-done")
+    _run_installed(installed, "novel-compile")
 
 
 @then("the installed novel-done exits 4 and the compile exits 4 diverged")
@@ -260,3 +304,80 @@ def installed_stale_caught(installed: _Installed) -> None:
     )
     assert _result(installed, "novel-compile")["diverged"] is True
     _assert_no_traceback(installed, "novel-compile")
+
+
+# --- gated decision: the installed advance-phase refuses out-of-order (§3.2) ---
+
+
+@given(
+    "an installed loop tree whose phase.completed skips the in-order prefix",
+    target_fixture="installed",
+)
+def installed_out_of_order_tree(
+    installed_novel_state: Path,
+    tmp_path: Path,
+    single_program_catalogue: cabc.Callable[[str, Program], ProgramCatalogue],
+) -> _Installed:
+    """Build the ``completed-prefix-gap`` tree and record its prior ``state.toml``.
+
+    ``INCOHERENT_VARIANTS["completed-prefix-gap"]`` is a ``drafting`` tree whose
+    ``phase.completed = ("premise", "characters")`` skips the in-order prefix, so
+    the installed ``advance-phase`` must refuse it. The prior ``state.toml`` bytes
+    are captured into ``state_before`` so a later step can prove the refused mutator
+    left the file byte-for-byte intact (design §5.4), mirroring the in-process
+    refused-advance given.
+
+    Returns
+    -------
+    _Installed
+        The installed scripts dir, the per-test run dir, the catalogue builder, and
+        the captured prior ``state.toml`` bytes.
+    """
+    installed = _build_installed(
+        installed_novel_state,
+        tmp_path,
+        single_program_catalogue,
+        wc.INCOHERENT_VARIANTS["completed-prefix-gap"][0],
+    )
+    installed.state_before = (installed.run_dir / "working" / "state.toml").read_bytes()
+    return installed
+
+
+@when("the installed advance-phase runs over the out-of-order tree")
+def run_installed_advance_phase(installed: _Installed) -> None:
+    """Drive the installed ``novel-state advance-phase`` over the out-of-order tree.
+
+    The script file is ``novel-state``; the ``("advance-phase",)`` argv selects the
+    mutator subcommand; the capture key is the distinct ``"advance-phase"`` (the
+    in-process refused step keys identically) so it never collides with the
+    clean-pass ``novel-state``/recount capture.
+    """
+    _run_installed_argv(
+        installed,
+        "novel-state",
+        ("advance-phase",),
+        capture_key="advance-phase",
+    )
+
+
+@then(
+    "the installed advance-phase exits 3 with state.toml byte-for-byte intact "
+    "and no traceback"
+)
+def installed_advance_phase_refused(installed: _Installed) -> None:
+    """Assert the installed out-of-order advance refused: exit 3, intact, no trace.
+
+    Design §3.2/§4.1: the runner stamps the exit-3 state error before the mutator
+    body runs; §5.4: the refused mutator must not touch ``state.toml``; §10: a state
+    fault yields a structured message, never a stack trace. This pins all three at
+    the real wheel/venv boundary.
+    """
+    code, _envelope, _stderr = installed.captures["advance-phase"]
+    assert code == ExitCode.STATE_ERROR, (
+        f"installed advance-phase exited {code}, expected 3"
+    )
+    after = (installed.run_dir / "working" / "state.toml").read_bytes()
+    assert after == installed.state_before, (
+        "the refused installed advance mutated state.toml"
+    )
+    _assert_no_traceback(installed, "advance-phase")
