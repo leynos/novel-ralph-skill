@@ -1269,3 +1269,25 @@ Work item 3 takes the add-a-note path only), A5 (devguide "fixed `working_dir`
 constant" is at line 158, not 160), and A6 (the inside-`working/` e2e reaches the
 deeper cwd by passing `run_dir / "working"` to the `run_installed(run_dir, argv)`
 fixture, not by constructing an `ExecutionContext`). No implementation performed.
+
+## Addenda
+
+Lightweight, no-plan corrections folded onto this completed task after the
+review and audit of step 6.3 settled. Each runs as a no-review lightweight pass.
+
+- **6.3.4.1 (from review:6.3.4; low).** Normalise the ungated POSIX-separator
+  suffix assertion `result["working_dir"].endswith("/working")` in
+  `tests/test_novel_state_mutators.py` (line 100) to a pathlib-based
+  `.name`/`.parts` check, matching the portability convention this task already
+  enforced on its new test modules. The module is not `skipif`-gated for POSIX,
+  so the separator literal diverges from the rest of the suite; the pathlib form
+  keeps it portable and consistent. Scope: one assertion in one test file.
+- **6.3.4.2 (from review:6.3.4; low).** Extract one shared JSON-aware
+  `working_dir` snapshot-normaliser and route both snapshot modules through it.
+  Two snapshot modules now redact `result.working_dir` with divergent
+  strategies — the brittle regex `_RESULT_WORKING_DIR` in
+  `tests/test_novel_state_mutator_snapshots.py` versus a robust JSON parse
+  elsewhere. A single JSON-aware normaliser removes the regex fragility and
+  prevents per-machine snapshot churn if the envelope renderer's key order or
+  whitespace changes. Scope: extract one shared test helper; route both snapshot
+  modules onto it.

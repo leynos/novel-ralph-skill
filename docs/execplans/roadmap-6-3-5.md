@@ -1010,3 +1010,18 @@ wrapper without re-pinning the formatter. If, while routing the boundaries, the
 implementer is tempted to also collapse the wrapper, stop: that is 7.3.3's
 scope (a separate atomic refactor per `AGENTS.md` lines 137-139), and doing it
 here would breach the coordination the roadmap records.
+
+## Addenda
+
+Lightweight, no-plan corrections folded onto this completed task after the
+review of step 6.3 settled. Each runs as a no-review lightweight pass.
+
+- **6.3.5.1 (from review:6.3.5; low).** Extract the shared inspect/repair remedy
+  tail (`inspect and repair it, or restore it from a known-good copy`) into one
+  constant both `_state_input_error` and `_draft_read_error` in
+  `novel_ralph_skill/commands/_state_load.py` interpolate. The two sibling
+  formatters today emit the same conceptual remedy with divergent punctuation
+  (the `_state_input_error` arm uses a semicolon, the `_draft_read_error` arm an
+  em-dash); folding the tail into one constant makes the parity guarantee
+  structural rather than incidental and removes a latent drift surface. Scope:
+  one shared module-level constant; both formatters interpolate it.

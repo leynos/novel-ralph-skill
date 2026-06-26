@@ -2227,6 +2227,21 @@ and adr-003-shared-interface-contract.md.
     `working/` (upward search), or the envelope `working_dir` is the absolute
     resolved path; running from inside `working/` no longer silently looks for
     `working/working`.
+  - [ ] 6.3.4.1.
+    - Addendum (from review:6.3.4; low). Normalise the ungated POSIX-separator
+      suffix assertion `result["working_dir"].endswith("/working")` in
+      `tests/test_novel_state_mutators.py` (line 100) to a pathlib-based
+      `.name`/`.parts` check, matching the portability convention already
+      enforced on the new test modules in this task so the suite stays portable
+      and consistent. Lightweight addendum pass.
+  - [ ] 6.3.4.2.
+    - Addendum (from review:6.3.4; low). Extract one shared JSON-aware
+      `working_dir` snapshot-normaliser and route both snapshot modules through
+      it, replacing the brittle regex redaction in
+      `tests/test_novel_state_mutator_snapshots.py` with the robust JSON-parse
+      strategy so the two strategies no longer diverge and per-machine snapshot
+      churn cannot reappear if the envelope renderer's key order or whitespace
+      changes. Lightweight addendum pass.
 - [x] 6.3.5. Make the six draft-read (exit-3) boundaries actionable, extending
   6.3.1's polish from the state.toml-load faults to the draft-read faults.
   - Step-task (source: audit:6.3.1 / audit:6.3.2; severity: medium). Serves the
@@ -2255,6 +2270,14 @@ and adr-003-shared-interface-contract.md.
     message naming the `working/` tree and a remedy, with no raw `Errno`/`{exc}`
     text; all six draft-read call sites and the mutator view-derivation boundary
     emit the shared actionable prose; and the affected command suites stay green.
+  - [ ] 6.3.5.1.
+    - Addendum (from review:6.3.5; low). Extract the shared inspect/repair remedy
+      tail (`inspect and repair it, or restore it from a known-good copy`) into
+      one constant both `_state_input_error` and `_draft_read_error` in
+      `novel_ralph_skill/commands/_state_load.py` interpolate, so the two sibling
+      formatters stop diverging on punctuation (semicolon versus em-dash) and the
+      parity guarantee becomes structural rather than incidental. Lightweight
+      addendum pass.
 - [x] 6.3.6. Extend the cross-command identity proof to the installed-wheel
   boundary as a single tripwire.
   - Step-task (source: review:6.3.2; severity: low). Serves the §6.3 hypothesis
@@ -2275,6 +2298,23 @@ and adr-003-shared-interface-contract.md.
     exit-code mapping match the in-process contract pinned by 6.3.2; the tripwire
     reuses the existing installed-binary cuprum fixtures rather than rebuilding
     the matrix; and the e2e and cross-command suites stay green.
+  - [ ] 6.3.6.1.
+    - Addendum (from review:6.3.6; low). Make the tautological
+      `envelope["ok"] is (result.exit_code == ExitCode.SUCCESS)` assertion in
+      `test_installed_novel_state_check_exits_zero` load-bearing or document it
+      as intent-only — either add a clarifying comment that it is a redundant
+      mapping guard, or cross-arm parameterise it so the mapping check can fail
+      independently of the already-asserted `exit_code == 0` and `ok is True`.
+      Lightweight addendum pass.
+  - [ ] 6.3.6.2.
+    - Addendum (from audit:6.3.6; medium). Parameterise the canonical
+      `assert_envelope_skeleton` helper with an optional `working_dir` override
+      (default `WORKING_DIR_CONSTANT`) and collapse the inline envelope-skeleton
+      block re-spelled at `tests/test_novel_state_check.py` lines 363-380 onto a
+      single helper call, keeping only the command-specific
+      `result["violations"] == []` assertion, so the installed identity mirror
+      and the in-process identity proof cannot drift independently. Lightweight
+      addendum pass.
 - [x] 6.3.7. Pin the `SKILL.md` command-contract restatement to the code with a
   drift-guard test.
   - Step-task (source: review:6.3.3 / audit:6.3.3; severity: low). Serves the
@@ -2299,6 +2339,67 @@ and adr-003-shared-interface-contract.md.
     `ExitCode`, envelope-field, and `schema_version` source; the guard reuses the
     repo's established prose-guard pattern; and the docs and contract suites stay
     green.
+  - [ ] 6.3.7.1.
+    - Addendum (from review:6.3.7; low). Extend the 6.3.7 drift-guard with one
+      assertion that the design §3.1 and ADR-003 `schema_version` values match
+      `ENVELOPE_SCHEMA_VERSION`, closing the gap where a drift introduced in
+      design §3.1 alone (e.g. `schema_version: 2`) would slip past every existing
+      guard. Lightweight addendum pass.
+- [ ] 6.3.8. Make the remaining exit-3 write/file-fault arms actionable
+  (compile-write, rule-pack read, device-ledger read).
+  - Step-task (source: review:6.3.5 / audit:6.3.5 Finding 5; severity: low; two
+    near-identical proposals merged). Serves the §6.3 hypothesis that every
+    command "fails with actionable messages": 6.3.1 and 6.3.5 made the
+    state.toml-load and draft-read exit-3 faults actionable, but the three
+    write/file-fault tails `_compile.py:156` (`cannot write {_COMPILED_REL}:
+    {exc}`), `_desloppify.py:270` (`cannot read rule pack: {exc}`), and
+    `_desloppify_ledger.py:90` (`cannot read device ledger: {exc}`) still
+    interpolate the raw caught-exception repr on the same exit-3 channel,
+    violating scripting-standards.md line 678 — the last raw-OS-text leaks on the
+    state-input channel and the same dogfooding-agent inconsistency §6.3 exists
+    to close. They were correctly scoped out of `_draft_read_error` (D3/D6: a
+    write fault wants a write-shaped remedy; a pack/ledger fault names a
+    different artefact), so give each its own write-shaped or file-shaped sibling
+    formatter that names the artefact and offers a remedy without leaking
+    `Errno`/`{exc}`. Coordinate with 7.3.9 (the desloppify/ledger pack-detect
+    pipeline consolidation) so the new formatters land on the shared seam rather
+    than a parallel one.
+  - Requires 6.3.5.
+  - See novel-ralph-harness-design.md §3.2 and §3.4;
+    docs/scripting-standards.md (line 678);
+    docs/adr-003-shared-interface-contract.md;
+    novel_ralph_skill/commands/_compile.py;
+    novel_ralph_skill/commands/_desloppify.py;
+    novel_ralph_skill/commands/_desloppify_ledger.py.
+  - Success: a behavioural test drives each of the compile-write, rule-pack-read,
+    and device-ledger-read exit-3 faults and asserts an actionable message naming
+    the artefact and a remedy, with no raw `Errno`/`{exc}` text; the three call
+    sites emit write-shaped or file-shaped sibling prose rather than the raw repr;
+    and the compile, desloppify, and ledger suites stay green.
+- [ ] 6.3.9. Pin the developers'-guide contract restatement against the code with
+  a drift-guard arm.
+  - Step-task (source: review:6.3.7; severity: low). Serves the §6.3 hypothesis
+    that the contract is "documented once without per-command drift": 6.3.7 pins
+    `SKILL.md` against ADR-003, design §3.1, and the code, but the
+    developers'-guide "shared JSON envelope" / "disambiguated exit codes"
+    sections — which `SKILL.md` points at as its canonical source — are not
+    themselves pinned by any test, leaving the fourth restatement copy unguarded.
+    Add a grep/keyword drift-guard arm, following the repo's established
+    prose-guard pattern, asserting the guide's exit-code and envelope-field
+    vocabulary tracks the `ExitCode`, envelope-field, and `schema_version`
+    source, so the last unguarded prose copy fails a test on drift and the §6.3
+    "documented once" hypothesis is fully discharged.
+  - Requires 6.3.7.
+  - See novel-ralph-harness-design.md §3.1;
+    docs/adr-003-shared-interface-contract.md (Table 2);
+    docs/developers-guide.md ("shared JSON envelope" / "disambiguated exit
+    codes"); novel_ralph_skill/contract/exit_codes.py;
+    novel_ralph_skill/contract/envelope.py.
+  - Success: a drift-guard arm fails if the developers'-guide exit-code table or
+    envelope-field vocabulary diverges from the `ExitCode`, envelope-field, and
+    `schema_version` source; the guard reuses the repo's established prose-guard
+    pattern; no contract restatement copy remains unpinned by a test; and the
+    docs and contract suites stay green.
 
 ## 7. Consolidate, harden, and reconcile the spine
 
@@ -2433,6 +2534,33 @@ of truth, and a test pins it so it cannot silently re-fork.
     per-hit payload projection is unchanged; the §3.2 exit-code contract and the
     slimmed clean-pass findings contract are preserved; and the desloppify and
     ledger suites (including the snapshot suites) stay green.
+
+- [ ] 7.1.5. Derive the envelope field order from the `Envelope` dataclass across
+  the renderer and its test oracles.
+  - Reroute (source: audit:6.3.7; severity: medium). Task 6.3.7 makes
+    `dataclasses.fields(Envelope)` canonical for the `SKILL.md` copy of the
+    contract, yet `render_machine` (`contract/envelope.py:143`) and its two test
+    oracles `_FIXED_FIELD_ORDER` (`tests/test_contract_envelope.py:33`) and
+    `ENVELOPE_KEY_ORDER` (`tests/cross_command_contract/__init__.py:81`) still
+    hand-spell the same six-name order. Build the renderer's ordered mapping by
+    iterating the dataclass fields and promote one shared `ENVELOPE_FIELD_ORDER`
+    constant the two test tuples import, leaving one literal tripwire, so the
+    field-order projection has a single canonical home. This serves the step-7.1
+    machine-payload-projection hypothesis — each projection produced by exactly
+    one canonical function — not the settled step-6.3 documentation hypothesis
+    where it was raised.
+  - Requires 6.3.7.
+  - See novel-ralph-harness-design.md §3.1;
+    docs/adr-003-shared-interface-contract.md;
+    novel_ralph_skill/contract/envelope.py (`render_machine`);
+    tests/test_contract_envelope.py (`_FIXED_FIELD_ORDER`);
+    tests/cross_command_contract/__init__.py (`ENVELOPE_KEY_ORDER`).
+  - Success: `render_machine` builds its ordered mapping by iterating
+    `dataclasses.fields(Envelope)` rather than a hand-spelled order; one shared
+    `ENVELOPE_FIELD_ORDER` constant is imported by `_FIXED_FIELD_ORDER` and
+    `ENVELOPE_KEY_ORDER` so exactly one literal tripwire survives; no module
+    re-spells the six-name order; and the contract and cross-command suites stay
+    green.
 
 ### 7.2. Single-source the loaders, builders, and scan primitives
 
@@ -3554,6 +3682,70 @@ single source of truth, and a test pins it so it cannot silently re-fork.
     `_drive` copy survives; the developers'-guide rule names `drive` as the single
     in-process command-drive entry point; and the affected suites stay green.
 
+- [ ] 7.5.14. Add a shared installed success-arm run-and-assert harness mirroring
+  `assert_installed_state_error`.
+  - Reroute (source: audit:6.3.6; severity: low). The installed error arm already
+    has a consolidated run-and-assert harness
+    (`assert_installed_state_error`) while the installed success arm hand-rolls
+    the same run/parse mechanics in `test_installed_novel_state_check_exits_zero`,
+    leaving the next installed success-arm proof without a seam to reuse. Mirror
+    the error-arm harness with an `assert_installed_success_envelope` helper in
+    `tests/installed_binary_fixtures.py` and migrate the success-arm test onto it.
+    This serves the step-7.5 hypothesis — collapsing the installed-binary e2e
+    scaffolding onto shared homes — not the settled step-6.3 contract-uniformity
+    hypothesis where it was raised. Defer until a second installed success-arm
+    proof exists so the consolidation is driven by a real second consumer.
+  - Requires 6.3.6 and 7.5.2.
+  - See novel-ralph-harness-design.md §9; docs/developers-guide.md
+    ("Shared test scaffolding"); tests/installed_binary_fixtures.py
+    (`assert_installed_state_error`).
+  - Success: one `assert_installed_success_envelope` harness owns the installed
+    success-arm run/parse/skeleton-assert mechanics;
+    `test_installed_novel_state_check_exits_zero` (and any second consumer)
+    delegates to it rather than hand-rolling the run/parse; no installed
+    success-arm test re-open-codes the seam; and the installed-binary e2e suites
+    stay green.
+- [ ] 7.5.15. Extract a shared CommonMark fence parser for the test prose-guards.
+  - Reroute (source: audit:6.3.7; severity: low). Task 6.3.7 adds the second
+    hand-rolled CommonMark fence regex (`_FENCE_TEMPLATE` in
+    `tests/_skill_contract_scanner.py`) alongside `_FENCE_RE` in
+    `tests/_state_layout_scanner.py`; the two share a non-trivial fence grammar
+    and a duplicated correctness comment. Factor the grammar into one
+    `iter_fences` helper, leaving each caller's info-string selection local, so
+    the correctness reasoning has one home. This serves the step-7.5
+    hypothesis — the test harness sharing one set of primitives — not the settled
+    step-6.3 documentation hypothesis where it was raised.
+  - Requires 6.3.7.
+  - See novel-ralph-harness-design.md §9; docs/developers-guide.md
+    ("Shared test scaffolding"); tests/_skill_contract_scanner.py
+    (`_FENCE_TEMPLATE`); tests/_state_layout_scanner.py (`_FENCE_RE`).
+  - Success: one `iter_fences` helper owns the CommonMark fence grammar and its
+    correctness comment; `_skill_contract_scanner.py` and `_state_layout_scanner.py`
+    consume it, each keeping only its info-string selection local; no second copy
+    of the fence grammar survives; and the prose-guard suites stay green.
+- [ ] 7.5.16. Consolidate the find-or-fail document slicers used by the
+  prose-guards onto one shared helper.
+  - Reroute (source: audit:6.3.7; severity: low). Task 6.3.7 introduces
+    `slice_doc_region` (in `tests/_skill_contract_scanner.py`) as a strictly
+    better, source-naming third copy of the find-or-fail slice idiom rather than
+    generalising the existing `_slice_between`/`_require_index` in
+    `tests/test_skill_deflation_guard.py`. Promote `slice_doc_region` (plus a
+    `require_index` companion) into a shared `tests/_doc_slice.py` and migrate the
+    deflation guard onto it, collapsing three slicers to one. This serves the
+    step-7.5 hypothesis — the test harness sharing one set of primitives — not the
+    settled step-6.3 documentation hypothesis where it was raised. Coordinate with
+    7.5.15 so the fence parser and the slice helper land in coherent shared test
+    homes.
+  - Requires 6.3.7.
+  - See novel-ralph-harness-design.md §9; docs/developers-guide.md
+    ("Shared test scaffolding"); tests/_skill_contract_scanner.py
+    (`slice_doc_region`); tests/test_skill_deflation_guard.py
+    (`_slice_between`/`_require_index`).
+  - Success: one shared `tests/_doc_slice.py` owns `slice_doc_region` and a
+    `require_index` companion; the skill-contract scanner and the deflation guard
+    consume it rather than each carrying a find-or-fail slicer; three slicers
+    collapse to one; and the prose-guard and deflation-guard suites stay green.
+
 ### 7.6. Harden the contract guards, detectors, and gates
 
 This step answers whether the spine's guards, detectors, gates, and recovery
@@ -4129,6 +4321,29 @@ copies that would re-diverge.
     runs produce the statically-ordered envelope with no transient field-order
     failures.
 
+- [ ] 7.6.27. Anchor the prose-bullet drift guards to line-start bullets rather
+  than substring presence.
+  - Reroute (source: review:6.3.7; severity: low). Both
+    `test_skill_envelope_bullets_name_every_field` (6.3.7) and the sibling
+    prose-guards assert backtick-quoted field names appear anywhere in a region,
+    which can false-pass when a field's defining bullet is deleted but the name
+    survives in unrelated prose. Anchoring each guard to a `` - `name` ``
+    line-start bullet pattern would make the guards say what their docstrings
+    claim. This applies repo-wide to the prose-guard family, so it is
+    guard-robustness hardening of the now-single-sourced guards, not the settled
+    step-6.3 documentation hypothesis where it was raised, and it is deferred
+    here. Coordinate with 7.5.15/7.5.16 so the anchored matching lands on the
+    consolidated fence-and-slice primitives rather than per-guard copies.
+  - Requires 6.3.7.
+  - See novel-ralph-harness-design.md §3.1;
+    tests/test_skill_contract_drift_guard.py;
+    tests/_skill_contract_scanner.py.
+  - Success: each field-name prose-guard anchors on a `` - `name` `` line-start
+    bullet rather than substring presence; deleting a field's defining bullet
+    while leaving its name in unrelated prose fails the guard; the anchored
+    matching is applied across the prose-guard family; and the prose-guard suites
+    stay green.
+
 ### 7.7. Reconcile the documentation and settle the conventions
 
 This step answers whether the ADRs, guides, and design read true against the
@@ -4345,6 +4560,40 @@ conventions are settled once.
     `contents.md` index names the current surface, ADR 005 keeps the retired
     names as its superseded record, and `make markdownlint` and `make nixie`
     pass on the edited docs.
+
+- [ ] 7.7.10. Settle and apply the exit-3 message directory-naming polarity
+  against the resolved `working_dir` field.
+  - Reroute (source: audit:6.3.4 Findings 1-2 / audit:6.3.5 Findings 1-2;
+    severity: medium; two near-identical proposals merged). 6.3.4 made the
+    envelope `working_dir` field absolute/resolved while every human-readable
+    message naming the same directory stayed cwd-relative (the disk-evidence
+    fault, the done-predicate fault, the init refusal and success, the
+    `_state_input_error` corrupt arm, and two channels within a single `init`
+    envelope), and 6.3.5 then added six more relative-path message sites via
+    `_draft_read_error`, widening the gap. The design document and developers'
+    guide now assert a misresolution is visible "in the field the harness reads",
+    which holds for the JSON field but not the prose an operator reads during a
+    fault. Decide the polarity once — thread `resolved_working_dir()` into
+    `_draft_read_error` and `_state_input_error` so the messages name the resolved
+    path, or document relative-by-design as the deliberate contract with its
+    rationale — apply it consistently across both formatters, and add a test
+    driving from inside `working/` to pin the chosen polarity (the message channel
+    is currently untested). This is documentation-and-message reconciliation
+    fitting the §7.7 leg, not the settled step-6.3 contract-uniformity hypothesis
+    where it was raised, so it is deferred here. Coordinate with 6.3.8 so the
+    write/file-fault formatters adopt the same settled polarity.
+  - Requires 6.3.4 and 6.3.5.
+  - See novel-ralph-harness-design.md §3.2 and §3.4;
+    docs/developers-guide.md; docs/adr-003-shared-interface-contract.md;
+    novel_ralph_skill/commands/_state_load.py
+    (`_state_input_error`, `_draft_read_error`).
+  - Success: one decision records whether the exit-3 messages name the resolved
+    absolute `working/` path or are relative-by-design; `_draft_read_error` and
+    `_state_input_error` apply the chosen polarity consistently across every
+    message site; a test driving from inside `working/` pins the chosen message
+    channel; the design document and developers' guide read true against the
+    settled polarity; and the state-input, draft-read, and docs lint suites stay
+    green.
 
 ## 8. Features and extensions
 
