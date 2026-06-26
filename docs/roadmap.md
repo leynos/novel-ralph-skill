@@ -179,6 +179,15 @@ docs/scripting-standards.md.
       list omits `.write_bytes`/`.writelines` and the executable info-string
       list omits `python3`/`py3`/`pycon`, all of which the code scans; a
       one-paragraph edit keeps the prose truthful. Lightweight addendum pass.
+  - [ ] 1.2.8.5. Sweep the residual hyphenated `novel-state` literals in
+    `tests/test_state_layout_reference.py` to the `novel state` surface.
+    - Addendum (from review:1.2.14; low). The module's docstrings and the
+      negative-test fixture fence `novel-state set-cursor --chapter 7` still name
+      the retired console-script; they sit outside the
+      `skill/novel-ralph/references/` scope of 1.2.17 and the
+      production-module-name scope of 1.2.14/1.2.16, so survive untracked. Flip
+      each to the spaced `novel state` surface, preserving the negative test's
+      intent. Lightweight addendum pass.
 - [x] 1.2.9. Tighten the `read_repo_text` fixture signature from
   `Callable[..., str]` to a precise `(*parts: str) -> str` form.
   - Remediation (source: review:1.2.7; severity: low). The ellipsis in

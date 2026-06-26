@@ -811,3 +811,14 @@ and hygiene only.
   `.write_bytes`/`.writelines` and the executable info-string list omits
   `python3`/`py3`/`pycon`; a one-paragraph edit makes the prose truthful. Gate
   with `make markdownlint` and `make nixie`.
+- [ ] 1.2.8.5 — Sweep the residual hyphenated `novel-state` literals in
+  `tests/test_state_layout_reference.py` to the `novel state` surface (from
+  review:1.2.14, low). The module's docstrings (the `novel-state` mentions at
+  the file and method level) and the negative-test fixture fence
+  `novel-state set-cursor --chapter 7` still name the retired console-script;
+  these sit outside the `skill/novel-ralph/references/` scope of roadmap 1.2.17
+  and the production-module-name scope of 1.2.14/1.2.16, so they survive
+  untracked. Flip each `novel-state` reference to the spaced `novel state`
+  surface, preserving the negative test's intent (an invocation example must
+  still not be flagged by the guard). Behaviour-preserving; gate with `make all`
+  plus `make markdownlint`/`make nixie`.
