@@ -288,14 +288,53 @@ docs/scripting-standards.md.
       now-deleted `stub.py` in the present tense. Refresh all to the
       spaced-surface convention the swept suite now uses. Lightweight addendum
       pass.
+- [ ] 1.2.14. Sweep the design document and `SKILL.md` to the `novel`
+  multiplexer surface.
+  - Step-task (source: audit:1.2.16; severity: high; promotes the orphaned
+    roadmap block left headerless after the 1.2.15.1 edit). The 1.2.14 work was
+    specified but never executed and its body was orphaned under 1.2.15.1 with no
+    checkbox, so the build workflow could not track it; 44 references in
+    `docs/novel-ralph-harness-design.md` and 23 in `SKILL.md` still name retired
+    hyphenated console-scripts, and the `SKILL.md` Setup section verifies the
+    install with the non-existent `novel-state --version`. This serves the
+    step-1.2 hypothesis — whether the installed console-scripts packaging
+    supports the harness's invocation model — by making the design and skill
+    documentation describe the single `novel` surface the packaging now ships,
+    not the retired per-command scripts.
   - Requires 1.2.15.
   - Update the design prose and diagrams and `SKILL.md` (including the Setup
     section and every bare `novel-x` reference) from the `novel-x` form to the
     `novel x` form, so no documentation describes the retired separate scripts.
+    Replace the `novel-state --version` install check with a command that exists
+    on the single `novel` surface.
   - See novel-ralph-harness-design.md §4 and adr-007-command-surface-novel-multiplexer.md.
   - Success: no `novel-state`/`novel-done`/`novel-compile`/`desloppify`/
-    `wordcount` console-script reference survives in the design or `SKILL.md`;
-    `make markdownlint` and `make nixie` pass on the edited docs.
+    `wordcount` console-script reference survives in the design or `SKILL.md`,
+    the Setup install check names a command that exists, and `make markdownlint`
+    and `make nixie` pass on the edited docs.
+- [ ] 1.2.17. Extend the multiplexer-surface doc sweep to
+  `skill/novel-ralph/references/`.
+  - Step-task (source: audit:1.2.16; severity: medium). The reference files
+    (`state-layout.md`, `done-conditions.md`, `critic-personas.md`) invoke
+    retired commands directly but fall outside every existing success criterion
+    (1.2.14 covers the design document and `SKILL.md` only; 1.2.16 covers the two
+    guides only), so the retired surface survives there untracked. This serves
+    the step-1.2 hypothesis — whether the installed console-scripts packaging
+    supports the harness's invocation model — by making the reference
+    documentation describe the single `novel` surface the packaging ships.
+  - Requires 1.2.14 and 1.2.16.
+  - Sweep `skill/novel-ralph/references/state-layout.md`, `done-conditions.md`,
+    and `critic-personas.md` to the `novel <sub>` surface. Distinguish retired
+    command invocations (e.g. `novel-state init`, which must flip to `novel state
+    init`) from the noun-form `desloppify` pass, which names the desloppification
+    operation rather than the retired console-script and stays; name that
+    distinction explicitly so the noun form is not mis-swept.
+  - See novel-ralph-harness-design.md §4 and adr-007-command-surface-novel-multiplexer.md.
+  - Success: no `novel-state`/`novel-done`/`novel-compile` console-script
+    invocation and no retired `desloppify`/`wordcount` console-script reference
+    survives in the three reference files, the noun-form `desloppify` pass is
+    preserved where it names the operation rather than the retired script, and
+    `make markdownlint` and `make nixie` pass on the edited references.
 - [x] 1.2.16. Sweep the users' and developers' guides to the `novel` multiplexer
   surface.
   - Remediation (source: audit:1.2.13; severity: medium). Task 1.2.14's wording
@@ -4478,3 +4517,56 @@ spine.
     hyphenated literals, so a legacy stamp re-introduced in a file outside the
     curated lists fails the guard; the production-module-name allowances remain
     excluded; and the test suite stays green.
+- [ ] 7.32.2. Extend the legacy-surface-retired guard to the documentation and
+  skill tree.
+  - Reroute (source: audit:1.2.16; severity: medium). No test enforces the
+    1.2.14/1.2.16 retired-surface criterion against `docs/` or `skill/`;
+    `tests/test_legacy_surface_retired.py` scans only the source and test trees,
+    so a retired console-script reference re-introduced in the design document,
+    the guides, `SKILL.md`, or the reference files passes green — the doc-tree
+    miss audit:1.2.16 found is exactly this shape. Add a doc-tree scan, with a
+    narrow allowlist for historical ADR notes and the noun-form `desloppify`
+    pass, so the prose criterion becomes an enforced invariant. This serves the
+    step-7.32 guard-hardening hypothesis — keeping the surface-retired proof
+    robust against curated-list rot — not the step-1.2
+    packaging-supports-invocation hypothesis where it was raised; it is
+    regression-guard hardening, deferred here.
+  - Requires 1.2.14, 1.2.16, and 1.2.17.
+  - See adr-007-command-surface-novel-multiplexer.md;
+    docs/issues/audit-1.2.16.md;
+    tests/test_legacy_surface_retired.py.
+  - Success: the legacy-surface-retired guard scans `docs/` and `skill/` for
+    retired hyphenated console-script references with a narrow allowlist for
+    historical ADR notes and the noun-form `desloppify` pass, so a retired
+    reference re-introduced in any swept document fails the guard; and the test
+    suite stays green.
+
+### 7.33. Settle the spelling convention across the corpus
+
+This step answers whether the project's English-spelling convention can be
+fixed by one deliberate decision and enforced by a lint or spell-check rule,
+rather than left to each author to guess per task. Its outcome is a recorded
+convention plus a gate that holds prose to it, removing the recurring
+per-task ambiguity. This is a deferred cross-cutting prose-quality concern
+surfaced by the audit of step 1.2.16; it does not advance the step-1.2
+packaging-supports-invocation hypothesis (the spelling of the prose does not
+bear on whether the packaging supports the harness's invocation model) and it
+does not gate the deterministic spine.
+
+- [ ] 7.33.1. Decide and enforce the corpus-wide spelling convention.
+  - Reroute (source: audit:1.2.16; severity: low). The existing corpus uses
+    `-ise`/`-isation` uniformly while the build instruction stipulates Oxford
+    `-ize`/`-ization`; the two conventions are in standing tension, leaving each
+    author to guess per task. Make the deliberate decision once — which
+    convention governs — and add a lint or spell-check rule that holds the prose
+    to it, reconciling the build instruction and the corpus so the ambiguity is
+    removed rather than re-litigated. This serves the step-7.33
+    spelling-convention hypothesis, not the step-1.2
+    packaging-supports-invocation hypothesis where it was raised; it is a
+    cross-cutting prose-quality decision, deferred here.
+  - Requires 1.3.1.
+  - See AGENTS.md (the en-GB Oxford-spelling convention); the `en-gb-oxendict`
+    skill.
+  - Success: one decision records which spelling convention governs the corpus,
+    AGENTS.md and the corpus agree with it, a lint or spell-check rule enforces
+    the chosen convention, and a deliberately misspelt sample fails that rule.
