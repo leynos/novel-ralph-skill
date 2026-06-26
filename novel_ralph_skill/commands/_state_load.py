@@ -1,0 +1,151 @@
+"""The shared ``working/state.toml`` load boundary and its accessors.
+
+This dependency-free leaf module hosts the single home for *where* a command
+looks (``WORKING_DIR_NAME``, :func:`working_dir`, :func:`state_path`), *what
+counts* as a state-input fault (:data:`STATE_INPUT_ERRORS`), and *how* a failed
+load is rendered as the contract's exit-``3`` error (:func:`_state_input_error`,
+:func:`_load_or_state_error`). It is re-exported by
+:mod:`novel_ralph_skill.commands.novel_state`, so every command keeps importing
+these symbols from ``novel_state`` while the command module stays within the
+400-line cap (AGENTS.md "clear file boundaries"), mirroring the
+:mod:`novel_ralph_skill.commands._state_mutators` carve-out.
+
+It imports only from :mod:`novel_ralph_skill.state` and
+:mod:`novel_ralph_skill.contract.runner` — never from ``novel_state`` — so the
+shared actionable-message helper lives here without reversing the
+``_state_mutators`` → ``novel_state`` import direction (ExecPlan Decision Log:
+the helper must not create an import cycle).
+"""
+
+from __future__ import annotations
+
+import pathlib
+import tomllib
+import typing as typ
+
+from novel_ralph_skill.contract.runner import StateInputError
+from novel_ralph_skill.state import load_state
+
+if typ.TYPE_CHECKING:
+    from novel_ralph_skill.state import State
+
+# The fixed cwd-relative working directory the design records (design line 151);
+# the same constant the entry point stamps into the ``RunContext.working_dir``,
+# so the file ``check`` reads and the envelope's ``working_dir`` field cannot
+# drift (Decision Log B4/B5). There is no ``--working-dir`` flag.
+WORKING_DIR_NAME = "working"
+
+
+def working_dir() -> pathlib.Path:
+    """Return the fixed cwd-relative ``working/`` directory (design line 151).
+
+    The single ``WORKING_DIR_NAME``-anchored accessor for the working root, so
+    ``_check``, ``init``, and the mutators resolve the same cwd-relative
+    directory rather than each rebuilding ``pathlib.Path(WORKING_DIR_NAME)``
+    (Decision Log B4/B5).
+    """
+    return pathlib.Path(WORKING_DIR_NAME)
+
+
+def state_path() -> pathlib.Path:
+    """Return the fixed cwd-relative ``working/state.toml`` path.
+
+    The single accessor every command routes through (``_check``, ``init``, and
+    the ``set-cursor``/``advance-phase``/``recount``/``reconcile`` mutators), so
+    the canonical ``state.toml`` path is constructed in exactly one place
+    (audit:1.3.5; audit:2.2.2 Finding 3).
+    """
+    return working_dir() / "state.toml"
+
+
+# The exceptions a missing or malformed ``state.toml`` raises through
+# ``load_state``; each is translated to ``StateInputError`` (the exit-``3``
+# state-error channel). Named once here so the "what counts as a state-input
+# error" vocabulary has a single home the four later mutators reuse, and so the
+# corpus test can pin its own parse-error list against this set rather than
+# hand-listing it independently (audit:2.1.2 finding 4).
+STATE_INPUT_ERRORS: tuple[type[Exception], ...] = (
+    OSError,
+    tomllib.TOMLDecodeError,
+    KeyError,
+    ValueError,
+    TypeError,
+)
+
+
+def _state_input_error(path: pathlib.Path, exc: Exception) -> StateInputError:
+    """Build the actionable exit-``3`` ``StateInputError`` for a failed state load.
+
+    The single source of truth for the message both load boundaries emit — the
+    reader loader :func:`_load_or_state_error` here and the mutator loader
+    :func:`~novel_ralph_skill.commands._state_mutators._load_document_or_state_error`
+    — so the two cannot drift apart (roadmap §6.3.1). It replaces the raw
+    operating-system text (an ``Errno`` and a path-as-noise) with prose naming
+    where the command looked and how to recover (``scripting-standards.md`` lines
+    603-605, 678).
+
+    The two arms carry different remedies (Decision Log D2). A missing ``working/``
+    (``path.parent``) or ``state.toml`` means the command was run from the wrong
+    directory, so the message names the cwd and points at ``novel state init``. A
+    present-but-unparseable file would not be repaired by ``init``, so its message
+    names the path and asks for inspection or repair instead. Neither arm leaks an
+    ``Errno`` or a traceback; the caller chains ``exc`` via ``from`` for debugging
+    while ``exc.messages`` carries only the actionable prose.
+
+    Parameters
+    ----------
+    path : pathlib.Path
+        The ``state.toml`` the load targeted; its parent is the reported
+        ``working/`` directory.
+    exc : Exception
+        The caught :data:`STATE_INPUT_ERRORS` member (chained by the caller).
+
+    Returns
+    -------
+    StateInputError
+        The actionable error, ready to raise.
+    """
+    if not path.parent.exists() or not path.exists():
+        cwd = pathlib.Path.cwd()
+        message = (
+            f"no novel working/ found in {cwd}; run from the novel root, "
+            "or run 'novel state init' to create one"
+        )
+    else:
+        message = (
+            f"{path} is unreadable or corrupt; inspect and repair it, "
+            "or restore it from a known-good copy"
+        )
+    return StateInputError(message)
+
+
+def _load_or_state_error(path: pathlib.Path) -> State:
+    """Load ``path`` into a ``State``, translating load faults to ``StateInputError``.
+
+    Owns the load-and-translate boundary so callers read as "load → validate →
+    build outcome": it maps every member of :data:`STATE_INPUT_ERRORS` to the
+    actionable error the shared :func:`_state_input_error` helper builds (the
+    exit-``3`` state-error channel), and lets a coherent load return the parsed
+    ``State`` unchanged. The mutator loader routes through the same helper, so both
+    boundaries emit byte-for-byte identical prose (roadmap §6.3.1). Reusable by the
+    four later mutators that hit the same boundary.
+
+    Parameters
+    ----------
+    path : pathlib.Path
+        The ``state.toml`` to load.
+
+    Returns
+    -------
+    State
+        The parsed, typed state.
+
+    Raises
+    ------
+    StateInputError
+        When ``path`` is missing or unparseable.
+    """
+    try:
+        return load_state(path)
+    except STATE_INPUT_ERRORS as exc:
+        raise _state_input_error(path, exc) from exc

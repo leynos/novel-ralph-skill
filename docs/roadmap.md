@@ -2124,7 +2124,7 @@ invocation that read as a silent failure because the error was a raw errno and
 the skill never said to check exit codes). See novel-ralph-harness-design.md §3
 and adr-003-shared-interface-contract.md.
 
-- [ ] 6.3.1. Make state-input (exit-3) error messages actionable across every
+- [x] 6.3.1. Make state-input (exit-3) error messages actionable across every
   command.
   - Requires 2.2.2 and 1.2.12.
   - A missing or unreadable `working/state.toml` currently surfaces the raw

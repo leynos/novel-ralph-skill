@@ -275,7 +275,7 @@ def test_compile_missing_state_refuses(
     (tmp_path / "working" / "manuscript").mkdir(parents=True)
     monkeypatch.chdir(tmp_path)
 
-    with pytest.raises(StateInputError, match="cannot load"):
+    with pytest.raises(StateInputError, match="no novel working/ found in"):
         compile_manuscript()
 
 

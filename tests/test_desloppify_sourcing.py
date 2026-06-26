@@ -125,5 +125,5 @@ def test_missing_state_raises_state_input_error(
 ) -> None:
     """A cwd with no ``./working/state.toml`` raises the exit-3-bound state error."""
     monkeypatch.chdir(tmp_path)
-    with pytest.raises(StateInputError, match=r"cannot load .*state\.toml"):
+    with pytest.raises(StateInputError, match=r"no novel working/ found in"):
         source_chapters(None)

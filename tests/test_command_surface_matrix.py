@@ -211,13 +211,15 @@ _USAGE_ARM = _ErrorArm(
     message_prefix="Unknown option:",
 )
 # State (exit 3): a cwd with no ``working/`` makes every body raise
-# ``StateInputError`` when it tries to load ``working/state.toml``.
+# ``StateInputError`` when it tries to load ``working/state.toml``. The actionable
+# message names the cwd and the ``novel state init`` remedy (roadmap §6.3.1); the
+# cwd tail is volatile, so the arm pins the stable leading substring.
 _STATE_ARM = _ErrorArm(
     label="state",
     extra_argv=[],
     build_working=False,
     expected_code=ExitCode.STATE_ERROR,
-    message_prefix="cannot load working/state.toml",
+    message_prefix="no novel working/ found in",
 )
 
 _ErrorCell = tuple[_ReadCommand, _ErrorArm]

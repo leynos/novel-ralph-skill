@@ -135,7 +135,9 @@ _STATE_ARM = _ErrorArm(
     extra_argv=(),
     build_working=False,  # no working/ -> exit-3 state arm
     expected_code=ExitCode.STATE_ERROR,
-    message_prefix="cannot load working/state.toml",
+    # The actionable exit-3 message names the cwd and the ``novel state init``
+    # remedy (roadmap §6.3.1); the cwd tail is volatile, so pin the stable prefix.
+    message_prefix="no novel working/ found in",
 )
 _ARMS: tuple[_ErrorArm, ...] = (_USAGE_ARM, _STATE_ARM)
 

@@ -34,6 +34,7 @@ import typing as typ
 
 from novel_ralph_skill.commands.novel_state import (
     STATE_INPUT_ERRORS,
+    _state_input_error,
 )
 from novel_ralph_skill.commands.novel_state import (
     state_path as _state_path,
@@ -84,6 +85,13 @@ def _load_document_or_state_error(path: pathlib.Path) -> TOMLDocument:
     existing tuple subsumes the document path without extension (ExecPlan
     Decision Log D4).
 
+    The faulted-load message is built by the shared
+    :func:`~novel_ralph_skill.commands.novel_state._state_input_error` helper —
+    the same one the reader/checker loader
+    (:func:`~novel_ralph_skill.commands.novel_state._load_or_state_error`) routes
+    through — so the mutator and reader boundaries emit byte-for-byte identical
+    actionable prose and cannot drift apart (roadmap §6.3.1).
+
     Parameters
     ----------
     path : pathlib.Path
@@ -102,8 +110,7 @@ def _load_document_or_state_error(path: pathlib.Path) -> TOMLDocument:
     try:
         return load_document(path)
     except STATE_INPUT_ERRORS as exc:
-        msg = f"cannot load {path}: {exc}"
-        raise StateInputError(msg) from exc
+        raise _state_input_error(path, exc) from exc
 
 
 def _state_view_or_state_error(document: TOMLDocument) -> State:

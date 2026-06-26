@@ -116,10 +116,12 @@ body returns a value (design §3.2 and §9): the usage-error arm (exit 2, an
 unknown option) and the state-error arm (exit 3, an absent `working/`). Both
 are crossed with every read command in both output modes, so the `--human`
 selection is proven to reach these body-less envelopes too. The machine-mode
-snapshot redacts the `messages` field — the only platform- and command-variable
-datum, carrying the errno text and the usage suggestion suffix — and pins the
-envelope skeleton (`command`, `ok: false`, `working_dir`, empty `result`) while
-the message is asserted by its stable prefix.
+snapshot redacts the `messages` field — the platform- and command-variable datum
+— and pins the envelope skeleton (`command`, `ok: false`, `working_dir`, empty
+`result`) while the message is asserted by its stable prefix. The state-error
+arm's message is now an actionable string that names the current directory and
+the `novel state init` remedy (roadmap §6.3.1), so only its cwd tail is volatile;
+the usage-error arm still carries a command-variable suggestion suffix.
 
 The matrix deliberately bounds its surface and documents the combinatorial gaps
 it carries rather than omitting them silently (design §9): the module

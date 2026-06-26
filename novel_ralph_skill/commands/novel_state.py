@@ -41,8 +41,6 @@ mutators (:mod:`~novel_ralph_skill.commands._gate_drafting_mutators`, task 2.2.4
 from __future__ import annotations
 
 import datetime as dt
-import pathlib
-import tomllib
 import typing as typ
 
 # ``ChapterPlanEntry`` is imported as a *runtime* module global (not under
@@ -54,6 +52,20 @@ import typing as typ
 from novel_ralph_skill.commands._chapter_plan_entry import (
     ChapterPlanEntry,  # noqa: TC001 - runtime global for Cyclopts annotation resolution
 )
+
+# The ``working/state.toml`` load boundary lives in a dependency-free leaf module
+# (``_state_load``) so this command module stays within the 400-line cap. These
+# symbols are re-exported here so every command — and ``_state_mutators`` — keeps
+# importing them from ``novel_state``; ``__all__`` marks the re-export so the
+# unused-import lint does not fire on the ones this module does not call directly.
+from novel_ralph_skill.commands._state_load import (
+    STATE_INPUT_ERRORS,
+    WORKING_DIR_NAME,
+    _load_or_state_error,
+    _state_input_error,
+    state_path,
+    working_dir,
+)
 from novel_ralph_skill.contract.exit_codes import ExitCode
 from novel_ralph_skill.contract.runner import (
     CommandOutcome,
@@ -64,12 +76,23 @@ from novel_ralph_skill.state import (
     build_initial_document,
     check_disk_evidence,
     derive_reconciliation,
-    load_state,
     validate_state,
     write_document_atomically,
 )
 
+__all__ = [
+    "STATE_INPUT_ERRORS",
+    "WORKING_DIR_NAME",
+    "_load_or_state_error",
+    "_state_input_error",
+    "build_app",
+    "state_path",
+    "working_dir",
+]
+
 if typ.TYPE_CHECKING:
+    import pathlib
+
     import cyclopts
 
     from novel_ralph_skill.state import Reconciliation, State, Violation
@@ -91,80 +114,6 @@ _INIT_SUBDIRECTORIES: tuple[str, ...] = (
 # The default novel target word count when ``init`` is given none, matching
 # state-layout.md "Initialisation" ("default 80000").
 _DEFAULT_TARGET_WORD_COUNT = 80000
-
-# The fixed cwd-relative working directory the design records (design line 151);
-# the same constant the entry point stamps into the ``RunContext.working_dir``,
-# so the file ``check`` reads and the envelope's ``working_dir`` field cannot
-# drift (Decision Log B4/B5). There is no ``--working-dir`` flag.
-WORKING_DIR_NAME = "working"
-
-
-def working_dir() -> pathlib.Path:
-    """Return the fixed cwd-relative ``working/`` directory (design line 151).
-
-    The single ``WORKING_DIR_NAME``-anchored accessor for the working root, so
-    ``_check``, ``init``, and the mutators resolve the same cwd-relative
-    directory rather than each rebuilding ``pathlib.Path(WORKING_DIR_NAME)``
-    (Decision Log B4/B5).
-    """
-    return pathlib.Path(WORKING_DIR_NAME)
-
-
-def state_path() -> pathlib.Path:
-    """Return the fixed cwd-relative ``working/state.toml`` path.
-
-    The single accessor every command routes through (``_check``, ``init``, and
-    the ``set-cursor``/``advance-phase``/``recount``/``reconcile`` mutators), so
-    the canonical ``state.toml`` path is constructed in exactly one place
-    (audit:1.3.5; audit:2.2.2 Finding 3).
-    """
-    return working_dir() / "state.toml"
-
-
-# The exceptions a missing or malformed ``state.toml`` raises through
-# ``load_state``; each is translated to ``StateInputError`` (the exit-``3``
-# state-error channel). Named once here so the "what counts as a state-input
-# error" vocabulary has a single home the four later mutators reuse, and so the
-# corpus test can pin its own parse-error list against this set rather than
-# hand-listing it independently (audit:2.1.2 finding 4).
-STATE_INPUT_ERRORS: tuple[type[Exception], ...] = (
-    OSError,
-    tomllib.TOMLDecodeError,
-    KeyError,
-    ValueError,
-    TypeError,
-)
-
-
-def _load_or_state_error(path: pathlib.Path) -> State:
-    """Load ``path`` into a ``State``, translating load faults to ``StateInputError``.
-
-    Owns the load-and-translate boundary so callers read as "load → validate →
-    build outcome": it maps every member of :data:`STATE_INPUT_ERRORS` to a
-    :class:`~novel_ralph_skill.contract.runner.StateInputError` (the exit-``3``
-    state-error channel) and lets a coherent load return the parsed ``State``
-    unchanged. Reusable by the four later mutators that hit the same boundary.
-
-    Parameters
-    ----------
-    path : pathlib.Path
-        The ``state.toml`` to load.
-
-    Returns
-    -------
-    State
-        The parsed, typed state.
-
-    Raises
-    ------
-    StateInputError
-        When ``path`` is missing or unparseable.
-    """
-    try:
-        return load_state(path)
-    except STATE_INPUT_ERRORS as exc:
-        msg = f"cannot load {path}: {exc}"
-        raise StateInputError(msg) from exc
 
 
 def _render_reconciliation(reconciliation: Reconciliation) -> dict[str, object]:
