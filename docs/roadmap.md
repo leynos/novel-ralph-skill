@@ -2147,13 +2147,13 @@ and adr-003-shared-interface-contract.md.
     and the remedy, with no raw `Errno`/traceback text, for at least one command
     of each class (mutator, checker, reader) — proving BOTH boundaries emit the
     identical actionable message.
-  - [ ] 6.3.1.1.
+  - [x] 6.3.1.1.
     - Addendum (from review:6.3.1; low). Record the omitted Decision Log entry
       naming `_state_view_or_state_error` as an out-of-scope, non-producer
       boundary (parsed-but-structurally-incomplete, not a failed load) so a
       future reviewer does not mistake it for a third producer of the
       `cannot load …` message. Lightweight addendum pass.
-  - [ ] 6.3.1.2.
+  - [x] 6.3.1.2.
     - Addendum (from review:6.3.1; low). Add a corrupt-arm parity assertion to
       `test_state_input_message_parity.py`, which pins only the missing-`working/`
       arm, so a one-sided re-wording of the present-but-corrupt message cannot

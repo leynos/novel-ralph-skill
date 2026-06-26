@@ -237,6 +237,19 @@ escalation, not a workaround.
   (a `pathlib.Path` plus a caught `STATE_INPUT_ERRORS` member) is too narrow to
   earn a property test that would only restate the unit logic (AGENTS.md line 162;
   `python-verification`). Date/Author: 2026-06-26, implementer.
+- Decision (D8): `_state_view_or_state_error` in `_state_mutators.py` is **not**
+  routed through the shared `_state_input_error` helper and is not a producer of
+  the `cannot load …`/`unreadable or corrupt` message. Rationale: it reports a
+  *parsed-but-structurally-incomplete* document — a `state.toml` that parsed as
+  TOML but failed `document_to_state` (a missing table or key, or a bad phase
+  string) — not a failed *load*. Its remedy ("the state is structurally
+  incomplete") differs from the load boundary's ("run from the novel root" or
+  "inspect and repair"), so sharing the load helper would mislead. It is an
+  out-of-scope, non-producer boundary for §6.3.1, deliberately left distinct. A
+  future reviewer must not mistake it for a third producer of the load message,
+  route it through `_state_input_error`, or flag a false drift. This records the
+  entry Work item 2 step 3 directed; the code already cites "Decision Log D8".
+  Date/Author: 2026-06-26, implementer (addendum 6.3.1.1).
 
 ## Outcomes & retrospective
 
@@ -646,7 +659,7 @@ Both producers — `_load_or_state_error` (same module) and
 
 ## Addenda
 
-- 6.3.1.1 (from review:6.3.1; low). Record the omitted Decision Log entry that
+- [x] 6.3.1.1 (from review:6.3.1; low). Record the omitted Decision Log entry that
   Work item 2 step 3 directed: `_state_view_or_state_error` in
   `_state_mutators.py` reports a *parsed-but-structurally-incomplete* document,
   not a failed load, so it is an out-of-scope, non-producer boundary for §6.3.1
@@ -654,7 +667,7 @@ Both producers — `_load_or_state_error` (same module) and
   A future reviewer must not mistake it for a third producer of the
   `cannot load …` message and over-refactor it or flag a false drift. Pure
   documentation; no code change. Lightweight addendum pass.
-- 6.3.1.2 (from review:6.3.1; low). Add a corrupt-arm parity assertion to
+- [x] 6.3.1.2 (from review:6.3.1; low). Add a corrupt-arm parity assertion to
   `test_state_input_message_parity.py`, which currently pins reader/mutator
   parity only for the missing-`working/` arm. The present-but-corrupt
   `state.toml` message is byte-identical across the `tomllib` (reader) and

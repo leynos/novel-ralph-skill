@@ -48,3 +48,33 @@ def test_both_load_boundaries_emit_identical_missing_message(
     assert reader.value.messages == mutator.value.messages, (
         "the reader and mutator loaders must emit identical actionable prose"
     )
+
+
+def test_both_load_boundaries_emit_identical_corrupt_message(
+    tmp_path: pathlib.Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A present-but-corrupt ``state.toml`` yields identical prose on both sides.
+
+    The reader loader parses with ``tomllib`` and the mutator loader with
+    ``tomlkit``; an unparseable ``state.toml`` raises a distinct fault on each
+    side, yet both must surface byte-for-byte identical actionable prose because
+    they share the one :func:`_state_input_error` helper. This pins the
+    ``unreadable or corrupt`` arm so a one-sided re-wording cannot silently
+    reintroduce drift (roadmap §6.3.1; addendum 6.3.1.2).
+    """
+    monkeypatch.chdir(tmp_path)
+    path = state_path()
+    path.parent.mkdir()
+    # Invalid TOML: a bare key with no value. ``tomllib`` and ``tomlkit`` both
+    # reject it, so the present-but-corrupt branch is exercised on both sides.
+    path.write_text("this is not = \n", encoding="utf-8")
+
+    with pytest.raises(StateInputError) as reader:
+        _load_or_state_error(path)
+    with pytest.raises(StateInputError) as mutator:
+        _load_document_or_state_error(path)
+
+    assert reader.value.messages == mutator.value.messages, (
+        "the reader and mutator loaders must emit identical actionable prose"
+    )
