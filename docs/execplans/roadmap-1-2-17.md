@@ -789,7 +789,7 @@ written into the three references. No new dependency is introduced.
 
 ## Addenda
 
-- 1.2.17.1 (from review:1.2.17 and audit:1.2.17; medium; two near-identical
+- [x] 1.2.17.1 (from review:1.2.17 and audit:1.2.17; medium; two near-identical
   proposals merged). Sweep the residual flag-bearing `desloppify --pack` and
   `desloppify --ledger` console-script invocations in
   `skill/novel-ralph/references/desloppify-checklist.md` (around lines 294 and

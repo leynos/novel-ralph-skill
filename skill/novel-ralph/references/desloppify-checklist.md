@@ -291,16 +291,17 @@ This §6 table is shipped as the `offenders.toml` rule pack, which `desloppify`
 loads by default. The broader lexical *AI-isms* — phrasal tells such as
 "load-bearing" and "a testament to" — are now enforceable too, via a second
 pack, `novel_ralph_skill/rulepack/packs/ai-isms.toml`. It is opt-in: run
-`desloppify --pack novel_ralph_skill/rulepack/packs/ai-isms.toml` to scan a
-chapter against it. The pack is versioned data the maintainer keeps current; its
-update cadence and membership policy live in the developers' guide ("Rule packs
-and the loader boundary"). Keep working this prose checklist as well; the pack
+`novel desloppify --pack novel_ralph_skill/rulepack/packs/ai-isms.toml` to
+scan a chapter against it. The pack is versioned data the maintainer keeps
+current; its update cadence and membership policy live in the developers' guide
+("Rule packs and the loader boundary"). Keep working this prose checklist as
+well; the pack
 mechanizes only the lexical subset, not the paragraph- and chapter-level tells.
 
 Device *rationing* — keeping a signature image, key phrase, or bookend line to a
 fixed number of uses, in a fixed set of chapters — is enforceable too, via
-`desloppify --ledger device-ledger.toml`. The ledger is **per-novel** and lives
-in `working/` (it is your own file, not shipped with the skill). Each
+`novel desloppify --ledger device-ledger.toml`. The ledger is **per-novel** and
+lives in `working/` (it is your own file, not shipped with the skill). Each
 `[[device]]` names a regex `pattern` and a ration: `max_count` (a total cap),
 `allowed_chapters` (the only chapters it may appear in), `retired_after_chapter`
 (no use after chapter N), or `reserved_for_chapter` (only chapter N). The count

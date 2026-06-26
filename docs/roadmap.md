@@ -344,7 +344,7 @@ docs/scripting-standards.md.
     survives in the three reference files, the noun-form `desloppify` pass is
     preserved where it names the operation rather than the retired script, and
     `make markdownlint` and `make nixie` pass on the edited references.
-  - [ ] 1.2.17.1. Sweep the residual flag-bearing `desloppify --pack`/`--ledger`
+  - [x] 1.2.17.1. Sweep the residual flag-bearing `desloppify --pack`/`--ledger`
     console-script invocations in `desloppify-checklist.md` to the
     `novel desloppify` surface.
     - Addendum (from review:1.2.17 and audit:1.2.17; medium; two near-identical
