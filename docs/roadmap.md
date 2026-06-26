@@ -903,7 +903,7 @@ novel-ralph-harness-design.md §3.4, §4.1, and §5.3.
       developers' guide, and add the `slug` field to SKILL Phase 7's outline
       checklist, which omits it though set-chapters requires it. Lightweight
       addendum pass.
-- [ ] 2.2.4. Add CLI mutators for the gate and drafting sub-state.
+- [x] 2.2.4. Add CLI mutators for the gate and drafting sub-state.
   - Requires 2.2.2.
   - The gate flags (`gates.knitting.done_30`/`done_50`/`done_80`,
     `gates.final.final_pass_complete`) and the drafting sub-state

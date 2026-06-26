@@ -275,6 +275,62 @@ command is interrupted mid-write, recover by running `novel-state reconcile`
 (which completes the torn turn by creating the missing chapter directories),
 never by re-running `set-chapters` or editing the tree by hand.
 
+`novel-state set-gate` (roadmap task 2.2.4) asserts the knitting-circle gate
+flags and the final-pass gate to the value the state mandates, the one sanctioned
+way to record a gate (never a hand edit). It takes an optional flag per gate:
+`--knitting-30`/`--no-knitting-30`, `--knitting-50`/`--no-knitting-50`,
+`--knitting-80`/`--no-knitting-80`, and `--final`/`--no-final`; an omitted flag
+leaves that gate untouched.
+
+```bash
+novel-state set-gate --knitting-30
+```
+
+A knitting gate is coherent only when it matches the drafted ratio (the gate
+fires once drafting crosses 30%, 50%, or 80% of target). So
+`novel-state set-gate --knitting-30` succeeds only once drafting has crossed 30%
+of target: it is the **repair** for a gate that lags its ratio (for example after
+a `recount` moved the ratio past 30% but `done_30` is still off). Asserting a gate
+true below its threshold, or false once it has crossed, contradicts the ratio and
+is refused with exit `3`, writing nothing; from a coherent state the assertion is
+an idempotent no-op (exit `0`). The final-pass gate has no ratio binding, so
+`--final` is accepted on any coherent tree. A `set-gate` with **no** flag is a
+usage error and exits `2`.
+
+`novel-state complete-final-pass` (roadmap task 2.2.4) is the named, argument-free
+verb for the common final-pass flip — it sets
+`gates.final.final_pass_complete` true and is idempotent (`set-gate --final` is
+the general form). It exits `0` on any coherent tree; a follow-up
+`novel-state check` stays coherent.
+
+```bash
+novel-state complete-final-pass
+```
+
+`novel-state set-fangirl` (roadmap task 2.2.4) records the fangirl pass's last
+chapter (`drafting.fangirl.last_chapter_passed`). It takes `--last-chapter k`
+(an integer); `0` means no pass yet.
+
+```bash
+novel-state set-fangirl --last-chapter 6
+```
+
+It refuses with exit `3` — writing nothing — when `k` is outside
+`[0, number-of-manifest-chapters]` (a fangirl pass cannot have run on a chapter
+the manifest does not contain). A non-integer `--last-chapter` is a usage error
+and exits `2`.
+
+`novel-state set-critic-pass` (roadmap task 2.2.4) records the critic pass number
+(`drafting.critic.pass`). It takes `--pass p` (an integer, numbered from 1).
+
+```bash
+novel-state set-critic-pass --pass 2
+```
+
+It refuses a `--pass` below `1` with exit `3`, writing nothing. A non-integer
+`--pass` is a usage error and exits `2`. Record every one of these fields by
+running its command, never by editing `state.toml` by hand.
+
 `novel-state reconcile` (roadmap task 2.3.2) carries out the repair
 `novel-state check` reports when `state.toml` has drifted from the on-disk
 manuscript — the recovery routine you used to run by hand, now run as code. It
@@ -317,13 +373,15 @@ judgement, not a deterministic recompute.
 
 `result.violations` is the *checker's* read shape: it belongs to
 `novel-state check` alone. The write subcommands (`init`, `set-cursor`,
-`advance-phase`, `recount`, `reconcile`, `set-chapters`) instead report *what
+`advance-phase`, `recount`, `reconcile`, `set-chapters`, `set-gate`,
+`complete-final-pass`, `set-fangirl`, `set-critic-pass`) instead report *what
 they changed* in `result` — `set-cursor` returns the cursor it set,
 `advance-phase` returns the `{from, to}` transition, `recount` returns the
 `{current, by_chapter}` counts it wrote, `reconcile` returns the
 `{action, discrepancies, detail}` it enacted (plus the written counts for a
-recount), and `set-chapters` returns the `{chapters}` it wrote — so do not
-expect a `violations` key from a write.
+recount), `set-chapters` returns the `{chapters}` it wrote, and the gate/drafting
+mutators return the `{gates}` or `{drafting}` keys they set — so do not expect a
+`violations` key from a write.
 
 `desloppify` reports prose tics (roadmap task 5.1.2). It reads the chapter
 drafts under `./working/`, scans them against a versioned rule pack — the §6

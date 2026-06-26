@@ -415,6 +415,10 @@ knitting circle pass.
 **The critic's findings reset each pass.** The previous pass's critic-notes.md
 is overwritten. What matters is the current state of the chapter.
 
+Record the current pass number by running `novel-state set-critic-pass --pass N`
+(passes are numbered from 1) — **never** by hand-editing `drafting.critic.pass`.
+It refuses a pass below 1 with exit 3.
+
 #### Fangirl pass (within a chapter)
 
 After the spiteful critic clears, the chapter goes to the parasocial fangirl.
@@ -434,6 +438,11 @@ subsequent chapters:
 When planning chapter N+1, read `working/fangirl-running.md` and fold relevant
 items into the scene plan.
 
+Record the chapter the fangirl pass last ran on by running
+`novel-state set-fangirl --last-chapter N` — **never** by hand-editing
+`drafting.fangirl.last_chapter_passed`. It refuses a chapter outside
+`[0, number-of-manifest-chapters]` with exit 3.
+
 #### Knitting circle pass (at 30%, 50%, 80%)
 
 When cumulative completed word count crosses 30%, 50%, or 80% of the target
@@ -450,8 +459,13 @@ spiteful critic handled those at chapter time.
 After integrating, regenerate `working/manuscript/compiled.md` from the current
 chapter drafts (run `novel-compile`) so the compile reflects the back-edits the
 knitting pass just made; the `compiled.md` assembled before the pass is now
-stale. Then set the corresponding gate (`state.gates.knitting.done_30 = true`,
-etc.) and continue drafting.
+stale. Then run `novel-compile` (or `novel-state recount`) so the drafted ratio
+reflects the integrated drafts, and set the corresponding gate by running
+`novel-state set-gate --knitting-30` (or `--knitting-50`/`--knitting-80`) —
+**never** by hand-editing `state.gates.knitting.done_30`. The gate flips true only
+once the drafted ratio has crossed the threshold, so `set-gate` is the repair that
+asserts the value the ratio now mandates; it refuses with exit 3 if the ratio has
+not crossed. Then continue drafting.
 
 ### Phase 9 — Final pass
 
@@ -469,6 +483,10 @@ one final assembly:
 4. Verify the final image matches the planned final image from the
    treatment. If not, decide whether the novel earned the new ending or the new
    ending is a drift artefact.
+
+5. Record the completed final pass by running `novel-state complete-final-pass`
+   (the argument-free verb that flips `gates.final.final_pass_complete` true; it
+   is idempotent) — **never** by hand-editing `gates.final.final_pass_complete`.
 
 **Exit:** `working/manuscript/compiled.md` exists; `novel-done` exits 0.
 

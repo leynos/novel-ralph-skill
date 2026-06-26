@@ -279,12 +279,22 @@ with distribution in
 [adr-004-distribution-console-scripts.md](adr-004-distribution-console-scripts.md)):
 
 - `novel-state` — the only path that mutates `state.toml`. Subcommands
-  `init`, `set-cursor`, `advance-phase`, `recount`, and `set-chapters` are
-  mutators; `check` is a read-only checker that reports divergence from disk and
-  exits 4; `reconcile` is the mutator that writes the disk-authoritative
-  reconciliation `check` reports. `set-chapters` populates the `[chapters]`
-  manifest from the agent's plan and creates the chapter directories (roadmap
-  2.2.3; ADR 008). See design §4.1, §5.1, and §5.4.
+  `init`, `set-cursor`, `advance-phase`, `recount`, `set-chapters`, `set-gate`,
+  `complete-final-pass`, `set-fangirl`, and `set-critic-pass` are mutators;
+  `check` is a read-only checker that reports divergence from disk and exits 4;
+  `reconcile` is the mutator that writes the disk-authoritative reconciliation
+  `check` reports. `set-chapters` populates the `[chapters]` manifest from the
+  agent's plan and creates the chapter directories (roadmap 2.2.3; ADR 008). The
+  four gate/drafting mutators set the knitting and final-pass gate flags, the
+  critic pass, and the fangirl last-chapter-passed (roadmap 2.2.4; ADR 010): they
+  live in `_gate_drafting_mutators.py` and are wired on by its
+  `register_gate_drafting_commands(app)` registrar, the established way to add
+  subcommands without growing `novel_state.py` past the 400-line cap.
+  `set-gate` is the repair mutator for a knitting gate that lags its drafted
+  ratio — it can only assert the ratio-mandated value, refusing a contradicting
+  flip with exit 3; `set-fangirl` and `set-critic-pass` carry write-time
+  preconditions the §5.2 validator does not own (ADR 010). See design §4.1, §5.1,
+  and §5.4.
 - `novel-done` — the done predicate as code, evaluated per clause against
   disk. See design §4.2.
 - `novel-compile` — regenerates `working/manuscript/compiled.md`
@@ -363,14 +373,15 @@ every exit arm), sharing the `driver` fixture from the registered plugin
 
 Read-only checkers (`novel-done`, `novel-state check`, `wordcount`,
 `desloppify`, `novel-compile --check`) write nothing, so the harness can call
-them freely. Mutators (`novel-state
-init`/`set-cursor`/`advance-phase`/`recount`/`reconcile`/`set-chapters` and
-`novel-compile`) are the only commands that touch `state.toml` or `compiled.md`,
-and every write is atomic via a temporary file plus `Path.replace`. The
-*genuinely multi-file* writers — `reconcile` and `set-chapters` — bracket their
-writes with a `[pending_turn]` intent record so a torn multi-file turn is
+them freely. Mutators (`novel-state`
+`init`/`set-cursor`/`advance-phase`/`recount`/`reconcile`/`set-chapters`/`set-gate`/`complete-final-pass`/`set-fangirl`/`set-critic-pass`
+and `novel-compile`) are the only commands that touch `state.toml` or
+`compiled.md`, and every write is atomic via a temporary file plus `Path.replace`.
+The *genuinely multi-file* writers — `reconcile` and `set-chapters` — bracket
+their writes with a `[pending_turn]` intent record so a torn multi-file turn is
 recoverable. The single-file mutators (`init`/`set-cursor`/
-`advance-phase`/`recount`/`novel-compile`) write one file per `Path.replace` and
+`advance-phase`/`recount`/`set-gate`/`complete-final-pass`/`set-fangirl`/`set-critic-pass`/`novel-compile`)
+write one file per `Path.replace` and
 open **no** `[pending_turn]` bracket — `recount` re-derives only
 `[word_counts]` in `state.toml` (design §4.1 line 271), and a recount is named
 in design §3.4 lines 240-241 as *one write among several in a turn*, not the

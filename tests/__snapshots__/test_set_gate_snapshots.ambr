@@ -1,0 +1,10 @@
+# serializer version: 1
+# name: test_set_gate_success_result_snapshot
+  dict({
+    'gates': dict({
+      'knitting': dict({
+        'done_30': True,
+      }),
+    }),
+  })
+# ---

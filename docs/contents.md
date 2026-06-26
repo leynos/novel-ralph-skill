@@ -47,6 +47,12 @@ documentation set.
   bijection to disk-subset-of-manifest behind a default-strict flag, leaving the
   orphan and contiguity directions firing, `reconcile` strict, and the exact
   bijection re-tightening at `final-pass` and `done`.
+- [ADR 010: the gate and drafting sub-state mutators](adr-010-gate-drafting-mutators.md)
+  records `novel-state set-gate`, `complete-final-pass`, `set-fangirl`, and
+  `set-critic-pass`: their input shapes, the exit-2/exit-3 split, the gate-ratio
+  binding that makes `set-gate` the repair mutator for a gate that lags its ratio,
+  the write-time preconditions for the §5.2-unconstrained fields, and the
+  registrar pattern that keeps `novel_state.py` under the 400-line cap.
 
 ## Project guides
 

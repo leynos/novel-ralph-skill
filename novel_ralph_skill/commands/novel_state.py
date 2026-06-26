@@ -29,14 +29,13 @@ exit-``3`` state-error channel.
 
 The ``init`` mutator (roadmap task 2.2.2) is the *create* command: it bootstraps
 ``working/`` and a coherent initial ``state.toml`` (refusing to overwrite an
-existing one). Its ``set-cursor`` and ``advance-phase`` siblings — the two
-mutators that load, edit, and re-write an existing ``state.toml`` — live in
-:mod:`novel_ralph_skill.commands._state_mutators` and are registered here; the
-``recount`` mutator (task 2.3.1) lives in
-:mod:`novel_ralph_skill.commands._recount`, the ``reconcile`` mutator (task
-2.3.2) in :mod:`novel_ralph_skill.commands._reconcile`, and the ``set-chapters``
-chapter-manifest mutator (task 2.2.3) in
-:mod:`novel_ralph_skill.commands._set_chapters`, all registered here too.
+existing one). The load-edit-rewrite mutators live in sibling modules and are
+registered here: ``set-cursor``/``advance-phase``
+(:mod:`~novel_ralph_skill.commands._state_mutators`), ``recount``
+(:mod:`~novel_ralph_skill.commands._recount`), ``reconcile``
+(:mod:`~novel_ralph_skill.commands._reconcile`), ``set-chapters``
+(:mod:`~novel_ralph_skill.commands._set_chapters`), and the four gate/drafting
+mutators (:mod:`~novel_ralph_skill.commands._gate_drafting_mutators`, task 2.2.4).
 """
 
 from __future__ import annotations
@@ -324,28 +323,26 @@ def build_app() -> cyclopts.App:
     Built via :func:`novel_ralph_skill.contract.runner.make_contract_app`, which
     owns the four-flag contract so the shared
     :func:`novel_ralph_skill.contract.runner.run` owns every exit and envelope.
-    Exposes the read-only ``check``
-    subcommand, the ``init`` builder-mutator (roadmap task 2.2.2), the
-    ``set-cursor`` and ``advance-phase`` mutators (task 2.2.2), the
-    ``recount`` mutator (task 2.3.1), the ``reconcile`` mutator (task 2.3.2), and
-    the ``set-chapters`` chapter-manifest mutator (task 2.2.3).
+    Exposes the read-only ``check`` subcommand, the ``init`` builder-mutator (task
+    2.2.2), the ``set-cursor``/``advance-phase`` mutators (task 2.2.2), ``recount``
+    (task 2.3.1), ``reconcile`` (task 2.3.2), the ``set-chapters`` chapter-manifest
+    mutator (task 2.2.3), and the gate/drafting mutators ``set-gate``,
+    ``complete-final-pass``, ``set-fangirl``, and ``set-critic-pass`` (task 2.2.4),
+    the last four registered via
+    :func:`novel_ralph_skill.commands._gate_drafting_mutators.register_gate_drafting_commands`.
 
     The signature is deliberately zero-argument and stable (later tasks import
-    it): each body resolves its working directory from the process cwd (the fixed
-    ``working/`` constant, Decision Log B4/B5), so the builder needs no
-    per-invocation value to close over. There is no working-directory parameter
-    and no Cyclopts working-dir option.
+    it): each body resolves its working directory from the fixed ``working/``
+    constant (Decision Log B4/B5), so the builder exposes no working-dir option.
 
     Returns
     -------
     cyclopts.App
-        The configured ``novel-state`` app exposing ``check``, ``init``,
-        ``set-cursor``, ``advance-phase``, ``recount``, ``reconcile``, and
-        ``set-chapters``.
+        The app exposing the read ``check`` query and every mutator named above.
     """
-    # Imported inside the builder, not at module top: the mutator module imports
-    # ``STATE_INPUT_ERRORS``/``WORKING_DIR_NAME`` from this module, so a top-level
-    # import would be circular. The builder runs after both modules are defined.
+    # Imported inside the builder, not at module top: the mutator modules import
+    # from this module, so a top-level import would be circular (the builder runs
+    # after both are defined). The task-2.2.4 registrar call below is deferred too.
     from novel_ralph_skill.commands import _state_mutators as mutators
 
     app = make_contract_app("novel-state")
@@ -396,4 +393,7 @@ def build_app() -> cyclopts.App:
 
         return _set_chapters.set_chapters(chapters=chapters)
 
+    from novel_ralph_skill.commands import _gate_drafting_mutators
+
+    _gate_drafting_mutators.register_gate_drafting_commands(app)
     return app
