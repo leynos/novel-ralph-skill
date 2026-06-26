@@ -53,11 +53,11 @@ command *detects and reports*, then the model *adjudicates and edits*.
 ```mermaid
 graph LR
     subgraph Deterministic["Deterministic spine (tested commands)"]
-        ST[novel-state]
-        DN[novel-done]
-        CO[novel-compile]
-        DS[desloppify]
-        WC[wordcount]
+        ST[novel state]
+        DN[novel done]
+        CO[novel compile]
+        DS[novel desloppify]
+        WC[novel wordcount]
     end
     subgraph Judgemental["Judgemental passes (model)"]
         SC[Spiteful critic]
@@ -109,18 +109,18 @@ Correctness here is not "the tests pass". The design names three verifiable
 properties and the mechanism that enforces each:
 
 - **State coherence.** Every write of `state.toml` satisfies the
-  invariants in §5.2. Enforced by the `novel-state` validator, which refuses to
+  invariants in §5.2. Enforced by the `novel state` validator, which refuses to
   write an invalid state, and demonstrated by property-based tests over
   generated states.
-- **Predicate truthfulness.** `novel-done` returns "done" only when the
+- **Predicate truthfulness.** `novel done` returns "done" only when the
   predicate in §4.2 holds on disk. Enforced by deriving the predicate from the
   same code path the harness gates on, eliminating the two-source divergence in
   §8.
 - **Compile fidelity.** `working/manuscript/compiled.md` equals the
   ordered concatenation of the chapter drafts. Enforced by
-  `novel-compile --check`, which compares content hashes rather than header
+  `novel compile --check`, which compares content hashes rather than header
   counts or word totals, and which shares one compile-and-hash routine with the
-  `novel-done` compile clause (§4.2) so the two can never disagree.
+  `novel done` compile clause (§4.2) so the two can never disagree.
 
 The combinatorial surface is `command × output-mode × phase`. Each command runs
 in two output modes (machine and human) across eleven phase states. §9 sets the
@@ -145,7 +145,7 @@ Every JSON payload carries a common envelope:
 
 ```json
 {
-  "command": "novel-done",
+  "command": "novel done",
   "schema_version": 1,
   "ok": false,
   "working_dir": "working",
@@ -211,8 +211,8 @@ from "stop and fix the compile" by exit code alone.
 
 | Code | Meaning                                          | Harness response                  | Example                                                                  |
 | ---- | ------------------------------------------------ | --------------------------------- | ------------------------------------------------------------------------ |
-| 0    | Success; checker satisfied, mutator applied      | proceed                           | `novel-done` predicate holds; `recount` applied                          |
-| 1    | Benign negative; predicate not yet satisfied     | continue the loop, no fix needed  | `novel-done` reports the novel is not yet done                           |
+| 0    | Success; checker satisfied, mutator applied      | proceed                           | `novel done` predicate holds; `recount` applied                          |
+| 1    | Benign negative; predicate not yet satisfied     | continue the loop, no fix needed  | `novel done` reports the novel is not yet done                           |
 | 2    | Usage error                                      | stop; the invocation is wrong     | unknown subcommand, bad arguments                                        |
 | 3    | State or input error                             | stop; recover state               | `state.toml` missing or unparseable; working dir absent                  |
 | 4    | Actionable findings requiring agent intervention | adjudicate or repair, then re-run | desloppify finds violations; compile diverges; check finds a discrepancy |
@@ -239,8 +239,8 @@ checkers freely without side effects:
 
 | Class               | Commands and subcommands                                                                                                | Writes                                                                           |
 | ------------------- | ----------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| Checker (read-only) | `novel-done`, `novel-state check`, `wordcount`, `desloppify` (detect), `novel-compile --check`                          | None                                                                             |
-| Mutator             | `novel-state init` / `set-cursor` / `advance-phase` / `recount` / `reconcile` / `set-chapters`, `novel-compile` (write) | `state.toml`, `working/manuscript/chapter-NN/`, `working/manuscript/compiled.md` |
+| Checker (read-only) | `novel done`, `novel state check`, `novel wordcount`, `novel desloppify` (detect), `novel compile --check`              | None                                                                             |
+| Mutator             | `novel state init` / `set-cursor` / `advance-phase` / `recount` / `reconcile` / `set-chapters`, `novel compile` (write) | `state.toml`, `working/manuscript/chapter-NN/`, `working/manuscript/compiled.md` |
 
 ### 3.4 Atomic writes
 
@@ -257,8 +257,8 @@ record in `state.toml` *before* it touches any other file, naming the operation
 and the paths it will write, and clears the record *after* every artefact is
 written and verified. The record is written and cleared by the same atomic
 discipline. On the next turn, an uncleared `[pending_turn]` is the signature of
-a turn that died mid-write: `novel-state check` reads it, compares the named
-paths against disk, and reports the reconciliation `novel-state reconcile` then
+a turn that died mid-write: `novel state check` reads it, compares the named
+paths against disk, and reports the reconciliation `novel state reconcile` then
 carries out (§5.4). The intent marker turns "some of my files landed and some
 did not" from a silent corruption into a declared, inspectable state.
 
@@ -337,7 +337,7 @@ and comments. The mechanism is open question Q1, resolved in §5.3.
 > emits, and writes the resolution convention once in `critic-personas.md` and
 > `done-conditions.md` so producer and consumer share one contract.
 
-`novel-done` is the done predicate as code, replacing the pseudocode in
+`novel done` is the done predicate as code, replacing the pseudocode in
 `done-conditions.md` and the ad-hoc shell the field report describes. It
 returns a structured per-clause result and a meaningful exit code, so "check
 done every turn" is one call. A satisfied predicate exits 0. An unsatisfied
@@ -346,7 +346,7 @@ predicate normally exits 1 — the benign negative the harness loops on — beca
 divergence: when every clause except `compile_consistent` is satisfied, the
 manuscript is otherwise complete and the only obstacle is a stale
 `compiled.md`, which is an actionable finding a deterministic detector has
-surfaced. In that case `novel-done` exits 4, matching `novel-compile --check`
+surfaced. In that case `novel done` exits 4, matching `novel compile --check`
 (§4.3), so the harness regenerates the compile rather than looping. While any
 drafting clause is still unmet, compile staleness is expected mid-draft and the
 predicate stays at exit 1.
@@ -355,7 +355,7 @@ The predicate evaluates each clause against disk and reports which failed:
 
 ```json
 {
-  "command": "novel-done",
+  "command": "novel done",
   "schema_version": 1,
   "ok": false,
   "result": {
@@ -370,12 +370,12 @@ The predicate evaluates each clause against disk and reports which failed:
 }
 ```
 
-The compile-divergence clause is real, not eyeballed: `novel-done` calls the
+The compile-divergence clause is real, not eyeballed: `novel done` calls the
 shared compile-and-hash routine (§4.3) to hash each
 `working/manuscript/chapter-NN/draft.md`, build a fresh ordered compilation,
 and compare its hash to `working/manuscript/compiled.md`. A stale compile whose
 header count and word total coincidentally match is still caught. Because
-`novel-done` and `novel-compile --check` call the same routine, they cannot
+`novel done` and `novel compile --check` call the same routine, they cannot
 reach different verdicts on the same tree.
 
 The `result` reports a single `compile_consistent` boolean, not the per-chapter
@@ -385,7 +385,7 @@ bounded result as a three-chapter one.
 
 ### 4.3 `novel compile`
 
-`novel-compile` regenerates `working/manuscript/compiled.md` deterministically,
+`novel compile` regenerates `working/manuscript/compiled.md` deterministically,
 with consistent separators. The `--check` flag makes it a read-only checker
 that reports divergence without writing, exiting 4 when the compile is stale or
 absent so the agent knows to regenerate.
@@ -396,7 +396,7 @@ index** taken from the zero-padded chapter directory names
 (`working/manuscript/chapter-01`, `chapter-02`, …): a total, deterministic
 order that requires no parsing of outline prose. The chapter manifest in
 `state.toml` (§5.1) records the intended set of chapters — number, slug, title,
-target words — written when chapter planning completes; `novel-state check`
+target words — written when chapter planning completes; `novel state check`
 asserts a bijection between manifest entries and on-disk chapter directories
 (§5.2), so the manifest order and the directory index are guaranteed to agree
 before any compile runs. This resolves assumption A5 from "ordering can be
@@ -405,8 +405,8 @@ manifest": no prose is read, and a missing or non-bijective manifest is a loud
 error (§10), not a silent mis-ordering.
 
 The compile-and-hash work — concatenating drafts in index order and hashing the
-result — lives in one shared routine that both `novel-compile` (write and
-`--check`) and the `novel-done` compile clause (§4.2) call, so a divergence
+result — lives in one shared routine that both `novel compile` (write and
+`--check`) and the `novel done` compile clause (§4.2) call, so a divergence
 verdict is computed identically wherever it is asked.
 
 ### 4.4 `novel desloppify`
@@ -455,15 +455,15 @@ The validated schema adds three fields beyond the reference structure:
 
 - `[chapters]` — the chapter manifest: an ordered record of each planned
   chapter (number, slug, title, target words), written by the validated
-  chapter-manifest command `novel-state set-chapters` (roadmap 2.2.3; ADR 008)
+  chapter-manifest command `novel state set-chapters` (roadmap 2.2.3; ADR 008)
   when chapter planning completes — never by a direct `state.toml` edit, per
   ADR 001. `set-chapters` also creates the on-disk `chapter-NN/` directories and
   persists the populated manifest **at the intent write** (together with the
   `[pending_turn]` record, before any directory), because the manifest is the
   agent's non-recomputable judgement (ADR 008; §5.4). It is the authoritative set
-  against which `novel-state check`
+  against which `novel state check`
   validates the on-disk chapter directories (§5.2), and its order mirrors the
-  zero-padded directory index `novel-compile` uses (§4.3).
+  zero-padded directory index `novel compile` uses (§4.3).
 - `[drafting.critic].convergence_target` — the configured ceiling for
   `consecutive_clean` (default 1), replacing the hard-coded literal so the
   convergence bar can be raised without editing the validator (§5.2).
@@ -503,7 +503,7 @@ loop where most turns are spent; every other phase advances once.*
 
 ### 5.2 Invariants
 
-`novel-state check` enforces these invariants and refuses to write a state that
+`novel state check` enforces these invariants and refuses to write a state that
 violates them. The field report drove several of these out of range by hand;
 validation makes that impossible:
 
@@ -542,7 +542,7 @@ reference is removed.
 
 ### 5.4 Disk-authoritative reconciliation
 
-`novel-state check` and `novel-state reconcile` together implement the recovery
+`novel state check` and `novel state reconcile` together implement the recovery
 routine the skill currently leaves to the agent, split along the
 checker/mutator boundary (§3.3). Disk is authoritative; `state.toml` describes
 disk. `check` is strictly read-only: when it finds state merely *behind* disk —
@@ -802,7 +802,7 @@ graph TD
     C --> D[line editor: clean context]
     D --> E[spiteful critic: clean context]
     E --> F[fangirl: resumable]
-    F --> G[novel-state recount / novel-done / wordcount]
+    F --> G[novel state recount / novel done / novel wordcount]
     G --> H{gate crossed?}
     H -->|yes| I[knitting circle: clean context]
     H -->|no| J[advance cursor]
@@ -827,7 +827,7 @@ at existed. This section records what each defect was and how it was closed.
   headings are correct), landed in commit `916313c`.
 - **Two-source done predicate.** The short-form predicate in `SKILL.md`
   omitted `final_pass_complete` and the gate booleans that the long-form
-  predicate in `done-conditions.md` required. `novel-done` is the single source
+  predicate in `done-conditions.md` required. `novel done` is the single source
   of truth; roadmap task 6.2.3 reduced both prose copies to a pointer at the
   command and the developers' guide clause table.
 - **Dead `plan.md` spec.** `state-layout.md` once documented a per-chapter
@@ -839,7 +839,7 @@ at existed. This section records what each defect was and how it was closed.
 
 The commands are verified with `pytest`, per `AGENTS.md`, with a deliberate
 division of method matched to what each property needs. The method is matched
-to the command, not applied uniformly: `novel-state` earns the full battery
+to the command, not applied uniformly: `novel state` earns the full battery
 because it carries the schema, the invariants, and the round-trip; `wordcount`
 and `desloppify` are pure aggregations over text and need only snapshot
 coverage of their envelope plus a handful of boundary examples (a manuscript
@@ -848,14 +848,14 @@ behavioural suite of their own. Imposing all four methods on every command
 would buy confidence the simpler commands do not need.
 
 - **Property-based tests (`hypothesis`)** over the state validator:
-  generated states confirm that `novel-state check` accepts exactly the states
+  generated states confirm that `novel state check` accepts exactly the states
   satisfying §5.2 and rejects the rest, and that a no-op `recount` preserves
   formatting and comments (the §5.3 round-trip property).
 - **Snapshot tests** pin the machine-mode JSON envelope per command,
   with timestamps, absolute paths, and slugs normalised, so a snapshot failure
   identifies a real contract change rather than churn.
 - **Behavioural tests (`pytest-bdd`)** cover the harness-facing flows:
-  a stale `compiled.md` is caught by `novel-done`; an out-of-order
+  a stale `compiled.md` is caught by `novel done`; an out-of-order
   `advance-phase` is refused; a knitting gate triggers at the right threshold.
 - **Combinatorial coverage** of `command × output-mode × phase` is
   bounded: machine mode is snapshotted, human mode is asserted for presence,
@@ -873,7 +873,7 @@ would buy confidence the simpler commands do not need.
   absent pack file (→ exit 3), plus the 0-versus-4 boundary directly: a clean
   manuscript exits 0 and one violation past threshold exits 4. `wordcount`
   covers its own gate-boundary envelope. The 1-versus-4 distinction is asserted
-  on `novel-done`: a mid-draft tree exits 1, while an otherwise-complete tree
+  on `novel done`: a mid-draft tree exits 1, while an otherwise-complete tree
   with only a stale `compiled.md` exits 4 (§4.2).
 - **Installed-binary e2es** prove the exit-code contract at the real
   wheel/venv packaging boundary, not merely against the in-process entry-point
@@ -881,21 +881,21 @@ would buy confidence the simpler commands do not need.
   console-script. A wheel is built with `uv build --wheel`, installed into a
   fresh `uv venv`, and the resulting script is run by its absolute path through
   the cuprum catalogue allowlist (POSIX-only; ADR-006). Alongside the existing
-  `check` (exit 0), `desloppify` (exit 4), and `novel-done` (exit 0/1/4) proofs,
-  the `recount` mutator is anchored here too: the installed `novel-state recount`
-  corrects deliberately wrong word counts and exits 0 with the recounted
-  `{current, by_chapter}` envelope, and refuses a missing or unparseable
-  `state.toml` by exiting 3 with an `ok: false` envelope and no traceback — the
-  mutator-refusal-is-3 rule (§3.2) and the unparseable-state failure mode (§10)
-  observed against a real installed console-script. The two command-agnostic
-  diagnostic arms the runner stamps *before any command body runs* — the usage
-  error (exit 2) and the state-or-input error (exit 3) — are proven at this
-  boundary too: the installed `novel-state` exits 2 on a malformed invocation
-  (an unknown option) and 3 on an absent `working/`, each in machine and human
-  mode, with the `--human` stamp and the `ok: false` envelope shape pinned. This
-  closes the in-process-versus-binary asymmetry these arms carried after the
-  in-process command-surface matrix crossed them (6.2.8); the boundary now
-  anchors the §3.2 / ADR-003 §3.1 contract for the diagnostic arms exactly as
+  `check` (exit 0), `novel desloppify` (exit 4), and `novel done` (exit 0/1/4)
+  proofs, the `recount` mutator is anchored here too: the installed
+  `novel state recount` corrects deliberately wrong word counts and exits 0 with
+  the recounted `{current, by_chapter}` envelope, and refuses a missing or
+  unparseable `state.toml` by exiting 3 with an `ok: false` envelope and no
+  traceback — the mutator-refusal-is-3 rule (§3.2) and the unparseable-state
+  failure mode (§10) observed against a real installed console-script. The two
+  command-agnostic diagnostic arms the runner stamps *before any command body
+  runs* — the usage error (exit 2) and the state-or-input error (exit 3) — are
+  proven at this boundary too: the installed `novel state` exits 2 on a malformed
+  invocation (an unknown option) and 3 on an absent `working/`, each in machine
+  and human mode, with the `--human` stamp and the `ok: false` envelope shape
+  pinned. This closes the in-process-versus-binary asymmetry these arms carried
+  after the in-process command-surface matrix crossed them (6.2.8); the boundary
+  now anchors the §3.2 / ADR-003 §3.1 contract for the diagnostic arms exactly as
   the matrix anchors it in-process.
 
 External executables, where any command grows them, are mocked with `cmd-mox`
@@ -905,20 +905,20 @@ suite touches only the filesystem under `tmp_path`.
 ## 10. Failure modes
 
 - **`state.toml` unparseable.** Commands exit 3 with a message rather
-  than a stack trace. Recovery is `novel-state check` reporting the
-  reconstruction from disk and `novel-state reconcile` applying it (§5.4).
+  than a stack trace. Recovery is `novel state check` reporting the
+  reconstruction from disk and `novel state reconcile` applying it (§5.4).
 - **Chapter manifest missing or non-bijective during compile.**
-  `novel-compile` exits 3 when `[chapters]` is absent or empty — ordering has
+  `novel compile` exits 3 when `[chapters]` is absent or empty — ordering has
   no authoritative source, so the agent must complete chapter planning first —
-  and `novel-state check` exits 4 when the manifest and the on-disk directories
+  and `novel state check` exits 4 when the manifest and the on-disk directories
   are not in bijection (§5.2), naming the orphaned draft or manifest entry.
 - **Contradictory disk evidence.** When disk disagrees with itself — a
   `done.flag` beside an empty `draft.md`, or a `compiled.md` referencing an
-  absent chapter — `novel-state check` refuses to auto-repair, reports the
+  absent chapter — `novel state check` refuses to auto-repair, reports the
   conflict, logs it, and exits 4 for the agent to adjudicate (§5.4).
 - **Torn multi-file turn.** An uncleared `[pending_turn]` record from a
-  crashed turn (§3.4) is detected by `novel-state check`;
-  `novel-state reconcile` completes the partial write or rolls it back
+  crashed turn (§3.4) is detected by `novel state check`;
+  `novel state reconcile` completes the partial write or rolls it back
   according to what landed on disk — overwriting, never deleting, any partial
   artefact — and logs the recovery.
 - **Rule-pack pattern invalid.** `desloppify` exits 2, naming the

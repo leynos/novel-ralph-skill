@@ -288,7 +288,7 @@ docs/scripting-standards.md.
       now-deleted `stub.py` in the present tense. Refresh all to the
       spaced-surface convention the swept suite now uses. Lightweight addendum
       pass.
-- [ ] 1.2.14. Sweep the design document and `SKILL.md` to the `novel`
+- [x] 1.2.14. Sweep the design document and `SKILL.md` to the `novel`
   multiplexer surface.
   - Step-task (source: audit:1.2.16; severity: high; promotes the orphaned
     roadmap block left headerless after the 1.2.15.1 edit). The 1.2.14 work was

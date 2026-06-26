@@ -25,24 +25,25 @@ layout, the chapter drafting inner loop, and the adversarial review pipeline.
 
 ## Setup
 
-The deterministic harness is five console-scripts — `novel-state`,
-`novel-done`, `novel-compile`, `desloppify`, and `wordcount` — provided by the
-`novel-ralph-skill` package. Install them and confirm they are on your `PATH`
+The deterministic harness is a single `novel` console-script — a multiplexer
+with a `state` subgroup and four leaf verbs (`novel done`, `novel compile`,
+`novel desloppify`, and `novel wordcount`) — provided by the
+`novel-ralph-skill` package. Install it and confirm it is on your `PATH`
 **before** starting the workflow:
 
 ```bash
 # From a checkout of the novel-ralph-skill repository:
 uv tool install --from . novel-ralph-skill
 # (once published, `uv tool install novel-ralph-skill` is enough)
-novel-state --version   # confirm the install resolves
+novel --version   # confirm the install resolves
 ```
 
-Invoke the commands by **bare name** (`novel-state init …`, `novel-done`,
-`novel-compile`, …). They operate on the `working/` directory of the current
-working directory, so run them from the novel's root. If any command reports
-"command not found", the package is not installed — install it as above rather
-than falling back to `uv run`, `python -m`, or an ad-hoc script, so the agent
-always exercises the installed contract.
+Invoke each operation as a `novel` subcommand (`novel state init …`,
+`novel done`, `novel compile`, …). They operate on the `working/` directory of
+the current working directory, so run them from the novel's root. If `novel`
+reports "command not found", the package is not installed — install it as above
+rather than falling back to `uv run`, `python -m`, or an ad-hoc script, so the
+agent always exercises the installed contract.
 
 ## Harness contract
 
@@ -60,7 +61,7 @@ requirements on every operation in this skill:
    unit — one scene drafted, one chapter critiqued, one beat written — then
    returns. Do not try to finish the novel in one turn.
 4. **Truthful done reporting.** The agent reports "done" only when the
-   `novel-done` command exits 0 against the manuscript on disk. Aspirational
+   `novel done` command exits 0 against the manuscript on disk. Aspirational
    completion is a failure.
 
 ## Governing principles
@@ -97,7 +98,7 @@ Read these as the workflow demands them. Do not pre-load everything.
 | Reference                     | When to read                                          | Path                                 |
 | ----------------------------- | ----------------------------------------------------- | ------------------------------------ |
 | State layout                  | First entry, and whenever state mutation is involved  | `references/state-layout.md`         |
-| Novel-level completion        | Every turn, when checking overall completion          | `novel-done` command                 |
+| Novel-level completion        | Every turn, when checking overall completion          | `novel done` command                 |
 | Phase & chapter done          | Every turn, when checking phase or chapter completion | `references/done-conditions.md`      |
 | Conflict & attractor analysis | Phase 3                                               | `references/conflict-attractor.md`   |
 | JTBD for fiction              | Phase 5                                               | `references/jtbd-novel.md`           |
@@ -115,7 +116,7 @@ Every turn begins here. No exceptions.
 2. Read working/state.toml.
 3. Read working/log.md (last 200 lines) for recent context.
 4. Determine phase from state.phase.current.
-5. Run `novel-done` to check whether the overall predicate is satisfied. If it
+5. Run `novel done` to check whether the overall predicate is satisfied. If it
    exits 0, report done and stop.
 6. Otherwise, jump to the phase handler. Each phase has its own routine
    below.
@@ -324,12 +325,12 @@ For each chapter (typically 20–35 for a novel of 80–100k words), record:
 - **Target word count.**
 
 Once the outline is complete, record the planned chapters in `[chapters]` by
-running `novel-state set-chapters` — **never** by hand-editing `state.toml`. Pass
+running `novel state set-chapters` — **never** by hand-editing `state.toml`. Pass
 the whole plan as one single-quoted JSON array so a ~35-chapter plan quotes
 cleanly:
 
 ```bash
-novel-state set-chapters --chapters '[
+novel state set-chapters --chapters '[
   {"number": 1, "slug": "the-summons", "title": "The Summons", "target_words": 3200},
   {"number": 2, "slug": "the-road", "title": "The Road", "target_words": 2800}
 ]'
@@ -342,13 +343,13 @@ The command populates `[chapters]`, creates the
 (a gap, a duplicate number or slug, a non-positive target) or an
 already-populated manifest is refused with exit `3`
 and writes nothing, and a malformed `--chapters` argument exits `2`. If the
-command is interrupted mid-write, recover by running `novel-state reconcile`
+command is interrupted mid-write, recover by running `novel state reconcile`
 (which completes the torn turn) — never by re-running `set-chapters` or editing
 the tree by hand.
 
 **Exit:** chapter-outline.md exists; every STC beat is covered by at least one
 chapter; every chapter has a non-trivial outcome; and `[chapters]` is populated
-via `novel-state set-chapters` so `novel-state check` exits `0`.
+via `novel state set-chapters` so `novel state check` exits `0`.
 
 ### Phase 8 — Drafting (the inner Ralph loop)
 
@@ -368,7 +369,7 @@ For chapter N from 1 to last:
     c. Write beats: draft prose for each beat into
        working/manuscript/chapter-NN/draft.md. Write one scene per
        turn unless scenes are very short.
-    d. Expand to target: run wordcount and read THIS chapter's delta
+    d. Expand to target: run `novel wordcount` and read THIS chapter's delta
        against its chapter target and its percentage-of-target. The
        acceptance band is the chapter sitting within 5% of its target
        AFTER the destructive passes (e–f) have cut, so expand for
@@ -382,7 +383,7 @@ For chapter N from 1 to last:
        (a missing beat, an interiority pass, a richer exchange), never
        padding, into the current chapter's draft only. Never re-open an
        already-done earlier chapter for length. After steps e–f have
-       run their destructive cuts, run wordcount AGAIN at step g to
+       run their destructive cuts, run `novel wordcount` AGAIN at step g to
        confirm the chapter now lands within the post-cut band. If after
        one expand-and-reprocess cycle it is still short, do not loop
        unboundedly: log the residual deficit (the Phase 9 final expand
@@ -391,7 +392,7 @@ For chapter N from 1 to last:
        references/desloppify-checklist.md against the chapter draft.
        Apply every required cut and rewrite.
     f. Spiteful critic loop (see below).
-    g. Fangirl pass, then re-measure: run wordcount once more on this
+    g. Fangirl pass, then re-measure: run `novel wordcount` once more on this
        chapter (see termination rule in step d). See the fangirl pass
        below.
     h. Touch working/manuscript/chapter-NN/done.flag and advance
@@ -417,7 +418,7 @@ fix back onto Phase 9. So the step over-expands the pre-cut draft above the
 chapter target by roughly the expected loss, targeting the band *after* the cuts,
 not before them. The freshly written material is still cleaned and critiqued by
 the existing desloppify and critic machinery rather than smuggled past the
-quality gate. It reads the delta from `wordcount` and never
+quality gate. It reads the delta from `novel wordcount` and never
 hand-computes word totals (the model adjudicates; the script reports), it
 expands only the current chapter so the cumulative drafted ratio stays
 monotonic and a late expansion cannot cross a knitting gate out of sequence, and
@@ -456,7 +457,7 @@ knitting circle pass.
 **The critic's findings reset each pass.** The previous pass's critic-notes.md
 is overwritten. What matters is the current state of the chapter.
 
-Record the current pass number by running `novel-state set-critic-pass --pass N`
+Record the current pass number by running `novel state set-critic-pass --pass N`
 (passes are numbered from 1) — **never** by hand-editing `drafting.critic.pass`.
 It refuses a pass below 1 with exit 3.
 
@@ -480,7 +481,7 @@ When planning chapter N+1, read `working/fangirl-running.md` and fold relevant
 items into the scene plan.
 
 Record the chapter the fangirl pass last ran on by running
-`novel-state set-fangirl --last-chapter N` — **never** by hand-editing
+`novel state set-fangirl --last-chapter N` — **never** by hand-editing
 `drafting.fangirl.last_chapter_passed`. It refuses a chapter outside
 `[0, number-of-manifest-chapters]` with exit 3.
 
@@ -498,11 +499,11 @@ omission, addition). Line-level edits at this scale are out of scope; the
 spiteful critic handled those at chapter time.
 
 After integrating, regenerate `working/manuscript/compiled.md` from the current
-chapter drafts (run `novel-compile`) so the compile reflects the back-edits the
+chapter drafts (run `novel compile`) so the compile reflects the back-edits the
 knitting pass just made; the `compiled.md` assembled before the pass is now
-stale. Then run `novel-compile` (or `novel-state recount`) so the drafted ratio
+stale. Then run `novel compile` (or `novel state recount`) so the drafted ratio
 reflects the integrated drafts, and set the corresponding gate by running
-`novel-state set-gate --knitting-30` (or `--knitting-50`/`--knitting-80`) —
+`novel state set-gate --knitting-30` (or `--knitting-50`/`--knitting-80`) —
 **never** by hand-editing `state.gates.knitting.done_30`. The gate flips true only
 once the drafted ratio has crossed the threshold, so `set-gate` is the repair that
 asserts the value the ratio now mandates; it refuses with exit 3 if the ratio has
@@ -521,28 +522,28 @@ one final assembly:
    structural issues invisible at chapter scale: opening weakness, sagging
    middle that survived the 50% knitting pass, ending that does not deliver the
    treatment's promise.
-4. Expand to target: run `wordcount` over the assembled `compiled.md` and read
-   the cumulative total against the novel target. The Phase 9 acceptance band is
-   the cumulative total sitting at **97–103% of the novel target** (within 3%).
-   This is deliberately tighter than the STC beat-sheet's ± 10% sum check (Phase
-   6 exit; `references/stc-beat-sheet.md`): that ± 10% is the allowance for the
-   *planned* beat targets to sum near the novel target, whereas this 3% band is
-   the *finished* manuscript's tolerance against that same fixed target. The
-   plan may sum up to 10% off; the delivered book must land within 3%. The two
-   are not in tension because they measure different things (the plan versus the
-   draft) against one unchanged target. If the book is below this band, run a
-   final expand-to-target pass across the weakest chapters (identified by their
-   `wordcount` deltas), writing substantive material — never padding — into their
-   `chapter-NN/draft.md` files. This step
+4. Expand to target: run `novel wordcount` over the assembled `compiled.md` and
+   read the cumulative total against the novel target. The Phase 9 acceptance
+   band is the cumulative total sitting at **97–103% of the novel target**
+   (within 3%). This is deliberately tighter than the STC beat-sheet's ± 10% sum
+   check (Phase 6 exit; `references/stc-beat-sheet.md`): that ± 10% is the
+   allowance for the *planned* beat targets to sum near the novel target, whereas
+   this 3% band is the *finished* manuscript's tolerance against that same fixed
+   target. The plan may sum up to 10% off; the delivered book must land within
+   3%. The two are not in tension because they measure different things (the plan
+   versus the draft) against one unchanged target. If the book is below this
+   band, run a final expand-to-target pass across the weakest chapters
+   (identified by their `novel wordcount` deltas), writing substantive
+   material — never padding — into their `chapter-NN/draft.md` files. This step
    runs **after** the destructive desloppify (step 2) and the structural-only
    critic (step 3), so nothing destructive follows it to re-open the gap. The
    structural critic does not line-vet new prose; line and quality cleaning of
    any new Phase 9 material is the responsibility of the agent applying
    desloppify discipline as it writes. Because expansion edits the per-chapter
-   drafts that `wordcount` reads from disk, the `compiled.md` from step 1 is now
-   stale: regenerate it with `novel-compile` (mirroring the knitting pass's
-   recompile discipline), then run `wordcount` once more to confirm the
-   cumulative total now sits within the band. If still short after the pass,
+   drafts that `novel wordcount` reads from disk, the `compiled.md` from step 1
+   is now stale: regenerate it with `novel compile` (mirroring the knitting
+   pass's recompile discipline), then run `novel wordcount` once more to confirm
+   the cumulative total now sits within the band. If still short after the pass,
    escalate — do not silently ship a short book. This is the deflation-
    compensation safety net: the net-deflationary loop (see Phase 8) can leave a
    residual deficit, and this final pass closes it against the unchanged target.
@@ -550,11 +551,11 @@ one final assembly:
    treatment. If not, decide whether the novel earned the new ending or the new
    ending is a drift artefact.
 
-6. Record the completed final pass by running `novel-state complete-final-pass`
+6. Record the completed final pass by running `novel state complete-final-pass`
    (the argument-free verb that flips `gates.final.final_pass_complete` true; it
    is idempotent) — **never** by hand-editing `gates.final.final_pass_complete`.
 
-**Exit:** `working/manuscript/compiled.md` exists; `novel-done` exits 0.
+**Exit:** `working/manuscript/compiled.md` exists; `novel done` exits 0.
 
 ## State layout summary
 
@@ -586,13 +587,13 @@ working/
 
 ## Done predicate (short form)
 
-The novel is done when the `novel-done` command exits 0. `novel-done` is the
+The novel is done when the `novel done` command exits 0. `novel done` is the
 single source of truth for the novel-level predicate: it evaluates each clause
 against the files on disk and names any clause that is false. The authoritative
 six clauses and the disk source of each are tabulated in the developers' guide
-under "Done predicate (`novel-done`)".
+under "Done predicate (`novel done`)".
 
-Truthful "done" means running `novel-done`, not re-asserting a hand-kept list.
+Truthful "done" means running `novel done`, not re-asserting a hand-kept list.
 See `references/done-conditions.md` for the phase-level and chapter-level done
 conditions and the BLOCKER resolution convention.
 
@@ -669,4 +670,4 @@ conditions and the BLOCKER resolution convention.
   the start of every chapter plan.
 
 - **The "almost done" lie.** Truthful done is on disk, not in feeling.
-  Run `novel-done`.
+  Run `novel done`.
