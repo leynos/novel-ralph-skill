@@ -47,7 +47,7 @@ import typing as typ
 from novel_ralph_skill.state._blocker_notes import _body_has_unresolved_blocker
 from novel_ralph_skill.state._disk_paths import _chapter_dir_name
 from novel_ralph_skill.state.compile_model import (
-    CompiledComparison,
+    compile_is_current,
     compiled_matches_drafts,
 )
 from novel_ralph_skill.state.phase import Phase
@@ -224,13 +224,11 @@ def compile_consistent(state: State, working_dir: Path) -> bool:
     :func:`~novel_ralph_skill.state.compile_model.compiled_matches_drafts`, which
     the §5.4 detector (``disk_evidence._check_compiled_matches_drafts``) also
     consumes, so the clause and the detector cannot disagree on what "compiled
-    matches drafts" means (roadmap task 3.1.3). This clause projects the helper's
-    three-valued result to its **content** polarity: only
-    :attr:`~novel_ralph_skill.state.compile_model.CompiledComparison.MATCHES`
-    holds; both :attr:`~CompiledComparison.ABSENT` and
-    :attr:`~CompiledComparison.DIVERGES` are ``False``. The helper performs a
-    direct byte comparison, not a digest (ExecPlan D-BYTE-COMPARE): a boolean over
-    two in-memory strings needs no ``hashlib``.
+    matches drafts" means (roadmap task 3.1.3). This clause is current iff
+    :func:`~novel_ralph_skill.state.compile_model.compile_is_current` holds — the
+    single content-polarity projection of the three-valued verdict. The helper
+    performs a direct byte comparison, not a digest (ExecPlan D-BYTE-COMPARE): a
+    boolean over two in-memory strings needs no ``hashlib``.
 
     This clause carries the **opposite** absent-file polarity to that §5.4
     detector, which treats an absent ``compiled.md`` as *vacuously satisfied*
@@ -260,7 +258,7 @@ def compile_consistent(state: State, working_dir: Path) -> bool:
     UnicodeDecodeError
         When ``compiled.md`` (or a draft body) is not valid UTF-8, propagated.
     """
-    return compiled_matches_drafts(state, working_dir) is CompiledComparison.MATCHES
+    return compile_is_current(compiled_matches_drafts(state, working_dir))
 
 
 def _contains_unresolved_blocker(notes_path: Path) -> bool:

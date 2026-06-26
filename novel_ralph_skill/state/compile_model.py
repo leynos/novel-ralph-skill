@@ -35,6 +35,15 @@ if typ.TYPE_CHECKING:
 # ``CORPUS_SEPARATOR`` is its independent twin (pinned equal by test).
 DRAFT_SEPARATOR = "\n\n"
 
+# The working-relative POSIX token for ``compiled.md`` the deterministic envelope
+# reports. It is **working-prefixed** (``working/manuscript/compiled.md``) — the
+# leading ``working/`` segment is part of the token, *not* a join of
+# ``working_dir()`` — so it is byte-identical to the value formerly held as
+# ``_COMPILED_REL`` in ``commands/_compile.py``. This is the single source of
+# that envelope datum (``docs/issues/audit-4.1.2.md`` Finding 2); the snapshot
+# suites pin it byte-for-byte.
+COMPILED_REL = "working/manuscript/compiled.md"
+
 
 class CompiledComparison(enum.Enum):
     """Three-valued verdict for ``compiled.md`` against the present drafts.
@@ -52,6 +61,62 @@ class CompiledComparison(enum.Enum):
     ABSENT = "absent"
     MATCHES = "matches"
     DIVERGES = "diverges"
+
+
+def compiled_manuscript_path(working_dir: Path) -> Path:
+    """Return the on-disk path of ``compiled.md`` under ``working_dir``.
+
+    The single join rule for the compiled manuscript's filesystem location
+    (``docs/issues/audit-4.1.2.md`` Finding 2): the module already owns
+    :data:`DRAFT_SEPARATOR` and the draft-concatenation join, so the path join
+    belongs here too. ``working_dir`` is expected to be an already
+    ``working/``-anchored directory (``commands._state_load.working_dir`` returns
+    exactly that segment), so the result is **not** doubly prefixed and its POSIX
+    form reproduces :data:`COMPILED_REL` exactly.
+
+    Parameters
+    ----------
+    working_dir : pathlib.Path
+        The ``working/`` directory holding ``manuscript/compiled.md``.
+
+    Returns
+    -------
+    pathlib.Path
+        ``working_dir / "manuscript" / "compiled.md"``.
+    """
+    return working_dir / "manuscript" / "compiled.md"
+
+
+def compile_is_current(verdict: CompiledComparison) -> bool:
+    """Return whether ``verdict`` means the compile is current.
+
+    The single content-polarity projection of the three-valued
+    :class:`CompiledComparison` verdict (``docs/issues/audit-4.1.2.md``
+    Finding 1): only :attr:`CompiledComparison.MATCHES` means ``compiled.md`` is
+    current; both :attr:`CompiledComparison.ABSENT` and
+    :attr:`CompiledComparison.DIVERGES` are not. The ``--check`` surface
+    (``commands._compile.check_compiled``) and the ``novel-done`` content clause
+    (``state.done_predicate.compile_consistent``) both route through this one
+    predicate, so they cannot disagree on what "current" means.
+
+    The §5.4 detector
+    (:func:`~novel_ralph_skill.state.disk_evidence._check_compiled_matches_drafts`)
+    deliberately uses the **opposite** polarity inline (``is not
+    CompiledComparison.DIVERGES``: an absent compile is vacuously satisfied),
+    which is a genuinely different projection and is *not* routed through this
+    predicate — do not "fix" that asymmetry.
+
+    Parameters
+    ----------
+    verdict : CompiledComparison
+        The three-valued verdict from :func:`compiled_matches_drafts`.
+
+    Returns
+    -------
+    bool
+        ``True`` iff ``verdict`` is :attr:`CompiledComparison.MATCHES`.
+    """
+    return verdict is CompiledComparison.MATCHES
 
 
 def compiled_matches_drafts(state: State, working_dir: Path) -> CompiledComparison:
@@ -102,7 +167,7 @@ def compiled_matches_drafts(state: State, working_dir: Path) -> CompiledComparis
         When ``compiled.md`` or a present ``draft.md`` is not valid UTF-8 (a
         ``ValueError`` subclass), likewise propagated.
     """
-    compiled = working_dir / "manuscript" / "compiled.md"
+    compiled = compiled_manuscript_path(working_dir)
     if not compiled.exists():
         return CompiledComparison.ABSENT
     expected = concatenate_drafts(present_draft_bodies(state, working_dir))

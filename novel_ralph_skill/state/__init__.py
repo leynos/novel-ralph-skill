@@ -28,8 +28,11 @@ from novel_ralph_skill.state._disk_word_counts import (
     disk_word_counts,
 )
 from novel_ralph_skill.state.compile_model import (
+    COMPILED_REL,
     DRAFT_SEPARATOR,
     CompiledComparison,
+    compile_is_current,
+    compiled_manuscript_path,
     compiled_matches_drafts,
     concatenate_drafts,
     present_draft_bodies,
@@ -96,6 +99,7 @@ from novel_ralph_skill.state.wordcount import recount_words
 __all__ = [
     "BY_CHAPTER_SUM",
     "COMPILED_MATCHES_DRAFTS",
+    "COMPILED_REL",
     "COMPLETED_PREFIX",
     "CONSECUTIVE_CLEAN_WITHIN_DRAFTED",
     "CONSECUTIVE_CLEAN_WITHIN_TARGET",
@@ -138,6 +142,8 @@ __all__ = [
     "chapter_dir_name",
     "check_disk_evidence",
     "clear_pending_turn",
+    "compile_is_current",
+    "compiled_manuscript_path",
     "compiled_matches_drafts",
     "concatenate_drafts",
     "derive_reconciliation",

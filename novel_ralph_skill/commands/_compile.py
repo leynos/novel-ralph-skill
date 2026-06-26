@@ -55,7 +55,9 @@ from novel_ralph_skill.contract.runner import (
     make_contract_app,
 )
 from novel_ralph_skill.state import (
-    CompiledComparison,
+    COMPILED_REL,
+    compile_is_current,
+    compiled_manuscript_path,
     compiled_matches_drafts,
     concatenate_drafts,
     present_draft_bodies,
@@ -66,12 +68,6 @@ if typ.TYPE_CHECKING:
     import cyclopts
 
     from novel_ralph_skill.state.schema import State
-
-# The working-relative ``compiled.md`` path, named once so the written file, the
-# success ``result``, and the human message cannot drift (design §4.3). It is the
-# working-relative token rather than an absolute path so the envelope is
-# deterministic for snapshotting (ExecPlan D-RESULT; AGENTS.md snapshot rule).
-_COMPILED_REL = "working/manuscript/compiled.md"
 
 
 def _require_chapter_manifest(state: State) -> None:
@@ -144,7 +140,7 @@ def compile_manuscript() -> CommandOutcome:
         # naming the ``working/`` tree (roadmap §6.3.5).
         raise _draft_read_error(root, exc) from exc
     rendered = concatenate_drafts(bodies)
-    compiled_path = root / "manuscript" / "compiled.md"
+    compiled_path = compiled_manuscript_path(root)
     try:
         write_text_atomically(rendered, compiled_path)
     except STATE_INPUT_ERRORS as exc:
@@ -153,16 +149,16 @@ def compile_manuscript() -> CommandOutcome:
         # *write* fault, deliberately kept out of the draft-read formatter's scope
         # (ExecPlan Decision D6): it wants a write-shaped remedy, not the
         # inspect-the-draft remedy ``_draft_read_error`` emits.
-        msg = f"cannot write {_COMPILED_REL}: {exc}"
+        msg = f"cannot write {COMPILED_REL}: {exc}"
         raise StateInputError(msg) from exc
     return CommandOutcome(
         code=ExitCode.SUCCESS,
         result={
-            "compiled": _COMPILED_REL,
+            "compiled": COMPILED_REL,
             "chapters": len(state.chapters),
             "bytes": len(rendered.encode("utf-8")),
         },
-        messages=[f"compiled {len(state.chapters)} chapters into {_COMPILED_REL}"],
+        messages=[f"compiled {len(state.chapters)} chapters into {COMPILED_REL}"],
     )
 
 
@@ -218,26 +214,26 @@ def check_compiled() -> CommandOutcome:
         # shared ``_draft_read_error`` formatter names the same ``working/`` tree
         # the read targeted (roadmap §6.3.5).
         raise _draft_read_error(working_dir(), exc) from exc
-    if verdict is CompiledComparison.MATCHES:
+    if compile_is_current(verdict):
         return CommandOutcome(
             code=ExitCode.SUCCESS,
             result={
-                "checked": _COMPILED_REL,
+                "checked": COMPILED_REL,
                 "chapters": len(state.chapters),
                 "diverged": False,
             },
-            messages=[f"{_COMPILED_REL} matches the chapter drafts"],
+            messages=[f"{COMPILED_REL} matches the chapter drafts"],
         )
     return CommandOutcome(
         code=ExitCode.ACTIONABLE_FINDING,
         result={
-            "checked": _COMPILED_REL,
+            "checked": COMPILED_REL,
             "chapters": len(state.chapters),
             "diverged": True,
         },
         messages=[
             (
-                f"{_COMPILED_REL} diverges from the chapter drafts; "
+                f"{COMPILED_REL} diverges from the chapter drafts; "
                 "regenerate it with novel-compile"
             )
         ],

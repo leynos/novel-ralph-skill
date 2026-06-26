@@ -48,6 +48,7 @@ from novel_ralph_skill.contract.runner import (
     CommandOutcome,
     make_contract_app,
 )
+from novel_ralph_skill.state import compiled_manuscript_path
 from novel_ralph_skill.state.done_predicate import DoneClauses, evaluate_done
 
 if typ.TYPE_CHECKING:
@@ -123,10 +124,7 @@ def _failed_clause_message(name: str, root: Path) -> str:
     other clause renders the plain ``"<name> is false"`` line. The harness never
     parses ``messages`` (ADR-003).
     """
-    if (
-        name == "compile_consistent"
-        and not (root / "manuscript" / "compiled.md").exists()
-    ):
+    if name == "compile_consistent" and not compiled_manuscript_path(root).exists():
         return "compile_consistent is false (compiled.md missing)"
     return f"{name} is false"
 
@@ -170,4 +168,4 @@ def _sole_stale_compile(clauses: DoneClauses, root: Path) -> bool:
     """
     if clauses.failed_clause_names != ("compile_consistent",):
         return False
-    return (root / "manuscript" / "compiled.md").exists()
+    return compiled_manuscript_path(root).exists()

@@ -2422,7 +2422,7 @@ for every task here: the duplication is removed, exactly one canonical
 implementation survives under one name, it is documented as the single source
 of truth, and a test pins it so it cannot silently re-fork.
 
-- [ ] 7.1.1. Extract a `compile_is_current` predicate and a single `compiled.md`
+- [x] 7.1.1. Extract a `compile_is_current` predicate and a single `compiled.md`
   path seam, and route the four consumers through them.
   - Reroute (source: audit:4.1.2; severity: low). The `MATCHES`-only
     content-polarity projection is hand-repeated at three sites
