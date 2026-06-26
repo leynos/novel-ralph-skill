@@ -811,7 +811,7 @@ and hygiene only.
   `.write_bytes`/`.writelines` and the executable info-string list omits
   `python3`/`py3`/`pycon`; a one-paragraph edit makes the prose truthful. Gate
   with `make markdownlint` and `make nixie`.
-- [ ] 1.2.8.5 — Sweep the residual hyphenated `novel-state` literals in
+- [x] 1.2.8.5 — Sweep the residual hyphenated `novel-state` literals in
   `tests/test_state_layout_reference.py` to the `novel state` surface (from
   review:1.2.14, low). The module's docstrings (the `novel-state` mentions at
   the file and method level) and the negative-test fixture fence

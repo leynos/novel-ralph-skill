@@ -3,7 +3,7 @@
 ADR-002 (``docs/adr-002-toml-round-trip-tomlkit.md``) selects ``tomlkit`` over
 ``tomli_w`` as the only sanctioned writer, and design §4.1
 (``docs/novel-ralph-harness-design.md``) eliminates direct editing of
-``state.toml`` in favour of validated ``novel-state`` subcommands. The
+``state.toml`` in favour of validated ``novel state`` subcommands. The
 state-layout skill reference
 (``skill/novel-ralph/references/state-layout.md``) once demonstrated state
 mutation with a Python heredoc that imported the undeclared ``tomli_w``
@@ -14,8 +14,8 @@ executable code fence (``python``/``py``/``sh``/``bash``/``shell``/
 ``console``), not just the historical ``tomli_w`` form. It scans only
 executable fences, so it leaves untouched the atomic-write *prose* the design
 mandates (write to ``state.toml.new``, fsync, rename — design §3.4 and §5.3,
-carried as prose in the reference) and any ``novel-state`` invocation example.
-Rewriting the reference prose to point at the ``novel-state`` commands remains
+carried as prose in the reference) and any ``novel state`` invocation example.
+Rewriting the reference prose to point at the ``novel state`` commands remains
 roadmap task 6.2.3's job; 1.2.8 only hardens the guard.
 
 It reads the reference through the shared ``read_repo_text`` fixture
@@ -98,7 +98,7 @@ class TestStateLayoutReference:
             read_repo_text(*_STATE_LAYOUT_PARTS)
         ), (
             "state-layout.md must not carry a copy-pasteable recipe that "
-            "writes state.toml outside novel-state (design §4.1, ADR-002)"
+            "writes state.toml outside novel state (design §4.1, ADR-002)"
         )
 
     def test_no_tomli_w_token(
@@ -248,8 +248,8 @@ class TestFindDirectStateWriteRecipes:
         assert not find_direct_state_write_recipes(fence)
 
     def test_novel_state_example_not_flagged(self) -> None:
-        """A ``novel-state`` invocation example is not flagged."""
-        fence = "```sh\nnovel-state set-cursor --chapter 7\n```\n"
+        """A ``novel state`` invocation example is not flagged."""
+        fence = "```sh\nnovel state set-cursor --chapter 7\n```\n"
         assert not find_direct_state_write_recipes(fence)
 
     def test_non_executable_fence_ignored(self) -> None:
@@ -332,7 +332,7 @@ class TestSkillReferenceGuard:
         )
         assert not findings, (
             "skill markdown must not carry a copy-pasteable recipe that writes "
-            f"state.toml outside novel-state (design §4.1, ADR-002): {report}"
+            f"state.toml outside novel state (design §4.1, ADR-002): {report}"
         )
 
     def test_discovery_covers_known_skill_files(

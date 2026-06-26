@@ -179,7 +179,7 @@ docs/scripting-standards.md.
       list omits `.write_bytes`/`.writelines` and the executable info-string
       list omits `python3`/`py3`/`pycon`, all of which the code scans; a
       one-paragraph edit keeps the prose truthful. Lightweight addendum pass.
-  - [ ] 1.2.8.5. Sweep the residual hyphenated `novel-state` literals in
+  - [x] 1.2.8.5. Sweep the residual hyphenated `novel-state` literals in
     `tests/test_state_layout_reference.py` to the `novel state` surface.
     - Addendum (from review:1.2.14; low). The module's docstrings and the
       negative-test fixture fence `novel-state set-cursor --chapter 7` still name
