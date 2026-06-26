@@ -42,6 +42,12 @@ assert/argument-count rules) and is imported into
 ``tests/test_per_chapter_loop_installed_bdd.py``.
 """
 
+# The installed clean-pass, stale-compile, and refused-advance steps plus their
+# recount no-op assertion push this module past the 400-line cap; the cap is
+# relaxed here for the same reason ``tests/test_command_surface_matrix.py`` relaxes
+# it (review:6.2.2 addendum 6.2.2.3).
+# pylint: disable=too-many-lines
+
 from __future__ import annotations
 
 import dataclasses as dc
@@ -63,6 +69,12 @@ if typ.TYPE_CHECKING:
     from cuprum import ProgramCatalogue
 
 # The drafted totals every installed assertion pins, matching the in-process pins.
+# ``_DRAFTED_BY_CHAPTER`` is the per-chapter table the all-hold tree drafts (the
+# three drafted chapters sum to ``_DRAFTED_TOTAL``); a no-op ``recount`` over that
+# tree must report exactly these ``{current, by_chapter}`` values, so the clean-pass
+# assertion proves the no-op property at the installed wheel boundary rather than
+# inferring it from the in-process suite (review:6.2.2 addendum 6.2.2.3).
+_DRAFTED_BY_CHAPTER: typ.Final[dict[str, int]] = {"01": 24000, "02": 24000, "03": 20800}
 _DRAFTED_TOTAL: typ.Final = 68800
 
 # Each loop command maps to the full argv the single ``novel`` multiplexer needs:
@@ -238,6 +250,20 @@ def installed_clean_exit_zero(installed: _Installed) -> None:
             f"installed {command_name} exited {code}, expected 0"
         )
         _assert_no_traceback(installed, command_name)
+
+
+@then("the installed recount reports the drafted by-chapter counts")
+def installed_recount_drafted_counts(installed: _Installed) -> None:
+    """Assert the installed ``recount`` reports the drafted ``{current, by_chapter}``.
+
+    The clean pass drives ``recount`` (a mutator) first, relying on it being a no-op
+    over the all-hold tree (ExecPlan Risk 2). This proves that no-op at the real
+    wheel boundary rather than inferring it from the in-process suite (review:6.2.2
+    addendum 6.2.2.3); the recount capture lives under the ``"novel-state"`` key.
+    """
+    result = _result(installed, "novel-state")
+    assert result["current"] == _DRAFTED_TOTAL
+    assert result["by_chapter"] == _DRAFTED_BY_CHAPTER
 
 
 @then("the installed wordcount reports all three knitting gates crossed")

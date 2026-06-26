@@ -1084,7 +1084,7 @@ Post-merge remediation items filed against this completed task. Each is a
 lightweight addendum pass: no plan or design-review cycle, just the change, the
 gates, and a merge. The roadmap carries the matching nested sub-task.
 
-- **6.2.2.3 — Assert recount's no-op invariant at the installed boundary**
+- [x] **6.2.2.3 — Assert recount's no-op invariant at the installed boundary**
   (from review:6.2.2; severity: low). The installed clean-pass scenario drives
   `recount` (a mutator) before the read commands and relies on the in-process
   Risk-2 argument that it is a no-op over the all-hold tree. Add an explicit

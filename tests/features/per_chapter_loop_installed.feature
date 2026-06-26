@@ -4,8 +4,9 @@
 # console-script into a throwaway venv, and re-drives the deterministic decisions
 # through the installed binaries an operator and the harness actually invoke
 # (ADR-003; ADR-006). It re-drives the headline clean pass (which folds in the
-# crossed knitting gate via the installed wordcount gates-crossed assertion), the
-# stale-compile catch, and — closing audit-6.2.2 Finding 7 — the refused
+# crossed knitting gate via the installed wordcount gates-crossed assertion and
+# proves the recount no-op at the boundary via the installed by-chapter assertion),
+# the stale-compile catch, and — closing audit-6.2.2 Finding 7 — the refused
 # out-of-order advance-phase (design §3.2, §4.1, §5.4: the mutator refuses the
 # write, exits 3, and leaves state.toml byte-for-byte intact). It is @slow and
 # POSIX-only; its binder (tests/test_per_chapter_loop_installed_bdd.py) carries
@@ -23,6 +24,7 @@ Feature: the installed per-chapter loop crosses the packaging boundary
     Given an installed loop tree that passes clean
     When the installed spine runs over the clean tree
     Then every installed loop command exits 0 with no traceback
+    And the installed recount reports the drafted by-chapter counts
     And the installed wordcount reports all three knitting gates crossed
     And the installed compile reports the compile is not diverged
     Given an installed loop tree whose compiled.md is byte-divergent

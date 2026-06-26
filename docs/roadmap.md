@@ -1727,7 +1727,7 @@ novel-ralph-harness-design.md §2.3 and §9.
   - See novel-ralph-harness-design.md §7.2 and §9.
   - Success: a stale compile is caught, a crossed gate is reported, and an
     out-of-order phase advance is refused, all in one scripted pass.
-  - [ ] 6.2.2.3. Assert recount's no-op invariant at the installed boundary.
+  - [x] 6.2.2.3. Assert recount's no-op invariant at the installed boundary.
     - Addendum (from review:6.2.2; low). The installed clean-pass scenario drives
       `recount` (a mutator) before the read commands and relies on the in-process
       Risk-2 argument that it is a no-op over the all-hold tree; add an explicit
