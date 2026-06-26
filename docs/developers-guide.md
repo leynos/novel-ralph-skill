@@ -624,6 +624,37 @@ total as the pure-state proxy for the design's "chapters drafted" disk quantity
 (mirroring the oracle, which counts chapters whose `draft_words > 0`); the two
 agree on every corpus tree.
 
+#### The recount-gate coupling
+
+`recount` re-derives `[word_counts]` from the on-disk chapter drafts and writes
+*only* that table — it never writes `[gates]`. This is deliberate: disk does not
+store the "knitting pass integrated" fact, so the harness cannot synthesise it.
+A `recount` that would move the drafted ratio across a 30/50/80% knitting-gate
+threshold while the matching gate flag still lags would therefore make the
+recounted state breach `gate-ratio-consistent`, and the validate-before-persist
+guard (`_refuse_if_incoherent`) refuses the write with exit `3`, leaving
+`state.toml` byte-for-byte intact (design §4.1, §5.4 recovery rule 1: "a
+done-claim large enough to move a gate is reported and escalated, not silently
+re-projected").
+
+The refusal is **actionable**. The pure validator's `Violation.detail` stays a
+CLI-agnostic *description* of the breach (which gate, which threshold, which
+direction — the checker/mutator split, design §3.3), while the command layer
+adds the operator remedy through `_refuse_if_incoherent`'s `remedy` keyword:
+`recount` passes `_gate_ratio_remedy`, a pure function that emits one advice
+line per disagreeing gate. The **upward** line (a recount crosses a threshold
+while the gate is `false`) names the crossed threshold and points at
+`novel-state set-gate --knitting-NN` as the repair once the pending knitting
+pass is integrated and logged. The **downward** line (a recount leaves drafting
+below a threshold while the gate is recorded `true`) deliberately omits that
+verb — nothing was crossed upward, so prescribing the repair would corrupt the
+gate-integration record; instead it asks the operator to adjudicate (restore the
+drafts or clear the gate) and re-derive. Both directions forbid a hand-edit of
+`[gates]`, consistent with `set-gate` being the only repair mutator for a
+knitting gate that lags its ratio (see the `set-gate` "repair mutator" note
+above). Two pytest-bdd scenarios and two installed-binary e2e tests prove the
+dual-direction message at the user-visible level (roadmap 2.3.7).
+
 Task 2.1.3 reconciles **both** proxies against a live draft count in
 `tests/test_validate_state_live_draft.py::test_live_draft_agreement_over_whole_corpus`.
 The live-draft oracle (`working_corpus.live_draft_owned`) recomputes both live

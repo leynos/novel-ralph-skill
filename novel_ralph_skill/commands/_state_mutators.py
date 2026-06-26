@@ -53,6 +53,7 @@ from novel_ralph_skill.state import (
 )
 
 if typ.TYPE_CHECKING:
+    import collections.abc as cabc
     import pathlib
 
     from tomlkit import TOMLDocument
@@ -139,7 +140,12 @@ def _state_view_or_state_error(document: TOMLDocument) -> State:
         raise StateInputError(msg) from exc
 
 
-def _refuse_if_incoherent(state: State, *, context: str) -> None:
+def _refuse_if_incoherent(
+    state: State,
+    *,
+    context: str,
+    remedy: cabc.Callable[[State], cabc.Sequence[str]] | None = None,
+) -> None:
     """Raise :class:`StateInputError` naming any §5.2 violations of ``state``.
 
     Centralises the validate-before-persist refusal so each mutator reads as
@@ -149,12 +155,24 @@ def _refuse_if_incoherent(state: State, *, context: str) -> None:
     an operator can name the breached invariant (design §4.1; ExecPlan Constraint
     "Validate before persist").
 
+    A caller may pass a command-specific ``remedy`` callable. When the verdict is
+    non-empty and ``remedy`` returns a non-empty sequence, its lines are appended
+    after the per-violation details, so the operator advice (a CLI verb to run,
+    say) lives in the command layer rather than the pure validator (design §3.3
+    checker/mutator split). The keyword defaults to ``None``, so every existing
+    caller is unchanged; ``remedy`` is called exactly once, on the same ``state``
+    just validated, avoiding a second ``validate_state`` pass on the refusal path.
+
     Parameters
     ----------
     state : State
         The proposed (or prior) state to validate.
     context : str
         A short phrase naming the refused transition, for the message prefix.
+    remedy : collections.abc.Callable[[State], collections.abc.Sequence[str]] | None
+        An optional command-specific advice builder. Receives the validated
+        ``state`` and returns the remedy lines to append (an empty sequence when
+        it has no advice for this breach). ``None`` (the default) appends nothing.
 
     Raises
     ------
@@ -162,15 +180,19 @@ def _refuse_if_incoherent(state: State, *, context: str) -> None:
         When ``validate_state(state)`` is non-empty (the exit-``3`` refusal).
     """
     verdict = validate_state(state)
-    if verdict:
-        names = ", ".join(violation.invariant for violation in verdict)
-        summary = f"{context} would violate: {names}"
-        # The envelope's ``messages`` carry the invariant names first (so an
-        # operator and the refusal tests can name the breached invariant on the
-        # exit-3 channel) then each violation's detail. The exit-3 ``run`` arm
-        # emits only ``messages`` (no ``result``), so the names must ride here.
-        details = [violation.detail for violation in verdict]
-        raise StateInputError(summary, *details)
+    if not verdict:
+        return
+    names = ", ".join(violation.invariant for violation in verdict)
+    summary = f"{context} would violate: {names}"
+    # The envelope's ``messages`` carry the invariant names first (so an operator
+    # and the refusal tests can name the breached invariant on the exit-3
+    # channel), then each violation's detail, then any command-specific remedy
+    # lines. The exit-3 ``run`` arm emits only ``messages`` (no ``result``), so
+    # all of this prose must ride here.
+    details = [violation.detail for violation in verdict]
+    if remedy is not None:
+        details.extend(remedy(state))
+    raise StateInputError(summary, *details)
 
 
 def set_cursor(*, chapter: int, scene: int, beat: int) -> CommandOutcome:

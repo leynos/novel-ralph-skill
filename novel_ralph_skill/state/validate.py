@@ -247,6 +247,31 @@ def _check_cursor_coherent(state: State) -> Violation | None:
     )
 
 
+# The three knitting-gate flag names, in ``GATE_THRESHOLDS`` order, so the
+# gate-ratio detail can name each gate beside the threshold it must match.
+_KNITTING_GATE_NAMES: tuple[str, str, str] = ("done_30", "done_50", "done_80")
+
+
+def _gate_ratio_disagreement(
+    *, name: str, flag: bool, threshold: float, ratio: float
+) -> str:
+    """Describe one knitting gate's disagreement with the drafted ratio.
+
+    Names the gate (``done_30``/``done_50``/``done_80``), its recorded boolean,
+    its threshold (rendered with two decimals so ``"0.3"``/``"0.5"``/``"0.8"``
+    remain contiguous substrings), and the **direction** of the breach: a gate
+    recorded ``false`` while ``ratio >= threshold`` is the *upward* disagreement;
+    a gate recorded ``true`` while ``ratio < threshold`` is the *downward* one.
+    This is a pure *description* of the breach; the operator remedy belongs in
+    the command layer (design §3.3 checker/mutator split).
+    """
+    direction = "above" if ratio >= threshold else "below"
+    return (
+        f"{name}={flag} but drafted ratio {ratio:.4f} is {direction} "
+        f"threshold {threshold:.2f}"
+    )
+
+
 def _check_gate_ratio_consistent(state: State) -> Violation | None:
     """Return a violation when a knitting gate disagrees with the ratio (inv 7).
 
@@ -256,6 +281,12 @@ def _check_gate_ratio_consistent(state: State) -> Violation | None:
     short-circuits with no violation rather than dividing, mirroring the oracle's
     ``if spec.target_words <= 0: return True`` guard (B7), so the validator is
     total over every constructible ``State``.
+
+    The ``detail`` names, per disagreeing gate, the gate flag, its threshold, the
+    computed drafted ratio, and the breach direction (``above``/``below``), so an
+    operator reading the envelope knows exactly which gate disagrees and which
+    way. It stays a pure breach *description*: no CLI verb or remedy appears here
+    (design §3.3; the recount remedy is added in the command layer).
     """
     target = state.word_counts.target
     if target <= 0:
@@ -264,17 +295,19 @@ def _check_gate_ratio_consistent(state: State) -> Violation | None:
     ratio = drafted_total / target
     knitting = state.gates.knitting
     flags = (knitting.done_30, knitting.done_50, knitting.done_80)
-    if all(
-        flag == (ratio >= threshold)
-        for flag, threshold in zip(flags, GATE_THRESHOLDS, strict=True)
-    ):
+    disagreements = [
+        _gate_ratio_disagreement(name=name, flag=flag, threshold=threshold, ratio=ratio)
+        for name, flag, threshold in zip(
+            _KNITTING_GATE_NAMES, flags, GATE_THRESHOLDS, strict=True
+        )
+        if flag != (ratio >= threshold)
+    ]
+    if not disagreements:
         return None
     return Violation(
         invariant=GATE_RATIO_CONSISTENT,
-        detail=(
-            f"knitting gates {flags} disagree with drafted ratio {ratio:.4f} "
-            f"against thresholds {GATE_THRESHOLDS}"
-        ),
+        detail="knitting gates disagree with the drafted ratio: "
+        + "; ".join(disagreements),
     )
 
 

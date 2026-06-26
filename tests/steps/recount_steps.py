@@ -23,16 +23,17 @@ from the assert/argument-count rules) and is imported into the scenario binder
 from __future__ import annotations
 
 import dataclasses as dc
+import json
 import typing as typ
 
 import pytest
 import working_corpus as wc
-from pytest_bdd import given, then, when
+from pytest_bdd import given, parsers, then, when
 
 from novel_ralph_skill.commands.novel_state import build_app
 from novel_ralph_skill.contract.exit_codes import ExitCode
 from novel_ralph_skill.contract.runner import RunContext, run
-from novel_ralph_skill.state import load_document
+from novel_ralph_skill.state import document_to_state, load_document, validate_state
 
 if typ.TYPE_CHECKING:
     from pathlib import Path
@@ -40,6 +41,7 @@ if typ.TYPE_CHECKING:
 # The two drafted chapters' true word counts; the hand-typed ``[word_counts]`` is
 # set deliberately wrong so the recount has something to correct.
 _TRUE_COUNTS: tuple[int, int] = (3, 5)
+_TARGET_WORDS = 80000
 
 
 @dc.dataclass(slots=True)
@@ -48,6 +50,8 @@ class _Outcome:
 
     working: Path
     exit_code: int | None = None
+    messages: tuple[str, ...] = ()
+    before: bytes | None = None
 
 
 def _run_recount(working: Path, monkeypatch: pytest.MonkeyPatch) -> int:
@@ -100,12 +104,6 @@ def wrong_count_tree(tmp_path: Path) -> _Outcome:
     return _Outcome(working=wc.build_working_tree(spec, tmp_path))
 
 
-@when("recount runs against that tree")
-def run_recount(outcome: _Outcome, monkeypatch: pytest.MonkeyPatch) -> None:
-    """Drive ``recount`` through ``run`` and capture the exit code."""
-    outcome.exit_code = _run_recount(outcome.working, monkeypatch)
-
-
 @then("recount exits 0")
 def asserts_exit_zero(outcome: _Outcome) -> None:
     """Assert the recount exited ``0`` (success)."""
@@ -137,3 +135,162 @@ def asserts_idempotent(outcome: _Outcome, monkeypatch: pytest.MonkeyPatch) -> No
     )
     after = (outcome.working / "state.toml").read_bytes()
     assert after == before, "a second recount must leave state.toml byte-for-byte"
+
+
+def _gate_chapter(number: int, draft_words: int) -> wc.ChapterSpec:
+    """Return a coherent single chapter drafting ``draft_words`` against the target."""
+    return wc.ChapterSpec(
+        number=number,
+        slug=f"chapter-{number:02d}",
+        title=f"Chapter {number}",
+        target_words=_TARGET_WORDS,
+        draft_words=draft_words,
+        has_done_flag=False,
+    )
+
+
+@then(parsers.parse('the recount message contains "{needle}"'))
+def asserts_message_contains(outcome: _Outcome, needle: str) -> None:
+    """Assert at least one envelope ``messages`` line contains ``needle``."""
+    assert any(needle in line for line in outcome.messages), (
+        f"no message contained {needle!r}; messages were {outcome.messages!r}"
+    )
+
+
+def _gate_breach_spec(
+    *,
+    draft_words: int,
+    by_chapter_override: dict[str, int],
+    current_words_override: int,
+    gates: tuple[bool, bool, bool],
+) -> wc.WorkingTreeSpec:
+    """Return a one-chapter drafting spec whose recount will breach a knitting gate.
+
+    The chapter drafts ``draft_words`` on disk while the hand-typed
+    ``[word_counts]`` records ``by_chapter_override``/``current_words_override``,
+    chosen so the prior state passes ``validate_state`` with ``gates`` — so the
+    refusal is the *recount* re-deriving the counts, not a pre-existing breach.
+    """
+    return wc.WorkingTreeSpec(
+        phase_current="drafting",
+        phase_completed=wc.PHASE_ORDER[:8],
+        chapters=(_gate_chapter(1, draft_words),),
+        target_words=_TARGET_WORDS,
+        consecutive_clean=0,
+        convergence_target=1,
+        current_chapter=1,
+        by_chapter_override=by_chapter_override,
+        current_words_override=current_words_override,
+        done_30=gates[0],
+        done_50=gates[1],
+        done_80=gates[2],
+    )
+
+
+@given(
+    "a working tree whose recorded done_80 gate no longer matches its shrunken drafts",
+    target_fixture="outcome",
+)
+def downward_gate_tree(tmp_path: Path) -> _Outcome:
+    """Build a tree whose recount drops the ratio to 0.55 with done_80 true.
+
+    The hand-typed counts cross 0.80 so the prior state is coherent with done_80
+    true, but the drafts recount to 0.55 — isolating the single downward breach.
+
+    Returns
+    -------
+    _Outcome
+        The built ``working/`` path and its prior bytes.
+    """
+    return _coherent_gate_tree(
+        tmp_path,
+        _gate_breach_spec(
+            draft_words=44000,
+            by_chapter_override={"01": 68800},
+            current_words_override=68800,
+            gates=(True, True, True),
+        ),
+    )
+
+
+@then("state.toml is left byte-for-byte unchanged")
+def asserts_refused_state_unchanged(outcome: _Outcome) -> None:
+    """Assert the refused recount left ``state.toml`` byte-for-byte intact."""
+    assert outcome.before is not None, "the refusal scenario must record prior bytes"
+    after = (outcome.working / "state.toml").read_bytes()
+    assert after == outcome.before, "a refused recount must leave state.toml intact"
+
+
+@then(parsers.parse('the recount message does not contain "{needle}"'))
+def asserts_message_absent(outcome: _Outcome, needle: str) -> None:
+    """Assert no envelope ``messages`` line contains ``needle``.
+
+    Proves the downward path never prescribes the upward repair verb — the
+    pre-mortem's most likely incident (design-review B2).
+    """
+    assert all(needle not in line for line in outcome.messages), (
+        f"a message wrongly contained {needle!r}; messages were {outcome.messages!r}"
+    )
+
+
+@then("recount exits 3")
+def asserts_recount_exit_three(outcome: _Outcome) -> None:
+    """Assert the recount exited ``3`` (state error), never the benign ``1``."""
+    assert outcome.exit_code == ExitCode.STATE_ERROR, (
+        f"expected exit 3, got {outcome.exit_code}"
+    )
+
+
+def _coherent_gate_tree(tmp_path: Path, spec: wc.WorkingTreeSpec) -> _Outcome:
+    """Build ``spec`` and assert it is coherent before recount; return the outcome.
+
+    The prior state must pass ``validate_state`` so the exit-3 refusal under test is
+    the *recount* re-deriving the counts, not a pre-existing breach.
+    """
+    working = wc.build_working_tree(spec, tmp_path)
+    prior = document_to_state(load_document(working / "state.toml"))
+    assert not validate_state(prior), (
+        "the hand-typed prior state must pass validate_state before recount"
+    )
+    return _Outcome(working=working, before=(working / "state.toml").read_bytes())
+
+
+@given(
+    "a working tree whose drafts have grown past the 30% knitting threshold while "
+    "done_30 is still false",
+    target_fixture="outcome",
+)
+def upward_gate_tree(tmp_path: Path) -> _Outcome:
+    """Build a tree whose recount lifts the ratio to 0.34 with done_30 false.
+
+    Returns
+    -------
+    _Outcome
+        The built ``working/`` path and its prior bytes.
+    """
+    return _coherent_gate_tree(
+        tmp_path,
+        _gate_breach_spec(
+            draft_words=27200,
+            by_chapter_override={"01": 100},
+            current_words_override=100,
+            gates=(False, False, False),
+        ),
+    )
+
+
+@when("recount runs against that tree")
+def run_recount_capturing(
+    outcome: _Outcome,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Drive ``recount`` and capture both the exit code and the envelope messages.
+
+    Shares the ``When`` phrasing with the success scenario's run step; pytest-bdd
+    binds whichever step the active scenario's ``Given`` produced. The exit-3
+    envelope is printed to stdout by ``run``, so ``capsys`` reads its ``messages``.
+    """
+    outcome.exit_code = _run_recount(outcome.working, monkeypatch)
+    envelope = json.loads(capsys.readouterr().out or "{}")
+    outcome.messages = tuple(envelope.get("messages", ()))

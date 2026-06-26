@@ -216,7 +216,16 @@ _DETAIL_CASES: tuple[tuple[str, State, tuple[str, ...]], ...] = (
     (CONVERGENCE_TARGET_AT_LEAST_ONE, _break_at_least_one(_baseline()), ("0", "1")),
     (CONSECUTIVE_CLEAN_WITHIN_DRAFTED, _break_within_drafted(_baseline()), ("2", "1")),
     (CURSOR_COHERENT, _break_cursor(_baseline()), ("5", "2")),
-    (GATE_RATIO_CONSISTENT, _break_gate_ratio(_baseline()), ("0.3", "0.5", "0.8")),
+    # ``_break_gate_ratio`` flips ``done_30`` true while the 8000/80000 = 0.10
+    # ratio sits below every threshold, so only ``done_30`` disagrees: the detail
+    # names that gate, its recorded boolean, the ``0.30`` threshold (``"0.3"`` is a
+    # contiguous substring), the drafted ratio, and the downward ``"below"``
+    # direction (Work item 1 enriches the prose; only the disagreeing gate shows).
+    (
+        GATE_RATIO_CONSISTENT,
+        _break_gate_ratio(_baseline()),
+        ("done_30=True", "0.3", "below"),
+    ),
 )
 
 

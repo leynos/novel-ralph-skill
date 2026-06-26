@@ -214,6 +214,18 @@ value the drafted ratio mandates and refuses with exit 3 if the ratio has not
 crossed the threshold (the gate-ratio binding; `novel-state check` validates the
 gate against `sum(by_chapter) / target`).
 
+This binding couples `recount` to the gates. `novel-state recount` re-derives
+`[word_counts]` from the drafts and never flips a gate — disk does not store the
+"pass integrated" fact, so the harness will not synthesise it. If a recount
+refuses on `gate-ratio-consistent`, it is telling you the re-derived ratio
+crossed a knitting threshold the recorded gates do not yet reflect: integrate
+and log the pending knitting pass, then run
+`novel-state set-gate --knitting-NN`.
+Do not hand-edit `[gates]` to silence it. (If instead the message says a gate is
+recorded true while drafting has dropped *below* its threshold, the recorded
+gate no longer matches the drafts — adjudicate by restoring the drafts or
+clearing the gate, then re-derive.)
+
 `final_pass_complete` flips to true at the end of Phase 9. Flip it by running
 `novel-state complete-final-pass` (or `novel-state set-gate --final`), never by
 a direct `state.toml` edit.

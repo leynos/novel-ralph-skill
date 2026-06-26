@@ -247,7 +247,12 @@ idempotent: running it twice over unchanged drafts leaves `state.toml`
 byte-for-byte identical. Like the other write subcommands it writes nothing on
 refusal (exit `3`) — a missing or unparseable `state.toml`, an unreadable
 draft, or a recount that would leave the state incoherent each leaves the prior
-file untouched.
+file untouched. One incoherence is worth calling out: a recount refuses when it
+would move the drafted ratio across a knitting-gate threshold (30%, 50%, or 80%)
+the recorded gates do not yet reflect — recount re-derives the word counts only
+and never flips a gate. The refusal names the crossed threshold and, once you
+have integrated and logged the pending knitting pass, points you at
+`novel-state set-gate` (described below) as the remedy.
 
 `novel-state set-chapters` (roadmap task 2.2.3) populates the `[chapters]`
 manifest from your chapter plan — the one sanctioned way a planned chapter

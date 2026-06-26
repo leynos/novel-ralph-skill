@@ -45,6 +45,20 @@ _COMMAND = "novel state"
 # The recounted oracle both proofs assert: chapters draft 3 and 5 words, so
 # ``recount`` rewrites the deliberately wrong ``[word_counts]`` to this envelope.
 _RECOUNTED_RESULT: typ.Final = {"current": 8, "by_chapter": {"01": 3, "02": 5}}
+_TARGET_WORDS: typ.Final = 80000
+# The load-bearing actionable substrings each gate-breach proof asserts, derived
+# from the pinned message template (ExecPlan Work item 2 "Acceptance substrings").
+_UPWARD_SUBSTRINGS: typ.Final = (
+    "crossed the 30% knitting threshold",
+    "gate done_30 is still false",
+    "set-gate --knitting-30",
+    "Do not hand-edit [gates]",
+)
+_DOWNWARD_SUBSTRINGS: typ.Final = (
+    "left drafting below the 80% knitting threshold",
+    "gate done_80 is recorded true",
+    "Adjudicate",
+)
 
 
 def _stale_two_chapter_spec() -> wc.WorkingTreeSpec:
@@ -99,6 +113,33 @@ def test_entry_point_recount_reachable_exits_zero(
     envelope = json.loads(capsys.readouterr().out)
     result = typ.cast("dict[str, object]", envelope["result"])
     assert result == _RECOUNTED_RESULT
+
+
+def test_entry_point_recount_upward_gate_breach_is_actionable(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """The entry point refuses an upward gate breach with the actionable message.
+
+    A fast, non-``slow`` proof that does not need the wheel build: a recount that
+    crosses the 30% threshold while done_30 is false exits ``3`` with an
+    ``ok: false`` envelope whose ``messages`` carry the upward remedy. The slower
+    installed-binary variant proves the same against a real console-script.
+    """
+    working = wc.build_working_tree(_upward_gate_breach_spec(), tmp_path)
+    monkeypatch.chdir(working.parent)
+    monkeypatch.setattr(sys, "argv", [*_COMMAND.split(), "recount"])
+    with pytest.raises(SystemExit) as excinfo:
+        novel.main()
+    assert excinfo.value.code == ExitCode.STATE_ERROR
+    envelope = json.loads(capsys.readouterr().out)
+    assert envelope["ok"] is False
+    messages = typ.cast("list[str]", envelope["messages"])
+    for substring in _UPWARD_SUBSTRINGS:
+        assert any(substring in line for line in messages), (
+            f"no message contained {substring!r}; messages were {messages!r}"
+        )
 
 
 @pytest.mark.skipif(
@@ -183,3 +224,154 @@ def test_installed_novel_state_recount_state_error_exits_three(
     assert result.exit_code == 3, result.stderr
     assert json.loads(result.stdout or "{}")["ok"] is False
     assert "Traceback" not in (result.stderr or "")
+
+
+def _run_installed_recount(
+    spec: wc.WorkingTreeSpec,
+    tmp_path: Path,
+    single_program_catalogue: cabc.Callable[[str, Program], ProgramCatalogue],
+    installed_novel_state: Path,
+) -> dict[str, object]:
+    """Build ``spec``, run the installed ``recount``, and return its exit-3 envelope.
+
+    Asserts the installed mutator exits ``3`` with an ``ok: false`` envelope and no
+    traceback, then returns the parsed envelope so the caller can assert on
+    ``messages``. Shared by the upward and downward gate-breach installed proofs.
+    """
+    run_dir = tmp_path / "run"
+    wc.build_working_tree(spec, run_dir)
+
+    prog = Program(str(installed_novel_state))
+    catalogue = single_program_catalogue("novel-state-run", prog)
+    result = sh.make(prog, catalogue=catalogue)("state", "recount").run_sync(
+        context=ExecutionContext(cwd=run_dir), capture=True
+    )
+    assert result.exit_code == 3, result.stderr
+    assert "Traceback" not in (result.stderr or "")
+    envelope = typ.cast("dict[str, object]", json.loads(result.stdout or "{}"))
+    assert envelope["ok"] is False
+    return envelope
+
+
+def _gate_breach_spec(
+    *,
+    draft_words: int,
+    by_chapter_override: dict[str, int],
+    current_words_override: int,
+    gates: tuple[bool, bool, bool],
+) -> wc.WorkingTreeSpec:
+    """Return a one-chapter drafting spec whose recount breaches a knitting gate.
+
+    The chapter drafts ``draft_words`` on disk while the hand-typed
+    ``[word_counts]`` records ``by_chapter_override``/``current_words_override``,
+    chosen so the prior state is coherent with ``gates`` — so the exit-3 refusal
+    is the recount re-deriving the counts, not a pre-existing breach.
+    """
+    chapter = wc.ChapterSpec(
+        number=1,
+        slug="chapter-01",
+        title="Chapter 1",
+        target_words=_TARGET_WORDS,
+        draft_words=draft_words,
+        has_done_flag=False,
+    )
+    return wc.WorkingTreeSpec(
+        phase_current="drafting",
+        phase_completed=wc.PHASE_ORDER[:8],
+        chapters=(chapter,),
+        target_words=_TARGET_WORDS,
+        consecutive_clean=0,
+        convergence_target=1,
+        current_chapter=1,
+        by_chapter_override=by_chapter_override,
+        current_words_override=current_words_override,
+        done_30=gates[0],
+        done_50=gates[1],
+        done_80=gates[2],
+    )
+
+
+@pytest.mark.skipif(
+    os.name != "posix",
+    reason="console-script e2e is POSIX-only; see ADR 006",
+)
+@pytest.mark.slow
+@pytest.mark.timeout(180)
+def test_installed_novel_state_recount_downward_gate_breach_does_not_prescribe(
+    tmp_path: Path,
+    single_program_catalogue: cabc.Callable[[str, Program], ProgramCatalogue],
+    installed_novel_state: Path,
+) -> None:
+    """The installed ``recount`` adjudicates a downward gate breach, never repairs.
+
+    A recount that leaves drafting below the 80% threshold while done_80 is
+    recorded true exits ``3`` with the downward message (adjudicate, restore or
+    clear) and **no** ``set-gate --knitting-80`` verb on any ``messages`` line —
+    proving the upward repair verb cannot leak onto the downward path at the
+    installed boundary (resolves design-review B2 end to end).
+    """
+    envelope = _run_installed_recount(
+        _downward_gate_breach_spec(),
+        tmp_path,
+        single_program_catalogue,
+        installed_novel_state,
+    )
+    messages = typ.cast("list[str]", envelope["messages"])
+    for substring in _DOWNWARD_SUBSTRINGS:
+        assert any(substring in line for line in messages), (
+            f"no message contained {substring!r}; messages were {messages!r}"
+        )
+    assert all("set-gate --knitting-80" not in line for line in messages), (
+        f"the downward path must not prescribe set-gate; messages were {messages!r}"
+    )
+
+
+def _downward_gate_breach_spec() -> wc.WorkingTreeSpec:
+    """Return a spec whose recount drops the ratio to 0.55 with done_80 true."""
+    return _gate_breach_spec(
+        draft_words=44000,
+        by_chapter_override={"01": 68800},
+        current_words_override=68800,
+        gates=(True, True, True),
+    )
+
+
+@pytest.mark.skipif(
+    os.name != "posix",
+    reason="console-script e2e is POSIX-only; see ADR 006",
+)
+@pytest.mark.slow
+@pytest.mark.timeout(180)
+def test_installed_novel_state_recount_upward_gate_breach_is_actionable(
+    tmp_path: Path,
+    single_program_catalogue: cabc.Callable[[str, Program], ProgramCatalogue],
+    installed_novel_state: Path,
+) -> None:
+    """The installed ``recount`` refuses an upward gate breach with the remedy.
+
+    A recount that crosses the 30% threshold while done_30 is false exits ``3``
+    with an ``ok: false`` envelope whose ``messages`` carry the upward remedy
+    (the crossed threshold, the recounted percentage, and the ``set-gate
+    --knitting-30`` verb), proven against a real installed console-script.
+    """
+    envelope = _run_installed_recount(
+        _upward_gate_breach_spec(),
+        tmp_path,
+        single_program_catalogue,
+        installed_novel_state,
+    )
+    messages = typ.cast("list[str]", envelope["messages"])
+    for substring in _UPWARD_SUBSTRINGS:
+        assert any(substring in line for line in messages), (
+            f"no message contained {substring!r}; messages were {messages!r}"
+        )
+
+
+def _upward_gate_breach_spec() -> wc.WorkingTreeSpec:
+    """Return a spec whose recount lifts the ratio to 0.34 with done_30 false."""
+    return _gate_breach_spec(
+        draft_words=27200,
+        by_chapter_override={"01": 100},
+        current_words_override=100,
+        gates=(False, False, False),
+    )

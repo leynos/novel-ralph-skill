@@ -1155,7 +1155,7 @@ agent-improvised recovery routine. See novel-ralph-harness-design.md §4.1 and
       derivation/integration level; add the symmetric e2e so the user-visible
       orphan-drop path matches the plan's dual-direction behavioural acceptance.
       Lightweight addendum pass.
-- [ ] 2.3.7. Make recount's gate-ratio refusal actionable and document the
+- [x] 2.3.7. Make recount's gate-ratio refusal actionable and document the
   recount-gate coupling.
   - Requires 2.3.1.
   - `recount` exits 3 `gate-ratio-consistent` when the recount would cross a

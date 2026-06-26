@@ -32,12 +32,26 @@ from novel_ralph_skill.commands._state_mutators import (
 from novel_ralph_skill.commands.novel_state import STATE_INPUT_ERRORS
 from novel_ralph_skill.contract.exit_codes import ExitCode
 from novel_ralph_skill.contract.runner import CommandOutcome, StateInputError
-from novel_ralph_skill.state import recount_words, write_document_atomically
+from novel_ralph_skill.state import (
+    GATE_THRESHOLDS,
+    recount_words,
+    write_document_atomically,
+)
 
 if typ.TYPE_CHECKING:
     import collections.abc as cabc
 
-    from novel_ralph_skill.state import ChapterEntry
+    from novel_ralph_skill.state import ChapterEntry, State
+
+# The three knitting-gate flag names paired with their ``set-gate`` flags, in
+# ``GATE_THRESHOLDS`` order, so the recount remedy can point each disagreeing
+# gate at the exact ``novel-state set-gate --knitting-NN`` verb that repairs it
+# (verified ``_gate_drafting_mutators.py`` lines 71-73).
+_KNITTING_GATE_REPAIRS: tuple[tuple[str, str], ...] = (
+    ("done_30", "--knitting-30"),
+    ("done_50", "--knitting-50"),
+    ("done_80", "--knitting-80"),
+)
 
 
 def _recount_or_state_error(
@@ -103,6 +117,70 @@ def _inline_by_chapter(by_chapter: cabc.Mapping[str, int]) -> tomlkit.items.Inli
     return table
 
 
+def _gate_ratio_remedy(state: State) -> list[str]:
+    """Return per-gate actionable advice when a recount breaches a knitting gate.
+
+    Pure text: reads ``state`` and returns one operator-advice line per knitting
+    gate whose recorded flag disagrees with ``drafted_ratio >= threshold``,
+    choosing the line by direction. It enumerates the gates directly rather than
+    recomputing "which threshold was crossed", so the advice is built only from
+    facts the validator already knows: each gate's recorded flag, its threshold
+    (``GATE_THRESHOLDS``), and the recounted drafted ratio. The empty list is
+    returned when no knitting gate disagrees — so the helper is a harmless no-op
+    when some *other* invariant is the sole breach (design §4.1, §5.4 recovery
+    rule 1; the remedy points at a verb, never a hand-edit — ADR-001/ADR-010).
+
+    The **upward** line (flag ``false`` but the recount moved drafting at or past
+    the threshold) prescribes the repair: integrate the pending knitting pass,
+    then run ``novel-state set-gate --knitting-NN``. The **downward** line (flag
+    ``true`` but the recount left drafting below the threshold) deliberately omits
+    that verb — nothing was crossed upward, so prescribing the repair would
+    corrupt the gate-integration record; it asks the operator to adjudicate.
+
+    Parameters
+    ----------
+    state : State
+        The proposed (recounted) state being refused.
+
+    Returns
+    -------
+    list[str]
+        One advice line per disagreeing knitting gate, empty when none disagree.
+    """
+    target = state.word_counts.target
+    if target <= 0:
+        return []
+    drafted_total = sum(state.word_counts.by_chapter.values())
+    ratio = drafted_total / target
+    knitting = state.gates.knitting
+    flags = (knitting.done_30, knitting.done_50, knitting.done_80)
+    percent = f"{ratio * 100:.0f}"
+    lines: list[str] = []
+    for (name, flag_name), flag, threshold in zip(
+        _KNITTING_GATE_REPAIRS, flags, GATE_THRESHOLDS, strict=True
+    ):
+        crossed = ratio >= threshold
+        if flag == crossed:
+            continue
+        gate_percent = int(threshold * 100)
+        if crossed:
+            lines.append(
+                f"recount crossed the {gate_percent}% knitting threshold (drafts "
+                f"now at {percent}% of target) but gate {name} is still false: "
+                f"integrate the pending knitting pass and log it, then run "
+                f"`novel-state set-gate {flag_name}`. Do not hand-edit [gates]."
+            )
+        else:
+            lines.append(
+                f"recount left drafting below the {gate_percent}% knitting "
+                f"threshold (drafts now at {percent}% of target) but gate {name} "
+                f"is recorded true: the recorded gate no longer matches the "
+                f"drafts. Adjudicate — restore the drafts or clear the gate — and "
+                f"re-derive. Do not hand-edit [gates] to silence this."
+            )
+    return lines
+
+
 def recount() -> CommandOutcome:
     """Re-derive ``[word_counts]`` from the chapter drafts; refuse with exit ``3``.
 
@@ -146,7 +224,7 @@ def recount() -> CommandOutcome:
     document["word_counts"]["current"] = current
     document["word_counts"]["by_chapter"] = _inline_by_chapter(by_chapter)
     proposed = _state_view_or_state_error(document)
-    _refuse_if_incoherent(proposed, context="recount")
+    _refuse_if_incoherent(proposed, context="recount", remedy=_gate_ratio_remedy)
     write_document_atomically(document, path)
     return CommandOutcome(
         code=ExitCode.SUCCESS,
