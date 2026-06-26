@@ -27,6 +27,8 @@ from novel_ralph_skill.contract.runner import StateInputError
 from novel_ralph_skill.state import load_state
 
 if typ.TYPE_CHECKING:
+    from importlib.resources.abc import Traversable
+
     from novel_ralph_skill.state import State
 
 # The fixed cwd-relative working directory the design records (design line 151);
@@ -180,6 +182,127 @@ def _draft_read_error(reported_dir: pathlib.Path, exc: Exception) -> StateInputE
         f"cannot read the drafts under {reported_dir}; a draft.md (or "
         "compiled.md) is unreadable or corrupt — inspect and repair it, or "
         "restore it from a known-good copy"
+    )
+    return StateInputError(message)
+
+
+def _compile_write_error(target: pathlib.Path, exc: Exception) -> StateInputError:
+    """Build the exit-``3`` ``StateInputError`` for a faulted manuscript write.
+
+    The write-shaped sibling of :func:`_draft_read_error` (roadmap §6.3.8). When
+    :func:`novel compile <novel_ralph_skill.commands._compile.compile_manuscript>`
+    cannot write ``working/manuscript/compiled.md`` — typically because the
+    ``manuscript/`` directory is absent at write time, raising
+    ``FileNotFoundError`` (an ``OSError``) — this replaces the raw operating-system
+    text (an ``Errno`` and a ``{exc}`` repr naming a private temp file) with prose
+    that names the compiled-manuscript ``target`` and offers a write-shaped remedy
+    (``scripting-standards.md`` lines 603-605, 678).
+
+    Like :func:`_draft_read_error` it has a single arm and never advises
+    ``novel state init``: the working tree exists; only the write target under it
+    is missing, so the remedy is to re-create ``working/manuscript/`` (or restore
+    the tree) and re-run, not to re-initialise state (Decision D6 in the 6.3.5
+    plan). It keeps the ``"cannot write"`` stem the existing substring test pins.
+    The caller chains ``exc`` via ``from`` for debugging while ``exc.messages``
+    carries only the actionable prose — no ``Errno``, no ``{exc}`` repr, no
+    traceback.
+
+    Parameters
+    ----------
+    target : pathlib.Path
+        The compiled-manuscript path the write targeted; named in the message.
+    exc : Exception
+        The caught :data:`STATE_INPUT_ERRORS` member (chained by the caller).
+
+    Returns
+    -------
+    StateInputError
+        The actionable error, ready to raise.
+    """
+    message = (
+        f"cannot write {target}; ensure its parent directory "
+        "working/manuscript/ exists (re-create it or restore the working tree), "
+        "then re-run the compile"
+    )
+    return StateInputError(message)
+
+
+def _rule_pack_read_error(pack_path: Traversable, exc: Exception) -> StateInputError:
+    """Build the actionable exit-``3`` ``StateInputError`` for a faulted rule-pack read.
+
+    The rule-pack file-fault sibling of :func:`_draft_read_error` (roadmap
+    §6.3.8). When :func:`novel desloppify <novel_ralph_skill.commands._desloppify>`
+    cannot read its rule pack — because the ``--pack`` file is absent, unreadable,
+    or undecodable, raising ``RulePackFileError`` — this replaces the raw
+    operating-system text with prose that names ``pack_path`` and offers a
+    file-shaped remedy (``scripting-standards.md`` lines 603-605, 678).
+
+    It takes only the *path*, never the typed ``RulePackFileError`` (Decision D2):
+    that error's own message already embeds a raw ``{exc}`` repr
+    (``rulepack/parse.py:390``), so consuming it would re-leak the operating-system
+    text this task exists to remove. The remedy names ``--pack`` because the path
+    is operator-supplied: check it is correct and readable, or omit ``--pack`` to
+    fall back to the shipped default pack. The caller chains ``exc`` via ``from``
+    for debugging while ``exc.messages`` carries only the actionable prose — no
+    ``Errno``, no ``{exc}`` repr, no traceback.
+
+    Parameters
+    ----------
+    pack_path : importlib.resources.abc.Traversable
+        The resolved rule-pack path the read targeted; named in the message. It
+        is a ``Traversable`` (not a bare ``pathlib.Path``) because the shipped
+        default pack resolves through ``importlib.resources`` while a ``--pack``
+        flag supplies a filesystem ``Path``; both stringify into the message.
+    exc : Exception
+        The caught ``RulePackFileError`` (chained by the caller).
+
+    Returns
+    -------
+    StateInputError
+        The actionable error, ready to raise.
+    """
+    message = (
+        f"cannot read rule pack {pack_path}; check the --pack path is correct "
+        "and readable, or omit --pack to use the shipped default pack"
+    )
+    return StateInputError(message)
+
+
+def _device_ledger_read_error(
+    ledger_path: pathlib.Path, exc: Exception
+) -> StateInputError:
+    """Build the actionable exit-``3`` ``StateInputError`` for a faulted ledger read.
+
+    The device-ledger file-fault sibling of :func:`_draft_read_error` (roadmap
+    §6.3.8). When ``novel desloppify --ledger`` cannot read its device ledger —
+    because the ``--ledger`` file is absent, unreadable, or undecodable, raising
+    ``LedgerFileError`` — this replaces the raw operating-system text with prose
+    that names ``ledger_path`` and offers a file-shaped remedy
+    (``scripting-standards.md`` lines 603-605, 678).
+
+    It takes only the *path*, never the typed ``LedgerFileError`` (Decision D2):
+    that error's own message already embeds a raw ``{exc}`` repr
+    (``ledger/parse.py:311``), so consuming it would re-leak the operating-system
+    text this task exists to remove. The remedy names ``--ledger`` because the
+    path is operator-supplied: check it is correct and readable. The caller chains
+    ``exc`` via ``from`` for debugging while ``exc.messages`` carries only the
+    actionable prose — no ``Errno``, no ``{exc}`` repr, no traceback.
+
+    Parameters
+    ----------
+    ledger_path : pathlib.Path
+        The device-ledger path the read targeted; named in the message.
+    exc : Exception
+        The caught ``LedgerFileError`` (chained by the caller).
+
+    Returns
+    -------
+    StateInputError
+        The actionable error, ready to raise.
+    """
+    message = (
+        f"cannot read device ledger {ledger_path}; check the --ledger path "
+        "is correct and readable"
     )
     return StateInputError(message)
 

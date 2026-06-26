@@ -48,14 +48,11 @@ from novel_ralph_skill.commands.novel_state import (
     WORKING_DIR_NAME,
     _draft_read_error,
     _load_or_state_error,
+    _rule_pack_read_error,
 )
 from novel_ralph_skill.contract.errors import EnvelopeMessagesError
 from novel_ralph_skill.contract.exit_codes import ExitCode
-from novel_ralph_skill.contract.runner import (
-    CommandOutcome,
-    StateInputError,
-    make_contract_app,
-)
+from novel_ralph_skill.contract.runner import CommandOutcome, make_contract_app
 from novel_ralph_skill.rulepack import RulePackError, RulePackFileError, load_rulepack
 from novel_ralph_skill.rulepack.detect import ScannedChapter, detect
 
@@ -252,8 +249,12 @@ def _desloppify(*, chapter: int | None, pack: pathlib.Path | None) -> CommandOut
         When ``--chapter N`` names a chapter absent from the manifest (exit
         ``2``).
     """
+    # Resolve the pack path before the try so the file-fault formatter can name
+    # the artefact without re-consuming the typed FileError's pre-built message,
+    # which already embeds a raw ``{exc}`` repr (ExecPlan Decision D2).
+    pack_path = pack or offenders_pack_path()
     try:
-        rulepack = load_rulepack(pack or offenders_pack_path())
+        rulepack = load_rulepack(pack_path)
     except RulePackError as exc:
         # Malformed pack *content* is a usage error (exit 2); map it locally to a
         # CommandOutcome rather than coupling the shared runner to rulepack.
@@ -262,13 +263,12 @@ def _desloppify(*, chapter: int | None, pack: pathlib.Path | None) -> CommandOut
         )
     except RulePackFileError as exc:
         # An absent/unreadable/undecodable pack *file* is the exit-3 state channel,
-        # which the shared runner already maps from StateInputError. This wraps a
-        # *typed* RulePackFileError for a *pack* file, not a ``working/`` draft, so
-        # it is deliberately out of the draft-read formatter's scope (ExecPlan
-        # Decision D3): ``_draft_read_error``'s "inspect the working/ tree" prose
-        # would mislead here.
-        msg = f"cannot read rule pack: {exc}"
-        raise StateInputError(msg) from exc
+        # which the shared runner already maps from StateInputError. It is a *pack*
+        # file, not a ``working/`` draft, so it is deliberately out of the
+        # draft-read formatter's scope (ExecPlan Decision D3) and routes through
+        # the shared ``_rule_pack_read_error`` formatter, which names the pack path
+        # and offers a file-shaped remedy with no raw OS text (roadmap §6.3.8).
+        raise _rule_pack_read_error(pack_path, exc) from exc
     chapters = source_chapters(chapter)
     return report_outcome(detect(rulepack, chapters))
 

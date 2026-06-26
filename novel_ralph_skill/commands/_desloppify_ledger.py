@@ -32,8 +32,9 @@ from __future__ import annotations
 
 import typing as typ
 
+from novel_ralph_skill.commands.novel_state import _device_ledger_read_error
 from novel_ralph_skill.contract.exit_codes import ExitCode
-from novel_ralph_skill.contract.runner import CommandOutcome, StateInputError
+from novel_ralph_skill.contract.runner import CommandOutcome
 from novel_ralph_skill.ledger import LedgerError, LedgerFileError, load_ledger
 from novel_ralph_skill.ledger.detect import detect_ledger
 from novel_ralph_skill.ledger.report import ledger_report_outcome
@@ -86,8 +87,11 @@ def ledger_scan(ledger_path: pathlib.Path) -> CommandOutcome:
         )
     except LedgerFileError as exc:
         # An absent/unreadable/undecodable ledger *file* is the exit-3 state
-        # channel, which the shared runner already maps from StateInputError.
-        msg = f"cannot read device ledger: {exc}"
-        raise StateInputError(msg) from exc
+        # channel, which the shared runner already maps from StateInputError. It
+        # routes through the shared ``_device_ledger_read_error`` formatter, which
+        # names the ledger path and offers a file-shaped remedy with no raw OS
+        # text (roadmap §6.3.8); the FileError's own message embeds a raw
+        # ``{exc}`` repr, so the formatter takes only the path (ExecPlan D2).
+        raise _device_ledger_read_error(ledger_path, exc) from exc
     chapters = source_chapters(None)
     return ledger_report_outcome(detect_ledger(ledger, chapters))

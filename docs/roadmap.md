@@ -2345,7 +2345,7 @@ and adr-003-shared-interface-contract.md.
       `ENVELOPE_SCHEMA_VERSION`, closing the gap where a drift introduced in
       design §3.1 alone (e.g. `schema_version: 2`) would slip past every existing
       guard. Lightweight addendum pass.
-- [ ] 6.3.8. Make the remaining exit-3 write/file-fault arms actionable
+- [x] 6.3.8. Make the remaining exit-3 write/file-fault arms actionable
   (compile-write, rule-pack read, device-ledger read).
   - Step-task (source: review:6.3.5 / audit:6.3.5 Finding 5; severity: low; two
     near-identical proposals merged). Serves the §6.3 hypothesis that every

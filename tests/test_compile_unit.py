@@ -322,8 +322,21 @@ def test_compile_absent_manuscript_dir_refuses(
             child.rmdir()
     manuscript.rmdir()
 
-    with pytest.raises(StateInputError, match="cannot write"):
+    with pytest.raises(StateInputError, match="cannot write") as excinfo:
         compile_manuscript()
+
+    # The actionable message names the compiled artefact and offers a
+    # write-shaped remedy, and never leaks the raw OS text (an ``Errno`` or a
+    # stringified ``FileNotFoundError`` repr) — the §6.3.8 invariant.
+    (message,) = excinfo.value.messages
+    assert "working/manuscript/compiled.md" in message
+    assert "manuscript/" in message
+    assert "Errno" not in message
+    assert "FileNotFoundError" not in message
+    assert "init" not in message, (
+        "the working tree exists; only the write target is absent, so the "
+        "remedy must not advise 'novel state init'"
+    )
 
 
 # A contiguous manifest of chapter numbers 1..n paired with per-chapter word

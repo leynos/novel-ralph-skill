@@ -127,13 +127,54 @@ def test_absent_pack_file_exits_three(
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    """A ``--pack`` pointing at an absent file exits ``3`` (state error)."""
+    """A ``--pack`` pointing at an absent file exits ``3`` with actionable prose.
+
+    The envelope names the offending pack path and offers a file-shaped remedy
+    (check ``--pack`` or fall back to the shipped pack), and never leaks the raw
+    OS text (an ``Errno`` or the stringified exception repr) — the §6.3.8
+    invariant.
+    """
     working = baseline_tree()
     monkeypatch.chdir(working.parent)
+    pack = "/no/such/pack.toml"
     with pytest.raises(SystemExit) as excinfo:
-        _run(["--pack", "/no/such/pack.toml"])
+        _run(["--pack", pack])
     assert excinfo.value.code == ExitCode.STATE_ERROR
-    assert _envelope(capsys)["ok"] is False
+    envelope = _envelope(capsys)
+    assert envelope["ok"] is False
+    joined = "\n".join(typ.cast("list[str]", envelope["messages"]))
+    assert pack in joined
+    assert "--pack" in joined
+    assert "Errno" not in joined
+    assert "FileNotFoundError" not in joined
+
+
+def test_undecodable_pack_file_exits_three(
+    baseline_tree: cabc.Callable[[], Path],
+    project_root: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A ``--pack`` whose TOML is undecodable exits ``3`` with actionable prose.
+
+    A syntactically broken pack file faults during ``tomllib.load``, raising
+    ``RulePackFileError`` (the exit-3 file channel, distinct from the exit-2
+    malformed-content channel). The envelope names the pack path and offers the
+    file-shaped remedy, with no raw ``TOMLDecodeError`` repr leaked.
+    """
+    working = baseline_tree()
+    pack = (project_root / "tests/data/rulepacks/undecodable.toml").resolve()
+    monkeypatch.chdir(working.parent)
+    with pytest.raises(SystemExit) as excinfo:
+        _run(["--pack", str(pack)])
+    assert excinfo.value.code == ExitCode.STATE_ERROR
+    envelope = _envelope(capsys)
+    assert envelope["ok"] is False
+    joined = "\n".join(typ.cast("list[str]", envelope["messages"]))
+    assert str(pack) in joined
+    assert "--pack" in joined
+    assert "Errno" not in joined
+    assert "TOMLDecodeError" not in joined
 
 
 def test_chapter_outside_manifest_exits_two(
@@ -237,13 +278,53 @@ def test_absent_ledger_file_exits_three(
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    """A ``--ledger`` pointing at an absent file exits ``3`` (state error)."""
+    """A ``--ledger`` pointing at an absent file exits ``3`` with actionable prose.
+
+    The envelope names the offending ledger path and offers a file-shaped remedy
+    (check ``--ledger``), and never leaks the raw OS text (an ``Errno`` or the
+    stringified exception repr) — the §6.3.8 invariant.
+    """
     working = baseline_tree()
     monkeypatch.chdir(working.parent)
+    ledger = "/no/such/ledger.toml"
     with pytest.raises(SystemExit) as excinfo:
-        _run(["--ledger", "/no/such/ledger.toml"])
+        _run(["--ledger", ledger])
     assert excinfo.value.code == ExitCode.STATE_ERROR
-    assert _envelope(capsys)["ok"] is False
+    envelope = _envelope(capsys)
+    assert envelope["ok"] is False
+    joined = "\n".join(typ.cast("list[str]", envelope["messages"]))
+    assert ledger in joined
+    assert "--ledger" in joined
+    assert "Errno" not in joined
+    assert "FileNotFoundError" not in joined
+
+
+def test_undecodable_ledger_file_exits_three(
+    baseline_tree: cabc.Callable[[], Path],
+    project_root: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A ``--ledger`` whose TOML is undecodable exits ``3`` with actionable prose.
+
+    A syntactically broken ledger file faults during ``tomllib.load``, raising
+    ``LedgerFileError`` (the exit-3 file channel, distinct from the exit-2
+    malformed-content channel). The envelope names the ledger path and offers the
+    file-shaped remedy, with no raw ``TOMLDecodeError`` repr leaked.
+    """
+    working = baseline_tree()
+    ledger = (project_root / "tests/data/ledgers/undecodable.toml").resolve()
+    monkeypatch.chdir(working.parent)
+    with pytest.raises(SystemExit) as excinfo:
+        _run(["--ledger", str(ledger)])
+    assert excinfo.value.code == ExitCode.STATE_ERROR
+    envelope = _envelope(capsys)
+    assert envelope["ok"] is False
+    joined = "\n".join(typ.cast("list[str]", envelope["messages"]))
+    assert str(ledger) in joined
+    assert "--ledger" in joined
+    assert "Errno" not in joined
+    assert "TOMLDecodeError" not in joined
 
 
 def test_malformed_ledger_exits_two(

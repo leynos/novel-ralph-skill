@@ -224,3 +224,39 @@ def test_entry_point_compile_empty_manifest_exits_three(
     assert excinfo.value.code == ExitCode.STATE_ERROR
     assert json.loads(capsys.readouterr().out)["ok"] is False
     assert not (working / "manuscript" / "compiled.md").exists()
+
+
+def test_entry_point_compile_absent_manuscript_dir_actionable(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """An absent ``manuscript/`` at write time exits ``3`` with actionable prose.
+
+    The state loads and the manifest is populated, but removing ``manuscript/``
+    makes the atomic write raise ``FileNotFoundError`` (an ``OSError``). The
+    emitted envelope names the compiled artefact and offers a write-shaped
+    remedy, and never leaks the raw OS text (an ``Errno`` or the stringified
+    exception repr) — the §6.3.8 invariant.
+    """
+    working, _ = _drafting_tree(tmp_path)
+    manuscript = working / "manuscript"
+    for child in sorted(manuscript.rglob("*"), reverse=True):
+        if child.is_file():
+            child.unlink()
+        else:
+            child.rmdir()
+    manuscript.rmdir()
+    monkeypatch.chdir(working.parent)
+    monkeypatch.setattr(sys, "argv", [*_COMMAND.split()])
+    with pytest.raises(SystemExit) as excinfo:
+        novel.main()
+    assert excinfo.value.code == ExitCode.STATE_ERROR
+    envelope = json.loads(capsys.readouterr().out)
+    assert envelope["ok"] is False
+    messages = typ.cast("list[str]", envelope["messages"])
+    joined = "\n".join(messages)
+    assert "working/manuscript/compiled.md" in joined
+    assert "manuscript/" in joined
+    assert "Errno" not in joined
+    assert "FileNotFoundError" not in joined

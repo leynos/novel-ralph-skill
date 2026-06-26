@@ -43,6 +43,7 @@ import typing as typ
 
 from novel_ralph_skill.commands.novel_state import (
     STATE_INPUT_ERRORS,
+    _compile_write_error,
     _draft_read_error,
     _load_or_state_error,
     state_path,
@@ -147,10 +148,10 @@ def compile_manuscript() -> CommandOutcome:
         # An absent manuscript/ directory raises FileNotFoundError (an OSError),
         # routed to exit 3 rather than escaping to the benign exit 1. This is a
         # *write* fault, deliberately kept out of the draft-read formatter's scope
-        # (ExecPlan Decision D6): it wants a write-shaped remedy, not the
-        # inspect-the-draft remedy ``_draft_read_error`` emits.
-        msg = f"cannot write {COMPILED_REL}: {exc}"
-        raise StateInputError(msg) from exc
+        # (ExecPlan Decision D6): it routes through the shared
+        # ``_compile_write_error`` formatter, which names the compiled artefact
+        # and offers a write-shaped remedy with no raw OS text (roadmap §6.3.8).
+        raise _compile_write_error(compiled_path, exc) from exc
     return CommandOutcome(
         code=ExitCode.SUCCESS,
         result={
