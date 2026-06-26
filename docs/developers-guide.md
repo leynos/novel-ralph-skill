@@ -146,7 +146,6 @@ crossing (the scope of task 6.2.4). Read that docstring before extending the
 matrix, so a new cell lands in the covered surface rather than re-proving a gap
 another suite owns.
 
-
 ### The cross-command envelope-and-exit-code identity proof
 
 The [`tests/cross_command_contract/`](../tests/cross_command_contract/) package

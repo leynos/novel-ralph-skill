@@ -45,6 +45,29 @@ reports "command not found", the package is not installed — install it as abov
 rather than falling back to `uv run`, `python -m`, or an ad-hoc script, so the
 agent always exercises the installed contract.
 
+A `uv tool`-installed `novel` binary does **not** auto-update, so the on-`PATH`
+executable can lag the contract this skill documents. Before a dogfood session,
+guarantee currency by reinstalling with `--force`, which overwrites the existing
+executable, or by pinning a version:
+
+```bash
+# Reinstall from the local checkout, overwriting the existing executable:
+uv tool install --force --from . novel-ralph-skill
+# Or pin a published version:
+uv tool install novel-ralph-skill==<version>
+# uv tool upgrade is the constraint-respecting alternative:
+uv tool upgrade novel-ralph-skill
+novel --version   # confirm the reinstall resolves
+```
+
+A plain `uv tool install` re-run does not upgrade an already-installed tool;
+`--force` (overwrite) or `uv tool upgrade` (within the original constraints) is
+required. See the uv tools documentation, sections "Tool versions", "Upgrading
+tools", and "Overwriting executables", at
+<https://docs.astral.sh/uv/concepts/tools/>. Note that `novel --version` itself
+exits 0 with no envelope, consistent with the help/version carve-out in
+"Invocation discipline".
+
 ## Harness contract
 
 The harness re-enters the agent repeatedly with a thin prompt of the form
@@ -63,6 +86,103 @@ requirements on every operation in this skill:
 4. **Truthful done reporting.** The agent reports "done" only when the
    `novel done` command exits 0 against the manuscript on disk. Aspirational
    completion is a failure.
+
+## Command contract
+
+Every body-producing `novel` invocation emits one JSON envelope on stdout and
+exits with a contract exit code. This section restates that contract for the
+agent at the point of use. It is a convenience restatement of the canonical
+sources, not a fresh definition: the source of truth is
+`docs/adr-003-shared-interface-contract.md` and the developers' guide sections
+"The shared JSON envelope" and "Disambiguated exit codes". When the contract
+changes, edit those canonical copies; this restatement follows them, exactly as
+the "Done predicate (short form)" section below points at the developers' guide
+clause table rather than re-listing the clauses.
+
+### Exit-code table
+
+The harness branches on the process exit code without parsing JSON. The five
+codes are a convenience restatement of ADR-003 Table 2:
+
+| Code | Meaning                                      | Agent response                              |
+| ---- | -------------------------------------------- | ------------------------------------------- |
+| 0    | Success; checker satisfied, mutator applied  | proceed                                     |
+| 1    | Benign negative; predicate not yet satisfied | continue the loop, no fix needed            |
+| 2    | Usage error; the invocation is wrong         | stop-and-fix; correct the invocation        |
+| 3    | State or input error                         | stop-and-fix; recover state, then re-run    |
+| 4    | Actionable finding a detector surfaced       | stop-and-fix; adjudicate or repair, re-run  |
+
+*Table: the disambiguated exit-code table (restated from ADR-003 Table 2).*
+
+The 1-versus-4 distinction is load-bearing. Code 1 is the steady-state "not
+finished yet" the loop expects on most turns; code 4 signals that a
+deterministic detector found something only the model can resolve. An agent that
+cannot tell them apart will either halt on every benign turn or ship an
+unresolved finding.
+
+### Envelope schema
+
+Each body-producing invocation emits the same six-field envelope, in this order,
+a convenience restatement of design §3.1:
+
+```json
+{
+  "command": "novel done",
+  "schema_version": 1,
+  "ok": false,
+  "working_dir": "working",
+  "result": { "...": "command-specific" },
+  "messages": ["compiled.md diverges from chapter drafts"]
+}
+```
+
+- `command` names the invoked command.
+- `schema_version` stamps the envelope contract version the command emitted.
+- `ok` is `true` if and only if the exit code is 0, so it mirrors success(0)
+  alone and collapses exits 1, 2, 3, and 4 to a single `false`. Because of
+  this, `ok` does **not** carry the 1-versus-4 distinction; the exit code does.
+  Gate on the exit code, not on `ok` (see "Invocation discipline" below).
+- `working_dir` is the fixed `working` constant.
+- `result` carries every machine-actionable datum the harness reads — failed
+  clause names, rule ids and hit counts, divergent chapters, reconciliation
+  discrepancies.
+- `messages` carries human-only prose for the `--human` rendering and the log;
+  the harness never parses it, so a wording change cannot break gating.
+
+For the four-flag Cyclopts construction contract and command/query segregation,
+which are developer-internal rather than agent-facing, see ADR-003 directly.
+
+### Invocation discipline
+
+Where the "Harness contract" four requirements govern how the agent *persists*
+work across turns, this discipline governs how the agent *reads the result* of
+each command it runs.
+
+1. **Run every command from the novel root.** The commands resolve `working/`
+   relative to the current directory, so they must run from the directory whose
+   `working/` subtree holds the state. Running from the wrong directory was the
+   dogfooding failure that motivated this contract; "Setup" already says to run
+   them from the novel's root, and this is why.
+2. **Gate on the process exit code; it is the authoritative signal.** The exit
+   code is the only signal that carries the load-bearing 1-versus-4 distinction
+   (benign negative versus actionable finding). The envelope `ok` field is
+   `true` if and only if the exit code is 0, so it collapses the five codes to a
+   single success(0)-versus-not-success(1/2/3/4) bit. `ok` is a useful
+   cross-check that the envelope agrees with the exit status, but it must
+   **not** be the sole gate: it cannot tell a benign exit 1 apart from a
+   stop-and-fix exit 4. Branch on the exit code, never on `ok` alone.
+3. **Branch per the exit-code table.** Exit 0 is success (proceed). Exit 1 is
+   the benign negative on which the loop **continues** without a fix — for
+   example `novel done` reporting the novel is not finished yet, which emits
+   `ok: false`. Exits 2, 3, and 4 are stop-and-fix: halt, adjudicate or repair
+   per the table, then re-run; never assume success. Exit 1 and exits 2, 3, 4
+   all share `ok: false`, which is precisely why gating on `ok` alone would halt
+   the loop on every benign turn — the failure the Ralph loop exists to avoid.
+4. **The help/version carve-out.** `--help` and `--version` (and a bare
+   `novel`) exit 0 with **no envelope** by design, so the "parse the envelope
+   `ok`" step applies only to body-producing invocations and the usage/state
+   diagnostic arms, not to the help/version arm. Do not parse a non-existent
+   envelope on those invocations.
 
 ## Governing principles
 

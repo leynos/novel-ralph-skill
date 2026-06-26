@@ -2161,7 +2161,7 @@ and adr-003-shared-interface-contract.md.
   - Success: a single cross-command suite (pytest-bdd scenarios + syrupy
     snapshots) pins the exit-code and envelope contract for every command and
     fails on any per-command divergence.
-- [ ] 6.3.3. Document the unified contract and command-invocation discipline in
+- [x] 6.3.3. Document the unified contract and command-invocation discipline in
   the skill.
   - Requires 6.3.2.
   - Add a single authoritative description of the exit-code table and the
