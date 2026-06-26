@@ -2424,6 +2424,13 @@ and adr-003-shared-interface-contract.md.
     `schema_version` source; the guard reuses the repo's established prose-guard
     pattern; no contract restatement copy remains unpinned by a test; and the
     docs and contract suites stay green.
+  - [ ] 6.3.9.1.
+    - Addendum (from review:6.3.9 / audit:6.3.9; low). Cover the trailing-comma
+      discard branch of `extract_brace_field_list`: the scanner helper documents
+      that empty comma-split fragments (e.g. a trailing comma) are discarded via
+      the `if field:` guard, but no unit test exercises that branch, so a
+      regression removing it would pass every current test. Add one unit case
+      planting `{a, b, }` and asserting `[a, b]`. Lightweight addendum pass.
 
 ## 7. Consolidate, harden, and reconcile the spine
 
@@ -4397,6 +4404,110 @@ copies that would re-diverge.
     or other raw OS text; the `_rule_pack_read_error`/`_device_ledger_read_error`
     formatters continue to name the artefact and a remedy; and the rule-pack,
     ledger, and desloppify suites stay green.
+
+- [ ] 7.6.29. Single-source the contract-guard helpers shared by the SKILL and
+  developers'-guide prose drift-guards.
+  - Reroute (source: audit:6.3.9; severity: medium). 6.3.9 reproduces three
+    byte-identical contract helpers from the 6.3.7 SKILL guard — `_CODE_KEYWORDS`,
+    `_meaning_has_keyword`, and `_envelope_field_order` — in
+    `tests/test_developers_guide_contract_drift_guard.py`, re-creating the
+    "documented once without drift" single-source failure mode at the test layer
+    even though both guards already import the shared pure scanner module
+    `tests/_skill_contract_scanner.py` that could host them. Promote
+    `_CODE_KEYWORDS` and `_meaning_has_keyword` into that pure module so both
+    guards consume one copy; coordinate the third helper, `_envelope_field_order`,
+    with task 7.1.5 so it consumes the planned shared `ENVELOPE_FIELD_ORDER`
+    constant rather than a fourth test-side copy. This does not serve the settled
+    step-6.3 "documented once" hypothesis where it was raised — the prose copies
+    are already pinned — but single-sources the guards themselves, the step-7.6
+    robustness concern of hardening the now single-sourced guard suite, so it is
+    deferred here.
+  - Requires 6.3.9 and 7.1.5.
+  - See novel-ralph-harness-design.md §3.1;
+    docs/adr-003-shared-interface-contract.md;
+    tests/_skill_contract_scanner.py;
+    tests/test_skill_contract_drift_guard.py;
+    tests/test_developers_guide_contract_drift_guard.py;
+    novel_ralph_skill/contract/envelope.py.
+  - Success: `_CODE_KEYWORDS` and `_meaning_has_keyword` live once in
+    `tests/_skill_contract_scanner.py` and are imported by both the SKILL and
+    developers'-guide drift-guards; the envelope field-order helper consumes the
+    shared `ENVELOPE_FIELD_ORDER` constant from 7.1.5 rather than a fourth
+    test-side copy; no byte-identical contract helper remains duplicated across
+    the two guard modules; and the docs and contract suites stay green.
+
+- [ ] 7.6.30. Guard the developers'-guide exit-3 formatter-count prose against the
+  `_state_load` formatter set.
+  - Reroute (source: audit:6.3.9; severity: low). 6.3.9 pinned the guide's
+    exit-code table and envelope field set, but the adjacent "Two sibling
+    formatters" prose is a code-derived count that has been stale since 6.3.8 —
+    there are five actionable formatters in
+    `novel_ralph_skill/commands/_state_load.py` — and no guard catches it because
+    the 6.3.9 guard parses only the Markdown table, not the prose. Add a
+    drift-guard arm asserting the guide's formatter count and names track the live
+    `_state_load` exit-3 formatter set, following the repo's established
+    prose-guard pattern. Coordinate with addendum 6.3.8.2, which corrects the
+    prose text itself, so the guard pins the corrected count rather than the stale
+    one. This extends the guard suite's coverage to a code-derived prose count the
+    audits surfaced — a step-7.6 robustness concern — not the settled step-6.3
+    "documented once" hypothesis where it was raised, so it is deferred here.
+  - Requires 6.3.9.
+  - See novel-ralph-harness-design.md §3.1;
+    docs/developers-guide.md ("Two sibling formatters");
+    novel_ralph_skill/commands/_state_load.py;
+    tests/test_developers_guide_contract_drift_guard.py.
+  - Success: a drift-guard arm fails if the developers'-guide exit-3 formatter
+    count or named formatters diverge from the live `_state_load` actionable
+    formatter set; the guard reuses the repo's established prose-guard pattern;
+    the corrected prose from 6.3.8.2 passes the new guard; and the docs and
+    contract suites stay green.
+
+- [ ] 7.6.31. Rename `tests/_skill_contract_scanner.py` to a document-generic
+  name.
+  - Reroute (source: review:6.3.9; severity: low). The pure scanner now backs two
+    guards — the `SKILL.md` guard (6.3.7) and the developers'-guide guard (6.3.9)
+    — and its functions are document-generic, but its name still implies
+    SKILL-only scope; the 6.3.9 execplan Decision Log explicitly defers this as
+    a separate refactor. Rename it to a document-generic name (e.g.
+    `tests/_contract_doc_scanner.py`) and update both importers, removing the
+    misleading SKILL-only name without scope-creeping a docs guard. This is
+    cross-cutting test-naming hygiene on the now-shared guard scanner — a step-7.6
+    concern of hardening the single-sourced guard suite — not the settled step-6.3
+    documentation hypothesis where it was raised, so it is deferred here.
+  - Requires 6.3.9.
+  - See tests/_skill_contract_scanner.py;
+    tests/test_skill_contract_drift_guard.py;
+    tests/test_developers_guide_contract_drift_guard.py;
+    docs/execplans/roadmap-6-3-9.md (Decision Log).
+  - Success: the pure scanner module carries a document-generic name; both the
+    SKILL and developers'-guide drift-guards import it under the new name; no
+    SKILL-only name remains for the document-generic scanner; and the docs and
+    contract suites stay green.
+
+- [ ] 7.6.32. Audit and document the keyword/anchor brittleness of the contract
+  drift-guards.
+  - Reroute (source: review:6.3.9; severity: low). The 6.3.7 and 6.3.9 guards pin
+    Meaning cells by lenient single keywords and pin regions by exact H3 heading
+    text, so a benign future re-heading or re-wording could red a guard on a
+    non-divergence. Review the two guards together to decide whether to centralise
+    the keyword and anchor tables and document the re-wording contract — so an
+    editor knows the keyword and heading text are load-bearing — closing the gap
+    where a routine docs edit reddens a guard without a real contract drift. This
+    is cross-cutting robustness hardening of the guard suite against the brittle
+    anchors the review surfaced — a step-7.6 concern — not the settled step-6.3
+    documentation hypothesis where it was raised, so it is deferred here.
+  - Requires 6.3.9.
+  - See novel-ralph-harness-design.md §3.1;
+    docs/adr-003-shared-interface-contract.md;
+    tests/test_skill_contract_drift_guard.py;
+    tests/test_developers_guide_contract_drift_guard.py;
+    tests/_skill_contract_scanner.py.
+  - Success: one recorded decision states whether the keyword and anchor tables
+    are centralised and documents the re-wording contract naming the load-bearing
+    keywords and heading text; if centralised, both guards consume the shared
+    tables; a benign re-heading or re-wording that preserves the contract no
+    longer reds a guard (or the load-bearing text is explicitly documented as such);
+    and the docs and contract suites stay green.
 
 ### 7.7. Reconcile the documentation and settle the conventions
 

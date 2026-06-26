@@ -787,3 +787,26 @@ carve-out — the guide names the field but carries no literal `1` in this secti
 — is recorded so the guard pins the field, not a non-existent value. cuprum and
 the other locked external libraries are scoped out explicitly with rationale
 (Decision Log): the task is an in-process docs drift-guard that uses none of them.
+
+## Addenda (post-merge follow-ups)
+
+Lightweight addendum work items folded back onto this completed task from the
+post-merge reviews and audits. Execute each as a small addendum pass — no plan
+or design-review cycle: make the change, run `make all` (plus `make
+markdownlint`/`make nixie` for any Markdown), `coderabbit review --agent`,
+commit, and tick the matching roadmap sub-task on merge. The substantial,
+cross-cutting follow-ups raised against this task (single-sourcing the
+contract-guard helpers, renaming the now document-generic scanner module,
+auditing guard keyword/anchor brittleness, and guarding the developers'-guide
+exit-3 formatter-count prose) were re-routed to roadmap step 7.6; this is the
+small coverage gap.
+
+- [ ] 6.3.9.1 — Cover the trailing-comma discard branch of
+  `extract_brace_field_list` (from review:6.3.9 / audit:6.3.9, low; two
+  near-identical proposals merged). The scanner helper documents that empty
+  comma-split fragments (e.g. a trailing comma) are discarded via the `if
+  field:` guard at `tests/_skill_contract_scanner.py:268`, and the behaviour is
+  correct, but no unit test exercises that branch, so a regression removing the
+  guard would pass every current test. Add one unit case planting `{a, b, }` and
+  asserting it parses to `[a, b]`, pinning the documented contract and closing
+  the coverage gap. Gate with `make all`.
