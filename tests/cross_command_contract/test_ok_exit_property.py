@@ -46,10 +46,8 @@ from novel_ralph_skill.contract.runner import CommandOutcome, RunContext, run
 from ._cells import CELL_IDS, CONSTRUCTIBLE_CELLS, materialise
 
 if typ.TYPE_CHECKING:
-    import collections.abc as cabc
     from pathlib import Path
 
-    import cyclopts
     from contract_drive_support import CommandSpec, Driver
 
     from ._cells import ChannelCell
@@ -147,5 +145,4 @@ def _spec(cell: ChannelCell) -> CommandSpec:
     """
     from contract_drive_support import CommandSpec as _CommandSpec
 
-    build_app = typ.cast("cabc.Callable[[], cyclopts.App]", cell.build_app)
-    return _CommandSpec(cell.command_name, build_app, cell.argv)
+    return _CommandSpec(cell.command_name, cell.build_app, cell.argv)

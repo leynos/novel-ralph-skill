@@ -1119,7 +1119,7 @@ Round 2 revision (2026-06-26), resolving the Logisphere Round 1 review
 
 ## Addenda
 
-- 6.3.2.1 (from review:6.3.2; low). Add a completeness tripwire for the
+- [x] 6.3.2.1 (from review:6.3.2; low). Add a completeness tripwire for the
   actionable-finding (exit 4) arm in the cross-command suite, mirroring the
   existing `test_diagnostic_arms_cover_all_five_commands` guard on the
   usage/state arms. Because `make test` runs under xdist where syrupy does not
@@ -1127,7 +1127,7 @@ Round 2 revision (2026-06-26), resolving the Logisphere Round 1 review
   `_BODY_CELLS` would silently reduce coverage. Assert the finding cells cover
   exactly `{novel state, novel compile, novel desloppify}`. Lightweight
   addendum pass.
-- 6.3.2.2 (from review:6.3.2; low). Strip the two redundant `typing.cast`
+- [x] 6.3.2.2 (from review:6.3.2; low). Strip the two redundant `typing.cast`
   wrappers over `ChannelCell.build_app` in the cross-command suite (already
   typed `Callable[[], App]` on the `ChannelCell` NamedTuple), which `ty check`
   flags as redundant-cast warnings, and remove the now-unused `cabc`/`cyclopts`

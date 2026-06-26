@@ -45,10 +45,8 @@ from ._cells import CONSTRUCTIBLE_CELLS, MUTATOR_STATE_ARMS, materialise
 from ._identity_assertions import assert_envelope_skeleton
 
 if typ.TYPE_CHECKING:
-    import collections.abc as cabc
     from pathlib import Path
 
-    import cyclopts
     from contract_drive_support import Driver
     from syrupy.assertion import SnapshotAssertion
 
@@ -105,8 +103,7 @@ _FINDING_IDS: tuple[str, ...] = tuple(cell.command_name for cell in _FINDING_CEL
 
 def _spec(cell: ChannelCell) -> CommandSpec:
     """Return the :class:`CommandSpec` driving ``cell``'s command over its argv."""
-    build_app = typ.cast("cabc.Callable[[], cyclopts.App]", cell.build_app)
-    return CommandSpec(cell.command_name, build_app, cell.argv)
+    return CommandSpec(cell.command_name, cell.build_app, cell.argv)
 
 
 @pytest.mark.parametrize("cell", _DIAGNOSTIC_CELLS, ids=_DIAGNOSTIC_IDS)
@@ -188,6 +185,24 @@ def test_diagnostic_arms_cover_all_five_commands() -> None:
     expected = {name for name in ENVELOPE_COMMAND_NAMES if name != "novel"}
     assert by_channel[ExitCode.USAGE_ERROR] == expected
     assert by_channel[ExitCode.STATE_ERROR] == expected
+
+
+def test_finding_arm_covers_exactly_three_commands() -> None:
+    """The actionable-finding arm is constructible for exactly three commands.
+
+    Mirrors :func:`test_diagnostic_arms_cover_all_five_commands` for the exit-4
+    channel, which is the channel the corpus cannot reach for every command:
+    ``novel state check`` (an ``incoherent_tree`` variant), ``novel compile
+    --check`` (a ``drafting`` tree), and ``novel desloppify`` (an em-dash-flood
+    draft) reach it, but ``novel done`` and ``novel wordcount`` are carried gaps
+    (package docstring). Because ``make test`` runs under xdist, where syrupy
+    does not reliably fail on orphaned snapshots, a future deletion of a finding
+    cell from ``_BODY_CELLS`` would silently reduce coverage; this guard asserts
+    the finding cells cover exactly ``{novel state, novel compile,
+    novel desloppify}`` so such a deletion fails loudly.
+    """
+    covered = {cell.command_name for cell in _FINDING_CELLS}
+    assert covered == {"novel state", "novel compile", "novel desloppify"}
 
 
 @pytest.mark.parametrize("cell", _FINDING_CELLS, ids=_FINDING_IDS)

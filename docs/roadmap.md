@@ -2173,14 +2173,14 @@ and adr-003-shared-interface-contract.md.
   - Success: a single cross-command suite (pytest-bdd scenarios + syrupy
     snapshots) pins the exit-code and envelope contract for every command and
     fails on any per-command divergence.
-  - [ ] 6.3.2.1.
+  - [x] 6.3.2.1.
     - Addendum (from review:6.3.2; low). Add a completeness tripwire for the
       actionable-finding (exit 4) arm in the cross-command suite, asserting the
       finding cells cover exactly `{novel state, novel compile, novel
       desloppify}`, mirroring the existing diagnostic-arm guard, so an orphaned
       `_BODY_CELLS` deletion cannot silently shrink coverage under xdist.
       Lightweight addendum pass.
-  - [ ] 6.3.2.2.
+  - [x] 6.3.2.2.
     - Addendum (from review:6.3.2; low). Strip the two redundant `typing.cast`
       wrappers over `ChannelCell.build_app` (already typed `Callable[[], App]`)
       and the now-unused `cabc`/`cyclopts` `TYPE_CHECKING` references they
