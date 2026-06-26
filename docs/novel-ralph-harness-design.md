@@ -148,13 +148,22 @@ Every JSON payload carries a common envelope:
   "command": "novel done",
   "schema_version": 1,
   "ok": false,
-  "working_dir": "working",
+  "working_dir": "/home/me/my-novel/working",
   "result": { "...": "command-specific" },
   "messages": ["compiled.md diverges from chapter drafts"]
 }
 ```
 
 - `ok` is the boolean the harness gates on; it mirrors the exit code.
+- `working_dir` is the **absolute, resolved** path the command actually looked
+  at — for example `/home/me/my-novel/working` — not the bare `working` token.
+  (The `novel state init` result body carries the same absolute path under
+  `result.working_dir`.) The resolution rule itself is unchanged: `working/` is
+  still resolved relative to the current working directory, and there is no
+  `--working-dir` flag (the rule lives in the `_state_load.py` source comment).
+  Surfacing the resolved path makes a misresolution visible in the field the
+  agent already reads — a stray `cd` into `working/` shows `.../working/working`
+  rather than failing silently (roadmap §6.3.4).
 - `result` holds the command-specific structured payload and every
   machine-actionable datum: the names of failed clauses, rule ids and hit
   counts, the list of divergent chapters, and reconciliation discrepancies. The

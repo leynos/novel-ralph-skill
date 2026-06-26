@@ -65,11 +65,15 @@ def _spec(argv: list[str]) -> CommandSpec:
 
 
 def _normalise(envelope: dict[str, object]) -> dict[str, object]:
-    """Return ``envelope`` with embedded RFC 3339 timestamps and the cwd redacted.
+    """Return ``envelope`` with timestamps, the cwd, and the body path redacted.
 
     Replaces any RFC 3339 timestamp with ``<timestamp>`` and the per-run
     temporary directory named by the §6.3.1 actionable exit-3 message with
-    ``<cwd>``, so a snapshot identifies a real contract change, not churn.
+    ``<cwd>``. ``init``'s ``result.working_dir`` body — which the production code
+    now stamps with the absolute resolved path (roadmap §6.3.4) — is replaced
+    with a stable ``<working-dir>`` token so the snapshot stays machine-
+    independent; the *top-level* envelope ``working_dir`` is the synthetic
+    ``drive`` label (the fixed ``"working"`` token) and is left verbatim.
 
     Parameters
     ----------
@@ -79,11 +83,16 @@ def _normalise(envelope: dict[str, object]) -> dict[str, object]:
     Returns
     -------
     dict[str, object]
-        The envelope re-parsed with timestamps and the cwd redacted.
+        The envelope re-parsed with timestamps, the cwd, and the body path
+        redacted.
     """
     redacted = _TIMESTAMP.sub("<timestamp>", json.dumps(envelope))
     redacted = _CWD.sub(r"\1<cwd>\2", redacted)
-    return typ.cast("dict[str, object]", json.loads(redacted))
+    reparsed = typ.cast("dict[str, object]", json.loads(redacted))
+    result = reparsed.get("result")
+    if isinstance(result, dict) and "working_dir" in result:
+        typ.cast("dict[str, object]", result)["working_dir"] = "<working-dir>"
+    return reparsed
 
 
 @pytest.mark.parametrize("case", MUTATOR_CASES, ids=_CASE_IDS)

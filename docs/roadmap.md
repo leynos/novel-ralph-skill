@@ -2214,7 +2214,7 @@ and adr-003-shared-interface-contract.md.
       exit 0, so gating on it would halt the loop on every benign exit-1 turn.
       Gate on the exit code instead, matching the shipped SKILL.md. Editorial
       roadmap fix. Lightweight addendum pass.
-- [ ] 6.3.4. Resolve `working/` robustly and surface the resolved path.
+- [x] 6.3.4. Resolve `working/` robustly and surface the resolved path.
   - Requires 1.2.12.
   - Commands resolve `working/` relative to the current directory with no upward
     search, so beta testing hit a stray `cd` that silently broke them (resolving

@@ -19,7 +19,7 @@
 # ---
 # name: test_init_success_envelope_snapshot
   '''
-  {"command": "novel state", "schema_version": 1, "ok": true, "working_dir": "working", "result": {"working_dir": "working", "slug": "s"}, "messages": ["initialised working/state.toml"]}
+  {"command": "novel state", "schema_version": 1, "ok": true, "working_dir": "working", "result": {"working_dir": "<working-dir>", "slug": "s"}, "messages": ["initialised working/state.toml"]}
   
   '''
 # ---

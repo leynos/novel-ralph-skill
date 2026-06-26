@@ -33,7 +33,7 @@ import sys
 import typing as typ
 
 from novel_ralph_skill.commands.names import MULTIPLEXER_NAME, SUBCOMMAND_NAMES
-from novel_ralph_skill.commands.novel_state import WORKING_DIR_NAME
+from novel_ralph_skill.commands.novel_state import resolved_working_dir
 from novel_ralph_skill.contract import RunContext, parse_global_flags, run
 from novel_ralph_skill.contract.runner import make_contract_app
 
@@ -143,11 +143,23 @@ def main() -> None:
     body-less arms), derives the spaced command name from the residual argv, and
     drives the whole multiplexer through ``run`` exactly once. ``run`` owns every
     ``sys.exit`` and every envelope emission.
+
+    The ``working_dir`` it stamps is the *absolute, resolved* path the command
+    looked at (``resolved_working_dir()``), not the bare ``"working"`` token, so
+    a misresolution — for example a stray ``cd`` into ``working/`` — is visible
+    in the envelope field the agent already reads as ``.../working/working``
+    rather than failing silently (roadmap §6.3.4; Decision Log D2). Resolution
+    semantics are unchanged: the path stays cwd-relative (rule at
+    ``_state_load.py:32-48``); only the *reported* value becomes absolute.
     """
     human, residual = parse_global_flags(sys.argv[1:])
     name = _command_name_for(residual)
     run(
         build_multiplexer(),
         residual,
-        RunContext(command=name, working_dir=WORKING_DIR_NAME, human=human),
+        RunContext(
+            command=name,
+            working_dir=str(resolved_working_dir()),
+            human=human,
+        ),
     )

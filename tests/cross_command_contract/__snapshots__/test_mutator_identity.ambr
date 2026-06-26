@@ -178,7 +178,7 @@
     'ok': True,
     'result': dict({
       'slug': 's',
-      'working_dir': 'working',
+      'working_dir': '<working-dir>',
     }),
     'schema_version': 1,
     'working_dir': 'working',

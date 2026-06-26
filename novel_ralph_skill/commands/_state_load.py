@@ -47,6 +47,22 @@ def working_dir() -> pathlib.Path:
     return pathlib.Path(WORKING_DIR_NAME)
 
 
+def resolved_working_dir() -> pathlib.Path:
+    """Return the absolute, resolved ``working/`` for the envelope/result label.
+
+    Built on :func:`working_dir` (the cwd-relative resolution rule documented at
+    ``_state_load.py:32-48``), this returns ``working_dir().resolve()`` — the
+    absolute, normalised path the command actually looked at — so the production
+    entry point can stamp *where* it resolved rather than the bare ``"working"``
+    token. ``Path.resolve()`` runs in its default non-strict mode, so it
+    succeeds even when ``working/`` does not yet exist (the exit-``3`` "no
+    working/" arm and ``novel state init`` both rely on this), making a stray
+    ``cd`` into ``working/`` visible as ``.../working/working`` rather than a
+    silent misresolution (roadmap §6.3.4; Decision Log D2).
+    """
+    return working_dir().resolve()
+
+
 def state_path() -> pathlib.Path:
     """Return the fixed cwd-relative ``working/state.toml`` path.
 

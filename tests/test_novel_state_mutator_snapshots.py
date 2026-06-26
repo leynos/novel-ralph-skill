@@ -4,10 +4,16 @@ These pin the rendered machine-mode JSON envelope for each mutator's success and
 refusal paths (design §9 "Snapshot tests pin the machine-mode JSON envelope per
 command"). Nondeterministic fields are normalised so a snapshot identifies a real
 contract change, not churn: the ``created_at`` timestamp ``init`` stamps is
-redacted, and the envelope carries no absolute path (``working_dir`` is the fixed
-``"working"`` token). Each snapshot is paired with a semantic assertion on the
-exit code and the envelope ``ok`` so the snapshot is not the only guard (AGENTS.md
-"pair them with semantic assertions").
+redacted, and ``init``'s ``result.working_dir`` body — which the production code
+now stamps with the absolute resolved path (roadmap §6.3.4) — is replaced with a
+stable ``<working-dir>`` token so the snapshot stays machine-independent. The
+*top-level* envelope ``working_dir`` here is the synthetic ``RunContext`` label
+these tests inject (the fixed ``"working"`` token), not the production path
+``novel.main`` stamps, so it is left verbatim: only the production entry point
+``novel.main`` and the ``novel state init`` result body carry the absolute
+resolved path. Each snapshot is paired with a semantic assertion on the exit code
+and the envelope ``ok`` so the snapshot is not the only guard (AGENTS.md "pair
+them with semantic assertions").
 """
 
 from __future__ import annotations
@@ -37,6 +43,11 @@ _COMMAND = "novel state"
 _TIMESTAMP = re.compile(
     r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:[+-]\d{2}:\d{2}|Z)?"
 )
+# Redact the absolute ``result.working_dir`` body ``init`` now stamps (roadmap
+# §6.3.4) so the snapshot is machine-independent. Anchored to the ``"result":
+# {"working_dir": "..."`` body object so the *top-level* envelope ``working_dir``
+# (the synthetic-injected ``"working"`` token) is left untouched.
+_RESULT_WORKING_DIR = re.compile(r'("result": \{"working_dir": )"[^"]*"')
 
 
 def _drive(argv: list[str]) -> tuple[int, str]:
@@ -56,7 +67,8 @@ def _drive(argv: list[str]) -> tuple[int, str]:
 
 def _normalise(raw: str) -> str:
     """Redact nondeterministic fields from the rendered envelope."""
-    return _TIMESTAMP.sub("<timestamp>", raw)
+    redacted = _TIMESTAMP.sub("<timestamp>", raw)
+    return _RESULT_WORKING_DIR.sub(r'\1"<working-dir>"', redacted)
 
 
 def test_init_success_envelope_snapshot(

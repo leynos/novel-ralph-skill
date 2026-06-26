@@ -63,6 +63,7 @@ from novel_ralph_skill.commands._state_load import (
     WORKING_DIR_NAME,
     _load_or_state_error,
     _state_input_error,
+    resolved_working_dir,
     state_path,
     working_dir,
 )
@@ -86,6 +87,7 @@ __all__ = [
     "_load_or_state_error",
     "_state_input_error",
     "build_app",
+    "resolved_working_dir",
     "state_path",
     "working_dir",
 ]
@@ -261,7 +263,11 @@ def _init(*, title: str, slug: str, target_word_count: int) -> CommandOutcome:
     (working / "log.md").write_text("", encoding="utf-8")
     return CommandOutcome(
         code=ExitCode.SUCCESS,
-        result={"working_dir": WORKING_DIR_NAME, "slug": slug},
+        # The body names the absolute, resolved path where ``init`` created the
+        # tree, not the bare ``"working"`` token, so an agent gating on the body
+        # sees a misresolution rather than a silent constant (roadmap §6.3.4;
+        # Decision Log D6).
+        result={"working_dir": str(resolved_working_dir()), "slug": slug},
         messages=[f"initialised {path}"],
     )
 

@@ -205,7 +205,7 @@ def _run_installed_arm(
     run_installed: cabc.Callable[[Path, tuple[str, ...]], sh.CommandResult],
     *,
     human: bool,
-) -> sh.CommandResult:
+) -> tuple[sh.CommandResult, Path]:
     """Drive one ``(command, arm)`` cell in one output mode over the binary.
 
     Derives ``run_dir`` from ``tmp_path`` internally (dropping it as a
@@ -213,7 +213,9 @@ def _run_installed_arm(
     keyword-only — within the Pylint argument-count gate, mirroring the matrix
     ``_drive_error_cell`` precedent. The run argv mounts the command's verb, then
     ``--human`` (when requested), then the command's read subcommand (empty for a
-    leaf default), then the arm's extra argv.
+    leaf default), then the arm's extra argv. ``run_dir`` is returned alongside
+    the result so the machine-envelope test can compute the absolute
+    ``working_dir`` the binary stamps for *this* cell (roadmap §6.3.4).
 
     Parameters
     ----------
@@ -228,8 +230,9 @@ def _run_installed_arm(
 
     Returns
     -------
-    sh.CommandResult
-        The result of running the installed command for this cell.
+    tuple[sh.CommandResult, Path]
+        The result of running the installed command for this cell, paired with
+        the ``run_dir`` it ran in.
     """
     command, arm = cell
     run_dir = tmp_path / f"{command.mount_verb[0]}-{arm.label}"
@@ -243,7 +246,7 @@ def _run_installed_arm(
         *command.read_subcommand,
         *arm.extra_argv,
     )
-    return run_installed(run_dir, argv)
+    return run_installed(run_dir, argv), run_dir
 
 
 @pytest.mark.slow
@@ -270,7 +273,7 @@ def test_installed_error_arm_machine_envelope(
     180s timeout supersedes the 30s project default.
     """
     command, arm = cell
-    result = _run_installed_arm(cell, tmp_path, run_installed, human=False)
+    result, run_dir = _run_installed_arm(cell, tmp_path, run_installed, human=False)
     assert result.exit_code == arm.expected_code, (
         f"expected exit {arm.expected_code} for {command.name} {arm.label} arm, "
         f"got {result.exit_code}; stderr: {result.stderr}"
@@ -291,16 +294,52 @@ def test_installed_error_arm_machine_envelope(
     # proof is a complete mirror of the in-process contract: a ``schema_version``
     # bump or field-order regression — neither caught by the per-field skeleton —
     # cannot survive packaging unobserved at the subprocess boundary (addendum
-    # 6.2.10.2).
+    # 6.2.10.2). ``working_dir`` is now the absolute resolved path the binary
+    # stamped from *this* cell's ``run_dir`` (roadmap §6.3.4), computed the same
+    # way the production code does so symlink normalisation cannot desynchronise
+    # them.
+    expected_working_dir = str((run_dir / "working").resolve())
     redacted = {**envelope, "messages": ["<redacted>"]}
     assert redacted == {
         "command": command.name,
         "schema_version": ENVELOPE_SCHEMA_VERSION,
         "ok": False,
-        "working_dir": "working",
+        "working_dir": expected_working_dir,
         "result": {},
         "messages": ["<redacted>"],
     }, f"boundary envelope must mirror the in-process contract: {envelope}"
+
+
+@pytest.mark.slow
+@pytest.mark.timeout(180)
+def test_installed_inside_working_surfaces_footgun(
+    tmp_path: Path,
+    run_installed: cabc.Callable[[Path, tuple[str, ...]], sh.CommandResult],
+) -> None:
+    """Running the binary from inside ``working/`` shows the visible footgun.
+
+    Build a ``working/`` tree under ``run_dir`` and run ``novel state check`` with
+    the binary's cwd *inside* ``working/``. The cwd-relative resolution then looks
+    for ``working/working/state.toml``, exits 3, and stamps the absolute
+    ``.../working/working`` path — so the misresolution a stray ``cd`` causes is
+    now loud in the envelope field the agent reads rather than a silent
+    ``"working"`` token (roadmap §6.3.4). This is the installed mirror of the
+    in-process ``test_main_surfaces_inside_working_footgun`` case. The fixture
+    constructs ``ExecutionContext(cwd=…)`` from its first argument, so the deeper
+    cwd is reached by passing ``run_dir / "working"`` to it (advisory A6).
+    """
+    run_dir = tmp_path / "state-inside-working"
+    run_dir.mkdir()
+    wc.build_working_tree(wc.PHASE_STATES["drafting"], run_dir)
+    inside_working = run_dir / "working"
+    result = run_installed(inside_working, ("state", "check"))
+    assert result.exit_code == ExitCode.STATE_ERROR, (
+        f"running from inside working/ must exit 3; stderr: {result.stderr}"
+    )
+    envelope = json.loads(result.stdout or "{}")
+    expected = str((inside_working / "working").resolve())
+    assert envelope["working_dir"] == expected
+    assert envelope["working_dir"].endswith("/working/working")
 
 
 @pytest.mark.slow
@@ -322,7 +361,7 @@ def test_installed_error_arm_human_stamp(
     code.
     """
     command, arm = cell
-    result = _run_installed_arm(cell, tmp_path, run_installed, human=True)
+    result, _run_dir = _run_installed_arm(cell, tmp_path, run_installed, human=True)
     assert result.exit_code == arm.expected_code, (
         f"expected exit {arm.expected_code} for {command.name} {arm.label} arm, "
         f"got {result.exit_code}; stderr: {result.stderr}"

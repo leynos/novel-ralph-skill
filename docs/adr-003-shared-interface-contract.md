@@ -43,7 +43,10 @@ reference.
 ### Functional requirements
 
 - Every command emits a common JSON envelope: `command`, `schema_version`,
-  `ok`, `working_dir`, `result`, `messages`.
+  `ok`, `working_dir`, `result`, `messages`. `working_dir` carries the
+  absolute, resolved path the command looked at (not the bare `working` token),
+  so a misresolution is visible in the field the harness already reads; the
+  cwd-relative resolution rule itself is unchanged (roadmap §6.3.4).
 - A `--human` flag switches stdout to a human rendering; diagnostics go to
   stderr in both modes.
 - `result` holds all machine-actionable data; `messages` holds only human prose

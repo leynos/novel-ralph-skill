@@ -6,9 +6,12 @@ exits ``0`` with an ``ok: true`` envelope and an empty ``result.violations``; an
 incoherent tree exits ``4`` (``ACTIONABLE_FINDING``) naming the breached
 invariants; a missing or unparseable ``state.toml`` exits ``3`` (state error);
 and ``--help``/``--version`` exit ``0`` with no envelope. They also pin the
-global-flag convention (the entry point pre-parses ``--human`` before ``run`` and
-stamps the fixed ``working_dir="working"`` into the envelope; Decision Log
-B3/B4), the ``parse_global_flags`` splitter, the checker/mutator segregation
+global-flag convention (the entry point pre-parses ``--human`` before ``run``;
+the ``run``-driven cases inject the synthetic ``working_dir="working"`` label to
+pin envelope *shape*, while the real ``novel.main()`` entry point stamps the
+*absolute resolved* ``working/`` path so a misresolution is visible, roadmap
+§6.3.4; Decision Log B3/B4), the ``parse_global_flags`` splitter, the
+checker/mutator segregation
 (``check`` writes nothing; design §3.3), and the installed-script e2e.
 
 The command is driven both through :func:`novel_ralph_skill.contract.runner.run`
@@ -203,9 +206,11 @@ def test_entry_point_human_flag_switches_rendering(
         _drive_entry_point(["--human", "check"], monkeypatch)
     assert excinfo.value.code == ExitCode.SUCCESS
     out = capsys.readouterr().out
-    # The human rendering is line-oriented prose, not a JSON object.
+    # The human rendering is line-oriented prose, not a JSON object. The real
+    # entry point stamps the absolute resolved ``working/`` path (roadmap 6.3.4).
     assert "command: novel state" in out
-    assert "working_dir: working" in out
+    expected_working_dir = str((working.parent / "working").resolve())
+    assert f"working_dir: {expected_working_dir}" in out
     assert not out.lstrip().startswith("{")
 
 
@@ -214,10 +219,11 @@ def test_entry_point_usage_error_carries_working_dir(
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    """A usage error exits ``2`` with ``working_dir == "working"`` (B3/B4).
+    """A usage error exits ``2`` carrying the absolute ``working_dir`` (B3/B4).
 
-    Proves the entry point built the ``RunContext`` (stamping the fixed
-    ``working_dir``) before ``run`` reached the body-less usage path.
+    Proves the entry point built the ``RunContext`` (stamping the absolute
+    resolved ``working/`` path, roadmap 6.3.4) before ``run`` reached the
+    body-less usage path.
     """
     monkeypatch.chdir(tmp_path)
     with pytest.raises(SystemExit) as excinfo:
@@ -225,7 +231,7 @@ def test_entry_point_usage_error_carries_working_dir(
     assert excinfo.value.code == ExitCode.USAGE_ERROR
     envelope = _capture_envelope(capsys)
     assert envelope["ok"] is False
-    assert envelope["working_dir"] == "working"
+    assert envelope["working_dir"] == str((tmp_path / "working").resolve())
 
 
 def test_entry_point_human_strip_still_drives_subcommand(

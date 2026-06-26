@@ -156,8 +156,13 @@ that every one of the five spaced commands — `novel state`, `novel done`,
 `novel compile`, `novel desloppify`, and `novel wordcount` — presents the *same*
 output contract. The package pins three identity claims. First, the shared
 six-field envelope skeleton (`command`, `schema_version`, `ok`, `working_dir`,
-`result`, `messages`, in that order) with the contract field types and the fixed
-`working_dir` constant. Second, the `ok`-to-exit-code mapping: `ok` is `true` if
+`result`, `messages`, in that order) with the contract field types and the
+`working_dir` label. These synthetic-`RunContext` suites inject the fixed
+`working_dir="working"` constant to pin envelope *shape*; the *production* entry
+point (`novel.main`) and the installed-binary e2e instead stamp and assert the
+**absolute resolved** `working/` path via the `resolved_working_dir()` accessor,
+so a misresolution is visible in the field the harness reads (roadmap §6.3.4).
+Second, the `ok`-to-exit-code mapping: `ok` is `true` if
 and only if the exit code is 0 — a Hypothesis property over the pure
 synthetic-outcome → `run` → envelope surface plus plain parametrised driven-cell
 examples. Third, the error-channel shapes: the usage (exit 2) and state (exit 3)

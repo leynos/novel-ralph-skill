@@ -85,6 +85,21 @@ def test_init_bootstraps_coherent_project(
     assert check_env["ok"] is True
 
 
+def test_init_result_names_absolute_resolved_working_dir(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """``init`` names the absolute resolved ``working/`` in its body (roadmap 6.3.4)."""
+    monkeypatch.chdir(tmp_path)
+    code, envelope = _drive_and_capture(["init", "--title", "T", "--slug", "s"], capsys)
+    assert code == ExitCode.SUCCESS
+    result = typ.cast("dict[str, object]", envelope["result"])
+    expected = str((tmp_path / "working").resolve())
+    assert result["working_dir"] == expected
+    assert typ.cast("str", result["working_dir"]).endswith("/working")
+
+
 def test_init_writes_premise_phase_and_target(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
