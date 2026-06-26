@@ -273,7 +273,21 @@ docs/scripting-standards.md.
     `COMMAND_ENTRY_POINTS` symbol remains; the parity coverage is preserved or its
     reduction is justified in the Decision Log; and `make all` (including the
     installed-binary e2e) is green.
-- [ ] 1.2.14. Sweep the design and skill prose to the `novel` multiplexer.
+  - [ ] 1.2.15.1. Sweep the stale legacy command-name literals left in test and
+    source prose after the surface retirement.
+    - Addendum (from review:1.2.15 and audit:1.2.15; low; three near-identical
+      proposals merged). After 1.2.15 retired the hyphenated surface and deleted
+      `stub.py`, stale legacy-form names survive outside the
+      production-module-name scope that tasks 1.2.14/1.2.16 cover:
+      `tests/test_pyproject_scripts.py`'s registry-table docstring still says
+      "the legacy five plus the novel multiplexer"; `tests/features/
+      per_chapter_loop.feature` Gherkin step-text and the
+      `tests/test_contract_app_centralisation.py` leaf labels still carry
+      hyphenated `novel-x`/`desloppify`/`wordcount` names; and
+      `novel_ralph_skill/commands/novel.py`'s docstrings/comments reference the
+      now-deleted `stub.py` in the present tense. Refresh all to the
+      spaced-surface convention the swept suite now uses. Lightweight addendum
+      pass.
   - Requires 1.2.15.
   - Update the design prose and diagrams and `SKILL.md` (including the Setup
     section and every bare `novel-x` reference) from the `novel-x` form to the
@@ -3247,6 +3261,32 @@ the deterministic spine.
     `CommandOutcome`; the exit-2 envelope construction lives in exactly one
     place; a unit test pins the shared helper's envelope; and the gate/drafting,
     desloppify, and contract suites stay green.
+- [ ] 7.16.8. Hoist the spaced-name-to-verb derivation into `names.py` and route
+  `novel.py` and the e2e suite through it.
+  - Reroute (source: audit:1.2.15; severity: medium; the audit:1.2.13 proposal it
+    reproduces folded in). The `name.split(" ", 1)[1]` verb-extraction idiom is
+    duplicated across `novel_ralph_skill/commands/novel.py:47` and
+    `tests/test_console_scripts_e2e.py:69,123`, outside the documented
+    single-source-of-truth registry. audit:1.2.13 already flagged this and
+    proposed a `verb_for`/`SUBCOMMAND_VERBS` accessor; 1.2.15 reproduced the idiom
+    rather than consolidating it, so the debt has persisted across two tasks. Add
+    the accessor to `names.py` and route the dispatcher and the e2e suite through
+    it, so the verb derivation lives once in the registry. This serves the
+    step-7.16 command-facade single-home hypothesis — the command facade's shared
+    seams lifted into explicit, neutrally-named homes — not the step-1.2
+    packaging-supports-invocation hypothesis where it was raised; it is a natural
+    follow-on to the registry consolidation.
+  - Requires 1.2.15.
+  - See novel-ralph-harness-design.md §4;
+    docs/adr-007-command-surface-novel-multiplexer.md;
+    novel_ralph_skill/commands/names.py;
+    novel_ralph_skill/commands/novel.py;
+    tests/test_console_scripts_e2e.py.
+  - Success: a `verb_for`/`SUBCOMMAND_VERBS` accessor lives in `names.py`;
+    `novel.py` and `test_console_scripts_e2e.py` derive each subcommand verb
+    through it rather than re-spelling `split(" ", 1)[1]`; no spaced-name-to-verb
+    split survives outside the registry; and the multiplexer, console-scripts, and
+    registry suites stay green.
 
 ### 7.17. Reconcile the compile-divergence documentation with the byte-comparison implementation
 
@@ -4199,3 +4239,45 @@ concern.
     with the clarifying sentence task 2.2.4 added; the two formulae in
     `state-layout.md` no longer contradict each other; the validator is
     unchanged; and the documentation lint gates stay green.
+
+### 7.32. Harden the legacy-surface-retired guard against curated-list rot
+
+This step answers whether the regression guard that proves the retired
+hyphenated command surface stays retired — `tests/test_legacy_surface_retired.py`
+— can be made robust against curated-list rot, so a legacy stamp re-introduced in
+a file the guard's hand-maintained `_IDIOM_SOURCES`/`_REPOINTED_E2E` lists do
+not name is caught rather than slipping past silently. Its outcome is a guard
+whose
+curated path-list is a belt-and-braces fast path over a wholesale tree scan (or
+is at least pinned to exist), so the proof the surface stays retired no longer
+rests
+solely on a list a contributor must remember to extend. This is a deferred
+test-integrity-hardening extension surfaced by the audit of step 1.2.15; it does
+not advance the step-1.2 packaging-supports-invocation hypothesis (the surface is
+already retired and `make all` is green) and it does not gate the deterministic
+spine.
+
+- [ ] 7.32.1. Broaden the legacy-surface-retired guard beyond its curated path
+  list.
+  - Reroute (source: audit:1.2.15; severity: low). `tests/
+    test_legacy_surface_retired.py` scans only the hand-maintained
+    `_IDIOM_SOURCES` and `_REPOINTED_E2E` path lists, so a legacy stamp
+    re-introduced in any unlisted file passes green; audit:1.2.15's finding 4 is
+    already a live miss of exactly this shape. Assert each listed path exists (so
+    a rename silently emptying the scan fails loudly) and/or broaden the scan to
+    walk `tests/` and `novel_ralph_skill/` wholesale, turning the curated list
+    into a belt-and-braces fast path rather than the sole coverage. This serves
+    the step-7.32 guard-hardening hypothesis — keeping the surface-retired proof
+    robust against curated-list rot — not the step-1.2
+    packaging-supports-invocation
+    hypothesis where it was raised; it is regression-guard hardening, deferred
+    here.
+  - Requires 1.2.15.
+  - See adr-007-command-surface-novel-multiplexer.md;
+    docs/issues/audit-1.2.15.md;
+    tests/test_legacy_surface_retired.py.
+  - Success: the legacy-surface-retired guard asserts its curated paths exist
+    and/or scans `tests/` and `novel_ralph_skill/` wholesale for retired
+    hyphenated literals, so a legacy stamp re-introduced in a file outside the
+    curated lists fails the guard; the production-module-name allowances remain
+    excluded; and the test suite stays green.

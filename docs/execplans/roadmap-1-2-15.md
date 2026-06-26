@@ -1695,3 +1695,34 @@ sole console-script entry point is
   findings addressed or skipped-with-reason (the WI1 absolute-cuprum-path note is
   a deliberate review-log provenance record; the execplans second-person voice is
   a skill convention).
+
+## Addenda
+
+Lightweight follow-on corrections folded onto this completed task. Each runs as
+a no-plan, no-review pass: make the change, run the gates, merge.
+
+- **1.2.15.1 — Sweep the stale legacy command-name literals left in test and
+  source prose after the surface retirement** (from review:1.2.15 and
+  audit:1.2.15; severity: low; three near-identical proposals merged). This task
+  retired the hyphenated surface, deleted `stub.py`, and (per the Constraints
+  carve-out) deliberately left prose outside the production-module-name scope for
+  the prose-sweep tasks. Tasks 1.2.14 and 1.2.16 cover only the design document,
+  `SKILL.md`, and the users'/developers' guides, so a residue of stale
+  legacy-form names survives in test and source prose:
+  - `tests/test_pyproject_scripts.py`'s registry-table docstring still describes
+    the `[project.scripts]` table as "the legacy five plus the novel
+    multiplexer", though the table is now novel-only (the assertion is already
+    correct; only the prose contradicts the code).
+  - `tests/features/per_chapter_loop.feature` Gherkin step-text still names
+    `novel-done`, `wordcount`, `desloppify`, and `novel-compile` in the
+    hyphenated form.
+  - `tests/test_contract_app_centralisation.py` labels its build-apps with the
+    retired hyphenated names (`novel-state`, `novel-done`, `novel-compile`,
+    `desloppify`).
+  - `novel_ralph_skill/commands/novel.py`'s docstrings and comments reference the
+    now-deleted `stub.py` in the present tense ("relies on", "uses"), and
+    `names.py`'s docstring lead lists retired consumers.
+
+  Refresh all to the spaced `novel <verb>` surface convention the swept suite now
+  uses, so no legacy literal survives outside production module names. No
+  behaviour or assertion changes; the existing suites stay green.
