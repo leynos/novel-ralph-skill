@@ -2275,7 +2275,7 @@ and adr-003-shared-interface-contract.md.
     exit-code mapping match the in-process contract pinned by 6.3.2; the tripwire
     reuses the existing installed-binary cuprum fixtures rather than rebuilding
     the matrix; and the e2e and cross-command suites stay green.
-- [ ] 6.3.7. Pin the `SKILL.md` command-contract restatement to the code with a
+- [x] 6.3.7. Pin the `SKILL.md` command-contract restatement to the code with a
   drift-guard test.
   - Step-task (source: review:6.3.3 / audit:6.3.3; severity: low). Serves the
     §6.3 hypothesis that the contract is "documented once without per-command
