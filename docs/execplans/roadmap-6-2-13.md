@@ -575,7 +575,7 @@ scenario, which advances the step-6.2 surface hypothesis — was re-routed to a 
 roadmap task 6.2.14 (it warrants its own plan and review); the one below is the
 small docs gap.
 
-- [ ] 6.2.13.1 — Refresh the developers' guide torn-turn behavioural-scenario note
+- [x] 6.2.13.1 — Refresh the developers' guide torn-turn behavioural-scenario note
   to enumerate the complete scenario family (from audit:6.2.12, low). The guide
   names only the first torn-turn scenario, but after 6.2.7, 6.2.12, and 6.2.13
   the suite covers the COMPLETE, never-landed-ROLLBACK, and

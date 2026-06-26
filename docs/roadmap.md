@@ -2082,7 +2082,7 @@ novel-ralph-harness-design.md §2.3 and §9.
     rolled back by `reconcile` at the command boundary, parametrised alongside the
     `draft.md` trigger so both `ROLLBACK` triggers are proven end-to-end through
     the runner rather than only in-process.
-  - [ ] 6.2.13.1. Refresh the developers' guide torn-turn behavioural-scenario
+  - [x] 6.2.13.1. Refresh the developers' guide torn-turn behavioural-scenario
     note to enumerate the complete scenario family.
     - Addendum (from audit:6.2.12; low). The guide names only the first torn-turn
       scenario, but after 6.2.7, 6.2.12, and 6.2.13 the suite covers the

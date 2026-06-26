@@ -989,10 +989,27 @@ it has no CLI of its own. It supplies three disciplines:
   `open_pending_turn` and `clear_pending_turn` are the in-place primitives the
   context manager composes.
 
-The torn-turn recovery flow is covered by the suite's first `pytest-bdd`
-behavioural scenario (`tests/features/torn_turn.feature` with steps under
-`tests/steps/`); the round-trip and surgical-mutation guarantees are pinned by
-Hypothesis properties over a hand-authored, comment-and-layout-bearing fixture.
+The torn-turn flow is covered by a family of `pytest-bdd` behavioural scenarios
+(features under `tests/features/`, steps under `tests/steps/`) that together span
+both halves of the §5.4 reconciliation surface. `torn_turn.feature` pins the
+producer side: a bracket that raises mid-turn leaves the `[pending_turn]` intent
+record populated on disk. The recovery and rollback dispositions are then
+exercised end-to-end through the real command boundary:
+
+- **COMPLETE** — `torn_turn_recovery.feature`: a crashed `reconcile` leaves a
+  recoverable torn turn that `check` reports (exit 4) and `reconcile` re-derives
+  and finishes under bounded harness re-entry (each run exits 0).
+- **never-landed ROLLBACK** — `torn_turn_rollback.feature` (task 6.2.7): a torn
+  turn whose declared artefact (a missing `draft.md` body or a missing
+  `done.flag`) never landed is reported by `check` and rolled back by `reconcile`
+  in a single pass, with a rollback-pending-turn receipt appended to `log.md`.
+- **partial-landed ROLLBACK** — `torn_turn_rollback_partial.feature` (task
+  6.2.13): a torn `write-draft` turn that left a partial temp-file residue —
+  unpromoted by `Path.replace`, unreferenced by state — is likewise reported and
+  rolled back, with the residue preserved byte-for-byte on disk.
+
+The round-trip and surgical-mutation guarantees are pinned by Hypothesis
+properties over a hand-authored, comment-and-layout-bearing fixture.
 
 ### State mutators (`init`, `set-cursor`, `advance-phase`)
 
