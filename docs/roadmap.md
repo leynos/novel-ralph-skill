@@ -1661,7 +1661,7 @@ report. See novel-ralph-harness-design.md §4.5.
   - See novel-ralph-harness-design.md §4.5 and §9.
   - Success: at a manuscript exactly on a gate threshold the corresponding gate
     is reported as just reached, and the next-gate distance is non-negative.
-- [ ] 6.1.2. Calibrate the skill for drafting deflation.
+- [x] 6.1.2. Calibrate the skill for drafting deflation.
   - Requires 6.1.1.
   - Beta testing showed the drafting-plus-desloppify loop is net-deflationary:
     per-scene estimates ran ~20-30% high, the spiteful critic cut 10-20% per
@@ -1675,6 +1675,11 @@ report. See novel-ralph-harness-design.md §4.5.
   - Success: `SKILL.md` carries an explicit deflation-compensation mechanism
     (inflated planning targets or an expand-to-target step) with the rationale
     recorded.
+  - Done: chose the expand-to-target step (not target inflation) to keep the
+    honest target, STC sum check, and knitting-gate maths untouched. `SKILL.md`
+    Phase 8 (new step d, before desloppify, current chapter only) and Phase 9
+    (after the structural critic) carry it; `tests/test_skill_deflation_guard.py`
+    pins it.
 
 ### 6.2. Prove the spine end-to-end across the combinatorial surface
 

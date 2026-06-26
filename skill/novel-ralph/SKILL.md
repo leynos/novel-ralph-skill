@@ -368,12 +368,33 @@ For chapter N from 1 to last:
     c. Write beats: draft prose for each beat into
        working/manuscript/chapter-NN/draft.md. Write one scene per
        turn unless scenes are very short.
-    d. Desloppify: run the checklist in
+    d. Expand to target: run wordcount and read THIS chapter's delta
+       against its chapter target and its percentage-of-target. The
+       acceptance band is the chapter sitting within 5% of its target
+       AFTER the destructive passes (e–f) have cut, so expand for
+       those cuts, not merely to reach the target now. Steps e–f are
+       destructive: desloppify removes 10–20% (see step e) and the
+       spiteful critic cuts further. Where the current chapter is
+       below the post-cut band, OVER-expand the pre-cut draft to roughly
+       115–125% of its chapter target — adding the expected 15–25%
+       desloppify-plus-critic loss as deliberate headroom on top of any
+       existing shortfall — by writing additional substantive material
+       (a missing beat, an interiority pass, a richer exchange), never
+       padding, into the current chapter's draft only. Never re-open an
+       already-done earlier chapter for length. After steps e–f have
+       run their destructive cuts, run wordcount AGAIN at step g to
+       confirm the chapter now lands within the post-cut band. If after
+       one expand-and-reprocess cycle it is still short, do not loop
+       unboundedly: log the residual deficit (the Phase 9 final expand
+       pass picks it up) and advance.
+    e. Desloppify: run the checklist in
        references/desloppify-checklist.md against the chapter draft.
        Apply every required cut and rewrite.
-    e. Spiteful critic loop (see below).
-    f. Fangirl pass (see below).
-    g. Touch working/manuscript/chapter-NN/done.flag and advance
+    f. Spiteful critic loop (see below).
+    g. Fangirl pass, then re-measure: run wordcount once more on this
+       chapter (see termination rule in step d). See the fangirl pass
+       below.
+    h. Touch working/manuscript/chapter-NN/done.flag and advance
        state.drafting.current_chapter.
 
 At 30%, 50%, 80% of cumulative word count (compared to target):
@@ -382,6 +403,26 @@ At 30%, 50%, 80% of cumulative word count (compared to target):
 When all chapters have done.flag and all three knitting passes are
 done, advance to Phase 9.
 ```
+
+The expand-to-target sub-step (d) exists because the
+drafting-plus-desloppify loop is net-deflationary. Desloppification removes
+more than it adds — "if the chapter loses 10–20% of its word count to
+desloppification, that is normal" (`references/desloppify-checklist.md`) — and
+the spiteful critic cuts further. Without an explicit expand step the book
+finishes short of target. Because the expand step runs *before* those
+destructive passes, it must budget for their cut: expanding only to the band now
+would land the chapter 15–25% short once e–f trim it, firing the log-and-advance
+escalation on nearly every chapter and deferring the deflation Phase 8 exists to
+fix back onto Phase 9. So the step over-expands the pre-cut draft above the
+chapter target by roughly the expected loss, targeting the band *after* the cuts,
+not before them. The freshly written material is still cleaned and critiqued by
+the existing desloppify and critic machinery rather than smuggled past the
+quality gate. It reads the delta from `wordcount` and never
+hand-computes word totals (the model adjudicates; the script reports), it
+expands only the current chapter so the cumulative drafted ratio stays
+monotonic and a late expansion cannot cross a knitting gate out of sequence, and
+it leaves the target unchanged — the draft is grown toward the honest target,
+not the target shrunk toward the draft.
 
 #### Spiteful critic loop (within a chapter)
 
@@ -480,11 +521,36 @@ one final assembly:
    structural issues invisible at chapter scale: opening weakness, sagging
    middle that survived the 50% knitting pass, ending that does not deliver the
    treatment's promise.
-4. Verify the final image matches the planned final image from the
+4. Expand to target: run `wordcount` over the assembled `compiled.md` and read
+   the cumulative total against the novel target. The Phase 9 acceptance band is
+   the cumulative total sitting at **97–103% of the novel target** (within 3%).
+   This is deliberately tighter than the STC beat-sheet's ± 10% sum check (Phase
+   6 exit; `references/stc-beat-sheet.md`): that ± 10% is the allowance for the
+   *planned* beat targets to sum near the novel target, whereas this 3% band is
+   the *finished* manuscript's tolerance against that same fixed target. The
+   plan may sum up to 10% off; the delivered book must land within 3%. The two
+   are not in tension because they measure different things (the plan versus the
+   draft) against one unchanged target. If the book is below this band, run a
+   final expand-to-target pass across the weakest chapters (identified by their
+   `wordcount` deltas), writing substantive material — never padding — into their
+   `chapter-NN/draft.md` files. This step
+   runs **after** the destructive desloppify (step 2) and the structural-only
+   critic (step 3), so nothing destructive follows it to re-open the gap. The
+   structural critic does not line-vet new prose; line and quality cleaning of
+   any new Phase 9 material is the responsibility of the agent applying
+   desloppify discipline as it writes. Because expansion edits the per-chapter
+   drafts that `wordcount` reads from disk, the `compiled.md` from step 1 is now
+   stale: regenerate it with `novel-compile` (mirroring the knitting pass's
+   recompile discipline), then run `wordcount` once more to confirm the
+   cumulative total now sits within the band. If still short after the pass,
+   escalate — do not silently ship a short book. This is the deflation-
+   compensation safety net: the net-deflationary loop (see Phase 8) can leave a
+   residual deficit, and this final pass closes it against the unchanged target.
+5. Verify the final image matches the planned final image from the
    treatment. If not, decide whether the novel earned the new ending or the new
    ending is a drift artefact.
 
-5. Record the completed final pass by running `novel-state complete-final-pass`
+6. Record the completed final pass by running `novel-state complete-final-pass`
    (the argument-free verb that flips `gates.final.final_pass_complete` true; it
    is idempotent) — **never** by hand-editing `gates.final.final_pass_complete`.
 
