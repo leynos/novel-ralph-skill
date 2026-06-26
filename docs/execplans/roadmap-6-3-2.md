@@ -1116,3 +1116,27 @@ Round 2 revision (2026-06-26), resolving the Logisphere Round 1 review
   regression-gate run after the helper promotion (A5); and noted that the
   roadmap's "benign" grouping is the harness *response* class, not the `ok`
   field, so code 1 stays `ok: false` (A6).
+
+## Addenda
+
+- 6.3.2.1 (from review:6.3.2; low). Add a completeness tripwire for the
+  actionable-finding (exit 4) arm in the cross-command suite, mirroring the
+  existing `test_diagnostic_arms_cover_all_five_commands` guard on the
+  usage/state arms. Because `make test` runs under xdist where syrupy does not
+  reliably fail on orphaned snapshots, a future deletion of a finding cell from
+  `_BODY_CELLS` would silently reduce coverage. Assert the finding cells cover
+  exactly `{novel state, novel compile, novel desloppify}`. Lightweight
+  addendum pass.
+- 6.3.2.2 (from review:6.3.2; low). Strip the two redundant `typing.cast`
+  wrappers over `ChannelCell.build_app` in the cross-command suite (already
+  typed `Callable[[], App]` on the `ChannelCell` NamedTuple), which `ty check`
+  flags as redundant-cast warnings, and remove the now-unused `cabc`/`cyclopts`
+  `TYPE_CHECKING` references those casts justified, keeping the just-landed test
+  code free of dead annotations. Lightweight addendum pass.
+- 6.3.2.3 (from review:6.3.2; low). Correct the roadmap §6.3.2 entry wording so
+  the exit-code-to-`ok` mapping no longer reads `0/1 → benign, 2/3/4 →
+  ok:false`, which conflates the harness response class (loop vs stop) with the
+  envelope `ok` field. ADR-003 and design §3.1 fix `ok` as true iff code 0, so
+  benign-negative code 1 is `ok: false`; the shipped suite already pins the real
+  contract. A small editorial fix to the roadmap §6.3.2 prose removes the trap
+  at source. Lightweight addendum pass.

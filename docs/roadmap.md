@@ -2147,6 +2147,17 @@ and adr-003-shared-interface-contract.md.
     and the remedy, with no raw `Errno`/traceback text, for at least one command
     of each class (mutator, checker, reader) — proving BOTH boundaries emit the
     identical actionable message.
+  - [ ] 6.3.1.1.
+    - Addendum (from review:6.3.1; low). Record the omitted Decision Log entry
+      naming `_state_view_or_state_error` as an out-of-scope, non-producer
+      boundary (parsed-but-structurally-incomplete, not a failed load) so a
+      future reviewer does not mistake it for a third producer of the
+      `cannot load …` message. Lightweight addendum pass.
+  - [ ] 6.3.1.2.
+    - Addendum (from review:6.3.1; low). Add a corrupt-arm parity assertion to
+      `test_state_input_message_parity.py`, which pins only the missing-`working/`
+      arm, so a one-sided re-wording of the present-but-corrupt message cannot
+      silently reintroduce reader/mutator drift. Lightweight addendum pass.
 - [x] 6.3.2. Pin cross-command exit-code and envelope-schema consistency with a
   shared behavioural suite and snapshots.
   - Requires phase 5, 6.1.1, and 1.2.12.
@@ -2161,6 +2172,24 @@ and adr-003-shared-interface-contract.md.
   - Success: a single cross-command suite (pytest-bdd scenarios + syrupy
     snapshots) pins the exit-code and envelope contract for every command and
     fails on any per-command divergence.
+  - [ ] 6.3.2.1.
+    - Addendum (from review:6.3.2; low). Add a completeness tripwire for the
+      actionable-finding (exit 4) arm in the cross-command suite, asserting the
+      finding cells cover exactly `{novel state, novel compile, novel
+      desloppify}`, mirroring the existing diagnostic-arm guard, so an orphaned
+      `_BODY_CELLS` deletion cannot silently shrink coverage under xdist.
+      Lightweight addendum pass.
+  - [ ] 6.3.2.2.
+    - Addendum (from review:6.3.2; low). Strip the two redundant `typing.cast`
+      wrappers over `ChannelCell.build_app` (already typed `Callable[[], App]`)
+      and the now-unused `cabc`/`cyclopts` `TYPE_CHECKING` references they
+      justified, clearing the `ty check` redundant-cast warnings. Lightweight
+      addendum pass.
+  - [ ] 6.3.2.3.
+    - Addendum (from review:6.3.2; low). Correct the roadmap §6.3.2 wording that
+      reads `0/1 → benign, 2/3/4 → ok:false`; per ADR-003 and design §3.1 `ok`
+      is true iff exit 0, so benign-negative exit 1 is `ok:false`. Editorial
+      roadmap fix. Lightweight addendum pass.
 - [x] 6.3.3. Document the unified contract and command-invocation discipline in
   the skill.
   - Requires 6.3.2.
@@ -2176,6 +2205,12 @@ and adr-003-shared-interface-contract.md.
   - Success: `SKILL.md` documents the exit-code table, the envelope schema, and
     the run-from-root / check-exit-code discipline once; `make markdownlint` and
     `make nixie` pass on the edited skill.
+  - [ ] 6.3.3.1.
+    - Addendum (from review:6.3.3; low). Reword the roadmap §6.3.3 gating prose
+      that instructs treating `ok:false` as a stop-and-fix; `ok` is true iff
+      exit 0, so gating on it would halt the loop on every benign exit-1 turn.
+      Gate on the exit code instead, matching the shipped SKILL.md. Editorial
+      roadmap fix. Lightweight addendum pass.
 - [ ] 6.3.4. Resolve `working/` robustly and surface the resolved path.
   - Requires 1.2.12.
   - Commands resolve `working/` relative to the current directory with no upward
@@ -2189,6 +2224,78 @@ and adr-003-shared-interface-contract.md.
     `working/` (upward search), or the envelope `working_dir` is the absolute
     resolved path; running from inside `working/` no longer silently looks for
     `working/working`.
+- [ ] 6.3.5. Make the six draft-read (exit-3) boundaries actionable, extending
+  6.3.1's polish from the state.toml-load faults to the draft-read faults.
+  - Step-task (source: audit:6.3.1 / audit:6.3.2; severity: medium). Serves the
+    §6.3 hypothesis that every command "fails with actionable messages": 6.3.1
+    polished the two state.toml-load boundaries but left six sibling draft-read
+    boundaries (`_disk_evidence_or_state_error`, `_recount`, `_wordcount`,
+    `_novel_done`, `_desloppify`, `_compile`) interpolating a raw `{exc}` on the
+    same exit-3 channel, so the same command surfaces both polished and raw OS
+    text depending on the fault. Route all six call sites through a shared
+    actionable formatter analogous to `_state_input_error` that names the
+    `working/` tree and offers a remedy without leaking `Errno`, and include the
+    mutator view-derivation boundary `_state_mutators._state_view_or_state_error`
+    in the enumeration so the structurally-incomplete arm stops leaking raw
+    `{exc}` and carries an inspect/repair remedy (audit:6.3.2 folded in). This is
+    the message-quality half of the draft-read work; the catch-idiom DRY half is
+    7.16.3, with which it coordinates so the formatter and the wrapper share one
+    home.
+  - Requires 6.3.1.
+  - See novel-ralph-harness-design.md §3.2 and §3.4;
+    docs/adr-003-shared-interface-contract.md;
+    novel_ralph_skill/commands/_state_load.py (`_state_input_error`);
+    novel_ralph_skill/commands/_state_mutators.py
+    (`_state_view_or_state_error`).
+  - Success: a behavioural test drives at least one command per draft-read
+    boundary from a faulted-draft state and asserts exit 3 with an actionable
+    message naming the `working/` tree and a remedy, with no raw `Errno`/`{exc}`
+    text; all six draft-read call sites and the mutator view-derivation boundary
+    emit the shared actionable prose; and the affected command suites stay green.
+- [ ] 6.3.6. Extend the cross-command identity proof to the installed-wheel
+  boundary as a single tripwire.
+  - Step-task (source: review:6.3.2; severity: low). Serves the §6.3 hypothesis
+    that "every command presents an identical exit-code and envelope contract":
+    the 6.3.2 suite proves the identity in-process through the `run` seam, but
+    the installed binary is what the harness actually executes. Add a single
+    installed-boundary identity tripwire reusing the existing
+    `installed_novel_state` / `single_program_catalogue` cuprum fixtures (sketched
+    in the 6.3.2 execplan Decision Log and Interfaces section) to close the
+    residual gap between the in-process identity proof and the executed surface,
+    without duplicating the full `command × channel` matrix.
+  - Requires 6.3.2.
+  - See adr-003-shared-interface-contract.md; novel-ralph-harness-design.md §3
+    and §9; docs/execplans/roadmap-6-3-2.md (Decision Log; Interfaces);
+    tests/installed_binary_fixtures.py.
+  - Success: one installed-binary identity tripwire drives a representative
+    command through the installed wheel and asserts its envelope skeleton and
+    exit-code mapping match the in-process contract pinned by 6.3.2; the tripwire
+    reuses the existing installed-binary cuprum fixtures rather than rebuilding
+    the matrix; and the e2e and cross-command suites stay green.
+- [ ] 6.3.7. Pin the `SKILL.md` command-contract restatement to the code with a
+  drift-guard test.
+  - Step-task (source: review:6.3.3 / audit:6.3.3; severity: low). Serves the
+    §6.3 hypothesis that the contract is "documented once without per-command
+    drift": after 6.3.3 the contract is restated in four places (ADR-003, design
+    §3, the developers' guide, and `SKILL.md`), single-sourced only by prose
+    pointers; the `SKILL.md` exit-code table and envelope skeleton are the one
+    copy NOT pinned by a test, so a change to `ExitCode`, the envelope field set,
+    or `schema_version` would silently stale the agent-facing table — the exact
+    drift §6.3 exists to close. Add a docs-level drift-guard (a snapshot or
+    grep-based assertion) that the `SKILL.md` contract cells match ADR-003 Table
+    2 / design §3.1 and the code, following the repo's existing prose-guard
+    pattern, so the guard is mechanical rather than reliant on reviewer
+    diligence.
+  - Requires 6.3.3.
+  - See adr-003-shared-interface-contract.md (Table 2);
+    novel-ralph-harness-design.md §3.1;
+    novel_ralph_skill/contract/exit_codes.py;
+    novel_ralph_skill/contract/envelope.py; SKILL.md.
+  - Success: a drift-guard test fails if the `SKILL.md` exit-code table or
+    envelope skeleton diverges from ADR-003 Table 2 / design §3.1 or from the
+    `ExitCode`, envelope-field, and `schema_version` source; the guard reuses the
+    repo's established prose-guard pattern; and the docs and contract suites stay
+    green.
 
 ## 7. Deferred extensions after the deterministic spine
 
@@ -2644,6 +2751,30 @@ deterministic spine.
     artefacts and states whether they count toward a task's declared edit-scope;
     AGENTS.md or docs/scripting-standards.md names the convention; and the
     convention is consistent with 7.5.1's gate handling for the same files.
+- [ ] 7.5.5. Run the whole-tree markdownlint and nixie docs gates in CI and the
+  merge gate.
+  - Reroute (source: audit:6.3.3 Finding 5 / review:6.3.3; severity: low; two
+    near-identical proposals merged). `make all` and CI do not run the
+    `markdownlint`/`nixie` docs gates, so docs-only changes can merge without
+    either gate and the project relies on the post-merge auditor to catch Markdown
+    regressions — task 6.3.3's Work item 0 had to clear an MD012 baseline the
+    6.3.2 commit left RED at HEAD because per-task gating passed despite a
+    tree-level failure. This serves the step-7.5 hypothesis — that the
+    documentation gates can be made robust without weakening their guarantees —
+    by making the gate run `markdownlint` over `**/*.md` (and `nixie`) at merge
+    time so a future task cannot inherit a red baseline it did not cause. Confirm
+    the gate lints the whole tree as `make markdownlint` does locally, not just
+    changed files. Coordinate with 7.5.1/7.5.3 so the whole-tree gate stays green
+    on the scratch-artefact and reflow conventions they settle.
+  - Requires 7.5.1.
+  - See AGENTS.md "Markdown guidance"; the project `Makefile`
+    (`markdownlint`/`nixie` targets); docs/execplans/roadmap-6-3-3.md (Work item
+    0); docs/issues/audit-6.3.3.md (Finding 5).
+  - Success: the CI/merge gate runs `make markdownlint` over `**/*.md` and `make
+    nixie`, so a docs-only change cannot merge past a Markdown or prose
+    regression; a confirmation records that the gate lints the whole tree rather
+    than only changed files; and a deliberately-introduced MD012 (or nixie)
+    violation reddens the gate.
 
 ### 7.6. Harden the state-validation lane against inert assertions
 
@@ -3571,6 +3702,27 @@ the deterministic spine.
     through it rather than re-spelling `split(" ", 1)[1]`; no spaced-name-to-verb
     split survives outside the registry; and the multiplexer, console-scripts, and
     registry suites stay green.
+- [ ] 7.16.9. Unify the desloppify and ledger pack-detect pipelines onto one
+  shared seam.
+  - Reroute (source: audit:6.3.3 Finding 2; severity: low). `_desloppify` and
+    `_desloppify_ledger` run the same load → content-error → file-error →
+    source-chapters → detect → report pipeline with verbatim-copied comment
+    blocks, differing only in three substitutions, so a future load-error-contract
+    change must touch both with no guard they stay in step. Lift the shared
+    pipeline into one seam parametrised by the three differing substitutions, with
+    each command supplying only those. This serves the step-7.16 command-facade
+    single-home hypothesis — shared command-body seams lifted into one explicit
+    home so a refactor of one cannot silently break the other — not the settled
+    step-6.3 contract-uniformity hypothesis where it was raised.
+  - Requires 6.3.3.
+  - See novel-ralph-harness-design.md §4 and §5.4;
+    docs/issues/audit-6.3.3.md (Finding 2);
+    novel_ralph_skill/commands/_desloppify.py.
+  - Success: one shared seam owns the desloppify load → content-error →
+    file-error → source-chapters → detect → report pipeline; `_desloppify` and
+    `_desloppify_ledger` supply only the three differing substitutions rather than
+    each re-spelling the body and its comment blocks; no verbatim pipeline copy
+    survives; and the desloppify suites stay green.
 
 ### 7.17. Reconcile the compile-divergence documentation with the byte-comparison implementation
 
@@ -4197,6 +4349,29 @@ it does not gate the deterministic spine.
     roadmap references are updated to match; no stale `torn_turn_rollback_partial`
     basename without a `_draft`/`_done_flag` discriminator survives; and the
     reconcile-family suites stay green.
+- [ ] 7.23.12. Migrate the per-module `_drive` helpers onto the shared
+  `contract_drive_support.drive` seam.
+  - Reroute (source: audit:6.3.2; severity: medium). The 6.3.2 change created the
+    sanctioned `tests/contract_drive_support.py::drive` fixture but left about 21
+    per-module hand-rolled `_drive`/`_drive_*` copies the developers'-guide
+    "Shared test scaffolding" rule forbids; a drive-mechanics change today touches
+    20-plus modules and each copy is a drift risk against the very contract 6.3.2
+    pins. Migrate them onto `drive` (adding a machine-mode JSON adapter where a
+    copy needs one), delete each local copy, and tighten the developers'-guide
+    rule to name `drive` as the single in-process command-drive entry point. This
+    serves the step-7.23 hypothesis — collapsing the command-driving scaffolding
+    onto shared, registered homes — not the settled step-6.3 contract-uniformity
+    hypothesis where it was raised. Coordinate with 7.23.6 so the in-process
+    run-and-capture seam and the `drive` fixture converge on one home rather than
+    two.
+  - Requires 6.3.2 and 7.23.6.
+  - See novel-ralph-harness-design.md §9; docs/developers-guide.md
+    ("Shared test scaffolding"); tests/contract_drive_support.py (`drive`).
+  - Success: every in-process command-drive test consumes the
+    `contract_drive_support.drive` seam (with a machine-mode JSON adapter where
+    needed) rather than a hand-rolled `_drive`/`_drive_*` copy; no per-module
+    `_drive` copy survives; the developers'-guide rule names `drive` as the single
+    in-process command-drive entry point; and the affected suites stay green.
 
 ### 7.24. Harden the workflow and matrix gates against silent drift
 
@@ -4809,3 +4984,63 @@ hypothesis (the mutators already refuse to persist an incoherent document and
     optional precondition hook rather than re-spelling the skeleton; the
     refuse-on-incoherence behaviour is unchanged; and every mutator suite stays
     green.
+
+### 7.37. Harden the commit gate against non-deterministic test failures
+
+This step answers whether the `make all` commit gate can be made
+deterministic — failing only on a genuine regression and never on a flaky
+property, an xdist scheduling artefact, or a build/install settling race — so
+every task that touches the suite inherits a gate it can trust rather than one
+that reddens intermittently and erodes confidence. Its outcome is a gate whose
+RED is always a real signal. These are deferred test-reliability hardening
+extensions surfaced by the reviews of step 6.3; they do not advance the step-6.3
+contract-uniformity hypothesis (the contract is proven and pinned) and they do
+not gate the deterministic spine.
+
+- [ ] 7.37.1. Stabilise the flaky reconcile-derivation totality property.
+  - Reroute (source: review:6.3.2; severity: high). The Hypothesis property
+    `test_reconcile_derivation::test_derivation_is_total_and_never_yields_none_on_a_violation`
+    reproduces failing roughly 1 in 8 full-suite runs under `pytest -n auto`
+    (the `make test` configuration via `PYTEST_XDIST_WORKERS=auto`); it is
+    unchanged on the 6.3 branch, so it is a pre-existing latent defect that makes
+    the commit gate non-deterministic for every task touching the suite.
+    Investigate whether the reconcile derivation genuinely yields `None` on some
+    violation (a real bug to fix in production) or the strategy/deadline needs
+    tightening (a test fix), and resolve whichever it is. This serves the
+    step-7.37 gate-determinism hypothesis — a gate that reddens only on a genuine
+    regression — not the settled step-6.3 contract-uniformity hypothesis where it
+    was raised.
+  - Requires 2.3.1.
+  - See novel-ralph-harness-design.md §5.4; AGENTS.md
+    ("Python verification and testing"); the `hypothesis` and `crosshair` skills;
+    novel_ralph_skill/state/reconcile.py;
+    tests/test_reconcile_derivation.py.
+  - Success: the root cause is identified as either a derivation defect (yields
+    `None` on a violation, fixed in production) or a strategy/deadline weakness
+    (tightened in the test), recorded in the execplan; the property passes
+    deterministically across repeated full-suite `pytest -n auto` runs; and the
+    reconcile suites stay green.
+- [ ] 7.37.2. Root-cause and guard the transient first-invocation envelope
+  field-order failures under `make all`.
+  - Reroute (source: review:6.3.2; severity: medium). A single `make all`
+    produced 101 failures all showing `messages` emitted before `result` —
+    spanning the new cross-command suite and pre-existing snapshot tests — then
+    never recurred across roughly 30 runs; `render_machine` is statically ordered
+    and the install is editable, so the cause is unexplained, possibly a
+    build/venv settling race between `make build` and `make test`. A wide, hard,
+    non-reproducible gate failure undermines trust in the gate. Root-cause the
+    field-order inversion and add a guard (e.g. ensure `make build` completes and
+    the install resolves before test collection) so the race cannot recur. This
+    serves the step-7.37 gate-determinism hypothesis — a gate that does not redden
+    on a build/install settling artefact — not the settled step-6.3
+    contract-uniformity hypothesis where it was raised.
+  - Requires 6.3.2.
+  - See novel-ralph-harness-design.md §3.1 and §9; the project `Makefile`
+    (`build`/`test`/`all` targets); novel_ralph_skill/contract/envelope.py
+    (`render_machine`).
+  - Success: the first-invocation `messages`-before-`result` field-order
+    inversion is root-caused and recorded (build/install settling race or
+    otherwise); a guard ensures the build completes and the install resolves
+    before test collection so the inversion cannot recur; and repeated `make all`
+    runs produce the statically-ordered envelope with no transient field-order
+    failures.

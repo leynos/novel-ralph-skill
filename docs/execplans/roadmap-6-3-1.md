@@ -643,3 +643,21 @@ Both producers — `_load_or_state_error` (same module) and
 `novel_state`) — call it from their `except STATE_INPUT_ERRORS as exc:` arm via
 `raise _state_input_error(path, exc)`. `StateInputError`, `STATE_INPUT_ERRORS`,
 `working_dir`, and `state_path` keep their current public shapes.
+
+## Addenda
+
+- 6.3.1.1 (from review:6.3.1; low). Record the omitted Decision Log entry that
+  Work item 2 step 3 directed: `_state_view_or_state_error` in
+  `_state_mutators.py` reports a *parsed-but-structurally-incomplete* document,
+  not a failed load, so it is an out-of-scope, non-producer boundary for §6.3.1
+  and is deliberately not routed through the shared `_state_input_error` helper.
+  A future reviewer must not mistake it for a third producer of the
+  `cannot load …` message and over-refactor it or flag a false drift. Pure
+  documentation; no code change. Lightweight addendum pass.
+- 6.3.1.2 (from review:6.3.1; low). Add a corrupt-arm parity assertion to
+  `test_state_input_message_parity.py`, which currently pins reader/mutator
+  parity only for the missing-`working/` arm. The present-but-corrupt
+  `state.toml` message is byte-identical across the `tomllib` (reader) and
+  `tomlkit` (mutator) boundaries today but no test pins it, so a one-sided
+  re-wording would silently reintroduce drift — the exact failure §6.3 exists
+  to prevent. Lightweight addendum pass.

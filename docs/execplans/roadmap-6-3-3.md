@@ -1019,3 +1019,13 @@ points; what changed and why:
    for branching on the code. Work item 2's docs-to-read now cites the
    `exit_codes.py`/`envelope.py` source lines and the developers' guide
    "Disambiguated exit codes" load-bearing statement.
+
+## Addenda
+
+- 6.3.3.1 (from review:6.3.3; low). Correct the roadmap §6.3.3 gating prose
+  (the lines instructing that `ok:false` be treated as a stop-and-fix), which
+  the shipped SKILL.md and the source deliberately override: `ok` is true iff
+  exit 0, so gating on `ok:false` would halt the Ralph loop on every benign
+  exit-1 turn. Reword the roadmap §6.3.3 entry to gate on the **exit code** so a
+  future reader does not re-introduce the corrected-away bug. Lightweight
+  addendum pass.
