@@ -1680,6 +1680,28 @@ report. See novel-ralph-harness-design.md §4.5.
     Phase 8 (new step d, before desloppify, current chapter only) and Phase 9
     (after the structural critic) carry it; `tests/test_skill_deflation_guard.py`
     pins it.
+  - [ ] 6.1.2.1. Add an ordering-aware structural assertion to the deflation
+    guard.
+    - Addendum (from review:6.1.2; low; two near-identical proposals merged). The
+      substring guard cannot detect a wrong insertion point or re-measure
+      placement and leaves the ordering to human review. Add an ordinal check:
+      the Phase 8 second `wordcount` mention falls after the desloppify step, and
+      the Phase 9 expand step falls after the structural critic and before
+      `complete-final-pass`. Lightweight addendum pass against the 6.1.2 execplan.
+  - [ ] 6.1.2.2. Strengthen the deflation guard to pin the over-expansion /
+    headroom cue.
+    - Addendum (from review:6.1.2; low). The guard passes on `wordcount` twice
+      plus the mechanism name, so it would pass even with the convergence defect
+      fix-round-1 corrected; add a stable substring asserting the Phase 8 region
+      budgets the destructive cut as deliberate headroom. Lightweight addendum
+      pass against the 6.1.2 execplan.
+  - [ ] 6.1.2.3. Reconcile the Phase 8 to Phase 9 residual-deficit handoff prose
+    with the artefacts produced.
+    - Addendum (from review:6.1.2; low). The Phase 8 escalation defers a deficit
+      to "the Phase 9 final expand pass" but no log artefact or state field
+      carries it; Phase 9 re-derives it from `wordcount`. Adjust the `SKILL.md`
+      prose so it does not imply an artefact that is not produced. Lightweight
+      addendum pass against the 6.1.2 execplan.
 
 ### 6.2. Prove the spine end-to-end across the combinatorial surface
 
@@ -4575,3 +4597,47 @@ does not gate the deterministic spine.
   - Success: one decision records which spelling convention governs the corpus,
     AGENTS.md and the corpus agree with it, a lint or spell-check rule enforces
     the chosen convention, and a deliberately misspelt sample fails that rule.
+
+### 7.34. Calibrate the deflation acceptance bands against measured novel runs
+
+This step answers whether the expand-to-target acceptance bands and the
+over-expansion headroom factor can be confirmed empirically — by measuring the
+realised desloppify-plus-critic shrinkage across several drafted novels — rather
+than carried as estimates from a single beta run. Its outcome is a measured
+shrinkage distribution that either confirms the Phase 8 over-expansion band
+(115–125% pre-cut) and the Phase 9 finished band (97–103%) converge chapters
+within target, or supplies the data to retune them, closing the ADR-001
+detect/adjudicate loop on the new expand-to-target step. These are deferred
+calibration-quality hardening extensions surfaced by the review of step 6.1.2;
+they do not advance the step-6.1 hypothesis (whether progress and gate proximity
+can be derived purely from disk — already settled by `wordcount`), because the
+bands govern the model's prose-expansion judgement, not the disk derivation, and
+they do not gate the deterministic spine. See novel-ralph-harness-design.md §7.2
+and SKILL.md Phases 8-9.
+
+- [ ] 7.34.1. Instrument and measure the realised per-chapter deflation, then
+  confirm or retune the acceptance bands.
+  - Reroute (source: review:6.1.2; severity: medium; three near-identical
+    proposals merged — a calibration probe, an end-to-end convergence fixture,
+    and the band re-calibration after several novels). The Phase 8 (115–125%
+    pre-cut) and Phase 9 (97–103%) bands derive from one beta run, and the
+    `tests/test_skill_deflation_guard.py` substring guard pins only the mechanism's
+    *presence*, never whether a full draft-plus-desloppify-plus-critic run lands
+    in band. Add instrumentation (a `wordcount`/recount reporting hook, or a
+    measured shrinkage report) so the realised pre-cut-to-post-cut shrinkage is
+    recorded per chapter, plus a corpus-level or beta-replay convergence check
+    that a representative manuscript lands within the Phase 9 band; then confirm
+    the bands converge chapters within target rather than firing the
+    log-and-advance escalation on most chapters, and retune the bands from the
+    measured distribution if needed. This does not serve the step-6.1
+    disk-derivation hypothesis — it is an empirical calibration of the model's
+    expansion judgement cross-cutting the drafting workflow — so it is rerouted
+    here rather than parked in 6.1.
+  - Requires 6.1.2, 6.2.1.
+  - See novel-ralph-harness-design.md §7.2 and §4.5; SKILL.md Phases 8-9;
+    `docs/adr-001-deterministic-judgemental-boundary.md`.
+  - Success: a measured per-chapter desloppify-plus-critic shrinkage distribution
+    is recorded across more than one drafted manuscript, a convergence check
+    confirms a representative manuscript lands within the Phase 9 97–103% band
+    (or the bands are retuned from the data so it does), and the recorded headroom
+    factor is justified by the measurement rather than the original estimate.

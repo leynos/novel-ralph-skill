@@ -801,3 +801,50 @@ verifying the loop and gate code.
   the structural critic line-vets new prose (`SKILL.md:479-482`).
 
 Remaining work: user approval, then Work items 1-3.
+
+## Addenda (post-merge follow-ups)
+
+Lightweight addendum work items folded back onto this completed task from the
+reviews of the deflation-calibration change. Execute each as a small addendum
+pass — no plan or design-review cycle: make the change, run `make all` (plus
+`make markdownlint`/`make nixie` for Markdown), `coderabbit review --agent`,
+commit, and tick the matching roadmap sub-task on merge. These are the small,
+surgical guard and prose fixes only; the substantial empirical band-calibration
+work (instrumentation and a beta-replay convergence fixture) was rerouted to
+roadmap step 7.34, because it does not advance step 6.1's disk-derivation
+hypothesis.
+
+- [ ] 6.1.2.1 — Add an ordering-aware structural assertion to the deflation
+  guard (from review:6.1.2; severity: low; two near-identical proposals merged).
+  The current substring guard cannot detect a wrong insertion point or
+  re-measure placement and leaves the load-bearing ordering to human Stage-D
+  review (Risks entry 2; module docstring caveat). Add a lightweight ordinal
+  check over the file offsets: in the Phase 8 region, assert the second
+  `wordcount` mention falls **after** the `desloppify` step heading; in the
+  Phase 9 region, assert the expand step's offset falls **after** the
+  structural-critic step's offset and **before** `complete-final-pass`, so a
+  destructive pass can never sit last after expansion. Mechanise the ordering
+  property the guard currently leaves to manual review, reducing regression risk
+  on future `SKILL.md` refactors. Confine the change to
+  `tests/test_skill_deflation_guard.py`.
+- [ ] 6.1.2.2 — Strengthen the deflation guard to pin the over-expansion /
+  headroom cue (from review:6.1.2; severity: low). The guard passes on
+  `wordcount` appearing twice plus the mechanism name, so it would pass even
+  with the convergence defect that fix-round-1 corrected (a pre-cut draft
+  expanded only to the band lands short after the destructive cut). Add a stable
+  mechanism substring asserting the Phase 8 region budgets the destructive cut as
+  deliberate headroom (an over-expand / 115–125% / headroom cue), narrowing the
+  gap between what the guard pins and the load-bearing prose-correctness
+  property. Confine the change to `tests/test_skill_deflation_guard.py`.
+- [ ] 6.1.2.3 — Reconcile the Phase 8→Phase 9 residual-deficit handoff prose
+  with the artefacts actually produced (from review:6.1.2; severity: low). The
+  Phase 8 escalation defers a short chapter's deficit to "the Phase 9 final
+  expand pass",
+  but no log artefact or state field carries that handoff; Phase 9 re-derives it
+  from `wordcount`. Adjust the `SKILL.md` prose so it does not imply an artefact
+  that is not produced — make explicit that Phase 9 re-derives the deficit from
+  `wordcount` rather than reading a deficit log — keeping the workflow prose
+  truthful. A formal deficit log or state field is deliberately out of scope (it
+  would touch the schema, which 6.1.2 forbids). Confine the change to
+  `skill/novel-ralph/SKILL.md` and, if the wording shifts a guarded substring, to
+  `tests/test_skill_deflation_guard.py`.
