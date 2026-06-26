@@ -18,6 +18,7 @@ import typing as typ
 
 import pytest
 import working_corpus as wc
+from _gate_drafting_fixtures import build, ratio_not_crossed_spec
 
 from novel_ralph_skill.commands.novel_state import build_app
 from novel_ralph_skill.contract.exit_codes import ExitCode
@@ -177,4 +178,104 @@ def test_recount_success_envelope_snapshot(
     result = typ.cast("dict[str, object]", json.loads(raw)["result"])
     assert result == {"current": 8, "by_chapter": {"01": 3, "02": 5}}
     assert "violations" not in result
+    assert _normalise(raw) == snapshot
+
+
+def test_complete_final_pass_success_envelope_snapshot(
+    phase_state_tree: cabc.Callable[[str], Path],
+    monkeypatch: pytest.MonkeyPatch,
+    snapshot: SnapshotAssertion,
+) -> None:
+    """Pin ``complete-final-pass``'s success envelope: ``result`` names the gate."""
+    working = phase_state_tree("final-pass")
+    monkeypatch.chdir(working.parent)
+    code, raw = _drive(["complete-final-pass"])
+    assert code == ExitCode.SUCCESS
+    # The write-shaped ``result`` names only the changed final gate and carries no
+    # ``violations`` read shape (roadmap 1.3.5; audit-2.2.2 Finding 2).
+    result = typ.cast("dict[str, object]", json.loads(raw)["result"])
+    assert result == {"gates": {"final": {"final_pass_complete": True}}}
+    assert "violations" not in result
+    assert _normalise(raw) == snapshot
+
+
+def test_set_fangirl_success_envelope_snapshot(
+    phase_state_tree: cabc.Callable[[str], Path],
+    monkeypatch: pytest.MonkeyPatch,
+    snapshot: SnapshotAssertion,
+) -> None:
+    """Pin ``set-fangirl``'s success envelope: ``result`` names the fangirl field."""
+    working = phase_state_tree("drafting")
+    monkeypatch.chdir(working.parent)
+    code, raw = _drive(["set-fangirl", "--last-chapter", "1"])
+    assert code == ExitCode.SUCCESS
+    result = typ.cast("dict[str, object]", json.loads(raw)["result"])
+    assert result == {"drafting": {"fangirl": {"last_chapter_passed": 1}}}
+    assert "violations" not in result
+    assert _normalise(raw) == snapshot
+
+
+def test_set_fangirl_refusal_envelope_snapshot(
+    phase_state_tree: cabc.Callable[[str], Path],
+    monkeypatch: pytest.MonkeyPatch,
+    snapshot: SnapshotAssertion,
+) -> None:
+    """Pin ``set-fangirl``'s out-of-manifest refusal envelope (exit ``3``)."""
+    working = phase_state_tree("drafting")
+    monkeypatch.chdir(working.parent)
+    # The ``drafting`` corpus tree carries a three-chapter manifest, so chapter 4
+    # is past the manifest and the precondition refuses it.
+    code, raw = _drive(["set-fangirl", "--last-chapter", "4"])
+    assert code == ExitCode.STATE_ERROR
+    assert json.loads(raw)["ok"] is False
+    assert _normalise(raw) == snapshot
+
+
+def test_set_critic_pass_success_envelope_snapshot(
+    phase_state_tree: cabc.Callable[[str], Path],
+    monkeypatch: pytest.MonkeyPatch,
+    snapshot: SnapshotAssertion,
+) -> None:
+    """Pin ``set-critic-pass``'s success envelope: ``result`` names the pass."""
+    working = phase_state_tree("drafting")
+    monkeypatch.chdir(working.parent)
+    code, raw = _drive(["set-critic-pass", "--pass", "2"])
+    assert code == ExitCode.SUCCESS
+    result = typ.cast("dict[str, object]", json.loads(raw)["result"])
+    assert result == {"drafting": {"critic": {"pass": 2}}}
+    assert "violations" not in result
+    assert _normalise(raw) == snapshot
+
+
+def test_set_critic_pass_refusal_envelope_snapshot(
+    phase_state_tree: cabc.Callable[[str], Path],
+    monkeypatch: pytest.MonkeyPatch,
+    snapshot: SnapshotAssertion,
+) -> None:
+    """Pin ``set-critic-pass``'s below-one refusal envelope (exit ``3``)."""
+    working = phase_state_tree("drafting")
+    monkeypatch.chdir(working.parent)
+    # Passes are numbered from 1, so ``--pass 0`` breaches the precondition.
+    code, raw = _drive(["set-critic-pass", "--pass", "0"])
+    assert code == ExitCode.STATE_ERROR
+    assert json.loads(raw)["ok"] is False
+    assert _normalise(raw) == snapshot
+
+
+def test_set_gate_refusal_envelope_snapshot(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    snapshot: SnapshotAssertion,
+) -> None:
+    """Pin ``set-gate``'s below-threshold refusal envelope (exit ``3``).
+
+    The ``ratio_not_crossed`` prior drafts a 0.15 ratio with every knitting gate
+    false, so asserting ``done_30`` contradicts the §5.2 ``gate-ratio-consistent``
+    invariant and is refused.
+    """
+    working = build(ratio_not_crossed_spec(), tmp_path)
+    monkeypatch.chdir(working.parent)
+    code, raw = _drive(["set-gate", "--knitting-30"])
+    assert code == ExitCode.STATE_ERROR
+    assert json.loads(raw)["ok"] is False
     assert _normalise(raw) == snapshot

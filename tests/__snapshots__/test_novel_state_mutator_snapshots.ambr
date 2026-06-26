@@ -11,6 +11,12 @@
   
   '''
 # ---
+# name: test_complete_final_pass_success_envelope_snapshot
+  '''
+  {"command": "novel state", "schema_version": 1, "ok": true, "working_dir": "working", "result": {"gates": {"final": {"final_pass_complete": true}}}, "messages": ["final pass marked complete"]}
+  
+  '''
+# ---
 # name: test_init_success_envelope_snapshot
   '''
   {"command": "novel state", "schema_version": 1, "ok": true, "working_dir": "working", "result": {"working_dir": "working", "slug": "s"}, "messages": ["initialised working/state.toml"]}
@@ -23,6 +29,18 @@
   
   '''
 # ---
+# name: test_set_critic_pass_refusal_envelope_snapshot
+  '''
+  {"command": "novel state", "schema_version": 1, "ok": false, "working_dir": "working", "result": {}, "messages": ["set-critic-pass refuses a pass below 1: critic-pass-at-least-one", "pass=0 is below the minimum of 1"]}
+  
+  '''
+# ---
+# name: test_set_critic_pass_success_envelope_snapshot
+  '''
+  {"command": "novel state", "schema_version": 1, "ok": true, "working_dir": "working", "result": {"drafting": {"critic": {"pass": 2}}}, "messages": ["critic pass set to 2"]}
+  
+  '''
+# ---
 # name: test_set_cursor_refusal_envelope_snapshot
   '''
   {"command": "novel state", "schema_version": 1, "ok": false, "working_dir": "working", "result": {}, "messages": ["set-cursor would violate: cursor-coherent", "cursor (chapter=99, scene=0, beat=0) is incoherent for 3 manifest chapters"]}
@@ -32,6 +50,24 @@
 # name: test_set_cursor_success_envelope_snapshot
   '''
   {"command": "novel state", "schema_version": 1, "ok": true, "working_dir": "working", "result": {"current_chapter": 2, "current_scene": 0, "current_beat": 0}, "messages": ["cursor set to chapter=2, scene=0, beat=0"]}
+  
+  '''
+# ---
+# name: test_set_fangirl_refusal_envelope_snapshot
+  '''
+  {"command": "novel state", "schema_version": 1, "ok": false, "working_dir": "working", "result": {}, "messages": ["set-fangirl refuses an out-of-manifest chapter: fangirl-chapter-in-manifest", "last_chapter=4 is outside [0, 3] for the current manifest"]}
+  
+  '''
+# ---
+# name: test_set_fangirl_success_envelope_snapshot
+  '''
+  {"command": "novel state", "schema_version": 1, "ok": true, "working_dir": "working", "result": {"drafting": {"fangirl": {"last_chapter_passed": 1}}}, "messages": ["fangirl last chapter passed set to 1"]}
+  
+  '''
+# ---
+# name: test_set_gate_refusal_envelope_snapshot
+  '''
+  {"command": "novel state", "schema_version": 1, "ok": false, "working_dir": "working", "result": {}, "messages": ["set-gate would violate: gate-ratio-consistent", "knitting gates disagree with the drafted ratio: done_30=True but drafted ratio 0.1500 is below threshold 0.30"]}
   
   '''
 # ---

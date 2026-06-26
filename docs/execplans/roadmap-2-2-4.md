@@ -1682,7 +1682,8 @@ advisories (A7, A8) from `roadmap-2-2-4.review-r3.md`.
 Lightweight, post-merge corrections folded onto this completed task. Each runs
 as a no-plan, no-review lightweight pass.
 
-- **Restore snapshot/BDD parity for the gate and drafting mutators** (from
+- [x] **2.2.4.1 — Restore snapshot/BDD parity for the gate and drafting
+  mutators** (from
   audit:2.2.4 Findings 3 and 4; low). The sibling-mutator baseline pins both a
   success and a refusal envelope snapshot per mutator
   (`tests/test_novel_state_mutator_snapshots.py`) and a behavioural `.feature`

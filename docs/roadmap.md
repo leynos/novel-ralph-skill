@@ -943,7 +943,7 @@ novel-ralph-harness-design.md §3.4, §4.1, and §5.3.
   - Success: every gate and drafting sub-state field is settable through a
     command, no field requires a hand-edit, `check` stays coherent across the
     mutations, and behavioural tests cover each mutator.
-  - [ ] 2.2.4.1. Restore snapshot/BDD parity for the gate and drafting mutators.
+  - [x] 2.2.4.1. Restore snapshot/BDD parity for the gate and drafting mutators.
     - Addendum (from audit:2.2.4; low). Backfill the missing success and refusal
       `result`/envelope snapshots for `complete-final-pass`, `set-fangirl`, and
       `set-critic-pass`, add a `set-gate` below-threshold refusal snapshot, and
