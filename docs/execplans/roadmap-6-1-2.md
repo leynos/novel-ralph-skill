@@ -814,7 +814,7 @@ work (instrumentation and a beta-replay convergence fixture) was rerouted to
 roadmap step 7.34, because it does not advance step 6.1's disk-derivation
 hypothesis.
 
-- [ ] 6.1.2.1 — Add an ordering-aware structural assertion to the deflation
+- [x] 6.1.2.1 — Add an ordering-aware structural assertion to the deflation
   guard (from review:6.1.2; severity: low; two near-identical proposals merged).
   The current substring guard cannot detect a wrong insertion point or
   re-measure placement and leaves the load-bearing ordering to human Stage-D
@@ -827,7 +827,7 @@ hypothesis.
   property the guard currently leaves to manual review, reducing regression risk
   on future `SKILL.md` refactors. Confine the change to
   `tests/test_skill_deflation_guard.py`.
-- [ ] 6.1.2.2 — Strengthen the deflation guard to pin the over-expansion /
+- [x] 6.1.2.2 — Strengthen the deflation guard to pin the over-expansion /
   headroom cue (from review:6.1.2; severity: low). The guard passes on
   `wordcount` appearing twice plus the mechanism name, so it would pass even
   with the convergence defect that fix-round-1 corrected (a pre-cut draft
@@ -836,7 +836,7 @@ hypothesis.
   deliberate headroom (an over-expand / 115–125% / headroom cue), narrowing the
   gap between what the guard pins and the load-bearing prose-correctness
   property. Confine the change to `tests/test_skill_deflation_guard.py`.
-- [ ] 6.1.2.3 — Reconcile the Phase 8→Phase 9 residual-deficit handoff prose
+- [x] 6.1.2.3 — Reconcile the Phase 8→Phase 9 residual-deficit handoff prose
   with the artefacts actually produced (from review:6.1.2; severity: low). The
   Phase 8 escalation defers a short chapter's deficit to "the Phase 9 final
   expand pass",

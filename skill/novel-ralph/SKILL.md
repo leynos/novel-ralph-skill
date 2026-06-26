@@ -386,8 +386,10 @@ For chapter N from 1 to last:
        run their destructive cuts, run `novel wordcount` AGAIN at step g to
        confirm the chapter now lands within the post-cut band. If after
        one expand-and-reprocess cycle it is still short, do not loop
-       unboundedly: log the residual deficit (the Phase 9 final expand
-       pass picks it up) and advance.
+       unboundedly: note the residual deficit in the turn log and advance.
+       No deficit field is written to state; the short draft on disk *is*
+       the record, and the Phase 9 final expand pass re-derives the
+       shortfall from `novel wordcount`, not from a deficit log.
     e. Desloppify: run the checklist in
        references/desloppify-checklist.md against the chapter draft.
        Apply every required cut and rewrite.

@@ -1701,7 +1701,7 @@ report. See novel-ralph-harness-design.md §4.5.
     Phase 8 (new step d, before desloppify, current chapter only) and Phase 9
     (after the structural critic) carry it; `tests/test_skill_deflation_guard.py`
     pins it.
-  - [ ] 6.1.2.1. Add an ordering-aware structural assertion to the deflation
+  - [x] 6.1.2.1. Add an ordering-aware structural assertion to the deflation
     guard.
     - Addendum (from review:6.1.2; low; two near-identical proposals merged). The
       substring guard cannot detect a wrong insertion point or re-measure
@@ -1709,14 +1709,14 @@ report. See novel-ralph-harness-design.md §4.5.
       the Phase 8 second `wordcount` mention falls after the desloppify step, and
       the Phase 9 expand step falls after the structural critic and before
       `complete-final-pass`. Lightweight addendum pass against the 6.1.2 execplan.
-  - [ ] 6.1.2.2. Strengthen the deflation guard to pin the over-expansion /
+  - [x] 6.1.2.2. Strengthen the deflation guard to pin the over-expansion /
     headroom cue.
     - Addendum (from review:6.1.2; low). The guard passes on `wordcount` twice
       plus the mechanism name, so it would pass even with the convergence defect
       fix-round-1 corrected; add a stable substring asserting the Phase 8 region
       budgets the destructive cut as deliberate headroom. Lightweight addendum
       pass against the 6.1.2 execplan.
-  - [ ] 6.1.2.3. Reconcile the Phase 8 to Phase 9 residual-deficit handoff prose
+  - [x] 6.1.2.3. Reconcile the Phase 8 to Phase 9 residual-deficit handoff prose
     with the artefacts produced.
     - Addendum (from review:6.1.2; low). The Phase 8 escalation defers a deficit
       to "the Phase 9 final expand pass" but no log artefact or state field

@@ -16,12 +16,14 @@ The file text is sliced into the Phase 8 and Phase 9 regions by heading offsets,
 then small, stable *mechanism* substrings (not whole sentences) are asserted
 within each region, per the brittleness mitigation in the ExecPlan's Risks.
 
-The guard deliberately checks only that the mechanism is *present* and recorded.
-It cannot detect a wrong **insertion point** (for example, the Phase 8 expand
-step placed after the fangirl pass instead of before desloppify) or a wrong
-**Phase 9 ordering** (expansion following a destructive pass). Those are
-load-bearing prose-correctness properties verified by human review (the
-ExecPlan's Stage D), not by a substring scan.
+The guard checks both that the mechanism is *present* and recorded and that the
+load-bearing *ordering* holds. Addendum 6.1.2.1 mechanises the ordinal property
+that earlier relied on human review: in the Phase 8 region the re-measurement
+``wordcount`` must fall after the desloppify step, and in the Phase 9 region the
+expand step must sit after the structural-only critic and before
+``complete-final-pass``, so no destructive pass can follow expansion. The guard
+still cannot judge prose quality or confirm the expanded material is substantive
+rather than padding; those remain human-review concerns (the ExecPlan's Stage D).
 """
 
 from __future__ import annotations
@@ -37,6 +39,25 @@ _SKILL_PARTS = ("skill", "novel-ralph", "SKILL.md")
 
 _PHASE_8_HEADING = "### Phase 8"
 _PHASE_9_HEADING = "### Phase 9"
+
+# Ordering anchors (lowercased, matching the region fixtures). The Phase 8
+# re-measure must fall after the desloppify step heading; the Phase 9 expand
+# step must sit after the structural critic and before complete-final-pass.
+_PHASE_8_DESLOPPIFY_STEP = "e. desloppify"
+_PHASE_9_STRUCTURAL_CRITIC = "structural issues invisible"
+_PHASE_9_FINAL_VERB = "complete-final-pass"
+
+
+def _require_index(haystack: str, needle: str, *, context: str) -> int:
+    """Return the offset of ``needle`` in ``haystack`` or fail loudly.
+
+    ``str.find`` returns ``-1`` when absent, which would silently corrupt an
+    ordinal comparison; this raises an assertion naming the missing anchor
+    instead so a renamed step heading fails with a clear message.
+    """
+    index = haystack.find(needle)
+    assert index != -1, f"ordering anchor {needle!r} missing from {context}"
+    return index
 
 
 def _slice_between(text: str, start_marker: str, end_marker: str) -> str:
@@ -162,4 +183,81 @@ class TestDeflationGuard:
         assert "target" in haystack, (
             "the rationale must reference the (unchanged) target the step "
             "expands the draft toward"
+        )
+
+    def test_phase_8_pins_the_over_expansion_headroom(
+        self,
+        phase_8_region: str,
+    ) -> None:
+        """The Phase 8 region budgets the destructive cut as deliberate headroom.
+
+        Without this the guard would pass even with the convergence defect
+        fix-round-1 corrected: a pre-cut draft expanded only to the band lands
+        short once desloppify and the critic trim it. The mechanism is to
+        over-expand the pre-cut draft above the chapter target by the expected
+        loss, so the chapter lands within the band after the cuts. Pin both the
+        over-expand cue and the headroom cue, which together encode that
+        budgeting property.
+        """
+        assert "over-expand" in phase_8_region, (
+            "the Phase 8 expand step must over-expand the pre-cut draft to "
+            "budget the desloppify-plus-critic cut, not expand only to the band"
+        )
+        assert "headroom" in phase_8_region, (
+            "the Phase 8 expand step must frame the over-expansion as deliberate "
+            "headroom for the destructive passes"
+        )
+
+    def test_phase_8_re_measure_follows_desloppify(
+        self,
+        phase_8_region: str,
+    ) -> None:
+        """The Phase 8 re-measure ``wordcount`` falls after desloppify.
+
+        The expand step measures before the destructive passes and re-measures
+        after them, so the final ``wordcount`` mention in the loop must sit
+        after the desloppify step heading. A refactor that moved the re-measure
+        ahead of desloppify — confirming the band before the cuts — would defeat
+        the over-expansion design and is caught here, not left to human review.
+        """
+        desloppify_at = _require_index(
+            phase_8_region,
+            _PHASE_8_DESLOPPIFY_STEP,
+            context="the Phase 8 region",
+        )
+        last_wordcount_at = phase_8_region.rfind("wordcount")
+        assert last_wordcount_at != -1, "wordcount missing from the Phase 8 region"
+        assert last_wordcount_at > desloppify_at, (
+            "the Phase 8 re-measurement wordcount must follow the desloppify "
+            "step (measure, cut, then re-measure)"
+        )
+
+    def test_phase_9_expand_sits_after_critic_and_before_final_verb(
+        self,
+        phase_9_region: str,
+    ) -> None:
+        """The Phase 9 expand step is bracketed by the critic and the final verb.
+
+        Expansion must run after the structural-only critic and before
+        ``complete-final-pass`` so no destructive pass follows it to re-open the
+        gap. This ordinal check mechanises the Phase 9 ordering the substring
+        guard alone could not prove.
+        """
+        critic_at = _require_index(
+            phase_9_region,
+            _PHASE_9_STRUCTURAL_CRITIC,
+            context="the Phase 9 region",
+        )
+        final_verb_at = _require_index(
+            phase_9_region,
+            _PHASE_9_FINAL_VERB,
+            context="the Phase 9 region",
+        )
+        expand_at = phase_9_region.find("expand to target")
+        if expand_at == -1:
+            expand_at = phase_9_region.find("expand-to-target")
+        assert expand_at != -1, "expand-to-target step missing from the Phase 9 region"
+        assert critic_at < expand_at < final_verb_at, (
+            "the Phase 9 expand step must sit after the structural-only critic "
+            "and before complete-final-pass (no destructive pass after it)"
         )
