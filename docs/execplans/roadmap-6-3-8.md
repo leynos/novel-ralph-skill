@@ -676,3 +676,32 @@ verified present in cuprum 0.1.0 at `cuprum/catalogue.py:33-79`,
 is in-process through the command bodies, mirroring how 6.3.1 and 6.3.5 proved
 their message quality; an installed-binary arm is out of scope here (the
 executed-surface identity is already pinned by 6.3.6).
+
+## Addenda
+
+Surgical follow-ups folded onto this completed task by the GIST triage of the
+6.3.8 reviews and audits. Each runs as a lightweight, no-plan addendum pass.
+
+- 6.3.8.1 (from audit:6.3.8 Findings 1-2; low). Collapse the four path-only
+  file-fault formatters in `_state_load.py` onto a private
+  `_file_fault_error(message)` builder and drop the dead `exc` parameter from
+  the path-only formatters — no body reads it, and `ARG` is not in the ruff
+  select set so the unused argument passes lint while misleading the signature.
+  Adjust `tests/test_state_load_actionable_parity.py` to the trimmed signatures.
+  Removes the near-identical single-arm duplication and the misleading `exc`
+  parameter in one focused change.
+- 6.3.8.2 (from audit:6.3.8 Finding 5; medium). Update the developers' guide
+  exit-3 section (`docs/developers-guide.md`), which still reads "Two sibling
+  formatters" and omits the three 6.3.8 additions, to describe all five
+  actionable formatters — `_compile_write_error`, `_rule_pack_read_error`, and
+  `_device_ledger_read_error` alongside `_state_input_error` and
+  `_draft_read_error` — and their write-shaped/file-shaped remedies, so the only
+  finding touching a stated source of truth no longer undercounts the
+  formatters.
+- 6.3.8.3 (from audit:6.3.8 Finding 6; low). Pin the actionable remedy wording
+  for the three exit-3 file-fault arms in tests: the behavioural and parity
+  tests assert path-named and no-raw-leak but not the remedy clause, so a
+  regression dropping the remedy would pass. Add one stable remedy-substring
+  assertion per arm (or a `_REMEDY_TOKENS` table on the parity tripwire
+  `tests/test_state_load_actionable_parity.py`) to enforce actionability
+  structurally alongside the no-leak contract.

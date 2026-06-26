@@ -2376,6 +2376,30 @@ and adr-003-shared-interface-contract.md.
     the artefact and a remedy, with no raw `Errno`/`{exc}` text; the three call
     sites emit write-shaped or file-shaped sibling prose rather than the raw repr;
     and the compile, desloppify, and ledger suites stay green.
+  - [ ] 6.3.8.1.
+    - Addendum (from audit:6.3.8 Findings 1-2; low). Collapse the four
+      path-only file-fault formatters in `_state_load.py` onto a private
+      `_file_fault_error(message)` builder and drop the dead `exc` parameter
+      from the path-only formatters (no body reads it), then adjust the parity
+      test to the trimmed signatures, removing the near-identical single-arm
+      duplication and the misleading signature in one focused change.
+      Lightweight addendum pass.
+  - [ ] 6.3.8.2.
+    - Addendum (from audit:6.3.8 Finding 5; medium). Update the developers'
+      guide exit-3 section (`docs/developers-guide.md`), which still reads "Two
+      sibling formatters", to describe all five actionable formatters covered by
+      6.3.8 — `_compile_write_error`, `_rule_pack_read_error`, and
+      `_device_ledger_read_error` alongside `_state_input_error` and
+      `_draft_read_error` — and their write-shaped/file-shaped remedies, so the
+      guide no longer undercounts the formatters. Lightweight addendum pass.
+  - [ ] 6.3.8.3.
+    - Addendum (from audit:6.3.8 Finding 6; low). Pin the actionable remedy
+      wording for the three exit-3 file-fault arms by adding one stable
+      remedy-substring assertion per arm (or a `_REMEDY_TOKENS` table) to the
+      parity tripwire `tests/test_state_load_actionable_parity.py`, which today
+      asserts only path-naming and no-raw-leak, so a regression dropping a
+      remedy clause fails a test rather than passing silently. Lightweight
+      addendum pass.
 - [ ] 6.3.9. Pin the developers'-guide contract restatement against the code with
   a drift-guard arm.
   - Step-task (source: review:6.3.7; severity: low). Serves the §6.3 hypothesis
@@ -4343,6 +4367,36 @@ copies that would re-diverge.
     while leaving its name in unrelated prose fails the guard; the anchored
     matching is applied across the prose-guard family; and the prose-guard suites
     stay green.
+
+- [ ] 7.6.28. Carry the path and structured fault separately from any raw `{exc}`
+  repr in the typed rule-pack and ledger `FileError` messages.
+  - Reroute (source: review:6.3.8; severity: low). 6.3.8 closed the exit-3 leak
+    at the command call sites by routing rule-pack and device-ledger faults
+    through the path-only `_rule_pack_read_error`/`_device_ledger_read_error`
+    formatters, but the underlying `RulePackFileError`/`LedgerFileError` messages
+    (`novel_ralph_skill/rulepack/parse.py:390`,
+    `novel_ralph_skill/ledger/parse.py:311`) still embed `cannot read … at
+    {path}: {exc}`. Those typed-error messages are no longer surfaced on the
+    exit-3 channel, so this is not a live actionability gap (the §6.3 hypothesis
+    is already discharged) but a defence-in-depth hardening: make the typed
+    errors carry the path and a structured fault separately from any raw `repr`
+    so a future consumer that stringifies them cannot re-leak OS text, closing
+    the leak at the source rather than only at the boundary. This is
+    error-contract robustness hardening of the now-actionable channel, not the
+    settled step-6.3 contract-uniformity hypothesis where it was raised, so it is
+    deferred here.
+  - Requires 6.3.8.
+  - See novel-ralph-harness-design.md §3.2 and §3.4;
+    docs/scripting-standards.md (line 678);
+    docs/adr-003-shared-interface-contract.md;
+    novel_ralph_skill/rulepack/parse.py (`RulePackFileError`);
+    novel_ralph_skill/ledger/parse.py (`LedgerFileError`).
+  - Success: the `RulePackFileError` and `LedgerFileError` messages carry the
+    faulted path and a structured fault without interpolating the raw caught
+    `{exc}` repr; stringifying either typed error no longer surfaces an `Errno`
+    or other raw OS text; the `_rule_pack_read_error`/`_device_ledger_read_error`
+    formatters continue to name the artefact and a remedy; and the rule-pack,
+    ledger, and desloppify suites stay green.
 
 ### 7.7. Reconcile the documentation and settle the conventions
 
