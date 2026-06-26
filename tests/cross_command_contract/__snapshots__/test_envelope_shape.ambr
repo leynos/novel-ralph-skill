@@ -1,0 +1,61 @@
+# serializer version: 1
+# name: test_machine_envelope_skeleton_snapshot[novel compile]
+  dict({
+    'command': 'novel compile',
+    'messages': list([
+      '<messages>',
+    ]),
+    'ok': True,
+    'result': '<result>',
+    'schema_version': 1,
+    'working_dir': 'working',
+  })
+# ---
+# name: test_machine_envelope_skeleton_snapshot[novel desloppify]
+  dict({
+    'command': 'novel desloppify',
+    'messages': list([
+      '<messages>',
+    ]),
+    'ok': True,
+    'result': '<result>',
+    'schema_version': 1,
+    'working_dir': 'working',
+  })
+# ---
+# name: test_machine_envelope_skeleton_snapshot[novel done]
+  dict({
+    'command': 'novel done',
+    'messages': list([
+      '<messages>',
+    ]),
+    'ok': False,
+    'result': '<result>',
+    'schema_version': 1,
+    'working_dir': 'working',
+  })
+# ---
+# name: test_machine_envelope_skeleton_snapshot[novel state]
+  dict({
+    'command': 'novel state',
+    'messages': list([
+      '<messages>',
+    ]),
+    'ok': True,
+    'result': '<result>',
+    'schema_version': 1,
+    'working_dir': 'working',
+  })
+# ---
+# name: test_machine_envelope_skeleton_snapshot[novel wordcount]
+  dict({
+    'command': 'novel wordcount',
+    'messages': list([
+      '<messages>',
+    ]),
+    'ok': True,
+    'result': '<result>',
+    'schema_version': 1,
+    'working_dir': 'working',
+  })
+# ---

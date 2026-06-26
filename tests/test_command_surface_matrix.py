@@ -83,11 +83,22 @@ Carried gaps (documented rather than silently omitted, §9 lines 819-821):
 from __future__ import annotations
 
 import json
-import re
 import typing as typ
 
 import pytest
 import working_corpus as wc
+from contract_drive_support import (
+    DETERMINISTIC_PATH_TOKEN as _DETERMINISTIC_PATH_TOKEN,
+)
+from contract_drive_support import (
+    CommandSpec as _ReadCommand,
+)
+from contract_drive_support import (
+    assert_no_volatile_fields as _assert_no_volatile_fields,
+)
+from contract_drive_support import (
+    build_phase_tree as _build_phase_tree,
+)
 
 from novel_ralph_skill.commands import (
     _compile,
@@ -98,27 +109,12 @@ from novel_ralph_skill.commands import (
 )
 from novel_ralph_skill.contract.envelope import ENVELOPE_SCHEMA_VERSION
 from novel_ralph_skill.contract.exit_codes import ExitCode
-from novel_ralph_skill.contract.runner import RunContext, run
 
 if typ.TYPE_CHECKING:
-    import collections.abc as cabc
     from pathlib import Path
 
-    import cyclopts
+    from contract_drive_support import Driver as _Driver
     from syrupy.assertion import SnapshotAssertion
-
-
-class _ReadCommand(typ.NamedTuple):
-    """One read surface: its console name, ``build_app`` factory, and argv.
-
-    Bundling the three identity fields keeps the drive helper's and tests'
-    parameter lists within the project's argument-count gate (Pylint
-    ``too-many-arguments``) while still naming each field at the call site.
-    """
-
-    name: str
-    build_app: cabc.Callable[[], cyclopts.App]
-    argv: list[str]
 
 
 # The five read surfaces. ``novel state`` is keyed on its ``check`` query;
@@ -141,22 +137,11 @@ _READ_REGISTRY: tuple[_ReadCommand, ...] = (
 # Captured in-process over the real corpus trees (see the ExecPlan Surprises).
 _COMPILE_OK_PHASES: frozenset[str] = frozenset({"final-pass", "done"})
 
-# Matches the shapes that would churn a snapshot: an absolute or multi-segment
-# path, an ISO-8601 date, or a clock time. Mirrors the novel desloppify/novel done guard
-# in ``tests/test_novel_done_snapshots.py``.
-_VOLATILE_PATTERN = re.compile(
-    r"(?:^|[\"\s])/[^/\"\s]+"
-    r"|/[^/\"\s]+/"
-    r"|\d{4}-\d{2}-\d{2}"
-    r"|\d{2}:\d{2}:\d{2}"
-)
-
-# The one deterministic working-relative path token the compile checker emits
-# (``checked``/its message). It is a fixed contract constant by construction
-# (``tests/test_compile_check_snapshots.py`` line 8, ExecPlan D-RESULT), not a
-# volatile per-run path, so the volatile guard exempts it rather than flagging it
-# as multi-segment-path churn. The snapshot still pins it verbatim.
-_DETERMINISTIC_PATH_TOKEN = "working/manuscript/compiled.md"  # noqa: S105  # a path, not a secret
+# The volatile-field guard, its deterministic compiled-path exemption, the
+# per-cell phase-tree builder, and the ``drive`` fixture are promoted to the
+# shared ``contract_drive_support`` plugin (roadmap 6.3.2 Work item 1) so the
+# §6.2.1 matrix and the §6.3.2 cross-command package share one drive seam; they
+# are imported above by name rather than re-spelled here.
 
 _BY_NAME: dict[str, _ReadCommand] = {
     command.name: command for command in _READ_REGISTRY
@@ -231,105 +216,6 @@ _ERROR_CELLS: tuple[_ErrorCell, ...] = tuple(
 _ERROR_CELL_IDS: tuple[str, ...] = tuple(
     f"{command.name}-{arm.label}" for command in _READ_REGISTRY for arm in _ERROR_ARMS
 )
-
-
-def _build_phase_tree(phase: str, tmp_path: Path) -> Path:
-    """Build the coherent ``working/`` tree for ``phase`` under ``tmp_path``.
-
-    Mirrors the ``phase_state_tree`` factory pattern
-    (``tests/corpus_fixtures.py`` lines 195-201): a per-phase subdirectory keeps
-    repeated builds within one test from inheriting a previous phase's tree.
-
-    Parameters
-    ----------
-    phase : str
-        The phase enum member name to build.
-    tmp_path : Path
-        The per-test temporary directory the tree is built under.
-
-    Returns
-    -------
-    Path
-        The materialised ``working/`` path.
-    """
-    dest = tmp_path / phase
-    dest.mkdir(exist_ok=True)
-    return wc.build_working_tree(wc.PHASE_STATES[phase], dest)
-
-
-class _Driver(typ.Protocol):
-    """An in-process command driver bundling the chdir and capture mechanics."""
-
-    def __call__(
-        self, command: _ReadCommand, working: Path, *, human: bool
-    ) -> tuple[int, str]:
-        """Drive ``command`` from ``working.parent``; return ``(code, out)``."""
-
-
-@pytest.fixture
-def drive(
-    monkeypatch: pytest.MonkeyPatch,
-    capsys: pytest.CaptureFixture[str],
-) -> _Driver:
-    """Return an in-process driver for a read command over a phase tree.
-
-    Bundling ``monkeypatch`` and ``capsys`` into one fixture keeps each test's
-    parameter list within the project's argument-count gate (Pylint
-    ``too-many-arguments``) while still delivering the capture mechanics by
-    fixture name. The returned callable is modelled on
-    ``tests/test_novel_done_snapshots.py::_run_capture`` (lines 56-71): it changes
-    directory with ``monkeypatch.chdir`` (auto-reverted, xdist-safe — never a bare
-    ``os.chdir``) and captures stdout via the ``capsys`` fixture. The caller
-    ``json.loads`` the text for machine mode and keeps it raw for human mode.
-
-    Parameters
-    ----------
-    monkeypatch : pytest.MonkeyPatch
-        Supplies the auto-reverted ``chdir``.
-    capsys : pytest.CaptureFixture[str]
-        Captures the rendered stdout.
-
-    Returns
-    -------
-    _Driver
-        A callable ``(command, working, *, human) -> (code, out)``.
-    """
-
-    def _drive(command: _ReadCommand, working: Path, *, human: bool) -> tuple[int, str]:
-        """Drive ``command`` from ``working.parent``; return ``(code, out)``."""
-        monkeypatch.chdir(working.parent)
-        with pytest.raises(SystemExit) as excinfo:
-            run(
-                command.build_app(),
-                command.argv,
-                RunContext(command=command.name, working_dir="working", human=human),
-            )
-        return int(typ.cast("int", excinfo.value.code)), capsys.readouterr().out
-
-    return _drive
-
-
-def _assert_no_volatile_fields(envelope: dict[str, object]) -> None:
-    """Assert the rendered envelope carries no timestamp or absolute path.
-
-    Reuses the volatile-field guard pattern from
-    ``tests/test_novel_done_snapshots.py`` (lines 74-84) so a churn-prone field
-    cannot silently slip into the snapshot.
-
-    Parameters
-    ----------
-    envelope : dict[str, object]
-        The parsed machine-mode envelope.
-    """
-    rendered = json.dumps(envelope).replace(_DETERMINISTIC_PATH_TOKEN, "<compiled>")
-    match = _VOLATILE_PATTERN.search(rendered)
-    assert match is None, (
-        f"unexpected volatile token {match.group()!r} in envelope: {rendered}"
-        if match is not None
-        else ""
-    )
-    for key in ("timestamp", "created_at", "now", "time"):
-        assert key not in rendered, f"unexpected volatile key {key!r} in envelope"
 
 
 @pytest.mark.parametrize("cell", _CELLS, ids=_CELL_IDS)

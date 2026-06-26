@@ -62,6 +62,12 @@ pytest_plugins = (
     # behavioural multiplexer suites each stay within the 400-line cap; a
     # registered plugin keeps the fixture available by name to both.
     "multiplexer_support",
+    # The in-process command-drive seam (roadmap 6.3.2): the ``drive`` fixture,
+    # the ``CommandSpec`` identity tuple, the per-cell phase-tree builder, and
+    # the volatile-field redaction guard the §6.2.1 matrix and the §6.3.2
+    # cross-command contract package share. Hosting it here would push this
+    # module past the 400-line cap, so it lives in a registered plugin module.
+    "contract_drive_support",
 )
 
 if typ.TYPE_CHECKING:

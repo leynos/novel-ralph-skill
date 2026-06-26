@@ -1,0 +1,312 @@
+# serializer version: 1
+# name: test_mutator_refusal_skeleton_identity[advance-phase]
+  dict({
+    'command': 'novel state',
+    'messages': list([
+      'advance-phase from an incoherent state would violate: completed-prefix',
+      'phase.completed (premise, characters) is not the in-order prefix (premise, treatment, characters, conflict-analysis, setting, reader-fit, stc, chapter-planning) for current drafting',
+    ]),
+    'ok': False,
+    'result': dict({
+    }),
+    'schema_version': 1,
+    'working_dir': 'working',
+  })
+# ---
+# name: test_mutator_refusal_skeleton_identity[complete-final-pass]
+  dict({
+    'command': 'novel state',
+    'messages': list([
+      'complete-final-pass would violate: completed-prefix',
+      'phase.completed (premise, characters) is not the in-order prefix (premise, treatment, characters, conflict-analysis, setting, reader-fit, stc, chapter-planning) for current drafting',
+    ]),
+    'ok': False,
+    'result': dict({
+    }),
+    'schema_version': 1,
+    'working_dir': 'working',
+  })
+# ---
+# name: test_mutator_refusal_skeleton_identity[init]
+  dict({
+    'command': 'novel state',
+    'messages': list([
+      'refusing to overwrite existing working/state.toml',
+    ]),
+    'ok': False,
+    'result': dict({
+    }),
+    'schema_version': 1,
+    'working_dir': 'working',
+  })
+# ---
+# name: test_mutator_refusal_skeleton_identity[reconcile]
+  dict({
+    'command': 'novel state',
+    'messages': list([
+      "no novel working/ found in <cwd>; run from the novel root, or run 'novel state init' to create one",
+    ]),
+    'ok': False,
+    'result': dict({
+    }),
+    'schema_version': 1,
+    'working_dir': 'working',
+  })
+# ---
+# name: test_mutator_refusal_skeleton_identity[recount]
+  dict({
+    'command': 'novel state',
+    'messages': list([
+      'recount would violate: completed-prefix',
+      'phase.completed (premise, characters) is not the in-order prefix (premise, treatment, characters, conflict-analysis, setting, reader-fit, stc, chapter-planning) for current drafting',
+    ]),
+    'ok': False,
+    'result': dict({
+    }),
+    'schema_version': 1,
+    'working_dir': 'working',
+  })
+# ---
+# name: test_mutator_refusal_skeleton_identity[set-chapters]
+  dict({
+    'command': 'novel state',
+    'messages': list([
+      'set-chapters refuses to overwrite a populated [chapters] manifest; re-planning is a separate, later concern',
+    ]),
+    'ok': False,
+    'result': dict({
+    }),
+    'schema_version': 1,
+    'working_dir': 'working',
+  })
+# ---
+# name: test_mutator_refusal_skeleton_identity[set-critic-pass]
+  dict({
+    'command': 'novel state',
+    'messages': list([
+      'set-critic-pass refuses a pass below 1: critic-pass-at-least-one',
+      'pass=0 is below the minimum of 1',
+    ]),
+    'ok': False,
+    'result': dict({
+    }),
+    'schema_version': 1,
+    'working_dir': 'working',
+  })
+# ---
+# name: test_mutator_refusal_skeleton_identity[set-cursor]
+  dict({
+    'command': 'novel state',
+    'messages': list([
+      'set-cursor would violate: cursor-coherent',
+      'cursor (chapter=99, scene=0, beat=0) is incoherent for 3 manifest chapters',
+    ]),
+    'ok': False,
+    'result': dict({
+    }),
+    'schema_version': 1,
+    'working_dir': 'working',
+  })
+# ---
+# name: test_mutator_refusal_skeleton_identity[set-fangirl]
+  dict({
+    'command': 'novel state',
+    'messages': list([
+      'set-fangirl refuses an out-of-manifest chapter: fangirl-chapter-in-manifest',
+      'last_chapter=4 is outside [0, 3] for the current manifest',
+    ]),
+    'ok': False,
+    'result': dict({
+    }),
+    'schema_version': 1,
+    'working_dir': 'working',
+  })
+# ---
+# name: test_mutator_refusal_skeleton_identity[set-gate]
+  dict({
+    'command': 'novel state',
+    'messages': list([
+      'set-gate would violate: gate-ratio-consistent',
+      'knitting gates disagree with the drafted ratio: done_30=True but drafted ratio 0.1500 is below threshold 0.30',
+    ]),
+    'ok': False,
+    'result': dict({
+    }),
+    'schema_version': 1,
+    'working_dir': 'working',
+  })
+# ---
+# name: test_mutator_success_skeleton_identity[advance-phase]
+  dict({
+    'command': 'novel state',
+    'messages': list([
+      "advanced phase from 'premise' to 'treatment'",
+    ]),
+    'ok': True,
+    'result': dict({
+      'from': 'premise',
+      'to': 'treatment',
+    }),
+    'schema_version': 1,
+    'working_dir': 'working',
+  })
+# ---
+# name: test_mutator_success_skeleton_identity[complete-final-pass]
+  dict({
+    'command': 'novel state',
+    'messages': list([
+      'final pass marked complete',
+    ]),
+    'ok': True,
+    'result': dict({
+      'gates': dict({
+        'final': dict({
+          'final_pass_complete': True,
+        }),
+      }),
+    }),
+    'schema_version': 1,
+    'working_dir': 'working',
+  })
+# ---
+# name: test_mutator_success_skeleton_identity[init]
+  dict({
+    'command': 'novel state',
+    'messages': list([
+      'initialised working/state.toml',
+    ]),
+    'ok': True,
+    'result': dict({
+      'slug': 's',
+      'working_dir': 'working',
+    }),
+    'schema_version': 1,
+    'working_dir': 'working',
+  })
+# ---
+# name: test_mutator_success_skeleton_identity[reconcile]
+  dict({
+    'command': 'novel state',
+    'messages': list([
+      'state is coherent against disk; nothing to reconcile',
+    ]),
+    'ok': True,
+    'result': dict({
+      'action': 'none',
+      'detail': 'state is coherent against disk; nothing to reconcile',
+      'discrepancies': list([
+      ]),
+    }),
+    'schema_version': 1,
+    'working_dir': 'working',
+  })
+# ---
+# name: test_mutator_success_skeleton_identity[recount]
+  dict({
+    'command': 'novel state',
+    'messages': list([
+      'recounted 8 words across 2 chapters',
+    ]),
+    'ok': True,
+    'result': dict({
+      'by_chapter': dict({
+        '01': 3,
+        '02': 5,
+      }),
+      'current': 8,
+    }),
+    'schema_version': 1,
+    'working_dir': 'working',
+  })
+# ---
+# name: test_mutator_success_skeleton_identity[set-chapters]
+  dict({
+    'command': 'novel state',
+    'messages': list([
+      'populated [chapters] with 1 chapters',
+    ]),
+    'ok': True,
+    'result': dict({
+      'chapters': list([
+        dict({
+          'number': 1,
+          'slug': 'c1',
+          'target_words': 1000,
+          'title': 'C1',
+        }),
+      ]),
+    }),
+    'schema_version': 1,
+    'working_dir': 'working',
+  })
+# ---
+# name: test_mutator_success_skeleton_identity[set-critic-pass]
+  dict({
+    'command': 'novel state',
+    'messages': list([
+      'critic pass set to 2',
+    ]),
+    'ok': True,
+    'result': dict({
+      'drafting': dict({
+        'critic': dict({
+          'pass': 2,
+        }),
+      }),
+    }),
+    'schema_version': 1,
+    'working_dir': 'working',
+  })
+# ---
+# name: test_mutator_success_skeleton_identity[set-cursor]
+  dict({
+    'command': 'novel state',
+    'messages': list([
+      'cursor set to chapter=2, scene=0, beat=0',
+    ]),
+    'ok': True,
+    'result': dict({
+      'current_beat': 0,
+      'current_chapter': 2,
+      'current_scene': 0,
+    }),
+    'schema_version': 1,
+    'working_dir': 'working',
+  })
+# ---
+# name: test_mutator_success_skeleton_identity[set-fangirl]
+  dict({
+    'command': 'novel state',
+    'messages': list([
+      'fangirl last chapter passed set to 1',
+    ]),
+    'ok': True,
+    'result': dict({
+      'drafting': dict({
+        'fangirl': dict({
+          'last_chapter_passed': 1,
+        }),
+      }),
+    }),
+    'schema_version': 1,
+    'working_dir': 'working',
+  })
+# ---
+# name: test_mutator_success_skeleton_identity[set-gate]
+  dict({
+    'command': 'novel state',
+    'messages': list([
+      'gate flags asserted to their ratio-mandated value',
+    ]),
+    'ok': True,
+    'result': dict({
+      'gates': dict({
+        'knitting': dict({
+          'done_30': True,
+        }),
+      }),
+    }),
+    'schema_version': 1,
+    'working_dir': 'working',
+  })
+# ---

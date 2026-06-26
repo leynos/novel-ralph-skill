@@ -28,7 +28,7 @@ import typing as typ
 
 import pytest
 import working_corpus as wc
-from hypothesis import given
+from hypothesis import given, settings
 from hypothesis import strategies as st
 
 from novel_ralph_skill.state import (
@@ -239,6 +239,7 @@ _DECLARED_BASENAMES = st.sampled_from([
 ])
 
 
+@settings(max_examples=100, deadline=None)
 @given(
     declared=st.lists(
         _DECLARED_BASENAMES.map(lambda rest: f"working/{rest}"),
@@ -258,6 +259,13 @@ def test_derivation_is_total_and_never_yields_none_on_a_violation(
     (totality) and (b) yields ``NONE`` only when *no* disk-evidence violation fired
     — the round-2 blocking-point-4 invariant that ``check``'s exit-4 finding always
     carries an actionable action.
+
+    ``deadline=None`` and a bounded ``max_examples`` are required because each
+    example materialises a full corpus working tree via ``build_working_tree`` and
+    parses ``state.toml``, so per-example runtime breaches Hypothesis's default
+    200ms deadline under ``pytest -n auto`` contention — matching the convention
+    the other filesystem-heavy property tests in this suite follow (for example
+    ``tests/test_done_predicate.py``).
     """
     dest = tmp_path_factory.mktemp("torn")
     spec = dc.replace(

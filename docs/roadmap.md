@@ -2147,7 +2147,7 @@ and adr-003-shared-interface-contract.md.
     and the remedy, with no raw `Errno`/traceback text, for at least one command
     of each class (mutator, checker, reader) — proving BOTH boundaries emit the
     identical actionable message.
-- [ ] 6.3.2. Pin cross-command exit-code and envelope-schema consistency with a
+- [x] 6.3.2. Pin cross-command exit-code and envelope-schema consistency with a
   shared behavioural suite and snapshots.
   - Requires phase 5, 6.1.1, and 1.2.12.
   - Assert, across all five commands as one parametrised pytest-bdd suite plus

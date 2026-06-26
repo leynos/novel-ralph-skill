@@ -1,0 +1,61 @@
+# serializer version: 1
+# name: test_finding_arm_result_snapshot[novel compile]
+  dict({
+    'chapters': 3,
+    'checked': 'working/manuscript/compiled.md',
+    'diverged': True,
+  })
+# ---
+# name: test_finding_arm_result_snapshot[novel desloppify]
+  dict({
+    'findings': list([
+      dict({
+        'basis': 'per_page',
+        'count': 6,
+        'density': 62.06896551724138,
+        'lines': list([
+          dict({
+            'chapter': 1,
+            'line': 1,
+          }),
+          dict({
+            'chapter': 1,
+            'line': 1,
+          }),
+          dict({
+            'chapter': 1,
+            'line': 1,
+          }),
+          dict({
+            'chapter': 1,
+            'line': 1,
+          }),
+          dict({
+            'chapter': 1,
+            'line': 1,
+          }),
+          dict({
+            'chapter': 1,
+            'line': 1,
+          }),
+        ]),
+        'passed': False,
+        'phrase': '—',
+        'rule_id': 'em-dash',
+        'threshold': 5,
+      }),
+    ]),
+    'pack': 'offenders',
+    'total_words': 29,
+    'violations': list([
+      'em-dash',
+    ]),
+  })
+# ---
+# name: test_finding_arm_result_snapshot[novel state]
+  dict({
+    'violations': list([
+      'consecutive-clean-within-target',
+    ]),
+  })
+# ---

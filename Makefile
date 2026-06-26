@@ -19,6 +19,15 @@ PYLINT_PYPY_SHIM_REF ?= 726d09f968b4d729ee4b29c71fc732e744854f3b
 PYLINT_PYPY_SHIM = git+https://github.com/leynos/pylint-pypy-shim.git@$(PYLINT_PYPY_SHIM_REF)
 PYLINT = $(UV_ENV) $(UV) tool run --python $(PYLINT_PYTHON) --from '$(PYLINT_PYPY_SHIM)' pylint-pypy
 
+# why: git worktree/checkout/rebase rewrites source-file mtimes, which can make a
+# stale timestamp-validated __pycache__/*.pyc in the tracked tree compare as
+# fresh; CPython then imports old bytecode under the editable install (observed
+# once as a wide first-run envelope field-order failure that healed on later
+# runs). Purging tracked-tree bytecode caches in `build` settles the editable
+# install so `test` always imports the source as written. Scoped to
+# $(PYTHON_TARGETS); never touches .venv or the uv cache.
+PURGE_TREE_BYTECODE = $(UV_ENV) $(UV) run python -c "import pathlib, shutil, sys; [shutil.rmtree(d, ignore_errors=True) for t in sys.argv[1:] for d in pathlib.Path(t).rglob('__pycache__')]" $(PYTHON_TARGETS)
+
 
 .PHONY: help all audit clean build build-release lint lint-python fmt check-fmt \
         markdownlint nixie test typecheck $(TOOLS) $(VENV_TOOLS)
@@ -40,6 +49,7 @@ endef
 
 build: .venv ## Build virtual-env and install deps
 	$(UV_ENV) $(UV) sync --group dev
+	$(PURGE_TREE_BYTECODE)
 
 build-release: ## Build artefacts (sdist & wheel)
 	$(call ensure_uv)

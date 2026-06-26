@@ -55,6 +55,18 @@ cross the usage error (exit 2) and the state-or-input error (exit 3) over the
 installed `novel` in both output modes, and carries the same `slow` /
 `timeout(180)` / POSIX-`skipif` marks as the other installed e2es.
 
+The in-process command-drive seam shared by the command-surface matrix and the
+cross-command contract suite lives in the registered plugin module
+[`tests/contract_drive_support.py`](../tests/contract_drive_support.py) (roadmap
+task 6.3.2), again co-located beside `conftest` rather than inside it to keep
+`conftest` under the 400-line cap. It owns the `drive` fixture (which drives a
+command in-process through the shared `run` seam and captures its exit code and
+rendered stdout), the `CommandSpec` identity tuple, the per-cell phase-tree
+builder, and the volatile-field redaction guard. Both the matrix module and the
+`tests/cross_command_contract/` package consume the `drive` fixture by name and
+the pure helpers by importing this plugin module, the sanctioned form for a
+`conftest`-equivalent scaffolding module.
+
 Test modules consume these by fixture name — list the fixture as a test or
 helper parameter — and never by importing from another test module or from
 `conftest` itself. Importing helpers from `conftest` is fragile across pytest
@@ -133,6 +145,49 @@ cross-products (covered by the validator suites), and the installed-binary
 crossing (the scope of task 6.2.4). Read that docstring before extending the
 matrix, so a new cell lands in the covered surface rather than re-proving a gap
 another suite owns.
+
+
+### The cross-command envelope-and-exit-code identity proof
+
+The [`tests/cross_command_contract/`](../tests/cross_command_contract/) package
+and its companion feature file
+[`tests/features/cross_command_contract.feature`](../tests/features/cross_command_contract.feature)
+(roadmap task 6.3.2) are the single home for the cross-command identity proof:
+that every one of the five spaced commands — `novel state`, `novel done`,
+`novel compile`, `novel desloppify`, and `novel wordcount` — presents the *same*
+output contract. The package pins three identity claims. First, the shared
+six-field envelope skeleton (`command`, `schema_version`, `ok`, `working_dir`,
+`result`, `messages`, in that order) with the contract field types and the fixed
+`working_dir` constant. Second, the `ok`-to-exit-code mapping: `ok` is `true` if
+and only if the exit code is 0 — a Hypothesis property over the pure
+synthetic-outcome → `run` → envelope surface plus plain parametrised driven-cell
+examples. Third, the error-channel shapes: the usage (exit 2) and state (exit 3)
+arms share one redacted skeleton across all five commands, and the
+actionable-finding (exit 4) skeleton is shared across the three commands that can
+reach it. Crucially, the package extends the identity proof to the `novel state`
+**mutators** — `init`, `set-cursor`, `advance-phase`, `recount`, `reconcile`,
+`set-chapters`, `set-gate`, `complete-final-pass`, `set-fangirl`, and
+`set-critic-pass` — whose success and refusal envelopes the matrix above
+explicitly carried as a gap. A mutator's success `result` names what it changed,
+so its contents are command-specific and snapshotted separately, never asserted
+equal across commands; only the *skeleton* and the success/refusal exit-code-to-
+`ok` mapping are asserted identical.
+
+This proof is the cross-command *identity* axis, distinct from the matrix's
+read-command-by-phase surface: do not duplicate either. Where the matrix asserts
+each read command's own shape across the eleven phases, this package asserts the
+shapes are *equal across commands* and adds the mutator surface. Like the matrix,
+it carries its combinatorial gaps knowingly rather than silently (design §9). The
+corpus does not let every command reach every channel: the actionable-finding
+(exit 4) channel is constructible only for `novel state check` (an incoherent
+tree), `novel compile --check` (a `drafting` tree), and `novel desloppify` (an
+em-dash-flood draft), so the `novel done` and `novel wordcount` exit-4 cells are
+carried as documented gaps; and the benign-negative (exit 1) channel is
+constructible only for `novel done` (the corpus never satisfies its done
+predicate), so every other command's exit-1 cell is a carried gap too. The
+constructible-cell table lives in `tests/cross_command_contract/_cells.py`; read
+the package docstring before extending the suite so a new cell lands on a
+reachable channel rather than asserting an unreachable one.
 
 ### The per-chapter deterministic-loop scenario
 
