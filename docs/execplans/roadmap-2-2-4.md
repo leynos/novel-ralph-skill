@@ -1676,3 +1676,25 @@ advisories (A7, A8) from `roadmap-2-2-4.review-r3.md`.
   `_set_gate_or_usage` alongside the four bodies and the registrar; the
   `_gate_drafting_mutators.py` projection is revised to ~245-305 lines (the
   +10-15 adapter lines), still well under 400, re-measured by `wc -l` in WI5.
+
+## Addenda
+
+Lightweight, post-merge corrections folded onto this completed task. Each runs
+as a no-plan, no-review lightweight pass.
+
+- **Restore snapshot/BDD parity for the gate and drafting mutators** (from
+  audit:2.2.4 Findings 3 and 4; low). The sibling-mutator baseline pins both a
+  success and a refusal envelope snapshot per mutator
+  (`tests/test_novel_state_mutator_snapshots.py`) and a behavioural `.feature`
+  per refusal-bearing verb. This slice shipped only a single `set-gate` success
+  `result` snapshot and only `complete_final_pass.feature`, leaving the headline
+  `set-gate` repair/refusal/usage arms and the `complete-final-pass`,
+  `set-fangirl`, and `set-critic-pass` envelopes without snapshot or behavioural
+  regression protection. Backfill the missing success (and where applicable
+  refusal) `result`/envelope snapshots for `complete-final-pass`, `set-fangirl`,
+  and `set-critic-pass`, add a `set-gate` below-threshold refusal snapshot, and
+  add a `set_gate.feature` covering the repair (exit 0), below-threshold refusal
+  (exit 3), and no-flag usage (exit 2) arms, matching the sibling-mutator parity
+  in `test_novel_state_mutator_snapshots.py` and the refusal-bearing `.feature`
+  files. This restores the project's uniform coverage standard without changing
+  shipped behaviour.

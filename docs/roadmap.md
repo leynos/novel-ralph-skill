@@ -919,6 +919,13 @@ novel-ralph-harness-design.md §3.4, §4.1, and §5.3.
   - Success: every gate and drafting sub-state field is settable through a
     command, no field requires a hand-edit, `check` stays coherent across the
     mutations, and behavioural tests cover each mutator.
+  - [ ] 2.2.4.1. Restore snapshot/BDD parity for the gate and drafting mutators.
+    - Addendum (from audit:2.2.4; low). Backfill the missing success and refusal
+      `result`/envelope snapshots for `complete-final-pass`, `set-fangirl`, and
+      `set-critic-pass`, add a `set-gate` below-threshold refusal snapshot, and
+      add a `set_gate.feature` covering the repair/refusal/usage arms, matching
+      the sibling-mutator snapshot and `.feature` baseline. Lightweight addendum
+      pass.
 
 ### 2.3. Deliver recount and disk-authoritative reconciliation
 
@@ -3208,6 +3215,38 @@ the deterministic spine.
     depends on a sibling command module for the working-dir name; the
     `contract`→`commands` edge documented in 1.3.1.2 is removed; and the
     contract, command, registry, and envelope suites stay green.
+- [ ] 7.16.7. Centralise the body-detected usage-error (exit-2) envelope in the
+  contract layer.
+  - Reroute (source: audit:2.2.4 Finding 1; severity: medium).
+    `GateDraftingUsageError(EnvelopeMessagesError)` plus its `_set_gate_or_usage`
+    adapter is now a near-verbatim second copy of
+    `DesloppifyUsageError(EnvelopeMessagesError)` plus `_scan_or_usage`, and the
+    exit-2 `CommandOutcome(code=ExitCode.USAGE_ERROR, messages=list(exc.messages)
+    or [str(exc)])` construction is duplicated at three sites
+    (`_desloppify.py:256-258`, `_desloppify.py:343-345`,
+    `_gate_drafting_mutators.py:204-206`). Lift the shared shape into the
+    `contract` layer — a `BodyUsageError(EnvelopeMessagesError)` base (or marker)
+    plus one `usage_error_outcome(exc)` helper both command modules call — so the
+    exit-2 envelope has a single tested home alongside the centralised
+    load/refuse helpers, while each module keeps a thin domain subclass for its
+    docstring-level trigger. This serves the step-7.16 command-facade single-home
+    hypothesis — the shared exit-2 envelope seam lifted into an explicit,
+    neutrally-named home so a refactor of one command cannot silently break the
+    others — not the settled step-2.2 write-discipline hypothesis where it was
+    raised. Do it before a third command module copies the pattern again.
+  - Requires 1.3.4.
+  - See novel-ralph-harness-design.md §3.2 and §4;
+    docs/adr-003-shared-interface-contract.md;
+    docs/issues/audit-2.2.4.md (Finding 1);
+    novel_ralph_skill/contract/errors.py;
+    novel_ralph_skill/commands/_gate_drafting_mutators.py;
+    novel_ralph_skill/commands/_desloppify.py.
+  - Success: a `BodyUsageError` base and one `usage_error_outcome(exc)` helper
+    live in the `contract` layer; the `set-gate` and `desloppify` usage adapters
+    delegate to the shared helper rather than each re-spelling the exit-2
+    `CommandOutcome`; the exit-2 envelope construction lives in exactly one
+    place; a unit test pins the shared helper's envelope; and the gate/drafting,
+    desloppify, and contract suites stay green.
 
 ### 7.17. Reconcile the compile-divergence documentation with the byte-comparison implementation
 
@@ -4116,3 +4155,47 @@ block nothing earlier.
     `last_finding_counts` path, so a second inline table's inner keys are
     covered; and the schema-guard suite stays green against the current
     documented reference.
+
+### 7.31. Reconcile the gate-ratio documentation with the validator's drafted-ratio formula
+
+This step answers whether the prose describing the knitting-gate ratio can be
+made truthful — replacing the `word_counts.current / word_counts.target`
+language in design §5.2 and `state-layout.md` with the
+`sum(by_chapter) / target` drafted ratio the validator
+(`validate.py:_check_gate_ratio_consistent`) deliberately enforces — without
+altering the validator or weakening the gate-ratio binding. Its outcome is a
+single, internally consistent description of the gate ratio so the design
+document, the skill state-layout reference, and the shipped behaviour agree, and
+the two adjacent formulae in `state-layout.md` no longer read as contradictory.
+This is a deferred documentation-truthfulness hardening extension surfaced by the
+review of step 2.2.4; it does not advance the settled step-2.2 write-discipline
+hypothesis (the mutators already write validated state losslessly and pass) and
+it does not gate the deterministic spine. Task 2.2.4 added a clarifying sentence
+but correctly held the primary-prose reconciliation out of scope, since touching
+the validator would be an ADR-level change and editing it was not 2.2.4's
+concern.
+
+- [ ] 7.31.1. Reconcile the gate-ratio prose across design §5.2 and
+  `state-layout.md` with the validator's `sum(by_chapter) / target` formula.
+  - Reroute (source: review:2.2.4; severity: low; two near-identical proposals
+    merged). Design §5.2 (the gate-ratio-consistent invariant) and
+    `skill/novel-ralph/references/state-layout.md` (the gate-ratio binding
+    prose) describe the ratio as `word_counts.current / word_counts.target`, but
+    `validate.py:_check_gate_ratio_consistent` deliberately uses
+    `sum(by_chapter.values()) / target`, so the source-of-truth documents
+    contradict the shipped behaviour and `state-layout.md`'s two adjacent
+    formulae read as inconsistent. Reconcile the prose to the validator's
+    drafted-ratio formula (a doc-only change — the validator is the intended
+    behaviour and is not to be touched), removing a recurring source of reviewer
+    and implementer confusion. This is documentation-truthfulness hardening, not
+    the settled step-2.2 write-discipline hypothesis where it was raised, so it
+    is deferred here.
+  - Requires 2.2.4.
+  - See novel-ralph-harness-design.md §5.2;
+    skill/novel-ralph/references/state-layout.md;
+    novel_ralph_skill/state/validate.py (`_check_gate_ratio_consistent`).
+  - Success: the gate-ratio prose in design §5.2 and `state-layout.md` describes
+    the ratio as `sum(by_chapter) / target`, agreeing with the validator and
+    with the clarifying sentence task 2.2.4 added; the two formulae in
+    `state-layout.md` no longer contradict each other; the validator is
+    unchanged; and the documentation lint gates stay green.
