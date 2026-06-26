@@ -14,8 +14,8 @@ This reference defines the done predicate at three scales:
 ## How to evaluate
 
 Every turn, after the entry routine but before doing new work, evaluate the
-novel-level predicate by running the `novel-done` command. If it exits 0
-(reports done), write a final log entry and stop. Otherwise proceed. `novel-done`
+novel-level predicate by running the `novel done` command. If it exits 0
+(reports done), write a final log entry and stop. Otherwise proceed. `novel done`
 is the single source of truth for the novel-level predicate; see
 [Novel-level predicate](#novel-level-predicate) below.
 
@@ -138,11 +138,11 @@ A chapter is done when all of:
 ## Novel-level predicate
 
 The terminator. The agent declares done only when this evaluates true on disk.
-Do not re-implement the predicate here: run the `novel-done` command, which is
+Do not re-implement the predicate here: run the `novel done` command, which is
 the single source of truth for the novel-level clauses. Its six clauses and the
 disk source of each are tabulated in the developers' guide under
-"Done predicate (`novel-done`)"; the truth conditions are fixed by design §4.2
-and implemented in `novel_ralph_skill/state/done_predicate.py`. `novel-done`
+"Done predicate (`novel done`)"; the truth conditions are fixed by design §4.2
+and implemented in `novel_ralph_skill/state/done_predicate.py`. `novel done`
 exits 0 when every clause holds and names any failed clause in its output, so
 the agent acts on the specific clause that is false.
 

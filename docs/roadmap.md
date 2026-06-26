@@ -321,7 +321,7 @@ docs/scripting-standards.md.
     `wordcount` console-script reference survives in the design or `SKILL.md`,
     the Setup install check names a command that exists, and `make markdownlint`
     and `make nixie` pass on the edited docs.
-- [ ] 1.2.17. Extend the multiplexer-surface doc sweep to
+- [x] 1.2.17. Extend the multiplexer-surface doc sweep to
   `skill/novel-ralph/references/`.
   - Step-task (source: audit:1.2.16; severity: medium). The reference files
     (`state-layout.md`, `done-conditions.md`, `critic-personas.md`) invoke

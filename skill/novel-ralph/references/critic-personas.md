@@ -128,9 +128,9 @@ Rules:
 
 ### Resolving a BLOCKER
 
-The `novel-done` checker reads `critic-notes.md` to decide whether a chapter
+The `novel done` checker reads `critic-notes.md` to decide whether a chapter
 still carries an unresolved BLOCKER, so the producer (this critic loop) and the
-consumer (`done-conditions.md`, the `novel-done` predicate) share one convention
+consumer (`done-conditions.md`, the `novel done` predicate) share one convention
 for what "resolved" looks like on disk (roadmap 3.1.5; design §4.2):
 
 - A blocker is a `### Bn — <label>` finding heading under the `## BLOCKER`

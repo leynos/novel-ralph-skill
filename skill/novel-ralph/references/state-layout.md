@@ -115,7 +115,7 @@ target = 80000
 current = 24300                    # drafted sum (sum of by_chapter values)
 by_chapter = { "01" = 3200, "02" = 3500, "03" = 3700, ... }
 
-# Ordered chapter manifest, written only by `novel-state set-chapters`.
+# Ordered chapter manifest, written only by `novel state set-chapters`.
 # One [[chapters]] entry per planned chapter; never edited by hand.
 [[chapters]]
 number = 1
@@ -178,7 +178,7 @@ Each sub-step is its own state transition, logged.
 Passes are numbered from 1, so a fresh `state.toml` and each new chapter seed
 `pass = 1` — the first pass, pending rather than run. It increments as the
 spiteful critic loop runs. Set it by running
-`novel-state set-critic-pass --pass N` — never by a direct `state.toml` edit, per
+`novel state set-critic-pass --pass N` — never by a direct `state.toml` edit, per
 ADR-001 and ADR-010; the command refuses a pass below 1 with exit 3.
 
 `consecutive_clean` is currently always 0 or 1 (one clean pass is sufficient
@@ -187,7 +187,7 @@ too easy on chapters.
 
 `convergence_target` is the configured ceiling for `consecutive_clean` (default
 1), replacing the previously hard-coded literal. Raising it tightens the
-convergence bar — `novel-state check` requires
+convergence bar — `novel state check` requires
 `0 ≤ consecutive_clean ≤ convergence_target` and rejects a target below 1 — so
 the bar can be lifted without editing the validator (design §5.1).
 
@@ -198,7 +198,7 @@ and for deciding whether to re-run after edits.
 
 `drafting.fangirl.last_chapter_passed` is the last chapter the parasocial fangirl
 pass ran on; `0` means no pass yet. Set it by running
-`novel-state set-fangirl --last-chapter N` — never by a direct `state.toml` edit,
+`novel state set-fangirl --last-chapter N` — never by a direct `state.toml` edit,
 per ADR-001 and ADR-010. The command refuses a chapter outside
 `[0, number-of-manifest-chapters]` with exit 3.
 
@@ -208,35 +208,35 @@ The knitting circle gates trigger when
 `word_counts.current / word_counts.target` crosses 0.30, 0.50, and 0.80
 respectively, and the corresponding gate is still false. After the pass is
 integrated and logged, flip the gate by running
-`novel-state set-gate --knitting-30` (or `--knitting-50`/`--knitting-80`) — never
+`novel state set-gate --knitting-30` (or `--knitting-50`/`--knitting-80`) — never
 by a direct `state.toml` edit, per ADR-001 and ADR-010. The command asserts the
 value the drafted ratio mandates and refuses with exit 3 if the ratio has not
-crossed the threshold (the gate-ratio binding; `novel-state check` validates the
+crossed the threshold (the gate-ratio binding; `novel state check` validates the
 gate against `sum(by_chapter) / target`).
 
-This binding couples `recount` to the gates. `novel-state recount` re-derives
+This binding couples `recount` to the gates. `novel state recount` re-derives
 `[word_counts]` from the drafts and never flips a gate — disk does not store the
 "pass integrated" fact, so the harness will not synthesise it. If a recount
 refuses on `gate-ratio-consistent`, it is telling you the re-derived ratio
 crossed a knitting threshold the recorded gates do not yet reflect: integrate
 and log the pending knitting pass, then run
-`novel-state set-gate --knitting-NN`.
+`novel state set-gate --knitting-NN`.
 Do not hand-edit `[gates]` to silence it. (If instead the message says a gate is
 recorded true while drafting has dropped *below* its threshold, the recorded
 gate no longer matches the drafts — adjudicate by restoring the drafts or
 clearing the gate, then re-derive.)
 
 `final_pass_complete` flips to true at the end of Phase 9. Flip it by running
-`novel-state complete-final-pass` (or `novel-state set-gate --final`), never by
+`novel state complete-final-pass` (or `novel state set-gate --final`), never by
 a direct `state.toml` edit.
 
 ### Chapter manifest
 
 The `[chapters]` array is the ordered record of each planned chapter — its
 `number`, `slug`, `title`, and `target_words`. It is the authoritative set
-against which `novel-state check` validates the on-disk `chapter-NN/`
+against which `novel state check` validates the on-disk `chapter-NN/`
 directories, and its order mirrors the zero-padded directory index
-`novel-compile` follows. It is written only by `novel-state set-chapters` when
+`novel compile` follows. It is written only by `novel state set-chapters` when
 chapter planning completes — never by a direct `state.toml` edit, per ADR-001
 and ADR-008 — because the manifest is the agent's non-recomputable judgement
 (design §5.1). A freshly initialised `state.toml` carries an empty
@@ -253,11 +253,11 @@ clears the record once every artefact is written and verified. It is present
 **only** while a multi-file mutation is mid-write; a settled `state.toml`
 carries no `[pending_turn]` at all, and a freshly initialised one never writes
 it. On the next turn, an uncleared `[pending_turn]` is the signature of a torn
-turn: `novel-state check` reads it, compares the named paths against disk, and
-reports the reconciliation `novel-state reconcile` carries out (design §5.1,
+turn: `novel state check` reads it, compares the named paths against disk, and
+reports the reconciliation `novel state reconcile` carries out (design §5.1,
 §5.4).
 
-Because `novel-state init` never emits `[pending_turn]`, the emitted-schema
+Because `novel state init` never emits `[pending_turn]`, the emitted-schema
 drift guard (`tests/test_state_layout_schema_guard.py`) cannot cover it; this
 subsection is the only reconciliation between the reference and the transient
 on-disk shape design §5.1 names.
