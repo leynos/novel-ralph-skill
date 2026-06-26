@@ -1,198 +1,175 @@
 # Post-merge audit — roadmap task 7.1.1
 
-Audit of the codebase after task 7.1.1 ("Ship the versioned `ai-isms.toml` pack
-and update cadence") merged to `main` at commit `42a6fc6`. The task shipped a
-second packaged rule pack (`ai-isms.toml`) beside `offenders.toml`, added the
-`ai_isms_pack_path` resolver, a validation suite, robustness property tests, and
-an end-to-end check proving the pack travels in the wheel, plus update-cadence
-documentation and the Q5 resolution in the harness design.
+Audit of the codebase after roadmap task 7.1.1 ("Extract compile-currency
+predicate and compiled.md path seam") merged to `main` at commit `e606735`. The
+task centralised two things that were hand-repeated across the compile surface:
+the compile-agreement invariant (now the named `compile_is_current(verdict)`
+predicate) and the `working/manuscript/compiled.md` location (now the
+`compiled_manuscript_path` / `COMPILED_REL` path seam). Both seam members live
+in `novel_ralph_skill/state/compile_model.py`, the existing owner of the join
+rule, and are re-exported through `novel_ralph_skill/state/__init__.py`. The
+four consumers — `_compile.check_compiled`, `done_predicate.compile_consistent`,
+the `_novel_done` compile clause, and the `state` package re-exports — were
+routed through the seam, and `tests/test_compile_model_seam.py` pins the
+projection and the single path.
 
-Trail followed: `docs/novel-ralph-harness-design.md` §6.2 (resolves Q5),
-`docs/developers-guide.md` §"Rule packs and the loader boundary" (new "ai-isms
-pack: cadence, ownership, and membership" subsection), `docs/users-guide.md`
-§`desloppify`, `skill/novel-ralph/references/desloppify-checklist.md`, the ADRs
-(ADR-001 deterministic boundary, ADR-006 POSIX e2e policy), `AGENTS.md` (quality
-gates, 400-line cap, CQS), the `python-router` skill (Python work), and
-`leta`/`sem` for navigation and history. Files inspected:
-`novel_ralph_skill/rulepack/packs/ai-isms.toml`,
-`novel_ralph_skill/rulepack/packs/__init__.py`,
-`novel_ralph_skill/commands/_desloppify_report.py`,
-`novel_ralph_skill/commands/_desloppify.py`,
-`novel_ralph_skill/rulepack/parse.py`, `tests/test_ai_isms_pack.py`,
-`tests/test_ai_isms_e2e.py`, `tests/test_ai_isms_properties.py`,
-`tests/test_desloppify_command.py`, and the three documents above.
+Trail followed: `docs/novel-ralph-harness-design.md` §4.3/§5.4 (the compile and
+disk-evidence model), `docs/developers-guide.md` §"`compile_consistent` is the
+full content comparison" and §"One owner for 'compiled.md equals the ordered
+draft concatenation'", the ADRs (ADR-001 deterministic/judgemental boundary,
+ADR-003 shared interface contract, ADR-005 command surface), `AGENTS.md`
+(quality gates, 400-line cap, CQS, en-GB Oxford spelling), the `python-router`
+skill (Python work, routing to `python-types-and-apis` and `python-testing`),
+and `leta`/`sem` for navigation and history. Files inspected:
+`novel_ralph_skill/state/compile_model.py`,
+`novel_ralph_skill/state/done_predicate.py`,
+`novel_ralph_skill/state/disk_evidence.py`,
+`novel_ralph_skill/state/__init__.py`,
+`novel_ralph_skill/commands/_compile.py`,
+`novel_ralph_skill/commands/_novel_done.py`,
+`tests/test_compile_model_seam.py`, and the design and developer documents above.
 
-The merged change is high quality: the pack-validation and property suites are
-thorough, the membership policy is well reasoned and cited, and the casing
-divergence and cross-pack ownership are pinned precisely. The findings below are
-mostly at the CLI-ergonomics and documentation layer, where the in-wheel pack is
-not actually reachable through the path users are told to type. Finding 1 is the
-substantive one.
+The merged change is high quality. The extraction is well motivated (it closes
+`docs/issues/audit-4.1.2.md` Findings 1 and 2), the four consumers genuinely
+route through the new seam with no stragglers (verified by grepping every
+`compiled.md` construction in `novel_ralph_skill/`), the opposite-polarity §5.4
+detector is correctly left untouched and the reason is documented, and the seam
+test exhausts the `CompiledComparison` truth table with a guard that forces a
+decision if a fourth member is ever added. The findings below are at the
+documentation-narrative and minor-ergonomics layer; none is a correctness
+defect. Note also that the prior `docs/issues/audit-7.1.1.md` on `main`
+described a *different* change (the `ai-isms.toml` pack, commit `42a6fc6`); this
+file replaces it with an audit of the change that actually merged as 7.1.1.
 
-## Finding 1 — the documented `--pack` invocation does not work after install (severity: high)
-
-**Category:** ergonomics
-
-**Location:** `docs/users-guide.md` §`desloppify` (the `--pack
-novel_ralph_skill/rulepack/packs/ai-isms.toml` instruction);
-`docs/developers-guide.md` §"The ai-isms pack…" ("selects it only when given
-`--pack ai-isms.toml`"); `skill/novel-ralph/references/desloppify-checklist.md`
-(the same source-tree path); `novel_ralph_skill/commands/_desloppify.py`
-(`pack: pathlib.Path | None`); `novel_ralph_skill/commands/_desloppify_report.py`
-`ai_isms_pack_path`.
-
-**Description:** The shipped `ai-isms.toml` lives inside the installed package
-tree and is resolved through `importlib.resources` as a `Traversable` (the
-resolver and `load_rulepack` are both correctly typed `Traversable`, precisely so
-a zipped install works). But the only way the CLI lets a user reach it is the
-`--pack PATH` keyword, which is bound to `pathlib.Path`, and the documentation
-tells users to type the **source-tree relative path**
-`novel_ralph_skill/rulepack/packs/ai-isms.toml`. That path exists only when
-running from a checkout; after `pip install` the file is under `site-packages`
-(and, in a zipped install, is not a filesystem path at all). An installed user
-following the users-guide, developers-guide, or desloppify-checklist gets a
-`cannot read rule pack` exit-3 error. `ai_isms_pack_path()` — the one resolver
-that *does* find the installed pack — is never wired into the command surface;
-the e2e only works because it shells out to `python -c "...; print(
-ai_isms_pack_path())"` to discover the path first, which no end user would do.
-
-**Proposed fix:** Wire the packaged pack into the command surface so it is
-selectable without knowing an install path. Preferred: accept a symbolic pack
-name on `--pack` (e.g. `--pack ai-isms` / `--pack offenders`) that the command
-resolves through `ai_isms_pack_path()`/`offenders_pack_path()`, treating any
-value that is not a known shipped name as a filesystem path (this keeps `--pack
-PATH` for bespoke packs). Then correct all three documents to the symbolic form
-and add a command-level test that selects the pack by the *documented* string
-(not by `str(ai_isms_pack_path())`), so the docs claim is pinned. If a symbolic
-selector is judged out of scope for a docs-only fix, the minimum remediation is
-to correct the three documents to show the real discovery mechanism rather than
-a path that fails after install.
-
-## Finding 2 — the documented invocation string is never tested (severity: medium)
-
-**Category:** test-gap
-
-**Location:** `tests/test_desloppify_command.py`
-(`test_ai_isms_pack_flags_load_bearing`,
-`test_ai_isms_pack_clean_tree_exits_zero`); `tests/test_ai_isms_e2e.py`
-(`test_installed_desloppify_ai_isms`).
-
-**Description:** Every test that exercises pack selection passes the pack as
-`str(ai_isms_pack_path())` — the resolver's output — never the string the docs
-tell a user to type (`--pack novel_ralph_skill/rulepack/packs/ai-isms.toml`).
-The tests therefore prove the *resolver* works but not that any *documented*
-invocation works, which is exactly how the Finding 1 gap slipped through green.
-
-**Proposed fix:** Once Finding 1 settles the supported selection string, add a
-test that drives `desloppify` with that exact documented argument and asserts the
-AI-ism is flagged. Until then, the e2e's reliance on a `python -c` discovery step
-to find the pack is itself the signal that the user-facing path is missing — fold
-that observation into the e2e docstring so the gap is visible to the next reader.
-
-## Finding 3 — `offenders_pack_path` and `ai_isms_pack_path` are near-identical (severity: low)
-
-**Category:** duplication
-
-**Location:** `novel_ralph_skill/commands/_desloppify_report.py`
-`offenders_pack_path` (lines 36-59) and `ai_isms_pack_path` (lines 62-86).
-
-**Description:** The two resolvers differ only in the literal filename and the
-docstring; both call
-`importlib.resources.files("novel_ralph_skill.rulepack.packs").joinpath(<name>)`.
-A third packaged pack (the `device-ledger.toml` of roadmap 7.1.2) will add a
-third copy of the same body, and the shared package-anchor string is repeated in
-each.
-
-**Proposed fix:** Extract one private helper,
-`_packaged_pack(name: str) -> Traversable`, that holds the `importlib.resources`
-anchor once, and let `offenders_pack_path()`/`ai_isms_pack_path()` delegate to it
-(each keeping its own docstring as the documented public entry point). This also
-gives 7.1.2's device-ledger resolver a one-line definition. Coordinate with
-roadmap 7.1.5, which already consolidates the finding-payload projection in the
-same module.
-
-## Finding 4 — `vital-role` misses the gerund "playing a vital role" (severity: low)
-
-**Category:** test-gap
-
-**Location:** `novel_ralph_skill/rulepack/packs/ai-isms.toml`
-(`vital-role`, pattern
-`(?i)\b(?:plays?|played) a (?:vital|pivotal|crucial|key) role\b`);
-`tests/test_ai_isms_pack.py` `_PATTERN_CASES["vital-role"]`.
-
-**Description:** The verb alternation is `plays?|played`, so the pattern matches
-"plays/play/played a vital role" but not the gerund "playing a vital role", which
-is at least as common an AI-ism collocation as the finite forms. The crafted
-positive ("she plays a vital role…") only exercises the covered branch, so the
-gap is invisible to the suite. This is a membership-completeness observation, not
-a defect: the pack is deliberately conservative, and adding `playing` is the
-exact "data edit" the cadence policy describes. (The negative-case discipline is
-otherwise strong; nothing here fires on baseline fiction.)
-
-**Proposed fix:** As a maintainer data edit, extend the verb alternation to
-`(?:plays?|played|playing)` and add a positive test row for "playing a vital
-role" in `_PATTERN_CASES`. Record a `# source:` note that the gerund branch is a
-maintainer addition, consistent with the membership policy in the developers'
-guide.
-
-## Finding 5 — "the inline `(?i)` … with no flags" is asserted weakly (severity: low)
-
-**Category:** test-gap
-
-**Location:** `tests/test_ai_isms_pack.py`
-`test_ai_isms_patterns_compile_without_flags` (lines 238-249).
-
-**Description:** The test recompiles each pattern with `re.compile(rule.pattern)`
-and asserts `compiled.flags & re.IGNORECASE`, which proves the pattern *is*
-case-insensitive but not that the case-insensitivity comes from the **inline**
-`(?i)` rather than a smuggled compile flag — the loader compiles with no flags,
-so the distinction is the whole point of the casing-divergence note. A pattern
-that lost its inline `(?i)` would still pass if `re.IGNORECASE` were applied some
-other way, and the assertion message ("must carry inline (?i)") overstates what
-is checked.
-
-**Proposed fix:** Tighten the assertion to inspect the pattern source directly —
-assert each `rule.pattern` begins with (or contains) the literal `(?i)` token —
-so the inline-flag invariant the docstring claims is the one actually pinned.
-Keep the `compiled.flags & re.IGNORECASE` check as a secondary guard.
-
-## Finding 6 — pack selection is mutually exclusive but not documented as a limit (severity: low)
+## Finding 1 — developers' guide narrative predates the named currency predicate (severity: low)
 
 **Category:** docs-gap
 
-**Location:** `docs/developers-guide.md` §"The ai-isms pack…" ("Combining both
-packs in one invocation is a separate roadmap item and is not yet supported");
-`docs/users-guide.md` §`desloppify`; `docs/roadmap.md` §7.1.
+**Location:** `docs/developers-guide.md` §"`compile_consistent` is the full
+content comparison (roadmap 3.1.2)" (lines ~1017-1048) and §"The exit-`4`
+carve-out" (lines ~1050-1059).
 
-**Description:** The developers' guide states pack-combining is "a separate
-roadmap item", but no roadmap item under §7.1 actually tracks it (7.1.2 is the
-device ledger; 7.1.3–7.1.5 are payload-contract work). A reader who wants to scan
-against both the offenders and ai-isms packs in one run has no item to follow,
-and the users-guide does not mention the one-pack-per-run limit at all, so a user
-may reasonably expect `--pack` to be additive.
+**Description:** The guide thoroughly documents the shared
+`compile_model.compiled_matches_drafts` helper and its three-valued verdict, but
+its prose still describes the content-polarity projection inline ("an absent
+`compiled.md` is `False`, a present one is `True` iff …") and the path stat as a
+bare "`compiled.md` `exists()` stat". After 7.1.1 there are now two *named*
+single-owner seam members that own exactly these two operations:
+`compile_is_current(verdict)` (the content-polarity projection both
+`check_compiled` and `compile_consistent` route through) and
+`compiled_manuscript_path` / `COMPILED_REL` (the single filesystem join and the
+envelope token). A developer reading the guide is told the rule but not the name
+of the function that now enforces it, so a future change that needs the
+projection or the path may re-derive it inline rather than calling the seam —
+the exact regression 7.1.1 was extracting to prevent.
 
-**Proposed fix:** Either add an explicit roadmap item under §7.1 for multi-pack
-selection (so the developers' guide cross-reference resolves), or soften the
-guide to "not currently supported" without the phantom item reference. Add one
-sentence to the users-guide noting that `--pack` selects exactly one pack per
-run. (See proposed roadmap item below.)
+**Proposed fix:** Add one short paragraph to the `compile_consistent` section
+naming `compile_is_current` as the single content-polarity projection (and
+noting the §5.4 detector deliberately uses the opposite `is not DIVERGES`
+polarity inline, *not* through this predicate), and one sentence in the
+carve-out section naming `compiled_manuscript_path` / `COMPILED_REL` as the
+single owner of the `compiled.md` location and envelope token. Cite
+`docs/issues/audit-4.1.2.md` Findings 1 and 2, which this seam closes, so the
+guide and the code agree on where the rule lives.
 
-## Finding 7 — `make markdownlint` fails on `developers-guide.md` after this merge (severity: medium)
+## Finding 2 — `compile_model.py` module docstring not broadened to its new responsibilities (severity: low)
 
-**Category:** inconsistency
+**Category:** docs-gap
 
-**Location:** `docs/developers-guide.md:700` (MD012/no-multiple-blanks, the two
-consecutive blank lines introduced ahead of the new "#### The ai-isms pack…"
-subsection by commit `42a6fc6`).
+**Location:** `novel_ralph_skill/state/compile_model.py` module docstring (lines
+1-17).
 
-**Description:** The 7.1.1 merge left two consecutive blank lines before the new
-ai-isms subsection, so `make markdownlint` — an AGENTS.md commit gate — now fails
-on a clean `origin/main` checkout (verified by stashing this audit file and
-re-running the lint). A failing gate on the integration branch means the next
-task starts from a red baseline and either inherits or masks the breakage.
+**Description:** The module-level docstring still describes the module solely as
+"the §4.3/§9 draft-concatenation model the disk-evidence detector shares" and
+singles out `concatenate_drafts` as the production twin. After 7.1.1 the module
+also owns the compile-currency projection (`compile_is_current`) and the
+compiled-manuscript path seam (`compiled_manuscript_path`, `COMPILED_REL`) — two
+responsibilities the header does not announce. A reader scanning the module top
+to decide whether a new currency or path concern belongs here will not learn
+from the docstring that this module is the designated single owner of both, even
+though the per-symbol docstrings (correctly) say so.
 
-**Proposed fix:** Delete the duplicate blank line at `docs/developers-guide.md`
-line 700 so a single blank separates the preceding paragraph from the new
-heading. This is a one-line fix outwith this docs-only audit's scope, so it is
-recorded here rather than applied; fold it into the next task that touches the
-document, or take it as a trivial standalone fix.
+**Proposed fix:** Extend the module docstring with one sentence stating that the
+module is also the single owner of the compile-currency projection
+(`compile_is_current`) and the `compiled.md` path/envelope token
+(`compiled_manuscript_path` / `COMPILED_REL`), cross-referencing
+`docs/issues/audit-4.1.2.md` Findings 1 and 2. This keeps the module header an
+accurate map of its responsibilities, matching the project's heavy-docstring
+convention.
+
+## Finding 3 — `check_compiled` recomputes `working_dir()` on the fault path (severity: low)
+
+**Category:** ergonomics
+
+**Location:** `novel_ralph_skill/commands/_compile.py` `check_compiled` (lines
+208-216).
+
+**Description:** `check_compiled` calls `working_dir()` once to compute the
+verdict (line 211) and again inside the `except` handler to pass to
+`_draft_read_error` (line 216), with a comment explaining the second call
+("`check_compiled` has no `root` local; pass `working_dir()` …"). The comment
+itself signals the awkwardness: a `root = working_dir()` local computed once,
+mirroring `compile_manuscript`'s own `root = working_dir()` (line 134), would
+remove the duplicate call, the explanatory comment, and the asymmetry with the
+write path. `working_dir()` is a pure path constructor so there is no
+correctness or performance issue here; this is a readability and consistency
+nit only.
+
+**Proposed fix:** Hoist `root = working_dir()` to a local at the top of
+`check_compiled`, pass `root` to both `compiled_matches_drafts(state, root)` and
+`_draft_read_error(root, exc)`, and drop the now-redundant comment. This aligns
+`check_compiled` with `compile_manuscript`, which already binds `root` once.
+
+## Finding 4 — seam test asserts the happy join but not the doubled-prefix guard (severity: low)
+
+**Category:** test-gap
+
+**Location:** `tests/test_compile_model_seam.py`
+`test_compiled_manuscript_path_joins_without_doubling_prefix` (lines 72-81);
+`novel_ralph_skill/state/compile_model.py` `compiled_manuscript_path` docstring
+(lines 71-76).
+
+**Description:** The `compiled_manuscript_path` docstring makes a specific
+contract claim: the input is "expected to be an already `working/`-anchored
+directory … so the result is **not** doubly prefixed". The seam test proves the
+positive direction — passing `Path("working")` reproduces `COMPILED_REL` — but
+nothing pins the byte-exact `manuscript/compiled.md` tail independently of the
+`working/` anchor, so a future edit that, say, changed the join to
+`working_dir / "working" / "manuscript" / …` would only be caught by the single
+combined `as_posix() == COMPILED_REL` assertion, which couples the anchor and
+the tail. The claim that the function never doubles the prefix is asserted only
+implicitly.
+
+**Proposed fix:** Add one assertion that exercises a non-`working`-named anchor
+(e.g. `compiled_manuscript_path(Path("/tmp/run/working")).parts[-2:] ==
+("manuscript", "compiled.md")`) so the relative tail is pinned independently of
+the `working/` segment, making the "no doubled prefix" contract explicit rather
+than incidental to the one happy-path equality. Keep the existing
+`COMPILED_REL` equality as the envelope-token guard.
+
+## Finding 5 — the `working/`-anchored input contract is a convention, not a type (severity: low)
+
+**Category:** ergonomics
+
+**Location:** `novel_ralph_skill/state/compile_model.py` `compiled_manuscript_path`
+(lines 66-87); `COMPILED_REL` (line 45).
+
+**Description:** `compiled_manuscript_path(working_dir)` and the string constant
+`COMPILED_REL = "working/manuscript/compiled.md"` are agreed *only* when the
+caller passes a directory whose final segment is literally `working` (the
+docstring spells this out, and the seam test passes exactly `Path("working")`).
+The coupling between the path-builder's input contract and the hardcoded
+envelope token is carried entirely in prose; a caller that passed a differently
+named `working/` directory (e.g. a renamed scratch dir in a future test harness)
+would silently produce a path whose POSIX form no longer matches `COMPILED_REL`,
+with no type or assertion catching it. This is the residual seam after 7.1.1:
+the path *join* is centralised, but the "input must be the `working/` segment"
+precondition is not enforced anywhere it is called.
+
+**Proposed fix:** This is a watch-item rather than an actionable defect for a
+docs-only audit. If a future task introduces a second caller with a non-canonical
+working directory, consider either (a) deriving `COMPILED_REL` from
+`compiled_manuscript_path(Path("working")).as_posix()` so the constant cannot
+drift from the join, or (b) accepting the `working/` root through a single shared
+accessor so the precondition has one enforcement point. No change is warranted
+now; recording so the next compile-surface task sees the latent coupling.
