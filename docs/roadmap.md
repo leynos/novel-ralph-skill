@@ -3949,30 +3949,33 @@ it does not gate the deterministic spine.
     a private production symbol, and the draft-bytes/present-files corpus helpers
     are duplicated across `tests/steps/torn_turn_recovery_steps.py`,
     `tests/steps/reconcile_steps.py`, and `tests/test_reconcile_integration.py`,
-    and — after 6.2.12 and 6.2.13 — across
-    `tests/steps/torn_turn_rollback_steps.py` and
-    `tests/steps/torn_turn_rollback_partial_steps.py` (a four-way copy of
-    `_run_capturing`), so the duplication this task collapses is now load-bearing
-    rather than speculative (re-flagged by review:6.2.12 and audit:6.2.13),
-    contravening the developers'-guide "shared scaffolding belongs in conftest or
-    a registered plugin" rule (D-DUP deferred this deliberately). A single
-    registered plugin exposing a `drive()` fixture, a
-    `crash_after_recovery_receipt()` context-manager fixture, and
-    `draft_bytes`/`present_files` helpers would collapse four-plus copies to one
+    and — after 6.2.12, 6.2.13, and 6.2.14 — across
+    `tests/steps/torn_turn_rollback_steps.py`,
+    `tests/steps/torn_turn_rollback_partial_steps.py`, and
+    `tests/steps/torn_turn_rollback_partial_done_flag_steps.py` (a five-way copy
+    of `_run_capturing`), so the duplication this task collapses is now load-bearing
+    rather than speculative (re-flagged by review:6.2.12, audit:6.2.13, and
+    review:6.2.14/audit:6.2.14), contravening the developers'-guide "shared
+    scaffolding belongs in conftest or a registered plugin" rule (D-DUP deferred
+    this deliberately). A single registered plugin exposing a `drive()` fixture,
+    a `crash_after_recovery_receipt()` context-manager fixture, and
+    `draft_bytes`/`present_files` helpers would collapse five-plus copies to one
     and give the private-seam coupling a single owner, matching the precedent set
     by `installed_binary_fixtures.py` for the e2e suites. This serves the
     step-7.23 hypothesis — collapsing the command-driving scaffolding onto a
     registered home — not the step-6.2 surface hypothesis where it was raised.
   - Requires 6.2.5.
   - See novel-ralph-harness-design.md §9; docs/developers-guide.md
-    ("Shared test scaffolding"); docs/issues/audit-6.2.5.md (Findings 1, 2, 3).
+    ("Shared test scaffolding"); docs/issues/audit-6.2.5.md (Findings 1, 2, 3);
+    docs/issues/audit-6.2.14.md.
   - Success: one registered plugin exposes the `drive()` fixture, the
     `crash_after_recovery_receipt()` crash-injection fixture, and the
     `draft_bytes`/`present_files` helpers; `torn_turn_recovery_steps.py`,
     `reconcile_steps.py`, `test_reconcile_integration.py`,
-    `torn_turn_rollback_steps.py`, and `torn_turn_rollback_partial_steps.py`
-    delegate to it rather than each carrying a copy; the private production-seam
-    coupling has a single owner; and the reconcile-family suites stay green.
+    `torn_turn_rollback_steps.py`, `torn_turn_rollback_partial_steps.py`, and
+    `torn_turn_rollback_partial_done_flag_steps.py` delegate to it rather than each
+    carrying a copy; the private production-seam coupling has a single owner; and
+    the reconcile-family suites stay green.
 - [ ] 7.23.4. Make the `working_corpus` package the source of truth for each
   variant's expected repaired recount.
   - Reroute (source: audit:6.2.5 Finding 6 / review:6.2.5; severity: low). The
@@ -4155,6 +4158,36 @@ it does not gate the deterministic spine.
     (exit 0) under the ADR 006 POSIX skip guard; and the installed-binary e2e
     suites
     stay green.
+- [ ] 7.23.11. Rename the 6.2.12 partial-residue feature/step/binder trio to a
+  `..._partial_draft` basename for symmetry with the `..._partial_done_flag`
+  sibling.
+  - Reroute (source: audit:6.2.14; severity: low). The two partial-residue
+    ROLLBACK scenarios are now a `draft.md`/`done.flag` pair, but only the
+    `done.flag` variant carries a discriminator in its filename:
+    `tests/features/torn_turn_rollback_partial.feature` (with its
+    `tests/steps/torn_turn_rollback_partial_steps.py` and
+    `tests/test_torn_turn_rollback_partial_bdd.py` binder) reads as the parent of
+    both rather than the `draft.md` cell, an asymmetry with the
+    `..._partial_done_flag` sibling added by 6.2.14. This is a cosmetic naming
+    sweep that does not advance the step-6.2 surface hypothesis where it was
+    raised — the scenario is already proven and gated — so it is rerouted here:
+    it serves the step-7.23 hypothesis — collapsing the command-driving
+    scaffolding onto shared, drift-free homes — by removing the naming asymmetry
+    in step with the consolidation. Rename the trio to a `..._partial_draft`
+    basename and update the binder, the developers'-guide cross-reference, and the
+    roadmap references in one pass. Best sequenced after 7.23.3 (which already
+    touches both step modules) so the rename and the plugin extraction land
+    together rather than churning the binder twice.
+  - Requires 7.23.3.
+  - See novel-ralph-harness-design.md §5.4; docs/developers-guide.md
+    ("Shared test scaffolding"); docs/issues/audit-6.2.14.md;
+    tests/features/torn_turn_rollback_partial.feature.
+  - Success: the `torn_turn_rollback_partial` feature, step module, and binder are
+    renamed to a `..._partial_draft` basename symmetric with the
+    `..._partial_done_flag` sibling; the developers'-guide cross-reference and the
+    roadmap references are updated to match; no stale `torn_turn_rollback_partial`
+    basename without a `_draft`/`_done_flag` discriminator survives; and the
+    reconcile-family suites stay green.
 
 ### 7.24. Harden the workflow and matrix gates against silent drift
 
