@@ -834,10 +834,14 @@ Post-merge remediation items filed against this completed task. Each is a
 lightweight addendum pass: no plan or design-review cycle, just the change, the
 gates, and a merge. The roadmap carries the matching nested sub-task.
 
-- **6.2.7.1 — Strengthen the rollback no-deletion assertion to also forbid
+- [x] **6.2.7.1 — Strengthen the rollback no-deletion assertion to also forbid
   fabrication** (from review:6.2.7; severity: low). Design §5.4 item 2 says
   rolling back removes nothing and fabricates nothing; the scenario asserts
   non-removal via a subset check (`files_before <= after`) and draft-byte
   equality but does not directly assert that no unexpected `working/` file is
   created during rollback. Tighten the assertion so the after-set difference is
   limited to `{state.toml, log.md}`, catching a fabrication regression.
+  Delivered: the `rollback_preserves_files` then-step in
+  `tests/steps/torn_turn_rollback_steps.py` now computes
+  `after - files_before` and asserts it is a subset of `{state.toml, log.md}`,
+  failing loudly if the rollback fabricates any other `working/` file.

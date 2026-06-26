@@ -315,6 +315,11 @@ def rollback_preserves_files(outcome: _Outcome) -> None:
     """
     after = _present_files(outcome.working)
     assert outcome.files_before <= after, "rollback must remove no working/ file"
+    fabricated = after - outcome.files_before
+    assert fabricated <= {"state.toml", "log.md"}, (
+        "rollback must fabricate no working/ file beyond state.toml and log.md; "
+        f"unexpected: {sorted(fabricated - {'state.toml', 'log.md'})}"
+    )
     drafts_after = _draft_bytes(outcome.working)
     assert drafts_after == outcome.drafts_before, (
         "rollback must leave every chapter draft.md byte-for-byte identical; "

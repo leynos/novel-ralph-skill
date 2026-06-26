@@ -1852,7 +1852,7 @@ novel-ralph-harness-design.md §2.3 and §9.
   - Success: a torn turn whose declared artefact did not land is detected by
     `check` and rolled back by `reconcile` at the command boundary, closing the
     symmetric `ROLLBACK` half of the disposition 6.2.5 proved for `COMPLETE`.
-  - [ ] 6.2.7.1. Strengthen the rollback no-deletion assertion to also forbid
+  - [x] 6.2.7.1. Strengthen the rollback no-deletion assertion to also forbid
     fabrication.
     - Addendum (from review:6.2.7; low). Design §5.4 item 2 says rolling back
       removes nothing and fabricates nothing; the scenario asserts non-removal via
