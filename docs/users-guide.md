@@ -75,65 +75,67 @@ Run `make clean` to remove local build and cache outputs, including `.venv`,
 
 ## Installed Commands
 
-Installing a wheel built from this package puts five console-scripts onto
-`PATH`:
+Installing a wheel built from this package puts a single `novel` console-script
+onto `PATH`. `novel` is a multiplexer: it dispatches to a `state` subgroup that
+reads and mutates the harness state, plus four leaf verbs:
 
-- `novel-state` — read and mutate the harness state.
-- `novel-done` — evaluate the done predicate.
-- `novel-compile` — regenerate the compiled manuscript.
-- `desloppify` — report prose tics.
-- `wordcount` — report per-chapter and cumulative word counts.
+- `novel state` — read and mutate the harness state (with its own subcommands).
+- `novel done` — evaluate the done predicate.
+- `novel compile` — regenerate the compiled manuscript.
+- `novel desloppify` — report prose tics.
+- `novel wordcount` — report per-chapter and cumulative word counts.
 
-`wordcount` reports per-chapter and cumulative word counts (roadmap task 6.1.1).
-It is **read-only**: it reads the chapter drafts and `state.toml`, derives the
-report, and writes nothing on any path. The report carries, per chapter, the
-drafted words, the percentage of the chapter target, and the delta against that
-target; and cumulatively, the drafted total, the percentage of the novel target,
-which of the 30%, 50%, and 80% knitting-gate triggers the drafted ratio has
-reached, and the distance in words to the next gate. Past the final (80%) gate
-the next-gate threshold and distance are reported as `null` rather than a
-negative number. The triggers are *derived* from the drafted ratio; they are
-distinct from the recorded `[gates.knitting]` flags, which also record that the
-knitting pass was integrated. `wordcount` derives the geometry from the drafts
-and never reads, claims, or rewrites the recorded gate flags.
+`novel wordcount` reports per-chapter and cumulative word counts (roadmap task
+6.1.1). It is **read-only**: it reads the chapter drafts and `state.toml`,
+derives the report, and writes nothing on any path. The report carries, per
+chapter, the drafted words, the percentage of the chapter target, and the delta
+against that target; and cumulatively, the drafted total, the percentage of the
+novel target, which of the 30%, 50%, and 80% knitting-gate triggers the drafted
+ratio has reached, and the distance in words to the next gate. Past the final
+(80%) gate the next-gate threshold and distance are reported as `null` rather
+than a negative number. The triggers are *derived* from the drafted ratio; they
+are distinct from the recorded `[gates.knitting]` flags, which also record that
+the knitting pass was integrated. `novel wordcount` derives the geometry from
+the drafts and never reads, claims, or rewrites the recorded gate flags.
 
-In v1 `wordcount` takes no per-chapter flag; the report always covers the whole
-manuscript with per-chapter detail. It exits `0` on a report and `3` on a state
-or input fault — a missing or unparseable `state.toml`, an absent `working/`, or
-an unreadable or undecodable draft. An unknown `--option` is the shared exit-`2`
-usage channel. All five console-scripts now drive their real checkers.
+In v1 `novel wordcount` takes no per-chapter flag; the report always covers the
+whole manuscript with per-chapter detail. It exits `0` on a report and `3` on a
+state or input fault — a missing or unparseable `state.toml`, an absent
+`working/`, or an unreadable or undecodable draft. An unknown `--option` is the
+shared exit-`2` usage channel. Each subcommand drives its real checker.
 
-`novel-compile` regenerates `working/manuscript/compiled.md` by concatenating the
-chapter drafts in zero-padded chapter-index order (`chapter-01/draft.md`,
-`chapter-02/draft.md`, …), joined by one fixed separator. The order is taken from
-the `[chapters]` manifest, not from the directory listing, so identical drafts
-always produce a byte-identical `compiled.md`: it is deterministic and idempotent,
-and a second run over unchanged drafts rewrites nothing observable. The working
-directory is the fixed `working/` directory relative to the current directory.
-When the `[chapters]` manifest is absent or empty there is no authoritative
-ordering, so `novel-compile` writes nothing and exits `3` (the state/input code
-in the shared exit-code table below): plan the chapters first. Any other state or
-input fault — a missing or unparseable `state.toml`, or an unreadable draft —
-likewise exits `3`.
+`novel compile` regenerates `working/manuscript/compiled.md` by concatenating
+the chapter drafts in zero-padded chapter-index order (`chapter-01/draft.md`,
+`chapter-02/draft.md`, …), joined by one fixed separator. The order is taken
+from the `[chapters]` manifest, not from the directory listing, so identical
+drafts always produce a byte-identical `compiled.md`: it is deterministic and
+idempotent, and a second run over unchanged drafts rewrites nothing observable.
+The working directory is the fixed `working/` directory relative to the current
+directory. When the `[chapters]` manifest is absent or empty there is no
+authoritative ordering, so `novel compile` writes nothing and exits `3` (the
+state/input code in the shared exit-code table below): plan the chapters first.
+Any other state or input fault — a missing or unparseable `state.toml`, or an
+unreadable draft — likewise exits `3`.
 
-`novel-compile --check` is the read-only counterpart (roadmap task 4.1.2). It
-reports whether `compiled.md` is the ordered concatenation of the present chapter
-drafts and **writes nothing on any path**. It exits `0` when the compile is
-current and `4` (an actionable finding) when `compiled.md` is stale **or absent**,
-so the harness knows to regenerate it; an absent or empty `[chapters]` manifest
-still exits `3`. The verdict is read from the one shared routine the `novel-done`
-`compile_consistent` clause also uses, so `novel-compile --check` and that clause
-agree on every tree about whether `compiled.md` is current.
+`novel compile --check` is the read-only counterpart (roadmap task 4.1.2). It
+reports whether `compiled.md` is the ordered concatenation of the present
+chapter drafts and **writes nothing on any path**. It exits `0` when the
+compile is current and `4` (an actionable finding) when `compiled.md` is stale
+**or absent**, so the harness knows to regenerate it; an absent or empty
+`[chapters]` manifest still exits `3`. The verdict is read from the one shared
+routine the `novel done` `compile_consistent` clause also uses, so
+`novel compile --check` and that clause agree on every tree about whether
+`compiled.md` is current.
 
-`novel-state` now has its first real subcommand, `novel-state check` (roadmap
+`novel state` now has its first real subcommand, `novel state check` (roadmap
 task 2.1.2). It validates the state coherence invariants of
 `./working/state.toml` and writes nothing. The working directory is the fixed
 `working/` directory relative to the current directory; there is no
 `--working-dir` flag. By default it prints a one-line JSON envelope on standard
-output; pass the global `--human` flag (`novel-state --human check`) for a
+output; pass the global `--human` flag (`novel state --human check`) for a
 readable rendering instead.
 
-`novel-state check` uses the shared exit-code table:
+`novel state check` uses the shared exit-code table:
 
 - `0` — every checked invariant holds; `result.violations` is empty.
 - `4` — one or more invariants are violated; the breached invariant names appear
@@ -141,7 +143,7 @@ readable rendering instead.
 - `3` — `./working/state.toml` is missing or unparseable (the state-error
   channel).
 
-As of roadmap task 2.3.2 `novel-state check` is **disk-aware**: it validates
+As of roadmap task 2.3.2 `novel state check` is **disk-aware**: it validates
 the pure-state invariants decidable from `state.toml` alone *and* the
 disk-evidence invariants that compare `state.toml` against the `working/` tree.
 When a disk-evidence invariant is violated it also attaches a
@@ -189,21 +191,22 @@ The disk-evidence names compare the recorded state against the `working/` tree:
   stale done-claim, or a real `done.flag` over a draft the table under-counts).
 - `word-counts-cover-drafts` — the recorded `[word_counts].by_chapter` *key set*
   diverges from the drafts: the table omits a drafted chapter, or carries an
-  entry for a chapter the manifest never declared. `novel-state reconcile`
+  entry for a chapter the manifest never declared. `novel state reconcile`
   repairs it with the same recount that repairs `word-counts-match-drafts`,
   re-keying the table off the manifest so the missing key is supplied and any
   orphan key dropped.
 
-For example, while you draft chapter by chapter the manifest holds every planned
-chapter but only the drafted-so-far directories exist on disk. With a manifest of
-chapters 1 to 3 and only `chapter-01/` and `chapter-02/` written, `novel-state
-check` exits `0` during drafting — the on-disk set is an honest subset of the
-manifest. Add a stray `chapter-09/` the manifest never declares and the same
-`check` exits `4` on `manifest-disk-bijection`. Advance the project to
-`final-pass` without writing `chapter-03/` and `check` exits `4` again, because
-every planned chapter must exist on disk before the final compile.
+For example, while you draft chapter by chapter the manifest holds every
+planned chapter but only the drafted-so-far directories exist on disk. With a
+manifest of chapters 1 to 3 and only `chapter-01/` and `chapter-02/` written,
+`novel state check` exits `0` during drafting — the on-disk set is an honest
+subset of the manifest. Add a stray `chapter-09/` the manifest never declares
+and the same `check` exits `4` on `manifest-disk-bijection`. Advance the
+project to `final-pass` without writing `chapter-03/` and `check` exits `4`
+again, because every planned chapter must exist on disk before the final
+compile.
 
-`novel-state` also exposes three write subcommands that mutate the project —
+`novel state` also exposes three write subcommands that mutate the project —
 `init`, `set-cursor`, and `advance-phase` (roadmap task 2.2.2). Every one of
 them honours the same **validate-before-persist, write-nothing-on-refusal**
 contract: each derives the state its arguments would produce, checks it against
@@ -215,30 +218,31 @@ invariant on standard error, and changes nothing on disk, so the prior
 each subcommand's own arguments and the extra refusals specific to it; the
 shared contract holds for all three.
 
-`novel-state init` bootstraps a fresh project: it creates the `working/`
+`novel state init` bootstraps a fresh project: it creates the `working/`
 directory skeleton — the `characters/`, `world/`, `reader/`, `plan/`,
-`manuscript/`, and `reviews/` subdirectories plus an empty `log.md` — and writes
-a coherent initial `state.toml`. It takes `--title` (the novel title),
+`manuscript/`, and `reviews/` subdirectories plus an empty `log.md` — and
+writes a coherent initial `state.toml`. It takes `--title` (the novel title),
 `--slug` (the project slug), and `--target-word-count` (the target word count,
 defaulting to `80000`). To protect a live project, `init` *creates* but never
 overwrites: when `working/state.toml` already exists it refuses with exit `3`
 rather than clobbering it, so re-running `init` over an initialised project is
 safe.
 
-`novel-state set-cursor` moves the drafting cursor. It takes three integer
-options — `--chapter`, `--scene` (default `0`), and `--beat` (default `0`) — and
-records them as the `[drafting]` cursor. Per the shared contract it refuses (the
-`cursor-coherent` invariant) when the cursor is incoherent: a chapter past the
-end of the manifest, or a scene or beat set while the cursor names no chapter.
+`novel state set-cursor` moves the drafting cursor. It takes three integer
+options — `--chapter`, `--scene` (default `0`), and `--beat` (default `0`) —
+and records them as the `[drafting]` cursor. Per the shared contract it refuses
+(the `cursor-coherent` invariant) when the cursor is incoherent: a chapter past
+the end of the manifest, or a scene or beat set while the cursor names no
+chapter.
 
-`novel-state advance-phase` takes no arguments and always advances
+`novel state advance-phase` takes no arguments and always advances
 `phase.current` to the immediate next workflow phase, appending the phase it
 leaves to `phase.completed`. Because it can only ever step to the successor, a
 phase *skip* cannot be requested; it instead refuses (exit `3`) when advancing
 from the terminal `done` phase (which has no successor) and when advancing into
 `drafting` with an empty chapter manifest.
 
-`novel-state recount` re-derives the word counts from the chapter drafts, so
+`novel state recount` re-derives the word counts from the chapter drafts, so
 you never type a word count by hand. It reads each chapter's
 `working/manuscript/chapter-NN/draft.md`, counts its words, and rewrites
 `[word_counts].current` and `[word_counts].by_chapter` to match what is
@@ -248,19 +252,19 @@ byte-for-byte identical. Like the other write subcommands it writes nothing on
 refusal (exit `3`) — a missing or unparseable `state.toml`, an unreadable
 draft, or a recount that would leave the state incoherent each leaves the prior
 file untouched. One incoherence is worth calling out: a recount refuses when it
-would move the drafted ratio across a knitting-gate threshold (30%, 50%, or 80%)
-the recorded gates do not yet reflect — recount re-derives the word counts only
-and never flips a gate. The refusal names the crossed threshold and, once you
-have integrated and logged the pending knitting pass, points you at
-`novel-state set-gate` (described below) as the remedy.
+would move the drafted ratio across a knitting-gate threshold (30%, 50%, or
+80%) the recorded gates do not yet reflect — recount re-derives the word counts
+only and never flips a gate. The refusal names the crossed threshold and, once
+you have integrated and logged the pending knitting pass, points you at
+`novel state set-gate` (described below) as the remedy.
 
-`novel-state set-chapters` (roadmap task 2.2.3) populates the `[chapters]`
+`novel state set-chapters` (roadmap task 2.2.3) populates the `[chapters]`
 manifest from your chapter plan — the one sanctioned way a planned chapter
 reaches `[chapters]` (never a hand edit). You pass the plan as a single JSON
 array argument:
 
 ```bash
-novel-state set-chapters --chapters '[
+novel state set-chapters --chapters '[
   {"number": 1, "slug": "the-summons", "title": "The Summons", "target_words": 3200},
   {"number": 2, "slug": "the-road", "title": "The Road", "target_words": 2800}
 ]'
@@ -269,55 +273,56 @@ novel-state set-chapters --chapters '[
 On success (exit `0`) it writes `[chapters]` in ascending number order, creates
 the on-disk `working/manuscript/chapter-NN/` directories, appends a `log.md`
 receipt, and returns the written chapters in `result.chapters`; a follow-up
-`novel-state check` then exits `0` because the manifest and the directories are
+`novel state check` then exits `0` because the manifest and the directories are
 in bijection. It refuses with exit `3` — writing nothing — when the plan is
 incoherent (numbers not contiguous from 1, a duplicate number or slug, a
 non-positive target, or an empty plan) or when `[chapters]` is **already
-populated** (`set-chapters` is a one-shot populate, not an editor; re-planning is
-a separate concern). A malformed `--chapters` argument — JSON that does not
-parse, or a missing or wrong-typed field — is a usage error and exits `2`. If the
-command is interrupted mid-write, recover by running `novel-state reconcile`
-(which completes the torn turn by creating the missing chapter directories),
-never by re-running `set-chapters` or editing the tree by hand.
+populated** (`set-chapters` is a one-shot populate, not an editor; re-planning
+is a separate concern). A malformed `--chapters` argument — JSON that does not
+parse, or a missing or wrong-typed field — is a usage error and exits `2`. If
+the command is interrupted mid-write, recover by running
+`novel state reconcile` (which completes the torn turn by creating the missing
+chapter directories), never by re-running `set-chapters` or editing the tree by
+hand.
 
-`novel-state set-gate` (roadmap task 2.2.4) asserts the knitting-circle gate
-flags and the final-pass gate to the value the state mandates, the one sanctioned
-way to record a gate (never a hand edit). It takes an optional flag per gate:
-`--knitting-30`/`--no-knitting-30`, `--knitting-50`/`--no-knitting-50`,
-`--knitting-80`/`--no-knitting-80`, and `--final`/`--no-final`; an omitted flag
-leaves that gate untouched.
+`novel state set-gate` (roadmap task 2.2.4) asserts the knitting-circle gate
+flags and the final-pass gate to the value the state mandates, the one
+sanctioned way to record a gate (never a hand edit). It takes an optional flag
+per gate: `--knitting-30`/`--no-knitting-30`, `--knitting-50`/
+`--no-knitting-50`, `--knitting-80`/`--no-knitting-80`, and `--final`/
+`--no-final`; an omitted flag leaves that gate untouched.
 
 ```bash
-novel-state set-gate --knitting-30
+novel state set-gate --knitting-30
 ```
 
 A knitting gate is coherent only when it matches the drafted ratio (the gate
 fires once drafting crosses 30%, 50%, or 80% of target). So
-`novel-state set-gate --knitting-30` succeeds only once drafting has crossed 30%
-of target: it is the **repair** for a gate that lags its ratio (for example after
-a `recount` moved the ratio past 30% but `done_30` is still off). Asserting a gate
-true below its threshold, or false once it has crossed, contradicts the ratio and
-is refused with exit `3`, writing nothing; from a coherent state the assertion is
-an idempotent no-op (exit `0`). The final-pass gate has no ratio binding, so
-`--final` is accepted on any coherent tree. A `set-gate` with **no** flag is a
-usage error and exits `2`.
+`novel state set-gate --knitting-30` succeeds only once drafting has crossed
+30% of target: it is the **repair** for a gate that lags its ratio (for example
+after a `recount` moved the ratio past 30% but `done_30` is still off).
+Asserting a gate true below its threshold, or false once it has crossed,
+contradicts the ratio and is refused with exit `3`, writing nothing; from a
+coherent state the assertion is an idempotent no-op (exit `0`). The final-pass
+gate has no ratio binding, so `--final` is accepted on any coherent tree. A
+`set-gate` with **no** flag is a usage error and exits `2`.
 
-`novel-state complete-final-pass` (roadmap task 2.2.4) is the named, argument-free
-verb for the common final-pass flip — it sets
+`novel state complete-final-pass` (roadmap task 2.2.4) is the named,
+argument-free verb for the common final-pass flip — it sets
 `gates.final.final_pass_complete` true and is idempotent (`set-gate --final` is
 the general form). It exits `0` on any coherent tree; a follow-up
-`novel-state check` stays coherent.
+`novel state check` stays coherent.
 
 ```bash
-novel-state complete-final-pass
+novel state complete-final-pass
 ```
 
-`novel-state set-fangirl` (roadmap task 2.2.4) records the fangirl pass's last
+`novel state set-fangirl` (roadmap task 2.2.4) records the fangirl pass's last
 chapter (`drafting.fangirl.last_chapter_passed`). It takes `--last-chapter k`
 (an integer); `0` means no pass yet.
 
 ```bash
-novel-state set-fangirl --last-chapter 6
+novel state set-fangirl --last-chapter 6
 ```
 
 It refuses with exit `3` — writing nothing — when `k` is outside
@@ -325,31 +330,32 @@ It refuses with exit `3` — writing nothing — when `k` is outside
 the manifest does not contain). A non-integer `--last-chapter` is a usage error
 and exits `2`.
 
-`novel-state set-critic-pass` (roadmap task 2.2.4) records the critic pass number
-(`drafting.critic.pass`). It takes `--pass p` (an integer, numbered from 1).
+`novel state set-critic-pass` (roadmap task 2.2.4) records the critic pass
+number (`drafting.critic.pass`). It takes `--pass p` (an integer, numbered from
+1).
 
 ```bash
-novel-state set-critic-pass --pass 2
+novel state set-critic-pass --pass 2
 ```
 
 It refuses a `--pass` below `1` with exit `3`, writing nothing. A non-integer
 `--pass` is a usage error and exits `2`. Record every one of these fields by
 running its command, never by editing `state.toml` by hand.
 
-`novel-state reconcile` (roadmap task 2.3.2) carries out the repair
-`novel-state check` reports when `state.toml` has drifted from the on-disk
+`novel state reconcile` (roadmap task 2.3.2) carries out the repair
+`novel state check` reports when `state.toml` has drifted from the on-disk
 manuscript — the recovery routine you used to run by hand, now run as code. It
 re-derives the reconciliation from disk independently (it never trusts a
 payload from `check`), then:
 
 - when the `[word_counts]` table is stale against the drafts — whether on a
   shared chapter's count or on the `by_chapter` key set (a missing or orphan
-  entry) — it rewrites `[word_counts]` from the drafts (a recount) and exits `0`;
+  entry) — it rewrites `[word_counts]` from the drafts (a recount) and exits
+  `0`;
 - when `state.toml` left an uncleared `[pending_turn]`, it completes or rolls
-  the
-  torn turn back (it never fabricates a draft or a `done.flag`) and exits `0`.
-  This includes a torn `set-chapters` turn — a populated manifest with one or
-  more `chapter-NN/` directories still missing: `reconcile` completes it by
+  the torn turn back (it never fabricates a draft or a `done.flag`) and exits
+  `0`. This includes a torn `set-chapters` turn — a populated manifest with one
+  or more `chapter-NN/` directories still missing: `reconcile` completes it by
   creating the missing, manifest-derived directories and clearing the record
   (ADR 008);
 - when `log.md` is absent beside a present `state.toml` — the partial-`init`
@@ -377,47 +383,45 @@ than silently mis-repaired, because integrating a knitting pass is your
 judgement, not a deterministic recompute.
 
 `result.violations` is the *checker's* read shape: it belongs to
-`novel-state check` alone. The write subcommands (`init`, `set-cursor`,
+`novel state check` alone. The write subcommands (`init`, `set-cursor`,
 `advance-phase`, `recount`, `reconcile`, `set-chapters`, `set-gate`,
 `complete-final-pass`, `set-fangirl`, `set-critic-pass`) instead report *what
 they changed* in `result` — `set-cursor` returns the cursor it set,
 `advance-phase` returns the `{from, to}` transition, `recount` returns the
 `{current, by_chapter}` counts it wrote, `reconcile` returns the
 `{action, discrepancies, detail}` it enacted (plus the written counts for a
-recount), `set-chapters` returns the `{chapters}` it wrote, and the gate/drafting
-mutators return the `{gates}` or `{drafting}` keys they set — so do not expect a
-`violations` key from a write.
+recount), `set-chapters` returns the `{chapters}` it wrote, and the
+gate/drafting mutators return the `{gates}` or `{drafting}` keys they set — so
+do not expect a `violations` key from a write.
 
-`desloppify` reports prose tics (roadmap task 5.1.2). It reads the chapter
-drafts under `./working/`, scans them against a versioned rule pack — the §6
-high-frequency-offender table shipped with the package by default — and reports
-a per-rule finding without editing the manuscript or touching `state.toml` (it
-is a detect-only checker). By default it scans the whole manuscript (every
-chapter in
-the `[chapters]` manifest); pass `--chapter N` to scan a single chapter, or
-`--pack PATH` to use a different rule pack. A second pack, `ai-isms.toml`, ships
-with the package and flags lexical AI-isms ("load-bearing", "a testament to");
-it is opt-in, selected with `--pack
-novel_ralph_skill/rulepack/packs/ai-isms.toml`. A single run scans exactly one
-pack; combining both packs in one invocation is not yet supported. Like
-`novel-state check`
-`desloppify` prints a one-line JSON envelope by default and a readable rendering
-under the global `--human` flag.
+`novel desloppify` reports prose tics (roadmap task 5.1.2). It reads the
+chapter drafts under `./working/`, scans them against a versioned rule pack —
+the §6 high-frequency-offender table shipped with the package by default — and
+reports a per-rule finding without editing the manuscript or touching
+`state.toml` (it is a detect-only checker). By default it scans the whole
+manuscript (every chapter in the `[chapters]` manifest); pass `--chapter N` to
+scan a single chapter, or `--pack PATH` to use a different rule pack. A second
+pack, `ai-isms.toml`, ships with the package and flags lexical AI-isms
+("load-bearing", "a testament to"); it is opt-in, selected with
+`--pack novel_ralph_skill/rulepack/packs/ai-isms.toml`. A single run scans
+exactly one pack; combining both packs in one invocation is not yet supported.
+Like `novel state check` `novel desloppify` prints a one-line JSON envelope by
+default and a readable rendering under the global `--human` flag.
 
 Pass `--ledger PATH` to enforce a per-novel *device ledger* instead of the
-rule-pack scan. A device ledger rations a book's signature devices — a recurring
-image, a key phrase, a bookend line — naming each device a regex `pattern` and a
-ration (`max_count`, `allowed_chapters`, `retired_after_chapter`, or
-`reserved_for_chapter`). The ledger is your own file (it is not shipped with the
-package); write it into `working/` and point `--ledger` at it. The current spend
-is recomputed from the chapter drafts on disk on every run, so the ledger cannot
-drift from the manuscript: removing a use from a draft and re-running drops the
-finding with no ledger edit. The ledger rations *across* the whole manuscript, so
-`--ledger` **cannot be combined with `--chapter`**; the combination is a usage
-error. An over-ration device appears in `result.violations`, exactly as an
-over-threshold rule does.
+rule-pack scan. A device ledger rations a book's signature devices — a
+recurring image, a key phrase, a bookend line — naming each device a regex
+`pattern` and a ration (`max_count`, `allowed_chapters`,
+`retired_after_chapter`, or `reserved_for_chapter`). The ledger is your own
+file (it is not shipped with the package); write it into `working/` and point
+`--ledger` at it. The current spend is recomputed from the chapter drafts on
+disk on every run, so the ledger cannot drift from the manuscript: removing a
+use from a draft and re-running drops the finding with no ledger edit. The
+ledger rations *across* the whole manuscript, so `--ledger` **cannot be
+combined with `--chapter`**; the combination is a usage error. An over-ration
+device appears in `result.violations`, exactly as an over-threshold rule does.
 
-`desloppify` uses the shared exit-code table:
+`novel desloppify` uses the shared exit-code table:
 
 - `0` — every rule is within threshold (or every device is within ration);
   `result.violations` is empty, and `result.findings` is empty too — a clean
@@ -425,40 +429,40 @@ over-threshold rule does.
 - `4` — one or more rules exceed threshold (or one or more devices exceed their
   ration); the offending ids appear in `result.violations` for the agent to
   adjudicate, and each finding's `rule_id`/`device_id` (the canonical slug the
-  `violations` list references), `phrase`/`pattern` (the authored pattern source
-  — the regex that names the offender, not a literal matched span), hit count,
-  and per-`{chapter, line}` matches are in `result.findings`. Rule findings also
-  carry `threshold` and per-page density; device findings carry the ration kind,
-  its bound, and the offending chapters for a window breach.
+  `violations` list references), `phrase`/`pattern` (the authored pattern
+  source — the regex that names the offender, not a literal matched span), hit
+  count, and per-`{chapter, line}` matches are in `result.findings`. Rule
+  findings also carry `threshold` and per-page density; device findings carry
+  the ration kind, its bound, and the offending chapters for a window breach.
 - `2` — a usage error: `--chapter N` names a chapter absent from the manifest,
-  `--pack` points at a rule pack whose *content* is malformed, `--ledger` points
-  at a ledger whose *content* is malformed, or `--ledger` is combined with
-  `--chapter`.
+  `--pack` points at a rule pack whose *content* is malformed, `--ledger`
+  points at a ledger whose *content* is malformed, or `--ledger` is combined
+  with `--chapter`.
 - `3` — a state or input error: `./working/state.toml` is missing or
-  unparseable, a chapter draft is unreadable, or `--pack`/`--ledger` points at an
-  absent or undecodable file.
+  unparseable, a chapter draft is unreadable, or `--pack`/`--ledger` points at
+  an absent or undecodable file.
 
 A per-page rule reports density as hits per `page_words` tokens, and a partial
-page still counts: the scanned text is divided by `page_words` as a float rather
-than rounded up to a whole page. On a short or near-empty draft — an early
-chapter, or a `--chapter N` scan of a chapter barely begun — the scanned text is
-a fraction of one page, so a single offending hit extrapolates to a high
-per-page density and can trip the threshold. This is design-correct: the density
-measures the rate the tic appears at, not the raw count, so a draft that is one
-tenth of a page with one hit is reported at the same rate as a full page with
-ten. Do not be surprised when a short chapter trips a per-page rule on one hit;
-re-scan once the chapter is fuller to read the settled rate.
+page still counts: the scanned text is divided by `page_words` as a float
+rather than rounded up to a whole page. On a short or near-empty draft — an
+early chapter, or a `--chapter N` scan of a chapter barely begun — the scanned
+text is a fraction of one page, so a single offending hit extrapolates to a
+high per-page density and can trip the threshold. This is design-correct: the
+density measures the rate the tic appears at, not the raw count, so a draft
+that is one tenth of a page with one hit is reported at the same rate as a full
+page with ten. Do not be surprised when a short chapter trips a per-page rule
+on one hit; re-scan once the chapter is fuller to read the settled rate.
 
-`novel-done` evaluates the done predicate (roadmap task 3.1.1): it answers "is
+`novel done` evaluates the done predicate (roadmap task 3.1.1): it answers "is
 the novel finished?" deterministically, so the harness can check it every turn
-with one call. It reads `./working/state.toml` and the `working/` tree, evaluates
-six done clauses against disk, and writes nothing on any path (it is a read-only
-checker). It takes no arguments. Like the other checkers it prints a one-line
-JSON envelope by default and a readable rendering under the global `--human`
-flag.
+with one call. It reads `./working/state.toml` and the `working/` tree,
+evaluates six done clauses against disk, and writes nothing on any path (it is
+a read-only checker). It takes no arguments. Like the other checkers it prints
+a one-line JSON envelope by default and a readable rendering under the global
+`--human` flag.
 
-The `result` reports each clause as a boolean, so an operator sees exactly which
-conditions are unmet:
+The `result` reports each clause as a boolean, so an operator sees exactly
+which conditions are unmet:
 
 - `phase_is_done` — `state.phase.current` has reached the terminal `done` phase.
 - `final_pass_complete` — the final-pass gate (`[gates.final]`) is set.
@@ -466,28 +470,32 @@ conditions are unmet:
 - `knitting_gates_passed` — all three knitting gate booleans are true *and* all
   three `working/reviews/knitting-{30,50,80}.md` reviews are present.
 - `compile_consistent` — `working/manuscript/compiled.md` is present *and* its
-  content is the ordered concatenation of the chapter drafts. An absent compile,
-  or a present-but-stale one that no longer matches the drafts, fails the clause.
-- `no_unresolved_blockers` — no chapter's `critic-notes.md` carries an unresolved
+  content is the ordered concatenation of the chapter drafts. An absent
+  compile, or a present-but-stale one that no longer matches the drafts, fails
+  the clause.
+- `no_unresolved_blockers` — no chapter's `critic-notes.md` carries an
+  unresolved
   BLOCKER (a line beginning `BLOCKER` without a `[resolved]` marker).
 
-`novel-done` uses the shared exit-code table:
+`novel done` uses the shared exit-code table:
 
 - `0` — every clause holds; the novel is done.
 - `1` — a drafting clause is unmet (the benign "not yet done" the harness loops
-  on), alone or alongside a stale compile; `messages` names the unmet clauses. A
-  sole failure caused by an *absent* `compiled.md` also exits `1` (an absent
+  on), alone or alongside a stale compile; `messages` names the unmet clauses.
+  A sole failure caused by an *absent* `compiled.md` also exits `1` (an absent
   compile is not a regenerable stale one).
-- `3` — a state or input error: `./working/state.toml` is missing or unparseable,
+- `3` — a state or input error: `./working/state.toml` is missing or
+  unparseable,
   or a chapter artefact (such as `critic-notes.md`, `compiled.md`, or a
   `draft.md`) is unreadable.
 - `4` — every clause holds *except* `compile_consistent`, and `compiled.md` is
-  present: the manuscript is otherwise complete and the only obstacle is a stale
-  compile, which the harness regenerates (matching `novel-compile --check`).
+  present: the manuscript is otherwise complete and the only obstacle is a
+  stale compile, which the harness regenerates (matching
+  `novel compile --check`).
 
 **Stale-compile handling.** `compile_consistent` checks the compile *content*:
 it recomputes the ordered concatenation of the present drafts and compares it
-byte-for-byte against `compiled.md`, so a present-but-stale compile — one that no
-longer matches the drafts even if its header count and word total coincide — is
-caught. When that stale compile is the *only* unmet clause, `novel-done` exits
-`4` (the actionable finding above) rather than looping at `1`.
+byte-for-byte against `compiled.md`, so a present-but-stale compile — one that
+no longer matches the drafts even if its header count and word total coincide —
+is caught. When that stale compile is the *only* unmet clause, `novel done`
+exits `4` (the actionable finding above) rather than looping at `1`.

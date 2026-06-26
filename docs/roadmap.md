@@ -296,7 +296,7 @@ docs/scripting-standards.md.
   - Success: no `novel-state`/`novel-done`/`novel-compile`/`desloppify`/
     `wordcount` console-script reference survives in the design or `SKILL.md`;
     `make markdownlint` and `make nixie` pass on the edited docs.
-- [ ] 1.2.16. Sweep the users' and developers' guides to the `novel` multiplexer
+- [x] 1.2.16. Sweep the users' and developers' guides to the `novel` multiplexer
   surface.
   - Remediation (source: audit:1.2.13; severity: medium). Task 1.2.14's wording
     and success criterion cover only the design document and `SKILL.md`, leaving

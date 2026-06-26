@@ -28,30 +28,31 @@ that reduces a requirement string to its bare distribution name), the
 one-program cuprum catalogue builder (`single_program_catalogue`), and the
 POSIX venv scripts-directory resolver (`venv_scripts_dir`).
 
-The installed-binary e2es obtain a built-and-installed `novel-state`
+The installed-binary e2es obtain a built-and-installed `novel`
 console-script through the module-scoped `installed_novel_state` fixture, the
 sanctioned replacement for the former cross-module
 `_build_and_install_novel_state` helper that one e2e module imported from
 another (an instance of the value-import the rule below forbids). The fixture
 builds a wheel with `uv build --wheel`, installs it into a fresh `uv venv`, and
 returns the installed script's absolute path; it is **module-scoped** so the
-slow build runs once per consuming module and every test reuses the one install.
-It lives in the registered plugin module
+slow build runs once per consuming module and every test reuses the one
+install. It lives in the registered plugin module
 [`tests/installed_binary_fixtures.py`](../tests/installed_binary_fixtures.py)
-(registered via `pytest_plugins` in `conftest`) rather than in `conftest` itself,
-for the same reason the corpus plugin does: hosting it inline would push
-`conftest` past the 400-line module cap, and for fixture resolution a registered
-plugin is `conftest`-equivalent. Because a module-scoped fixture cannot request
-the function-scoped `single_program_catalogue` / `venv_scripts_dir` (pytest
-raises `ScopeMismatch`), the plugin inlines their logic as two private helpers,
-mirroring `test_ai_isms_e2e.py`'s `installed_desloppify`. The fixture is
-POSIX-only per ADR-006; consuming modules keep their own POSIX skip guard.
+(registered via `pytest_plugins` in `conftest`) rather than in `conftest`
+itself, for the same reason the corpus plugin does: hosting it inline would push
+`conftest` past the 400-line module cap, and for fixture resolution a
+registered plugin is `conftest`-equivalent. Because a module-scoped fixture
+cannot request the function-scoped `single_program_catalogue` /
+`venv_scripts_dir` (pytest raises `ScopeMismatch`), the plugin inlines their
+logic as two private helpers, mirroring `test_ai_isms_e2e.py`'s
+`installed_desloppify`. The fixture is POSIX-only per ADR-006; consuming
+modules keep their own POSIX skip guard.
 
 [`tests/test_console_scripts_error_arms_e2e.py`](../tests/test_console_scripts_error_arms_e2e.py)
 is the home for the installed command-agnostic error-arm proofs: it consumes
 the `installed_novel_state` and `single_program_catalogue` fixtures by name to
 cross the usage error (exit 2) and the state-or-input error (exit 3) over the
-installed `novel-state` in both output modes, and carries the same `slow` /
+installed `novel` in both output modes, and carries the same `slow` /
 `timeout(180)` / POSIX-`skipif` marks as the other installed e2es.
 
 Test modules consume these by fixture name — list the fixture as a test or
@@ -94,40 +95,42 @@ onto the shared fixtures).
 ### The combinatorial command-surface matrix
 
 [`tests/test_command_surface_matrix.py`](../tests/test_command_surface_matrix.py)
-(roadmap task 6.2.1) is the single home for the `command x output-mode x phase`
-matrix described in
+(roadmap task 6.2.1) is the single home for the
+`command x output-mode x phase` matrix described in
 [novel-ralph-harness-design.md](novel-ralph-harness-design.md) §2.3. It drives
-each of the five **read** surfaces — `novel-state check`, `novel-done`,
-`wordcount`, `novel-compile --check`, and `desloppify` — in-process through the
+each of the five **read** surfaces — `novel state check`, `novel done`,
+`novel wordcount`, `novel compile --check`, and `novel desloppify` — in-process
+through the
 shared `run` seam across the eleven coherent `working_corpus` phase states, in
 both machine and human output modes. It snapshots the machine-mode envelope per
-cell, asserts the `--human` rendering is present (non-empty, names the command),
-and carries semantic branch assertions pinned to the verified per-phase
-envelopes: the phase-keyed `phase_is_done` clause, the coherent `novel-state
-check` result, the `wordcount` zero-progress versus populated branches, the
-`novel-compile --check` exit-3/4/0 split, and the shape-stable-but-value-varying
-`desloppify` report.
+cell, asserts the `--human` rendering is present (non-empty, names the
+command), and carries semantic branch assertions pinned to the verified
+per-phase envelopes: the phase-keyed `phase_is_done` clause, the coherent
+`novel state check` result, the `novel wordcount` zero-progress versus populated
+branches, the `novel compile --check` exit-3/4/0 split, and the
+shape-stable-but-value-varying `novel desloppify` report.
 
 Beyond the body-produced envelopes (exit 0/1/4), the matrix also crosses the
 two command-agnostic diagnostic arms the shared `run` wrapper stamps before the
 body returns a value (design §3.2 and §9): the usage-error arm (exit 2, an
-unknown option) and the state-error arm (exit 3, an absent `working/`). Both are
-crossed with every read command in both output modes, so the `--human` selection
-is proven to reach these body-less envelopes too. The machine-mode snapshot
-redacts the `messages` field — the only platform- and command-variable datum,
-carrying the errno text and the usage suggestion suffix — and pins the envelope
-skeleton (`command`, `ok: false`, `working_dir`, empty `result`) while the
-message is asserted by its stable prefix.
+unknown option) and the state-error arm (exit 3, an absent `working/`). Both
+are crossed with every read command in both output modes, so the `--human`
+selection is proven to reach these body-less envelopes too. The machine-mode
+snapshot redacts the `messages` field — the only platform- and command-variable
+datum, carrying the errno text and the usage suggestion suffix — and pins the
+envelope skeleton (`command`, `ok: false`, `working_dir`, empty `result`) while
+the message is asserted by its stable prefix.
 
 The matrix deliberately bounds its surface and documents the combinatorial gaps
-it carries rather than omitting them silently (design §9): the module docstring's
-`Carried gaps` section enumerates the mutator-by-phase cross-products (covered by
-their own suites and by tasks 6.2.2/6.2.5), the exhaustive eleven-phase
-cross-product for the manifest-sensitive commands (which collapse to their
-manifest branches), the incoherent-variant-by-phase cross-products (covered by
-the validator suites), and the installed-binary crossing (the scope of task
-6.2.4). Read that docstring before extending the matrix, so a new cell lands in
-the covered surface rather than re-proving a gap another suite owns.
+it carries rather than omitting them silently (design §9): the module
+docstring's `Carried gaps` section enumerates the mutator-by-phase
+cross-products (covered by their own suites and by tasks 6.2.2/6.2.5), the
+exhaustive eleven-phase cross-product for the manifest-sensitive commands
+(which collapse to their manifest branches), the incoherent-variant-by-phase
+cross-products (covered by the validator suites), and the installed-binary
+crossing (the scope of task 6.2.4). Read that docstring before extending the
+matrix, so a new cell lands in the covered surface rather than re-proving a gap
+another suite owns.
 
 ### The per-chapter deterministic-loop scenario
 
@@ -136,35 +139,34 @@ the covered surface rather than re-proving a gap another suite owns.
 [novel-ralph-harness-design.md](novel-ralph-harness-design.md) §7.2 (Figure 3).
 Where the command-surface matrix proves each command's envelope per phase in
 isolation, this feature proves the deterministic commands **compose**: it drives
-`recount`, `novel-done`, `wordcount`, `desloppify`, and `novel-compile --check`
-as one ordered drive over a real `working_corpus` tree through the shared command
-boundary (`run`), exactly as the existing command-boundary BDD suites do. A
-clean-pass scenario drives all five read surfaces over the fully-drafted all-hold
-tree, and three focused scenarios pin the §9 deterministic decisions that gate
-the loop, each over the corpus tree that exhibits exactly it: a stale compile is
-caught (`novel-done` and `novel-compile --check` both exit 4; §4.2, §4.3, §10);
-a crossed knitting gate is reported (`wordcount` carries
-`gate_triggered_30/50/80`; §4.5); and an out-of-order phase advance is refused
-(`advance-phase` exits 3 with `state.toml` byte-for-byte intact; §3.2, §4.1).
-The steps live under
+`recount`, `novel done`, `novel wordcount`, `novel desloppify`, and
+`novel compile --check` as one ordered drive over a real `working_corpus` tree
+through the shared command boundary (`run`), exactly as the existing
+command-boundary BDD suites do. A clean-pass scenario drives all five read
+surfaces over the fully-drafted all-hold tree, and three focused scenarios pin
+the §9 deterministic decisions that gate the loop, each over the corpus tree
+that exhibits exactly it: a stale compile is caught (`novel done` and
+`novel compile --check` both exit 4; §4.2, §4.3, §10); a crossed knitting gate
+is reported (`novel wordcount` carries `gate_triggered_30/50/80`; §4.5); and an
+out-of-order phase advance is refused (`advance-phase` exits 3 with
+`state.toml` byte-for-byte intact; §3.2, §4.1). The steps live under
 [`tests/steps/per_chapter_loop_steps.py`](../tests/steps/per_chapter_loop_steps.py)
 and bind through the bare, mark-free
-[`tests/test_per_chapter_loop_bdd.py`](../tests/test_per_chapter_loop_bdd.py), so
-the in-process scenarios run on every platform under the global 30s timeout.
+[`tests/test_per_chapter_loop_bdd.py`](../tests/test_per_chapter_loop_bdd.py),
+so the in-process scenarios run on every platform under the global 30s timeout.
 
-The installed re-drive crosses the real wheel/venv packaging boundary §9 names as
-the end-to-end loop scope. It lives
-in its **own** feature,
+The installed re-drive crosses the real wheel/venv packaging boundary §9 names
+as the end-to-end loop scope. It lives in its **own** feature,
 [`tests/features/per_chapter_loop_installed.feature`](../tests/features/per_chapter_loop_installed.feature),
 re-driving three of the four in-process deterministic decisions through the
-installed console-scripts over a built wheel (roadmap tasks 6.2.2 and 6.2.9):
-the clean pass; the **crossed knitting gate**, proven *as part of* the clean
-pass via the installed `wordcount` gates-crossed assertion (`gate_triggered_30/
-50/80`; §4.5), not as a standalone scenario; the stale-compile catch (`novel-done`
-and `novel-compile --check` exit 4; §4.2, §4.3); and — closing the audit-6.2.2
-Finding 7 gap — the **refused out-of-order `advance-phase`** (exit 3 with
-`state.toml` byte-for-byte intact and no traceback; §3.2, §4.1, §5.4). This split
-exists to carry the per-scenario
+installed `novel` console-script over a built wheel (roadmap tasks 6.2.2 and
+6.2.9): the clean pass; the **crossed knitting gate**, proven *as part of* the
+clean pass via the installed `novel wordcount` gates-crossed assertion
+(`gate_triggered_30/ 50/80`; §4.5), not as a standalone scenario; the
+stale-compile catch (`novel done` and `novel compile --check` exit 4; §4.2,
+§4.3); and — closing the audit-6.2.2 Finding 7 gap — the **refused out-of-order
+`advance-phase`** (exit 3 with `state.toml` byte-for-byte intact and no
+traceback; §3.2, §4.1, §5.4). This split exists to carry the per-scenario
 marks: an installed BDD scenario that needs `@pytest.mark.slow`,
 `@pytest.mark.timeout(180)`, and a POSIX `@pytest.mark.skipif` must live in its
 own feature and `@scenario`-decorated binder
@@ -174,14 +176,13 @@ module-level `pytestmark` POSIX skip would wrongly skip the cross-platform
 in-process scenarios. A `@scenario`-decorated function "behaves like a normal
 test function" (pytest-bdd 8.1.0), so the stacked marks attach as on a plain
 pytest test — the same mechanism the installed e2es
-([`tests/test_console_scripts_e2e.py`](../tests/test_console_scripts_e2e.py),
-[`tests/test_recount_e2e.py`](../tests/test_recount_e2e.py)) use. A wheel-free
-`*_carries_marks` guard per installed scenario
+([`tests/test_console_scripts_e2e.py`](../tests/test_console_scripts_e2e.py), [`tests/test_recount_e2e.py`](../tests/test_recount_e2e.py))
+use. A wheel-free `*_carries_marks` guard per installed scenario
 (`test_installed_scenario_carries_marks` and
 `test_installed_advance_refused_carries_marks`) asserts the bound item keeps
-those three marks, so a future edit that drops one fails a named test rather than
-silently weakening the installed boundary. Follow this convention when adding any
-installed BDD scenario.
+those three marks, so a future edit that drops one fails a named test rather
+than silently weakening the installed boundary. Follow this convention when
+adding any installed BDD scenario.
 
 ### The `working/` fixture corpus
 
@@ -253,7 +254,8 @@ future contributors need to follow.
 The novel-ralph skill drives novel authoring through a Ralph Loop: an agent is
 re-entered each turn with no memory beyond what is on disk, so progress lives in
 `working/` and `state.toml`, and every command is idempotent and resumable.
-The deterministic spine is five console-scripts; the model supplies judgement.
+The deterministic spine is the single `novel` multiplexer — a `state` subgroup
+and four leaf verbs; the model supplies judgement.
 The authoritative design is
 [novel-ralph-harness-design.md](novel-ralph-harness-design.md); the decisions
 behind it are recorded in the ADRs referenced below. This section is the
@@ -270,127 +272,120 @@ When adding behaviour, decide which side of the boundary it sits on before
 writing code: anything requiring taste belongs to the model, anything
 mechanically checkable belongs to a command.
 
-### The five commands
+### The deterministic commands
 
-The v1 spine is five separate console-scripts in `novel_ralph_skill`, not a
-single multiplexer (the rationale is in
-[adr-005-command-surface-five-scripts.md](adr-005-command-surface-five-scripts.md),
-with distribution in
+The spine is the single `novel` multiplexer in `novel_ralph_skill`: a `state`
+subgroup plus four leaf verbs (the rationale is in
+[adr-007-command-surface-novel-multiplexer.md](adr-007-command-surface-novel-multiplexer.md),
+which supersedes ADR 005, with distribution in
 [adr-004-distribution-console-scripts.md](adr-004-distribution-console-scripts.md)):
 
-- `novel-state` — the only path that mutates `state.toml`. Subcommands
+- `novel state` — the only path that mutates `state.toml`. Subcommands
   `init`, `set-cursor`, `advance-phase`, `recount`, `set-chapters`, `set-gate`,
   `complete-final-pass`, `set-fangirl`, and `set-critic-pass` are mutators;
   `check` is a read-only checker that reports divergence from disk and exits 4;
   `reconcile` is the mutator that writes the disk-authoritative reconciliation
   `check` reports. `set-chapters` populates the `[chapters]` manifest from the
-  agent's plan and creates the chapter directories (roadmap 2.2.3; ADR 008). The
-  four gate/drafting mutators set the knitting and final-pass gate flags, the
-  critic pass, and the fangirl last-chapter-passed (roadmap 2.2.4; ADR 010): they
-  live in `_gate_drafting_mutators.py` and are wired on by its
+  agent's plan and creates the chapter directories (roadmap 2.2.3; ADR 008).
+  The four gate/drafting mutators set the knitting and final-pass gate flags,
+  the critic pass, and the fangirl last-chapter-passed (roadmap 2.2.4; ADR
+  010): they live in `_gate_drafting_mutators.py` and are wired on by its
   `register_gate_drafting_commands(app)` registrar, the established way to add
   subcommands without growing `novel_state.py` past the 400-line cap.
   `set-gate` is the repair mutator for a knitting gate that lags its drafted
   ratio — it can only assert the ratio-mandated value, refusing a contradicting
   flip with exit 3; `set-fangirl` and `set-critic-pass` carry write-time
-  preconditions the §5.2 validator does not own (ADR 010). See design §4.1, §5.1,
-  and §5.4.
-- `novel-done` — the done predicate as code, evaluated per clause against
+  preconditions the §5.2 validator does not own (ADR 010). See design §4.1,
+  §5.1, and §5.4.
+- `novel done` — the done predicate as code, evaluated per clause against
   disk. See design §4.2.
-- `novel-compile` — regenerates `working/manuscript/compiled.md`
+- `novel compile` — regenerates `working/manuscript/compiled.md`
   deterministically in chapter-index order (the write path, roadmap task 4.1.1);
-  `novel-compile --check` is the read-only divergence checker (roadmap task
+  `novel compile --check` is the read-only divergence checker (roadmap task
   4.1.2), which writes nothing and exits `4` when `compiled.md` is stale or
   absent. See design §4.3.
-- `desloppify` — detects and reports prose tics from a versioned rule pack,
-  never editing. See design §4.4 and §6.
-- `wordcount` — a read-only checker reporting per-chapter and cumulative
+- `novel desloppify` — detects and reports prose tics from a versioned rule
+  pack, never editing. See design §4.4 and §6.
+- `novel wordcount` — a read-only checker reporting per-chapter and cumulative
   counts and the next gate distance. See design §4.5.
 
-As of roadmap task 1.2.1 these five names are wired as `[project.scripts]`
-console-scripts (`pyproject.toml`). `novel-state` (task 2.1.2) and `desloppify`
-(task 5.1.2) now drive their real apps; the remaining three are still **stubs**:
-each stub is a minimal Cyclopts application defined by the shared `make_stub_app`
-factory in
-[`novel_ralph_skill/commands/stub.py`](../novel_ralph_skill/commands/stub.py)
-that prints "`<name>` is not yet implemented" to stderr and exits `2` until its
-real behaviour lands in a later slice. The build-and-install proof lives in
-[`tests/test_console_scripts_e2e.py`](../tests/test_console_scripts_e2e.py),
+The package ships a single `[project.scripts]` entry — `novel` — that
+dispatches to the `state` subgroup and the four leaf verbs (`pyproject.toml`;
+ADR 007). Each operation drives its real app. The build-and-install proof lives
+in [`tests/test_console_scripts_e2e.py`](../tests/test_console_scripts_e2e.py),
 which runs on POSIX only (see
 [adr-006-console-scripts-e2e-posix-policy.md](adr-006-console-scripts-e2e-posix-policy.md)),
 and [`tests/test_pyproject_scripts.py`](../tests/test_pyproject_scripts.py)
-guards the entry-point table. The five names live once, as data, in a single
-registry,
-[`novel_ralph_skill/commands/names.py`](../novel_ralph_skill/commands/names.py);
-the entry-point functions and every test derive their names from it, and
+guards the entry-point table. The spaced subcommand names live once, as data, in
+a single registry,
+[`novel_ralph_skill/commands/names.py`](../novel_ralph_skill/commands/names.py):
+`SUBCOMMAND_NAMES` is the spaced `novel <verb>` names and `project_scripts_table`
+derives the single `novel` entry from it. The dispatcher and every test derive
+their names from this registry, and
 [`tests/test_command_names_registry.py`](../tests/test_command_names_registry.py)
-asserts the registry and `[project.scripts]` agree, so a rename or dropped
-entry point cannot silently drift. Edit a command name there, not in five
-places. The JSON envelope, the `--human` switch, and the shared exit-code
-helper are deferred to roadmap step 1.3.
+asserts the registry and `[project.scripts]` agree, so a rename or dropped entry
+point cannot silently drift. Edit a command name there, not inline. The JSON
+envelope, the `--human` switch, and the shared exit-code helper are owned by the
+shared contract scaffolding (roadmap step 1.3).
 
 ### The `novel` multiplexer
 
 [adr-007-command-surface-novel-multiplexer.md](adr-007-command-surface-novel-multiplexer.md)
-(superseding ADR 005) fixes the final command surface as a single `novel`
+(superseding ADR 005) fixes the command surface as a single `novel`
 multiplexer — `novel state …`, `novel done`, `novel compile`,
-`novel desloppify`, and `novel wordcount` — rather than five separate scripts.
-Roadmap task 1.2.12 stands up that multiplexer additively:
+`novel desloppify`, and `novel wordcount`.
 [`novel_ralph_skill/commands/novel.py`](../novel_ralph_skill/commands/novel.py)
 builds a parent contract app via `make_contract_app("novel")` and mounts each
 operation's existing `build_app` as a sub-app
-(`app.command(novel_state.build_app(), name="state")`, and likewise for the four
-leaf verbs). The multiplexer is a **pure dispatch layer**: it adds no command
-logic, reuses each `build_app` unchanged, and emits the same envelope and exit
-codes the legacy scripts produce. Mounting copies only the child's group and
-version defaults — never its contract flags — so each mounted leaf keeps its
-four-flag contract and the parent returns the leaf body's `CommandOutcome` to the
-shared `run` wrapper unchanged (verified against the locked Cyclopts 4.18.0).
+(`app.command(novel_state.build_app(), name="state")`, and likewise for the
+four leaf verbs). The multiplexer is a **pure dispatch layer**: it adds no
+command logic, reuses each `build_app` unchanged, and emits the same envelope
+and exit codes each mounted leaf produces. Mounting copies only the child's
+group and version defaults — never its contract flags — so each mounted leaf
+keeps its four-flag contract and the parent returns the leaf body's
+`CommandOutcome` to the shared `run` wrapper unchanged (verified against the
+locked Cyclopts 4.18.0).
 
-`novel`'s `main` entry point generalises the `stub.py` `_drive` shape: it splits
-`--human` off `sys.argv` first (so `run` stamps the human selection even on the
-body-less usage and state-error arms), then derives the spaced command name from
-the residual argv through `_command_name_for` before driving the parent through
-`run` once. The name derivation consults the registry, not inline literals:
-`names.py` now carries `SUBCOMMAND_NAMES` (the five spaced `novel <verb>` names)
-and the `ENVELOPE_COMMAND_NAMES` superset (the legacy five, the spaced names, and
-the bare `"novel"`); `build_envelope` validates `command` against that superset,
-so the legacy entry points (which stamp `"novel-state"` etc.) and the multiplexer
-(which stamps `"novel state"` etc.) both validate during the transition. The
-legacy five `[project.scripts]` entries stay registered and working through task
-1.2.12 — `project_scripts_table()` lists them plus the new `novel` — so the task
-is independently landable; their removal and the prose sweep onto the spaced form
-are roadmap tasks 1.2.13 and 1.2.14. The dispatch proof lives in
+The `novel` `main` entry point splits `--human` off `sys.argv` first (so `run`
+stamps the human selection even on the body-less usage and state-error arms),
+then derives the spaced command name from the residual argv through
+`_command_name_for` before driving the parent through `run` once. The name
+derivation consults the registry, not inline literals: `names.py` carries
+`SUBCOMMAND_NAMES` (the spaced `novel <verb>` names) and the
+`ENVELOPE_COMMAND_NAMES` superset (those spaced names plus the bare `"novel"`
+the body-less help and version arms stamp); `build_envelope` validates `command`
+against that superset, so every name the multiplexer stamps validates. The
+dispatch proof lives in
 [`tests/test_multiplexer_dispatch.py`](../tests/test_multiplexer_dispatch.py)
 (the multiplexer shape, the four-flag contract tripwire, and the name mapping)
 and
 [`tests/test_multiplexer_behaviour.py`](../tests/test_multiplexer_behaviour.py)
-(in-process legacy-versus-multiplexer envelope equality over the corpus, across
-every exit arm), sharing the `driver` fixture from the registered plugin
+(in-process envelope equality between the multiplexer arm and each operation's
+direct `build_app` over the corpus, across every exit arm), sharing the `driver`
+fixture from the registered plugin
 [`tests/multiplexer_support.py`](../tests/multiplexer_support.py).
 
 ### Checker/mutator segregation
 
-Read-only checkers (`novel-done`, `novel-state check`, `wordcount`,
-`desloppify`, `novel-compile --check`) write nothing, so the harness can call
-them freely. Mutators (`novel-state`
-`init`/`set-cursor`/`advance-phase`/`recount`/`reconcile`/`set-chapters`/`set-gate`/`complete-final-pass`/`set-fangirl`/`set-critic-pass`
-and `novel-compile`) are the only commands that touch `state.toml` or
-`compiled.md`, and every write is atomic via a temporary file plus `Path.replace`.
-The *genuinely multi-file* writers — `reconcile` and `set-chapters` — bracket
-their writes with a `[pending_turn]` intent record so a torn multi-file turn is
-recoverable. The single-file mutators (`init`/`set-cursor`/
-`advance-phase`/`recount`/`set-gate`/`complete-final-pass`/`set-fangirl`/`set-critic-pass`/`novel-compile`)
-write one file per `Path.replace` and
-open **no** `[pending_turn]` bracket — `recount` re-derives only
-`[word_counts]` in `state.toml` (design §4.1 line 271), and a recount is named
-in design §3.4 lines 240-241 as *one write among several in a turn*, not the
-command writing several files; `novel-compile` writes only
-`working/manuscript/compiled.md`, one `Path.replace` (design §4.3, §3.4); `init`
-writes `state.toml` *and* `log.md` yet
-still uses no bracket because each is a single `Path.replace` write. Keep this
-segregation honest: a command that detects a finding must not also repair it.
-See design §3.3 and §3.4.
+Read-only checkers (`novel done`, `novel state check`, `novel wordcount`,
+`novel desloppify`, `novel compile --check`) write nothing, so the harness can
+call them freely. Mutators (`novel state` `init`/`set-cursor`/`advance-phase`/
+`recount`/`reconcile`/`set-chapters`/`set-gate`/`complete-final-pass`/
+`set-fangirl`/`set-critic-pass` and `novel compile`) are the only commands that
+touch `state.toml` or `compiled.md`, and every write is atomic via a temporary
+file plus `Path.replace`. The *genuinely multi-file* writers — `reconcile` and
+`set-chapters` — bracket their writes with a `[pending_turn]` intent record so
+a torn multi-file turn is recoverable. The single-file mutators (`init`/
+`set-cursor`/ `advance-phase`/`recount`/`set-gate`/`complete-final-pass`/
+`set-fangirl`/`set-critic-pass`/`novel compile`) write one file per
+`Path.replace` and open **no** `[pending_turn]` bracket — `recount` re-derives
+only `[word_counts]` in `state.toml` (design §4.1 line 271), and a recount is
+named in design §3.4 lines 240-241 as *one write among several in a turn*, not
+the command writing several files; `novel compile` writes only
+`working/manuscript/compiled.md`, one `Path.replace` (design §4.3, §3.4);
+`init` writes `state.toml` *and* `log.md` yet still uses no bracket because
+each is a single `Path.replace` write. Keep this segregation honest: a command
+that detects a finding must not also repair it. See design §3.3 and §3.4.
 
 `reconcile` (roadmap task 2.3.2) is the project's **first genuinely multi-file
 mutator**: a state-writing repair touches `state.toml` *and* appends a recovery
@@ -420,29 +415,30 @@ place, unreferenced.
 `set-chapters` (roadmap task 2.2.3; ADR 008) is the second genuinely multi-file
 mutator: it writes `state.toml`, creates the `working/manuscript/chapter-NN/`
 directories, and appends a `log.md` receipt under its own `[pending_turn]`
-bracket. Its ordering **deliberately differs** from `reconcile`'s. `reconcile`'s
-payload (the recount) is recomputable from disk, so it persists last; a crash in
-the window loses nothing the next `reconcile` cannot re-derive. `set-chapters`'s
-payload (slug, title, target words) is the agent's *judgement*, recoverable from
-nowhere else, so the populated `[chapters]` manifest is edited into the document
-and persisted **together with** the `[pending_turn]` record in the *first* atomic
-write, before any directory is created — then the directories are created, the
-receipt is appended, and the bracket clears last. Every torn state from the first
-write onward therefore carries the full manifest on disk with only empty,
-manifest-derived directories outstanding. Those empty directories are recomputable
-*given the persisted manifest* — they carry no agent judgement and are wholly
-derivable from it, exactly like `log.md` — so `reconcile` COMPLETEs a torn
-`set-chapters` turn by creating them. This is the scoped precedence branch in
-`derive_reconciliation`: a `set-chapters` `[pending_turn]` whose only fired
-refuse-class violation is a `manifest-disk-bijection` fully explained by its
-missing chapter directories is classified ahead of the bijection REFUSE; any
-unexplained break still REFUSEs (design §5.4; ADR 008).
+bracket. Its ordering **deliberately differs** from `reconcile`'s.
+`reconcile`'s payload (the recount) is recomputable from disk, so it persists
+last; a crash in the window loses nothing the next `reconcile` cannot re-derive.
+`set-chapters`'s payload (slug, title, target words) is the agent's
+*judgement*, recoverable from nowhere else, so the populated `[chapters]`
+manifest is edited into the document and persisted **together with** the
+`[pending_turn]` record in the *first* atomic write, before any directory is
+created — then the directories are created, the receipt is appended, and the
+bracket clears last. Every torn state from the first write onward therefore
+carries the full manifest on disk with only empty, manifest-derived directories
+outstanding. Those empty directories are recomputable *given the persisted
+manifest* — they carry no agent judgement and are wholly derivable from it,
+exactly like `log.md` — so `reconcile` COMPLETEs a torn `set-chapters` turn by
+creating them. This is the scoped precedence branch in `derive_reconciliation`:
+a `set-chapters` `[pending_turn]` whose only fired refuse-class violation is a
+`manifest-disk-bijection` fully explained by its missing chapter directories is
+classified ahead of the bijection REFUSE; any unexplained break still REFUSEs
+(design §5.4; ADR 008).
 
 The chapter `slug` is an **opaque string**: it is stored verbatim and never
 seeds a path, because the `chapter-NN/` directory name derives from the chapter
-*number*, not the slug. Manifest coherence enforces slug *uniqueness* only; slug
-*shape* is the agent's responsibility, mirroring the `[novel].slug` stance for
-`init`. The schema docstrings therefore describe the slug as an opaque,
+*number*, not the slug. Manifest coherence enforces slug *uniqueness* only;
+slug *shape* is the agent's responsibility, mirroring the `[novel].slug` stance
+for `init`. The schema docstrings therefore describe the slug as an opaque,
 stored-verbatim identifier rather than a "filesystem-safe" one, since nothing
 validates that claim (ADR 008).
 
@@ -464,10 +460,10 @@ single source of truth), the `render_machine` and `render_human` renderers, the
 the `StateInputError` channel, the `CommandOutcome` and `RunContext` value
 types, the command-agnostic `parse_global_flags` splitter, the
 `make_contract_app` factory, and the `run` wrapper. A new command builds its
-Cyclopts app with `make_contract_app(name)`, returns a `CommandOutcome` from its
-body, and calls `run` rather than calling the app directly. Two consequences of
-`run` are load-bearing. First, `run` requires the app to carry four flags —
-`result_action="return_value"` plus
+Cyclopts app with `make_contract_app(name)`, returns a `CommandOutcome` from
+its body, and calls `run` rather than calling the app directly. Two
+consequences of `run` are load-bearing. First, `run` requires the app to carry
+four flags — `result_action="return_value"` plus
 `exit_on_error=False, print_error=False, help_on_error=False` — so that `run` —
 not Cyclopts — owns every `sys.exit` and envelope emission; without them
 Cyclopts's default `result_action` would exit on the body's return value and
@@ -476,21 +472,23 @@ load-bearing, `make_contract_app` is its single enforcement point: every
 `build_app()` calls the factory rather than a bare `cyclopts.App`, so a future
 sixth command adopts all four flags by calling the factory instead of
 re-spelling them, and the structural tripwire
-`tests/test_contract_app_centralisation.py` pins that the constructors and entry
-points consume it. The per-flag rationale and the construction contract live in
+`tests/test_contract_app_centralisation.py` pins that the constructors and
+entry points consume it. The per-flag rationale and the construction contract
+live in
 [adr-003-shared-interface-contract.md](adr-003-shared-interface-contract.md)
 Table 3. Second, `run` translates Cyclopts's native exit-`1` usage errors into
 the contract's exit `2`.
 
-`build_envelope` validates its `command` argument against `COMMAND_NAMES`, so
+`build_envelope` validates its `command` argument against
+`ENVELOPE_COMMAND_NAMES`, so
 `novel_ralph_skill/contract/` imports the registry from
 [`novel_ralph_skill/commands/names.py`](../novel_ralph_skill/commands/names.py).
 This edge is deliberate, not a layering leak: `names.py` is a leaf
-source-of-truth module that holds only the five command names as data and
+source-of-truth module that holds only the command names as data and
 carries no command logic. The shared name registry is therefore a leaf that
-both the `contract` layer and the `commands` layer may depend on, exactly so the
-five names live once and neither layer re-spells them. A test fixture
-(`tests/conftest.py`) imports `COMMAND_NAMES` for the same reason. Keep the
+both the `contract` layer and the `commands` layer may depend on, exactly so
+the names live once and neither layer re-spells them. The contract and command
+suites import the registry symbols for the same reason. Keep the
 dependency pointed this way: nothing in `commands/names.py` may import from
 `contract/`, or the edge would become a genuine cycle.
 
@@ -509,7 +507,7 @@ branches on it (design §3.2):
 
 The 1-versus-4 distinction is load-bearing: code 1 is the steady-state "not
 finished yet" the loop expects every turn, while code 4 signals something only
-the model can resolve (desloppify violations, compile divergence, a
+the model can resolve (`novel desloppify` violations, compile divergence, a
 reconciliation conflict, a `check` discrepancy). A refused mutator request — an
 incoherent `set-cursor` or an out-of-order `advance-phase` — is never exit 1;
 it is always exit 3. A command body signals this exit-3 channel by raising
@@ -520,33 +518,34 @@ same channel.
 ### State and on-disk layout
 
 `state.toml` is the single source of truth for cursor, phase, gates, word
-counts, and the chapter manifest; it is mutated only through `novel-state` and
+counts, and the chapter manifest; it is mutated only through `novel state` and
 round-trips losslessly with `tomlkit` to preserve comments and formatting
 (rationale in
 [adr-002-toml-round-trip-tomlkit.md](adr-002-toml-round-trip-tomlkit.md)).
 Manuscript content lives under `working/manuscript/` (`compiled.md` and
 per-chapter `chapter-NN/{draft.md,done.flag}`), with planning artefacts under
-`working/plan/`. The `novel-compile` **write** path (roadmap task 4.1.1)
+`working/plan/`. The `novel compile` **write** path (roadmap task 4.1.1)
 regenerates `compiled.md` by reusing the single production join rule —
 `compile_model.concatenate_drafts` over `present_draft_bodies`, the same read
 rule the `compiled-matches-drafts` disk-evidence invariant recomputes — so a
-freshly compiled tree is coherent under `novel-state check` by construction. The
-*comparison* against that join rule is shared too, not just the join: roadmap
-task 3.1.3 factored "does `compiled.md` equal the ordered draft concatenation?"
-into the one helper `compile_model.compiled_matches_drafts` (see the done
-predicate section below), so the detector and the `compile_consistent` clause
-recompute the verdict at a single site. Both the `novel-compile --check`
-divergence flag (roadmap task 4.1.2) and the `novel-done` `compile_consistent`
-clause now call that one routine, `compile_model.compiled_matches_drafts` — a
-direct byte comparison, not a digest, so no `hashlib` is involved despite the
-historical "compile-and-hash" naming. They cannot disagree about whether
-`compiled.md` is stale. `novel-compile --check` projects the verdict to the same
-polarity the `compile_consistent` clause uses: only `MATCHES` is satisfied (exit
-`0`), so an absent or stale `compiled.md` is exit `4`. This is the **opposite**
-absent-file polarity to the §5.4 `novel-state check` detector
+freshly compiled tree is coherent under `novel state check` by construction.
+The *comparison* against that join rule is shared too, not just the join:
+roadmap task 3.1.3 factored "does `compiled.md` equal the ordered draft
+concatenation?" into the one helper `compile_model.compiled_matches_drafts`
+(see the done predicate section below), so the detector and the
+`compile_consistent` clause recompute the verdict at a single site. Both the
+`novel compile --check` divergence flag (roadmap task 4.1.2) and the
+`novel done` `compile_consistent` clause now call that one routine,
+`compile_model.compiled_matches_drafts` — a direct byte comparison, not a
+digest, so no `hashlib` is involved despite the historical "compile-and-hash"
+naming. They cannot disagree about whether `compiled.md` is stale.
+`novel compile --check` projects the verdict to the same polarity the
+`compile_consistent` clause uses: only `MATCHES` is satisfied (exit `0`), so an
+absent or stale `compiled.md` is exit `4`. This is the **opposite** absent-file
+polarity to the §5.4 `novel state check` detector
 (`_check_compiled_matches_drafts`), which treats an absent `compiled.md` as
-vacuously satisfied; the two polarities are correct for their different jobs and
-are reconciled inside the one shared helper.
+vacuously satisfied; the two polarities are correct for their different jobs
+and are reconciled inside the one shared helper.
 
 The typed, read-only model of `state.toml` lives in the
 `novel_ralph_skill.state` package (design §5.1). `Phase` is the closed,
@@ -557,15 +556,15 @@ eleven-member lifecycle enum (`premise` … `done`); `State` and its sub-shapes
 mapping at the boundary, and `load_state(path)` is the thin `tomllib`-backed
 file convenience; both are pure structural parses that resolve phase strings to
 `Phase` members and coerce TOML arrays to tuples without enforcing the §5.2
-invariants. Later slice-1 commands import this package: the `novel-state check`
+invariants. Later slice-1 commands import this package: the `novel state check`
 validator (task 2.1.2) layers the invariants over `parse_state`, and the
 `tomlkit` round-trip writer (task 2.2.1) is the matching mutator seam,
 described next.
 
-### Invariant validation (`novel-state check`)
+### Invariant validation (`novel state check`)
 
 `novel_ralph_skill.state.validate_state` is the §5.2 **pure-state** validator
-behind `novel-state check` (task 2.1.2). It is a pure
+behind `novel state check` (task 2.1.2). It is a pure
 `State -> tuple[Violation, ...]`: it decides whether a parsed `State`
 contradicts *itself*, reading nothing from disk beyond the `state.toml` that
 produced the `State`. It owns eight invariant names — `phase-in-enum`,
@@ -585,16 +584,15 @@ added by task 2.1.4), `word-counts-match-drafts` (the disk-vs-table per-chapter
 word-count *value* divergence added by task 2.3.2), `log-present` (the
 partial-`init` bootstrap detector — `log.md` absent while `state.toml` is
 present — added by task 2.3.4), and `word-counts-cover-drafts` (the
-`[word_counts].by_chapter` *key-set* coverage divergence added by task
-2.3.6) — need `working/` contents beyond `state.toml`. `validate_state` never
-emits any of them (a scope-boundary test pins that); task 2.3.2's
-`check_disk_evidence` (`novel_ralph_skill/state/disk_evidence.py`)
-**implements** all eight, the §5.4 twin of `validate_state`, and disk-aware
-`check` unions the two verdicts. The
+`[word_counts].by_chapter` *key-set* coverage divergence added by task 2.3.6) —
+need `working/` contents beyond `state.toml`. `validate_state` never emits any
+of them (a scope-boundary test pins that); task 2.3.2's `check_disk_evidence`
+(`novel_ralph_skill/state/disk_evidence.py`) **implements** all eight, the §5.4
+twin of `validate_state`, and disk-aware `check` unions the two verdicts. The
 production `DISK_EVIDENCE_INVARIANT_NAMES` tuple is pinned equal to the corpus
 oracle's disk-evidence subset by
-`test_owned_disk_evidence_names_equal_corpus_subset`, the same shared-vocabulary
-discipline the pure-state names follow.
+`test_owned_disk_evidence_names_equal_corpus_subset`, the same
+shared-vocabulary discipline the pure-state names follow.
 
 The eight owned names map onto the design's seven §5.2 invariants (numbered by
 their order in the bullet list) as follows; invariant 4 splits into three
@@ -627,15 +625,15 @@ agree on every corpus tree.
 #### The recount-gate coupling
 
 `recount` re-derives `[word_counts]` from the on-disk chapter drafts and writes
-*only* that table — it never writes `[gates]`. This is deliberate: disk does not
-store the "knitting pass integrated" fact, so the harness cannot synthesise it.
-A `recount` that would move the drafted ratio across a 30/50/80% knitting-gate
-threshold while the matching gate flag still lags would therefore make the
-recounted state breach `gate-ratio-consistent`, and the validate-before-persist
-guard (`_refuse_if_incoherent`) refuses the write with exit `3`, leaving
-`state.toml` byte-for-byte intact (design §4.1, §5.4 recovery rule 1: "a
-done-claim large enough to move a gate is reported and escalated, not silently
-re-projected").
+*only* that table — it never writes `[gates]`. This is deliberate: disk does
+not store the "knitting pass integrated" fact, so the harness cannot synthesise
+it. A `recount` that would move the drafted ratio across a 30/50/80%
+knitting-gate threshold while the matching gate flag still lags would therefore
+make the recounted state breach `gate-ratio-consistent`, and the
+validate-before-persist guard (`_refuse_if_incoherent`) refuses the write with
+exit `3`, leaving `state.toml` byte-for-byte intact (design §4.1, §5.4 recovery
+rule 1: "a done-claim large enough to move a gate is reported and escalated,
+not silently re-projected").
 
 The refusal is **actionable**. The pure validator's `Violation.detail` stays a
 CLI-agnostic *description* of the breach (which gate, which threshold, which
@@ -644,13 +642,13 @@ adds the operator remedy through `_refuse_if_incoherent`'s `remedy` keyword:
 `recount` passes `_gate_ratio_remedy`, a pure function that emits one advice
 line per disagreeing gate. The **upward** line (a recount crosses a threshold
 while the gate is `false`) names the crossed threshold and points at
-`novel-state set-gate --knitting-NN` as the repair once the pending knitting
+`novel state set-gate --knitting-NN` as the repair once the pending knitting
 pass is integrated and logged. The **downward** line (a recount leaves drafting
 below a threshold while the gate is recorded `true`) deliberately omits that
 verb — nothing was crossed upward, so prescribing the repair would corrupt the
-gate-integration record; instead it asks the operator to adjudicate (restore the
-drafts or clear the gate) and re-derive. Both directions forbid a hand-edit of
-`[gates]`, consistent with `set-gate` being the only repair mutator for a
+gate-integration record; instead it asks the operator to adjudicate (restore
+the drafts or clear the gate) and re-derive. Both directions forbid a hand-edit
+of `[gates]`, consistent with `set-gate` being the only repair mutator for a
 knitting gate that lags its ratio (see the `set-gate` "repair mutator" note
 above). Two pytest-bdd scenarios and two installed-binary e2e tests prove the
 dual-direction message at the user-visible level (roadmap 2.3.7).
@@ -661,16 +659,17 @@ The live-draft oracle (`working_corpus.live_draft_owned`) recomputes both live
 quantities from the on-disk `chapter-NN/draft.md` bodies — the drafted-words
 total (the whitespace-split token count of each present draft, summed) and the
 drafted-chapters count (the present drafts with a positive token count), both
-independent of the `[word_counts]` table — and reconciles `gate-ratio-consistent`
-against the live drafted-words ratio and the `consecutive-clean-within-drafted`
-ceiling against the live drafted-chapters count. The agreement test asserts that,
-restricted to the eight owned names, `validate_state` (reading the table) and the
-live-draft oracle (reading the drafts) return the same verdict on every coherent
-tree and every incoherent variant — a full-vocabulary cross-check keyed on
-`CORPUS_INVARIANT_NAMES`. Both live readings are the design's **honest-draft**
-bases (the invariant-7 numerator and the invariant-4c ceiling), so the two
-`by_chapter_override` variants that separate the table basis from the draft basis
-— `DIVERGENT_TABLE_VARIANTS["by-chapter-override-over-counts-drafts"]` (roadmap
+independent of the `[word_counts]` table — and reconciles
+`gate-ratio-consistent` against the live drafted-words ratio and the
+`consecutive-clean-within-drafted` ceiling against the live drafted-chapters
+count. The agreement test asserts that, restricted to the eight owned names,
+`validate_state` (reading the table) and the live-draft oracle (reading the
+drafts) return the same verdict on every coherent tree and every incoherent
+variant — a full-vocabulary cross-check keyed on `CORPUS_INVARIANT_NAMES`. Both
+live readings are the design's **honest-draft** bases (the invariant-7
+numerator and the invariant-4c ceiling), so the two `by_chapter_override`
+variants that separate the table basis from the draft basis —
+`DIVERGENT_TABLE_VARIANTS["by-chapter-override-over-counts-drafts"]` (roadmap
 2.1.5) and `["by-chapter-override-under-counts-drafts"]` (roadmap 2.1.6) — are
 findings to investigate, not drifts to paper over.
 `test_live_draft_discriminates_table_from_drafts` iterates both members from
@@ -678,31 +677,31 @@ corpus data through the standard fixture loop (the `divergent_table_tree`
 factory), having retired the module-local fixture the 2.1.3 fix round used, and
 a `test_live_draft_counts_equal_honest_draft_bases` self-test pins both live
 numbers to those bases on every coherent tree. The two members diverge in
-opposite directions and so carry asymmetric expected verdicts. The over-counting
-tree makes the table over-state both quantities, so the live oracle names
-**both** proxies (`gate-ratio-consistent` and `consecutive-clean-within-drafted`)
-while the validator names neither. The under-counting tree makes the table
-under-state them, and there the live oracle names **only**
-`gate-ratio-consistent`: `consecutive-clean-within-drafted` cannot fire on the
-live side because an under-counted table chapter count is a *smaller* ceiling than
-the live count, so keeping the validator silent forces the `consecutive_clean`
-counter within the live count too. The under-counting tree exists specifically to
-kill a table-reading mutant of `live_draft_counts` that "mishandles only
-over-counts" — a `min(live, table)`-style mutant that returns the element-wise
-minimum of the live read and the table read. On the over-counting tree that
-minimum is the live read, so the mutant survives; on the under-counting tree it
-returns the table read, collapsing the oracle's verdict from
-`{gate-ratio-consistent}` to empty and failing the discrimination test. The
-over-counting tree alone cannot catch it. The cross-check does **not** "live-
-reconcile" `by-chapter-sum` (invariant 3 is table-internal, with no live
-analogue, so it reads `sum(by_chapter) == current` from the table) and it does
-**not** re-run `validate_state` as the oracle — the other five owned invariants
-come from the spec-keyed `corpus_check`. The disk-vs-table per-chapter divergence
-`by-chapter-sum` cannot see — a table internally consistent but stale against
-the drafts — is exactly what task 2.3.2's disk-evidence
-`word-counts-match-drafts` detects, comparing the per-chapter `by_chapter`
-mapping (over the shared chapter keys, never `current`, so it stays orthogonal
-to `by-chapter-sum`) against the recount of the on-disk drafts.
+opposite directions and so carry asymmetric expected verdicts. The
+over-counting tree makes the table over-state both quantities, so the live
+oracle names **both** proxies (`gate-ratio-consistent` and
+`consecutive-clean-within-drafted`) while the validator names neither. The
+under-counting tree makes the table under-state them, and there the live oracle
+names **only** `gate-ratio-consistent`: `consecutive-clean-within-drafted`
+cannot fire on the live side because an under-counted table chapter count is a
+*smaller* ceiling than the live count, so keeping the validator silent forces
+the `consecutive_clean` counter within the live count too. The under-counting
+tree exists specifically to kill a table-reading mutant of `live_draft_counts`
+that "mishandles only over-counts" — a `min(live, table)`-style mutant that
+returns the element-wise minimum of the live read and the table read. On the
+over-counting tree that minimum is the live read, so the mutant survives; on
+the under-counting tree it returns the table read, collapsing the oracle's
+verdict from `{gate-ratio-consistent}` to empty and failing the discrimination
+test. The over-counting tree alone cannot catch it. The cross-check does
+**not** "live- reconcile" `by-chapter-sum` (invariant 3 is table-internal, with
+no live analogue, so it reads `sum(by_chapter) == current` from the table) and
+it does **not** re-run `validate_state` as the oracle — the other five owned
+invariants come from the spec-keyed `corpus_check`. The disk-vs-table
+per-chapter divergence `by-chapter-sum` cannot see — a table internally
+consistent but stale against the drafts — is exactly what task 2.3.2's
+disk-evidence `word-counts-match-drafts` detects, comparing the per-chapter
+`by_chapter` mapping (over the shared chapter keys, never `current`, so it
+stays orthogonal to `by-chapter-sum`) against the recount of the on-disk drafts.
 
 Task 2.3.6 adds `word-counts-cover-drafts`, the orthogonal **key-set coverage**
 companion to that **shared-key value** check. The recount keys `by_chapter` by
@@ -714,24 +713,25 @@ predicate compares the two key sets (the symmetric difference) and fires on
 either direction; `word-counts-match-drafts` owns the shared keys' values and
 `word-counts-cover-drafts` owns the symmetric-difference keys, so the two
 partition the recount-versus-table comparison. The cover predicate **defers** to
-`manifest-disk-bijection` when the manifest and the chapter directories are not
-in bijection: the recount keys off the then-untrustworthy manifest, so without
-the guard it would double-fire on every structural mismatch. Both divergence
-directions are repaired by the same `RECOUNT` that repairs the value divergence,
-because a recount re-keys `by_chapter` off the manifest — supplying any missing
-key and dropping any orphan key. Two first-class `INCOHERENT_VARIANTS` exercise
-the directions (`word-counts-cover-drafts-omits-drafted-chapter` and
+`manifest-disk-bijection` when the manifest and the chapter directories are
+not in bijection: the recount keys off the then-untrustworthy manifest, so
+without the guard it would double-fire on every structural mismatch. Both
+divergence directions are repaired by the same `RECOUNT` that repairs the value
+divergence, because a recount re-keys `by_chapter` off the manifest — supplying
+any missing key and dropping any orphan key. Two first-class
+`INCOHERENT_VARIANTS` exercise the directions
+(`word-counts-cover-drafts-omits-drafted-chapter` and
 `word-counts-cover-drafts-extra-table-key`); the over- and under-counting
-`DIVERGENT_TABLE_VARIANTS` carry both a value gap and a key-count gap, so the two
-word-count predicates legitimately co-fire there.
+`DIVERGENT_TABLE_VARIANTS` carry both a value gap and a key-count gap, so the
+two word-count predicates legitimately co-fire there.
 
-Roadmap task 2.3.8 refines that deferral: it is unconditional only **outside** a
-relaxed drafting subset. When the user-facing `check` passes
+Roadmap task 2.3.8 refines that deferral: it is unconditional only **outside**
+a relaxed drafting subset. When the user-facing `check` passes
 `relax_drafting_bijection=True`, the phase is drafting, and the break is a
 coherent disk-subset-of-manifest, cover-drafts instead re-keys off the on-disk
-drafted subset and fires the *missing* direction only (a drafted chapter the table
-omits), repaired by a scoped `RECOUNT` pre-arm in `reconcile`. See the bijection
-relaxation section below and ADR 009 "Known risks".
+drafted subset and fires the *missing* direction only (a drafted chapter the
+table omits), repaired by a scoped `RECOUNT` pre-arm in `reconcile`. See the
+bijection relaxation section below and ADR 009 "Known risks".
 
 Six of `validate_state`'s structural predicates are **deliberate twins** of the
 corpus oracle's same-named predicates in `tests/working_corpus/_oracle.py`.
@@ -753,62 +753,62 @@ these checks are **disk-vs-disk** twins of production `check_disk_evidence`
 (`novel_ralph_skill/state/disk_evidence.py`) — the manuscript-comparing twins
 glob `manuscript/chapter-*` and read each `draft.md` from disk, and the
 `log-present` twin (added by task 2.3.4 — the partial-`init` bootstrap where
-`state.toml` is present but `log.md` is absent) reads `log.md`'s presence on disk;
-in every case the cross-check is disk-vs-disk, not against the pure-state
-`validate_state` the section above describes. The two
-disk-reading sides are pinned to agree on every corpus tree by
+`state.toml` is present but `log.md` is absent) reads `log.md`'s presence on
+disk; in every case the cross-check is disk-vs-disk, not against the pure-state
+`validate_state` the section above describes. The two disk-reading sides are
+pinned to agree on every corpus tree by
 `tests/test_novel_state_check_disk.py::test_union_detector_agrees_with_corpus_oracle`,
 `tests/test_disk_evidence.py::test_word_counts_twin_equals_corpus_oracle`, and
 `::test_word_counts_cover_twin_equals_corpus_oracle`, and the production tuple
 `DISK_EVIDENCE_INVARIANT_NAMES` is pinned equal to the oracle's disk-evidence
 subset (above). The independence rule is identical: the oracle reimplements the
-disk read rather than importing the production detector, so the cross-check stays
-genuine. The disk-reading twins live in `tests/working_corpus/_oracle_disk.py`
-(split out of `_oracle.py` for the 400-line cap and re-exported through it),
-colocating the manifest, word-count value, coverage, and `log.md` checks by
-feature.
+disk read rather than importing the production detector, so the cross-check
+stays genuine. The disk-reading twins live in
+`tests/working_corpus/_oracle_disk.py` (split out of `_oracle.py` for the
+400-line cap and re-exported through it), colocating the manifest, word-count
+value, coverage, and `log.md` checks by feature.
 
-**The drafting bijection relaxation (ADR 009, task 2.1.7).** During drafting the
-manifest leads the on-disk directory set — the manifest holds every planned
+**The drafting bijection relaxation (ADR 009, task 2.1.7).** During drafting
+the manifest leads the on-disk directory set — the manifest holds every planned
 chapter the instant chapter planning finishes, but only the drafted-so-far
 `chapter-NN/` directories need exist — so the exact §5.2 invariant-5 bijection
-makes `check` exit `4` for the whole drafting phase. `check_disk_evidence` takes
-a keyword-only, default-strict `relax_drafting_bijection` flag: when it is set and
-`state.phase.current == drafting`, `manifest-disk-bijection` relaxes to
-disk-subset-of-manifest. The predicate splits the break into its two directions
-(`orphans = on_disk - manifest`, `missing = manifest - on_disk`) plus the
-manifest-contiguity check, and the relaxation suppresses **only** the
+makes `check` exit `4` for the whole drafting phase. `check_disk_evidence`
+takes a keyword-only, default-strict `relax_drafting_bijection` flag: when it
+is set and `state.phase.current == drafting`, `manifest-disk-bijection` relaxes
+to disk-subset-of-manifest. The predicate splits the break into its two
+directions (`orphans = on_disk - manifest`, `missing = manifest - on_disk`)
+plus the manifest-contiguity check, and the relaxation suppresses **only** the
 `missing`-direction break; an orphan directory or a manifest gap still fires in
-every phase, and the exact bijection re-tightens at `final-pass`/`done` where the
-§4.3 compile-ordering guarantee requires every planned chapter on disk. Only the
-user-facing `check` passes the flag (`_disk_evidence_or_state_error`);
+every phase, and the exact bijection re-tightens at `final-pass`/`done` where
+the §4.3 compile-ordering guarantee requires every planned chapter on disk.
+Only the user-facing `check` passes the flag (`_disk_evidence_or_state_error`);
 `derive_reconciliation` keeps the strict default, so the torn `set-chapters`
 COMPLETE precedence (ADR 008) — whose decisive tree carries `phase=drafting` —
 reads the unchanged bijection. The oracle twin
-`_oracle_disk._check_manifest_disk_bijection` mirrors the split and the flag, and
-a relaxed agreement test pins the relaxed production path to the relaxed twin
-alongside the unchanged strict agreement suite.
+`_oracle_disk._check_manifest_disk_bijection` mirrors the split and the flag,
+and a relaxed agreement test pins the relaxed production path to the relaxed
+twin alongside the unchanged strict agreement suite.
 
 The relaxation's blast radius is exactly two disk-evidence invariants:
 `manifest-disk-bijection` itself, and `word-counts-cover-drafts`. The latter
 **re-keys** off the on-disk drafted subset during a relaxed drafting subset
-(roadmap task 2.3.8): the same `relax_drafting` flag threads to the cover-drafts
-predicate, which — when the phase is drafting and the break is a coherent subset
-(`on_disk < manifest`) — fires the *missing* direction only, flagging a drafted
-chapter the `by_chapter` table omits. (Originally cover-drafts simply **deferred**
-on `manifest != on_disk`, so a subset-tree key gap went unenforced until the tree
-returned to bijection; task 2.3.8 closed that gap — see ADR 009 "Known risks".)
-`reconcile` repairs it via a scoped, drafting-gated `RECOUNT` pre-arm that re-keys
-`by_chapter` off the manifest. Convergence holds because the manifest-keyed
-recount writes a `0` key for every undrafted manifest chapter, so the missing-only
-detector never re-fires on its own repair; the symmetric *extra* direction is
-deliberately not checked on a relaxed subset for that reason. Outside the relaxed
-subset (at bijection, `final-pass`, or `done`) cover-drafts runs the full
-symmetric-difference key-set check exactly as before. The remaining six
-disk-evidence predicates do not read the manifest⇄disk equality and are
-unchanged.
+(roadmap task 2.3.8): the same `relax_drafting` flag threads to the
+cover-drafts predicate, which — when the phase is drafting and the break is a
+coherent subset (`on_disk < manifest`) — fires the *missing* direction only,
+flagging a drafted chapter the `by_chapter` table omits. (Originally
+cover-drafts simply **deferred** on `manifest != on_disk`, so a subset-tree key
+gap went unenforced until the tree returned to bijection; task 2.3.8 closed
+that gap — see ADR 009 "Known risks".) `reconcile` repairs it via a scoped,
+drafting-gated `RECOUNT` pre-arm that re-keys `by_chapter` off the manifest.
+Convergence holds because the manifest-keyed recount writes a `0` key for every
+undrafted manifest chapter, so the missing-only detector never re-fires on its
+own repair; the symmetric *extra* direction is deliberately not checked on a
+relaxed subset for that reason. Outside the relaxed subset (at bijection,
+`final-pass`, or `done`) cover-drafts runs the full symmetric-difference
+key-set check exactly as before. The remaining six disk-evidence predicates do
+not read the manifest⇄disk equality and are unchanged.
 
-`novel-state check` is the first command to drive the shared `run` path: its
+`novel state check` is the first command to drive the shared `run` path: its
 entry point pre-parses the single `--human` flag off argv before `run` (so the
 flag is honoured even on the body-less usage and state-error paths) using the
 shared `parse_global_flags` splitter from the contract package, so every
@@ -824,20 +824,21 @@ such a `state.toml` is rejected at load (exit `3`) and the validator's
 `phase-in-enum` predicate only fires for a `State` constructed directly (as in
 the property suite), never for one loaded from disk.
 
-### Done predicate (`novel-done`)
+### Done predicate (`novel done`)
 
-`novel-done` (roadmap task 3.1.1) is the read-only done predicate as a
-console-script (design §4.2). Its pure engine lives in
+`novel done` (roadmap task 3.1.1) is the read-only done predicate as a
+subcommand (design §4.2). Its pure engine lives in
 `novel_ralph_skill/state/done_predicate.py`, beside `disk_evidence.py` and
-parallel to it: a `(State, working_dir) -> DoneClauses` reader with one predicate
-per clause, a `chapter-NN` path derivation shared through `_chapter_dir_name`
-(imported from `_disk_paths.py`, not from `disk_evidence`), and the same
-benign-absent / propagate-everything-else fault boundary — but it inverts the
-polarity, returning `True` when a clause *holds*. The command body and its app
-live in `novel_ralph_skill/commands/_novel_done.py`, reusing `novel-state`'s
-`working_dir`, `state_path`, `_load_or_state_error`, and `STATE_INPUT_ERRORS`
-seams; the `stub.py` `novel_done()` entry point drives it through the shared
-`run` wrapper exactly as `desloppify()` does.
+parallel to it: a `(State, working_dir) -> DoneClauses` reader with one
+predicate per clause, a `chapter-NN` path derivation shared through
+`_chapter_dir_name` (imported from `_disk_paths.py`, not from `disk_evidence`),
+and the same benign-absent / propagate-everything-else fault boundary — but it
+inverts the polarity, returning `True` when a clause *holds*. The command body
+and its app live in `novel_ralph_skill/commands/_novel_done.py`, reusing
+`novel state`'s `working_dir`, `state_path`, `_load_or_state_error`, and
+`STATE_INPUT_ERRORS` seams; its `build_app` is mounted as the `done` leaf of the
+`novel` multiplexer and driven through the shared `run` wrapper exactly as the
+other leaves are.
 
 **The six clauses and their disk sources.** This table is the authoritative
 statement of the clause truth conditions: the clause names are fixed by design
@@ -854,7 +855,8 @@ points here rather than restating the clauses.
   booleans are all true *and* `reviews/knitting-{30,50,80}.md` all exist (the
   `(30, 50, 80)` percentages are taken from one `KNITTING_PERCENTAGES` constant
   shared between the booleans and the file names so they cannot drift);
-- `compile_consistent` := `manuscript/compiled.md` is present *and* byte-equal to
+- `compile_consistent` := `manuscript/compiled.md` is present *and* byte-equal
+  to
   the ordered concatenation of the present drafts (the content comparison; see
   below);
 - `no_unresolved_blockers` := no manifest chapter's `critic-notes.md` carries an
@@ -863,55 +865,58 @@ points here rather than restating the clauses.
 **Manifest, not outline.** The chapter set the predicate iterates is the
 **manifest** (`state.chapters`), not outline prose. This is design
 §4.3-conformant: the manifest is the authoritative chapter set and order, there
-is no `parse_chapter_outline` in the codebase, and `novel-state check` already
+is no `parse_chapter_outline` in the codebase, and `novel state check` already
 asserts the manifest⇄directory bijection. The skill reference
 (`done-conditions.md`) was reconciled to the manifest source by roadmap task
-3.1.1.1 and now points at `novel-done` for the predicate, so there is no second
+3.1.1.1 and now points at `novel done` for the predicate, so there is no second
 chapter-source statement left to diverge.
 
-**The BLOCKER format.** An unresolved BLOCKER is a live `### Bn` finding heading
-under the `## BLOCKER` section of a `critic-notes.md` body — the spiteful
-critic's strict output format (`critic-personas.md`, "Resolving a BLOCKER";
-roadmap 3.1.5). The recogniser enters the section on a line whose stripped text
-equals `## BLOCKER`, leaves it on the next `##`-level heading, and treats a
-`### B<digit>` heading inside it as unresolved unless that heading ends with a
-single space then the `[resolved]` token. The token is a trailing marker, so its
-*position* carries the meaning: an incidental mid-line quotation (for example a
-finding label `### B1 — the ending still depends on the [resolved] issue`) does
-not clear the blocker. The convergence sentinel `No BLOCKER. No MAJOR.` writes no
+**The BLOCKER format.** An unresolved BLOCKER is a live `### Bn` finding
+heading under the `## BLOCKER` section of a `critic-notes.md` body — the
+spiteful critic's strict output format (`critic-personas.md`, "Resolving a
+BLOCKER"; roadmap 3.1.5). The recogniser enters the section on a line whose
+stripped text equals `## BLOCKER`, leaves it on the next `##`-level heading,
+and treats a `### B<digit>` heading inside it as unresolved unless that heading
+ends with a single space then the `[resolved]` token. The token is a trailing
+marker, so its *position* carries the meaning: an incidental mid-line quotation
+(for example a finding label
+`### B1 — the ending still depends on the [resolved] issue`) does not clear the
+blocker. The convergence sentinel `No BLOCKER. No MAJOR.` writes no
 `## BLOCKER` section and is clean by construction, as is an absent
-`critic-notes.md`. The rule has documented limitations in *both* directions:
-a prose mention without the token stays unresolved (the false-dirty near-miss the
+`critic-notes.md`. The rule has documented limitations in *both* directions: a
+prose mention without the token stays unresolved (the false-dirty near-miss the
 corpus pins); trailing text after the token (for example
 `### B1 — label [resolved] (see log)`) is treated as unresolved by design,
 because the producer convention forbids it (D-BLOCKER-TRAILING; audit-3.1.4
-Finding 2); and case or alternative-spelling variants (`RESOLVED`, `(resolved)`)
-are out of scope and stay mis-classified (D-BLOCKER-CASE; audit-3.1.4 Finding 3).
-The corpus pins the resolved, near-miss, incidental, and convergence-sentinel
-edges, and a BDD scenario drives a live `### B1` finding to exit 1.
+Finding 2); and case or alternative-spelling variants (`RESOLVED`,
+`(resolved)`) are out of scope and stay mis-classified (D-BLOCKER-CASE;
+audit-3.1.4 Finding 3). The corpus pins the resolved, near-miss, incidental,
+and convergence-sentinel edges, and a BDD scenario drives a live `### B1`
+finding to exit 1.
 
 **`compile_consistent` is the full content comparison (roadmap 3.1.2).** The
-clause is the single function `compile_consistent(state, working_dir)`: an absent
-`compiled.md` is `False`, a present one is `True` iff its bytes equal the ordered
-draft concatenation. The verdict is read from the shared production helper
-`compile_model.compiled_matches_drafts` (see below), which the §5.4 detector
-`_check_compiled_matches_drafts` also consumes, so the clause and the detector
-cannot disagree on what "compiled matches drafts" means. The comparison is a
-direct byte comparison, not a digest (D-BYTE-COMPARE). This closes the 3.1.1
-stale-but-present unsoundness window: a present-but-stale compile whose header
-count and word total coincide with the drafts is still caught, because the
-comparison is over bytes, not counts.
+clause is the single function `compile_consistent(state, working_dir)`: an
+absent `compiled.md` is `False`, a present one is `True` iff its bytes equal
+the ordered draft concatenation. The verdict is read from the shared production
+helper `compile_model.compiled_matches_drafts` (see below), which the §5.4
+detector `_check_compiled_matches_drafts` also consumes, so the clause and the
+detector cannot disagree on what "compiled matches drafts" means. The
+comparison is a direct byte comparison, not a digest (D-BYTE-COMPARE). This
+closes the 3.1.1 stale-but-present unsoundness window: a present-but-stale
+compile whose header count and word total coincide with the drafts is still
+caught, because the comparison is over bytes, not counts.
 
 The clause carries the **opposite** absent-file polarity to that §5.4 detector,
-which treats an absent `compiled.md` as *vacuously satisfied* ("nothing to diverge
-from"); here an absent compile is *not consistent*. The two polarities are correct
-for their different jobs, and both are projections of the one shared helper.
+which treats an absent `compiled.md` as *vacuously satisfied* ("nothing to
+diverge from"); here an absent compile is *not consistent*. The two polarities
+are correct for their different jobs, and both are projections of the one
+shared helper.
 
 **One owner for "compiled.md equals the ordered draft concatenation" (roadmap
 task 3.1.3).** That comparison lives in a single production helper,
 `compile_model.compiled_matches_drafts(state, working_dir) -> CompiledComparison`,
-returning the three-valued `ABSENT`/`MATCHES`/`DIVERGES` (audit-3.1.1 Finding 2).
-Both production callers consume it, each projecting the verdict to its own
+returning the three-valued `ABSENT`/`MATCHES`/`DIVERGES` (audit-3.1.1 Finding
+2). Both production callers consume it, each projecting the verdict to its own
 absent-file polarity: the §5.4 detector `_check_compiled_matches_drafts` maps
 `DIVERGES` to a `Violation` and `ABSENT`/`MATCHES` to none, while the
 `compile_consistent` done-clause maps `MATCHES` to `True` and both `ABSENT` and
@@ -922,38 +927,39 @@ test-side corpus oracle deliberately keeps its own copy of the comparison (see
 the invariant-validation twin policy) and does not import the helper, so a
 production bug cannot mask itself.
 
-**The exit-`4` carve-out (the conservative reading).** `novel-done` exits `4`
+**The exit-`4` carve-out (the conservative reading).** `novel done` exits `4`
 (`ACTIONABLE_FINDING`) **iff** `compile_consistent` is the *sole* false clause
 **and** `compiled.md` is present — a stale-present compile the harness can
-regenerate (matching `novel-compile --check`). The decision lives in the command
-body (`_novel_done._sole_stale_compile`), not the pure engine, because exit codes
-are the command/contract layer's concern. It is conservative (D-CARVE): an
-*absent* sole-failure compile stays exit `1`, because an absent compile is not a
-regenerable stale one (this preserves the 3.1.1 B1 soundness fix). The
-`compiled.md` `exists()` stat is the read-only mechanism that distinguishes a
-stale-present compile from an absent one, since `DoneClauses` carries only the six
-booleans and cannot say *why* `compile_consistent` is false. The human `messages`
-line names a *stale* compile at exit `4` and a *missing* one at exit `1` (A-4).
+regenerate (matching `novel compile --check`). The decision lives in the
+command body (`_novel_done._sole_stale_compile`), not the pure engine, because
+exit codes are the command/contract layer's concern. It is conservative
+(D-CARVE): an *absent* sole-failure compile stays exit `1`, because an absent
+compile is not a regenerable stale one (this preserves the 3.1.1 B1 soundness
+fix). The `compiled.md` `exists()` stat is the read-only mechanism that
+distinguishes a stale-present compile from an absent one, since `DoneClauses`
+carries only the six booleans and cannot say *why* `compile_consistent` is
+false. The human `messages` line names a *stale* compile at exit `4` and a
+*missing* one at exit `1` (A-4).
 
-**The fault boundary.** Mirroring `wordcount`/`disk_evidence`, an *absent* on-disk
-artefact is a benign false clause, but every other read fault (`PermissionError`,
-an undecodable `critic-notes.md` or `compiled.md`) propagates; the command body
-wraps `evaluate_done` under `STATE_INPUT_ERRORS` and re-raises `StateInputError`,
-so a corrupt tree reaches the exit-`3` channel rather than being swallowed as exit
-`1` or `4`.
+**The fault boundary.** Mirroring `novel wordcount`/`disk_evidence`, an *absent*
+on-disk artefact is a benign false clause, but every other read fault
+(`PermissionError`, an undecodable `critic-notes.md` or `compiled.md`)
+propagates; the command body wraps `evaluate_done` under `STATE_INPUT_ERRORS`
+and re-raises `StateInputError`, so a corrupt tree reaches the exit-`3` channel
+rather than being swallowed as exit `1` or `4`.
 
 **Oracle twins for the two new disk clauses.** The `knitting_gates_passed`
 review-existence read and the `no_unresolved_blockers` BLOCKER scan are
 disk-evidence reads, so each gets an independent corpus-side twin in
-`tests/working_corpus/_done_predicate_oracle.py`
-(`reviews_all_present`, `no_unresolved_blockers`) that re-implements the read
-without importing the production predicate; a cross-check test pins each equal to
-its production counterpart on every `novel-done` corpus tree, exactly as the
-`_oracle_disk.py` twins pin `disk_evidence`. The `novel-done` corpus specs (the
+`tests/working_corpus/_done_predicate_oracle.py` (`reviews_all_present`,
+`no_unresolved_blockers`) that re-implements the read without importing the
+production predicate; a cross-check test pins each equal to its production
+counterpart on every `novel done` corpus tree, exactly as the `_oracle_disk.py`
+twins pin `disk_evidence`. The `novel done` corpus specs (the
 all-six-clauses-hold tree, the per-clause failers, the `[resolved]`/near-miss
 BLOCKER trees) live in `tests/working_corpus/_done_predicate_specs.py`, added
-beside `PHASE_STATES`/`COHERENT_BASELINE` without mutating them so every existing
-fixture and snapshot stays byte-identical.
+beside `PHASE_STATES`/`COHERENT_BASELINE` without mutating them so every
+existing fixture and snapshot stays byte-identical.
 
 ### The `document.py` round-trip writer
 
@@ -990,7 +996,7 @@ Hypothesis properties over a hand-authored, comment-and-layout-bearing fixture.
 
 ### State mutators (`init`, `set-cursor`, `advance-phase`)
 
-The three state-mutating subcommands of `novel-state` (task 2.2.2; design §4.1)
+The three state-mutating subcommands of `novel state` (task 2.2.2; design §4.1)
 are the first commands that *write* `state.toml`. `init` lives in
 `commands/novel_state.py` beside `check`; `set-cursor` and `advance-phase` live
 in the sibling `commands/_state_mutators.py` so the command module stays within
@@ -1017,18 +1023,18 @@ mutator:
   That `result` echoes the validated *input* arguments rather than re-reading
   the written document; this is a deliberate coupling, not a latent assumption.
   Validation precedes the write (§3.4 above), so the echoed scalars equal the
-  persisted `[drafting]` cursor on every success and a diverging write is refused
-  before it lands; the cursor is plain scalars the mutator neither derives nor
-  normalises, so re-reading the document would add no guarantee. A future mutator
-  that *computes* or *normalises* a value before persisting it must report the
-  written value, not its input echo.
-  `advance-phase` returns `{from, to}` — the transition it made, as the
-  `Phase.value` strings. The `from`/`to` keys are *transition labels*, not
-  on-disk schema keys: `state.toml` persists `phase.current` plus
-  `phase.completed`, never a `[from]`/`[to]` table. `recount` and `reconcile`
-  must follow the same write-shaped discipline (the counts or discrepancies
-  they wrote), so a later mutator does not copy the checker's vocabulary by
-  accident; a cross-subcommand test pins `violations` to `check` alone.
+  persisted `[drafting]` cursor on every success and a diverging write is
+  refused before it lands; the cursor is plain scalars the mutator neither
+  derives nor normalises, so re-reading the document would add no guarantee. A
+  future mutator that *computes* or *normalises* a value before persisting it
+  must report the written value, not its input echo. `advance-phase` returns
+  `{from, to}` — the transition it made, as the `Phase.value` strings. The
+  `from`/`to` keys are *transition labels*, not on-disk schema keys:
+  `state.toml` persists `phase.current` plus `phase.completed`, never a `[from]`
+  /`[to]` table. `recount` and `reconcile` must follow the same write-shaped
+  discipline (the counts or discrepancies they wrote), so a later mutator does
+  not copy the checker's vocabulary by accident; a cross-subcommand test pins
+  `violations` to `check` alone.
 - **The two-helper document load path.** The mutators load through
   `_load_document_or_state_error` → `load_document` (`tomlkit`), **not**
   `_load_or_state_error` → `load_state` (`tomllib`), because they edit the live
@@ -1047,12 +1053,12 @@ Initialisation directory skeleton plus an empty `log.md`, and writes
 atomically. Each of these mutators writes a single file (`state.toml`, plus
 `init`'s `log.md`), already atomic via `Path.replace`, so none opens a
 `[pending_turn]` bracket — that belongs to the genuinely multi-file mutator
-`reconcile`. `recount` and `novel-compile` are single-file mutators too:
+`reconcile`. `recount` and `novel compile` are single-file mutators too:
 `recount` re-derives only `[word_counts]` in `state.toml` (design §4.1 line
 271), and design §3.4 lines 240-241 name a recount as *one write among several
 in a turn*, not the command writing several files, so it writes one
-`Path.replace` and opens no bracket; `novel-compile` (roadmap task 4.1.1) writes
-only `working/manuscript/compiled.md` (design §4.3), one `Path.replace`,
+`Path.replace` and opens no bracket; `novel compile` (roadmap task 4.1.1)
+writes only `working/manuscript/compiled.md` (design §4.3), one `Path.replace`,
 likewise with no bracket. Both behave exactly like `set-cursor` and
 `advance-phase`.
 
@@ -1087,7 +1093,7 @@ The behavioural proof is the `pytest-bdd` scenario
 
 Because direct editing of `state.toml` is eliminated (design §4.1; ADR-002
 selects `tomlkit` as the only sanctioned writer), no skill markdown file may
-carry a copy-pasteable recipe that writes `state.toml` outside `novel-state`.
+carry a copy-pasteable recipe that writes `state.toml` outside `novel state`.
 The guard
 [`tests/test_state_layout_reference.py`](../tests/test_state_layout_reference.py)
 enforces this: it scans each file's executable code fences (`python`/`python3`/
@@ -1096,9 +1102,9 @@ known TOML writer (`tomlkit.dump`, `tomli_w`, `.write_text`, `.write_bytes`,
 `.writelines`), an `open(` paired with a write-mode literal, a redirect or
 heredoc targeting the path, or a backstop `.write(` on the path — and fails
 `make test` if one names the state file. It leaves the atomic-write *prose*
-(design §3.4 and §5.3) and any `novel-state` invocation example untouched, so
+(design §3.4 and §5.3) and any `novel state` invocation example untouched, so
 it never flags a read-only `open(…, "rb")`, an unrelated redirect, or the
-schema fence. Rewriting the reference prose to point at the `novel-state`
+schema fence. Rewriting the reference prose to point at the `novel state`
 commands remains roadmap task 6.2.3's job; the guard only keeps a hand-edit
 recipe from re-entering.
 
@@ -1127,14 +1133,13 @@ caught it.
 
 ### The state-layout schema-drift guard
 
-The direct-edit guard keeps hand-edit recipes out of the references;
-a sibling guard keeps the `## state.toml schema` fence in `state-layout.md`
-honest about what `novel-state init` actually emits. Beta testing of roadmap
-task 2.1.8 found the emitted document carrying fields the reference never
-described, so
+The direct-edit guard keeps hand-edit recipes out of the references; a sibling
+guard keeps the `## state.toml schema` fence in `state-layout.md` honest about
+what `novel state init` actually emits. Beta testing of roadmap task 2.1.8
+found the emitted document carrying fields the reference never described, so
 [`tests/test_state_layout_schema_guard.py`](../tests/test_state_layout_schema_guard.py)
-locks the two together. It derives the required leaf-name and table-header nets
-from the **serialised** `build_initial_document(...)` dump
+locks the two together. It derives the required leaf-name and table-header
+nets from the **serialised** `build_initial_document(...)` dump
 (`tomlkit.dumps(...)`) — the exact textual shape the fence must mirror — and
 asserts each emitted leaf appears as a `name =` line and each emitted table
 header as a `[header]` line inside the extracted fence. Adding an emitted field
@@ -1146,27 +1151,27 @@ justified by the design's chosen rendering:
 
 - **`gates`** is a parent-only table carrying no scalar leaf, so `tomlkit.dumps`
   emits no bare `[gates]` line — only `[gates.knitting]` and `[gates.final]`
-  (design §5.1). Deriving the header net from the dump excludes `gates` (and any
-  future parent-only table) automatically, with no special-case.
+  (design §5.1). Deriving the header net from the dump excludes `gates` (and
+  any future parent-only table) automatically, with no special-case.
 - **`chapters`** serialises as the empty leaf line `chapters = []`, but the
   reference documents the *populated* manifest as a `[[chapters]]` block, so
-  `chapters` is the one emitted leaf the guard drops from the required-leaf set;
-  its sub-fields are checked separately against `ChapterEntry`.
+  `chapters` is the one emitted leaf the guard drops from the required-leaf
+  set; its sub-fields are checked separately against `ChapterEntry`.
 
 The transient `[pending_turn]` table is **not** covered: `init` never emits it,
-so the dump-derived nets structurally cannot require it (the reference documents
-it by hand instead — see `state-layout.md` "Pending turn"). The
+so the dump-derived nets structurally cannot require it (the reference
+documents it by hand instead — see `state-layout.md` "Pending turn"). The
 table-aware, per-occurrence hardening of this guard is deferred to roadmap task
 7.30. See design §5.1 and roadmap task 2.1.8.
 
 ### Rule packs and the loader boundary
 
 A *rule pack* is a versioned TOML file of prose-detection rules that
-`desloppify` reads to flag slop without baking the rules into code (design §4.4
-and §6.1). Each rule names a regular-expression `pattern`, a `threshold` (the
-allowed number of hits), and a counting `basis`; a `per_page` rule additionally
-carries a `page_words` page size. The typed, read-only model and its validating
-loader live in the `novel_ralph_skill.rulepack` package.
+`novel desloppify` reads to flag slop without baking the rules into code
+(design §4.4 and §6.1). Each rule names a regular-expression `pattern`, a
+`threshold` (the allowed number of hits), and a counting `basis`; a `per_page`
+rule additionally carries a `page_words` page size. The typed, read-only model
+and its validating loader live in the `novel_ralph_skill.rulepack` package.
 
 A v1 pack is a TOML file carrying a top-level `schema_version` and `pack` name,
 followed by one or more `[[rule]]` tables. Each rule names an `id`, a
@@ -1199,8 +1204,8 @@ The v1 key vocabulary is closed. The pack table accepts only `schema_version`,
 `threshold`, `basis`, and `page_words`. The loader enforces these rules
 strictly: `schema_version` must equal `1`; `page_words` is required for a
 `per_page` rule and rejected on any other basis; rule `id`s must be unique;
-`pattern` must compile; and any unknown key — a misspelled `thresold`, say —
-is rejected, naming the offending rule (or the pack level), rather than being
+`pattern` must compile; and any unknown key — a misspelled `thresold`, say — is
+rejected, naming the offending rule (or the pack level), rather than being
 silently ignored.
 
 `RuleBasis` is the closed two-member set of counting bases (`manuscript`,
@@ -1219,7 +1224,7 @@ field and compiles every pattern at load time, so a malformed pack fails loudly
 rather than silently skipping a bad rule. The loader is detect-only (ADR-001):
 it validates structure and compiles patterns but never judges prose.
 
-The loader splits its failures into the two exit-code channels `desloppify`
+The loader splits its failures into the two exit-code channels `novel desloppify`
 (roadmap task 5.1.2) surfaces. Malformed *pack content* — a bad
 `schema_version`, a missing or wrong-typed field, an unknown `basis`, a
 non-positive `page_words`, a negative `threshold`, or an uncompilable
@@ -1228,28 +1233,29 @@ non-positive `page_words`, a negative `threshold`, or an uncompilable
 unreadable, or undecodable pack *file* raises `RulePackFileError`, which maps
 to exit 3. The loader itself emits no envelope and never calls `sys.exit`;
 exit-code translation is the command body's job, exactly as for `parse_state`.
-Task 5.1.2 wires the `desloppify` command on top of `load_rulepack` and is
+Task 5.1.2 wires the `novel desloppify` command on top of `load_rulepack` and is
 responsible for catching these two errors (or extending the runner's `except`
 chain) to map each to its `ExitCode`.
 
 Task 5.1.2 ships the first rule pack:
 [`novel_ralph_skill/rulepack/packs/offenders.toml`](../novel_ralph_skill/rulepack/packs/offenders.toml),
-the §6 high-frequency-offender table transcribed one `[[rule]]` per row. It lives
-inside the package tree so it travels in the built wheel, and `desloppify`
-resolves it through `importlib.resources.files` rather than a relative path, so
-the installed console-script finds it. `desloppify` is the detect-only checker
-built on `load_rulepack` and the pure `detect(pack, chapters)` aggregation in
+the §6 high-frequency-offender table transcribed one `[[rule]]` per row. It
+lives inside the package tree so it travels in the built wheel, and
+`novel desloppify` resolves it through `importlib.resources.files` rather than a
+relative path, so the installed console-script finds it. `novel desloppify` is the
+detect-only checker built on `load_rulepack` and the pure
+`detect(pack, chapters)` aggregation in
 [`novel_ralph_skill/rulepack/detect.py`](../novel_ralph_skill/rulepack/detect.py):
 it scans each chapter draft line by line (the loader compiles patterns with no
 flags, so `.` cannot cross a newline), counts each rule's non-overlapping hits,
 and reports a per-rule finding — count, threshold, per-page density, and the
-`{chapter, line}` of each match — for every rule. The envelope's `result.findings`
-carries only the over-threshold subset of those findings (see
+`{chapter, line}` of each match — for every rule. The envelope's
+`result.findings` carries only the over-threshold subset of those findings (see
 [the clean-pass findings contract](#the-clean-pass-findings-contract-roadmap-task-713)
-below). It maps the
-two loader errors to their exit codes in the command body (`RulePackError` → exit
-2; `RulePackFileError` → exit 3) rather than extending the shared runner, keeping
-the `rulepack` → `contract` coupling out of the shared seam.
+below). It maps the two loader errors to their exit codes in the command body
+(`RulePackError` → exit 2; `RulePackFileError` → exit 3) rather than extending
+the shared runner, keeping the `rulepack` → `contract` coupling out of the
+shared seam.
 
 #### The clean-pass findings contract (roadmap task 7.1.3)
 
@@ -1260,21 +1266,23 @@ trail to the rules that actually breached. This is the authoritative contract:
 the design (§3.1, §4.4) and the ledger section below merely reference it.
 
 The rationale is that `result` carries only **machine-actionable** data (design
-§3.1): the harness gates on `ok` and reads `result.violations` (§3.3), so a rule
-within threshold — by construction `count: 0` or below its limit — is never
-read. The full audit trail of passing rules is **recoverable** from data the
-operator already owns: the rule pack is versioned, and any non-clean envelope
-still lists every offending rule in full. Carrying every passing rule would also
-make the payload grow linearly with pack size and pack count, so a clean
-multi-pack scan would serialize dozens of `count: 0` rows no consumer reads;
-slimming keeps a clean scan at `findings: []` regardless of how many rules ship.
+§3.1): the harness gates on `ok` and reads `result.violations` (§3.3), so a
+rule within threshold — by construction `count: 0` or below its limit — is
+never read. The full audit trail of passing rules is **recoverable** from data
+the operator already owns: the rule pack is versioned, and any non-clean
+envelope still lists every offending rule in full. Carrying every passing rule
+would also make the payload grow linearly with pack size and pack count, so a
+clean multi-pack scan would serialize dozens of `count: 0` rows no consumer
+reads; slimming keeps a clean scan at `findings: []` regardless of how many
+rules ship.
 
 The decision applies **uniformly** to both the rule-pack path and the
-`desloppify --ledger` path (see [the device ledger](#the-device-ledger-and-per-novel-rationing)
-below), so the §7.1 packs — `ai-isms.toml`, `device-ledger.toml`, and the future
-multi-pack run — all inherit one shape. The multi-pack surface (roadmap tasks
-7.1.6 and 7.1.7) inherits this contract; it is settled here once and is not
-re-litigated there.
+`novel desloppify --ledger` path (see
+[the device ledger](#the-device-ledger-and-per-novel-rationing) below), so the
+§7.1 packs — `ai-isms.toml`, `device-ledger.toml`, and the future multi-pack
+run — all inherit one shape. The multi-pack surface (roadmap tasks 7.1.6 and
+7.1.7) inherits this contract; it is settled here once and is not re-litigated
+there.
 
 #### The ai-isms pack: cadence, ownership, and membership
 
@@ -1284,20 +1292,20 @@ the *AI-ism* tell pack (design §6.2). Where `offenders.toml` carries the §6
 prose-craft offenders, `ai-isms.toml` carries the lexical and phrasal tells of
 LLM-default prose — "load-bearing", "a testament to", and similar. It ships by
 the same default hatchling mechanism, travels in the wheel, and resolves through
-`importlib.resources.files`. It is **opt-in**: `desloppify` selects it only when
-given `--pack ai-isms.toml`, and the default pack stays `offenders.toml`.
+`importlib.resources.files`. It is **opt-in**: `novel desloppify` selects it only
+when given `--pack ai-isms.toml`, and the default pack stays `offenders.toml`.
 Combining both packs in one invocation is roadmap task 7.1.7 (the multi-pack
-`desloppify` surface) and is not yet supported: a single run scans exactly one
-pack.
+`novel desloppify` surface) and is not yet supported: a single run scans
+exactly one pack.
 
 The AI-ism tell set is a *moving target* the maintainer owns as versioned data,
 not code (design §6.2). The cadence is:
 
 - **Owner.** The skill maintainer owns the pack and this policy.
 - **Review schedule.** The pack is reviewed at least once per release, and no
-  less than annually, as tells emerge or go stale. (AI-ism vocabulary dates: the
-  WP:AISIGNS field guide records, for instance, that "delve" was overused in
-  2023–2024 and then dropped off sharply in 2025.)
+  less than annually, as tells emerge or go stale. (AI-ism vocabulary dates:
+  the WP:AISIGNS field guide records, for instance, that "delve" was overused
+  in 2023–2024 and then dropped off sharply in 2025.)
 - **Adding or retiring a tell** is a *data edit* — one TOML `[[rule]]` row plus
   its positive and negative test rows in
   [`tests/test_ai_isms_pack.py`](../tests/test_ai_isms_pack.py) — never a code
@@ -1313,10 +1321,10 @@ The **membership policy** keeps the next maintainer from inventing tells:
   a `# source:` comment above the row.
 - Every tell must be **collocational**: a multi-token phrase, never a bare
   standalone English word. A bare word such as `delve`, `nestled`, or `boasts`
-  is rejected, because `detect.py` applies no semantic gate and such a rule fires
-  on legitimate fiction (WP:AISIGNS lists those words as recurring in ordinary
-  prose). A vocabulary tell is narrowed to its AI-ism collocation — `rich
-  tapestry`, not bare `tapestry`; `is a testament`, not bare `testament`.
+  is rejected, because `detect.py` applies no semantic gate and such a rule
+  fires on legitimate fiction (WP:AISIGNS lists those words as recurring in
+  ordinary prose). A vocabulary tell is narrowed to its AI-ism collocation —
+  `rich tapestry`, not bare `tapestry`; `is a testament`, not bare `testament`.
 - Every id is disjoint from `offenders.toml`'s ids, so the two packs never
   double-count; the validation suite asserts the disjointness.
 
@@ -1329,20 +1337,20 @@ additions follow the membership policy above and are ratified the same way.
 
 The ai-isms patterns diverge deliberately from design §6.1's case-sensitive
 illustration (and from the case-sensitive `\btapestry\b`/`\bdelve\b` worked
-example above): every ai-isms pattern carries the inline `(?i)` flag, for parity
-with `offenders.toml` and because a manuscript capitalizes a tell at a sentence
-start or in a chapter title. The inline `(?i)` is never a compile flag; the
-loader still compiles every pattern with no flags.
+example above): every ai-isms pattern carries the inline `(?i)` flag, for
+parity with `offenders.toml` and because a manuscript capitalizes a tell at a
+sentence start or in a chapter title. The inline `(?i)` is never a compile
+flag; the loader still compiles every pattern with no flags.
 
 ### The device ledger and per-novel rationing
 
 Roadmap task 7.1.2 adds a parallel detection family: the *device ledger*, a
 per-novel `device-ledger.toml` that rations a book's signature devices — a
-recurring image, a key phrase, a bookend line — each of which is meant to land a
-fixed number of times, in a fixed set of chapters, and nowhere else (design
+recurring image, a key phrase, a bookend line — each of which is meant to land
+a fixed number of times, in a fixed set of chapters, and nowhere else (design
 §6.3, resolving open question Q3). Unlike the shipped rule packs, the ledger is
 **per-novel user data**: it is not packaged in the wheel and has no
-`importlib.resources` resolver. It is selected with `desloppify --ledger PATH`,
+`importlib.resources` resolver. It is selected with `novel desloppify --ledger PATH`,
 where `PATH` is a filesystem path the novelist (or the harness) writes into
 `working/`. A run with no `--ledger` is the unchanged rule-pack scan.
 
@@ -1350,9 +1358,10 @@ The ledger lives in a new package,
 [`novel_ralph_skill/ledger/`](../novel_ralph_skill/ledger/), modelled on the
 rule-pack package (schema → parse → detect → report) but carrying its own
 chapter-aware vocabulary that the closed v1 rule-pack schema cannot express
-(ADR-001/003/005 still hold: detect-only, the shared envelope contract, and the
-five-script command surface — the ledger is a flag on `desloppify`, never a
-sixth script). The TOML shape is `schema_version` plus one or more `[[device]]`
+(ADR-001/003/007 still hold: detect-only, the shared envelope contract, and the
+single `novel` command surface — the ledger is a flag on `novel desloppify`,
+never a separate subcommand). The TOML shape is `schema_version` plus one or
+more `[[device]]`
 tables, each with an `id`, a regex `pattern`, and a ration:
 
 ```toml
@@ -1370,8 +1379,8 @@ The **closed key vocabulary** is `id`, `pattern`, and the four rationing fields
 `reserved_for_chapter`. The **constraint-combination semantics** are:
 
 - a device must carry **at least one** of the four rationing fields — a
-  ration-less device is a no-op the author did not intend, so the loader rejects
-  it;
+  ration-less device is a no-op the author did not intend, so the loader
+  rejects it;
 - a device may carry **at most one** of the three *window* constraints
   (`allowed_chapters`, `retired_after_chapter`, `reserved_for_chapter`);
   `max_count` may pair with any one window. A device combining two window
@@ -1384,34 +1393,37 @@ The **closed key vocabulary** is `id`, `pattern`, and the four rationing fields
 Like the rule-pack loader, malformed *content* fails loudly through a
 `LedgerError` the command maps to **exit 2**, naming the offending device; an
 absent, unreadable, or undecodable ledger *file* fails through a
-`LedgerFileError` mapped to **exit 3**. An over-ration device exits **4**, naming
-the device in `result.violations`; a within-ration manuscript exits **0**.
+`LedgerFileError` mapped to **exit 3**. An over-ration device exits **4**,
+naming the device in `result.violations`; a within-ration manuscript exits
+**0**.
 
 The ledger path obeys the same
 [clean-pass findings contract](#the-clean-pass-findings-contract-roadmap-task-713)
-as the rule-pack path: `result.findings` carries only the over-ration devices, so
-a within-ration manuscript emits `findings: []` and `violations: []` at exit `0`.
+as the rule-pack path: `result.findings` carries only the over-ration devices,
+so a within-ration manuscript emits `findings: []` and `violations: []` at exit
+`0`.
 
-Detection follows the same **line-by-line, no-flags, no-semantic-gate** model as
-the rule-pack detector. A *spend* is one literal `finditer` hit of the device's
-pattern, counted line by line so `.` cannot cross a newline and each hit's
-`{chapter, line}` is exact; a multi-token device must use a bounded non-newline
-window `[^\n]{0,N}?`, never greedy `.*`. There is **no semantic gate**: a bare
-word such as `\bsternum\b` fires on every literal use of the word, not only the
-motif use, so an author narrows the pattern to the motif's collocation
-knowingly. The current spend is **recomputed from the chapter drafts on disk on
-every run** (design §6.3), so the ledger cannot drift from the manuscript:
-editing a draft to remove a spend and re-running drops the finding with no ledger
-edit. Whether a device *should* have been spent stays the model's call (ADR-001).
+Detection follows the same **line-by-line, no-flags, no-semantic-gate** model
+as the rule-pack detector. A *spend* is one literal `finditer` hit of the
+device's pattern, counted line by line so `.` cannot cross a newline and each
+hit's `{chapter, line}` is exact; a multi-token device must use a bounded
+non-newline window `[^\n]{0,N}?`, never greedy `.*`. There is **no semantic
+gate**: a bare word such as `\bsternum\b` fires on every literal use of the
+word, not only the motif use, so an author narrows the pattern to the motif's
+collocation knowingly. The current spend is **recomputed from the chapter
+drafts on disk on every run** (design §6.3), so the ledger cannot drift from
+the manuscript: editing a draft to remove a spend and re-running drops the
+finding with no ledger edit. Whether a device *should* have been spent stays
+the model's call (ADR-001).
 
 The ledger is a **whole-manuscript** concern — it rations *across* the book — so
 `--ledger` is **mutually exclusive with `--chapter`**: a single-chapter scan
 cannot total `max_count` or evaluate a chapter window faithfully, so the
 combination is an exit-2 usage fault rather than a silently wrong count. Each
 window constraint is read **negatively** (a hit outside the window is a
-violation); there is no "must appear" floor, so a `reserved_for_chapter` bookend
-the author forgot entirely passes silently. That is design-conformant (§6.3
-specifies no floor); a "must appear" floor is the highest-value future
+violation); there is no "must appear" floor, so a `reserved_for_chapter`
+bookend the author forgot entirely passes silently. That is design-conformant
+(§6.3 specifies no floor); a "must appear" floor is the highest-value future
 enhancement, recorded here so the limitation is explicit, not accidental.
 
 ## GitHub Actions
