@@ -24,6 +24,7 @@ adds manifest entries with no on-disk directory (the missing chapter dirs) and
 from __future__ import annotations
 
 import contextlib
+import dataclasses as dc
 import io
 import json
 import typing as typ
@@ -315,3 +316,43 @@ def test_reconcile_turn_regression_unaffected(
     assert load_state(working / "state.toml").pending_turn is None, (
         "reconcile must clear the torn reconcile [pending_turn]"
     )
+
+
+def test_torn_set_chapters_with_cover_gap_completes_not_recounts(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A torn set-chapters turn carrying a cover gap COMPLETEs, not RECOUNTs (B1).
+
+    The roadmap-2.3.8 B1 regression: a torn ``set-chapters`` turn at
+    ``phase=drafting`` that is itself a coherent drafting subset (manifest
+    ``{1,2,3}``, on-disk ``{1}``) whose ``by_chapter`` *omits a drafted key* (the
+    drafted ``"01"`` is dropped) co-fires the strict ``manifest-disk-bijection``
+    AND the re-keyed ``word-counts-cover-drafts``. The cover-drafts pre-arm is
+    pinned to run strictly AFTER the set-chapters COMPLETE arm, so this still
+    COMPLETEs the pending turn (creating the missing directories, ADR 008) rather
+    than being pre-empted into a RECOUNT that would silently abandon the
+    completion. The existing set-chapters tests cannot catch this because their
+    ``by_chapter`` always covers the manifest (no cover gap co-occurs).
+    """
+    base = _torn_spec(on_disk=(1,), manifest_only=(2, 3))
+    seeded = base.by_chapter_override
+    assert seeded is not None, "_torn_spec always seeds by_chapter_override"
+    table = {key: value for key, value in seeded.items() if key != "01"}
+    spec = dc.replace(
+        base, by_chapter_override=table, current_words_override=sum(table.values())
+    )
+    working = wc.build_working_tree(spec, tmp_path)
+    assert _action(working) is ReconcileAction.COMPLETE_PENDING_TURN, (
+        "the torn set-chapters turn must COMPLETE ahead of the cover-drafts pre-arm"
+    )
+
+    code, env = _drive(working, "reconcile", monkeypatch)
+    assert code == ExitCode.SUCCESS, "reconcile must COMPLETE the explained torn turn"
+    assert typ.cast("dict[str, object]", env["result"])["action"] == (
+        "complete-pending-turn"
+    ), "reconcile must report complete-pending-turn, not recount"
+    for number in (2, 3):
+        assert (working / "manuscript" / chapter_dir_name(number)).is_dir(), (
+            f"reconcile must create chapter-{number:02d}/"
+        )

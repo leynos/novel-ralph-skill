@@ -284,13 +284,15 @@ def _check_log_present(_state: State, working_dir: Path) -> Violation | None:
     )
 
 
-# The seven non-bijection predicates, assembled in
-# :data:`DISK_EVIDENCE_INVARIANT_NAMES` order (minus the bijection, element 0). The
-# bijection predicate is lifted out of this loop because it alone takes the
-# keyword-only ``relax_drafting`` flag (ADR 009): a per-predicate kwarg cannot be
-# threaded through this uniform-signature tuple without widening every predicate.
-# ``check_disk_evidence`` calls the bijection first with the flag, then runs this
-# tail, so the union order stays byte-for-byte the historical single-loop order.
+# The five uniform-signature middle predicates, in
+# :data:`DISK_EVIDENCE_INVARIANT_NAMES` order. The bijection (element 0) and the
+# cover-drafts predicate (element 7, last) are both lifted out of this loop
+# because they alone take the keyword-only ``relax_drafting`` flag (ADR 009;
+# roadmap task 2.3.8): a per-predicate kwarg cannot be threaded through this
+# uniform-signature tuple without widening every predicate. ``check_disk_evidence``
+# calls the bijection first with the flag, then this middle tail, then cover-drafts
+# last with the flag, so the union order stays byte-for-byte the historical
+# single-loop order.
 _TAIL_PREDICATES: tuple[cabc.Callable[[State, Path], Violation | None], ...] = (
     _check_cursor_plan_present,
     _check_done_flag_without_draft,
@@ -298,16 +300,17 @@ _TAIL_PREDICATES: tuple[cabc.Callable[[State, Path], Violation | None], ...] = (
     _check_pending_turn_cleared,
     _check_word_counts_match_drafts,
     _check_log_present,
-    _check_word_counts_cover_drafts,
 )
 
-# The full predicate sequence, bijection first, for any reference that needs the
-# whole detector in :data:`DISK_EVIDENCE_INVARIANT_NAMES` order. The bijection is
-# stored with its default (strict) flag here; ``check_disk_evidence`` calls it
-# directly so it can thread the relaxation flag.
+# The full predicate sequence, bijection first and cover-drafts last, for any
+# reference that needs the whole detector in
+# :data:`DISK_EVIDENCE_INVARIANT_NAMES` order. The two relaxation-aware predicates
+# are stored with their default (strict) flag here; ``check_disk_evidence`` calls
+# them directly so it can thread the relaxation flag.
 _PREDICATES: tuple[cabc.Callable[[State, Path], Violation | None], ...] = (
     _check_manifest_disk_bijection,
     *_TAIL_PREDICATES,
+    _check_word_counts_cover_drafts,
 )
 
 
@@ -324,12 +327,11 @@ def check_disk_evidence(
     invariants (§5.2) are not checked here; ``check`` unions the two verdicts. The
     verdict is ordered by :data:`DISK_EVIDENCE_INVARIANT_NAMES`.
 
-    The bijection predicate is evaluated first and out of the
-    :data:`_TAIL_PREDICATES` loop so it can receive ``relax_drafting_bijection``;
-    because the bijection is element 0 of
-    :data:`DISK_EVIDENCE_INVARIANT_NAMES` and the tail keeps the remaining names in
-    order, the head-then-tail assembly reproduces the historical single-loop order
-    byte-for-byte.
+    The bijection predicate (element 0) and the cover-drafts predicate (element
+    7, last) are evaluated out of the :data:`_TAIL_PREDICATES` loop so they can
+    receive ``relax_drafting_bijection``; because the middle tail keeps the
+    remaining names in order, the head-then-tail-then-cover assembly reproduces
+    the historical single-loop order byte-for-byte (ADR 009; roadmap task 2.3.8).
 
     Parameters
     ----------
@@ -341,9 +343,13 @@ def check_disk_evidence(
         When ``True`` and ``state.phase.current == Phase.DRAFTING``, the
         ``manifest-disk-bijection`` invariant relaxes to disk-subset-of-manifest:
         a manifest entry without a directory no longer fires, though an orphan
-        directory or a manifest gap still do (ADR 009). Defaults to ``False``
-        (strict), which ``derive_reconciliation`` and the corpus agreement suite
-        rely on; only the user-facing ``check`` passes ``True``.
+        directory or a manifest gap still do (ADR 009). The same flag re-keys
+        ``word-counts-cover-drafts`` off the on-disk drafted subset (missing
+        direction only) during such a relaxed subset, so a drafted chapter the
+        ``by_chapter`` table omits is flagged mid-draft (roadmap task 2.3.8).
+        Defaults to ``False`` (strict), which ``derive_reconciliation`` and the
+        corpus agreement suite rely on; only the user-facing ``check`` passes
+        ``True``.
 
     Returns
     -------
@@ -354,4 +360,9 @@ def check_disk_evidence(
         state, working_dir, relax_drafting=relax_drafting_bijection
     )
     tail = (predicate(state, working_dir) for predicate in _TAIL_PREDICATES)
-    return tuple(violation for violation in (head, *tail) if violation is not None)
+    cover = _check_word_counts_cover_drafts(
+        state, working_dir, relax_drafting=relax_drafting_bijection
+    )
+    return tuple(
+        violation for violation in (head, *tail, cover) if violation is not None
+    )

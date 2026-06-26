@@ -5,10 +5,11 @@ This module holds the disk-vs-table word-count cluster of
 :func:`disk_word_counts` and the two predicates it backs,
 :func:`_check_word_counts_match_drafts` (the shared-key *value* divergence;
 roadmap task 2.3.2) and :func:`_check_word_counts_cover_drafts` (the ``by_chapter``
-*key-set* coverage divergence; roadmap task 2.3.6). They are split out purely for
-file size (AGENTS.md 400-line cap) and re-exported through ``disk_evidence`` so
-every existing import site (``reconcile``, the ``state`` package, the tests)
-resolves unchanged.
+*key-set* coverage divergence; roadmap task 2.3.6, re-keyed off the on-disk drafted
+subset under the ADR 009 ``relax_drafting`` flag by roadmap task 2.3.8). They are
+split out purely for file size (AGENTS.md 400-line cap) and re-exported through
+``disk_evidence`` so every existing import site (``reconcile``, the ``state``
+package, the tests) resolves unchanged.
 
 The recount reuses the shared
 :func:`~novel_ralph_skill.state.wordcount.recount_words`, the one counting rule
@@ -21,7 +22,11 @@ from __future__ import annotations
 
 import typing as typ
 
-from novel_ralph_skill.state._disk_paths import _on_disk_chapter_numbers
+from novel_ralph_skill.state._disk_paths import (
+    _classify_bijection,
+    _on_disk_chapter_numbers,
+)
+from novel_ralph_skill.state.phase import Phase
 from novel_ralph_skill.state.validate import Violation
 from novel_ralph_skill.state.wordcount import recount_words
 
@@ -100,8 +105,40 @@ def _check_word_counts_match_drafts(
     )
 
 
+def _drafted_subset_cover_violation(
+    state: State, working_dir: Path, on_disk: cabc.Set[int]
+) -> Violation | None:
+    """Return a violation when a drafted on-disk chapter has no ``by_chapter`` key.
+
+    The relaxed drafting-subset arm of :func:`_check_word_counts_cover_drafts`
+    (roadmap task 2.3.8). "Drafted" means **directory-present** — the chapter
+    numbers ``on_disk`` carries — not "non-empty ``draft.md``" (Decision D6): a
+    chapter directory with an absent or empty draft (count ``0``) is still on disk
+    and must carry a key, so convergence holds after the manifest-keyed
+    ``recount_words`` writes its ``0`` key.
+
+    Only the **missing** direction fires (Decision D2): a drafted chapter whose
+    key the table omits. The symmetric *extra* direction is deliberately not
+    checked here — the manifest-keyed ``recount_words`` writes a ``0``-valued key
+    for every undrafted manifest chapter, so a table that legitimately carries
+    those keys after a ``RECOUNT`` must not re-trip the detector on its own repair.
+    """
+    drafted_keys = {f"{number:02d}" for number in on_disk}
+    table_keys = set(state.word_counts.by_chapter)
+    missing = drafted_keys - table_keys
+    if not missing:
+        return None
+    return Violation(
+        invariant=WORD_COUNTS_COVER_DRAFTS,
+        detail=(
+            "[word_counts].by_chapter omits a drafted chapter's key during a "
+            f"relaxed drafting subset: missing {sorted(missing)}"
+        ),
+    )
+
+
 def _check_word_counts_cover_drafts(
-    state: State, working_dir: Path
+    state: State, working_dir: Path, *, relax_drafting: bool = False
 ) -> Violation | None:
     """Return a violation when the ``by_chapter`` key set diverges from the drafts.
 
@@ -117,27 +154,42 @@ def _check_word_counts_cover_drafts(
     :func:`_check_word_counts_match_drafts` owns (which compares only the keys
     both sides share) and to the manifest-vs-disk-dir structural check
     :func:`~novel_ralph_skill.state.disk_evidence._check_manifest_disk_bijection`
-    owns. It **defers** to the latter when the manifest and the on-disk chapter
-    directories are not in bijection: a non-bijective manifest is that invariant's
-    signal, and because the recount keys off the (untrustworthy) manifest the
-    comparison would otherwise double-fire on every structural mismatch. Once the
-    manifest and disk agree, ``set(recount) == set(manifest)``, so the surviving
-    signal is exactly the hand-edited-table key-set divergence. Twin of the
-    corpus's ``_check_word_counts_cover_drafts``.
+    owns. At bijection (``manifest == on_disk``) it runs the full symmetric
+    difference: the surviving signal is exactly the hand-edited-table key-set
+    divergence (roadmap task 2.3.6). Twin of the corpus's
+    ``_check_word_counts_cover_drafts``.
+
+    When ``relax_drafting`` is set and ``state.phase.current == Phase.DRAFTING``
+    and the manifest/disk break is a coherent subset (no orphan, contiguous
+    manifest, ``on_disk < manifest``), it re-keys off the **on-disk drafted
+    subset** and fires only the *missing* direction (roadmap task 2.3.8;
+    Decisions D2, D6): a drafted chapter the table omits is flagged mid-draft.
+    Outside that exact shape — a non-subset break, a non-drafting phase, or the
+    strict default — it **defers** (``return None``) exactly as before: a
+    non-bijective manifest is the ``manifest-disk-bijection`` invariant's signal,
+    and the manifest-keyed recount would otherwise double-fire on every
+    structural mismatch.
     """
     manifest = {chapter.number for chapter in state.chapters}
-    if manifest != _on_disk_chapter_numbers(working_dir):
-        return None
-    _current, by_chapter = disk_word_counts(state, working_dir)
-    table = dict(state.word_counts.by_chapter)
-    missing = set(by_chapter) - set(table)
-    extra = set(table) - set(by_chapter)
-    if not (missing or extra):
-        return None
-    return Violation(
-        invariant=WORD_COUNTS_COVER_DRAFTS,
-        detail=(
-            f"[word_counts].by_chapter key set diverges from the manifest drafts: "
-            f"missing {sorted(missing)}, extra {sorted(extra)}"
-        ),
+    on_disk = _on_disk_chapter_numbers(working_dir)
+    if manifest == on_disk:
+        _current, by_chapter = disk_word_counts(state, working_dir)
+        table = dict(state.word_counts.by_chapter)
+        missing = set(by_chapter) - set(table)
+        extra = set(table) - set(by_chapter)
+        if not (missing or extra):
+            return None
+        return Violation(
+            invariant=WORD_COUNTS_COVER_DRAFTS,
+            detail=(
+                "[word_counts].by_chapter key set diverges from the manifest "
+                f"drafts: missing {sorted(missing)}, extra {sorted(extra)}"
+            ),
+        )
+    drafting = relax_drafting and state.phase.current == Phase.DRAFTING
+    is_subset = (
+        on_disk < manifest and _classify_bijection(manifest, on_disk).coherent_subset
     )
+    if drafting and is_subset:
+        return _drafted_subset_cover_violation(state, working_dir, on_disk)
+    return None

@@ -24,6 +24,15 @@ D-COMPLETE) is total and deterministic:
    recomputable exactly like ``log.md``. Any *unexplained* bijection break (a
    stray draft, an orphan directory, a manifest gap the pending turn does not
    account for, or a second refuse-class violation) still REFUSEs.
+1a. Else a relaxed drafting subset cover gap — no ``[pending_turn]``, phase
+   ``drafting``, a coherent disk-subset-of-manifest break whose lone refuse-class
+   violation is ``manifest-disk-bijection``, and the re-keyed
+   ``word-counts-cover-drafts`` detector reporting a drafted chapter the table
+   omits — yields :attr:`ReconcileAction.RECOUNT` (roadmap task 2.3.8, D3). This
+   scoped, drafting-gated pre-arm runs strictly after the ``set-chapters``
+   COMPLETE arm (B1) and before the refuse arm (B2), so ``reconcile`` (strict)
+   agrees with the verdict ``check`` (relaxed) already reports for the same tree
+   (D7) without relaxing the strict bijection.
 2. Else any **refuse-class** disk-evidence violation — the three contradictions
    (``manifest-disk-bijection``, ``done-flag-without-draft``,
    ``compiled-matches-drafts``) or the reported-not-repaired
@@ -60,56 +69,31 @@ import enum
 import typing as typ
 from pathlib import PurePosixPath
 
-from novel_ralph_skill.state._disk_paths import (
-    _classify_bijection,
-    _declared_chapter_numbers,
-    _on_disk_chapter_numbers,
-)
 from novel_ralph_skill.state._disk_word_counts import (
     WORD_COUNTS_COVER_DRAFTS,
     WORD_COUNTS_MATCH_DRAFTS,
     disk_word_counts,
 )
+from novel_ralph_skill.state._reconcile_precedence import (
+    _RECOMPUTABLE_BASENAMES,
+    _REFUSE_CLASS,
+    _drafting_subset_cover_gap,
+    _missing_declared_paths,
+    _set_chapters_turn_explains_bijection,
+)
 from novel_ralph_skill.state.disk_evidence import (
-    COMPILED_MATCHES_DRAFTS,
-    CURSOR_PLAN_PRESENT,
     DISK_EVIDENCE_INVARIANT_NAMES,
-    DONE_FLAG_WITHOUT_DRAFT,
     LOG_PRESENT,
     MANIFEST_DISK_BIJECTION,
     PENDING_TURN_CLEARED,
     check_disk_evidence,
 )
-from novel_ralph_skill.state.schema import SET_CHAPTERS_OPERATION
 
 if typ.TYPE_CHECKING:
     import collections.abc as cabc
     from pathlib import Path
 
     from novel_ralph_skill.state.schema import PendingTurn, State
-
-# The refuse-class disk-evidence names: the three §5.4 contradictions plus the
-# reported-not-repaired ``cursor-plan-present`` (D-REPORT). Any one present means
-# disk contradicts itself (or carries a plan-less cursor ``reconcile`` cannot
-# synthesise without fabricating prose), so the verdict is REFUSE — *except* the
-# one scoped exception below: an ``operation="set-chapters"`` ``[pending_turn]``
-# whose sole refuse-class violation is a ``manifest-disk-bijection`` fully
-# explained by its declared-but-missing ``chapter-NN/`` directories is classified
-# ahead of this arm and COMPLETEd (ADR 008, design §5.4; ExecPlan Decision Log D8).
-# The exception never masks a second contradiction: it fires only when the fired
-# refuse-class is exactly ``{manifest-disk-bijection}``.
-_REFUSE_CLASS: frozenset[str] = frozenset({
-    MANIFEST_DISK_BIJECTION,
-    DONE_FLAG_WITHOUT_DRAFT,
-    COMPILED_MATCHES_DRAFTS,
-    CURSOR_PLAN_PRESENT,
-})
-
-# The basenames a torn turn's missing declared path may carry for ``reconcile`` to
-# *complete* it (recompute and write): the recomputable artefacts (D-COMPLETE).
-# Any other missing artefact (a ``draft.md`` body, a ``done.flag``) is
-# unrecoverable from disk, so the turn is rolled back instead.
-_RECOMPUTABLE_BASENAMES: frozenset[str] = frozenset({"state.toml", "log.md"})
 
 # The disk-evidence names a single ``RECOUNT`` repairs: the shared-key value
 # divergence and the key-set coverage divergence (roadmap task 2.3.6). A recount
@@ -176,67 +160,6 @@ def _refuse(discrepancies: cabc.Sequence[str]) -> Reconciliation:
         discrepancies=tuple(discrepancies),
         detail=f"disk evidence refuses repair: {names}",
     )
-
-
-def _missing_declared_paths(
-    paths: cabc.Sequence[str], working_dir: Path
-) -> tuple[str, ...]:
-    """Return the declared ``paths`` not present on disk, relative to ``working_dir``.
-
-    A declared path is recorded relative to the project root (``working/...``); the
-    materialised tree puts ``working/`` at ``working_dir``, so a declared
-    ``working/<rest>`` lands at ``working_dir / <rest>``. A path that does not start
-    with ``working/`` is joined under ``working_dir`` as-is (defensive; the
-    producers always prefix it).
-    """
-    missing: list[str] = []
-    for path in paths:
-        relative = path.removeprefix("working/")
-        if not (working_dir / relative).exists():
-            missing.append(path)
-    return tuple(missing)
-
-
-def _set_chapters_turn_explains_bijection(
-    state: State, working_dir: Path, fired: cabc.Sequence[str]
-) -> bool:
-    """Return whether a torn ``set-chapters`` turn fully explains the bijection break.
-
-    True only when ALL hold (the scoped precedence exception; ADR 008, D8):
-
-    - ``state.pending_turn`` is present with ``operation == "set-chapters"``;
-    - the fired refuse-class set is **exactly** ``{manifest-disk-bijection}`` (no
-      other refuse-class member, so the branch never masks a second contradiction);
-    - the bijection break is **fully explained** by the pending turn's
-      declared-but-missing chapter directories: the manifest is contiguous from 1,
-      the on-disk chapter numbers are a subset of the manifest, and the manifest
-      minus the on-disk set equals exactly the missing declared chapter numbers.
-
-    When false the existing REFUSE arm runs unchanged, so any unexplained break — a
-    stray draft, an orphan directory, a manifest gap the turn does not account for,
-    or a malformed declaration — still REFUSEs.
-    """
-    pending = state.pending_turn
-    if pending is None or pending.operation != SET_CHAPTERS_OPERATION:
-        return False
-    fired_refuse = {name for name in fired if name in _REFUSE_CLASS}
-    if fired_refuse != {MANIFEST_DISK_BIJECTION}:
-        return False
-    break_ = _classify_bijection(
-        (chapter.number for chapter in state.chapters),
-        _on_disk_chapter_numbers(working_dir),
-    )
-    # The manifest must be contiguous from 1 with the on-disk set its subset (no
-    # orphan) — exactly ``coherent_subset`` — before the missing dirs can explain
-    # the break.
-    if not break_.coherent_subset:
-        return False
-    missing_declared = _declared_chapter_numbers(
-        _missing_declared_paths(pending.paths, working_dir)
-    )
-    if missing_declared is None:
-        return False
-    return break_.missing == missing_declared
 
 
 def _classify_pending_turn(
@@ -323,14 +246,48 @@ def _recount(
     )
 
 
+def _scoped_precedence_exception(
+    state: State, working_dir: Path, fired: cabc.Sequence[str]
+) -> Reconciliation | None:
+    """Return a scoped pre-refuse-arm reconciliation, or ``None`` to fall through.
+
+    The two exceptions that run ahead of the refuse-class arm, in their pinned
+    order:
+
+    1. A torn ``set-chapters`` turn whose lone refuse-class violation is a
+       ``manifest-disk-bijection`` fully explained by its missing chapter dirs
+       COMPLETEs (materialises the empty directories) rather than REFUSEs (ADR
+       008, D8). The explicit ``pending is not None`` guard narrows the type for
+       the checker without a bare ``assert``.
+    2. Else a relaxed drafting subset whose only refuse-class break is the strict
+       ``manifest-disk-bijection`` and which carries a missing drafted cover key
+       RECOUNTs (re-keying ``by_chapter`` off the manifest) rather than REFUSEs,
+       so ``reconcile`` (strict) agrees with the verdict ``check`` (relaxed) for
+       the same tree (roadmap task 2.3.8, D3, D7). Pinned AFTER the set-chapters
+       arm (B1) and gated on no pending turn and a single refuse-class member
+       (B2), so it never masks a pending turn or a second contradiction.
+
+    Returning ``None`` lets ``derive_reconciliation`` fall through to the strict
+    refuse / pending-turn / recount / log precedence unchanged (Constraint 1).
+    """
+    pending = state.pending_turn
+    if pending is not None and _set_chapters_turn_explains_bijection(
+        state, working_dir, fired
+    ):
+        return _complete_set_chapters_turn(pending, working_dir)
+    if _drafting_subset_cover_gap(state, working_dir, fired):
+        return _recount(state, working_dir, [WORD_COUNTS_COVER_DRAFTS])
+    return None
+
+
 def derive_reconciliation(state: State, working_dir: Path) -> Reconciliation:
     """Classify ``state``/``working_dir`` into the disk-authoritative reconciliation.
 
     Pure and total: returns a :class:`Reconciliation` for every ``State`` over any
     ``working_dir`` and never raises. The precedence (explained ``set-chapters``
-    turn → refuse-class → pending-turn → recount → recreate-log → none) is fixed
-    and deterministic (D-WORDCOUNT, D-REPORT, D-COMPLETE, D8); see the module
-    docstring.
+    turn → relaxed drafting-subset cover gap → refuse-class → pending-turn →
+    recount → recreate-log → none) is fixed and deterministic (D-WORDCOUNT,
+    D-REPORT, D-COMPLETE, D8, D3); see the module docstring.
 
     Parameters
     ----------
@@ -351,17 +308,12 @@ def derive_reconciliation(state: State, working_dir: Path) -> Reconciliation:
     fired = [
         violation.invariant for violation in check_disk_evidence(state, working_dir)
     ]
-    # The scoped exception ahead of the refuse arm (ADR 008, D8): a torn
-    # ``set-chapters`` turn whose lone refuse-class violation is a
-    # ``manifest-disk-bijection`` fully explained by its missing chapter dirs
-    # COMPLETEs (materialises the empty directories) rather than REFUSEs. The
-    # predicate proves ``state.pending_turn`` is non-None, but the explicit guard
-    # narrows the type for the checker without a bare ``assert``.
-    pending = state.pending_turn
-    if pending is not None and _set_chapters_turn_explains_bijection(
-        state, working_dir, fired
-    ):
-        return _complete_set_chapters_turn(pending, working_dir)
+    # The two scoped exceptions that run ahead of the refuse arm (the torn
+    # ``set-chapters`` COMPLETE, ADR 008/D8; then the relaxed drafting-subset
+    # cover-gap RECOUNT, roadmap task 2.3.8/D3), in their pinned order.
+    scoped = _scoped_precedence_exception(state, working_dir, fired)
+    if scoped is not None:
+        return scoped
     refuse = [name for name in fired if name in _REFUSE_CLASS]
     if refuse:
         return _refuse(refuse)

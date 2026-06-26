@@ -8,8 +8,10 @@ manifest gap still fire in every phase, and the exact bijection re-tightens at
 ``final-pass`` and ``done``.
 
 The strict default is exercised here too (the regression guard the corpus
-agreement suite and ``derive_reconciliation`` rely on), alongside the
-``word-counts-cover-drafts`` boundary (Decision D6) and the out-of-loop wiring's
+agreement suite and ``derive_reconciliation`` rely on), alongside the re-keyed
+``word-counts-cover-drafts`` boundary (roadmap task 2.3.8: it now fires on a
+relaxed subset's omitted drafted key and stays silent on a coherent subset,
+superseding the former Decision-D6 deferral) and the out-of-loop wiring's
 union-order preservation. A Hypothesis property sweeps the phase x tree-shape
 matrix. The corpus spec library is taken by the sanctioned ``working_corpus as
 wc`` value import the other corpus suites use.
@@ -193,23 +195,24 @@ def test_relaxed_flag_fires_subset_at_terminal_phases(
     assert _bijection_verdict(working, relax=True) == {MANIFEST_DISK_BIJECTION}
 
 
-def test_cover_drafts_silent_on_relaxed_subset_with_drifted_table(
+def test_cover_drafts_fires_on_relaxed_subset_omitting_drafted_key(
     tmp_path: Path,
 ) -> None:
-    """A drifted ``by_chapter`` table on a relaxed subset yields an empty verdict.
+    """A relaxed subset omitting a drafted key fires ``word-counts-cover-drafts``.
 
-    This pins Decision D6: the relaxation removes only the
-    ``manifest-disk-bijection`` signal, not a ``word-counts-cover-drafts`` one.
-    ``_check_word_counts_cover_drafts`` already defers on ``manifest != on_disk``
-    (its docstring), and a relaxed drafting subset always satisfies that, so the
-    cover-drafts check never fired on such a tree under the strict detector. The
-    same tree under the **strict** flag fires ``manifest-disk-bijection`` and
-    *still not* cover-drafts, proving cover-drafts was already silent. This is the
-    intended boundary, not an accident: the recount is untrustworthy off a
-    non-bijective manifest, so cover-drafts cannot meaningfully run on a subset.
+    Supersedes the former Decision-D6 deferral contract (roadmap task 2.3.8): a
+    relaxed drafting subset (manifest ``{1,2,3}``, on-disk ``{1,2}``) whose
+    ``by_chapter`` omits the **drafted** ``"02"`` key now yields a relaxed verdict
+    that *contains* ``word-counts-cover-drafts`` and does *not* contain
+    ``manifest-disk-bijection`` (the bijection is relaxed). The detector keys off
+    the on-disk drafted subset and fires the missing direction only.
+
+    Under the **strict** flag the same tree fires ``manifest-disk-bijection`` (the
+    missing-directory break) and *not* cover-drafts, because strict cover-drafts
+    still defers off a non-bijective manifest. This pins the contract flip
+    (Decision D4) and the missing-only semantics (Decision D2).
     """
-    # Manifest {1,2,3}; on-disk {1,2}; by_chapter table also declares a key (04)
-    # the manifest never names, so the table key set has drifted.
+    # Manifest {1,2,3}; on-disk {1,2}; by_chapter omits the drafted "02" key.
     spec = dc.replace(
         wc.COHERENT_BASELINE,
         chapters=tuple(
@@ -224,8 +227,8 @@ def test_cover_drafts_silent_on_relaxed_subset_with_drifted_table(
             for number in (1, 2)
         ),
         manifest_only_numbers=(3,),
-        by_chapter_override={"01": 100, "02": 100, "04": 100},
-        current_words_override=300,
+        by_chapter_override={"01": 100, "03": 0},
+        current_words_override=100,
         current_chapter=0,
         consecutive_clean=0,
         convergence_target=1,
@@ -238,14 +241,27 @@ def test_cover_drafts_silent_on_relaxed_subset_with_drifted_table(
     working = wc.build_working_tree(spec, tmp_path)
     state = load_state(working / "state.toml")
 
-    # Relaxed: the full verdict is empty — cover-drafts defers, the bijection is
-    # relaxed, and the drifted table key surfaces nowhere.
-    relaxed = check_disk_evidence(state, working, relax_drafting_bijection=True)
-    assert not relaxed, "the full relaxed verdict on a clean drafting subset is ()"
-    # Strict: only the bijection fires; cover-drafts is still silent (it deferred).
+    # Relaxed: cover-drafts fires on the omitted drafted key; the bijection is
+    # relaxed, so it does not surface.
+    relaxed = {
+        v.invariant
+        for v in check_disk_evidence(state, working, relax_drafting_bijection=True)
+    }
+    assert WORD_COUNTS_COVER_DRAFTS in relaxed, (
+        "the relaxed verdict must fire cover-drafts on the omitted drafted key"
+    )
+    assert MANIFEST_DISK_BIJECTION not in relaxed, (
+        "the relaxed verdict must suppress the missing-directory bijection break"
+    )
+    # Strict: only the bijection fires; cover-drafts still defers off a
+    # non-bijective manifest.
     strict = {v.invariant for v in check_disk_evidence(state, working)}
-    assert strict == {MANIFEST_DISK_BIJECTION}
-    assert WORD_COUNTS_COVER_DRAFTS not in strict
+    assert strict == {MANIFEST_DISK_BIJECTION}, (
+        "the strict verdict on this subset must be exactly the bijection break"
+    )
+    assert WORD_COUNTS_COVER_DRAFTS not in strict, (
+        "strict cover-drafts must still defer off a non-bijective manifest"
+    )
 
 
 def test_union_verdict_preserves_invariant_name_order(tmp_path: Path) -> None:

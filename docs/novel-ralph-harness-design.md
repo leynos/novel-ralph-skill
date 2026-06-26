@@ -600,7 +600,13 @@ agent judgement:
    dropping the orphan. The value invariant owns the shared keys; the coverage
    invariant owns the symmetric-difference keys; both defer to
    `manifest-disk-bijection` when the manifest and the chapter directories
-   disagree. This repair rewrites `[word_counts]` **only** and
+   disagree, **outside a relaxed drafting subset**. During such a subset (the
+   user-facing `check` with the ADR 009 relaxation, phase drafting, a coherent
+   disk-subset-of-manifest), `word-counts-cover-drafts` instead re-keys off the
+   on-disk drafted subset and fires the *missing* direction only — a drafted
+   chapter the table omits — repaired by a scoped, drafting-gated `RECOUNT`
+   pre-arm in `reconcile` (roadmap task 2.3.8). This repair rewrites
+   `[word_counts]` **only** and
    never `[gates]`: a knitting gate flag records "threshold crossed **and** the
    pass integrated and logged", an agent action disk does not store, so
    synthesising it would violate "disk is authoritative, never the reverse".

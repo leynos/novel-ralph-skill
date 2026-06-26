@@ -199,34 +199,51 @@ def _check_word_counts_match_drafts(working_dir: Path) -> bool:
     return all(disk[key] == table[key] for key in shared)
 
 
-def _check_word_counts_cover_drafts(working_dir: Path) -> bool:
-    """Return True when the ``by_chapter`` key set covers the manifest drafts (§5.4).
+def _check_word_counts_cover_drafts(
+    working_dir: Path, *, relax_drafting: bool = False
+) -> bool:
+    """Return True when the ``by_chapter`` key set covers the drafts (§5.4).
 
     Recomputes the manifest-keyed disk ``by_chapter`` via :func:`_disk_by_chapter`
-    (one entry per manifest chapter) and returns True iff its key set equals the
-    ``[word_counts].by_chapter`` table key set. A recount key absent from the
-    table is a drafted chapter omitted from the table; a table key absent from
-    the recount is a key the manifest never declared. Both are pure key-coverage
-    signals (roadmap task 2.3.6).
+    (one entry per manifest chapter) and, at bijection (``manifest == on_disk``),
+    returns True iff its key set equals the ``[word_counts].by_chapter`` table key
+    set. A recount key absent from the table is a drafted chapter omitted from the
+    table; a table key absent from the recount is a key the manifest never
+    declared. Both are pure key-coverage signals (roadmap task 2.3.6).
 
-    The check **defers** to ``manifest-disk-bijection`` when the manifest and the
-    on-disk chapter directories are not in bijection: a non-bijective manifest is
-    that invariant's signal, and because the recount keys off the (untrustworthy)
-    manifest the key-set comparison would otherwise double-fire on every
-    manifest/disk structural mismatch. Guarding on bijection isolates the
-    hand-edited-table case — the only way the table key set diverges once the
-    manifest and disk agree — so this predicate stays orthogonal to both
-    ``manifest-disk-bijection`` and the shared-key value match
-    :func:`_check_word_counts_match_drafts` owns. Disk-reading twin of production
-    ``_check_word_counts_cover_drafts``.
+    When ``relax_drafting`` is set and the materialised ``[phase].current`` is
+    ``drafting`` and the manifest/disk break is a coherent subset (no orphan,
+    contiguous manifest, ``on_disk < manifest``), it re-keys off the **on-disk
+    drafted subset** (the directory-present chapters) and returns True iff every
+    drafted chapter has a table key — the *missing* direction only (roadmap task
+    2.3.8; Decisions D2, D6). The symmetric extra direction is deliberately not
+    checked, so the manifest-keyed recount (which writes a ``0`` key per undrafted
+    manifest chapter) never re-trips the twin on its own repair.
+
+    Outside that exact shape — a non-subset break, a non-drafting phase, or the
+    strict default — it **defers** (returns True): a non-bijective manifest is the
+    ``manifest-disk-bijection`` invariant's signal, and the recount keys off the
+    (untrustworthy) manifest, so the key-set comparison would otherwise
+    double-fire on every structural mismatch. Deliberate independent twin of
+    production ``_check_word_counts_cover_drafts``; kept un-shared (the
+    deliberate-twin discipline).
     """
     state = tomllib.loads((working_dir / "state.toml").read_text(encoding="utf-8"))
     manifest = {chapter["number"] for chapter in state["chapters"]}
-    if manifest != _on_disk_chapter_numbers(working_dir):
-        return True
+    on_disk = _on_disk_chapter_numbers(working_dir)
     table = dict(state["word_counts"]["by_chapter"])
-    disk = _disk_by_chapter(working_dir)
-    return set(disk) == set(table)
+    if manifest == on_disk:
+        disk = _disk_by_chapter(working_dir)
+        return set(disk) == set(table)
+    drafting = relax_drafting and state["phase"]["current"] == "drafting"
+    # ``coherent_subset``: a strict subset (``on_disk < manifest``) with no orphan
+    # and a contiguous manifest from 1.
+    contiguous = sorted(manifest) == list(range(1, len(manifest) + 1))
+    is_subset = on_disk < manifest and not (on_disk - manifest) and contiguous
+    if drafting and is_subset:
+        drafted_keys = {f"{number:02d}" for number in on_disk}
+        return drafted_keys <= set(table)
+    return True
 
 
 def _check_log_present(working_dir: Path) -> bool:

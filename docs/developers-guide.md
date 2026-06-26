@@ -725,6 +725,14 @@ the directions (`word-counts-cover-drafts-omits-drafted-chapter` and
 `DIVERGENT_TABLE_VARIANTS` carry both a value gap and a key-count gap, so the two
 word-count predicates legitimately co-fire there.
 
+Roadmap task 2.3.8 refines that deferral: it is unconditional only **outside** a
+relaxed drafting subset. When the user-facing `check` passes
+`relax_drafting_bijection=True`, the phase is drafting, and the break is a
+coherent disk-subset-of-manifest, cover-drafts instead re-keys off the on-disk
+drafted subset and fires the *missing* direction only (a drafted chapter the table
+omits), repaired by a scoped `RECOUNT` pre-arm in `reconcile`. See the bijection
+relaxation section below and ADR 009 "Known risks".
+
 Six of `validate_state`'s structural predicates are **deliberate twins** of the
 corpus oracle's same-named predicates in `tests/working_corpus/_oracle.py`.
 This duplication is intentional, not an oversight: the oracle is an independent
@@ -782,14 +790,23 @@ a relaxed agreement test pins the relaxed production path to the relaxed twin
 alongside the unchanged strict agreement suite.
 
 The relaxation's blast radius is exactly two disk-evidence invariants:
-`manifest-disk-bijection` itself, and `word-counts-cover-drafts`, which is **not
-enforced** during a relaxed subset. cover-drafts already **defers** on
-`manifest != on_disk` (above), and a relaxed drafting subset always satisfies
-that, so it never fired on a subset under the strict detector — the relaxation
-only removes the louder bijection signal that previously sat in front of the
-already-silent deferral. cover-drafts re-enforces the moment the tree returns to
-bijection and at `final-pass`/`done`. The remaining six disk-evidence predicates
-do not read the manifest⇄disk equality and are unchanged.
+`manifest-disk-bijection` itself, and `word-counts-cover-drafts`. The latter
+**re-keys** off the on-disk drafted subset during a relaxed drafting subset
+(roadmap task 2.3.8): the same `relax_drafting` flag threads to the cover-drafts
+predicate, which — when the phase is drafting and the break is a coherent subset
+(`on_disk < manifest`) — fires the *missing* direction only, flagging a drafted
+chapter the `by_chapter` table omits. (Originally cover-drafts simply **deferred**
+on `manifest != on_disk`, so a subset-tree key gap went unenforced until the tree
+returned to bijection; task 2.3.8 closed that gap — see ADR 009 "Known risks".)
+`reconcile` repairs it via a scoped, drafting-gated `RECOUNT` pre-arm that re-keys
+`by_chapter` off the manifest. Convergence holds because the manifest-keyed
+recount writes a `0` key for every undrafted manifest chapter, so the missing-only
+detector never re-fires on its own repair; the symmetric *extra* direction is
+deliberately not checked on a relaxed subset for that reason. Outside the relaxed
+subset (at bijection, `final-pass`, or `done`) cover-drafts runs the full
+symmetric-difference key-set check exactly as before. The remaining six
+disk-evidence predicates do not read the manifest⇄disk equality and are
+unchanged.
 
 `novel-state check` is the first command to drive the shared `run` path: its
 entry point pre-parses the single `--human` flag off argv before `run` (so the

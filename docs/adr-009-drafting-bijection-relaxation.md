@@ -153,11 +153,16 @@ compile ordering: compile runs after the bijection re-tightens.
 
 ## Known risks and limitations
 
-- A relaxed drafting subset leaves `word-counts-cover-drafts` un-enforced, so a
-  `by_chapter` key-set drift on a subset tree is not caught until the tree returns
-  to bijection or reaches `final-pass`/`done`. This is the documented boundary
-  above, not a new gap: the recount is untrustworthy off a non-bijective manifest
-  by design, so cover-drafts cannot meaningfully run on a subset anyway.
+- *Resolved by roadmap task 2.3.8* (see `docs/execplans/roadmap-2-3-8.md`).
+  Originally a relaxed drafting subset left `word-counts-cover-drafts`
+  un-enforced, so a `by_chapter` key-set drift on a subset tree was not caught
+  until the tree returned to bijection or reached `final-pass`/`done`. Task 2.3.8
+  closed that gap: during a relaxed drafting subset `word-counts-cover-drafts`
+  now keys off the on-disk drafted subset (the directory-present chapters) and
+  fires the *missing* direction only — a drafted chapter the table omits is
+  flagged mid-draft and repaired by `reconcile` via a `RECOUNT`. The manifest-
+  keyed recount writes a `0` key for every undrafted manifest chapter, so the
+  missing-only detector never re-fires on its own repair (convergence holds).
 - The relaxation is gated on `Phase.DRAFTING` identity; a malformed
   `state.phase.current` cannot reach the relaxed path because `current` is parsed
   into the `Phase` `StrEnum` before `check` runs.
@@ -168,8 +173,11 @@ None. The disk-subset-of-manifest relaxation, its phase gate (drafting only), th
 one-directional guarantee (orphan and contiguity still fire), the default-strict
 flag, and the strict/relaxed split between `check` and `reconcile` are all fixed
 here. Re-keying `word-counts-cover-drafts` off the on-disk drafted subset rather
-than the manifest is a separate detector redesign, deferred to a later roadmap
-task.
+than the manifest was resolved by roadmap task 2.3.8 (see
+`docs/execplans/roadmap-2-3-8.md`): the same default-strict `relax_drafting` flag
+this ADR introduced threads to the cover-drafts predicate, and `reconcile` gains
+a scoped, drafting-gated `RECOUNT` pre-arm that keeps this ADR's strict/relaxed
+split intact.
 
 ## References
 

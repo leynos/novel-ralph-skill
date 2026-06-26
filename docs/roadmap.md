@@ -1183,7 +1183,7 @@ agent-improvised recovery routine. See novel-ralph-harness-design.md §4.1 and
       30% threshold" sentence, reading as a contradiction near a gate boundary;
       the verdict and exit code are unaffected. Render with one decimal or note
       the boundary-rounding edge. Lightweight addendum pass.
-- [ ] 2.3.8. Re-key `word-counts-cover-drafts` off the on-disk drafted subset so
+- [x] 2.3.8. Re-key `word-counts-cover-drafts` off the on-disk drafted subset so
   it stays enforced during a relaxed drafting subset.
   - Reroute (source: review:2.1.7; severity: low; two near-identical proposals
     merged). ADR 009 (Known risks, Outstanding decisions) records that
