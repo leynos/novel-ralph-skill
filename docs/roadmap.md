@@ -311,13 +311,23 @@ docs/scripting-standards.md.
     documentation describe the single `novel` surface that the packaging ships,
     rather than the retired per-command scripts.
   - Requires 1.2.15.
+  - This is a completeness-driven sweep, not an enumerated set of line repairs:
+    rewrite both guides for accuracy against the post-removal single-`novel`
+    surface. Beyond the command-name literals, reconcile any prose that still
+    treats the retired separate scripts as present — e.g. present-tense claims
+    like "the legacy scripts produce …" or additive-transition language such as
+    "stands up the multiplexer additively" — to describe the current state. The
+    implementer sweeps and reconciles the relevant sections (including the
+    developers' guide multiplexer subsection) for truthfulness; do not restrict
+    the change to a pre-enumerated repair list.
   - See novel-ralph-harness-design.md §4 and
     adr-007-command-surface-novel-multiplexer.md.
   - Success: no `novel-state`/`novel-done`/`novel-compile`/`desloppify`/
     `wordcount` console-script reference survives in `docs/users-guide.md` or
-    `docs/developers-guide.md` (each is rewritten to the `novel <sub>` form,
-    including the user-facing command list and any developer scaffolding
-    references); `make markdownlint` and `make nixie` pass on the edited docs.
+    `docs/developers-guide.md`, AND no prose in either guide describes the
+    retired separate scripts as present (no present-tense or additive-transition
+    reference to them remains); each guide reads truthfully against the single
+    `novel <sub>` surface; `make markdownlint` and `make nixie` pass.
 
 ### 1.3. Build the shared contract scaffolding and test corpus
 
