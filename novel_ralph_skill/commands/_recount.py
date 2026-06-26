@@ -29,9 +29,12 @@ from novel_ralph_skill.commands._state_mutators import (
     _state_view_or_state_error,
     _working_dir,
 )
-from novel_ralph_skill.commands.novel_state import STATE_INPUT_ERRORS
+from novel_ralph_skill.commands.novel_state import (
+    STATE_INPUT_ERRORS,
+    _draft_read_error,
+)
 from novel_ralph_skill.contract.exit_codes import ExitCode
-from novel_ralph_skill.contract.runner import CommandOutcome, StateInputError
+from novel_ralph_skill.contract.runner import CommandOutcome
 from novel_ralph_skill.state import (
     GATE_THRESHOLDS,
     recount_words,
@@ -69,7 +72,10 @@ def _recount_or_state_error(
     ``STATE_INPUT_ERRORS`` tuple (whose members include ``OSError`` and
     ``ValueError``), so it reaches the exit-``3`` channel and cannot escape to the
     benign exit ``1`` (ExecPlan Round-1 blocking point 3; design §3.2). This
-    mirrors ``_load_document_or_state_error`` in the mutator module.
+    mirrors ``_load_document_or_state_error`` in the mutator module. The fault
+    routes through the shared :func:`_draft_read_error` formatter so the six
+    draft-read boundaries emit one actionable message naming the ``working/`` tree
+    and cannot drift apart (roadmap §6.3.5).
 
     Parameters
     ----------
@@ -90,8 +96,7 @@ def _recount_or_state_error(
     try:
         return recount_words(_working_dir(), manifest)
     except STATE_INPUT_ERRORS as exc:
-        msg = f"cannot recount chapter drafts: {exc}"
-        raise StateInputError(msg) from exc
+        raise _draft_read_error(_working_dir(), exc) from exc
 
 
 def _inline_by_chapter(by_chapter: cabc.Mapping[str, int]) -> tomlkit.items.InlineTable:

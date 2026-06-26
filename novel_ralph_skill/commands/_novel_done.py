@@ -38,6 +38,7 @@ import typing as typ
 
 from novel_ralph_skill.commands.novel_state import (
     STATE_INPUT_ERRORS,
+    _draft_read_error,
     _load_or_state_error,
     state_path,
     working_dir,
@@ -45,7 +46,6 @@ from novel_ralph_skill.commands.novel_state import (
 from novel_ralph_skill.contract.exit_codes import ExitCode
 from novel_ralph_skill.contract.runner import (
     CommandOutcome,
-    StateInputError,
     make_contract_app,
 )
 from novel_ralph_skill.state.done_predicate import DoneClauses, evaluate_done
@@ -89,8 +89,10 @@ def _novel_done() -> CommandOutcome:
     try:
         clauses = evaluate_done(state, root)
     except STATE_INPUT_ERRORS as exc:
-        msg = f"cannot evaluate the done predicate under {root}: {exc}"
-        raise StateInputError(msg) from exc
+        # The draft/compiled read fault routes through the shared
+        # ``_draft_read_error`` formatter so the six draft-read boundaries emit
+        # one actionable message naming the ``working/`` tree (roadmap §6.3.5).
+        raise _draft_read_error(root, exc) from exc
     if clauses.all_hold:
         return CommandOutcome(
             code=ExitCode.SUCCESS,

@@ -2227,7 +2227,7 @@ and adr-003-shared-interface-contract.md.
     `working/` (upward search), or the envelope `working_dir` is the absolute
     resolved path; running from inside `working/` no longer silently looks for
     `working/working`.
-- [ ] 6.3.5. Make the six draft-read (exit-3) boundaries actionable, extending
+- [x] 6.3.5. Make the six draft-read (exit-3) boundaries actionable, extending
   6.3.1's polish from the state.toml-load faults to the draft-read faults.
   - Step-task (source: audit:6.3.1 / audit:6.3.2; severity: medium). Serves the
     §6.3 hypothesis that every command "fails with actionable messages": 6.3.1

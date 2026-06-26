@@ -42,11 +42,11 @@ from novel_ralph_skill.commands._wordcount_report import build_report, report_ou
 from novel_ralph_skill.commands.novel_state import (
     STATE_INPUT_ERRORS,
     WORKING_DIR_NAME,
+    _draft_read_error,
     _load_or_state_error,
 )
 from novel_ralph_skill.contract.runner import (
     CommandOutcome,
-    StateInputError,
     make_contract_app,
 )
 from novel_ralph_skill.state import recount_words
@@ -73,7 +73,10 @@ def _recount_or_state_error(
     :class:`~novel_ralph_skill.contract.runner.StateInputError` under the shared
     ``STATE_INPUT_ERRORS`` tuple so an undecodable draft reaches exit ``3`` and
     cannot escape to the benign exit ``1``, mirroring
-    ``_recount._recount_or_state_error`` and ``_desloppify.source_chapters``.
+    ``_recount._recount_or_state_error`` and ``_desloppify.source_chapters``. The
+    fault routes through the shared :func:`_draft_read_error` formatter so the six
+    draft-read boundaries emit one actionable message naming the ``working/`` tree
+    and cannot drift apart (roadmap §6.3.5).
 
     Parameters
     ----------
@@ -96,8 +99,7 @@ def _recount_or_state_error(
     try:
         _current, by_chapter = recount_words(working_dir, manifest)
     except STATE_INPUT_ERRORS as exc:
-        msg = f"cannot read chapter drafts: {exc}"
-        raise StateInputError(msg) from exc
+        raise _draft_read_error(working_dir, exc) from exc
     return by_chapter
 
 

@@ -115,7 +115,7 @@ def test_undecodable_draft_raises_state_input_error(
     # ``UnicodeDecodeError`` (a ``ValueError`` subclass in STATE_INPUT_ERRORS).
     _draft_path(working, first).write_bytes(b"\xff\xfe valid words here")
     monkeypatch.chdir(working.parent)
-    with pytest.raises(StateInputError, match=r"cannot read chapter drafts"):
+    with pytest.raises(StateInputError, match=r"cannot read the drafts under"):
         source_chapters(first)
 
 

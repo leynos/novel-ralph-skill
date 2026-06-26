@@ -125,6 +125,17 @@ def _state_view_or_state_error(document: TOMLDocument) -> State:
     contract's ``3``. Wrapping the call under the same ``STATE_INPUT_ERRORS``
     tuple routes it to the exit-``3`` channel (ExecPlan Decision Log D8; BR2-1).
 
+    Roadmap §6.3.5 makes this boundary's exit-``3`` message *actionable* by
+    routing it through 6.3.1's existing
+    :func:`~novel_ralph_skill.commands.novel_state._state_input_error` rather than
+    the new draft-read formatter. A structurally-incomplete ``state.toml`` is a
+    *state-document* fault, not a draft fault (6.3.1 Decision D8 kept the two
+    distinct), so it reuses the *present-but-corrupt* arm — which names the
+    ``state.toml`` path (the right artefact) and advises inspect/repair — rather
+    than ``_draft_read_error``'s ``working/``-tree prose (ExecPlan Decision D7).
+    Because the document parsed, ``state.toml`` exists, so ``_state_input_error``'s
+    present/absent test selects the corrupt arm, not the ``init``-suggesting one.
+
     Parameters
     ----------
     document : tomlkit.TOMLDocument
@@ -143,8 +154,7 @@ def _state_view_or_state_error(document: TOMLDocument) -> State:
     try:
         return document_to_state(document)
     except STATE_INPUT_ERRORS as exc:
-        msg = f"state is structurally incomplete: {exc}"
-        raise StateInputError(msg) from exc
+        raise _state_input_error(_state_path(), exc) from exc
 
 
 def _refuse_if_incoherent(

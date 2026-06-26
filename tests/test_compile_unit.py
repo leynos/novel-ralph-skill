@@ -292,7 +292,7 @@ def test_compile_undecodable_draft_refuses_and_keeps_prior(
     # Corrupt chapter 1's draft to invalid UTF-8.
     (working / "manuscript" / "chapter-01" / "draft.md").write_bytes(b"\xff\xfe")
 
-    with pytest.raises(StateInputError, match="cannot read chapter drafts"):
+    with pytest.raises(StateInputError, match="cannot read the drafts under"):
         compile_manuscript()
 
     assert compiled.read_bytes() == prior, (

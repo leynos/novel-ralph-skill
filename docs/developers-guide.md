@@ -596,6 +596,25 @@ it is always exit 3. A command body signals this exit-3 channel by raising
 a missing or unparseable `state.toml` or an absent working directory uses the
 same channel.
 
+The exit-3 messages are actionable, never raw OS text. Two sibling formatters in
+the dependency-free leaf module `_state_load` own the prose. `_state_input_error`
+serves the *state.toml-load* fault (roadmap §6.3.1): a missing `working/` names
+the current directory and the `novel state init` remedy, while a
+present-but-corrupt `state.toml` names the path and asks for inspection or repair.
+`_draft_read_error` serves the six *draft-read* boundaries (roadmap §6.3.5) —
+`novel state check`'s disk-evidence read, `novel state recount`, `novel
+wordcount`, `novel done`, `novel desloppify`, and both of `novel compile`'s
+draft-read tails — when a present `working/` tree holds a corrupt or unreadable
+`draft.md`/`compiled.md`; it names the `working/` tree and asks for inspection or
+repair, never advising `init` (the tree exists). Routing every boundary through
+one formatter keeps the message from drifting and leaks no raw `Errno`, `{exc}`
+repr, or traceback. The mutator view-derivation boundary
+(`_state_view_or_state_error`) is a *state-document* fault, not a draft fault, so
+it reuses `_state_input_error`'s present-but-corrupt arm — naming the `state.toml`
+path — rather than the draft-read formatter, keeping the two faults distinct
+(roadmap §6.3.5). The `novel compile` atomic-*write* tail and the desloppify
+rule-pack/device-ledger faults keep their own write- and file-shaped messages.
+
 ### State and on-disk layout
 
 `state.toml` is the single source of truth for cursor, phase, gates, word
@@ -1150,7 +1169,12 @@ mutator:
   load-bearing: a `state.toml` that is valid TOML but structurally incomplete
   (e.g. `schema_version = 1` alone) passes `load_document` and fails only inside
   `document_to_state`; left unwrapped that fault would exit `1`. The mutators
-  never call bare `document_to_state`.
+  never call bare `document_to_state`. The structurally-incomplete fault's exit-3
+  message is actionable: `_state_view_or_state_error` routes it through
+  `_state_input_error`'s present-but-corrupt arm (roadmap §6.3.5), which names the
+  `state.toml` path and advises inspect/repair — the state-document remedy, kept
+  distinct from the draft-read formatter because the document, not a draft, is at
+  fault.
 
 `init` *creates*, it does not overwrite: it refuses with exit `3` when
 `working/state.toml` already exists rather than clobbering a live project, then

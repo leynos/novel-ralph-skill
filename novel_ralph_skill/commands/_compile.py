@@ -43,6 +43,7 @@ import typing as typ
 
 from novel_ralph_skill.commands.novel_state import (
     STATE_INPUT_ERRORS,
+    _draft_read_error,
     _load_or_state_error,
     state_path,
     working_dir,
@@ -138,15 +139,20 @@ def compile_manuscript() -> CommandOutcome:
     try:
         bodies = present_draft_bodies(state, root)
     except STATE_INPUT_ERRORS as exc:
-        msg = f"cannot read chapter drafts: {exc}"
-        raise StateInputError(msg) from exc
+        # The draft read fault routes through the shared ``_draft_read_error``
+        # formatter so the six draft-read boundaries emit one actionable message
+        # naming the ``working/`` tree (roadmap §6.3.5).
+        raise _draft_read_error(root, exc) from exc
     rendered = concatenate_drafts(bodies)
     compiled_path = root / "manuscript" / "compiled.md"
     try:
         write_text_atomically(rendered, compiled_path)
     except STATE_INPUT_ERRORS as exc:
         # An absent manuscript/ directory raises FileNotFoundError (an OSError),
-        # routed to exit 3 rather than escaping to the benign exit 1.
+        # routed to exit 3 rather than escaping to the benign exit 1. This is a
+        # *write* fault, deliberately kept out of the draft-read formatter's scope
+        # (ExecPlan Decision D6): it wants a write-shaped remedy, not the
+        # inspect-the-draft remedy ``_draft_read_error`` emits.
         msg = f"cannot write {_COMPILED_REL}: {exc}"
         raise StateInputError(msg) from exc
     return CommandOutcome(
@@ -208,8 +214,10 @@ def check_compiled() -> CommandOutcome:
     try:
         verdict = compiled_matches_drafts(state, working_dir())
     except STATE_INPUT_ERRORS as exc:
-        msg = f"cannot read chapter drafts or {_COMPILED_REL}: {exc}"
-        raise StateInputError(msg) from exc
+        # ``check_compiled`` has no ``root`` local; pass ``working_dir()`` so the
+        # shared ``_draft_read_error`` formatter names the same ``working/`` tree
+        # the read targeted (roadmap §6.3.5).
+        raise _draft_read_error(working_dir(), exc) from exc
     if verdict is CompiledComparison.MATCHES:
         return CommandOutcome(
             code=ExitCode.SUCCESS,

@@ -61,6 +61,7 @@ from novel_ralph_skill.commands._chapter_plan_entry import (
 from novel_ralph_skill.commands._state_load import (
     STATE_INPUT_ERRORS,
     WORKING_DIR_NAME,
+    _draft_read_error,
     _load_or_state_error,
     _state_input_error,
     resolved_working_dir,
@@ -84,6 +85,7 @@ from novel_ralph_skill.state import (
 __all__ = [
     "STATE_INPUT_ERRORS",
     "WORKING_DIR_NAME",
+    "_draft_read_error",
     "_load_or_state_error",
     "_state_input_error",
     "build_app",
@@ -151,12 +153,15 @@ def _disk_evidence_or_state_error(
     exactly as the ``recount`` mutator wraps the same reader. It passes
     ``relax_drafting_bijection=True`` so the user-facing checker relaxes the
     manifest-disk bijection during drafting (ADR 009; see :func:`_check`).
+
+    The fault routes through the shared :func:`_draft_read_error` formatter so the
+    six draft-read boundaries emit one actionable message that names the
+    ``working/`` tree and cannot drift apart (roadmap §6.3.5).
     """
     try:
         return check_disk_evidence(state, working_dir, relax_drafting_bijection=True)
     except STATE_INPUT_ERRORS as exc:
-        msg = f"cannot read disk evidence under {working_dir}: {exc}"
-        raise StateInputError(msg) from exc
+        raise _draft_read_error(working_dir, exc) from exc
 
 
 def _check() -> CommandOutcome:

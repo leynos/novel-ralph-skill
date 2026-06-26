@@ -135,6 +135,55 @@ def _state_input_error(path: pathlib.Path, exc: Exception) -> StateInputError:
     return StateInputError(message)
 
 
+def _draft_read_error(reported_dir: pathlib.Path, exc: Exception) -> StateInputError:
+    """Build the actionable exit-``3`` ``StateInputError`` for a faulted draft read.
+
+    The single source of truth for the message the six *draft-read* boundaries
+    emit — ``_disk_evidence_or_state_error``, ``_recount``, ``_wordcount``,
+    ``_novel_done``, ``_desloppify.source_chapters``, and ``_compile``'s two
+    draft-read tails — so they cannot drift apart (roadmap §6.3.5). It is the
+    draft-read sibling of :func:`_state_input_error`, replacing the raw
+    operating-system text (an ``Errno``, a ``{exc}`` repr, a path-as-noise) with
+    prose that names the ``working/`` tree the command read and asks for
+    inspection or repair (``scripting-standards.md`` lines 603-605, 678).
+
+    Unlike :func:`_state_input_error`, this formatter has a single arm. A present
+    ``working/`` tree whose ``draft.md`` (or ``compiled.md``) is corrupt or
+    unreadable is *not* repaired by ``novel state init`` — the tree already
+    exists; only an artefact under it is faulted — so the message never advises
+    ``init``. It always names ``reported_dir`` and asks the operator to inspect
+    or repair the offending artefact, mirroring :func:`_state_input_error`'s
+    present-but-corrupt arm but pointing at the ``working/`` tree rather than the
+    ``state.toml`` path.
+
+    It does **not** serve the structurally-incomplete ``state.toml`` fault: that
+    is a *state-document* fault, not a draft fault, and routes through
+    :func:`_state_input_error`'s present-but-corrupt arm instead, which names the
+    ``state.toml`` path (the right artefact) and reuses 6.3.1's machinery
+    (ExecPlan Decision D7; 6.3.1 Decision D8). The caller chains ``exc`` via
+    ``from`` for debugging while ``exc.messages`` carries only the actionable
+    prose — no ``Errno``, no ``{exc}`` repr, no traceback.
+
+    Parameters
+    ----------
+    reported_dir : pathlib.Path
+        The ``working/`` tree the command read; named verbatim in the message.
+    exc : Exception
+        The caught :data:`STATE_INPUT_ERRORS` member (chained by the caller).
+
+    Returns
+    -------
+    StateInputError
+        The actionable error, ready to raise.
+    """
+    message = (
+        f"cannot read the drafts under {reported_dir}; a draft.md (or "
+        "compiled.md) is unreadable or corrupt — inspect and repair it, or "
+        "restore it from a known-good copy"
+    )
+    return StateInputError(message)
+
+
 def _load_or_state_error(path: pathlib.Path) -> State:
     """Load ``path`` into a ``State``, translating load faults to ``StateInputError``.
 

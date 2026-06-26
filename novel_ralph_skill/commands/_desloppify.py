@@ -46,6 +46,7 @@ from novel_ralph_skill.commands._desloppify_report import (
 from novel_ralph_skill.commands.novel_state import (
     STATE_INPUT_ERRORS,
     WORKING_DIR_NAME,
+    _draft_read_error,
     _load_or_state_error,
 )
 from novel_ralph_skill.contract.errors import EnvelopeMessagesError
@@ -174,7 +175,10 @@ def source_chapters(chapter: int | None) -> tuple[ScannedChapter, ...]:
     fault is re-raised as :class:`~novel_ralph_skill.contract.runner.StateInputError`
     under the shared ``STATE_INPUT_ERRORS`` tuple, exactly as
     ``_recount._recount_or_state_error`` does, so it reaches exit ``3`` and cannot
-    escape to the benign exit ``1``.
+    escape to the benign exit ``1``. The fault routes through the shared
+    :func:`~novel_ralph_skill.commands.novel_state._draft_read_error` formatter so
+    the six draft-read boundaries emit one actionable message naming the
+    ``working/`` tree and cannot drift apart (roadmap §6.3.5).
 
     Parameters
     ----------
@@ -207,8 +211,7 @@ def source_chapters(chapter: int | None) -> tuple[ScannedChapter, ...]:
             for entry in selected
         )
     except STATE_INPUT_ERRORS as exc:
-        msg = f"cannot read chapter drafts: {exc}"
-        raise StateInputError(msg) from exc
+        raise _draft_read_error(working_dir, exc) from exc
 
 
 def _desloppify(*, chapter: int | None, pack: pathlib.Path | None) -> CommandOutcome:
@@ -259,7 +262,11 @@ def _desloppify(*, chapter: int | None, pack: pathlib.Path | None) -> CommandOut
         )
     except RulePackFileError as exc:
         # An absent/unreadable/undecodable pack *file* is the exit-3 state channel,
-        # which the shared runner already maps from StateInputError.
+        # which the shared runner already maps from StateInputError. This wraps a
+        # *typed* RulePackFileError for a *pack* file, not a ``working/`` draft, so
+        # it is deliberately out of the draft-read formatter's scope (ExecPlan
+        # Decision D3): ``_draft_read_error``'s "inspect the working/ tree" prose
+        # would mislead here.
         msg = f"cannot read rule pack: {exc}"
         raise StateInputError(msg) from exc
     chapters = source_chapters(chapter)

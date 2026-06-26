@@ -113,7 +113,18 @@ def test_incomplete_state_exits_three(
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    """A structurally incomplete ``state.toml`` is the exit-3 state channel."""
+    """A structurally incomplete ``state.toml`` is the exit-3 state channel.
+
+    Roadmap §6.3.5 makes this boundary's message actionable by routing the
+    view-derivation fault through 6.3.1's ``_state_input_error`` present-but-corrupt
+    arm (ExecPlan Decision D7). Because the document parses, ``state.toml`` exists,
+    so the corrupt arm fires: the message names the ``state.toml`` path and advises
+    inspect/repair, no longer leaking the raw ``state is structurally incomplete:
+    {exc}`` text, an ``Errno``, a traceback, or an ``init`` suggestion (the file
+    exists, so ``init`` is the wrong remedy). This is the red→green guard for the
+    boundary, which previously asserted only the exit code (ExecPlan Blocking
+    point B1).
+    """
     working = wc.build_working_tree(wc.PHASE_STATES["final-pass"], tmp_path)
     # Strip the [gates] table so the document parses but the view derivation fails.
     raw = (working / "state.toml").read_text("utf-8")
@@ -122,3 +133,17 @@ def test_incomplete_state_exits_three(
     code, envelope = _run(working, ["complete-final-pass"], monkeypatch, capsys)
     assert code == ExitCode.STATE_ERROR, "an incomplete state.toml must exit 3"
     assert envelope["ok"] is False, "the state-error envelope must be ok: false"
+    messages = typ.cast("list[str]", envelope["messages"])
+    text = "\n".join(messages)
+    assert "is unreadable or corrupt; inspect and repair it" in text, (
+        "the view-derivation fault must reuse the present-but-corrupt remedy (D7)"
+    )
+    assert "state.toml" in text, "the corrupt-arm message must name the state.toml path"
+    assert "state is structurally incomplete" not in text, (
+        "the raw structurally-incomplete string must no longer leak"
+    )
+    assert "novel state init" not in text, (
+        "a present-but-corrupt state.toml must not advise init; the file exists"
+    )
+    assert "Errno" not in text, "the message must not leak a raw Errno"
+    assert "Traceback" not in text, "the message must not leak a traceback marker"
