@@ -990,7 +990,7 @@ remains DRAFT pending re-review.
 Each addendum is a lightweight, no-plan, no-review correction folded onto this
 completed task and tracked by a nested sub-task on the roadmap.
 
-- Addendum 2.2.1.1 (from review:1.2.13; severity: medium). The two Hypothesis
+- [x] Addendum 2.2.1.1 (from review:1.2.13; severity: medium). The two Hypothesis
   property tests in `tests/test_state_document.py` —
   `test_noop_round_trip_is_byte_identical` and
   `test_surgical_mutation_rewrites_only_the_value` — carry no `@settings`

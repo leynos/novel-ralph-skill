@@ -20,7 +20,7 @@ from pathlib import Path
 
 import pytest
 import tomlkit
-from hypothesis import given
+from hypothesis import given, settings
 from hypothesis import strategies as st
 
 from novel_ralph_skill.state.document import (
@@ -147,6 +147,7 @@ def test_comment_bearing_fixture_parses() -> None:
     assert len(state.chapters) == 2, "fixture must carry two array-of-tables chapters"
 
 
+@settings(deadline=None)
 @given(content=_comment_bearing_documents())
 def test_noop_round_trip_is_byte_identical(content: str) -> None:
     """A no-op load-and-write over comment-bearing input is byte-for-byte stable.
@@ -191,6 +192,7 @@ def test_noop_round_trip_over_corpus_trees(
         )
 
 
+@settings(deadline=None)
 @given(new_current=st.integers(min_value=0, max_value=999_999))
 def test_surgical_mutation_rewrites_only_the_value(new_current: int) -> None:
     """Editing ``word_counts.current`` rewrites only that value's bytes.

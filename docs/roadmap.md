@@ -827,7 +827,7 @@ novel-ralph-harness-design.md §3.4, §4.1, and §5.3.
     on-disk formatting and comments byte-for-byte (the round-trip property), and
     a write interrupted before completion leaves a populated `[pending_turn]`
     record for the next turn to reconcile.
-  - [ ] 2.2.1.1. Relax the Hypothesis deadline on the `state.toml` round-trip
+  - [x] 2.2.1.1. Relax the Hypothesis deadline on the `state.toml` round-trip
     property tests.
     - Addendum (from review:1.2.13; medium). The two `@given` property tests in
       `tests/test_state_document.py` inherit the default 200ms deadline, so the
