@@ -108,6 +108,28 @@ def test_absent_working_dir_exits_three(
     assert envelope["ok"] is False, envelope
 
 
+def test_missing_state_exits_three(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A present ``working/`` with no ``state.toml`` exits ``3`` (state error).
+
+    The absent-``working/`` and unparseable-``state.toml`` cases bracket this
+    shape, but the precise present-``working/``-without-``state.toml`` fault is
+    pinned directly for ``recount``
+    (``tests/test_recount_unit.py``'s ``test_recount_missing_state_refuses``) and
+    not for ``wordcount``. Pinning it here makes the installed proof's truth
+    self-contained per command rather than resting on the shared boundary
+    argument (ExecPlan addendum 6.2.6.1).
+    """
+    (tmp_path / "working").mkdir()
+    monkeypatch.chdir(tmp_path)
+    code, envelope = _run_capture([], capsys)
+    assert code == ExitCode.STATE_ERROR, f"expected exit 3, got {code}"
+    assert envelope["ok"] is False, envelope
+
+
 def test_unparseable_state_exits_three(
     coherent_working: Path,
     monkeypatch: pytest.MonkeyPatch,

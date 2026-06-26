@@ -126,6 +126,25 @@ def test_installed_wordcount_reports_gate_triggers(
     assert sum(row["words"] for row in chapters) == cumulative["current"]
 
 
+@pytest.fixture
+def installed_novel_script(
+    tmp_path: Path,
+    single_program_catalogue: cabc.Callable[[str, Program], ProgramCatalogue],
+    venv_scripts_dir: cabc.Callable[[Path], Path],
+) -> Path:
+    """Build, install, and return the ``novel`` console-script for this module.
+
+    Folds the two build collaborators (``single_program_catalogue`` and
+    ``venv_scripts_dir``) into one fixture so a consuming test that also needs the
+    shared ``assert_installed_state_error`` harness stays within the project's
+    four-argument gate (Pylint ``too-many-arguments``). It defers to the module's
+    ``_build_and_install_novel`` helper, so the build path is unchanged.
+    """
+    return _build_and_install_novel(
+        tmp_path, single_program_catalogue, venv_scripts_dir
+    )
+
+
 @pytest.mark.skipif(
     os.name != "posix",
     reason="console-script e2e is POSIX-only; see ADR 006",
@@ -140,8 +159,8 @@ def test_installed_wordcount_reports_gate_triggers(
 def test_installed_wordcount_state_error_exits_three(
     state_bytes: bytes | None,
     tmp_path: Path,
-    single_program_catalogue: cabc.Callable[[str, Program], ProgramCatalogue],
-    venv_scripts_dir: cabc.Callable[[Path], Path],
+    installed_novel_script: Path,
+    assert_installed_state_error: cabc.Callable[..., None],
 ) -> None:
     """The installed ``novel wordcount`` exits ``3`` on a bad ``state.toml``.
 
@@ -156,28 +175,18 @@ def test_installed_wordcount_state_error_exits_three(
     Like ``state reconcile``, ``wordcount`` is now a subcommand of the single
     ``novel`` multiplexer, run as ``novel wordcount`` with no further arguments
     (the ``wordcount`` mount verb alone); it is built by this module's
-    function-scoped ``_build_and_install_novel`` helper (not the
-    ``installed_novel_state`` fixture), matching the convention the happy-path
-    proof above already adopts. Each case
-    asserts exit ``3``, an ``ok: false`` envelope, and no traceback on stderr
-    (design §10 — a state fault yields a message, not a stack trace); the message
-    string is left unpinned because the contract does not fix its wording. The
-    180s timeout supersedes the 30s project default.
+    ``installed_novel_script`` fixture (which wraps ``_build_and_install_novel``).
+    The shared ``assert_installed_state_error`` harness asserts the full exit-3
+    contract: exit ``3``, an ``ok: false`` envelope, no traceback on stderr, and a
+    non-blank operator message (design §10 — a state fault yields a message, not a
+    stack trace; the exact wording is left unpinned because the contract does not
+    fix it; ExecPlan addendum 6.2.6.2). The 180s timeout supersedes the 30s
+    project default.
     """
-    script_path = _build_and_install_novel(
-        tmp_path, single_program_catalogue, venv_scripts_dir
-    )
     run_dir = tmp_path / "run-state-error"
     working_dir = run_dir / "working"
     working_dir.mkdir(parents=True)
     if state_bytes is not None:
         (working_dir / "state.toml").write_bytes(state_bytes)
 
-    prog = Program(str(script_path))
-    catalogue = single_program_catalogue("wordcount-run", prog)
-    result = sh.make(prog, catalogue=catalogue)("wordcount").run_sync(
-        context=ExecutionContext(cwd=run_dir), capture=True
-    )
-    assert result.exit_code == 3, result.stderr
-    assert json.loads(result.stdout or "{}")["ok"] is False
-    assert "Traceback" not in (result.stderr or "")
+    assert_installed_state_error(installed_novel_script, run_dir, "wordcount")

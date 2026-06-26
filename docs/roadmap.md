@@ -1817,7 +1817,7 @@ novel-ralph-harness-design.md §2.3 and §9.
     unparseable `state.toml` against a real installed console-script over a built
     wheel, not only in-process, closing the installed exit-3 asymmetry left after
     6.2.4.
-  - [ ] 6.2.6.1. Add a missing-state-only in-process exit-3 test for `wordcount`.
+  - [x] 6.2.6.1. Add a missing-state-only in-process exit-3 test for `wordcount`.
     - Addendum (from review:6.2.6; low). The missing-state case (a `working/`
       directory present but `state.toml` absent) is proven in-process for
       `wordcount` only indirectly via the absent-working-dir and unparseable-state
@@ -1826,7 +1826,7 @@ novel-ralph-harness-design.md §2.3 and §9.
       in-process assertion so the installed proof's truth is self-contained per
       command rather than resting on the shared boundary argument. Lightweight
       addendum pass.
-  - [ ] 6.2.6.2. Assert a non-empty human-facing message in the installed exit-3
+  - [x] 6.2.6.2. Assert a non-empty human-facing message in the installed exit-3
     envelopes across `recount`, `reconcile`, and `wordcount`.
     - Addendum (from review:6.2.6; low). The installed exit-3 proofs assert
       exit 3 with `ok:false` and no `Traceback` but pin no message content, yet

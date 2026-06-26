@@ -191,8 +191,8 @@ def test_installed_novel_state_recount_exits_zero(
 def test_installed_novel_state_recount_state_error_exits_three(
     state_bytes: bytes | None,
     tmp_path: Path,
-    single_program_catalogue: cabc.Callable[[str, Program], ProgramCatalogue],
     installed_novel_state: Path,
+    assert_installed_state_error: cabc.Callable[..., None],
 ) -> None:
     """The installed ``novel-state recount`` exits ``3`` on a bad ``state.toml``.
 
@@ -201,14 +201,16 @@ def test_installed_novel_state_recount_state_error_exits_three(
     None``) and a ``working/state.toml`` of invalid TOML (``b"not = toml ="``,
     mirroring the in-process ``check`` proof). Verification choice: the boundary is
     a small, enumerable pair, so a two-case ``parametrize`` is the right adversary,
-    not Hypothesis (the in-process recount property coverage already exists). The
-    installed mutator runs with cuprum's ``ExecutionContext(cwd=run_dir)`` so it
-    resolves ``./working/state.toml``; driving the named mutator over an
-    incoherent request proves the mutator-refusal-is-3 rule (design §3.2) at the
-    installed boundary. Each case asserts exit ``3``, an ``ok: false`` envelope,
-    and no traceback on stderr (design §10 — a state fault yields a message, not a
-    stack trace). The ``installed_novel_state`` fixture supplies the script path
-    (built once per module); the 180s timeout supersedes the 30s project default.
+    not Hypothesis (the in-process recount property coverage already exists).
+    Driving the named mutator over an incoherent request proves the
+    mutator-refusal-is-3 rule (design §3.2) at the installed boundary. The shared
+    ``assert_installed_state_error`` harness runs the script with cuprum's
+    ``ExecutionContext(cwd=run_dir)`` so it resolves ``./working/state.toml`` and
+    asserts the full exit-3 contract: exit ``3``, an ``ok: false`` envelope, no
+    traceback on stderr, and a non-blank operator message (design §10 — a state
+    fault yields a message, not a stack trace; ExecPlan addendum 6.2.6.2). The
+    ``installed_novel_state`` fixture supplies the script path (built once per
+    module); the 180s timeout supersedes the 30s project default.
     """
     run_dir = tmp_path / "run"
     working_dir = run_dir / "working"
@@ -216,14 +218,7 @@ def test_installed_novel_state_recount_state_error_exits_three(
     if state_bytes is not None:
         (working_dir / "state.toml").write_bytes(state_bytes)
 
-    prog = Program(str(installed_novel_state))
-    catalogue = single_program_catalogue("novel-state-run", prog)
-    result = sh.make(prog, catalogue=catalogue)("state", "recount").run_sync(
-        context=ExecutionContext(cwd=run_dir), capture=True
-    )
-    assert result.exit_code == 3, result.stderr
-    assert json.loads(result.stdout or "{}")["ok"] is False
-    assert "Traceback" not in (result.stderr or "")
+    assert_installed_state_error(installed_novel_state, run_dir, "state", "recount")
 
 
 def _run_installed_recount(

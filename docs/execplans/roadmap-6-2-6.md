@@ -650,7 +650,7 @@ Post-merge remediation items filed against this completed task. Each is a
 lightweight addendum pass: no plan or design-review cycle, just the change, the
 gates, and a merge. The roadmap carries the matching nested sub-task.
 
-- **6.2.6.1 — Add a missing-state-only in-process exit-3 test for `wordcount`**
+- [x] **6.2.6.1 — Add a missing-state-only in-process exit-3 test for `wordcount`**
   (from review:6.2.6; severity: low). The missing-state case (a `working/`
   directory present but `state.toml` absent) is proven in-process for `wordcount`
   only indirectly via the absent-working-dir and unparseable-state tests; the
@@ -658,7 +658,7 @@ gates, and a merge. The roadmap carries the matching nested sub-task.
   `recount` but not directly for `wordcount`. Add a direct in-process assertion
   so the installed proof's truth is self-contained per command rather than
   resting on the shared boundary argument.
-- **6.2.6.2 — Assert a non-empty human-facing message in the installed exit-3
+- [x] **6.2.6.2 — Assert a non-empty human-facing message in the installed exit-3
   envelopes across `recount`, `reconcile`, and `wordcount`** (from review:6.2.6;
   severity: low). The installed exit-3 proofs assert exit 3 + `ok:false` + no
   `Traceback` but pin no message content, yet design §10 requires a state fault

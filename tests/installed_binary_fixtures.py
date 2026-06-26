@@ -3,7 +3,12 @@
 This module is a pytest plugin registered through ``pytest_plugins`` in
 ``tests/conftest.py`` (roadmap 6.2.4). It owns ``installed_novel_state``, the
 module-scoped fixture that builds a wheel, installs it into a fresh ``uv`` venv,
-and returns the absolute path of the installed ``novel`` console-script. Roadmap
+and returns the absolute path of the installed ``novel`` console-script, and
+``assert_installed_state_error``, the function-scoped harness that runs the
+installed script over a bad ``state.toml`` and asserts the exit-3 state-error
+contract (exit 3, ``ok: false``, no traceback, and a non-blank operator message;
+ExecPlan addendum 6.2.6.2) shared by the ``recount``, ``reconcile``, and
+``wordcount`` installed exit-3 proofs. Roadmap
 task 1.2.13 re-points the fixture from the legacy ``novel-state`` script onto the
 single ``novel`` multiplexer (the shipping surface): consumers now drive
 ``novel state …`` instead of ``novel-state …``. The fixture *name* is unchanged
@@ -38,12 +43,20 @@ is POSIX-only per ADR-006; consuming modules carry their own POSIX skip guard.
 
 from __future__ import annotations
 
+import json
 import sysconfig
+import typing as typ
 from pathlib import Path
 
 import pytest
 from cuprum import ProgramCatalogue, ProjectSettings, sh
 from cuprum.program import Program
+from cuprum.sh import ExecutionContext
+
+from novel_ralph_skill.contract.exit_codes import ExitCode
+
+if typ.TYPE_CHECKING:
+    import collections.abc as cabc
 
 
 def _one_program_catalogue(name: str, program: Program) -> ProgramCatalogue:
@@ -151,3 +164,69 @@ def installed_novel_state(tmp_path_factory: pytest.TempPathFactory) -> Path:
         msg = f"novel not installed at {script_path}"
         raise AssertionError(msg)
     return script_path
+
+
+@pytest.fixture
+def assert_installed_state_error(
+    single_program_catalogue: cabc.Callable[[str, Program], ProgramCatalogue],
+) -> cabc.Callable[..., None]:
+    """Return a harness asserting the installed exit-3 state-error contract.
+
+    The installed exit-3 proofs across ``recount``, ``reconcile``, and
+    ``wordcount`` each ran the built console-script over a bad ``state.toml`` and
+    asserted the same triple: exit ``3``, an ``ok: false`` envelope, and no
+    ``Traceback`` on stderr. Design §10 also requires a state fault to yield a
+    *message*, not a stack trace, yet the proofs pinned no message content — a
+    regression emitting an empty ``messages`` list would have passed unnoticed.
+    This fixture folds the run and the full contract (the existing triple plus a
+    non-blank-message check) into one shared asserter, without coupling to any
+    wording the contract does not fix (ExecPlan addendum 6.2.6.2). It lives in
+    this installed-binary plugin (beside ``installed_novel_state``) rather than in
+    ``conftest`` so the latter stays within the 400-line module cap. Bundling the
+    catalogue builder here also keeps each consuming test within the project's
+    four-argument gate (Pylint ``too-many-arguments``).
+
+    Parameters
+    ----------
+    single_program_catalogue : Callable[[str, Program], ProgramCatalogue]
+        The one-program catalogue builder the harness uses to allowlist the
+        script under test.
+
+    Returns
+    -------
+    Callable[..., None]
+        A callable ``(script_path, run_dir, *argv) -> None`` that runs
+        ``script_path`` over ``argv`` in ``run_dir`` and asserts the exit-3
+        state-error contract, raising :class:`AssertionError` on any breach.
+    """
+
+    def _assert(script_path: Path, run_dir: Path, *argv: str) -> None:
+        """Run the installed script over ``argv`` and assert the exit-3 contract."""
+        prog = Program(str(script_path))
+        catalogue = single_program_catalogue("installed-state-error", prog)
+        result = sh.make(prog, catalogue=catalogue)(*argv).run_sync(
+            context=ExecutionContext(cwd=run_dir), capture=True
+        )
+        if result.exit_code != ExitCode.STATE_ERROR:
+            msg = (
+                f"expected exit {ExitCode.STATE_ERROR.value}, got "
+                f"{result.exit_code}; stderr={result.stderr!r}"
+            )
+            raise AssertionError(msg)
+        envelope = typ.cast("dict[str, object]", json.loads(result.stdout or "{}"))
+        if envelope.get("ok") is not False:
+            msg = f"exit-3 envelope must be ok: false; got {envelope!r}"
+            raise AssertionError(msg)
+        if "Traceback" in (result.stderr or ""):
+            msg = f"exit-3 path must emit no traceback; got {result.stderr!r}"
+            raise AssertionError(msg)
+        messages = envelope.get("messages")
+        lines = messages if isinstance(messages, list) else []
+        if not any(isinstance(line, str) and line.strip() for line in lines):
+            msg = (
+                "exit-3 envelope must carry a non-blank operator message; "
+                f"got messages={messages!r} in {envelope!r}"
+            )
+            raise AssertionError(msg)
+
+    return _assert
