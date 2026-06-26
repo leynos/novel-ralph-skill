@@ -1178,7 +1178,7 @@ agent-improvised recovery routine. See novel-ralph-harness-design.md §4.1 and
   - Success: the refusal names the threshold and the remedy, the recount-gate
     coupling is documented, and a behavioural test asserts the actionable
     message.
-  - [ ] 2.3.7.1. Correct the `_refuse_if_incoherent` caller enumeration in
+  - [x] 2.3.7.1. Correct the `_refuse_if_incoherent` caller enumeration in
     `docs/execplans/roadmap-2-3-7.md`.
     - Addendum (from review:2.3.7; low). The execplan (Interfaces and
       dependencies, Work item 2) states four other callers of
@@ -1186,7 +1186,7 @@ agent-improvised recovery routine. See novel-ralph-harness-design.md §4.1 and
       files; the `remedy=None`-default conclusion is unaffected, but the stale
       premise understates the keyword's blast radius. Correct the enumeration.
       Lightweight addendum pass.
-  - [ ] 2.3.7.2. Render the recount remedy ratio without a boundary
+  - [x] 2.3.7.2. Render the recount remedy ratio without a boundary
     self-contradiction.
     - Addendum (from review:2.3.7; low). `_recount._gate_ratio_remedy` renders
       the drafted ratio with `:.0f`, so `0.298` prints `30%` inside a "below the

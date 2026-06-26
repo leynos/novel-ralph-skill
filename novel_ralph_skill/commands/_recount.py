@@ -154,7 +154,11 @@ def _gate_ratio_remedy(state: State) -> list[str]:
     ratio = drafted_total / target
     knitting = state.gates.knitting
     flags = (knitting.done_30, knitting.done_50, knitting.done_80)
-    percent = f"{ratio * 100:.0f}"
+    # Render the drafted ratio with one decimal so a near-boundary ratio (e.g.
+    # 0.298) reads as "29.8%" rather than rounding to "30%" inside a "below the
+    # 30% threshold" sentence, which would read as a self-contradiction for an
+    # operator sitting on a gate boundary.
+    percent = f"{ratio * 100:.1f}"
     lines: list[str] = []
     for (name, flag_name), flag, threshold in zip(
         _KNITTING_GATE_REPAIRS, flags, GATE_THRESHOLDS, strict=True

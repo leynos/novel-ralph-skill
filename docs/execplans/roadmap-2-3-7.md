@@ -142,9 +142,12 @@ escalation, not a workaround.
       (pinned per-gate, per-direction template; shape 2). Added the
       `remedy: Callable[[State], Sequence[str]] | None = None` keyword to
       `_refuse_if_incoherent` (validates once, appends remedy lines after the
-      per-violation details); no other caller passes it, so `set_cursor`,
-      `advance_phase`, `set_gate`, `reconcile` are unchanged — shape 2 held, no
-      fallback to shape 1. Added `_gate_ratio_remedy(state) -> list[str]` in
+      per-violation details); no other caller passes it, so the remaining 10
+      call sites across four files (`_reconcile` recount and reconcile,
+      `_set_chapters` set-chapters, `_state_mutators` set-cursor and the two
+      advance-phase calls, `_gate_drafting_mutators` set-gate,
+      complete-final-pass, set-fangirl, set-critic-pass) are unchanged — shape 2
+      held, no fallback to shape 1. Added `_gate_ratio_remedy(state) -> list[str]` in
       `_recount.py`, enumerating per-gate disagreements directly (no "which
       threshold crossed" recompute) and emitting the upward line (`set-gate
       --knitting-NN`) or the downward line (adjudicate, no verb). The ratio is
@@ -242,8 +245,9 @@ escalation, not a workaround.
       defaulting to `None`. Recount passes `remedy=_gate_ratio_remedy`.
       Rationale: shape 1 (re-validating `proposed` in `recount`) would validate
       twice on the refusal path; shape 2 validates once, in the helper's own
-      `validate_state` call (advisory A2). The keyword defaults to `None`, so no
-      other caller (`set_cursor`, `advance_phase`, `set_gate`, `reconcile`)
+      `validate_state` call (advisory A2). The keyword defaults to `None`, so
+      none of the other 10 call sites (across `_reconcile`, `_set_chapters`,
+      `_state_mutators`, and `_gate_drafting_mutators`)
       changes. If implementation finds a caller would change, fall back to shape
       1 and record it (Tolerances "Interface").
       Date/Author: 2026-06-26, planning agent.
@@ -446,8 +450,11 @@ Use **shape 2**: add a backward-compatible keyword
 (defaulting to `None`) to `_refuse_if_incoherent`. When the verdict is
 non-empty **and** `remedy is not None`, the helper appends the lines returned
 by `remedy(state)` after the existing per-violation details. No other caller
-passes `remedy`, so no other caller changes (verified: only `set_cursor`,
-`advance_phase`, `set_gate`, `reconcile` callers exist — Interfaces section).
+passes `remedy`, so no other caller changes (verified: the other 10 call sites
+are `_reconcile` recount and reconcile, `_set_chapters` set-chapters,
+`_state_mutators` set-cursor and the two advance-phase calls, and
+`_gate_drafting_mutators` set-gate, complete-final-pass, set-fangirl, and
+set-critic-pass — Interfaces section).
 Recount passes a `remedy=_gate_ratio_remedy` callable. This validates the
 proposed state exactly **once** (it is the helper's own `validate_state` call),
 avoiding the double-validation of the rejected shape 1 (advisory A2).
@@ -831,8 +838,12 @@ No public interface changes are expected. The function bodies edited are:
   None = None) -> None` — the pinned shape 2 (Decision Log). A
   backward-compatible keyword defaulting to `None`; when non-`None` and the
   verdict is non-empty, the lines returned by `remedy(state)` are appended after
-  the per-violation details. Other callers (`set_cursor`, `advance_phase`,
-  `set_gate`, `reconcile`) omit the keyword and are unchanged. If this would
+  the per-violation details. The keyword has 11 call sites across five files;
+  recount is the sole caller that passes `remedy`. The other 10 omit it and are
+  unchanged: `_reconcile.py` (recount and reconcile), `_set_chapters.py`
+  (set-chapters), `_state_mutators.py` (set-cursor and two advance-phase calls),
+  and `_gate_drafting_mutators.py` (set-gate, complete-final-pass, set-fangirl,
+  set-critic-pass). If this would
   force any other caller to change, abandon shape 2 for shape 1 (Tolerances).
 - `novel_ralph_skill.commands._recount._gate_ratio_remedy(state: State) ->
   list[str]` — new module-private pure function returning the per-gate
@@ -877,11 +888,11 @@ from `roadmap-2-3-7.logisphere-review-r1.md` and folded in advisories A1-A5.
 Lightweight, no-plan corrections to this completed task. Each runs as a
 no-review lightweight pass.
 
-- **Correct the `_refuse_if_incoherent` caller enumeration (from review:2.3.7;
-  low).** The Interfaces and dependencies section (and the Decision Log /
-  Work item 2 reasoning) state that `_refuse_if_incoherent` has four other
-  callers (`set_cursor`, `advance_phase`, `set_gate`, `reconcile`). The actual
-  set is 11 call sites across five files — `commands/_reconcile.py`,
+- [x] **2.3.7.1 Correct the `_refuse_if_incoherent` caller enumeration (from
+  review:2.3.7; low).** The Interfaces and dependencies section (and the
+  Decision Log / Work item 2 reasoning) state that `_refuse_if_incoherent` has
+  four other callers (`set_cursor`, `advance_phase`, `set_gate`, `reconcile`).
+  The actual set is 11 call sites across five files — `commands/_reconcile.py`,
   `commands/_recount.py`, `commands/_set_chapters.py`,
   `commands/_state_mutators.py` (`set-cursor`, two `advance-phase` calls), and
   `commands/_gate_drafting_mutators.py` (`set-gate`, `complete-final-pass`,
@@ -889,8 +900,9 @@ no-review lightweight pass.
   conclusion is unaffected (no caller changed), but the stale four-caller
   premise understates the keyword's blast radius for a future implementer.
   Correct the enumeration to the real call-site set. Lightweight addendum pass.
-- **Render the recount remedy ratio without a boundary self-contradiction (from
-  review:2.3.7; low).** `_recount._gate_ratio_remedy` renders the drafted ratio
+- [x] **2.3.7.2 Render the recount remedy ratio without a boundary
+  self-contradiction (from review:2.3.7; low).**
+  `_recount._gate_ratio_remedy` renders the drafted ratio
   with `f"{ratio * 100:.0f}"`, so a ratio of `0.298` prints `30%` inside the
   downward "below the … threshold (drafts now at 30% of target)" sentence,
   reading as a contradiction for an operator near a gate boundary (R2 advisory

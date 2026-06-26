@@ -168,7 +168,7 @@ def test_recount_upward_gate_breach_is_actionable(
         f"the refusal must name {GATE_RATIO_CONSISTENT!r}, got {error}"
     )
     upward = _message_for(error, "crossed the 30% knitting threshold")
-    assert "drafts now at 34% of target" in upward, upward
+    assert "drafts now at 34.0% of target" in upward, upward
     assert "gate done_30 is still false" in upward, upward
     assert "set-gate --knitting-30" in upward, upward
     assert "Do not hand-edit [gates]" in upward, upward
@@ -207,7 +207,7 @@ def test_recount_downward_gate_breach_does_not_prescribe_set_gate(
         f"the refusal must name {GATE_RATIO_CONSISTENT!r}, got {error}"
     )
     downward = _message_for(error, "left drafting below the 80% knitting threshold")
-    assert "drafts now at 55% of target" in downward, downward
+    assert "drafts now at 55.0% of target" in downward, downward
     assert "gate done_80 is recorded true" in downward, downward
     assert "Adjudicate" in downward, downward
     # No gate's advice may prescribe the upward repair verb on the downward path
@@ -247,3 +247,37 @@ def test_recount_multi_gate_breach_enumerates_each_gate(
     assert all("--knitting-80" not in line for line in error.messages), (
         f"the uncrossed 80% gate must emit no line, got {error.messages!r}"
     )
+
+
+def test_recount_near_boundary_ratio_does_not_self_contradict(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A ratio just below 30% renders as ``29.8%``, never rounding up to ``30%``.
+
+    The drafts recount to 23840 words (0.298 of the 80000 target) while the
+    hand-typed counts record 32000 (0.40), so the prior state is coherent with
+    done_30 true. The recount leaves drafting just below 30%, so done_30 true now
+    breaches gate-ratio-consistent. Rendered with ``:.0f`` the ratio would round
+    to ``30%`` *inside* the "below the 30% threshold" sentence — a boundary
+    self-contradiction (Addenda 2.3.7.2); with one decimal it reads ``29.8%`` and
+    the sentence stays coherent.
+    """
+    spec = _spec(
+        (_chapter(1, 23840),),
+        by_chapter_override={"01": 32000},
+        current_words_override=32000,
+        gates=(True, False, False),
+    )
+    working = wc.build_working_tree(spec, tmp_path)
+    prior = document_to_state(load_document(working / "state.toml"))
+    assert not validate_state(prior), (
+        "the hand-typed prior state must pass validate_state before recount"
+    )
+    monkeypatch.chdir(working.parent)
+
+    error = _refuses_leaving_file_intact(working)
+
+    downward = _message_for(error, "left drafting below the 30% knitting threshold")
+    assert "drafts now at 29.8% of target" in downward, downward
+    assert "30% of target" not in downward, downward
