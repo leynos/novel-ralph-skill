@@ -2400,7 +2400,7 @@ and adr-003-shared-interface-contract.md.
       asserts only path-naming and no-raw-leak, so a regression dropping a
       remedy clause fails a test rather than passing silently. Lightweight
       addendum pass.
-- [ ] 6.3.9. Pin the developers'-guide contract restatement against the code with
+- [x] 6.3.9. Pin the developers'-guide contract restatement against the code with
   a drift-guard arm.
   - Step-task (source: review:6.3.7; severity: low). Serves the §6.3 hypothesis
     that the contract is "documented once without per-command drift": 6.3.7 pins

@@ -1,11 +1,21 @@
 """Pure-function scanner for the ``SKILL.md`` command-contract restatement.
 
 This support module carries the markdown parsing helpers used by
-``tests/test_skill_contract_drift_guard.py`` (roadmap 6.3.7). It is extracted so
-the guard module stays under the 400-line cap (AGENTS.md lines 24-27), mirroring
-the ``tests/_state_layout_scanner.py`` split. The functions are pure over
-document text — they take the document as a parameter and never touch the
-filesystem, shell out, or import ``novel_ralph_skill``.
+``tests/test_skill_contract_drift_guard.py`` (roadmap 6.3.7) and
+``tests/test_developers_guide_contract_drift_guard.py`` (roadmap 6.3.9). It is
+extracted so the guard modules stay under the 400-line cap (AGENTS.md lines
+24-27), mirroring the ``tests/_state_layout_scanner.py`` split. The functions
+are pure over document text — they take the document as a parameter and never
+touch the filesystem, shell out, or import ``novel_ralph_skill``.
+
+The exit-code helpers are shape-tolerant across every restatement copy: the
+guide's exit-code table has only two columns (Code, Meaning), narrower than the
+SKILL (3), ADR-003 (3), and design §3.2 (4) copies, and
+:func:`extract_exit_code_meanings` reads columns 0 and 1 only, so the
+two-column table parses unchanged. The envelope field set is read two ways:
+:func:`extract_fenced_json` for the SKILL/design ``json`` skeletons, and
+:func:`extract_brace_field_list` for the developers' guide, which names the
+field set inline as a fence-free ``{...}`` brace-list.
 
 The guard pins the agent-facing exit-code table and envelope skeleton in
 ``skill/novel-ralph/SKILL.md`` to the live ``ExitCode`` enum, the ``Envelope``
@@ -38,6 +48,12 @@ _SEPARATOR_CELL = re.compile(r"^:?-+:?$")
 # The fewest cells an exit-code data row needs: the integer code (column 0) and
 # its Meaning (column 1). Rows shorter than this carry no Meaning and are skipped.
 _MIN_CODE_ROW_CELLS = 2
+
+# An inline ``{...}`` brace-list naming a field set in document prose. The body
+# is captured non-greedily so the FIRST brace-list in the region wins (the
+# region-narrowing contract: the caller slices to the envelope section first,
+# then takes the first brace-list).
+_BRACE_LIST = re.compile(r"\{(?P<body>[^{}]*)\}")
 
 # A fenced code block opening with the requested info string. CommonMark allows
 # up to three leading spaces and a fence run of three or more backticks; the
@@ -204,3 +220,51 @@ def extract_fenced_json(region: str, fence_lang: str = "json") -> str:
         msg = f"no {fence_lang!r} fenced block found in region"
         raise ValueError(msg)
     return match.group("body")
+
+
+def extract_brace_field_list(region: str, *, source: str) -> list[str]:
+    """Return the ordered field names of the first ``{...}`` brace-list.
+
+    This is the fence-free counterpart of :func:`extract_fenced_json`, used for
+    the developers' guide (roadmap 6.3.9): its "### The shared JSON envelope"
+    section names the envelope field set inline as a single brace-list,
+    ``{command, schema_version, ok, working_dir, result, messages}``, rather than
+    in a ``json`` fence. The helper finds the FIRST brace-list in the region it
+    is given, splits it on commas, and strips surrounding whitespace and
+    backticks from each field, returning the field names in document order. The
+    caller must narrow the region to the envelope section first (with
+    :func:`slice_doc_region`), so a second, stray brace-list elsewhere is never
+    read. It fails loudly when no brace-list is present, mirroring
+    :func:`extract_fenced_json`'s vacuous-pass guard.
+
+    Empty comma-split fragments (e.g. a trailing comma) are discarded, so a
+    cosmetic trailing comma does not introduce a spurious blank field.
+
+    Parameters
+    ----------
+    region : str
+        The document region to search (already narrowed by the caller).
+    source : str
+        A human-readable label for the document, named in failure messages.
+
+    Returns
+    -------
+    list[str]
+        The brace-list field names in order, stripped of whitespace and
+        backticks.
+
+    Raises
+    ------
+    ValueError
+        If ``region`` holds no ``{...}`` brace-list.
+    """
+    match = _BRACE_LIST.search(region)
+    if match is None:
+        msg = f"no brace-list found in {source}"
+        raise ValueError(msg)
+    fields: list[str] = []
+    for raw in match.group("body").split(","):
+        field = raw.strip().strip("`").strip()
+        if field:
+            fields.append(field)
+    return fields
