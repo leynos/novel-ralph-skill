@@ -2163,11 +2163,12 @@ and adr-003-shared-interface-contract.md.
   - Requires phase 5, 6.1.1, and 1.2.12.
   - Assert, across all five commands as one parametrised pytest-bdd suite plus
     syrupy snapshots, that the contract is identical between commands: the
-    exit-code-to-`ok` mapping (0/1 → benign, 2/3/4 → `ok:false`), the envelope
-    field set and order (`command`, `schema_version`, `ok`, `working_dir`,
-    `result`, `messages`), the field types, and the shape of each error channel
-    (usage → 2, state/input → 3, actionable finding → 4). The suite must fail if
-    any command drifts from the shared envelope or exit-code table.
+    exit-code-to-`ok` mapping (exit 0 → `ok:true`; exits 1/2/3/4 → `ok:false`),
+    the envelope field set and order (`command`, `schema_version`, `ok`,
+    `working_dir`, `result`, `messages`), the field types, and the shape of each
+    error channel (usage → 2, state/input → 3, actionable finding → 4). The
+    suite must fail if any command drifts from the shared envelope or exit-code
+    table.
   - See adr-003-shared-interface-contract.md and novel-ralph-harness-design.md §3.
   - Success: a single cross-command suite (pytest-bdd scenarios + syrupy
     snapshots) pins the exit-code and envelope contract for every command and
@@ -2185,7 +2186,7 @@ and adr-003-shared-interface-contract.md.
       and the now-unused `cabc`/`cyclopts` `TYPE_CHECKING` references they
       justified, clearing the `ty check` redundant-cast warnings. Lightweight
       addendum pass.
-  - [ ] 6.3.2.3.
+  - [x] 6.3.2.3.
     - Addendum (from review:6.3.2; low). Correct the roadmap §6.3.2 wording that
       reads `0/1 → benign, 2/3/4 → ok:false`; per ADR-003 and design §3.1 `ok`
       is true iff exit 0, so benign-negative exit 1 is `ok:false`. Editorial
@@ -2197,15 +2198,17 @@ and adr-003-shared-interface-contract.md.
     envelope schema to `SKILL.md` (or a reference it links once), so no
     per-command prose copy can drift, and add the command-invocation discipline
     a dogfooding agent needs: run every command from the novel root; after each
-    invocation check the exit code and the envelope `ok`; a non-zero exit (or
-    `ok:false`) is a stop-and-fix, never an assumed success. Also record the
+    invocation gate on the EXIT CODE, not on `ok` (which is merely `exit == 0`
+    and so cannot tell a benign exit 1 from a stop-and-fix exit 4): exit 0 is
+    success, exit 1 is a benign negative to handle and continue, and exits 2/3/4
+    are a stop-and-fix — never an assumed success. Also record the
     install-currency note (the `uv tool` binary does not auto-update; reinstall
     with `--force`, or pin a version, before a dogfood session).
   - See novel-ralph-harness-design.md §3 and §8.
   - Success: `SKILL.md` documents the exit-code table, the envelope schema, and
     the run-from-root / check-exit-code discipline once; `make markdownlint` and
     `make nixie` pass on the edited skill.
-  - [ ] 6.3.3.1.
+  - [x] 6.3.3.1.
     - Addendum (from review:6.3.3; low). Reword the roadmap §6.3.3 gating prose
       that instructs treating `ok:false` as a stop-and-fix; `ok` is true iff
       exit 0, so gating on it would halt the loop on every benign exit-1 turn.
