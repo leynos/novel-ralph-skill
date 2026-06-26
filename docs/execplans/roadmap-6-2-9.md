@@ -24,12 +24,17 @@ Post-merge audit
 [`docs/issues/audit-6.2.2.md`](../../docs/issues/audit-6.2.2.md) Finding 7
 records the omission: the **crossed knitting gate** (design §4.5) and the
 **refused out-of-order `advance-phase`** (design §3.2, §4.1; exit 3) are proven
-only in-process. The exit-3 state-error arm is the high-value half — it is
-stamped by
-[`novel_ralph_skill/contract/runner.py`](../../novel_ralph_skill/contract/runner.py)
-*before* the command body runs (the global-flag pre-parse), so the installed
-boundary is exactly where a packaging regression (a wrong `sys.exit`
-translation, a swallowed traceback) would first surface. Finding 7 offers the
+only in-process. The exit-3 state-error arm is the high-value half. The shared
+runner [`novel_ralph_skill/contract/runner.py`](../../novel_ralph_skill/contract/runner.py)
+owns the exit-3 channel two distinct ways, and the `completed-prefix-gap` case
+exercises the second: it does **not** pre-parse a usage error before the body
+(that path stamps exit 2 from a `CycloptsError`); instead the `advance-phase`
+body raises a domain `StateInputError` from `_refuse_if_incoherent(prior)` in
+[`novel_ralph_skill/commands/_state_mutators.py`](../../novel_ralph_skill/commands/_state_mutators.py),
+which the runner catches in its `try` block and translates to a stamped
+exit-3 envelope (`runner.py:233-239`). The installed boundary is therefore exactly
+where a packaging regression (a wrong `sys.exit` translation, a swallowed
+traceback) would first surface. Finding 7 offers the
 design §9 "carried knowingly rather than silently" choice: add the installed
 re-drive of both decisions, **or** name the in-process-only bound in the
 developers' guide / a `Carried gaps` entry.
@@ -346,8 +351,16 @@ signals outcome through a POSIX exit code defined in
 [`novel_ralph_skill/contract/exit_codes.py`](../../novel_ralph_skill/contract/exit_codes.py):
 `SUCCESS = 0`, `STATE_ERROR = 3`, `ACTIONABLE_FINDING = 4`. The shared runner
 [`novel_ralph_skill/contract/runner.py`](../../novel_ralph_skill/contract/runner.py)
-pre-parses the global `--human` flag and stamps the exit-3 state-error envelope
-*before* the command body runs (design §3.2; ADR-003).
+runs the command body inside a `try` and translates the exception it raises into
+the contract code: a Cyclopts usage fault becomes exit 2, and a domain
+`StateInputError` becomes the stamped exit-3 state-error envelope
+(`runner.py:233-239`; design §3.2; ADR-003). Two exit-3 surfaces therefore exist
+and must not be conflated: a *pre-body* fault the runner detects before the body
+returns (a missing-argument or unparsed-flag case stamped from the parse layer),
+and an *in-body* domain refusal the body raises explicitly. The
+`completed-prefix-gap` refused advance is the in-body kind — the `advance-phase`
+body raises `StateInputError` from `_refuse_if_incoherent(prior)` (design §4.1),
+not a pre-parse global-flag error.
 
 The per-chapter deterministic loop is the ordered drive of the five read
 surfaces over one chapter's `working/` tree (design §7.2, Figure 3; §9 lines
@@ -917,23 +930,23 @@ Post-merge remediation items filed against this completed task. Each is a
 lightweight addendum pass: no plan or design-review cycle, just the change, the
 gates, and a merge. The roadmap carries the matching nested sub-task.
 
-- **6.2.9.1 — Split `tests/steps/per_chapter_loop_installed_steps.py` before it
-  breaches the 400-line module cap** (from review:6.2.9; severity: low). At 383
+- [x] **6.2.9.1 — Split `tests/steps/per_chapter_loop_installed_steps.py` before
+  it breaches the 400-line module cap** (from review:6.2.9; severity: low). At 383
   of 400 lines the next installed arm risks breaching the AGENTS.md module-size
   gate mid-task. Extract the run/build helpers (the `_run_installed_argv`/
   `_run_installed`/`_build_installed` seam) from the step definitions into a
   small support module so future installed work stays within bounds.
-- **6.2.9.2 — Correct the execplan framing of where the refused-advance exit-3
-  is stamped** (from review:6.2.9; severity: low). The framing above (Context and
-  orientation; the WI-1 prose) describes the refused-advance exit-3 as
-  runner-stamped "before the command body runs (the global-flag pre-parse)". For
-  the `completed-prefix-gap` case the exit-3 actually originates from a domain
+- [x] **6.2.9.2 — Correct the execplan framing of where the refused-advance
+  exit-3 is stamped** (from review:6.2.9; severity: low). The framing above
+  (Context and orientation; the WI-1 prose) describes the refused-advance exit-3
+  as runner-stamped "before the command body runs (the global-flag pre-parse)".
+  For the `completed-prefix-gap` case the exit-3 actually originates from a domain
   `StateInputError` raised inside `advance_phase` (`_refuse_if_incoherent(prior)`)
   and is translated by the runner. Reword the prose to distinguish the two
   distinct exit-3 paths — pre-parse global-flag (usage/`--human`) errors versus
   in-body domain refusals — so a later reader does not draw the wrong conclusion
   about the contract surface.
-- **6.2.9.3 — Enforce the installed step helper's capture-key single-write
+- [x] **6.2.9.3 — Enforce the installed step helper's capture-key single-write
   contract structurally** (from review:6.2.9; severity: low).
   `_run_installed_argv` is a command/query hybrid: it writes
   `installed.captures[capture_key]` and returns the tuple, with the single-write
@@ -942,7 +955,7 @@ gates, and a merge. The roadmap carries the matching nested sub-task.
   small assertion that `capture_key` is not already present in
   `installed.captures` for this run, so the contract is enforced rather than only
   documented.
-- **6.2.9.4 — Parametrise the two duplicated installed-scenario mark-guard
+- [x] **6.2.9.4 — Parametrise the two duplicated installed-scenario mark-guard
   tests** (from audit:6.2.9 Finding 3; severity: low). The two `*_carries_marks`
   tests in `tests/test_per_chapter_loop_installed_bdd.py` are near-identical
   clones differing only in the bound function and message noun, and the
@@ -950,7 +963,7 @@ gates, and a merge. The roadmap carries the matching nested sub-task.
   so the clone pattern grows one copy per future scenario. Collapse them to one
   `@pytest.mark.parametrize`d test over `(function, label)` pairs so adding a
   scenario is a one-line append, keeping each scenario named in the test id.
-- **6.2.9.5 — Document the installed crossed-gate folding and step-harness
+- [x] **6.2.9.5 — Document the installed crossed-gate folding and step-harness
   conventions adjacent to the code** (from audit:6.2.9 Findings 2, 4, 5; severity:
   low). Three consistency notes share a root cause — rationale that lives only in
   the developers' guide, not next to the code: (1) add a one-line feature-header

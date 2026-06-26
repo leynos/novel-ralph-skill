@@ -177,12 +177,32 @@ in-process scenarios. A `@scenario`-decorated function "behaves like a normal
 test function" (pytest-bdd 8.1.0), so the stacked marks attach as on a plain
 pytest test — the same mechanism the installed e2es
 ([`tests/test_console_scripts_e2e.py`](../tests/test_console_scripts_e2e.py), [`tests/test_recount_e2e.py`](../tests/test_recount_e2e.py))
-use. A wheel-free `*_carries_marks` guard per installed scenario
-(`test_installed_scenario_carries_marks` and
-`test_installed_advance_refused_carries_marks`) asserts the bound item keeps
-those three marks, so a future edit that drops one fails a named test rather
-than silently weakening the installed boundary. Follow this convention when
-adding any installed BDD scenario.
+use. A single wheel-free, parametrized `test_installed_scenario_carries_marks`
+guard covers every installed scenario — one `pytest.param` per bound function,
+each keeping the scenario named in the test id — and asserts the bound item
+keeps those three marks, so a future edit that drops one fails a named test
+rather than silently weakening the installed boundary. Adding an installed BDD
+scenario is therefore a one-line `pytest.param` append to that guard, not a new
+cloned guard; follow this convention.
+
+The installed step definitions
+([`tests/steps/per_chapter_loop_installed_steps.py`](../tests/steps/per_chapter_loop_installed_steps.py))
+keep only the `@given`/`@when`/`@then` bodies; the run/build seam they drive —
+the `_Installed` capture record, the `_run_installed_argv`/`_run_installed` run
+helpers, `_build_installed`, and the `_result`/`_assert_no_traceback`
+accessors — lives in the sibling support module
+[`tests/steps/per_chapter_loop_installed_support.py`](../tests/steps/per_chapter_loop_installed_support.py),
+split out so the step module stays under the 400-line cap as installed arms land.
+`_run_installed_argv` is a **sanctioned command/query hybrid**: it both writes
+`installed.captures[capture_key]` (the command) and returns the
+`(exit_code, envelope, stderr)` tuple (the query). The hybrid is a deliberate
+test-helper exception to the usual command-query separation, because the `When`
+steps want only the capture side effect while `_run_installed` wants the return;
+the single-write contract is enforced structurally by an assertion that the
+`capture_key` is not already present, so a copied `When` step that re-added a
+manual `captures[...] =` assignment fails loudly rather than double-writing. A
+`When` step should call it for its side effect alone and never re-assign the
+capture by hand.
 
 ### The `working/` fixture corpus
 

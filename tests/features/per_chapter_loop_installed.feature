@@ -8,7 +8,12 @@
 # proves the recount no-op at the boundary via the installed by-chapter assertion),
 # the stale-compile catch, and — closing audit-6.2.2 Finding 7 — the refused
 # out-of-order advance-phase (design §3.2, §4.1, §5.4: the mutator refuses the
-# write, exits 3, and leaves state.toml byte-for-byte intact). It is @slow and
+# write, exits 3, and leaves state.toml byte-for-byte intact). The crossed-gate
+# folding is deliberate and asymmetric with the in-process feature:
+# per_chapter_loop.feature pins the crossed gate as its own scenario, whereas this
+# installed feature proves it inside the clean pass rather than as a standalone
+# scenario, so do not expect a separate installed crossed-gate scenario here
+# (roadmap 6.2.9.5; design §4.5). It is @slow and
 # POSIX-only; its binder (tests/test_per_chapter_loop_installed_bdd.py) carries
 # the slow, timeout, and POSIX-skip marks on each @scenario-decorated function so
 # no marker leaks onto the cross-platform in-process scenarios (ExecPlan Decision

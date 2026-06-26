@@ -69,50 +69,45 @@ def test_installed_advance_phase_refused() -> None:
     """
 
 
-def test_installed_scenario_carries_marks() -> None:
-    """Guard that the installed scenario keeps its slow, timeout, and POSIX marks.
+@pytest.mark.parametrize(
+    ("scenario_func", "label"),
+    [
+        pytest.param(test_installed_per_chapter_loop, "clean-pass", id="clean-pass"),
+        pytest.param(
+            test_installed_advance_phase_refused,
+            "refused-advance",
+            id="refused-advance",
+        ),
+    ],
+)
+def test_installed_scenario_carries_marks(scenario_func: object, label: str) -> None:
+    """Guard that each installed scenario keeps its slow, timeout, and POSIX marks.
 
     A future edit that drops a mark would silently weaken the installed boundary —
     running the wheel build on a non-POSIX leg, or under the global 30s timeout
-    rather than the 180s budget — with no test failing. Reading the stacked marks
-    off the bound function's ``pytestmark`` list (where ``@pytest.mark.*``
+    rather than the 180s budget — with no scenario failing. Reading the stacked
+    marks off the bound function's ``pytestmark`` list (where ``@pytest.mark.*``
     decorators accumulate) makes such a drop fail this named, wheel-free guard
     instead (ExecPlan Risk "installed scenario silently loses its marks"). The
     function's ``pytestmark`` attribute is used rather than a collected ``Item``'s
     ``iter_markers`` because this plain sibling test has no handle on the other
     test's collected item; the attribute is the documented accrual point for
     stacked decorators and is read identically on every platform.
+
+    The two installed scenarios are covered by one parametrized guard over
+    ``(scenario_func, label)`` pairs, each keeping the scenario named in the test
+    id (roadmap 6.2.9.4, from audit:6.2.9 Finding 3), so adding an installed
+    scenario is a one-line ``pytest.param`` append rather than a cloned test body.
     """
     # ``pytestmark`` is attached dynamically by the stacked ``@pytest.mark.*``
     # decorators, so the static checker cannot see it; read it through ``getattr``
     # with the documented ``list[pytest.MarkDecorator]`` shape.
     applied = typ.cast(
         "cabc.Sequence[pytest.MarkDecorator]",
-        getattr(test_installed_per_chapter_loop, "pytestmark", ()),
+        getattr(scenario_func, "pytestmark", ()),
     )
     marks = {mark.name for mark in applied}
     assert marks >= _REQUIRED_MARKS, (
-        f"the installed scenario must keep {sorted(_REQUIRED_MARKS)}; "
-        f"got {sorted(marks)}"
-    )
-
-
-def test_installed_advance_refused_carries_marks() -> None:
-    """Guard that the refused-advance scenario keeps its slow/timeout/POSIX marks.
-
-    Mirrors ``test_installed_scenario_carries_marks`` for the second installed
-    scenario (roadmap 6.2.9). Dropping a mark from ``test_installed_advance_phase_
-    refused`` would run its wheel build on a non-POSIX leg or under the global 30s
-    timeout rather than the 180s budget, with no scenario failing; this wheel-free
-    guard, read off the bound function's ``pytestmark``, fails instead (ExecPlan
-    Risk 1). It runs on every platform.
-    """
-    applied = typ.cast(
-        "cabc.Sequence[pytest.MarkDecorator]",
-        getattr(test_installed_advance_phase_refused, "pytestmark", ()),
-    )
-    marks = {mark.name for mark in applied}
-    assert marks >= _REQUIRED_MARKS, (
-        f"the refused-advance scenario must keep {sorted(_REQUIRED_MARKS)}; "
+        f"the {label} installed scenario must keep {sorted(_REQUIRED_MARKS)}; "
         f"got {sorted(marks)}"
     )

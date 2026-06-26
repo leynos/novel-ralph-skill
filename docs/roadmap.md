@@ -1931,7 +1931,7 @@ novel-ralph-harness-design.md §2.3 and §9.
     report are each proven over the real installed console-script boundary, or the
     in-process-only bound is named in the Carried gaps section so it is carried
     knowingly rather than silently.
-  - [ ] 6.2.9.1. Split `tests/steps/per_chapter_loop_installed_steps.py` before
+  - [x] 6.2.9.1. Split `tests/steps/per_chapter_loop_installed_steps.py` before
     it breaches the 400-line module cap.
     - Addendum (from review:6.2.9; low). At 383 of 400 lines the next installed
       arm risks breaching the AGENTS.md module-size gate mid-task; extract the
@@ -1939,7 +1939,7 @@ novel-ralph-harness-design.md §2.3 and §9.
       `_build_installed` seam) from the step definitions into a small support
       module so future installed work stays within bounds. Lightweight addendum
       pass.
-  - [ ] 6.2.9.2. Correct the execplan framing of where the refused-advance exit-3
+  - [x] 6.2.9.2. Correct the execplan framing of where the refused-advance exit-3
     is stamped.
     - Addendum (from review:6.2.9; low). The 6.2.9 execplan (lines 28-34) frames
       the refused-advance exit-3 as runner-stamped "before the command body runs
@@ -1949,7 +1949,7 @@ novel-ralph-harness-design.md §2.3 and §9.
       prose to distinguish the two exit-3 paths (pre-parse global-flag errors
       versus in-body domain refusals) so a later reader does not misread the
       contract surface. Lightweight addendum pass.
-  - [ ] 6.2.9.3. Enforce the installed step helper's capture-key single-write
+  - [x] 6.2.9.3. Enforce the installed step helper's capture-key single-write
     contract structurally.
     - Addendum (from review:6.2.9; low). `_run_installed_argv` is a command/query
       hybrid (it writes `installed.captures[capture_key]` and returns the tuple)
@@ -1958,7 +1958,7 @@ novel-ralph-harness-design.md §2.3 and §9.
       double-write silently. Add a small assertion that the `capture_key` is not
       already written this run so the contract is enforced rather than only
       documented. Lightweight addendum pass.
-  - [ ] 6.2.9.4. Parametrise the two duplicated installed-scenario mark-guard
+  - [x] 6.2.9.4. Parametrise the two duplicated installed-scenario mark-guard
     tests.
     - Addendum (from audit:6.2.9 Finding 3; low). The two `*_carries_marks` tests
       in `tests/test_per_chapter_loop_installed_bdd.py` are near-identical clones
@@ -1969,7 +1969,7 @@ novel-ralph-harness-design.md §2.3 and §9.
       a scenario is a one-line append, keeping each scenario named in the test
       id. Lightweight addendum pass.
       Lightweight addendum pass.
-  - [ ] 6.2.9.5. Document the installed crossed-gate folding and step-harness
+  - [x] 6.2.9.5. Document the installed crossed-gate folding and step-harness
     conventions adjacent to the code.
     - Addendum (from audit:6.2.9 Findings 2, 4, 5; low). Three consistency notes
       share a root cause — rationale that lives only in the developers' guide, not
