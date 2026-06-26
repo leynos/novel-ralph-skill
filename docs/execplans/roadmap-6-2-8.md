@@ -801,7 +801,7 @@ Post-merge remediation items filed against this completed task. Each is a
 lightweight addendum pass: no plan or design-review cycle, just the change, the
 gates, and a merge. The roadmap carries the matching nested sub-task.
 
-- **6.2.8.1 — De-duplicate the near-degenerate error-arm snapshots in the
+- [x] **6.2.8.1 — De-duplicate the near-degenerate error-arm snapshots in the
   command-surface matrix** (from audit:6.2.8; severity: low). The ten
   `test_error_arm_machine_envelope` snapshots redact the only command-variable
   field, leaving each differing solely by a `command` string the test body

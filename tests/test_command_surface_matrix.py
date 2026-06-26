@@ -96,6 +96,7 @@ from novel_ralph_skill.commands import (
     _wordcount,
     novel_state,
 )
+from novel_ralph_skill.contract.envelope import ENVELOPE_SCHEMA_VERSION
 from novel_ralph_skill.contract.exit_codes import ExitCode
 from novel_ralph_skill.contract.runner import RunContext, run
 
@@ -425,33 +426,36 @@ def test_error_arm_machine_envelope(
     cell: _ErrorCell,
     tmp_path: Path,
     drive: _Driver,
-    snapshot: SnapshotAssertion,
 ) -> None:
-    """Snapshot the machine-mode envelope for both diagnostic arms per command.
+    """Pin the machine-mode envelope skeleton for both diagnostic arms per command.
 
     Crosses the two command-agnostic arms ``run`` stamps before the body returns
     — usage (exit 2) and state (exit 3) — with every read command (§3.2 lines
-    203-230; §9 lines 822-826). Each snapshot redacts ``messages`` (the only
-    platform/command-variable field — exit-3 errno text, exit-2 suggestion
-    suffix) and is **paired** with semantic assertions on the envelope skeleton
-    and the command-body-owned message prefix, so no behaviour is snapshot-only
-    (AGENTS.md). The ``len(messages) == 1`` assertion restores the count signal
-    the redaction would otherwise collapse.
+    203-230; §9 lines 822-826). Once ``messages`` (the only platform/command-
+    variable field — exit-3 errno text, exit-2 suggestion suffix) is redacted, the
+    only field that varies across the ten cells is the ``command`` string the body
+    already asserts. So rather than re-pin ten near-degenerate ``.ambr`` blocks
+    (addendum 6.2.8.1), the envelope skeleton is asserted in-code, templated on
+    ``command.name`` and the ``working_dir`` contract constant; the ``messages``
+    prefix and ``len(messages) == 1`` count keep the body-owned signal explicit.
     """
     command, arm = cell
     code, raw = _drive_error_cell(cell, tmp_path, drive, human=False)
     envelope = typ.cast("dict[str, object]", json.loads(raw))
     assert code == arm.expected_code
-    assert envelope["command"] == command.name
-    assert envelope["ok"] is False
-    assert envelope["working_dir"] == "working"
-    assert envelope["result"] == {}
     messages = typ.cast("list[str]", envelope["messages"])
     assert len(messages) == 1
     assert messages[0].startswith(arm.message_prefix)
     redacted = {**envelope, "messages": ["<redacted>"]}
     _assert_no_volatile_fields(redacted)
-    assert redacted == snapshot
+    assert redacted == {
+        "command": command.name,
+        "messages": ["<redacted>"],
+        "ok": False,
+        "result": {},
+        "schema_version": ENVELOPE_SCHEMA_VERSION,
+        "working_dir": "working",
+    }
 
 
 @pytest.mark.parametrize("cell", _ERROR_CELLS, ids=_ERROR_CELL_IDS)

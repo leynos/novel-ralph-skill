@@ -1902,7 +1902,7 @@ novel-ralph-harness-design.md §2.3 and §9.
     (asserting the `--human` stamp and envelope shape on the command-agnostic
     diagnostic arms) or its Carried gaps section names the error-mode omission
     explicitly, so the bound is carried knowingly rather than silently.
-  - [ ] 6.2.8.1. De-duplicate the near-degenerate error-arm snapshots in the
+  - [x] 6.2.8.1. De-duplicate the near-degenerate error-arm snapshots in the
     command-surface matrix.
     - Addendum (from audit:6.2.8; low). The ten `test_error_arm_machine_envelope`
       snapshots redact the only command-variable field, leaving each differing
