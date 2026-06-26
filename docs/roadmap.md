@@ -1213,6 +1213,27 @@ agent-improvised recovery routine. See novel-ralph-harness-design.md §4.1 and
     via `RECOUNT`; the detector and its corpus twin agree across the whole-corpus
     agreement loop; and the `manifest-disk-bijection` relaxation,
     `word-counts-match-drafts`, and the reconcile precedence stay unchanged.
+  - [ ] 2.3.8.1. Add a present-but-empty-draft case to the cover-drafts
+    convergence/coherence tests.
+    - Addendum (from review:2.3.8; low). Decision D6 pins "drafted means
+      directory-present, not non-empty `draft.md`", but no test exercises a
+      drafted chapter directory carrying an empty `draft.md` (count `0`); add a
+      targeted case so a future refactor to a non-empty filter is caught.
+      Lightweight addendum pass.
+  - [ ] 2.3.8.2. Add a direct match-drafts/cover-drafts non-co-fire assertion on
+    the relaxed subset.
+    - Addendum (from review:2.3.8; low). Constraint 3 (orthogonality) is proven
+      only indirectly via full-verdict membership; add a direct unit assertion
+      that `_check_word_counts_match_drafts` is silent on the omitted-drafted-key
+      relaxed tree to harden the no-double-fire invariant. Lightweight addendum
+      pass.
+  - [ ] 2.3.8.3. Add a BDD scenario for the mid-draft relaxed-subset RECOUNT
+    recovery.
+    - Addendum (from audit:2.3.8; low). The 2.3.8 headline behaviour has unit and
+      e2e coverage but no black-box scenario in `reconcile.feature` pinning the
+      operator-visible contract; add one (reusing the existing when/then steps
+      plus a relaxed-subset `@given`) to restore coverage symmetry with the
+      sibling reconcile recoveries. Lightweight addendum pass.
 
 ## 3. Vertical slice 2: a single-source done predicate
 
@@ -3128,6 +3149,65 @@ corpus tree and pass) and it does not gate the deterministic spine.
     defers to the bijection invariant rather than double-firing, pinned by a new
     §1.3.2 corpus variant; and every current word-count and corpus agreement suite
     stays green.
+- [ ] 7.15.2. Collapse the relaxed-subset reconcile pre-arm onto its detector
+  (de-duplicate the subset gate and the disk reads).
+  - Reroute (source: audit:2.3.8; severity: medium). Task 2.3.8's
+    `_drafting_subset_cover_gap` (`novel_ralph_skill/state/_reconcile_precedence.py`)
+    re-derives the relaxed-subset shape `_check_word_counts_cover_drafts` already
+    gates on, encoding the same `on_disk < manifest and coherent_subset` gate
+    twice (a divergence risk between the detector and the reconcile pre-arm) and
+    re-globbing the manuscript directory three times per relaxed reconcile.
+    Folding the phase/subset ownership into the detector and threading the
+    already-computed `on_disk` set from `derive_reconciliation` removes the
+    duplicated gate and the redundant disk I/O. This is robustness-and-
+    maintainability hardening of the relaxed cover-drafts seam (the verdicts are
+    already correct and pass); it does not advance the step-2.3 disk-re-derivation
+    hypothesis where it was raised, so it is deferred here alongside the sibling
+    strict-predicate single-read consolidation (7.15.1).
+  - Requires 2.3.8 and 7.15.1.
+  - See novel-ralph-harness-design.md §5.4; docs/execplans/roadmap-2-3-8.md
+    (Decision D3, Work item 3); novel_ralph_skill/state/_reconcile_precedence.py
+    (`_drafting_subset_cover_gap`); novel_ralph_skill/state/_disk_word_counts.py
+    (`_check_word_counts_cover_drafts`).
+  - Success: the relaxed-subset gate (`on_disk < manifest` and `coherent_subset`)
+    is computed in exactly one place that both `check`'s cover-drafts detector and
+    `reconcile`'s pre-arm consult; `derive_reconciliation` threads the
+    already-computed `on_disk` set into the pre-arm so the manuscript directory
+    is globbed once per relaxed reconcile rather than three times; and every
+    current
+    reconcile-precedence, cover-drafts, and corpus agreement suite stays green
+    with the verdicts unchanged.
+- [ ] 7.15.3. Single-home the scoped-precedence guards (the sole-refuse-class
+  bijection predicate and the strict coherent-subset idiom).
+  - Reroute (source: audit:2.3.8; severity: low; two near-identical findings
+    merged). Task 2.3.8 left the load-bearing B2 "sole refuse-class is bijection"
+    guard (`fired_refuse == {MANIFEST_DISK_BIJECTION}`) duplicated across two
+    sites in `novel_ralph_skill/state/_reconcile_precedence.py` (lines 106 and
+    164), and the "strict coherent subset" idiom
+    (`on_disk < manifest and _classify_bijection(manifest, on_disk).coherent_subset`)
+    duplicated across three production sites (`_reconcile_precedence.py`,
+    `_disk_word_counts.py`, and `disk_evidence.py`). Extracting a
+    `_sole_refuse_is_bijection` predicate and a
+    `_BijectionBreak.strict_coherent_subset` property pins each notion to one
+    definition, reducing drift risk in the precedence logic. This is cross-cutting
+    maintainability hardening (the guards are already correct and pass); it does
+    not advance the step-2.3 disk-re-derivation hypothesis where it was raised,
+    so it is deferred here with the related bijection-definition single-homing of
+    this step. Coordinate with 7.15.1, which extracts the shared
+    `manifest-disk-in-bijection` predicate, so the coherence notions converge on
+    one home.
+  - Requires 2.3.8 and 7.15.1.
+  - See novel-ralph-harness-design.md §5.4;
+    docs/execplans/roadmap-2-3-8.md (Decision D3);
+    novel_ralph_skill/state/_reconcile_precedence.py;
+    novel_ralph_skill/state/_disk_paths.py (`_BijectionBreak`).
+  - Success: the sole-refuse-class bijection guard lives in one
+    `_sole_refuse_is_bijection` predicate both precedence sites consult; the
+    strict coherent-subset idiom lives in one
+    `_BijectionBreak.strict_coherent_subset` property every production site
+    consults rather than recomputing inline; no site re-open-codes either notion;
+    and every current reconcile-precedence and disk-evidence suite stays green with
+    the verdicts unchanged.
 
 ### 7.16. Single-home the command-facade and entry-point shared seams
 
@@ -3925,6 +4005,37 @@ it does not gate the deterministic spine.
     surface-neutral label such as `novel-install`/`novel-run`); the
     `tests/__snapshots__/*.ambr` parametrize IDs are untouched; and the
     installed-binary e2e suites stay green.
+- [ ] 7.23.10. Migrate the slow installed-binary e2es off the broken
+  `capture=True` idiom and add the relaxed-subset cover-gap installed-binary e2e.
+  - Reroute (source: review:2.3.8; severity: low). Task 2.3.8 Work item 5
+    deliberately omitted the slow installed-binary variant for the relaxed
+    cover-gap path because the sibling slow e2es call
+    `SafeCmd.run_sync(..., capture=True)` — a latent `TypeError` under the locked
+    cuprum 0.1.0, whose capture is `output=sh.RunOutputOptions(capture=True)`
+    (Decision D5). The fast entry-point e2e proves the relaxed-subset behaviour,
+    but the console-script subprocess path is currently only covered for the
+    bijection case. Migrate the broken `capture=True` idiom to
+    `output=sh.RunOutputOptions(capture=True)` across the slow e2es (the shared
+    `run_installed` helper from 7.23.2 is the natural single home for the fixed
+    idiom), then extend installed-binary coverage to the relaxed-subset cover-gap
+    `check` → `reconcile` → `check` path. This serves the step-7.23 hypothesis —
+    collapsing the installed-binary e2e scaffolding onto shared, drift-free homes
+    (here, one correct capture idiom) — not the step-2.3 disk-re-derivation
+    hypothesis where it was raised (the behaviour is already proven by the fast
+    e2e), so it is rerouted here. Coordinate with 7.23.2 so the corrected capture
+    idiom lands in the shared `run_installed` helper rather than per-module copies.
+  - Requires 2.3.8 and 7.23.2.
+  - See novel-ralph-harness-design.md §9; docs/execplans/roadmap-2-3-8.md
+    (Decision D5; Work item 5); docs/adr-006-console-scripts-e2e-posix-policy.md;
+    tests/installed_binary_fixtures.py.
+  - Success: no slow e2e calls `SafeCmd.run_sync(..., capture=True)` (each uses
+    `output=sh.RunOutputOptions(capture=True)` via the shared `run_installed`
+    helper), so the latent `TypeError` is removed; an installed-binary subprocess
+    e2e exercises the relaxed-subset cover-gap `check` (exit 4 on
+    `word-counts-cover-drafts`), then `reconcile` (exit 0, RECOUNT), then `check`
+    (exit 0) under the ADR 006 POSIX skip guard; and the installed-binary e2e
+    suites
+    stay green.
 
 ### 7.24. Harden the workflow and matrix gates against silent drift
 
