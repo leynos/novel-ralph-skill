@@ -871,3 +871,30 @@ from `roadmap-2-3-7.logisphere-review-r1.md` and folded in advisories A1-A5.
   fixture, not a cuprum export.
 - **A5:** Work item 1 states the threshold rendering precision (two decimals;
   not three) so the substring assertion passes on the first green cycle.
+
+## Addenda
+
+Lightweight, no-plan corrections to this completed task. Each runs as a
+no-review lightweight pass.
+
+- **Correct the `_refuse_if_incoherent` caller enumeration (from review:2.3.7;
+  low).** The Interfaces and dependencies section (and the Decision Log /
+  Work item 2 reasoning) state that `_refuse_if_incoherent` has four other
+  callers (`set_cursor`, `advance_phase`, `set_gate`, `reconcile`). The actual
+  set is 11 call sites across five files — `commands/_reconcile.py`,
+  `commands/_recount.py`, `commands/_set_chapters.py`,
+  `commands/_state_mutators.py` (`set-cursor`, two `advance-phase` calls), and
+  `commands/_gate_drafting_mutators.py` (`set-gate`, `complete-final-pass`,
+  `set-fangirl`, `set-critic-pass`). The shape-2 `remedy=None`-default
+  conclusion is unaffected (no caller changed), but the stale four-caller
+  premise understates the keyword's blast radius for a future implementer.
+  Correct the enumeration to the real call-site set. Lightweight addendum pass.
+- **Render the recount remedy ratio without a boundary self-contradiction (from
+  review:2.3.7; low).** `_recount._gate_ratio_remedy` renders the drafted ratio
+  with `f"{ratio * 100:.0f}"`, so a ratio of `0.298` prints `30%` inside the
+  downward "below the … threshold (drafts now at 30% of target)" sentence,
+  reading as a contradiction for an operator near a gate boundary (R2 advisory
+  A8, neither mitigated nor documented). The verdict and exit code are
+  unaffected; this is a cosmetic operator-UX wart. Render the ratio with one
+  decimal, or document the boundary-rounding edge inline, so the message cannot
+  read as self-contradictory at a gate boundary. Lightweight addendum pass.

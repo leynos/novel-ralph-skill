@@ -1168,6 +1168,21 @@ agent-improvised recovery routine. See novel-ralph-harness-design.md §4.1 and
   - Success: the refusal names the threshold and the remedy, the recount-gate
     coupling is documented, and a behavioural test asserts the actionable
     message.
+  - [ ] 2.3.7.1. Correct the `_refuse_if_incoherent` caller enumeration in
+    `docs/execplans/roadmap-2-3-7.md`.
+    - Addendum (from review:2.3.7; low). The execplan (Interfaces and
+      dependencies, Work item 2) states four other callers of
+      `_refuse_if_incoherent`, but the actual set is 11 call sites across five
+      files; the `remedy=None`-default conclusion is unaffected, but the stale
+      premise understates the keyword's blast radius. Correct the enumeration.
+      Lightweight addendum pass.
+  - [ ] 2.3.7.2. Render the recount remedy ratio without a boundary
+    self-contradiction.
+    - Addendum (from review:2.3.7; low). `_recount._gate_ratio_remedy` renders
+      the drafted ratio with `:.0f`, so `0.298` prints `30%` inside a "below the
+      30% threshold" sentence, reading as a contradiction near a gate boundary;
+      the verdict and exit code are unaffected. Render with one decimal or note
+      the boundary-rounding edge. Lightweight addendum pass.
 - [ ] 2.3.8. Re-key `word-counts-cover-drafts` off the on-disk drafted subset so
   it stays enforced during a relaxed drafting subset.
   - Reroute (source: review:2.1.7; severity: low; two near-identical proposals
@@ -3011,6 +3026,67 @@ they do not gate the deterministic spine.
     a `0.30`/`0.50`/`0.80` gate-threshold literal is re-spelled outside the
     shared `GATE_THRESHOLDS` source; a planted literal fails the guard; and the
     wordcount and command suites stay green.
+- [ ] 7.14.5. Unify the knitting-gate triple behind one canonical gate
+  descriptor across the name, repair, and key projections.
+  - Reroute (source: audit:2.3.7; severity: medium). Four parallel encodings of
+    the same three knitting gates now exist, each hand-ordered to zip together:
+    `validate.py` (`GATE_THRESHOLDS`, `_KNITTING_GATE_NAMES`), `_recount.py`
+    (`_KNITTING_GATE_REPAIRS`), `_gate_drafting_mutators.py` (`_KNITTING_KEYS`),
+    and `done_predicate.py` (`KNITTING_PERCENTAGES`). Adding or reordering a gate
+    needs four coordinated edits with no automated guard against a transposed
+    pair. Task 7.14.3 reconciles the `GATE_THRESHOLDS`/`KNITTING_PERCENTAGES`
+    pair via a shared `gate_triggers` helper and an equivalence assertion, but
+    leaves the name, repair, and arg/key projections hand-zipped. Promote a
+    single `KnittingGate` descriptor (threshold, flag name, repair tuple, set-gate
+    arg/key, percentage) with named projections, route `_KNITTING_GATE_NAMES`,
+    `_KNITTING_GATE_REPAIRS`, and `_KNITTING_KEYS` through it, and pin the
+    projections with an equality test so the cross-module ordering cannot drift.
+    This is cross-cutting gate single-source-of-truth hygiene, not the settled
+    step-2.3 disk-re-derivation hypothesis where it was raised, so it is deferred
+    here.
+  - Requires 7.14.3.
+  - See novel-ralph-harness-design.md §5.2 and §4.5;
+    docs/issues/audit-2.3.7.md (Finding 2);
+    novel_ralph_skill/state/validate.py;
+    novel_ralph_skill/commands/_recount.py;
+    novel_ralph_skill/commands/_gate_drafting_mutators.py;
+    novel_ralph_skill/state/done_predicate.py.
+  - Success: one `KnittingGate` descriptor owns the threshold, flag name, repair
+    tuple, set-gate arg/key, and percentage for each of the three gates;
+    `_KNITTING_GATE_NAMES`, `_KNITTING_GATE_REPAIRS`, and `_KNITTING_KEYS` are
+    projections of it rather than independent hand-ordered tuples; an equality
+    test pins the projections so a transposed or reordered gate fails loudly; and
+    the validate, recount, gate-drafting, done-predicate, and corpus agreement
+    suites stay green.
+- [ ] 7.14.6. Make the recount remedy consume the validator's gate-ratio verdict
+  instead of recomputing it.
+  - Reroute (source: audit:2.3.7; severity: medium; the review:2.3.7
+    direction-agreement test proposal merged in as the pinning guard). The command
+    layer's `_recount._gate_ratio_remedy` re-derives the entire gate-ratio
+    computation (guard, drafted-sum numerator, ratio, per-gate flags, per-gate
+    disagreement) that `validate._check_gate_ratio_consistent` /
+    `_gate_ratio_disagreement` already performed on the same `State`, keeping the
+    two disagreement enumerations in lock-step only by hand with no test binding
+    them (audit-2.3.7 Finding 1; Findings 3/4/5 ride the same seam). Extract a
+    shared pure `gate_ratio_disagreements` helper in the `state` package (or pass
+    the validator verdict through `_refuse_if_incoherent`) so the gate the refusal
+    names is provably the gate the remedy advises, and pin per-gate direction
+    agreement with one equality test (subsuming the review:2.3.7 agreement-test
+    proposal). This is cross-cutting gate single-source-of-truth hygiene, not the
+    settled step-2.3 disk-re-derivation hypothesis where it was raised, so it is
+    deferred here.
+  - Requires 2.3.7.
+  - See novel-ralph-harness-design.md §3.3, §5.2, and §5.4;
+    docs/issues/audit-2.3.7.md (Findings 1, 3, 4, 5);
+    novel_ralph_skill/state/validate.py (`_gate_ratio_disagreement`,
+    `_check_gate_ratio_consistent`);
+    novel_ralph_skill/commands/_recount.py (`_gate_ratio_remedy`).
+  - Success: one pure `gate_ratio_disagreements` helper computes the per-gate
+    disagreement set once, consumed by both `_check_gate_ratio_consistent` and the
+    recount remedy (directly or via `_refuse_if_incoherent`), so the refusal and
+    the remedy cannot name different gates; an equality test pins their per-gate
+    direction agreement on a shared state; and the validate, recount, and corpus
+    agreement suites stay green.
 
 ### 7.15. Harden the word-count disk-evidence predicates against redundant reads and a latent double-fire
 
