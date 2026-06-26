@@ -78,4 +78,20 @@ PLANTED_RECIPES: typ.Final[MappingProxyType[str, str]] = MappingProxyType({
     "backstop-unknown-writer": (
         '```python\nmywriter("working/state.toml").write(serialise(doc))\n```\n'
     ),
+    # One flagged recipe per under-exercised executable label (``py``, ``py3``,
+    # ``pycon``, ``bash``, ``shell``, ``console``): every member of
+    # ``_EXECUTABLE_INFO_STRINGS`` carries a positive case, so dropping a label
+    # from the frozenset fails a test rather than silently shrinking the guard
+    # (roadmap 7.6.3.1).
+    "py-raw-open-write": ('```py\nopen("working/state.toml", "w").write("x")\n```\n'),
+    "py3-write-text": ('```py3\nPath("working/state.toml").write_text("x = 1")\n```\n'),
+    "pycon-write-text": (
+        "```pycon\n"
+        ">>> from pathlib import Path\n"
+        '>>> Path("working/state.toml").write_text("x = 1")\n'
+        "```\n"
+    ),
+    "bash-redirect": "```bash\necho 'x = 1' > working/state.toml\n```\n",
+    "shell-redirect": "```shell\necho 'x = 1' > working/state.toml\n```\n",
+    "console-redirect": "```console\n$ echo 'x = 1' > working/state.toml\n```\n",
 })

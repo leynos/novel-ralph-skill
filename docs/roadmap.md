@@ -3812,39 +3812,39 @@ copies that would re-diverge.
     gap without per-file duplication.
   - Success: a planted hand-edit recipe in any executable-carrying reference is
     caught by a single shared scanner, with no per-file duplication.
-  - [ ] 7.6.3.1. Plant a flagged recipe for every under-exercised executable
+  - [x] 7.6.3.1. Plant a flagged recipe for every under-exercised executable
     fence label.
     - Addendum (from audit:7.6.3; medium). Six labels (`py`, `py3`, `pycon`,
       `bash`, `shell`, `console`) are in the executable set but never planted as
       a positive case; add one flagged recipe per label so dropping a member from
       the frozenset fails a test. Lightweight addendum pass.
-  - [ ] 7.6.3.2. Reconcile `_iter_executable_fences`' name with its eager-list
+  - [x] 7.6.3.2. Reconcile `_iter_executable_fences`' name with its eager-list
     return.
     - Addendum (from audit:7.6.3; low). The `_iter_` prefix promises a lazy
       generator but the body returns a `list`; either yield per fence or rename
       to `_executable_fences`. Internal only. Lightweight addendum pass.
-  - [ ] 7.6.3.3. Express `find_direct_state_write_recipes_in_files` as a walrus
+  - [x] 7.6.3.3. Express `find_direct_state_write_recipes_in_files` as a walrus
     dict comprehension.
     - Addendum (from audit:7.6.3; low). Replace the mutable-accumulator loop with
       a comprehension that calls the detector once per document, preserving the
       no-second-matcher invariant. Readability tidy-up. Lightweight addendum pass.
-  - [ ] 7.6.3.4. Anchor the inventory-tripwire intent on the
+  - [x] 7.6.3.4. Anchor the inventory-tripwire intent on the
     `_KNOWN_SKILL_MARKDOWN` edit line.
     - Addendum (from audit:7.6.3; low). Add a comment above the constant stating
       it is hand-maintained and must not be derived from the glob, so a refactor
       cannot silently optimise the tripwire away. Lightweight addendum pass.
-  - [ ] 7.6.3.5. Name the `console`-fence bare-`.write(` Python-in-shell gap as
+  - [x] 7.6.3.5. Name the `console`-fence bare-`.write(` Python-in-shell gap as
     a deferred 7.6.4 item.
     - Addendum (from audit:7.6.3; low). `console` is executable but not in the
       Python set, so a `python -c` bare-`.write(` one-liner slips the guard;
       extend the executable-set comment to record this as an accepted gap
       deferred to task 7.6.4. Lightweight addendum pass.
-  - [ ] 7.6.3.6. Add a tripwire for non-`.md` markdown-like skill references.
+  - [x] 7.6.3.6. Add a tripwire for non-`.md` markdown-like skill references.
     - Addendum (from audit:7.6.3; low). The `**/*.md` discovery glob silently
       skips a `.markdown`/`.mdx`/`.mkd` reference; assert no such file appears
       under `skill/novel-ralph/`, with a message pointing at task 7.6.4 and the
       gate-assumption prose. Lightweight addendum pass.
-  - [ ] 7.6.3.7. Consider folding the clean-fence "not flagged" asserts into one
+  - [x] 7.6.3.7. Consider folding the clean-fence "not flagged" asserts into one
     parametrized table.
     - Addendum (from audit:7.6.3; low). The temp-file and unrelated-redirect
       clean cases share a "assert this fence is clean" skeleton; weigh a single

@@ -33,7 +33,9 @@ from __future__ import annotations
 import typing as typ
 
 import pytest
+from _clean_fences import CLEAN_FENCES
 from _planted_recipes import PLANTED_RECIPES
+from _skill_markdown_inventory import KNOWN_SKILL_MARKDOWN
 from _state_layout_scanner import (
     find_direct_state_write_recipes,
     find_direct_state_write_recipes_in_files,
@@ -46,22 +48,9 @@ if typ.TYPE_CHECKING:
 
 _STATE_LAYOUT_PARTS = ("skill", "novel-ralph", "references", "state-layout.md")
 
-# The skill markdown set the multi-file guard scans, anchored under
-# ``skill/novel-ralph/``. ``test_discovery_covers_known_skill_files`` pins this
-# inventory as an intentional tripwire: adding or removing a reference fails that
-# test and forces a human to inspect the new file. The guard itself never
-# consults this list — it scans whatever the discovery glob returns — so a stale
-# inventory cannot neuter it.
-_KNOWN_SKILL_MARKDOWN = frozenset({
-    "skill/novel-ralph/SKILL.md",
-    "skill/novel-ralph/references/conflict-attractor.md",
-    "skill/novel-ralph/references/critic-personas.md",
-    "skill/novel-ralph/references/desloppify-checklist.md",
-    "skill/novel-ralph/references/done-conditions.md",
-    "skill/novel-ralph/references/jtbd-novel.md",
-    "skill/novel-ralph/references/state-layout.md",
-    "skill/novel-ralph/references/stc-beat-sheet.md",
-})
+# The hand-maintained tripwire inventory ``KNOWN_SKILL_MARKDOWN`` (and its "must
+# not be derived from the glob" rationale) lives in
+# ``tests/_skill_markdown_inventory.py`` (roadmap 7.6.3.6: keep this under 400).
 
 
 @pytest.fixture
@@ -141,121 +130,25 @@ class TestStateLayoutReference:
 class TestFindDirectStateWriteRecipes:
     """Exercise the broadened fence scanner against the verified surface."""
 
-    def test_atomic_write_prose_not_flagged(self) -> None:
-        """Atomic-write *prose* (no fence) is never flagged.
+    @pytest.mark.parametrize(
+        ("case_id", "snippet"),
+        list(CLEAN_FENCES.items()),
+        ids=list(CLEAN_FENCES),
+    )
+    def test_clean_fence_not_flagged(self, case_id: str, snippet: str) -> None:
+        """Each verified-clean snippet carries no direct ``state.toml`` write.
 
-        Synthetic fixture reconstructing the real reference's prose — the
-        line-60-61 summary plus the numbered "Discipline" list — which carries
-        the atomic-write discipline outside any fence. It is not a copy of a
-        fenced block.
+        The per-rationale clean cases (atomic-write prose, the two
+        ``state.toml.new`` temp-file writes, read-only opens, unrelated and
+        indented redirects, the ``pycon`` read-only session, the ``novel state``
+        example, and the non-executable fence) share a single skeleton, so they
+        are folded into this parametrized table; the former per-method docstrings
+        survive as the ``CLEAN_FENCES`` entry comments and as the ``case_id``
+        ids (roadmap 7.6.3.7).
         """
-        prose = (
-            "The agent's primary memory is written atomically (write to "
-            "`state.toml.new`, fsync, rename) at the end.\n\n"
-            "Discipline:\n\n"
-            "1. Write state.toml via a temporary file in working/, then "
-            "atomically rename it over working/state.toml, so a crash never "
-            "leaves a torn file.\n"
+        assert not find_direct_state_write_recipes(snippet), (
+            f"clean case {case_id!r} must not be flagged"
         )
-        assert not find_direct_state_write_recipes(prose)
-
-    def test_python_write_to_new_temp_not_flagged(self) -> None:
-        """A Python write to the ``state.toml.new`` temporary is clean.
-
-        The sanctioned atomic-write pattern (design §3.4, §5.3) writes the
-        ``state.toml.new`` temporary and renames it over the live file. The
-        live-file gate is anchored on a filename boundary, so the
-        ``state.toml.new`` write — where the live ``state.toml`` is never named
-        as a bare reference — must not be mistaken for a direct edit. Before the
-        anchor fix the bare ``state.toml`` substring inside ``state.toml.new``
-        false-flagged this temp-file write.
-        """
-        fence = (
-            "```python\n"
-            "tmp = Path('working/state.toml.new')\n"
-            "tmp.write_text(serialise(doc))\n"
-            "tmp.replace(tmp.with_suffix(''))  # atomic rename over the live file\n"
-            "```\n"
-        )
-        assert not find_direct_state_write_recipes(fence)
-
-    def test_shell_redirect_to_new_temp_not_flagged(self) -> None:
-        """A shell redirect to the ``state.toml.new`` temporary is clean.
-
-        Mirrors the Python case for the shell redirect rule: a redirect to the
-        ``state.toml.new`` temporary, renamed over the live file via a
-        parameter-expanded destination, is the atomic discipline, not a direct
-        write. Before the anchor fix the redirect rule matched the bare
-        ``state.toml`` inside ``state.toml.new``.
-        """
-        fence = (
-            "```sh\n"
-            "tmp=working/state.toml.new\n"
-            "printf 'x = 1\\n' > \"$tmp\"\n"
-            'mv "$tmp" "${tmp%.new}"  # atomic rename over the live file\n'
-            "```\n"
-        )
-        assert not find_direct_state_write_recipes(fence)
-
-    def test_read_only_open_not_flagged(self) -> None:
-        """A read-only ``open(..., "rb")`` of state.toml is not flagged."""
-        fence = (
-            "```python\n"
-            "import tomllib\n"
-            'data = tomllib.load(open("working/state.toml", "rb"))\n'
-            "```\n"
-        )
-        assert not find_direct_state_write_recipes(fence)
-
-    def test_unrelated_redirect_not_flagged(self) -> None:
-        """A redirect to a different path is not flagged."""
-        fence = "```sh\necho done > /tmp/foo\n```\n"
-        assert not find_direct_state_write_recipes(fence)
-
-    def test_unrelated_no_space_redirect_not_flagged(self) -> None:
-        """A no-space redirect to a different path is not flagged.
-
-        Pairs with the no-space planted rows: allowing zero-or-more whitespace
-        after the operator must not loosen the path anchor, so
-        ``echo done >/tmp/foo`` (no space, different path) stays clean.
-        """
-        fence = "```sh\necho done >/tmp/foo\n```\n"
-        assert not find_direct_state_write_recipes(fence)
-
-    def test_indented_unrelated_redirect_not_flagged(self) -> None:
-        """An indented redirect to a different path stays clean.
-
-        Pairs with the indented-recipe planted row: dedenting the fence body
-        must not turn a path-anchored redirect into a redirect-anywhere rule,
-        so a list-nested ``echo done > /tmp/foo`` is still ignored.
-        """
-        fence = "1. Marker step:\n\n   ```sh\n   echo done > /tmp/foo\n   ```\n"
-        assert not find_direct_state_write_recipes(fence)
-
-    def test_pycon_read_only_session_not_flagged(self) -> None:
-        """A ``pycon`` REPL transcript that only reads state.toml is clean.
-
-        The ``>>>`` prompt must not be misread as a ``>>`` append operator, so
-        a read-only ``tomllib.load(open(..., "rb"))`` console session carries
-        no write signal and is not flagged.
-        """
-        fence = (
-            "```pycon\n"
-            ">>> import tomllib\n"
-            '>>> tomllib.load(open("working/state.toml", "rb"))\n'
-            "```\n"
-        )
-        assert not find_direct_state_write_recipes(fence)
-
-    def test_novel_state_example_not_flagged(self) -> None:
-        """A ``novel state`` invocation example is not flagged."""
-        fence = "```sh\nnovel state set-cursor --chapter 7\n```\n"
-        assert not find_direct_state_write_recipes(fence)
-
-    def test_non_executable_fence_ignored(self) -> None:
-        """A ``toml`` fence naming state.toml is illustration, not a recipe."""
-        fence = "```toml\n# working/state.toml schema\nschema_version = 1\n```\n"
-        assert not find_direct_state_write_recipes(fence)
 
     @pytest.mark.parametrize(
         ("label", "recipe"),
@@ -348,7 +241,26 @@ class TestSkillReferenceGuard:
         the reviewed inventory. The guard above scans whatever the glob returns,
         so a stale inventory cannot neuter it.
         """
-        assert set(skill_markdown_documents) == _KNOWN_SKILL_MARKDOWN
+        assert set(skill_markdown_documents) == KNOWN_SKILL_MARKDOWN
+
+    def test_no_non_md_markdown_like_reference(self, project_root: Path) -> None:
+        """No ``.markdown``/``.mdx``/``.mkd`` reference hides from the guard.
+
+        The discovery glob is hard-coded to ``**/*.md``, so a markdown-like
+        reference under another extension would carry a hand-edit recipe the
+        multi-file guard never scans. This tripwire pins the gate assumption that
+        every executable-carrying skill reference ends in ``.md``; a stray file
+        fails here and forces a human to widen the glob (task 7.6.4).
+        """
+        stray = sorted(
+            "/".join(path.relative_to(project_root).parts)
+            for suffix in (".markdown", ".mdx", ".mkd")
+            for path in project_root.glob(f"skill/novel-ralph/**/*{suffix}")
+        )
+        assert not stray, (
+            "markdown-like skill references must use the .md extension so the "
+            f"**/*.md discovery glob scans them; widen the glob (task 7.6.4): {stray}"
+        )
 
     def test_done_conditions_predicate_pseudocode_not_flagged(self) -> None:
         """The read-only predicate ``python`` fence shape is not flagged.

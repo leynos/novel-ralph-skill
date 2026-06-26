@@ -31,6 +31,14 @@ _PYTHON_INFO_STRINGS = frozenset({"python", "python3", "py", "py3", "pycon"})
 # ``text``/``toml``/``markdown``/``json`` are illustration only and are never
 # scanned, so the ``toml`` schema fence and the atomic-write prose (which lives
 # outside any fence) cannot trip the guard.
+#
+# Accepted gap (deferred to task 7.6.4): ``console`` is executable but lives in
+# the shell set, not :data:`_PYTHON_INFO_STRINGS`, so the bare ``.write(``
+# backstop never fires inside it. A ``console`` transcript that drives Python
+# through ``python -c '...state.toml...write(...)'`` therefore slips the guard
+# unless it also uses a library writer, ``open(`` with a write mode, or a
+# redirect. Widening the bare ``.write(`` backstop to ``console`` would false-flag
+# unrelated shell ``.write(`` tokens, so closing this hole is left to task 7.6.4.
 _EXECUTABLE_INFO_STRINGS = _PYTHON_INFO_STRINGS | frozenset({
     "sh",
     "bash",
@@ -131,8 +139,8 @@ def _dedent_fence_body(body: str, indent: str) -> str:
     )
 
 
-def _iter_executable_fences(markdown: str) -> list[tuple[str, str]]:
-    """Yield ``(info_string, body)`` for each executable code fence.
+def _executable_fences(markdown: str) -> list[tuple[str, str]]:
+    """Return ``(info_string, body)`` for each executable code fence.
 
     The info string is normalised to its first whitespace-delimited token in
     lower case (e.g. ``"console title=…"`` becomes ``"console"``). Only fences
@@ -187,7 +195,7 @@ def find_direct_state_write_recipes(markdown: str) -> list[str]:
     ADR-002 (``tomlkit`` is the only sanctioned writer).
     """
     messages: list[str] = []
-    for label, body in _iter_executable_fences(markdown):
+    for label, body in _executable_fences(markdown):
         token = _write_token(label, body)
         if token is not None:
             messages.append(
@@ -211,9 +219,8 @@ def find_direct_state_write_recipes_in_files(
     second matcher, so multi-file coverage reuses the single-file detector
     verbatim (roadmap 7.3.3; design §4.1; ADR-002).
     """
-    findings: dict[str, list[str]] = {}
-    for label, markdown in documents.items():
-        messages = find_direct_state_write_recipes(markdown)
-        if messages:
-            findings[label] = messages
-    return findings
+    return {
+        label: messages
+        for label, markdown in documents.items()
+        if (messages := find_direct_state_write_recipes(markdown))
+    }
