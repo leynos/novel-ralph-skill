@@ -61,9 +61,9 @@ def build_multiplexer() -> cyclopts.App:
     the four-flag contract and returns each mounted leaf's
     :class:`~novel_ralph_skill.contract.runner.CommandOutcome` to ``run``
     unchanged. The five ``build_app`` builders are imported inside this function
-    so the dispatcher preserves the per-command import laziness ``stub.py``
-    already relies on (the leaf modules pull in their state/predicate machinery
-    only when the multiplexer is actually built).
+    so the dispatcher preserves the per-command import laziness the retired
+    ``stub.py`` relied on (the leaf modules pull in their state/predicate
+    machinery only when the multiplexer is actually built).
 
     Returns
     -------
@@ -71,8 +71,9 @@ def build_multiplexer() -> cyclopts.App:
         The configured ``novel`` parent app exposing ``state``, ``done``,
         ``compile``, ``desloppify``, and ``wordcount`` as sub-apps.
     """
-    # Deferred imports: mirror ``stub.py``'s per-command laziness so building the
-    # multiplexer is the only place that pulls the five leaf modules in.
+    # Deferred imports: mirror the retired ``stub.py``'s per-command laziness so
+    # building the multiplexer is the only place that pulls the five leaf modules
+    # in.
     from novel_ralph_skill.commands import (
         _compile,
         _desloppify,
@@ -136,7 +137,7 @@ def _command_name_for(residual: list[str]) -> str:
 def main() -> None:
     """``novel`` console-script entry point: parse ``--human``, drive via ``run``.
 
-    Generalises the ``_drive`` shape ``stub.py`` uses: it splits the single
+    Generalises the ``_drive`` shape the retired ``stub.py`` used: it splits the single
     ``--human`` global flag off ``sys.argv`` (before ``run`` is reached, because
     ``run`` stamps the human selection into every envelope, including the
     body-less arms), derives the spaced command name from the residual argv, and

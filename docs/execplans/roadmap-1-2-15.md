@@ -1701,7 +1701,7 @@ sole console-script entry point is
 Lightweight follow-on corrections folded onto this completed task. Each runs as
 a no-plan, no-review pass: make the change, run the gates, merge.
 
-- **1.2.15.1 — Sweep the stale legacy command-name literals left in test and
+- [x] **1.2.15.1 — Sweep the stale legacy command-name literals left in test and
   source prose after the surface retirement** (from review:1.2.15 and
   audit:1.2.15; severity: low; three near-identical proposals merged). This task
   retired the hyphenated surface, deleted `stub.py`, and (per the Constraints

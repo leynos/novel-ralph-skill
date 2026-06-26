@@ -273,7 +273,7 @@ docs/scripting-standards.md.
     `COMMAND_ENTRY_POINTS` symbol remains; the parity coverage is preserved or its
     reduction is justified in the Decision Log; and `make all` (including the
     installed-binary e2e) is green.
-  - [ ] 1.2.15.1. Sweep the stale legacy command-name literals left in test and
+  - [x] 1.2.15.1. Sweep the stale legacy command-name literals left in test and
     source prose after the surface retirement.
     - Addendum (from review:1.2.15 and audit:1.2.15; low; three near-identical
       proposals merged). After 1.2.15 retired the hyphenated surface and deleted

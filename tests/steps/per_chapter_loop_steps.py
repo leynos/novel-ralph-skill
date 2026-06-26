@@ -160,7 +160,7 @@ def recount_clean(outcome: _Outcome) -> None:
     assert result["by_chapter"] == _DRAFTED_BY_CHAPTER
 
 
-@when("novel-done runs against the loop tree")
+@when("novel done runs against the loop tree")
 def run_novel_done(outcome: _Outcome, monkeypatch: pytest.MonkeyPatch) -> None:
     """Drive ``novel done`` and capture its envelope."""
     outcome.captures["novel done"] = _run_capturing(
@@ -168,7 +168,7 @@ def run_novel_done(outcome: _Outcome, monkeypatch: pytest.MonkeyPatch) -> None:
     )
 
 
-@then("novel-done exits 0 and every done clause holds")
+@then("novel done exits 0 and every done clause holds")
 def novel_done_clean(outcome: _Outcome) -> None:
     """Assert ``novel done`` declares the tree done: exit 0, every §4.2 clause true."""
     code, _envelope = outcome.captures["novel done"]
@@ -177,7 +177,7 @@ def novel_done_clean(outcome: _Outcome) -> None:
     assert all(result.values()), f"every done clause must hold, got {result}"
 
 
-@when("wordcount runs against the loop tree")
+@when("novel wordcount runs against the loop tree")
 def run_wordcount(outcome: _Outcome, monkeypatch: pytest.MonkeyPatch) -> None:
     """Drive ``novel wordcount`` and capture its envelope."""
     outcome.captures["novel wordcount"] = _run_capturing(
@@ -185,7 +185,7 @@ def run_wordcount(outcome: _Outcome, monkeypatch: pytest.MonkeyPatch) -> None:
     )
 
 
-@then("wordcount exits 0 and reports all three knitting gates crossed")
+@then("novel wordcount exits 0 and reports all three knitting gates crossed")
 def wordcount_gates_crossed(outcome: _Outcome) -> None:
     """Assert ``novel wordcount`` reports all three crossed gates over the total.
 
@@ -205,7 +205,7 @@ def wordcount_gates_crossed(outcome: _Outcome) -> None:
     assert cumulative["gate_triggered_80"] is True
 
 
-@when("desloppify runs against the loop tree")
+@when("novel desloppify runs against the loop tree")
 def run_desloppify(outcome: _Outcome, monkeypatch: pytest.MonkeyPatch) -> None:
     """Drive ``novel desloppify`` and capture its envelope."""
     outcome.captures["novel desloppify"] = _run_capturing(
@@ -213,7 +213,7 @@ def run_desloppify(outcome: _Outcome, monkeypatch: pytest.MonkeyPatch) -> None:
     )
 
 
-@then("desloppify exits 0 with no violations over the drafted total")
+@then("novel desloppify exits 0 with no violations over the drafted total")
 def desloppify_clean(outcome: _Outcome) -> None:
     """Assert ``novel desloppify`` finds no violations over the total: exit 0."""
     code, _envelope = outcome.captures["novel desloppify"]
@@ -223,7 +223,7 @@ def desloppify_clean(outcome: _Outcome) -> None:
     assert result["total_words"] == _DRAFTED_TOTAL
 
 
-@when("novel-compile --check runs against the loop tree")
+@when("novel compile --check runs against the loop tree")
 def run_compile_check(outcome: _Outcome, monkeypatch: pytest.MonkeyPatch) -> None:
     """Drive ``novel compile --check`` (the read surface) and capture its envelope."""
     outcome.captures["novel compile"] = _run_capturing(
@@ -231,7 +231,7 @@ def run_compile_check(outcome: _Outcome, monkeypatch: pytest.MonkeyPatch) -> Non
     )
 
 
-@then("novel-compile --check exits 0 and reports the compile is not diverged")
+@then("novel compile --check exits 0 and reports the compile is not diverged")
 def compile_check_clean(outcome: _Outcome) -> None:
     """Assert ``novel compile --check`` finds the compile matching: exit 0."""
     code, _envelope = outcome.captures["novel compile"]
@@ -266,7 +266,7 @@ def stale_compile_tree(tmp_path: Path) -> _Outcome:
     return _Outcome(working=working)
 
 
-@then("novel-done exits 4 reporting the compile is not consistent")
+@then("novel done exits 4 reporting the compile is not consistent")
 def novel_done_stale(outcome: _Outcome) -> None:
     """Assert ``novel done`` flags the stale compile at exit 4, the carve-out."""
     code, _envelope = outcome.captures["novel done"]
@@ -276,7 +276,7 @@ def novel_done_stale(outcome: _Outcome) -> None:
     assert _result(outcome, "novel done")["compile_consistent"] is False
 
 
-@then("novel-compile --check exits 4 reporting the compile is diverged")
+@then("novel compile --check exits 4 reporting the compile is diverged")
 def compile_check_stale(outcome: _Outcome) -> None:
     """Assert ``novel compile --check`` reports the divergent compile at exit 4."""
     code, _envelope = outcome.captures["novel compile"]

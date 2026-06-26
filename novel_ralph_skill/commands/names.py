@@ -1,11 +1,12 @@
 """Single source of truth for the console-script and subcommand names.
 
-Roadmap task 1.2.4 collapsed the previously duplicated name lists (in
-``stub.py``, ``pyproject.toml``, and three test modules) onto this one registry.
-Roadmap task 1.2.12 (ADR 007) stood up the ``novel`` multiplexer beside the
-legacy five and added the *spaced* subcommand vocabulary the multiplexer stamps
-into its envelopes; task 1.2.15 retired the legacy surface, so the registry now
-describes exactly the single ``novel`` multiplexer the package ships.
+Roadmap task 1.2.4 collapsed the previously duplicated name lists (in the
+since-retired ``stub.py``, ``pyproject.toml``, and three test modules) onto this
+one registry. Roadmap task 1.2.12 (ADR 007) stood up the ``novel`` multiplexer
+beside the legacy five and added the *spaced* subcommand vocabulary the
+multiplexer stamps into its envelopes; task 1.2.15 retired the legacy surface
+(``stub.py`` among it), so the registry now describes exactly the single
+``novel`` multiplexer the package ships.
 
 The registry serves two roles:
 
