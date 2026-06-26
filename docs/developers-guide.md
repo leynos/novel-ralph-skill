@@ -55,6 +55,26 @@ cross the usage error (exit 2) and the state-or-input error (exit 3) over the
 installed `novel` in both output modes, and carries the same `slow` /
 `timeout(180)` / POSIX-`skipif` marks as the other installed e2es.
 
+[`tests/test_novel_state_check.py`](../tests/test_novel_state_check.py)'s
+`test_installed_novel_state_check_exits_zero` is the installed-boundary
+*success*-arm counterpart (roadmap task 6.3.6). It consumes the same
+`installed_novel_state`, `single_program_catalogue`, and `baseline_tree`
+fixtures by name and pins the full installed exit-0 envelope-skeleton identity
+over the wheel for `novel state check`: the six contract keys in
+`ENVELOPE_KEY_ORDER`, `schema_version`, `command == "novel state"`, the
+`ok`-iff-exit-0 mapping, the resolved-absolute `working_dir`,
+`result["violations"] == []`, and `str`-typed `messages` — not merely
+`exit_code == 0` and `ok`. It asserts against the same constants the in-process
+`tests/cross_command_contract/` identity proof uses, so it is that proof's
+installed mirror: deliberately a single tripwire over one representative
+command, not a re-run of the command × channel matrix. It was extended in place
+rather than split into a new module to avoid a second module-scoped wheel build,
+and it carries the same `slow` / `timeout(180)` / POSIX-`skipif` marks as the
+other installed e2es. The boundary between the three proofs is therefore: this
+test covers the *success* arm, `test_console_scripts_error_arms_e2e.py` covers
+the *error* arms (exit 2/3), and `tests/cross_command_contract/` pins the same
+skeleton identity *in-process* across all five commands.
+
 The in-process command-drive seam shared by the command-surface matrix and the
 cross-command contract suite lives in the registered plugin module
 [`tests/contract_drive_support.py`](../tests/contract_drive_support.py) (roadmap

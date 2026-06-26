@@ -2255,7 +2255,7 @@ and adr-003-shared-interface-contract.md.
     message naming the `working/` tree and a remedy, with no raw `Errno`/`{exc}`
     text; all six draft-read call sites and the mutator view-derivation boundary
     emit the shared actionable prose; and the affected command suites stay green.
-- [ ] 6.3.6. Extend the cross-command identity proof to the installed-wheel
+- [x] 6.3.6. Extend the cross-command identity proof to the installed-wheel
   boundary as a single tripwire.
   - Step-task (source: review:6.3.2; severity: low). Serves the §6.3 hypothesis
     that "every command presents an identical exit-code and envelope contract":

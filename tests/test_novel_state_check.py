@@ -30,13 +30,16 @@ import sys
 import typing as typ
 
 import pytest
+from cross_command_contract import ENVELOPE_KEY_ORDER
 from cuprum import sh
 from cuprum.program import Program
 from cuprum.sh import ExecutionContext
 
 from novel_ralph_skill.commands import novel
+from novel_ralph_skill.commands.names import ENVELOPE_COMMAND_NAMES
 from novel_ralph_skill.commands.novel_state import build_app
 from novel_ralph_skill.contract import parse_global_flags
+from novel_ralph_skill.contract.envelope import ENVELOPE_SCHEMA_VERSION
 from novel_ralph_skill.contract.exit_codes import ExitCode
 from novel_ralph_skill.contract.runner import RunContext, run
 
@@ -326,6 +329,16 @@ def test_installed_novel_state_check_exits_zero(
     ``installed_novel_state`` fixture supplies the built-and-installed script path
     (built once per module). The 180s timeout supersedes the 30s project default
     (pyproject ``timeout = 30``).
+
+    Beyond exit ``0`` and ``ok: true``, this is the installed-boundary success-arm
+    *skeleton-identity* tripwire (roadmap 6.3.6): it pins the full exit-0 envelope
+    skeleton over the wheel — the six contract keys in ``ENVELOPE_KEY_ORDER``,
+    ``schema_version``, ``command == "novel state"`` (a member of
+    ``ENVELOPE_COMMAND_NAMES``), the ``ok``-iff-exit-0 mapping, the
+    resolved-absolute ``working_dir``, ``result["violations"] == []``, and
+    ``str``-typed ``messages`` — against the same constants the in-process
+    cross-command suite (``tests/cross_command_contract/``) uses, so the installed
+    surface cannot silently diverge from the in-process contract pinned by 6.3.2.
     """
     dest = tmp_path / "run"
     dest.mkdir()
@@ -340,5 +353,28 @@ def test_installed_novel_state_check_exits_zero(
         context=ExecutionContext(cwd=dest), capture=True
     )
     assert result.exit_code == 0, result.stderr
+    # A clean run yields a message, not a stack trace (design §10).
+    assert "Traceback" not in (result.stderr or "")
     envelope = json.loads(result.stdout or "{}")
     assert envelope["ok"] is True
+    # The full exit-0 envelope-skeleton identity, observed over the wheel: the
+    # six contract keys in the order ``render_machine`` emits them, the same
+    # ``ENVELOPE_KEY_ORDER`` the in-process cross-command suite pins (6.3.2).
+    assert tuple(envelope) == ENVELOPE_KEY_ORDER
+    assert envelope["command"] == _COMMAND
+    assert envelope["command"] in ENVELOPE_COMMAND_NAMES
+    assert envelope["schema_version"] == ENVELOPE_SCHEMA_VERSION
+    # ``ok`` is true iff the exit code is success (design §3.1), here over the
+    # installed surface.
+    assert envelope["ok"] is (result.exit_code == ExitCode.SUCCESS)
+    # The installed binary stamps the resolved-absolute ``working_dir`` (roadmap
+    # 6.3.4), not the ``"working"`` token the in-process suite asserts; compute
+    # the expected value the production way from ``dest`` so symlink
+    # normalisation under ``tmp_path`` cannot desynchronise the two sides.
+    assert envelope["working_dir"] == str((dest / "working").resolve())
+    # The checker's coherent-tree body payload: an empty ``violations`` list, the
+    # installed mirror of ``test_check_coherent_tree_exits_zero``.
+    assert isinstance(envelope["result"], dict)
+    assert envelope["result"]["violations"] == []
+    assert isinstance(envelope["messages"], list)
+    assert all(isinstance(message, str) for message in envelope["messages"])
