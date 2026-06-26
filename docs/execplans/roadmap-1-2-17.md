@@ -786,3 +786,19 @@ written into the three references. No new dependency is introduced.
   files, with the test-file and 1.2.8.5 reversions gone. Deterministic gates
   (`make all`, `make markdownlint`, `make nixie`) re-run green after the rebase.
   No sweep edit, gate command, or scope boundary changed.
+
+## Addenda
+
+- 1.2.17.1 (from review:1.2.17 and audit:1.2.17; medium; two near-identical
+  proposals merged). Sweep the residual flag-bearing `desloppify --pack` and
+  `desloppify --ledger` console-script invocations in
+  `skill/novel-ralph/references/desloppify-checklist.md` (around lines 294 and
+  302) to the `novel desloppify --pack` / `novel desloppify --ledger` surface.
+  This sibling reference file shares the same directory 1.2.17 swept but sits
+  outside this plans three-file success criterion (`state-layout.md`,
+  `done-conditions.md`, `critic-personas.md`), so its retired flag-bearing
+  surface survived untracked. The flags distinguish these from the preserved
+  noun-form `desloppify` mentions that name the desloppification operation
+  rather than the retired console-script; preserve every noun-form mention.
+  Lightweight addendum pass: no plan or design-review cycle, just the two
+  invocation flips, the gates (`make markdownlint`, `make nixie`), and a merge.

@@ -344,6 +344,18 @@ docs/scripting-standards.md.
     survives in the three reference files, the noun-form `desloppify` pass is
     preserved where it names the operation rather than the retired script, and
     `make markdownlint` and `make nixie` pass on the edited references.
+  - [ ] 1.2.17.1. Sweep the residual flag-bearing `desloppify --pack`/`--ledger`
+    console-script invocations in `desloppify-checklist.md` to the
+    `novel desloppify` surface.
+    - Addendum (from review:1.2.17 and audit:1.2.17; medium; two near-identical
+      proposals merged). `skill/novel-ralph/references/desloppify-checklist.md`
+      (around lines 294 and 302) still presents `desloppify --pack …` and
+      `desloppify --ledger …` as runnable flag-bearing invocations of the retired
+      console-script; this sibling reference file sits outside 1.2.17's
+      three-file success criterion, so the retired surface survives untracked.
+      Flip the two flag-bearing invocations to `novel desloppify --pack …` /
+      `novel desloppify --ledger …` while preserving every noun-form `desloppify`
+      mention that names the operation. Lightweight addendum pass.
 - [x] 1.2.16. Sweep the users' and developers' guides to the `novel` multiplexer
   surface.
   - Remediation (source: audit:1.2.13; severity: medium). Task 1.2.14's wording
@@ -2601,6 +2613,28 @@ deterministic spine.
     current change set, a docs edit produces no spurious whole-tree Markdown
     churn, and `make markdownlint` still holds the committed Markdown to the same
     standard.
+- [ ] 7.5.4. Define a canonical location and edit-scope policy for Logisphere
+  design-review artefacts.
+  - Reroute (source: review:1.2.17; severity: low). Task 1.2.17 committed
+    `docs/execplans/roadmap-1-2-17.review-r1.md` alongside the ExecPlan, but the
+    ExecPlan's own edit-scope Constraint names only the deliverable files, so
+    review artefacts (`*.review-r*.md`, `*.logisphere-review-r*.md`) land in
+    execplan-scoped edits with no declared home, creating recurring ambiguity for
+    adversarial scope reviews. This serves the step-7.5 hypothesis — whether the
+    documentation gates can be made robust to the predictable churn a review
+    cycle leaves behind — by settling, alongside 7.5.1's gate handling, a
+    repo-wide convention for where these artefacts live and whether they count
+    toward a task's edit-scope, so the advisory stops recurring. It does not
+    advance the step-1.2 packaging-supports-invocation hypothesis where it was
+    raised; it is a cross-cutting documentation-process convention, deferred here.
+  - Requires 1.3.1.
+  - See AGENTS.md; docs/scripting-standards.md; the `execplans` and
+    `logisphere-design-review` skills; docs/execplans/ (the existing
+    `*.review-r*.md` artefacts).
+  - Success: one recorded decision fixes the canonical location for design-review
+    artefacts and states whether they count toward a task's declared edit-scope;
+    AGENTS.md or docs/scripting-standards.md names the convention; and the
+    convention is consistent with 7.5.1's gate handling for the same files.
 
 ### 7.6. Harden the state-validation lane against inert assertions
 
@@ -4650,3 +4684,86 @@ and SKILL.md Phases 8-9.
     confirms a representative manuscript lands within the Phase 9 97–103% band
     (or the bands are retuned from the data so it does), and the recorded headroom
     factor is justified by the measurement rather than the original estimate.
+
+### 7.35. Reconcile the later ADRs and the contents index with the retired command surface
+
+This step answers whether the documentation surfaces that ADR 007's migration
+plan never scoped — the post-005 ADRs (008-010) authored against the
+`novel-state` form and the live `docs/contents.md` index — can be reconciled
+with the single `novel` surface the packaging now ships, while the superseded
+ADR 005 keeps the retired names as its historical record. Its outcome is a
+documentation tree where every live index and inline command example names the
+current surface, and the only retired-surface mentions that remain are the
+deliberately preserved superseded record (ADR 005) and any narrative
+surface-notes the later ADRs need. This is a deferred documentation-currency
+extension surfaced by the audit of step 1.2.17; it does not advance the step-1.2
+packaging-supports-invocation hypothesis (the surface is already retired and the
+packaging works) and it does not gate the deterministic spine.
+
+- [ ] 7.35.1. Reconcile the command surface in ADRs 008-010 and `contents.md`
+  with ADR 007.
+  - Reroute (source: audit:1.2.17; severity: low). ADRs 008-010 (authored
+    against the `novel-state` surface) and the `docs/contents.md` index still
+    name the retired surface — ADR 008 (around line 52) presents a runnable
+    `novel-state set-chapters` bash example, and `contents.md`, a live index,
+    names `novel-state set-chapters`, `novel-state check`, and the gate/drafting
+    mutators in the retired form. ADR 007's migration plan never scoped these.
+    Either flip the inline invocations to the `novel <sub>` form while preserving
+    each ADR's narrative, or add an ADR-007 surface-note to ADRs 008-010;
+    `contents.md`, being a live index, should name the current surface
+    regardless. ADR 005 must keep the retired names as its superseded record.
+    This serves the step-7.35 documentation-currency hypothesis — making the live
+    indices and inline examples name the shipped surface — not the step-1.2
+    packaging-supports-invocation hypothesis where it was raised; it is
+    documentation reconciliation, deferred here.
+  - Requires 1.2.14, 1.2.16, and 1.2.17.
+  - See adr-007-command-surface-novel-multiplexer.md;
+    docs/adr-008-chapter-manifest-mutator.md;
+    docs/adr-009-drafting-bijection-relaxation.md;
+    docs/adr-010-gate-drafting-mutators.md; docs/contents.md.
+  - Success: no runnable retired `novel-state`/`novel-compile` invocation
+    survives in ADRs 008-010 or `docs/contents.md` (each is flipped to the
+    `novel <sub>` form or carries an explicit ADR-007 surface-note), the
+    `contents.md` index names the current surface, ADR 005 keeps the retired
+    names as its superseded record, and `make markdownlint` and `make nixie`
+    pass on the edited docs.
+
+### 7.36. Single-home the validate-before-persist skeleton across the state mutators
+
+This step answers whether the verbatim load → structural-proof → edit →
+re-view → refuse-if-incoherent → write skeleton that each `state.toml` mutator
+repeats can be lifted into one higher-order seam, so the validate-before-persist
+ordering and the structural-completeness proof have a single home that every
+mutator inherits rather than re-spelling. Its outcome is a mutator layer where
+each subcommand supplies only its edit closure and result shape, and the
+refuse-to-write-an-incoherent-document discipline cannot drift per command. This
+is a deferred maintainability-hardening extension surfaced by the audit of step
+1.2.17; it does not advance the step-1.2 packaging-supports-invocation
+hypothesis (the mutators already refuse to persist an incoherent document and
+`make all` is green) and it does not gate the deterministic spine.
+
+- [ ] 7.36.1. Extract a higher-order validate-before-persist helper for the five
+  state mutators.
+  - Reroute (source: audit:1.2.17; severity: low). `set_cursor` and the four
+    gate/drafting mutators in `novel_ralph_skill/commands/_state_mutators.py`
+    repeat a verbatim load → structural-proof → edit → re-view →
+    refuse-if-incoherent → write skeleton, differing only in the edit step and
+    the result shape, so the validate-before-persist ordering and the
+    structural-completeness proof live in five places at once. Extract a
+    higher-order helper (or context manager) so each mutator supplies only its
+    edit closure and result, keeping per-mutator preconditions as an optional
+    pre-edit hook. This serves the step-7.36 mutator-single-home hypothesis —
+    one home for the validate-before-persist skeleton — not the step-1.2
+    packaging-supports-invocation hypothesis where it was raised; it is
+    cross-cutting mutator-layer DRY hardening, deferred here.
+  - Requires 2.2.1.
+  - See novel-ralph-harness-design.md §3.4 and §5.4;
+    docs/adr-001-deterministic-judgemental-boundary.md;
+    docs/adr-003-shared-interface-contract.md;
+    novel_ralph_skill/commands/_state_mutators.py.
+  - Success: one higher-order helper owns the load → structural-proof → edit →
+    re-view → refuse-if-incoherent → write skeleton; `set_cursor` and the four
+    gate/drafting mutators each supply only their edit closure, result shape, and
+    optional precondition hook rather than re-spelling the skeleton; the
+    refuse-on-incoherence behaviour is unchanged; and every mutator suite stays
+    green.
