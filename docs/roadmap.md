@@ -2089,7 +2089,7 @@ novel-ralph-harness-design.md §2.3 and §9.
       COMPLETE, never-landed-ROLLBACK, and partial-landed-ROLLBACK halves of the
       §5.4 reconciliation surface; enumerate the full scenario family so the
       developer documentation map stays current. Lightweight addendum pass.
-- [ ] 6.2.14. Add a command-boundary partial-landed ROLLBACK scenario for an
+- [x] 6.2.14. Add a command-boundary partial-landed ROLLBACK scenario for an
   unrecoverable `done.flag`.
   - Step-task (source: review:6.2.12; severity: low). `_classify_pending_turn`
     treats both `draft.md` and `done.flag` as unrecoverable `ROLLBACK` triggers,

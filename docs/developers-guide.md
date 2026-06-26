@@ -1023,10 +1023,18 @@ exercised end-to-end through the real command boundary:
   turn whose declared artefact (a missing `draft.md` body or a missing
   `done.flag`) never landed is reported by `check` and rolled back by `reconcile`
   in a single pass, with a rollback-pending-turn receipt appended to `log.md`.
-- **partial-landed ROLLBACK** — `torn_turn_rollback_partial.feature` (task
-  6.2.13): a torn `write-draft` turn that left a partial temp-file residue —
-  unpromoted by `Path.replace`, unreferenced by state — is likewise reported and
-  rolled back, with the residue preserved byte-for-byte on disk.
+- **partial-landed ROLLBACK** — a torn turn that left a partial `.tmp` residue,
+  unpromoted by `Path.replace` and unreferenced by state, is likewise reported
+  by `check` and rolled back by `reconcile`, with the residue preserved
+  byte-for-byte on disk. Both unrecoverable triggers are covered: a torn
+  `write-draft` turn that left a partial `draft.md` residue
+  (`torn_turn_rollback_partial.feature`, task 6.2.12) and a torn `mark-done`
+  turn that left a partial `done.flag` residue
+  (`torn_turn_rollback_partial_done_flag.feature`, task 6.2.14). Each residue
+  lands inside an existing manifest chapter directory so the manifest-disk
+  bijection still holds, and the `done.flag` residue uses a non-`done.flag`
+  filename so the `done-flag-without-draft` detector never fires — both keep the
+  disposition ROLLBACK rather than REFUSE.
 
 The round-trip and surgical-mutation guarantees are pinned by Hypothesis
 properties over a hand-authored, comment-and-layout-bearing fixture.
