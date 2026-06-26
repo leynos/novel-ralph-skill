@@ -2129,15 +2129,24 @@ and adr-003-shared-interface-contract.md.
   - Requires 2.2.2 and 1.2.12.
   - A missing or unreadable `working/state.toml` currently surfaces the raw
     `OSError` string (`[Errno 2] No such file or directory: 'working/state.toml'`)
-    in the envelope `messages`. Replace it, at the shared state-loading boundary
-    so every command benefits, with an actionable message naming the directory
-    and the remedy — e.g. `no novel working/ found in <cwd>; run from the novel
-    root, or 'novel state init' to create one`.
+    in the envelope `messages`. Replace it with an actionable message naming the
+    directory and the remedy — e.g. `no novel working/ found in <cwd>; run from
+    the novel root, or 'novel state init' to create one`. NOTE: there is NOT a
+    single state-loading boundary — there are TWO producers of the raw `cannot
+    load {path}: {exc}` message, and both must be fixed identically or the
+    message drifts between commands (the very inconsistency 6.3 exists to close):
+    `_load_or_state_error` in `novel_ralph_skill/commands/novel_state.py` (wraps
+    `load_state`/`tomllib`, used by the reader/checker/state verbs) and
+    `_load_document_or_state_error` in
+    `novel_ralph_skill/commands/_state_mutators.py` (wraps
+    `load_document`/`tomlkit`, used by the mutators). Route both through one
+    shared actionable-message helper so they cannot diverge.
   - See novel-ralph-harness-design.md §3.2 and §3.4.
   - Success: a behavioural test drives a command from a directory with no
     `working/` and asserts exit 3 with an actionable message that names the cwd
     and the remedy, with no raw `Errno`/traceback text, for at least one command
-    of each class (mutator, checker, reader).
+    of each class (mutator, checker, reader) — proving BOTH boundaries emit the
+    identical actionable message.
 - [ ] 6.3.2. Pin cross-command exit-code and envelope-schema consistency with a
   shared behavioural suite and snapshots.
   - Requires phase 5, 6.1.1, and 1.2.12.
