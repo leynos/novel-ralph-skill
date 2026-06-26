@@ -6,17 +6,25 @@ diagnostic envelopes *before any command body runs*: the usage error (exit 2,
 state-or-input error (exit 3, ``StateInputError``) on a missing or unparseable
 ``state.toml`` or an absent working directory (design 3.2; ADR-003 3.1). Task
 6.2.8 crossed both arms in-process for all five read commands. This module
-crosses the **installed** half of that gap for one representative command,
-``novel state`` (driven through the single ``novel`` multiplexer per roadmap task
-1.2.13), over a built wheel: it observes the real console-script exiting 2 on a
-malformed invocation and 3 on an absent ``working/``, each in machine and human
+crosses the **installed** half of that gap over a built wheel for two
+representative commands — ``novel state`` (a command-group sub-app) and ``novel
+desloppify`` (a leaf default command), both driven through the single ``novel``
+multiplexer per roadmap task 1.2.13. It observes each real console-script exiting
+2 on a malformed invocation and 3 on an absent ``working/``, in machine and human
 mode, asserting the ``--human`` stamp survives the subprocess boundary and that
 the ``ok: false`` envelope skeleton matches the in-process contract. The
-dispatcher stamps the spaced ``"novel state"`` name into every envelope.
+dispatcher stamps the spaced subcommand name (``"novel state"`` or
+``"novel desloppify"``) into every envelope.
 
 The arms are command-agnostic — they are stamped by the shared ``run`` wrapper,
-not by any command body — so 6.2.8's all-five in-process proof makes one
-representative installed command sufficient (Decision D-ONECMD).
+not by any command body. Decision D-ONECMD crossed only ``novel state`` on the
+6.2.8 finding that the arms are stamped by the shared run wrapper, not the
+command bodies. Addendum 6.2.10.1 widens the installed matrix to a second command
+(``novel desloppify``, which differs structurally: a leaf default rather than a
+sub-app routed through a read subcommand) as a command-sensitivity tripwire, so a
+future change making the runner's arms command-sensitive — a command overriding
+``--human`` pre-parse, or the ``working_dir`` default — is caught at the installed
+boundary rather than silently uncovered.
 
 These e2es are POSIX-only (ADR-006): every external program runs by absolute
 path through a one-project cuprum ``ProgramCatalogue`` allowlist, with no raw
@@ -38,6 +46,7 @@ from cuprum import sh
 from cuprum.program import Program
 from cuprum.sh import ExecutionContext
 
+from novel_ralph_skill.contract.envelope import ENVELOPE_SCHEMA_VERSION
 from novel_ralph_skill.contract.exit_codes import ExitCode
 
 if typ.TYPE_CHECKING:
@@ -51,16 +60,54 @@ pytestmark = pytest.mark.skipif(
     reason="installed-binary e2e is POSIX-only; see ADR 006",
 )
 
-_COMMAND = "novel state"
+
+class _InstalledCommand(typ.NamedTuple):
+    """One installed surface and the argv shape that routes it onto its arms.
+
+    Bundling the spaced ``name`` with the ``mount_verb`` and ``read_subcommand``
+    that compose the run argv keeps the parametrized tests' parameter lists
+    within the project's argument-count gate while naming each field at the call
+    site, mirroring ``test_command_surface_matrix.py``'s ``_ReadCommand``.
+
+    Attributes
+    ----------
+    name : str
+        The spaced ``novel <verb>`` name the dispatcher stamps into every
+        envelope, including the body-less exit-2/exit-3 arms.
+    mount_verb : tuple[str, ...]
+        The verb mounting the command onto the ``novel`` multiplexer.
+    read_subcommand : tuple[str, ...]
+        Any read subcommand routing a command-group sub-app onto its real path;
+        empty for a leaf default command.
+    """
+
+    name: str
+    mount_verb: tuple[str, ...]
+    read_subcommand: tuple[str, ...]
+
+
 # ``novel state`` is a command-group sub-app of the ``novel`` multiplexer: a bare
 # ``novel state`` prints help and exits 0, so a read subcommand routes the
 # invocation onto the real path (the same reason ``test_console_scripts_e2e.py``
 # records for ``_REAL_PATH_ARGV``). The run argv mounts the ``state`` verb ahead
-# of the read subcommand, so the builder receives ``("state", "check", …)`` and
-# the dispatcher stamps the spaced ``"novel state"`` name into every envelope,
-# including the body-less exit-2/exit-3 arms (ExecPlan Decision Log D3).
-_MOUNT_VERB: tuple[str, ...] = ("state",)
-_READ_SUBCOMMAND: tuple[str, ...] = ("check",)
+# of the ``check`` read subcommand, so the builder receives ``("state", "check",
+# …)`` and the dispatcher stamps the spaced ``"novel state"`` name into every
+# envelope (ExecPlan Decision Log D3).
+_STATE_COMMAND = _InstalledCommand(
+    name="novel state",
+    mount_verb=("state",),
+    read_subcommand=("check",),
+)
+# ``novel desloppify`` is a leaf default command: the ``desloppify`` verb routes
+# straight onto its body, so it carries no read subcommand. It differs
+# structurally from ``novel state`` (sub-app + read subcommand), so crossing both
+# arms over it as well is the command-sensitivity tripwire of addendum 6.2.10.1.
+_DESLOPPIFY_COMMAND = _InstalledCommand(
+    name="novel desloppify",
+    mount_verb=("desloppify",),
+    read_subcommand=(),
+)
+_COMMANDS: tuple[_InstalledCommand, ...] = (_STATE_COMMAND, _DESLOPPIFY_COMMAND)
 
 
 class _ErrorArm(typ.NamedTuple):
@@ -131,24 +178,45 @@ def run_installed(
     return _run
 
 
+class _Cell(typ.NamedTuple):
+    """One ``(command, arm)`` cell of the installed error-arm matrix.
+
+    Bundling the command with its arm keeps each parametrized test at a single
+    parameter, mirroring ``test_command_surface_matrix.py``'s ``_ErrorCell``.
+    """
+
+    command: _InstalledCommand
+    arm: _ErrorArm
+
+
+_CELLS: tuple[_Cell, ...] = tuple(
+    _Cell(command, arm) for command in _COMMANDS for arm in _ARMS
+)
+_CELL_IDS: tuple[str, ...] = tuple(
+    f"{cell.command.mount_verb[0]}-{cell.arm.label}" for cell in _CELLS
+)
+
+
 def _run_installed_arm(
-    arm: _ErrorArm,
+    cell: _Cell,
     tmp_path: Path,
     run_installed: cabc.Callable[[Path, tuple[str, ...]], sh.CommandResult],
     *,
     human: bool,
 ) -> sh.CommandResult:
-    """Drive one diagnostic arm in one output mode over the installed binary.
+    """Drive one ``(command, arm)`` cell in one output mode over the binary.
 
     Derives ``run_dir`` from ``tmp_path`` internally (dropping it as a
     parameter), so the signature lands at four total — three positional plus one
     keyword-only — within the Pylint argument-count gate, mirroring the matrix
-    ``_drive_error_cell`` precedent.
+    ``_drive_error_cell`` precedent. The run argv mounts the command's verb, then
+    ``--human`` (when requested), then the command's read subcommand (empty for a
+    leaf default), then the arm's extra argv.
 
     Parameters
     ----------
-    arm : _ErrorArm
-        The diagnostic arm to drive.
+    cell : _Cell
+        The command and diagnostic arm to drive.
     tmp_path : Path
         The per-test temporary directory.
     run_installed : Callable[[Path, tuple[str, ...]], sh.CommandResult]
@@ -159,87 +227,110 @@ def _run_installed_arm(
     Returns
     -------
     sh.CommandResult
-        The result of running the installed ``novel state`` for this arm.
+        The result of running the installed command for this cell.
     """
-    run_dir = tmp_path / arm.label
+    command, arm = cell
+    run_dir = tmp_path / f"{command.mount_verb[0]}-{arm.label}"
     run_dir.mkdir(exist_ok=True)
     if arm.build_working:
         wc.build_working_tree(wc.PHASE_STATES["drafting"], run_dir)
     human_prefix = ("--human",) if human else ()
-    argv = (*_MOUNT_VERB, *human_prefix, *_READ_SUBCOMMAND, *arm.extra_argv)
+    argv = (
+        *command.mount_verb,
+        *human_prefix,
+        *command.read_subcommand,
+        *arm.extra_argv,
+    )
     return run_installed(run_dir, argv)
 
 
 @pytest.mark.slow
 @pytest.mark.timeout(180)
-@pytest.mark.parametrize("arm", _ARMS, ids=[a.label for a in _ARMS])
+@pytest.mark.parametrize("cell", _CELLS, ids=_CELL_IDS)
 def test_installed_error_arm_machine_envelope(
-    arm: _ErrorArm,
+    cell: _Cell,
     tmp_path: Path,
     run_installed: cabc.Callable[[Path, tuple[str, ...]], sh.CommandResult],
 ) -> None:
-    """The installed binary stamps the machine ``ok: false`` envelope per arm.
+    """The installed binary stamps the machine ``ok: false`` envelope per cell.
 
-    The installed ``novel state`` exits with the arm's code (2 usage, 3 state)
-    and prints the machine envelope to stdout: the named command, ``ok: false``,
-    ``working_dir == "working"``, ``result == {}``, and exactly one message
-    whose text begins with the arm's stable prefix (the message field is the
-    only command-/platform-variable part, so it is asserted by prefix). No
-    traceback reaches stderr (design 10 — a fault yields a message, not a stack
-    trace). The wheel is built once for the module and reused; the 180s timeout
-    supersedes the 30s project default.
+    Each installed command exits with the arm's code (2 usage, 3 state) and
+    prints the machine envelope to stdout: exactly one message whose text begins
+    with the arm's stable prefix (the message field is the only
+    command-/platform-variable part, so it is asserted by prefix), and — with
+    that message redacted — the complete contract envelope including
+    ``schema_version`` and the fixed field set. Pinning the whole envelope rather
+    than a per-field skeleton makes the boundary proof a complete mirror of the
+    in-process contract, so a ``schema_version`` bump or field-order regression
+    cannot survive packaging unobserved at the subprocess boundary (addendum
+    6.2.10.2). No traceback reaches stderr (design 10 — a fault yields a message,
+    not a stack trace). The wheel is built once for the module and reused; the
+    180s timeout supersedes the 30s project default.
     """
-    result = _run_installed_arm(arm, tmp_path, run_installed, human=False)
+    command, arm = cell
+    result = _run_installed_arm(cell, tmp_path, run_installed, human=False)
     assert result.exit_code == arm.expected_code, (
-        f"expected exit {arm.expected_code} for {arm.label} arm, "
+        f"expected exit {arm.expected_code} for {command.name} {arm.label} arm, "
         f"got {result.exit_code}; stderr: {result.stderr}"
     )
     assert "Traceback" not in (result.stderr or ""), (
         f"a state fault must yield a message, not a traceback: {result.stderr}"
     )
     envelope = json.loads(result.stdout or "{}")
-    assert envelope["command"] == _COMMAND, (
-        f"envelope must name the command: {envelope}"
-    )
-    assert envelope["ok"] is False, f"diagnostic arm must be ok: false: {envelope}"
-    assert envelope["working_dir"] == "working", (
-        f"envelope must carry working_dir 'working': {envelope}"
-    )
-    assert envelope["result"] == {}, f"diagnostic arm carries no result: {envelope}"
     messages = envelope["messages"]
     assert len(messages) == 1, f"expected exactly one message: {messages}"
     assert messages[0].startswith(arm.message_prefix), (
         f"message must begin with {arm.message_prefix!r}: {messages[0]!r}"
     )
+    # Pin the complete envelope contract at the installed boundary, redacting only
+    # the message (the sole command-/platform-variable field, asserted by prefix
+    # above). This mirrors the in-process matrix's full-envelope equality
+    # (``tests/test_command_surface_matrix.py`` lines 449-458) so the boundary
+    # proof is a complete mirror of the in-process contract: a ``schema_version``
+    # bump or field-order regression — neither caught by the per-field skeleton —
+    # cannot survive packaging unobserved at the subprocess boundary (addendum
+    # 6.2.10.2).
+    redacted = {**envelope, "messages": ["<redacted>"]}
+    assert redacted == {
+        "command": command.name,
+        "schema_version": ENVELOPE_SCHEMA_VERSION,
+        "ok": False,
+        "working_dir": "working",
+        "result": {},
+        "messages": ["<redacted>"],
+    }, f"boundary envelope must mirror the in-process contract: {envelope}"
 
 
 @pytest.mark.slow
 @pytest.mark.timeout(180)
-@pytest.mark.parametrize("arm", _ARMS, ids=[a.label for a in _ARMS])
+@pytest.mark.parametrize("cell", _CELLS, ids=_CELL_IDS)
 def test_installed_error_arm_human_stamp(
-    arm: _ErrorArm,
+    cell: _Cell,
     tmp_path: Path,
     run_installed: cabc.Callable[[Path, tuple[str, ...]], sh.CommandResult],
 ) -> None:
     """The ``--human`` stamp reaches the body-less arm over the subprocess boundary.
 
     Prepending ``--human`` on the installed binary's argv renders the
-    line-oriented report beginning ``command: novel state`` even on the
-    body-less diagnostic arms, proving the global flag survives the subprocess
-    boundary (the design 3.2 / ADR-003 3.1 point this task anchors). The
-    rendering also carries the diagnostic message, not merely the header, so the
-    arm's stable message prefix appears in the body. The arm still exits with
-    its expected code.
+    line-oriented report beginning ``command: <name>`` even on the body-less
+    diagnostic arms, proving the global flag survives the subprocess boundary
+    (the design 3.2 / ADR-003 3.1 point this task anchors). The rendering also
+    carries the diagnostic message, not merely the header, so the arm's stable
+    message prefix appears in the body. The arm still exits with its expected
+    code.
     """
-    result = _run_installed_arm(arm, tmp_path, run_installed, human=True)
+    command, arm = cell
+    result = _run_installed_arm(cell, tmp_path, run_installed, human=True)
     assert result.exit_code == arm.expected_code, (
-        f"expected exit {arm.expected_code} for {arm.label} arm, "
+        f"expected exit {arm.expected_code} for {command.name} {arm.label} arm, "
         f"got {result.exit_code}; stderr: {result.stderr}"
     )
     rendered = (result.stdout or "").strip()
     assert rendered, "human mode must render a non-empty report"
-    assert _COMMAND in rendered, f"human rendering must name the command: {rendered!r}"
-    assert rendered.startswith(f"command: {_COMMAND}"), (
+    assert command.name in rendered, (
+        f"human rendering must name the command: {rendered!r}"
+    )
+    assert rendered.startswith(f"command: {command.name}"), (
         f"human rendering must carry the --human stamp header: {rendered!r}"
     )
     assert arm.message_prefix in rendered, (

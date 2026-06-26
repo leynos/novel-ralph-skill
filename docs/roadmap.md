@@ -2003,7 +2003,7 @@ novel-ralph-harness-design.md §2.3 and §9.
     asserted against a real installed console-script over a built wheel, with the
     `--human` stamp and envelope shape pinned, closing the in-process-versus-binary
     asymmetry left after 6.2.8.
-  - [ ] 6.2.10.1. Cross the installed error arms over a second installed command
+  - [x] 6.2.10.1. Cross the installed error arms over a second installed command
     as a command-sensitivity tripwire.
     - Addendum (from review:6.2.10; low). Decision D-ONECMD crosses only
       `novel-state` on the empirical 6.2.8 finding that the arms are
@@ -2012,7 +2012,7 @@ novel-ralph-harness-design.md §2.3 and §9.
       fixture) so a future change making the shared runner's arms
       command-sensitive is caught rather than silently uncovered. Lightweight
       addendum pass.
-  - [ ] 6.2.10.2. Pin `schema_version` (and field order) at the installed-binary
+  - [x] 6.2.10.2. Pin `schema_version` (and field order) at the installed-binary
     boundary for the diagnostic arms.
     - Addendum (from review:6.2.10; low). The in-process matrix pins the full
       envelope including `schema_version` via snapshot, but the installed-boundary

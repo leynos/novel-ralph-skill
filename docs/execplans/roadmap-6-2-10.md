@@ -1086,7 +1086,7 @@ cross-cutting follow-ups raised against step 6.2 were re-routed off this task
 (the reconciliation payload projection to new roadmap step 7.26, the
 ROLLBACK-trigger basename corpus constants to roadmap task 7.23.8).
 
-- [ ] 6.2.10.1 — Cross the installed error arms over a second installed command
+- [x] 6.2.10.1 — Cross the installed error arms over a second installed command
   as a command-sensitivity tripwire (from review:6.2.10, low). Decision D-ONECMD
   crosses only `novel-state` on the empirical 6.2.8 finding that the arms are
   command-agnostic (stamped by the shared run wrapper, not command bodies);
@@ -1095,7 +1095,7 @@ ROLLBACK-trigger basename corpus constants to roadmap task 7.23.8).
   the runner's arms command-sensitive — a command overriding `--human` pre-parse
   or the `working_dir` default — is caught rather than silently uncovered. Gate
   with `make all`.
-- [ ] 6.2.10.2 — Pin `schema_version` (and field order) at the installed-binary
+- [x] 6.2.10.2 — Pin `schema_version` (and field order) at the installed-binary
   boundary for the diagnostic arms (from review:6.2.10, low). The in-process
   matrix pins the full envelope including `schema_version` via snapshot, but the
   installed-boundary error-arm proofs assert only the
