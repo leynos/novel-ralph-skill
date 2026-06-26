@@ -66,7 +66,7 @@ from novel_ralph_skill.state.document import pending_turn
 if typ.TYPE_CHECKING:
     from pathlib import Path
 
-_COMMAND = "novel-state"
+_COMMAND = "novel state"
 
 # The unrecoverable artefact the torn turn declares but never lands: a chapter
 # the coherent baseline never materialises, so its basename is not in

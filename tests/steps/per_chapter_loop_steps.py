@@ -1,8 +1,9 @@
 """Step definitions for the per-chapter deterministic-loop scenario (6.2.2).
 
 These prove the roadmap 6.2.2 clause: the deterministic spine — ``recount``,
-``novel-done``, ``wordcount``, ``desloppify``, and ``novel-compile --check`` —
-*composes* over a real ``working/`` tree (design §7.2, Figure 3). Where roadmap
+``novel done``, ``novel wordcount``, ``novel desloppify``, and
+``novel compile --check`` — *composes* over a real ``working/`` tree (design
+§7.2, Figure 3). Where roadmap
 6.2.1 proved each command's machine/human envelope per phase in isolation, this
 suite drives the per-chapter pipeline as a single ordered drive and asserts the
 three deterministic decisions that gate the loop (design §9 lines 814-847): a
@@ -15,7 +16,7 @@ harness and an operator use, mirroring :mod:`tests.steps.torn_turn_recovery_step
 and :mod:`tests.steps.advance_phase_steps`. The read surface is composed of five
 different Cyclopts apps, so :func:`_run_capturing` selects the matching
 ``build_app`` factory and ``RunContext`` for each ``command_name`` rather than
-binding a single module-level app (ExecPlan advisory A3). ``novel-compile`` is
+binding a single module-level app (ExecPlan advisory A3). ``novel compile`` is
 always driven with ``["--check"]`` — its bare invocation *writes* ``compiled.md``,
 which the read-only loop must never do (ExecPlan D-CHECK-ARGV;
 :mod:`tests.test_compile_check_snapshots`).
@@ -63,11 +64,11 @@ _DRAFTED_TOTAL: typ.Final = 68800
 # distinct Cyclopts apps, so the runner selects the matching one per command_name
 # (advisory A3) rather than binding a single module-level app.
 _BUILD_APPS: typ.Final[dict[str, cabc.Callable[[], cyclopts.App]]] = {
-    "novel-state": novel_state.build_app,
-    "novel-done": _novel_done.build_app,
-    "wordcount": _wordcount.build_app,
-    "desloppify": _desloppify.build_app,
-    "novel-compile": _compile.build_app,
+    "novel state": novel_state.build_app,
+    "novel done": _novel_done.build_app,
+    "novel wordcount": _wordcount.build_app,
+    "novel desloppify": _desloppify.build_app,
+    "novel compile": _compile.build_app,
 }
 
 
@@ -137,9 +138,9 @@ def coherent_tree(tmp_path: Path) -> _Outcome:
 
 @when("recount runs against the loop tree")
 def run_recount(outcome: _Outcome, monkeypatch: pytest.MonkeyPatch) -> None:
-    """Drive ``novel-state recount`` and capture its envelope."""
+    """Drive ``novel state recount`` and capture its envelope."""
     outcome.captures["recount"] = _run_capturing(
-        outcome.working, "novel-state", ["recount"], monkeypatch
+        outcome.working, "novel state", ["recount"], monkeypatch
     )
 
 
@@ -161,42 +162,42 @@ def recount_clean(outcome: _Outcome) -> None:
 
 @when("novel-done runs against the loop tree")
 def run_novel_done(outcome: _Outcome, monkeypatch: pytest.MonkeyPatch) -> None:
-    """Drive ``novel-done`` and capture its envelope."""
-    outcome.captures["novel-done"] = _run_capturing(
-        outcome.working, "novel-done", [], monkeypatch
+    """Drive ``novel done`` and capture its envelope."""
+    outcome.captures["novel done"] = _run_capturing(
+        outcome.working, "novel done", [], monkeypatch
     )
 
 
 @then("novel-done exits 0 and every done clause holds")
 def novel_done_clean(outcome: _Outcome) -> None:
-    """Assert ``novel-done`` declares the tree done: exit 0, every §4.2 clause true."""
-    code, _envelope = outcome.captures["novel-done"]
-    assert code == ExitCode.SUCCESS, f"expected novel-done exit 0, got {code}"
-    result = _result(outcome, "novel-done")
+    """Assert ``novel done`` declares the tree done: exit 0, every §4.2 clause true."""
+    code, _envelope = outcome.captures["novel done"]
+    assert code == ExitCode.SUCCESS, f"expected novel done exit 0, got {code}"
+    result = _result(outcome, "novel done")
     assert all(result.values()), f"every done clause must hold, got {result}"
 
 
 @when("wordcount runs against the loop tree")
 def run_wordcount(outcome: _Outcome, monkeypatch: pytest.MonkeyPatch) -> None:
-    """Drive ``wordcount`` and capture its envelope."""
-    outcome.captures["wordcount"] = _run_capturing(
-        outcome.working, "wordcount", [], monkeypatch
+    """Drive ``novel wordcount`` and capture its envelope."""
+    outcome.captures["novel wordcount"] = _run_capturing(
+        outcome.working, "novel wordcount", [], monkeypatch
     )
 
 
 @then("wordcount exits 0 and reports all three knitting gates crossed")
 def wordcount_gates_crossed(outcome: _Outcome) -> None:
-    """Assert ``wordcount`` reports all three crossed gates over the drafted total.
+    """Assert ``novel wordcount`` reports all three crossed gates over the total.
 
     This is the load-bearing §4.5 step: the cumulative envelope must carry
     ``gate_triggered_30/50/80 == True`` (past the final gate) at the 68800-word
     drafted total. It is the "a crossed gate is reported" success criterion folded
     into the clean pass.
     """
-    code, _envelope = outcome.captures["wordcount"]
-    assert code == ExitCode.SUCCESS, f"expected wordcount exit 0, got {code}"
+    code, _envelope = outcome.captures["novel wordcount"]
+    assert code == ExitCode.SUCCESS, f"expected novel wordcount exit 0, got {code}"
     cumulative = typ.cast(
-        "dict[str, object]", _result(outcome, "wordcount")["cumulative"]
+        "dict[str, object]", _result(outcome, "novel wordcount")["cumulative"]
     )
     assert cumulative["current"] == _DRAFTED_TOTAL
     assert cumulative["gate_triggered_30"] is True
@@ -206,38 +207,38 @@ def wordcount_gates_crossed(outcome: _Outcome) -> None:
 
 @when("desloppify runs against the loop tree")
 def run_desloppify(outcome: _Outcome, monkeypatch: pytest.MonkeyPatch) -> None:
-    """Drive ``desloppify`` and capture its envelope."""
-    outcome.captures["desloppify"] = _run_capturing(
-        outcome.working, "desloppify", [], monkeypatch
+    """Drive ``novel desloppify`` and capture its envelope."""
+    outcome.captures["novel desloppify"] = _run_capturing(
+        outcome.working, "novel desloppify", [], monkeypatch
     )
 
 
 @then("desloppify exits 0 with no violations over the drafted total")
 def desloppify_clean(outcome: _Outcome) -> None:
-    """Assert ``desloppify`` finds no violations over the drafted total: exit 0."""
-    code, _envelope = outcome.captures["desloppify"]
-    assert code == ExitCode.SUCCESS, f"expected desloppify exit 0, got {code}"
-    result = _result(outcome, "desloppify")
+    """Assert ``novel desloppify`` finds no violations over the total: exit 0."""
+    code, _envelope = outcome.captures["novel desloppify"]
+    assert code == ExitCode.SUCCESS, f"expected novel desloppify exit 0, got {code}"
+    result = _result(outcome, "novel desloppify")
     assert result["violations"] == []
     assert result["total_words"] == _DRAFTED_TOTAL
 
 
 @when("novel-compile --check runs against the loop tree")
 def run_compile_check(outcome: _Outcome, monkeypatch: pytest.MonkeyPatch) -> None:
-    """Drive ``novel-compile --check`` (the read surface) and capture its envelope."""
-    outcome.captures["novel-compile"] = _run_capturing(
-        outcome.working, "novel-compile", ["--check"], monkeypatch
+    """Drive ``novel compile --check`` (the read surface) and capture its envelope."""
+    outcome.captures["novel compile"] = _run_capturing(
+        outcome.working, "novel compile", ["--check"], monkeypatch
     )
 
 
 @then("novel-compile --check exits 0 and reports the compile is not diverged")
 def compile_check_clean(outcome: _Outcome) -> None:
-    """Assert ``novel-compile --check`` finds the compile matching: exit 0."""
-    code, _envelope = outcome.captures["novel-compile"]
+    """Assert ``novel compile --check`` finds the compile matching: exit 0."""
+    code, _envelope = outcome.captures["novel compile"]
     assert code == ExitCode.SUCCESS, (
-        f"expected novel-compile --check exit 0, got {code}"
+        f"expected novel compile --check exit 0, got {code}"
     )
-    assert _result(outcome, "novel-compile")["diverged"] is False
+    assert _result(outcome, "novel compile")["diverged"] is False
 
 
 # --- gated decision: a stale compile is caught (§4.2, §4.3, §10) -------------
@@ -252,8 +253,8 @@ def stale_compile_tree(tmp_path: Path) -> _Outcome:
 
     ``DONE_PREDICATE_SOLE_STALE_COMPILE`` is the all-hold tree carrying a
     count-coincident, byte-divergent ``compiled.md``. It exercises the
-    otherwise-complete carve-out: ``novel-done`` surfaces the stale compile as an
-    actionable finding (exit 4) and ``novel-compile --check`` reports it diverged
+    otherwise-complete carve-out: ``novel done`` surfaces the stale compile as an
+    actionable finding (exit 4) and ``novel compile --check`` reports it diverged
     (exit 4) — the §10 stale-compile failure mode at the loop boundary.
 
     Returns
@@ -267,22 +268,22 @@ def stale_compile_tree(tmp_path: Path) -> _Outcome:
 
 @then("novel-done exits 4 reporting the compile is not consistent")
 def novel_done_stale(outcome: _Outcome) -> None:
-    """Assert ``novel-done`` flags the stale compile at exit 4, the carve-out."""
-    code, _envelope = outcome.captures["novel-done"]
+    """Assert ``novel done`` flags the stale compile at exit 4, the carve-out."""
+    code, _envelope = outcome.captures["novel done"]
     assert code == ExitCode.ACTIONABLE_FINDING, (
-        f"expected novel-done exit 4, got {code}"
+        f"expected novel done exit 4, got {code}"
     )
-    assert _result(outcome, "novel-done")["compile_consistent"] is False
+    assert _result(outcome, "novel done")["compile_consistent"] is False
 
 
 @then("novel-compile --check exits 4 reporting the compile is diverged")
 def compile_check_stale(outcome: _Outcome) -> None:
-    """Assert ``novel-compile --check`` reports the divergent compile at exit 4."""
-    code, _envelope = outcome.captures["novel-compile"]
+    """Assert ``novel compile --check`` reports the divergent compile at exit 4."""
+    code, _envelope = outcome.captures["novel compile"]
     assert code == ExitCode.ACTIONABLE_FINDING, (
-        f"expected novel-compile --check exit 4, got {code}"
+        f"expected novel compile --check exit 4, got {code}"
     )
-    assert _result(outcome, "novel-compile")["diverged"] is True
+    assert _result(outcome, "novel compile")["diverged"] is True
 
 
 # --- gated decision: an out-of-order phase advance is refused (§3.2, §4.1) ----
@@ -312,9 +313,9 @@ def out_of_order_tree(tmp_path: Path) -> _Outcome:
 
 @when("advance-phase runs against the loop tree")
 def run_advance_phase(outcome: _Outcome, monkeypatch: pytest.MonkeyPatch) -> None:
-    """Drive ``novel-state advance-phase`` and capture its envelope."""
+    """Drive ``novel state advance-phase`` and capture its envelope."""
     outcome.captures["advance-phase"] = _run_capturing(
-        outcome.working, "novel-state", ["advance-phase"], monkeypatch
+        outcome.working, "novel state", ["advance-phase"], monkeypatch
     )
 
 

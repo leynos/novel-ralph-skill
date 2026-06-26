@@ -6,9 +6,10 @@ load-bearing invariant directly: after :func:`compile_manuscript`,
 pin calls the detector in-process and so cannot see drift between the two
 commands' own cwd-relative resolvers and JSON envelopes.
 
-This thin integration test is the defence-in-depth twin: it drives **both real
-console-script entry points** in sequence over one ``working/`` tree —
-``stub.novel_compile()`` then ``stub.novel_state()`` with ``check`` — and asserts
+This thin integration test is the defence-in-depth twin: it drives **the real
+``novel`` console-script entry point** in sequence over one ``working/`` tree —
+``novel compile`` then ``novel state check`` through ``novel.main()`` — and
+asserts
 the compile writes ``compiled.md`` and the subsequent check exits ``0`` with an
 empty ``result.violations``. A future change to either command's resolver or
 envelope that desynchronises the pair would fail here even though the
@@ -24,28 +25,25 @@ import typing as typ
 import pytest
 import working_corpus as wc
 
-from novel_ralph_skill.commands import stub
+from novel_ralph_skill.commands import novel
 from novel_ralph_skill.contract.exit_codes import ExitCode
 
 if typ.TYPE_CHECKING:
-    import collections.abc as cabc
     from pathlib import Path
 
 
 def _drive(
-    entry_point: cabc.Callable[[], None],
     argv: list[str],
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> tuple[ExitCode, dict[str, object]]:
-    """Run a console-script entry point over ``argv``; return its code and envelope.
+    """Run the ``novel`` multiplexer over ``argv``; return its code and envelope.
 
     Parameters
     ----------
-    entry_point : Callable[[], None]
-        The zero-argument ``stub`` entry point (e.g. ``stub.novel_compile``).
     argv : list[str]
-        The command-line arguments, including ``argv[0]`` (the command name).
+        The command-line arguments, including ``argv[0]`` (always ``"novel"``);
+        the remaining tokens are the subcommand verb and its arguments.
     monkeypatch : pytest.MonkeyPatch
         Patches ``sys.argv`` for the call.
     capsys : pytest.CaptureFixture[str]
@@ -58,7 +56,7 @@ def _drive(
     """
     monkeypatch.setattr(sys, "argv", argv)
     with pytest.raises(SystemExit) as excinfo:
-        entry_point()
+        novel.main()
     envelope = json.loads(capsys.readouterr().out)
     return typ.cast("ExitCode", excinfo.value.code), envelope
 
@@ -80,8 +78,7 @@ def test_compile_then_check_round_trips_through_entry_points(
     monkeypatch.chdir(working.parent)
 
     compile_code, compile_envelope = _drive(
-        stub.novel_compile,
-        ["novel-compile"],
+        ["novel", "compile"],
         monkeypatch,
         capsys,
     )
@@ -92,8 +89,7 @@ def test_compile_then_check_round_trips_through_entry_points(
     assert compiled.exists()
 
     check_code, check_envelope = _drive(
-        stub.novel_state,
-        ["novel-state", "check"],
+        ["novel", "state", "check"],
         monkeypatch,
         capsys,
     )

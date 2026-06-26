@@ -45,7 +45,7 @@ if typ.TYPE_CHECKING:
     import collections.abc as cabc
     from pathlib import Path
 
-_COMMAND = "novel-state"
+_COMMAND = "novel state"
 
 
 def _chapter_path(number: int) -> str:

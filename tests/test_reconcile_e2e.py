@@ -2,7 +2,7 @@
 
 Proofs of the externally observable command-line behaviour of the subcommand:
 
-- fast entry-point checks driven through ``stub.novel_state()`` (the installed
+- fast entry-point checks driven through ``novel.main()`` (the installed
   console-script body), proving ``novel-state reconcile`` resolves and repairs the
   roadmap headline ``recount`` tree and the partial-``init`` log-absent tree, each
   exiting ``0`` with a write-shaped envelope;
@@ -39,7 +39,7 @@ from cuprum import sh
 from cuprum.program import Program
 from cuprum.sh import ExecutionContext
 
-from novel_ralph_skill.commands import stub
+from novel_ralph_skill.commands import novel
 from novel_ralph_skill.contract.exit_codes import ExitCode
 
 if typ.TYPE_CHECKING:
@@ -48,7 +48,7 @@ if typ.TYPE_CHECKING:
 
     from cuprum import ProgramCatalogue
 
-_COMMAND = "novel-state"
+_COMMAND = "novel state"
 
 
 def test_entry_point_reconcile_reachable_repairs_and_exits_zero(
@@ -60,9 +60,9 @@ def test_entry_point_reconcile_reachable_repairs_and_exits_zero(
     spec, _expected = wc.INCOHERENT_VARIANTS["done-claim-stale-word-counts"]
     working = wc.build_working_tree(spec, tmp_path)
     monkeypatch.chdir(working.parent)
-    monkeypatch.setattr(sys, "argv", [_COMMAND, "reconcile"])
+    monkeypatch.setattr(sys, "argv", [*_COMMAND.split(), "reconcile"])
     with pytest.raises(SystemExit) as excinfo:
-        stub.novel_state()
+        novel.main()
     assert excinfo.value.code == ExitCode.SUCCESS, "reconcile must exit 0 on repair"
     envelope = json.loads(capsys.readouterr().out)
     result = typ.cast("dict[str, object]", envelope["result"])
@@ -90,9 +90,9 @@ def test_entry_point_reconcile_repairs_cover_gap_then_check_clean(
     working = wc.build_working_tree(spec, tmp_path)
     monkeypatch.chdir(working.parent)
 
-    monkeypatch.setattr(sys, "argv", [_COMMAND, "check"])
+    monkeypatch.setattr(sys, "argv", [*_COMMAND.split(), "check"])
     with pytest.raises(SystemExit) as check_before:
-        stub.novel_state()
+        novel.main()
     assert check_before.value.code == ExitCode.ACTIONABLE_FINDING
     before_env = json.loads(capsys.readouterr().out)
     before_result = typ.cast("dict[str, object]", before_env["result"])
@@ -102,9 +102,9 @@ def test_entry_point_reconcile_repairs_cover_gap_then_check_clean(
     reconciliation = typ.cast("dict[str, object]", before_result["reconciliation"])
     assert reconciliation["action"] == "recount"
 
-    monkeypatch.setattr(sys, "argv", [_COMMAND, "reconcile"])
+    monkeypatch.setattr(sys, "argv", [*_COMMAND.split(), "reconcile"])
     with pytest.raises(SystemExit) as reconcile_exit:
-        stub.novel_state()
+        novel.main()
     assert reconcile_exit.value.code == ExitCode.SUCCESS
     reconcile_result = typ.cast(
         "dict[str, object]", json.loads(capsys.readouterr().out)["result"]
@@ -117,9 +117,9 @@ def test_entry_point_reconcile_repairs_cover_gap_then_check_clean(
         "04": 4000,
     }
 
-    monkeypatch.setattr(sys, "argv", [_COMMAND, "check"])
+    monkeypatch.setattr(sys, "argv", [*_COMMAND.split(), "check"])
     with pytest.raises(SystemExit) as check_after:
-        stub.novel_state()
+        novel.main()
     assert check_after.value.code == ExitCode.SUCCESS
 
 
@@ -140,9 +140,9 @@ def test_entry_point_reconcile_drops_orphan_cover_key_then_check_clean(
     working = wc.build_working_tree(spec, tmp_path)
     monkeypatch.chdir(working.parent)
 
-    monkeypatch.setattr(sys, "argv", [_COMMAND, "check"])
+    monkeypatch.setattr(sys, "argv", [*_COMMAND.split(), "check"])
     with pytest.raises(SystemExit) as check_before:
-        stub.novel_state()
+        novel.main()
     assert check_before.value.code == ExitCode.ACTIONABLE_FINDING
     before_env = json.loads(capsys.readouterr().out)
     before_result = typ.cast("dict[str, object]", before_env["result"])
@@ -152,9 +152,9 @@ def test_entry_point_reconcile_drops_orphan_cover_key_then_check_clean(
     reconciliation = typ.cast("dict[str, object]", before_result["reconciliation"])
     assert reconciliation["action"] == "recount"
 
-    monkeypatch.setattr(sys, "argv", [_COMMAND, "reconcile"])
+    monkeypatch.setattr(sys, "argv", [*_COMMAND.split(), "reconcile"])
     with pytest.raises(SystemExit) as reconcile_exit:
-        stub.novel_state()
+        novel.main()
     assert reconcile_exit.value.code == ExitCode.SUCCESS
     reconcile_result = typ.cast(
         "dict[str, object]", json.loads(capsys.readouterr().out)["result"]
@@ -166,9 +166,9 @@ def test_entry_point_reconcile_drops_orphan_cover_key_then_check_clean(
         "03": 20800,
     }, "reconcile must re-key off the manifest, dropping the orphan key"
 
-    monkeypatch.setattr(sys, "argv", [_COMMAND, "check"])
+    monkeypatch.setattr(sys, "argv", [*_COMMAND.split(), "check"])
     with pytest.raises(SystemExit) as check_after:
-        stub.novel_state()
+        novel.main()
     assert check_after.value.code == ExitCode.SUCCESS
 
 
@@ -181,9 +181,9 @@ def test_entry_point_reconcile_recreates_absent_log_md(
     working = wc.build_working_tree(wc.COHERENT_BASELINE, tmp_path)
     (working / "log.md").unlink()
     monkeypatch.chdir(working.parent)
-    monkeypatch.setattr(sys, "argv", [_COMMAND, "reconcile"])
+    monkeypatch.setattr(sys, "argv", [*_COMMAND.split(), "reconcile"])
     with pytest.raises(SystemExit) as excinfo:
-        stub.novel_state()
+        novel.main()
     assert excinfo.value.code == ExitCode.SUCCESS, "reconcile must exit 0 on repair"
     envelope = json.loads(capsys.readouterr().out)
     result = typ.cast("dict[str, object]", envelope["result"])

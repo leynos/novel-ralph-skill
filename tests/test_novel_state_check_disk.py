@@ -47,7 +47,7 @@ if typ.TYPE_CHECKING:
     from conftest import WorkingTreeSpec
     from syrupy.assertion import SnapshotAssertion
 
-_COMMAND = "novel-state"
+_COMMAND = "novel state"
 
 
 def _drive_check(working: Path, monkeypatch: pytest.MonkeyPatch) -> tuple[int, str]:

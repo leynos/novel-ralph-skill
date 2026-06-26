@@ -2,7 +2,7 @@
 
 This proves the externally observable command-line behaviour of the subcommand:
 
-- a fast entry-point check driven through ``stub.novel_state()`` (the installed
+- a fast entry-point check driven through ``novel.main()`` (the installed
   console-script body) against an empty-manifest tree, proving ``novel-state
   set-chapters`` resolves, exits ``0``, and emits the write-shaped ``{chapters}``
   envelope (AGENTS.md "externally observable workflows … command-line behaviour");
@@ -30,7 +30,7 @@ from cuprum import sh
 from cuprum.program import Program
 from cuprum.sh import ExecutionContext
 
-from novel_ralph_skill.commands import stub
+from novel_ralph_skill.commands import novel
 from novel_ralph_skill.contract.exit_codes import ExitCode
 
 if typ.TYPE_CHECKING:
@@ -39,7 +39,7 @@ if typ.TYPE_CHECKING:
 
     from cuprum import ProgramCatalogue
 
-_COMMAND = "novel-state"
+_COMMAND = "novel state"
 _PLAN_JSON = (
     '[{"number": 1, "slug": "the-summons", "title": "The Summons", '
     '"target_words": 3200}, '
@@ -66,10 +66,10 @@ def test_entry_point_set_chapters_reachable_exits_zero(
     working = _empty_manifest_tree(tmp_path)
     monkeypatch.chdir(working.parent)
     monkeypatch.setattr(
-        sys, "argv", [_COMMAND, "set-chapters", "--chapters", _PLAN_JSON]
+        sys, "argv", [*_COMMAND.split(), "set-chapters", "--chapters", _PLAN_JSON]
     )
     with pytest.raises(SystemExit) as excinfo:
-        stub.novel_state()
+        novel.main()
     assert excinfo.value.code == ExitCode.SUCCESS, (
         "the entry-point set-chapters must exit 0"
     )

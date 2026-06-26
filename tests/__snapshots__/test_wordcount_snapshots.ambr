@@ -1,7 +1,7 @@
 # serializer version: 1
 # name: test_representative_tree_envelope_snapshot
   dict({
-    'command': 'wordcount',
+    'command': 'novel wordcount',
     'messages': list([
       'drafted 7000 of 20000 words (35.0% of target); next knitting gate at 50% (3000 words to go)',
     ]),

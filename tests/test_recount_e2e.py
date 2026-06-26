@@ -2,7 +2,7 @@
 
 This proves the externally observable command-line behaviour of the subcommand:
 
-- a fast entry-point check driven through ``stub.novel_state()`` (the installed
+- a fast entry-point check driven through ``novel.main()`` (the installed
   console-script body) against a prepared two-chapter tree, proving
   ``novel-state recount`` resolves, exits ``0``, and emits an envelope naming the
   recounted ``{current, by_chapter}`` counts (AGENTS.md "externally observable
@@ -32,7 +32,7 @@ from cuprum import sh
 from cuprum.program import Program
 from cuprum.sh import ExecutionContext
 
-from novel_ralph_skill.commands import stub
+from novel_ralph_skill.commands import novel
 from novel_ralph_skill.contract.exit_codes import ExitCode
 
 if typ.TYPE_CHECKING:
@@ -41,7 +41,7 @@ if typ.TYPE_CHECKING:
 
     from cuprum import ProgramCatalogue
 
-_COMMAND = "novel-state"
+_COMMAND = "novel state"
 # The recounted oracle both proofs assert: chapters draft 3 and 5 words, so
 # ``recount`` rewrites the deliberately wrong ``[word_counts]`` to this envelope.
 _RECOUNTED_RESULT: typ.Final = {"current": 8, "by_chapter": {"01": 3, "02": 5}}
@@ -92,9 +92,9 @@ def test_entry_point_recount_reachable_exits_zero(
     """``novel-state recount`` is reachable through the entry point (exit ``0``)."""
     working = wc.build_working_tree(_stale_two_chapter_spec(), tmp_path)
     monkeypatch.chdir(working.parent)
-    monkeypatch.setattr(sys, "argv", [_COMMAND, "recount"])
+    monkeypatch.setattr(sys, "argv", [*_COMMAND.split(), "recount"])
     with pytest.raises(SystemExit) as excinfo:
-        stub.novel_state()
+        novel.main()
     assert excinfo.value.code == ExitCode.SUCCESS
     envelope = json.loads(capsys.readouterr().out)
     result = typ.cast("dict[str, object]", envelope["result"])

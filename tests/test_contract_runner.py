@@ -19,7 +19,7 @@ from conftest import STATE_FAULT_MESSAGE
 
 from novel_ralph_skill import contract
 from novel_ralph_skill.commands import novel_state
-from novel_ralph_skill.commands.names import COMMAND_NAMES
+from novel_ralph_skill.commands.names import SUBCOMMAND_NAMES
 from novel_ralph_skill.contract import runner
 from novel_ralph_skill.contract.exit_codes import ExitCode
 from novel_ralph_skill.contract.runner import CommandOutcome, RunContext, run
@@ -29,7 +29,7 @@ if typ.TYPE_CHECKING:
 
     import cyclopts
 
-_COMMAND = COMMAND_NAMES[0]
+_COMMAND = SUBCOMMAND_NAMES[0]
 
 
 def _run(app: cyclopts.App, argv: list[str], *, human: bool = False) -> None:

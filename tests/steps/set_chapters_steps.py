@@ -30,7 +30,7 @@ if typ.TYPE_CHECKING:
     import collections.abc as cabc
     from pathlib import Path
 
-_COMMAND = "novel-state"
+_COMMAND = "novel state"
 _COHERENT_PLAN = (
     '[{"number": 1, "slug": "the-summons", "title": "The Summons", '
     '"target_words": 3200}, '

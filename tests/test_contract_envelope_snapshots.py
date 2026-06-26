@@ -16,7 +16,7 @@ import typing as typ
 
 import pytest
 
-from novel_ralph_skill.commands.names import COMMAND_NAMES
+from novel_ralph_skill.commands.names import SUBCOMMAND_NAMES
 from novel_ralph_skill.contract.envelope import build_envelope, render_machine
 from novel_ralph_skill.contract.exit_codes import ExitCode, is_ok
 
@@ -43,7 +43,7 @@ def test_machine_envelope_per_code_snapshot(
         The assertions raise on failure.
     """
     env = build_envelope(
-        command=COMMAND_NAMES[0],
+        command=SUBCOMMAND_NAMES[0],
         working_dir="working",
         code=code,
         result={"code_name": code.name},

@@ -68,7 +68,7 @@ from novel_ralph_skill.state.document import pending_turn
 if typ.TYPE_CHECKING:
     from pathlib import Path
 
-_COMMAND = "novel-state"
+_COMMAND = "novel state"
 
 # The unrecoverable artefacts the torn turn may declare but never land are
 # threaded per-row from the feature's ``Examples`` table: a chapter the coherent

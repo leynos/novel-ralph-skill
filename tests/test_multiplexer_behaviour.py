@@ -2,13 +2,13 @@
 
 ADR 007 makes ``novel`` a pure dispatch layer over the five existing operations.
 This module is the in-process proof that the dispatcher changes no behaviour:
-every operation is driven through the multiplexer and through its legacy entry
-point over the *same* corpus tree, and the two envelopes and exit codes are
-asserted **equal** modulo the ``command`` field (the multiplexer stamps the
-spaced ``"novel done"`` while the legacy path stamps ``"novel-done"`` — Decision
-Log D1). Every exit arm is covered: exit 0 success, exit 1 benign negative, exit
-4 actionable finding, exit 2 usage error, exit 3 state/input error, and the
-help/version/bare arms that emit no envelope.
+every operation is driven through the multiplexer and directly through its own
+``build_app`` — the same builder the multiplexer mounts — over the *same* corpus
+tree, and the two envelopes and exit codes are asserted **fully equal**,
+``command`` field included, because both arms now stamp the same spaced name
+(Decision Log D1). Every exit arm is covered: exit 0 success, exit 1 benign
+negative, exit 4 actionable finding, exit 2 usage error, exit 3 state/input
+error, and the help/version/bare arms that emit no envelope.
 
 The unit shape tests live in ``tests/test_multiplexer_dispatch.py``; the shared
 ``driver`` fixture and the five-operation registry come from
@@ -47,53 +47,32 @@ if typ.TYPE_CHECKING:
 
 
 class _Operation(typ.NamedTuple):
-    """One dispatched operation paired with its legacy build_app and argv.
+    """One dispatched operation paired with its ``build_app`` and argv.
 
     ``spaced`` is the multiplexer subcommand argv (``["state", "check"]``);
-    ``legacy_name``/``legacy_build`` are the console-script name and ``build_app``
-    the legacy entry point drives. Bundling these keeps the test parameter lists
-    within the project's argument-count gate (Pylint ``too-many-arguments``).
+    ``name``/``build`` are the spaced command name and the ``build_app`` the
+    direct arm drives — the same builder the multiplexer mounts (Decision Log
+    D1). Bundling these keeps the test parameter lists within the project's
+    argument-count gate (Pylint ``too-many-arguments``).
     """
 
-    legacy_name: str
-    legacy_build: cabc.Callable[[], cyclopts.App]
+    name: str
+    build: cabc.Callable[[], cyclopts.App]
     spaced: list[str]
 
 
-# The five operations, each as a (legacy entry point, multiplexer argv) twin.
-# ``novel-compile`` is driven with ``--check`` (the read-only checker), never the
-# bare write path (the trap documented in
+# The five operations, each as a (direct build_app, multiplexer argv) twin.
+# ``compile`` is driven with ``--check`` (the read-only checker), never the bare
+# write path (the trap documented in
 # ``tests/test_compile_check_snapshots.py``).
 _OPERATIONS: tuple[_Operation, ...] = (
-    _Operation("novel-state", novel_state.build_app, ["state", "check"]),
-    _Operation("novel-done", _novel_done.build_app, ["done"]),
-    _Operation("novel-compile", _compile.build_app, ["compile", "--check"]),
-    _Operation("desloppify", _desloppify.build_app, ["desloppify"]),
-    _Operation("wordcount", _wordcount.build_app, ["wordcount"]),
+    _Operation("novel state", novel_state.build_app, ["state", "check"]),
+    _Operation("novel done", _novel_done.build_app, ["done"]),
+    _Operation("novel compile", _compile.build_app, ["compile", "--check"]),
+    _Operation("novel desloppify", _desloppify.build_app, ["desloppify"]),
+    _Operation("novel wordcount", _wordcount.build_app, ["wordcount"]),
 )
-_OPERATION_IDS: tuple[str, ...] = tuple(op.legacy_name for op in _OPERATIONS)
-
-
-def _strip_command(envelope: str) -> dict[str, object]:
-    """Parse a machine envelope and drop its ``command`` field for comparison.
-
-    The legacy path stamps ``"novel-done"`` and the multiplexer stamps the spaced
-    ``"novel done"`` (Decision Log D1), so an equality assertion compares every
-    field *except* ``command``.
-
-    Parameters
-    ----------
-    envelope : str
-        The rendered machine-mode JSON envelope.
-
-    Returns
-    -------
-    dict[str, object]
-        The parsed envelope with ``command`` removed.
-    """
-    parsed: dict[str, object] = json.loads(envelope)
-    del parsed["command"]
-    return parsed
+_OPERATION_IDS: tuple[str, ...] = tuple(op.name for op in _OPERATIONS)
 
 
 def _chdir_to_drafting(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
@@ -117,48 +96,48 @@ def _chdir_to_drafting(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize("op", _OPERATIONS, ids=_OPERATION_IDS)
-def test_multiplexer_matches_legacy_over_drafting_tree(
+def test_multiplexer_matches_direct_over_drafting_tree(
     op: _Operation,
     driver: Driver,
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    """Each operation emits the legacy envelope and exit code via the multiplexer.
+    """Each operation emits the same envelope and exit code via the multiplexer.
 
-    Drives the legacy entry point and the multiplexer over the *same* coherent
-    ``drafting`` corpus tree and asserts the exit codes are equal and the
-    envelopes are equal modulo the ``command`` field. This is the core
-    no-behaviour-change proof across the five operations.
+    Drives the operation's own ``build_app`` directly under its spaced name and
+    the multiplexer over the *same* coherent ``drafting`` corpus tree, then
+    asserts the exit codes are equal and the envelopes are **fully equal**,
+    ``command`` field included (both arms stamp the same spaced name — Decision
+    Log D1). This is the core no-behaviour-change proof across the five
+    operations.
     """
     _chdir_to_drafting(monkeypatch, tmp_path)
 
-    legacy_code, legacy_out = driver.legacy(
-        op.legacy_build, op.spaced[1:], op.legacy_name
-    )
+    direct_code, direct_out = driver.direct(op.build, op.spaced[1:], op.name)
     mux_code, mux_out = driver.mux(op.spaced)
 
-    assert mux_code == legacy_code
-    assert _strip_command(mux_out) == _strip_command(legacy_out)
-    # The multiplexer stamps the spaced name; the legacy path the hyphenated one.
+    assert mux_code == direct_code
+    assert json.loads(mux_out) == json.loads(direct_out)
+    # Both arms stamp the same spaced name; the multiplexer derives it from argv.
     assert json.loads(mux_out)["command"] == novel._command_name_for(op.spaced)
-    assert json.loads(legacy_out)["command"] == op.legacy_name
+    assert json.loads(direct_out)["command"] == op.name
 
 
-def test_multiplexer_done_success_matches_legacy(
+def test_multiplexer_done_success_matches_direct(
     all_hold_tree: cabc.Callable[[], Path],
     driver: Driver,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """``novel done`` exits 0 on a satisfied tree, matching the legacy path."""
+    """``novel done`` exits 0 on a satisfied tree, matching the direct drive."""
     working = all_hold_tree()
     monkeypatch.chdir(working.parent)
 
-    legacy_code, legacy_out = driver.legacy(_novel_done.build_app, [], "novel-done")
+    direct_code, direct_out = driver.direct(_novel_done.build_app, [], "novel done")
     mux_code, mux_out = driver.mux(["done"])
 
-    assert legacy_code == ExitCode.SUCCESS
-    assert mux_code == legacy_code
-    assert _strip_command(mux_out) == _strip_command(legacy_out)
+    assert direct_code == ExitCode.SUCCESS
+    assert mux_code == direct_code
+    assert json.loads(mux_out) == json.loads(direct_out)
 
 
 class _UsageFault(typ.NamedTuple):

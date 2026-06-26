@@ -56,7 +56,7 @@ from novel_ralph_skill.state import load_state
 if typ.TYPE_CHECKING:
     from pathlib import Path
 
-_COMMAND = "novel-state"
+_COMMAND = "novel state"
 
 # The crashed reconcile was repairing stale word-counts, so recovery takes two
 # passes (clear the leftover record, then re-apply the recount); a small cap above

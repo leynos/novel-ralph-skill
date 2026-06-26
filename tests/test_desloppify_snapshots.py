@@ -31,7 +31,7 @@ if typ.TYPE_CHECKING:
 
     from syrupy.assertion import SnapshotAssertion
 
-_COMMAND = "desloppify"
+_COMMAND = "novel desloppify"
 
 
 def _run_capture(

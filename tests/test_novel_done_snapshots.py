@@ -33,7 +33,7 @@ if typ.TYPE_CHECKING:
     from syrupy.assertion import SnapshotAssertion
     from working_corpus import WorkingTreeSpec
 
-_COMMAND = "novel-done"
+_COMMAND = "novel done"
 _CLAUSE_KEYS: tuple[str, ...] = (
     "phase_is_done",
     "final_pass_complete",

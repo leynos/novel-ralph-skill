@@ -1,7 +1,7 @@
 # serializer version: 1
 # name: test_clean_ledger_envelope_snapshot
   dict({
-    'command': 'desloppify',
+    'command': 'novel desloppify',
     'messages': list([
       'no rationing breaches detected',
     ]),
@@ -18,7 +18,7 @@
 # ---
 # name: test_over_ration_envelope_snapshot
   dict({
-    'command': 'desloppify',
+    'command': 'novel desloppify',
     'messages': list([
       'sternum spent 3 times (max 2)',
     ]),

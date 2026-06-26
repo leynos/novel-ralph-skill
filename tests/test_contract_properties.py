@@ -22,7 +22,7 @@ import pytest
 from hypothesis import given
 from hypothesis import strategies as st
 
-from novel_ralph_skill.commands.names import COMMAND_NAMES
+from novel_ralph_skill.commands.names import SUBCOMMAND_NAMES
 from novel_ralph_skill.contract.envelope import build_envelope
 from novel_ralph_skill.contract.exit_codes import ExitCode
 from novel_ralph_skill.contract.runner import CommandOutcome, RunContext, run
@@ -48,7 +48,7 @@ _messages = st.lists(st.text(max_size=24), max_size=4)
 
 @given(
     code=st.sampled_from(list(ExitCode)),
-    command=st.sampled_from(list(COMMAND_NAMES)),
+    command=st.sampled_from(list(SUBCOMMAND_NAMES)),
     result=_results,
     messages=_messages,
 )
@@ -101,7 +101,7 @@ def test_non_zero_codes_are_not_ok(code: ExitCode) -> None:
         The assertion raises on failure.
     """
     env = build_envelope(
-        command=COMMAND_NAMES[0],
+        command=SUBCOMMAND_NAMES[0],
         working_dir="working",
         code=code,
         result={},
@@ -142,7 +142,9 @@ def _drive(app: cyclopts.App, argv: list[str]) -> int:
     int
         The process exit code :func:`run` exited with.
     """
-    context = RunContext(command=COMMAND_NAMES[0], working_dir="working", human=False)
+    context = RunContext(
+        command=SUBCOMMAND_NAMES[0], working_dir="working", human=False
+    )
     with pytest.raises(SystemExit) as excinfo:
         run(app, argv, context)
     code = excinfo.value.code

@@ -1,7 +1,7 @@
 # serializer version: 1
 # name: test_all_hold_envelope_snapshot
   dict({
-    'command': 'novel-done',
+    'command': 'novel done',
     'messages': list([
       'novel is done',
     ]),
@@ -20,7 +20,7 @@
 # ---
 # name: test_one_clause_fails_envelope_snapshot
   dict({
-    'command': 'novel-done',
+    'command': 'novel done',
     'messages': list([
       'phase_is_done is false',
     ]),
@@ -39,7 +39,7 @@
 # ---
 # name: test_sole_stale_compile_envelope_snapshot
   dict({
-    'command': 'novel-done',
+    'command': 'novel done',
     'messages': list([
       'compile_consistent is false (stale compile; regenerate)',
     ]),

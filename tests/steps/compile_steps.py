@@ -71,7 +71,7 @@ def _run_compile(working: Path, monkeypatch: pytest.MonkeyPatch) -> int:
         run(
             build_app(),
             [],
-            RunContext(command="novel-compile", working_dir="working", human=False),
+            RunContext(command="novel compile", working_dir="working", human=False),
         )
     return typ.cast("int", excinfo.value.code)
 
@@ -91,7 +91,7 @@ def _run_check(
         run(
             build_app(),
             ["--check"],
-            RunContext(command="novel-compile", working_dir="working", human=False),
+            RunContext(command="novel compile", working_dir="working", human=False),
         )
     envelope = typ.cast("dict[str, object]", json.loads(stream.getvalue()))
     return typ.cast("int", excinfo.value.code), envelope

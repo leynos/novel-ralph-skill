@@ -57,7 +57,7 @@ def _run_recount(working: Path, monkeypatch: pytest.MonkeyPatch) -> int:
         run(
             build_app(),
             ["recount"],
-            RunContext(command="novel-state", working_dir="working", human=False),
+            RunContext(command="novel state", working_dir="working", human=False),
         )
     return typ.cast("int", excinfo.value.code)
 

@@ -13,7 +13,7 @@ B3/B4), the ``parse_global_flags`` splitter, the checker/mutator segregation
 
 The command is driven both through :func:`novel_ralph_skill.contract.runner.run`
 (mirroring ``test_contract_runner.py`` and the ``wrapper_app`` fixture) and
-through the real ``stub.novel_state()`` entry point, the latter always under an
+through the real ``novel.main()`` entry point, the latter always under an
 explicit ``monkeypatch.chdir`` into a materialised fixture parent so the default
 ``./working/`` resolves there and never depends on the ambient cwd (advisory A6).
 """
@@ -31,7 +31,7 @@ from cuprum import sh
 from cuprum.program import Program
 from cuprum.sh import ExecutionContext
 
-from novel_ralph_skill.commands import stub
+from novel_ralph_skill.commands import novel
 from novel_ralph_skill.commands.novel_state import build_app
 from novel_ralph_skill.contract import parse_global_flags
 from novel_ralph_skill.contract.exit_codes import ExitCode
@@ -44,7 +44,7 @@ if typ.TYPE_CHECKING:
     from conftest import WorkingTreeSpec
     from cuprum import ProgramCatalogue
 
-_COMMAND = "novel-state"
+_COMMAND = "novel state"
 _ENVELOPE_FIELDS = frozenset(
     {"command", "schema_version", "ok", "working_dir", "result", "messages"},
 )
@@ -186,9 +186,9 @@ def _drive_entry_point(
     argv: list[str],
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Run ``stub.novel_state()`` with ``argv`` patched into ``sys.argv``."""
-    monkeypatch.setattr(sys, "argv", [_COMMAND, *argv])
-    stub.novel_state()
+    """Run ``novel.main()`` with ``argv`` patched into ``sys.argv``."""
+    monkeypatch.setattr(sys, "argv", [*_COMMAND.split(), *argv])
+    novel.main()
 
 
 def test_entry_point_human_flag_switches_rendering(
@@ -204,7 +204,7 @@ def test_entry_point_human_flag_switches_rendering(
     assert excinfo.value.code == ExitCode.SUCCESS
     out = capsys.readouterr().out
     # The human rendering is line-oriented prose, not a JSON object.
-    assert "command: novel-state" in out
+    assert "command: novel state" in out
     assert "working_dir: working" in out
     assert not out.lstrip().startswith("{")
 

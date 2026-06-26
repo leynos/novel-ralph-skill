@@ -1,13 +1,13 @@
 # serializer version: 1
 # name: test_recount_envelope_snapshot
   '''
-  {"command": "novel-state", "schema_version": 1, "ok": false, "working_dir": "working", "result": {"violations": ["word-counts-match-drafts"], "reconciliation": {"action": "recount", "discrepancies": ["word-counts-match-drafts"], "detail": "recounting [word_counts] from the drafts: current 68800 across 3 chapters", "current": 68800, "by_chapter": {"01": 24000, "02": 24000, "03": 20800}}}, "messages": ["[word_counts].by_chapter table is stale against the on-disk drafts"]}
+  {"command": "novel state", "schema_version": 1, "ok": false, "working_dir": "working", "result": {"violations": ["word-counts-match-drafts"], "reconciliation": {"action": "recount", "discrepancies": ["word-counts-match-drafts"], "detail": "recounting [word_counts] from the drafts: current 68800 across 3 chapters", "current": 68800, "by_chapter": {"01": 24000, "02": 24000, "03": 20800}}}, "messages": ["[word_counts].by_chapter table is stale against the on-disk drafts"]}
   
   '''
 # ---
 # name: test_refuse_envelope_snapshot
   '''
-  {"command": "novel-state", "schema_version": 1, "ok": false, "working_dir": "working", "result": {"violations": ["done-flag-without-draft"], "reconciliation": {"action": "refuse", "discrepancies": ["done-flag-without-draft"], "detail": "disk evidence refuses repair: done-flag-without-draft"}}, "messages": ["chapter 01 carries done.flag beside an empty or absent draft.md"]}
+  {"command": "novel state", "schema_version": 1, "ok": false, "working_dir": "working", "result": {"violations": ["done-flag-without-draft"], "reconciliation": {"action": "refuse", "discrepancies": ["done-flag-without-draft"], "detail": "disk evidence refuses repair: done-flag-without-draft"}}, "messages": ["chapter 01 carries done.flag beside an empty or absent draft.md"]}
   
   '''
 # ---

@@ -30,7 +30,7 @@ if typ.TYPE_CHECKING:
     from conftest import WorkingTreeSpec
     from syrupy.assertion import SnapshotAssertion
 
-_COMMAND = "novel-state"
+_COMMAND = "novel state"
 # Redact the RFC 3339 timestamp ``init`` stamps into ``[novel].created_at`` (it
 # never reaches the envelope today, but normalise defensively per AGENTS.md).
 _TIMESTAMP = re.compile(

@@ -87,7 +87,7 @@ def _run(working: Path, command: str, monkeypatch: pytest.MonkeyPatch) -> int:
         run(
             build_app(),
             [command],
-            RunContext(command="novel-state", working_dir="working", human=False),
+            RunContext(command="novel state", working_dir="working", human=False),
         )
     return typ.cast("int", excinfo.value.code)
 

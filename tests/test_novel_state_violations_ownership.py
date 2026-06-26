@@ -32,7 +32,7 @@ from novel_ralph_skill.contract.runner import RunContext, run
 if typ.TYPE_CHECKING:
     from pathlib import Path
 
-_COMMAND = "novel-state"
+_COMMAND = "novel state"
 
 # Each setup callable takes the ``request`` fixture, builds the tree its arm
 # needs, and ``chdir``'s into the directory the subcommand must run from. It

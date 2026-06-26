@@ -33,7 +33,7 @@ from novel_ralph_skill.contract.runner import RunContext, run
 if typ.TYPE_CHECKING:
     import collections.abc as cabc
 
-_COMMAND = "novel-state"
+_COMMAND = "novel state"
 
 
 @contextlib.contextmanager

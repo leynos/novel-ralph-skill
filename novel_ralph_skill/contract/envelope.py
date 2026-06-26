@@ -81,9 +81,9 @@ def build_envelope(  # noqa: PLR0913  # pylint: disable=too-many-arguments
     inconsistently with the exit code, and ``command`` is validated against the
     single source of truth
     (:data:`novel_ralph_skill.commands.names.ENVELOPE_COMMAND_NAMES`). That guard
-    is the superset of the legacy five and the spaced ``novel <verb>`` subcommand
-    names, so both the legacy entry points and the multiplexer validate during the
-    1.2.12 -> 1.2.13 transition (ADR 007; ExecPlan Decision Log D1).
+    is the spaced ``novel <verb>`` subcommand names plus the bare ``"novel"``
+    surface, so every name the multiplexer stamps validates (ADR 007; ExecPlan
+    Decision Log D1).
 
     Parameters
     ----------

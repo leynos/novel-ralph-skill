@@ -26,7 +26,7 @@ from novel_ralph_skill.contract.runner import RunContext, run
 if typ.TYPE_CHECKING:
     from pathlib import Path
 
-_COMMAND = "novel-state"
+_COMMAND = "novel state"
 _PLAN_JSON = (
     '[{"number": 1, "slug": "the-summons", "title": "The Summons", '
     '"target_words": 3200}, '

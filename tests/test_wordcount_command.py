@@ -4,7 +4,8 @@ These drive the real ``wordcount`` Cyclopts app through the shared
 :func:`novel_ralph_skill.contract.runner.run` wrapper (the ``_run_capture``
 pattern from ``tests/test_desloppify_command.py``) and pin the exit-code contract
 at its boundaries (design §9 "CLI error-path tests"; roadmap task 6.1.1): a
-coherent tree exits ``0`` with ``command: "wordcount"``; an absent ``working/``,
+coherent tree exits ``0`` with ``command: "novel wordcount"``; an absent
+``working/``,
 an unparseable ``state.toml``, and an undecodable ``draft.md`` each exit ``3``;
 an unknown ``--option`` exits ``2`` (the Cyclopts usage channel; ``wordcount``
 takes no ``--chapter`` per ExecPlan Decision Log D-SCOPE); and ``--help`` exits
@@ -29,7 +30,7 @@ if typ.TYPE_CHECKING:
 
     from conftest import WorkingTreeSpec
 
-_COMMAND = "wordcount"
+_COMMAND = "novel wordcount"
 
 
 def _run_capture(
@@ -87,11 +88,11 @@ def test_coherent_tree_exits_zero(
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    """A coherent ``working/`` exits ``0`` with ``command: "wordcount"``."""
+    """A coherent ``working/`` exits ``0`` with ``command: "novel wordcount"``."""
     monkeypatch.chdir(coherent_working.parent)
     code, envelope = _run_capture([], capsys)
     assert code == ExitCode.SUCCESS, f"expected exit 0, got {code}"
-    assert envelope["command"] == "wordcount", envelope
+    assert envelope["command"] == "novel wordcount", envelope
     assert envelope["ok"] is True, envelope
 
 

@@ -1,37 +1,37 @@
 # serializer version: 1
 # name: test_advance_phase_refusal_envelope_snapshot
   '''
-  {"command": "novel-state", "schema_version": 1, "ok": false, "working_dir": "working", "result": {}, "messages": ["advance-phase from an incoherent state would violate: completed-prefix", "phase.completed (premise, characters) is not the in-order prefix (premise, treatment, characters, conflict-analysis, setting, reader-fit, stc, chapter-planning) for current drafting"]}
+  {"command": "novel state", "schema_version": 1, "ok": false, "working_dir": "working", "result": {}, "messages": ["advance-phase from an incoherent state would violate: completed-prefix", "phase.completed (premise, characters) is not the in-order prefix (premise, treatment, characters, conflict-analysis, setting, reader-fit, stc, chapter-planning) for current drafting"]}
   
   '''
 # ---
 # name: test_advance_phase_success_envelope_snapshot
   '''
-  {"command": "novel-state", "schema_version": 1, "ok": true, "working_dir": "working", "result": {"from": "premise", "to": "treatment"}, "messages": ["advanced phase from 'premise' to 'treatment'"]}
+  {"command": "novel state", "schema_version": 1, "ok": true, "working_dir": "working", "result": {"from": "premise", "to": "treatment"}, "messages": ["advanced phase from 'premise' to 'treatment'"]}
   
   '''
 # ---
 # name: test_init_success_envelope_snapshot
   '''
-  {"command": "novel-state", "schema_version": 1, "ok": true, "working_dir": "working", "result": {"working_dir": "working", "slug": "s"}, "messages": ["initialised working/state.toml"]}
+  {"command": "novel state", "schema_version": 1, "ok": true, "working_dir": "working", "result": {"working_dir": "working", "slug": "s"}, "messages": ["initialised working/state.toml"]}
   
   '''
 # ---
 # name: test_recount_success_envelope_snapshot
   '''
-  {"command": "novel-state", "schema_version": 1, "ok": true, "working_dir": "working", "result": {"current": 8, "by_chapter": {"01": 3, "02": 5}}, "messages": ["recounted 8 words across 2 chapters"]}
+  {"command": "novel state", "schema_version": 1, "ok": true, "working_dir": "working", "result": {"current": 8, "by_chapter": {"01": 3, "02": 5}}, "messages": ["recounted 8 words across 2 chapters"]}
   
   '''
 # ---
 # name: test_set_cursor_refusal_envelope_snapshot
   '''
-  {"command": "novel-state", "schema_version": 1, "ok": false, "working_dir": "working", "result": {}, "messages": ["set-cursor would violate: cursor-coherent", "cursor (chapter=99, scene=0, beat=0) is incoherent for 3 manifest chapters"]}
+  {"command": "novel state", "schema_version": 1, "ok": false, "working_dir": "working", "result": {}, "messages": ["set-cursor would violate: cursor-coherent", "cursor (chapter=99, scene=0, beat=0) is incoherent for 3 manifest chapters"]}
   
   '''
 # ---
 # name: test_set_cursor_success_envelope_snapshot
   '''
-  {"command": "novel-state", "schema_version": 1, "ok": true, "working_dir": "working", "result": {"current_chapter": 2, "current_scene": 0, "current_beat": 0}, "messages": ["cursor set to chapter=2, scene=0, beat=0"]}
+  {"command": "novel state", "schema_version": 1, "ok": true, "working_dir": "working", "result": {"current_chapter": 2, "current_scene": 0, "current_beat": 0}, "messages": ["cursor set to chapter=2, scene=0, beat=0"]}
   
   '''
 # ---

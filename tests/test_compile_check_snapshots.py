@@ -35,7 +35,7 @@ if typ.TYPE_CHECKING:
 
     from syrupy.assertion import SnapshotAssertion
 
-_COMMAND = "novel-compile"
+_COMMAND = "novel compile"
 _COUNTS: tuple[int, ...] = (3, 5, 4)
 # Present-but-stale bytes: the DIVERGES path.
 _STALE_COMPILED = "STALE — not the ordered concatenation"

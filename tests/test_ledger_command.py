@@ -33,7 +33,7 @@ if typ.TYPE_CHECKING:
     import collections.abc as cabc
     from pathlib import Path
 
-_COMMAND = "desloppify"
+_COMMAND = "novel desloppify"
 
 # The bad-ledger fixture directory, derived from ``__file__`` so collection does
 # not depend on the current working directory.

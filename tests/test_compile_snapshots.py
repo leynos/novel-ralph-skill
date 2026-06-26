@@ -29,7 +29,7 @@ if typ.TYPE_CHECKING:
 
     from syrupy.assertion import SnapshotAssertion
 
-_COMMAND = "novel-compile"
+_COMMAND = "novel compile"
 _COUNTS: tuple[int, ...] = (3, 5, 4)
 
 

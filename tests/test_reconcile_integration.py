@@ -42,7 +42,7 @@ from novel_ralph_skill.state import (
 if typ.TYPE_CHECKING:
     from pathlib import Path
 
-_COMMAND = "novel-state"
+_COMMAND = "novel state"
 
 # The four word-count/pending-turn variants plus every other materialising tree
 # exercise the full cross-check; the coherent baseline anchors the NONE path.

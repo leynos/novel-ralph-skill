@@ -25,7 +25,7 @@ if typ.TYPE_CHECKING:
 
     from syrupy.assertion import SnapshotAssertion
 
-_COMMAND = "novel-state"
+_COMMAND = "novel state"
 
 
 def test_set_gate_success_result_snapshot(

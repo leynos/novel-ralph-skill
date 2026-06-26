@@ -1,16 +1,16 @@
 # serializer version: 1
 # name: test_machine_envelope_per_code_snapshot[ACTIONABLE_FINDING]
-  '{"command": "novel-state", "schema_version": 1, "ok": false, "working_dir": "working", "result": {"code_name": "ACTIONABLE_FINDING"}, "messages": ["exit code 4"]}'
+  '{"command": "novel state", "schema_version": 1, "ok": false, "working_dir": "working", "result": {"code_name": "ACTIONABLE_FINDING"}, "messages": ["exit code 4"]}'
 # ---
 # name: test_machine_envelope_per_code_snapshot[BENIGN_NEGATIVE]
-  '{"command": "novel-state", "schema_version": 1, "ok": false, "working_dir": "working", "result": {"code_name": "BENIGN_NEGATIVE"}, "messages": ["exit code 1"]}'
+  '{"command": "novel state", "schema_version": 1, "ok": false, "working_dir": "working", "result": {"code_name": "BENIGN_NEGATIVE"}, "messages": ["exit code 1"]}'
 # ---
 # name: test_machine_envelope_per_code_snapshot[STATE_ERROR]
-  '{"command": "novel-state", "schema_version": 1, "ok": false, "working_dir": "working", "result": {"code_name": "STATE_ERROR"}, "messages": ["exit code 3"]}'
+  '{"command": "novel state", "schema_version": 1, "ok": false, "working_dir": "working", "result": {"code_name": "STATE_ERROR"}, "messages": ["exit code 3"]}'
 # ---
 # name: test_machine_envelope_per_code_snapshot[SUCCESS]
-  '{"command": "novel-state", "schema_version": 1, "ok": true, "working_dir": "working", "result": {"code_name": "SUCCESS"}, "messages": ["exit code 0"]}'
+  '{"command": "novel state", "schema_version": 1, "ok": true, "working_dir": "working", "result": {"code_name": "SUCCESS"}, "messages": ["exit code 0"]}'
 # ---
 # name: test_machine_envelope_per_code_snapshot[USAGE_ERROR]
-  '{"command": "novel-state", "schema_version": 1, "ok": false, "working_dir": "working", "result": {"code_name": "USAGE_ERROR"}, "messages": ["exit code 2"]}'
+  '{"command": "novel state", "schema_version": 1, "ok": false, "working_dir": "working", "result": {"code_name": "USAGE_ERROR"}, "messages": ["exit code 2"]}'
 # ---

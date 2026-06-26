@@ -27,7 +27,6 @@ from pathlib import Path
 import pytest
 from cuprum import ProgramCatalogue, ProjectSettings
 
-from novel_ralph_skill.commands.names import COMMAND_NAMES
 from novel_ralph_skill.contract.runner import (
     CommandOutcome,
     StateInputError,
@@ -336,7 +335,7 @@ def wrapper_app() -> cabc.Callable[[CommandOutcome | None], cyclopts.App]:
         # The factory requires a name where this fixture was previously
         # anonymous; the name is behaviourally inert for the run path (proven by
         # the --help/--version -> None/exit-0 assertion in test_contract_runner).
-        app = make_contract_app(COMMAND_NAMES[0])
+        app = make_contract_app("novel state")
 
         @app.command
         def act(name: str = "default") -> object:

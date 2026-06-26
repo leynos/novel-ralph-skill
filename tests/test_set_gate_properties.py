@@ -37,7 +37,7 @@ from novel_ralph_skill.contract.runner import RunContext, run
 if typ.TYPE_CHECKING:
     import collections.abc as cabc
 
-_COMMAND = "novel-state"
+_COMMAND = "novel state"
 _TARGET_WORDS = 80000
 _THRESHOLDS = (0.30, 0.50, 0.80)
 _FLAG_NAMES = ("knitting-30", "knitting-50", "knitting-80")

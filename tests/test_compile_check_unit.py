@@ -36,7 +36,7 @@ from novel_ralph_skill.contract.runner import RunContext, run
 if typ.TYPE_CHECKING:
     from pathlib import Path
 
-_COMMAND = "novel-compile"
+_COMMAND = "novel compile"
 _COUNTS: tuple[int, ...] = (3, 5, 4)
 # Deliberately stale bytes: present but not the ordered concatenation, so the
 # verdict is DIVERGES.

@@ -8,11 +8,6 @@ license = { text = "ISC" }
 dependencies = ["cyclopts", "tomlkit"]
 
 [project.scripts]
-novel-state = "novel_ralph_skill.commands.stub:novel_state"
-novel-done = "novel_ralph_skill.commands.stub:novel_done"
-novel-compile = "novel_ralph_skill.commands.stub:novel_compile"
-desloppify = "novel_ralph_skill.commands.stub:desloppify"
-wordcount = "novel_ralph_skill.commands.stub:wordcount"
 novel = "novel_ralph_skill.commands.novel:main"
 
 [dependency-groups]

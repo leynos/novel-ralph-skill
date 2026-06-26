@@ -24,13 +24,13 @@ cross-product gaps "knowingly rather than silently" (§9 lines 819-821), so this
 module documents exactly which cells are covered and which combinatorial gaps it
 carries — see the ``Carried gaps`` section below.
 
-Read surface (the phase-sensitive query commands). ``novel-state`` is a
+Read surface (the phase-sensitive query commands). ``novel state`` is a
 multi-subcommand surface; this matrix treats its ``check`` *query* as the
 phase-read unit and excludes its mutators (``init``, ``set-cursor``,
 ``advance-phase``, ``recount``, ``reconcile``, ``set-chapters``), which are
 command/query segregated (§3.3) and owned by their own suites and by tasks
 6.2.2/6.2.5. The
-other four commands register a single default callback. ``novel-compile`` is
+other four commands register a single default callback. ``novel compile`` is
 driven with ``["--check"]`` (the read-only divergence checker), **never** ``[]``:
 the bare ``[]`` argv runs the write path, which mutates ``compiled.md`` and emits
 the write envelope rather than the ``diverged`` checker envelope (the repo
@@ -53,16 +53,16 @@ snapshot still pins it verbatim.
 
 Carried gaps (documented rather than silently omitted, §9 lines 819-821):
 
-- **Mutator x phase** cross-products. ``novel-state``'s mutators (``init``,
+- **Mutator x phase** cross-products. ``novel state``'s mutators (``init``,
   ``set-cursor``, ``advance-phase``, ``recount``, ``reconcile``, ``set-chapters``)
-  and ``novel-compile``'s write path are command/query segregated (§3.3) and are
+  and ``novel compile``'s write path are command/query segregated (§3.3) and are
   not
   the phase-read surface this task targets; they are covered by their own suites
   and by tasks 6.2.2/6.2.5.
 - **Exhaustive eleven-phase cross-product** for the manifest-sensitive commands.
-  ``novel-compile --check`` and ``desloppify`` are not eleven-phase-invariant but
+  ``novel compile --check`` and ``novel desloppify`` are not eleven-phase-invariant but
   collapse to their *manifest* branches (compile: the exit-3/4/0 split keyed on
-  the manifest+compiled state; desloppify: ``total_words`` 0 vs 68800). They are
+  the manifest+compiled state; novel desloppify: ``total_words`` 0 vs 68800). They are
   asserted as those real branches (Work item 4), not as eleven independent cells.
 - **Incoherent-variant x phase** cross-products are covered by the validator
   suites (``tests/test_validate_state_corpus.py`` and the corpus oracle suites),
@@ -120,27 +120,28 @@ class _ReadCommand(typ.NamedTuple):
     argv: list[str]
 
 
-# The five read surfaces. ``novel-state`` is keyed on its ``check`` query;
-# ``novel-compile`` on ``--check`` (the read-only checker, never the write path —
+# The five read surfaces. ``novel state`` is keyed on its ``check`` query;
+# ``novel compile`` on ``--check`` (the read-only checker, never the write path —
 # see the module docstring trap note).
 _READ_REGISTRY: tuple[_ReadCommand, ...] = (
-    _ReadCommand("novel-state", novel_state.build_app, ["check"]),
-    _ReadCommand("novel-done", _novel_done.build_app, []),
-    _ReadCommand("wordcount", _wordcount.build_app, []),
-    _ReadCommand("novel-compile", _compile.build_app, ["--check"]),
-    _ReadCommand("desloppify", _desloppify.build_app, []),
+    _ReadCommand("novel state", novel_state.build_app, ["check"]),
+    _ReadCommand("novel done", _novel_done.build_app, []),
+    _ReadCommand("novel wordcount", _wordcount.build_app, []),
+    _ReadCommand("novel compile", _compile.build_app, ["--check"]),
+    _ReadCommand("novel desloppify", _desloppify.build_app, []),
 )
 
-# The verified ``ok`` sign per ``(command, phase)`` cell. ``novel-state check``,
-# ``wordcount``, and ``desloppify`` are ``ok=True`` for every phase; ``novel-done``
-# is ``ok=False`` for every phase (the corpus never satisfies the full done
-# predicate); ``novel-compile --check`` is ``ok=False`` for the eight pre-drafting
-# phases and ``drafting``, and ``ok=True`` only for ``final-pass`` and ``done``.
+# The verified ``ok`` sign per ``(command, phase)`` cell. ``novel state check``,
+# ``novel wordcount``, and ``novel desloppify`` are ``ok=True`` for every phase;
+# ``novel done`` is ``ok=False`` for every phase (the corpus never satisfies the
+# full done predicate); ``novel compile --check`` is ``ok=False`` for the eight
+# pre-drafting phases and ``drafting``, and ``ok=True`` only for ``final-pass``
+# and ``done``.
 # Captured in-process over the real corpus trees (see the ExecPlan Surprises).
 _COMPILE_OK_PHASES: frozenset[str] = frozenset({"final-pass", "done"})
 
 # Matches the shapes that would churn a snapshot: an absolute or multi-segment
-# path, an ISO-8601 date, or a clock time. Mirrors the desloppify/novel-done guard
+# path, an ISO-8601 date, or a clock time. Mirrors the novel desloppify/novel done guard
 # in ``tests/test_novel_done_snapshots.py``.
 _VOLATILE_PATTERN = re.compile(
     r"(?:^|[\"\s])/[^/\"\s]+"
@@ -183,7 +184,7 @@ class _ErrorArm(typ.NamedTuple):
     ``ok: false`` skeleton, an empty ``result``, and a message whose stable
     prefix is identical across all five commands (ExecPlan Surprises). The only
     field that varies is ``messages`` — the exit-3 errno text and the exit-2
-    suggestion suffix (``novel-compile --check`` appends "Did you mean
+    suggestion suffix (``novel compile --check`` appends "Did you mean
     --no-check?") — so the snapshot redacts it and the message is asserted by
     its command-body-owned prefix instead.
 
@@ -476,7 +477,7 @@ def _expected_ok(name: str, phase: str) -> bool:
     """Return the verified ``ok`` sign for the ``(name, phase)`` cell.
 
     Captured in-process over the real corpus phase trees (ExecPlan Surprises):
-    ``novel-done`` is ``ok=False`` for every phase; ``novel-compile --check`` is
+    ``novel done`` is ``ok=False`` for every phase; ``novel compile --check`` is
     ``ok=True`` only for ``final-pass`` and ``done``; the other three are
     ``ok=True`` for every phase.
 
@@ -492,9 +493,9 @@ def _expected_ok(name: str, phase: str) -> bool:
     bool
         The expected ``ok`` value for the cell.
     """
-    if name == "novel-done":
+    if name == "novel done":
         return False
-    if name == "novel-compile":
+    if name == "novel compile":
         return phase in _COMPILE_OK_PHASES
     return True
 
@@ -556,7 +557,7 @@ def _drive_machine_result(
 def test_done_phase_clause_across_phases(tmp_path: Path, drive: _Driver) -> None:
     """``phase_is_done`` is true only on the ``done`` tree; false on the other ten.
 
-    Drives ``novel-done`` across all eleven phases and asserts the phase-keyed
+    Drives ``novel done`` across all eleven phases and asserts the phase-keyed
     ``phase_is_done`` clause (§4.2 done predicate; ``phase.py`` enum order). The
     aggregate envelope ``ok``/exit is a *constant* ``False``/``1`` across every
     phase because the corpus never satisfies the full done predicate, so this test
@@ -578,7 +579,7 @@ def test_done_phase_clause_across_phases(tmp_path: Path, drive: _Driver) -> None
       ``reviews/knitting-NN.md`` files are absent — ExecPlan Surprise);
       ``compile_consistent`` is **True** on ``done`` (the round-2 B4 fix).
     """
-    command = _BY_NAME["novel-done"]
+    command = _BY_NAME["novel done"]
     for phase in wc.PHASE_ORDER:
         code, result = _drive_machine_result(command, phase, tmp_path, drive)
         assert code == ExitCode.BENIGN_NEGATIVE
@@ -598,26 +599,26 @@ def test_done_phase_clause_across_phases(tmp_path: Path, drive: _Driver) -> None
 
 
 def test_check_coherent_across_phases(tmp_path: Path, drive: _Driver) -> None:
-    """``novel-state check`` is coherent (exit 0, no violations) for every phase.
+    """``novel state check`` is coherent (exit 0, no violations) for every phase.
 
-    Drives ``novel-state check`` across all eleven phases and asserts exit 0,
+    Drives ``novel state check`` across all eleven phases and asserts exit 0,
     ``ok`` true, and an empty ``violations`` list (§5.2; the corpus phase states
     are coherent by construction). This drives the **command envelope**, not the
     structural oracle, so it is not a duplicate of
     ``tests/test_validate_state_corpus.py`` (which asserts the oracle directly):
     its assertion is on the envelope ``ok``/``violations``.
     """
-    command = _BY_NAME["novel-state"]
+    command = _BY_NAME["novel state"]
     for phase in wc.PHASE_ORDER:
         code, result = _drive_machine_result(command, phase, tmp_path, drive)
         assert code == ExitCode.SUCCESS
         assert result["violations"] == []
 
 
-def test_wordcount_branch_across_phases(tmp_path: Path, drive: _Driver) -> None:
-    """``wordcount`` emits the zero-progress branch pre-drafting, populated after.
+def test_novel_wordcount_branch_across_phases(tmp_path: Path, drive: _Driver) -> None:
+    """``novel wordcount`` emits the zero-progress branch pre-drafting, populated after.
 
-    Drives ``wordcount`` across all eleven phases and asserts the two verified
+    Drives ``novel wordcount`` across all eleven phases and asserts the two verified
     branches (§4.5; the gate geometry's totality guard at
     ``_wordcount_report._gate_geometry`` and ``validate.py:261``):
 
@@ -629,7 +630,7 @@ def test_wordcount_branch_across_phases(tmp_path: Path, drive: _Driver) -> None:
       all three gates triggered, and ``next_gate_threshold`` ``None`` (past the
       final gate; D-NOGATE).
     """
-    command = _BY_NAME["wordcount"]
+    command = _BY_NAME["novel wordcount"]
     for phase in wc.PHASE_ORDER:
         code, result = _drive_machine_result(command, phase, tmp_path, drive)
         assert code == ExitCode.SUCCESS
@@ -656,9 +657,9 @@ def test_wordcount_branch_across_phases(tmp_path: Path, drive: _Driver) -> None:
 
 
 def test_compile_check_branches_across_phases(tmp_path: Path, drive: _Driver) -> None:
-    """``novel-compile --check`` splits into exit 3 / 4 / 0 along the phase axis.
+    """``novel compile --check`` splits into exit 3 / 4 / 0 along the phase axis.
 
-    Drives ``novel-compile --check`` across all eleven phases and asserts the
+    Drives ``novel compile --check`` across all eleven phases and asserts the
     three verified branches (§10 lines 811-815;
     ``_compile._require_chapter_manifest`` and ``check_compiled``):
 
@@ -675,7 +676,7 @@ def test_compile_check_branches_across_phases(tmp_path: Path, drive: _Driver) ->
     ``tests/test_compile_check_snapshots.py``, which pins the MATCHES/DIVERGES
     envelopes on one hand-built tree.
     """
-    command = _BY_NAME["novel-compile"]
+    command = _BY_NAME["novel compile"]
     for phase in wc.PHASE_ORDER:
         code, envelope = _drive_machine_envelope(command, phase, tmp_path, drive)
         result = typ.cast("dict[str, object]", envelope["result"])
@@ -699,10 +700,10 @@ def test_compile_check_branches_across_phases(tmp_path: Path, drive: _Driver) ->
             assert result["diverged"] is False
 
 
-def test_desloppify_shape_across_phases(tmp_path: Path, drive: _Driver) -> None:
-    """``desloppify`` is shape-stable across phases; only ``total_words`` varies.
+def test_novel_desloppify_shape_across_phases(tmp_path: Path, drive: _Driver) -> None:
+    """``novel desloppify`` is shape-stable across phases; only ``total_words`` varies.
 
-    Drives ``desloppify`` across all eleven phases and asserts exit 0, ``ok``
+    Drives ``novel desloppify`` across all eleven phases and asserts exit 0, ``ok``
     true, the stable ``result`` key set, an empty ``violations`` list, and an
     empty slimmed ``findings`` trail on every phase. Each phase is a clean pass,
     so the clean-pass findings contract (roadmap 7.1.3) slims the trail to the
@@ -710,10 +711,10 @@ def test_desloppify_shape_across_phases(tmp_path: Path, drive: _Driver) -> None:
     aggregates the full 24-rule shipped pack (§4.4; §3.3 checker read shape). The
     ``findings`` key stays present; only its contents collapse to ``[]``. The one
     phase-varying datum is ``total_words``: 0 for the eight empty-manifest
-    pre-drafting phases and 68800 for the three drafting-era phases. So desloppify
+    pre-drafting phases and 68800 for the three drafting-era phases. So novel desloppify
     is shape-invariant but **not** value-invariant across phases.
     """
-    command = _BY_NAME["desloppify"]
+    command = _BY_NAME["novel desloppify"]
     for phase in wc.PHASE_ORDER:
         code, result = _drive_machine_result(command, phase, tmp_path, drive)
         assert code == ExitCode.SUCCESS

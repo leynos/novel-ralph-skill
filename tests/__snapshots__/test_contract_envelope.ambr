@@ -1,7 +1,7 @@
 # serializer version: 1
 # name: test_render_human_success_snapshot
   '''
-  command: novel-state
+  command: novel state
   ok: True
   working_dir: working
   messages:
@@ -9,5 +9,5 @@
   '''
 # ---
 # name: test_render_machine_success_snapshot
-  '{"command": "novel-state", "schema_version": 1, "ok": true, "working_dir": "working", "result": {"cursor": "ch01"}, "messages": ["state initialised"]}'
+  '{"command": "novel state", "schema_version": 1, "ok": true, "working_dir": "working", "result": {"cursor": "ch01"}, "messages": ["state initialised"]}'
 # ---

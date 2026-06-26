@@ -37,7 +37,7 @@ from novel_ralph_skill.state.done_predicate import compile_consistent
 if typ.TYPE_CHECKING:
     from pathlib import Path
 
-_COMMAND = "novel-compile"
+_COMMAND = "novel compile"
 
 # Corpus specs spanning the three verdicts the shared routine distinguishes:
 # MATCHES (coherent), DIVERGES (present-but-stale, both the subtle

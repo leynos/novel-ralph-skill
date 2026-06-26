@@ -1,7 +1,7 @@
 # serializer version: 1
 # name: test_compile_success_envelope_snapshot
   '''
-  {"command": "novel-compile", "schema_version": 1, "ok": true, "working_dir": "working", "result": {"compiled": "working/manuscript/compiled.md", "chapters": 3, "bytes": 61}, "messages": ["compiled 3 chapters into working/manuscript/compiled.md"]}
+  {"command": "novel compile", "schema_version": 1, "ok": true, "working_dir": "working", "result": {"compiled": "working/manuscript/compiled.md", "chapters": 3, "bytes": 61}, "messages": ["compiled 3 chapters into working/manuscript/compiled.md"]}
   
   '''
 # ---

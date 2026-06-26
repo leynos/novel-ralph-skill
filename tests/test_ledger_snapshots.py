@@ -29,7 +29,7 @@ if typ.TYPE_CHECKING:
 
     from syrupy.assertion import SnapshotAssertion
 
-_COMMAND = "desloppify"
+_COMMAND = "novel desloppify"
 
 # A one-device ledger rationing ``sternum`` to two spends across the manuscript.
 _LEDGER = """\

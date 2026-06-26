@@ -31,7 +31,7 @@ if typ.TYPE_CHECKING:
     from conftest import WorkingTreeSpec
     from syrupy.assertion import SnapshotAssertion
 
-_COMMAND = "wordcount"
+_COMMAND = "novel wordcount"
 
 if typ.TYPE_CHECKING:
 

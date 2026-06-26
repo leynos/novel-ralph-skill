@@ -44,7 +44,7 @@ from novel_ralph_skill.state import (
 if typ.TYPE_CHECKING:
     from pathlib import Path
 
-_COMMAND = "novel-state"
+_COMMAND = "novel state"
 
 
 def _drive(

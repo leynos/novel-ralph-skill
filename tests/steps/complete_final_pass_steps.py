@@ -49,7 +49,7 @@ def _drive(working: Path, argv: list[str], monkeypatch: pytest.MonkeyPatch) -> i
         run(
             build_app(),
             argv,
-            RunContext(command="novel-state", working_dir="working", human=False),
+            RunContext(command="novel state", working_dir="working", human=False),
         )
     return typ.cast("int", excinfo.value.code)
 

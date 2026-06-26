@@ -1,7 +1,7 @@
 # serializer version: 1
 # name: test_clean_pass_envelope_snapshot
   dict({
-    'command': 'desloppify',
+    'command': 'novel desloppify',
     'messages': list([
       'no slop detected',
     ]),
@@ -20,7 +20,7 @@
 # ---
 # name: test_one_hit_past_threshold_envelope_snapshot
   dict({
-    'command': 'desloppify',
+    'command': 'novel desloppify',
     'messages': list([
       'smirked exceeds threshold (2 > 1)',
     ]),

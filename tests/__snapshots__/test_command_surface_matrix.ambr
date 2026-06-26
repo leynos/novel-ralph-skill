@@ -1,7 +1,7 @@
 # serializer version: 1
-# name: test_error_arm_machine_envelope[desloppify-state]
+# name: test_error_arm_machine_envelope[novel compile-state]
   dict({
-    'command': 'desloppify',
+    'command': 'novel compile',
     'messages': list([
       '<redacted>',
     ]),
@@ -12,9 +12,9 @@
     'working_dir': 'working',
   })
 # ---
-# name: test_error_arm_machine_envelope[desloppify-usage]
+# name: test_error_arm_machine_envelope[novel compile-usage]
   dict({
-    'command': 'desloppify',
+    'command': 'novel compile',
     'messages': list([
       '<redacted>',
     ]),
@@ -25,9 +25,9 @@
     'working_dir': 'working',
   })
 # ---
-# name: test_error_arm_machine_envelope[novel-compile-state]
+# name: test_error_arm_machine_envelope[novel desloppify-state]
   dict({
-    'command': 'novel-compile',
+    'command': 'novel desloppify',
     'messages': list([
       '<redacted>',
     ]),
@@ -38,9 +38,9 @@
     'working_dir': 'working',
   })
 # ---
-# name: test_error_arm_machine_envelope[novel-compile-usage]
+# name: test_error_arm_machine_envelope[novel desloppify-usage]
   dict({
-    'command': 'novel-compile',
+    'command': 'novel desloppify',
     'messages': list([
       '<redacted>',
     ]),
@@ -51,9 +51,9 @@
     'working_dir': 'working',
   })
 # ---
-# name: test_error_arm_machine_envelope[novel-done-state]
+# name: test_error_arm_machine_envelope[novel done-state]
   dict({
-    'command': 'novel-done',
+    'command': 'novel done',
     'messages': list([
       '<redacted>',
     ]),
@@ -64,9 +64,9 @@
     'working_dir': 'working',
   })
 # ---
-# name: test_error_arm_machine_envelope[novel-done-usage]
+# name: test_error_arm_machine_envelope[novel done-usage]
   dict({
-    'command': 'novel-done',
+    'command': 'novel done',
     'messages': list([
       '<redacted>',
     ]),
@@ -77,9 +77,9 @@
     'working_dir': 'working',
   })
 # ---
-# name: test_error_arm_machine_envelope[novel-state-state]
+# name: test_error_arm_machine_envelope[novel state-state]
   dict({
-    'command': 'novel-state',
+    'command': 'novel state',
     'messages': list([
       '<redacted>',
     ]),
@@ -90,9 +90,9 @@
     'working_dir': 'working',
   })
 # ---
-# name: test_error_arm_machine_envelope[novel-state-usage]
+# name: test_error_arm_machine_envelope[novel state-usage]
   dict({
-    'command': 'novel-state',
+    'command': 'novel state',
     'messages': list([
       '<redacted>',
     ]),
@@ -103,9 +103,9 @@
     'working_dir': 'working',
   })
 # ---
-# name: test_error_arm_machine_envelope[wordcount-state]
+# name: test_error_arm_machine_envelope[novel wordcount-state]
   dict({
-    'command': 'wordcount',
+    'command': 'novel wordcount',
     'messages': list([
       '<redacted>',
     ]),
@@ -116,9 +116,9 @@
     'working_dir': 'working',
   })
 # ---
-# name: test_error_arm_machine_envelope[wordcount-usage]
+# name: test_error_arm_machine_envelope[novel wordcount-usage]
   dict({
-    'command': 'wordcount',
+    'command': 'novel wordcount',
     'messages': list([
       '<redacted>',
     ]),
@@ -129,218 +129,9 @@
     'working_dir': 'working',
   })
 # ---
-# name: test_machine_envelope_matrix[desloppify-chapter-planning]
+# name: test_machine_envelope_matrix[novel compile-chapter-planning]
   dict({
-    'command': 'desloppify',
-    'messages': list([
-      'no slop detected',
-    ]),
-    'ok': True,
-    'result': dict({
-      'findings': list([
-      ]),
-      'pack': 'offenders',
-      'total_words': 0,
-      'violations': list([
-      ]),
-    }),
-    'schema_version': 1,
-    'working_dir': 'working',
-  })
-# ---
-# name: test_machine_envelope_matrix[desloppify-characters]
-  dict({
-    'command': 'desloppify',
-    'messages': list([
-      'no slop detected',
-    ]),
-    'ok': True,
-    'result': dict({
-      'findings': list([
-      ]),
-      'pack': 'offenders',
-      'total_words': 0,
-      'violations': list([
-      ]),
-    }),
-    'schema_version': 1,
-    'working_dir': 'working',
-  })
-# ---
-# name: test_machine_envelope_matrix[desloppify-conflict-analysis]
-  dict({
-    'command': 'desloppify',
-    'messages': list([
-      'no slop detected',
-    ]),
-    'ok': True,
-    'result': dict({
-      'findings': list([
-      ]),
-      'pack': 'offenders',
-      'total_words': 0,
-      'violations': list([
-      ]),
-    }),
-    'schema_version': 1,
-    'working_dir': 'working',
-  })
-# ---
-# name: test_machine_envelope_matrix[desloppify-done]
-  dict({
-    'command': 'desloppify',
-    'messages': list([
-      'no slop detected',
-    ]),
-    'ok': True,
-    'result': dict({
-      'findings': list([
-      ]),
-      'pack': 'offenders',
-      'total_words': 68800,
-      'violations': list([
-      ]),
-    }),
-    'schema_version': 1,
-    'working_dir': 'working',
-  })
-# ---
-# name: test_machine_envelope_matrix[desloppify-drafting]
-  dict({
-    'command': 'desloppify',
-    'messages': list([
-      'no slop detected',
-    ]),
-    'ok': True,
-    'result': dict({
-      'findings': list([
-      ]),
-      'pack': 'offenders',
-      'total_words': 68800,
-      'violations': list([
-      ]),
-    }),
-    'schema_version': 1,
-    'working_dir': 'working',
-  })
-# ---
-# name: test_machine_envelope_matrix[desloppify-final-pass]
-  dict({
-    'command': 'desloppify',
-    'messages': list([
-      'no slop detected',
-    ]),
-    'ok': True,
-    'result': dict({
-      'findings': list([
-      ]),
-      'pack': 'offenders',
-      'total_words': 68800,
-      'violations': list([
-      ]),
-    }),
-    'schema_version': 1,
-    'working_dir': 'working',
-  })
-# ---
-# name: test_machine_envelope_matrix[desloppify-premise]
-  dict({
-    'command': 'desloppify',
-    'messages': list([
-      'no slop detected',
-    ]),
-    'ok': True,
-    'result': dict({
-      'findings': list([
-      ]),
-      'pack': 'offenders',
-      'total_words': 0,
-      'violations': list([
-      ]),
-    }),
-    'schema_version': 1,
-    'working_dir': 'working',
-  })
-# ---
-# name: test_machine_envelope_matrix[desloppify-reader-fit]
-  dict({
-    'command': 'desloppify',
-    'messages': list([
-      'no slop detected',
-    ]),
-    'ok': True,
-    'result': dict({
-      'findings': list([
-      ]),
-      'pack': 'offenders',
-      'total_words': 0,
-      'violations': list([
-      ]),
-    }),
-    'schema_version': 1,
-    'working_dir': 'working',
-  })
-# ---
-# name: test_machine_envelope_matrix[desloppify-setting]
-  dict({
-    'command': 'desloppify',
-    'messages': list([
-      'no slop detected',
-    ]),
-    'ok': True,
-    'result': dict({
-      'findings': list([
-      ]),
-      'pack': 'offenders',
-      'total_words': 0,
-      'violations': list([
-      ]),
-    }),
-    'schema_version': 1,
-    'working_dir': 'working',
-  })
-# ---
-# name: test_machine_envelope_matrix[desloppify-stc]
-  dict({
-    'command': 'desloppify',
-    'messages': list([
-      'no slop detected',
-    ]),
-    'ok': True,
-    'result': dict({
-      'findings': list([
-      ]),
-      'pack': 'offenders',
-      'total_words': 0,
-      'violations': list([
-      ]),
-    }),
-    'schema_version': 1,
-    'working_dir': 'working',
-  })
-# ---
-# name: test_machine_envelope_matrix[desloppify-treatment]
-  dict({
-    'command': 'desloppify',
-    'messages': list([
-      'no slop detected',
-    ]),
-    'ok': True,
-    'result': dict({
-      'findings': list([
-      ]),
-      'pack': 'offenders',
-      'total_words': 0,
-      'violations': list([
-      ]),
-    }),
-    'schema_version': 1,
-    'working_dir': 'working',
-  })
-# ---
-# name: test_machine_envelope_matrix[novel-compile-chapter-planning]
-  dict({
-    'command': 'novel-compile',
+    'command': 'novel compile',
     'messages': list([
       'cannot compile: chapter manifest is absent or empty',
     ]),
@@ -351,9 +142,9 @@
     'working_dir': 'working',
   })
 # ---
-# name: test_machine_envelope_matrix[novel-compile-characters]
+# name: test_machine_envelope_matrix[novel compile-characters]
   dict({
-    'command': 'novel-compile',
+    'command': 'novel compile',
     'messages': list([
       'cannot compile: chapter manifest is absent or empty',
     ]),
@@ -364,9 +155,9 @@
     'working_dir': 'working',
   })
 # ---
-# name: test_machine_envelope_matrix[novel-compile-conflict-analysis]
+# name: test_machine_envelope_matrix[novel compile-conflict-analysis]
   dict({
-    'command': 'novel-compile',
+    'command': 'novel compile',
     'messages': list([
       'cannot compile: chapter manifest is absent or empty',
     ]),
@@ -377,9 +168,9 @@
     'working_dir': 'working',
   })
 # ---
-# name: test_machine_envelope_matrix[novel-compile-done]
+# name: test_machine_envelope_matrix[novel compile-done]
   dict({
-    'command': 'novel-compile',
+    'command': 'novel compile',
     'messages': list([
       'working/manuscript/compiled.md matches the chapter drafts',
     ]),
@@ -393,9 +184,9 @@
     'working_dir': 'working',
   })
 # ---
-# name: test_machine_envelope_matrix[novel-compile-drafting]
+# name: test_machine_envelope_matrix[novel compile-drafting]
   dict({
-    'command': 'novel-compile',
+    'command': 'novel compile',
     'messages': list([
       'working/manuscript/compiled.md diverges from the chapter drafts; regenerate it with novel-compile',
     ]),
@@ -409,9 +200,9 @@
     'working_dir': 'working',
   })
 # ---
-# name: test_machine_envelope_matrix[novel-compile-final-pass]
+# name: test_machine_envelope_matrix[novel compile-final-pass]
   dict({
-    'command': 'novel-compile',
+    'command': 'novel compile',
     'messages': list([
       'working/manuscript/compiled.md matches the chapter drafts',
     ]),
@@ -425,9 +216,9 @@
     'working_dir': 'working',
   })
 # ---
-# name: test_machine_envelope_matrix[novel-compile-premise]
+# name: test_machine_envelope_matrix[novel compile-premise]
   dict({
-    'command': 'novel-compile',
+    'command': 'novel compile',
     'messages': list([
       'cannot compile: chapter manifest is absent or empty',
     ]),
@@ -438,9 +229,9 @@
     'working_dir': 'working',
   })
 # ---
-# name: test_machine_envelope_matrix[novel-compile-reader-fit]
+# name: test_machine_envelope_matrix[novel compile-reader-fit]
   dict({
-    'command': 'novel-compile',
+    'command': 'novel compile',
     'messages': list([
       'cannot compile: chapter manifest is absent or empty',
     ]),
@@ -451,9 +242,9 @@
     'working_dir': 'working',
   })
 # ---
-# name: test_machine_envelope_matrix[novel-compile-setting]
+# name: test_machine_envelope_matrix[novel compile-setting]
   dict({
-    'command': 'novel-compile',
+    'command': 'novel compile',
     'messages': list([
       'cannot compile: chapter manifest is absent or empty',
     ]),
@@ -464,9 +255,9 @@
     'working_dir': 'working',
   })
 # ---
-# name: test_machine_envelope_matrix[novel-compile-stc]
+# name: test_machine_envelope_matrix[novel compile-stc]
   dict({
-    'command': 'novel-compile',
+    'command': 'novel compile',
     'messages': list([
       'cannot compile: chapter manifest is absent or empty',
     ]),
@@ -477,9 +268,9 @@
     'working_dir': 'working',
   })
 # ---
-# name: test_machine_envelope_matrix[novel-compile-treatment]
+# name: test_machine_envelope_matrix[novel compile-treatment]
   dict({
-    'command': 'novel-compile',
+    'command': 'novel compile',
     'messages': list([
       'cannot compile: chapter manifest is absent or empty',
     ]),
@@ -490,9 +281,218 @@
     'working_dir': 'working',
   })
 # ---
-# name: test_machine_envelope_matrix[novel-done-chapter-planning]
+# name: test_machine_envelope_matrix[novel desloppify-chapter-planning]
   dict({
-    'command': 'novel-done',
+    'command': 'novel desloppify',
+    'messages': list([
+      'no slop detected',
+    ]),
+    'ok': True,
+    'result': dict({
+      'findings': list([
+      ]),
+      'pack': 'offenders',
+      'total_words': 0,
+      'violations': list([
+      ]),
+    }),
+    'schema_version': 1,
+    'working_dir': 'working',
+  })
+# ---
+# name: test_machine_envelope_matrix[novel desloppify-characters]
+  dict({
+    'command': 'novel desloppify',
+    'messages': list([
+      'no slop detected',
+    ]),
+    'ok': True,
+    'result': dict({
+      'findings': list([
+      ]),
+      'pack': 'offenders',
+      'total_words': 0,
+      'violations': list([
+      ]),
+    }),
+    'schema_version': 1,
+    'working_dir': 'working',
+  })
+# ---
+# name: test_machine_envelope_matrix[novel desloppify-conflict-analysis]
+  dict({
+    'command': 'novel desloppify',
+    'messages': list([
+      'no slop detected',
+    ]),
+    'ok': True,
+    'result': dict({
+      'findings': list([
+      ]),
+      'pack': 'offenders',
+      'total_words': 0,
+      'violations': list([
+      ]),
+    }),
+    'schema_version': 1,
+    'working_dir': 'working',
+  })
+# ---
+# name: test_machine_envelope_matrix[novel desloppify-done]
+  dict({
+    'command': 'novel desloppify',
+    'messages': list([
+      'no slop detected',
+    ]),
+    'ok': True,
+    'result': dict({
+      'findings': list([
+      ]),
+      'pack': 'offenders',
+      'total_words': 68800,
+      'violations': list([
+      ]),
+    }),
+    'schema_version': 1,
+    'working_dir': 'working',
+  })
+# ---
+# name: test_machine_envelope_matrix[novel desloppify-drafting]
+  dict({
+    'command': 'novel desloppify',
+    'messages': list([
+      'no slop detected',
+    ]),
+    'ok': True,
+    'result': dict({
+      'findings': list([
+      ]),
+      'pack': 'offenders',
+      'total_words': 68800,
+      'violations': list([
+      ]),
+    }),
+    'schema_version': 1,
+    'working_dir': 'working',
+  })
+# ---
+# name: test_machine_envelope_matrix[novel desloppify-final-pass]
+  dict({
+    'command': 'novel desloppify',
+    'messages': list([
+      'no slop detected',
+    ]),
+    'ok': True,
+    'result': dict({
+      'findings': list([
+      ]),
+      'pack': 'offenders',
+      'total_words': 68800,
+      'violations': list([
+      ]),
+    }),
+    'schema_version': 1,
+    'working_dir': 'working',
+  })
+# ---
+# name: test_machine_envelope_matrix[novel desloppify-premise]
+  dict({
+    'command': 'novel desloppify',
+    'messages': list([
+      'no slop detected',
+    ]),
+    'ok': True,
+    'result': dict({
+      'findings': list([
+      ]),
+      'pack': 'offenders',
+      'total_words': 0,
+      'violations': list([
+      ]),
+    }),
+    'schema_version': 1,
+    'working_dir': 'working',
+  })
+# ---
+# name: test_machine_envelope_matrix[novel desloppify-reader-fit]
+  dict({
+    'command': 'novel desloppify',
+    'messages': list([
+      'no slop detected',
+    ]),
+    'ok': True,
+    'result': dict({
+      'findings': list([
+      ]),
+      'pack': 'offenders',
+      'total_words': 0,
+      'violations': list([
+      ]),
+    }),
+    'schema_version': 1,
+    'working_dir': 'working',
+  })
+# ---
+# name: test_machine_envelope_matrix[novel desloppify-setting]
+  dict({
+    'command': 'novel desloppify',
+    'messages': list([
+      'no slop detected',
+    ]),
+    'ok': True,
+    'result': dict({
+      'findings': list([
+      ]),
+      'pack': 'offenders',
+      'total_words': 0,
+      'violations': list([
+      ]),
+    }),
+    'schema_version': 1,
+    'working_dir': 'working',
+  })
+# ---
+# name: test_machine_envelope_matrix[novel desloppify-stc]
+  dict({
+    'command': 'novel desloppify',
+    'messages': list([
+      'no slop detected',
+    ]),
+    'ok': True,
+    'result': dict({
+      'findings': list([
+      ]),
+      'pack': 'offenders',
+      'total_words': 0,
+      'violations': list([
+      ]),
+    }),
+    'schema_version': 1,
+    'working_dir': 'working',
+  })
+# ---
+# name: test_machine_envelope_matrix[novel desloppify-treatment]
+  dict({
+    'command': 'novel desloppify',
+    'messages': list([
+      'no slop detected',
+    ]),
+    'ok': True,
+    'result': dict({
+      'findings': list([
+      ]),
+      'pack': 'offenders',
+      'total_words': 0,
+      'violations': list([
+      ]),
+    }),
+    'schema_version': 1,
+    'working_dir': 'working',
+  })
+# ---
+# name: test_machine_envelope_matrix[novel done-chapter-planning]
+  dict({
+    'command': 'novel done',
     'messages': list([
       'phase_is_done is false',
       'final_pass_complete is false',
@@ -512,9 +512,9 @@
     'working_dir': 'working',
   })
 # ---
-# name: test_machine_envelope_matrix[novel-done-characters]
+# name: test_machine_envelope_matrix[novel done-characters]
   dict({
-    'command': 'novel-done',
+    'command': 'novel done',
     'messages': list([
       'phase_is_done is false',
       'final_pass_complete is false',
@@ -534,9 +534,9 @@
     'working_dir': 'working',
   })
 # ---
-# name: test_machine_envelope_matrix[novel-done-conflict-analysis]
+# name: test_machine_envelope_matrix[novel done-conflict-analysis]
   dict({
-    'command': 'novel-done',
+    'command': 'novel done',
     'messages': list([
       'phase_is_done is false',
       'final_pass_complete is false',
@@ -556,9 +556,9 @@
     'working_dir': 'working',
   })
 # ---
-# name: test_machine_envelope_matrix[novel-done-done]
+# name: test_machine_envelope_matrix[novel done-done]
   dict({
-    'command': 'novel-done',
+    'command': 'novel done',
     'messages': list([
       'knitting_gates_passed is false',
     ]),
@@ -575,9 +575,9 @@
     'working_dir': 'working',
   })
 # ---
-# name: test_machine_envelope_matrix[novel-done-drafting]
+# name: test_machine_envelope_matrix[novel done-drafting]
   dict({
-    'command': 'novel-done',
+    'command': 'novel done',
     'messages': list([
       'phase_is_done is false',
       'final_pass_complete is false',
@@ -598,9 +598,9 @@
     'working_dir': 'working',
   })
 # ---
-# name: test_machine_envelope_matrix[novel-done-final-pass]
+# name: test_machine_envelope_matrix[novel done-final-pass]
   dict({
-    'command': 'novel-done',
+    'command': 'novel done',
     'messages': list([
       'phase_is_done is false',
       'final_pass_complete is false',
@@ -619,9 +619,9 @@
     'working_dir': 'working',
   })
 # ---
-# name: test_machine_envelope_matrix[novel-done-premise]
+# name: test_machine_envelope_matrix[novel done-premise]
   dict({
-    'command': 'novel-done',
+    'command': 'novel done',
     'messages': list([
       'phase_is_done is false',
       'final_pass_complete is false',
@@ -641,9 +641,9 @@
     'working_dir': 'working',
   })
 # ---
-# name: test_machine_envelope_matrix[novel-done-reader-fit]
+# name: test_machine_envelope_matrix[novel done-reader-fit]
   dict({
-    'command': 'novel-done',
+    'command': 'novel done',
     'messages': list([
       'phase_is_done is false',
       'final_pass_complete is false',
@@ -663,9 +663,9 @@
     'working_dir': 'working',
   })
 # ---
-# name: test_machine_envelope_matrix[novel-done-setting]
+# name: test_machine_envelope_matrix[novel done-setting]
   dict({
-    'command': 'novel-done',
+    'command': 'novel done',
     'messages': list([
       'phase_is_done is false',
       'final_pass_complete is false',
@@ -685,9 +685,9 @@
     'working_dir': 'working',
   })
 # ---
-# name: test_machine_envelope_matrix[novel-done-stc]
+# name: test_machine_envelope_matrix[novel done-stc]
   dict({
-    'command': 'novel-done',
+    'command': 'novel done',
     'messages': list([
       'phase_is_done is false',
       'final_pass_complete is false',
@@ -707,9 +707,9 @@
     'working_dir': 'working',
   })
 # ---
-# name: test_machine_envelope_matrix[novel-done-treatment]
+# name: test_machine_envelope_matrix[novel done-treatment]
   dict({
-    'command': 'novel-done',
+    'command': 'novel done',
     'messages': list([
       'phase_is_done is false',
       'final_pass_complete is false',
@@ -729,9 +729,9 @@
     'working_dir': 'working',
   })
 # ---
-# name: test_machine_envelope_matrix[novel-state-chapter-planning]
+# name: test_machine_envelope_matrix[novel state-chapter-planning]
   dict({
-    'command': 'novel-state',
+    'command': 'novel state',
     'messages': list([
       'state is coherent',
     ]),
@@ -744,9 +744,9 @@
     'working_dir': 'working',
   })
 # ---
-# name: test_machine_envelope_matrix[novel-state-characters]
+# name: test_machine_envelope_matrix[novel state-characters]
   dict({
-    'command': 'novel-state',
+    'command': 'novel state',
     'messages': list([
       'state is coherent',
     ]),
@@ -759,9 +759,9 @@
     'working_dir': 'working',
   })
 # ---
-# name: test_machine_envelope_matrix[novel-state-conflict-analysis]
+# name: test_machine_envelope_matrix[novel state-conflict-analysis]
   dict({
-    'command': 'novel-state',
+    'command': 'novel state',
     'messages': list([
       'state is coherent',
     ]),
@@ -774,9 +774,9 @@
     'working_dir': 'working',
   })
 # ---
-# name: test_machine_envelope_matrix[novel-state-done]
+# name: test_machine_envelope_matrix[novel state-done]
   dict({
-    'command': 'novel-state',
+    'command': 'novel state',
     'messages': list([
       'state is coherent',
     ]),
@@ -789,9 +789,9 @@
     'working_dir': 'working',
   })
 # ---
-# name: test_machine_envelope_matrix[novel-state-drafting]
+# name: test_machine_envelope_matrix[novel state-drafting]
   dict({
-    'command': 'novel-state',
+    'command': 'novel state',
     'messages': list([
       'state is coherent',
     ]),
@@ -804,9 +804,9 @@
     'working_dir': 'working',
   })
 # ---
-# name: test_machine_envelope_matrix[novel-state-final-pass]
+# name: test_machine_envelope_matrix[novel state-final-pass]
   dict({
-    'command': 'novel-state',
+    'command': 'novel state',
     'messages': list([
       'state is coherent',
     ]),
@@ -819,9 +819,9 @@
     'working_dir': 'working',
   })
 # ---
-# name: test_machine_envelope_matrix[novel-state-premise]
+# name: test_machine_envelope_matrix[novel state-premise]
   dict({
-    'command': 'novel-state',
+    'command': 'novel state',
     'messages': list([
       'state is coherent',
     ]),
@@ -834,9 +834,9 @@
     'working_dir': 'working',
   })
 # ---
-# name: test_machine_envelope_matrix[novel-state-reader-fit]
+# name: test_machine_envelope_matrix[novel state-reader-fit]
   dict({
-    'command': 'novel-state',
+    'command': 'novel state',
     'messages': list([
       'state is coherent',
     ]),
@@ -849,9 +849,9 @@
     'working_dir': 'working',
   })
 # ---
-# name: test_machine_envelope_matrix[novel-state-setting]
+# name: test_machine_envelope_matrix[novel state-setting]
   dict({
-    'command': 'novel-state',
+    'command': 'novel state',
     'messages': list([
       'state is coherent',
     ]),
@@ -864,9 +864,9 @@
     'working_dir': 'working',
   })
 # ---
-# name: test_machine_envelope_matrix[novel-state-stc]
+# name: test_machine_envelope_matrix[novel state-stc]
   dict({
-    'command': 'novel-state',
+    'command': 'novel state',
     'messages': list([
       'state is coherent',
     ]),
@@ -879,9 +879,9 @@
     'working_dir': 'working',
   })
 # ---
-# name: test_machine_envelope_matrix[novel-state-treatment]
+# name: test_machine_envelope_matrix[novel state-treatment]
   dict({
-    'command': 'novel-state',
+    'command': 'novel state',
     'messages': list([
       'state is coherent',
     ]),
@@ -894,9 +894,9 @@
     'working_dir': 'working',
   })
 # ---
-# name: test_machine_envelope_matrix[wordcount-chapter-planning]
+# name: test_machine_envelope_matrix[novel wordcount-chapter-planning]
   dict({
-    'command': 'wordcount',
+    'command': 'novel wordcount',
     'messages': list([
       'drafted 0 of 80000 words (0.0% of target); next knitting gate at 30% (24000 words to go)',
     ]),
@@ -919,9 +919,9 @@
     'working_dir': 'working',
   })
 # ---
-# name: test_machine_envelope_matrix[wordcount-characters]
+# name: test_machine_envelope_matrix[novel wordcount-characters]
   dict({
-    'command': 'wordcount',
+    'command': 'novel wordcount',
     'messages': list([
       'drafted 0 of 80000 words (0.0% of target); next knitting gate at 30% (24000 words to go)',
     ]),
@@ -944,9 +944,9 @@
     'working_dir': 'working',
   })
 # ---
-# name: test_machine_envelope_matrix[wordcount-conflict-analysis]
+# name: test_machine_envelope_matrix[novel wordcount-conflict-analysis]
   dict({
-    'command': 'wordcount',
+    'command': 'novel wordcount',
     'messages': list([
       'drafted 0 of 80000 words (0.0% of target); next knitting gate at 30% (24000 words to go)',
     ]),
@@ -969,9 +969,9 @@
     'working_dir': 'working',
   })
 # ---
-# name: test_machine_envelope_matrix[wordcount-done]
+# name: test_machine_envelope_matrix[novel wordcount-done]
   dict({
-    'command': 'wordcount',
+    'command': 'novel wordcount',
     'messages': list([
       'drafted 68800 of 80000 words (86.0% of target); all knitting gates reached',
     ]),
@@ -1015,9 +1015,9 @@
     'working_dir': 'working',
   })
 # ---
-# name: test_machine_envelope_matrix[wordcount-drafting]
+# name: test_machine_envelope_matrix[novel wordcount-drafting]
   dict({
-    'command': 'wordcount',
+    'command': 'novel wordcount',
     'messages': list([
       'drafted 68800 of 80000 words (86.0% of target); all knitting gates reached',
     ]),
@@ -1061,9 +1061,9 @@
     'working_dir': 'working',
   })
 # ---
-# name: test_machine_envelope_matrix[wordcount-final-pass]
+# name: test_machine_envelope_matrix[novel wordcount-final-pass]
   dict({
-    'command': 'wordcount',
+    'command': 'novel wordcount',
     'messages': list([
       'drafted 68800 of 80000 words (86.0% of target); all knitting gates reached',
     ]),
@@ -1107,9 +1107,9 @@
     'working_dir': 'working',
   })
 # ---
-# name: test_machine_envelope_matrix[wordcount-premise]
+# name: test_machine_envelope_matrix[novel wordcount-premise]
   dict({
-    'command': 'wordcount',
+    'command': 'novel wordcount',
     'messages': list([
       'drafted 0 of 80000 words (0.0% of target); next knitting gate at 30% (24000 words to go)',
     ]),
@@ -1132,9 +1132,9 @@
     'working_dir': 'working',
   })
 # ---
-# name: test_machine_envelope_matrix[wordcount-reader-fit]
+# name: test_machine_envelope_matrix[novel wordcount-reader-fit]
   dict({
-    'command': 'wordcount',
+    'command': 'novel wordcount',
     'messages': list([
       'drafted 0 of 80000 words (0.0% of target); next knitting gate at 30% (24000 words to go)',
     ]),
@@ -1157,9 +1157,9 @@
     'working_dir': 'working',
   })
 # ---
-# name: test_machine_envelope_matrix[wordcount-setting]
+# name: test_machine_envelope_matrix[novel wordcount-setting]
   dict({
-    'command': 'wordcount',
+    'command': 'novel wordcount',
     'messages': list([
       'drafted 0 of 80000 words (0.0% of target); next knitting gate at 30% (24000 words to go)',
     ]),
@@ -1182,9 +1182,9 @@
     'working_dir': 'working',
   })
 # ---
-# name: test_machine_envelope_matrix[wordcount-stc]
+# name: test_machine_envelope_matrix[novel wordcount-stc]
   dict({
-    'command': 'wordcount',
+    'command': 'novel wordcount',
     'messages': list([
       'drafted 0 of 80000 words (0.0% of target); next knitting gate at 30% (24000 words to go)',
     ]),
@@ -1207,9 +1207,9 @@
     'working_dir': 'working',
   })
 # ---
-# name: test_machine_envelope_matrix[wordcount-treatment]
+# name: test_machine_envelope_matrix[novel wordcount-treatment]
   dict({
-    'command': 'wordcount',
+    'command': 'novel wordcount',
     'messages': list([
       'drafted 0 of 80000 words (0.0% of target); next knitting gate at 30% (24000 words to go)',
     ]),

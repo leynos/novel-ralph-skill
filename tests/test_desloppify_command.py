@@ -28,7 +28,7 @@ if typ.TYPE_CHECKING:
     import collections.abc as cabc
     from pathlib import Path
 
-_COMMAND = "desloppify"
+_COMMAND = "novel desloppify"
 _BAD_PATTERN_PACK = "tests/data/rulepacks/bad-pattern.toml"
 _EXAMPLE_LEDGER = "tests/data/ledgers/example-device-ledger.toml"
 _TWO_WINDOWS_LEDGER = "tests/data/ledgers/two-windows.toml"

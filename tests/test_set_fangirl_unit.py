@@ -30,7 +30,7 @@ if typ.TYPE_CHECKING:
     import collections.abc as cabc
     from pathlib import Path
 
-_COMMAND = "novel-state"
+_COMMAND = "novel state"
 # The ``drafting`` corpus tree carries a three-chapter manifest.
 _MANIFEST_CHAPTERS = 3
 

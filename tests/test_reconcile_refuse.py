@@ -37,7 +37,7 @@ if typ.TYPE_CHECKING:
 
     from syrupy.assertion import SnapshotAssertion
 
-_COMMAND = "novel-state"
+_COMMAND = "novel state"
 
 # The refuse-class variants that exit 4 with action ``refuse`` in BOTH commands.
 # ``manifest-extra-entry`` (a drafting missing-directory subset) is deliberately

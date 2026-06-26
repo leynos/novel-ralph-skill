@@ -247,7 +247,7 @@ docs/scripting-standards.md.
   - Success: every e2e and contract test invokes `novel <sub>`; the legacy entry
     points and registry symbols are untouched and still pass; `make all`
     (including the installed-binary e2e) is green.
-- [ ] 1.2.15. Remove the legacy entry points and command-name registry symbols.
+- [x] 1.2.15. Remove the legacy entry points and command-name registry symbols.
   - Requires 1.2.13.
   - Remove the five legacy `[project.scripts]` entries (`novel-state`,
     `novel-done`, `novel-compile`, `desloppify`, `wordcount`), the transitional

@@ -64,7 +64,7 @@ def _run_novel_done(
         run(
             build_app(),
             [],
-            RunContext(command="novel-done", working_dir="working", human=False),
+            RunContext(command="novel done", working_dir="working", human=False),
         )
     envelope = json.loads(capsys.readouterr().out)
     return typ.cast("int", excinfo.value.code), envelope

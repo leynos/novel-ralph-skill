@@ -11,7 +11,7 @@ benign exit ``1`` the loop continues on (design §3.2 lines 199-205; ADR-003
 
 The tests mirror ``tests/test_novel_state_check.py``: a ``_run_mutator`` helper
 drives the app through :func:`novel_ralph_skill.contract.runner.run` with a
-``RunContext(command="novel-state", working_dir="working", …)``, and a
+``RunContext(command="novel state", working_dir="working", …)``, and a
 ``_capture_envelope`` reads the JSON envelope from ``capsys``. All three mutators
 are registered, so every test here is active (the bodies were marked
 ``xfail(strict=True)`` only while their subcommand was still pending in work
@@ -35,7 +35,7 @@ if typ.TYPE_CHECKING:
 
     from conftest import WorkingTreeSpec
 
-_COMMAND = "novel-state"
+_COMMAND = "novel state"
 
 
 def _run_mutator(argv: list[str], *, human: bool = False) -> None:

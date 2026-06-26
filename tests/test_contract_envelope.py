@@ -16,7 +16,6 @@ import typing as typ
 import pytest
 
 from novel_ralph_skill.commands.names import (
-    COMMAND_NAMES,
     ENVELOPE_COMMAND_NAMES,
     SUBCOMMAND_NAMES,
 )
@@ -56,7 +55,7 @@ def test_ok_is_derived_from_code(code: ExitCode) -> None:
         The assertion raises on failure.
     """
     env = build_envelope(
-        command=COMMAND_NAMES[0],
+        command=SUBCOMMAND_NAMES[0],
         working_dir="working",
         code=code,
         result={},
@@ -88,9 +87,9 @@ def test_build_envelope_rejects_unknown_command() -> None:
 def test_build_envelope_accepts_the_superset(command: str) -> None:
     """Every member of the envelope-guard superset is accepted (ADR 007).
 
-    The guard is the legacy five plus the spaced ``novel <verb>`` names plus the
-    bare ``"novel"`` surface, so both the legacy entry points and the multiplexer
-    validate during the 1.2.12 -> 1.2.13 transition (Decision Log D1).
+    The guard is the spaced ``novel <verb>`` names plus the bare ``"novel"``
+    surface, so the multiplexer validates every command name it stamps
+    (Decision Log D1).
 
     Parameters
     ----------
@@ -113,18 +112,17 @@ def test_build_envelope_accepts_the_superset(command: str) -> None:
 
 
 def test_envelope_guard_is_the_decoupled_superset() -> None:
-    """The guard superset contains every legacy and spaced subcommand name.
+    """The guard superset contains every spaced subcommand name plus ``novel``.
 
-    Pins the Work item 2 decoupling: the ``[project.scripts]`` legacy five and
-    the spaced subcommand vocabulary are both subsumed by the envelope guard, and
-    the bare ``"novel"`` surface is present for the body-less help/version arms.
+    Pins the multiplexer-only surface (ADR 007): the spaced ``novel <verb>``
+    subcommand vocabulary is subsumed by the envelope guard, and the bare
+    ``"novel"`` surface is present for the body-less help/version arms.
 
     Returns
     -------
     None
         The assertion raises on failure.
     """
-    assert set(COMMAND_NAMES) <= set(ENVELOPE_COMMAND_NAMES)
     assert set(SUBCOMMAND_NAMES) <= set(ENVELOPE_COMMAND_NAMES)
     assert "novel" in ENVELOPE_COMMAND_NAMES
 
@@ -138,7 +136,7 @@ def test_build_envelope_stamps_schema_version() -> None:
         The assertion raises on failure.
     """
     env = build_envelope(
-        command=COMMAND_NAMES[0],
+        command=SUBCOMMAND_NAMES[0],
         working_dir="working",
         code=ExitCode.SUCCESS,
         result={},
@@ -156,7 +154,7 @@ def test_render_machine_emits_fixed_field_order() -> None:
         The assertions raise on failure.
     """
     env = build_envelope(
-        command=COMMAND_NAMES[1],
+        command=SUBCOMMAND_NAMES[1],
         working_dir="working",
         code=ExitCode.ACTIONABLE_FINDING,
         result={"divergent": ["ch01"]},
@@ -179,7 +177,7 @@ def test_render_human_lists_messages_without_result_json() -> None:
         The assertions raise on failure.
     """
     env = build_envelope(
-        command=COMMAND_NAMES[1],
+        command=SUBCOMMAND_NAMES[1],
         working_dir="working",
         code=ExitCode.ACTIONABLE_FINDING,
         result={"divergent": ["ch01"]},
@@ -211,7 +209,7 @@ def test_render_machine_success_snapshot(snapshot: SnapshotAssertion) -> None:
         The assertions raise on failure.
     """
     env = build_envelope(
-        command=COMMAND_NAMES[0],
+        command=SUBCOMMAND_NAMES[0],
         working_dir="working",
         code=ExitCode.SUCCESS,
         result={"cursor": "ch01"},
@@ -237,7 +235,7 @@ def test_render_human_success_snapshot(snapshot: SnapshotAssertion) -> None:
         The assertions raise on failure.
     """
     env = build_envelope(
-        command=COMMAND_NAMES[0],
+        command=SUBCOMMAND_NAMES[0],
         working_dir="working",
         code=ExitCode.SUCCESS,
         result={"cursor": "ch01"},

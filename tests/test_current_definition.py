@@ -50,7 +50,7 @@ from novel_ralph_skill.state import (
 if typ.TYPE_CHECKING:
     from pathlib import Path
 
-_COMMAND = "novel-state"
+_COMMAND = "novel state"
 _TARGET_WORDS = 80000
 # The completed phase prefix for a coherent ``drafting``-phase tree.
 _DRAFTING_PREFIX = wc.PHASE_ORDER[:8]

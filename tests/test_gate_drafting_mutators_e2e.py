@@ -2,9 +2,10 @@
 
 Proves the externally observable command-line behaviour of the four subcommands:
 
-- a fast in-process entry-point check driven through ``stub.novel_state()`` (the
-  installed console-script body), proving each subcommand resolves and exits the
-  expected code on a coherent set;
+- a fast in-process entry-point check driven through ``novel.main()`` on the
+  spaced ``novel state`` surface (roadmap 1.2.15 retired the legacy
+  ``stub.novel_state()`` console-script body), proving each subcommand resolves
+  and exits the expected code on a coherent set;
 - the slower wheel-build install e2es (POSIX-only, ADR 006): the installed
   ``novel-state set-gate --knitting-30`` repairs the lagging gate (exit 0) on the
   incoherent ``gate_lags_ratio`` tree and refuses (exit 3) on the coherent
@@ -38,7 +39,7 @@ from cuprum import sh
 from cuprum.program import Program
 from cuprum.sh import ExecutionContext
 
-from novel_ralph_skill.commands import stub
+from novel_ralph_skill.commands import novel
 from novel_ralph_skill.contract.exit_codes import ExitCode
 
 if typ.TYPE_CHECKING:
@@ -50,7 +51,6 @@ if typ.TYPE_CHECKING:
 
     _CatalogueFactory = cabc.Callable[[str, Program], ProgramCatalogue]
 
-_COMMAND = "novel-state"
 _POSIX_ONLY = pytest.mark.skipif(
     os.name != "posix",
     reason="console-script e2e is POSIX-only; see ADR 006",
@@ -65,9 +65,9 @@ def test_entry_point_gate_mutators_reachable(
     """Each subcommand resolves through the entry point and exits as expected."""
     working = build(gate_lags_ratio_spec(), tmp_path)
     monkeypatch.chdir(working.parent)
-    monkeypatch.setattr(sys, "argv", [_COMMAND, "set-gate", "--knitting-30"])
+    monkeypatch.setattr(sys, "argv", ["novel", "state", "set-gate", "--knitting-30"])
     with pytest.raises(SystemExit) as excinfo:
-        stub.novel_state()
+        novel.main()
     assert excinfo.value.code == ExitCode.SUCCESS, (
         "the entry-point set-gate repair must exit 0"
     )

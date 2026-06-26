@@ -72,7 +72,7 @@ def run_advance_phase(outcome: _Outcome, monkeypatch: pytest.MonkeyPatch) -> Non
         run(
             build_app(),
             ["advance-phase"],
-            RunContext(command="novel-state", working_dir="working", human=False),
+            RunContext(command="novel state", working_dir="working", human=False),
         )
     outcome.exit_code = typ.cast("int", excinfo.value.code)
 

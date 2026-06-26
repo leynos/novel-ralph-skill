@@ -38,18 +38,18 @@ class _MuxDrive(typ.Protocol):
         """Drive the multiplexer over ``argv``; return ``(code, stdout)``."""
 
 
-class _LegacyDrive(typ.Protocol):
-    """The legacy-leaf drive arm: ``(build_app, argv, name) -> (code, stdout)``."""
+class _DirectDrive(typ.Protocol):
+    """The direct-leaf drive arm: ``(build_app, argv, name) -> (code, stdout)``."""
 
     def __call__(
         self, build_app: cabc.Callable[[], cyclopts.App], argv: list[str], name: str
     ) -> tuple[int, str]:
-        """Drive a legacy leaf over ``argv``; return ``(code, stdout)``."""
+        """Drive a leaf ``build_app`` directly; return ``(code, stdout)``."""
 
 
 @dataclasses.dataclass(frozen=True)
 class Driver:
-    """An in-process driver bundling the multiplexer and legacy drive arms.
+    """An in-process driver bundling the multiplexer and direct drive arms.
 
     Bundling ``capsys`` into one fixture keeps each behavioural test's parameter
     list within the project's argument-count gate (Pylint ``too-many-arguments``)
@@ -64,17 +64,19 @@ class Driver:
     mux : _MuxDrive
         Drives the multiplexer over an argv, resolving the command name through
         ``novel``'s own ``_command_name_for``.
-    legacy : _LegacyDrive
-        Drives a legacy leaf ``build_app`` over an argv under the given name.
+    direct : _DirectDrive
+        Drives a single leaf ``build_app`` over an argv under the given name —
+        the same ``build_app`` the multiplexer mounts, the parity oracle the
+        no-behaviour-change proof compares against (Decision Log D1).
     """
 
     mux: _MuxDrive
-    legacy: _LegacyDrive
+    direct: _DirectDrive
 
 
 @pytest.fixture
 def driver(capsys: pytest.CaptureFixture[str]) -> Driver:
-    """Return an in-process driver for the multiplexer and the legacy leaves.
+    """Return an in-process driver for the multiplexer and the direct leaves.
 
     The multiplexer arm resolves its command name through ``novel``'s own
     :func:`~novel_ralph_skill.commands.novel._command_name_for`, so the test
@@ -91,7 +93,7 @@ def driver(capsys: pytest.CaptureFixture[str]) -> Driver:
     Returns
     -------
     Driver
-        A driver bundling the ``mux`` and ``legacy`` drive arms.
+        A driver bundling the ``mux`` and ``direct`` drive arms.
     """
 
     def _capture(
@@ -111,10 +113,10 @@ def driver(capsys: pytest.CaptureFixture[str]) -> Driver:
         name = novel._command_name_for(argv)
         return _capture(novel.build_multiplexer(), argv, name, human=human)
 
-    def _legacy(
+    def _direct(
         build_app: cabc.Callable[[], cyclopts.App], argv: list[str], name: str
     ) -> tuple[int, str]:
-        """Drive a legacy leaf over ``argv``; return ``(code, stdout)``."""
+        """Drive a single leaf over ``argv``; return ``(code, stdout)``."""
         return _capture(build_app(), argv, name, human=False)
 
-    return Driver(mux=_mux, legacy=_legacy)
+    return Driver(mux=_mux, direct=_direct)
