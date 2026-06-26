@@ -15,6 +15,13 @@ Feature: reconcile repairs a stale state.toml from the on-disk drafts
     And reconcile removes no working file and logs a recount recovery entry
     And a follow-up check exits 0
 
+  Scenario: a mid-draft relaxed subset omitting a drafted key is repaired by reconcile
+    Given a mid-draft relaxed subset whose by_chapter omits a drafted chapter's key
+    When check runs against that tree
+    Then check exits 4 reporting a recount reconciliation
+    When reconcile runs against that tree
+    Then a follow-up check exits 0
+
   Scenario: a partial-init tree (state.toml present, log.md absent) is repaired by reconcile
     Given a partial-init tree whose log.md is absent beside a present state.toml
     When reconcile runs against that tree

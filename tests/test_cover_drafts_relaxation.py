@@ -31,7 +31,10 @@ from novel_ralph_skill.state import (
     check_disk_evidence,
     load_state,
 )
-from novel_ralph_skill.state.disk_evidence import _check_word_counts_cover_drafts
+from novel_ralph_skill.state.disk_evidence import (
+    _check_word_counts_cover_drafts,
+    _check_word_counts_match_drafts,
+)
 from novel_ralph_skill.state.wordcount import recount_words
 
 if typ.TYPE_CHECKING:
@@ -40,7 +43,11 @@ if typ.TYPE_CHECKING:
 
 
 def _drafting_subset_spec(
-    *, drafted: int, manifest_len: int, by_chapter: cabc.Mapping[str, int]
+    *,
+    drafted: int,
+    manifest_len: int,
+    by_chapter: cabc.Mapping[str, int],
+    empty_drafted: cabc.Set[int] = frozenset(),
 ) -> wc.WorkingTreeSpec:
     """Return a relaxed drafting subset spec: ``drafted`` dirs of ``manifest_len``.
 
@@ -50,6 +57,12 @@ def _drafting_subset_spec(
     on-disk set is a coherent subset. ``by_chapter`` is the table the caller wants
     to pin (omitting or covering drafted keys). The phase is ``drafting`` and the
     cursor sits on chapter 0 so only the cover-drafts direction varies.
+
+    ``empty_drafted`` names drafted chapters whose ``chapter-NN/`` directory is
+    still present but whose ``draft.md`` is empty (count ``0``). Decision D6 pins
+    "drafted means directory-present, not non-empty ``draft.md``", so such a
+    chapter is on disk and still requires a ``by_chapter`` key; this exercises the
+    directory-present, empty-draft case the always-non-empty drafts cannot reach.
     """
     drafted_specs = tuple(
         wc.ChapterSpec(
@@ -57,7 +70,7 @@ def _drafting_subset_spec(
             slug=f"chapter-{number:02d}",
             title=f"Chapter {number}",
             target_words=100,
-            draft_words=100,
+            draft_words=0 if number in empty_drafted else 100,
             has_done_flag=False,
         )
         for number in range(1, drafted + 1)
@@ -111,6 +124,33 @@ def test_cover_drafts_relaxed_fires_on_omitted_drafted_key(tmp_path: Path) -> No
     )
 
 
+def test_match_drafts_silent_on_omitted_drafted_key_subset(tmp_path: Path) -> None:
+    """The value detector is silent on the omitted-drafted-key relaxed subset.
+
+    Pins Constraint 3 (orthogonality) directly at the predicate level: on the
+    relaxed drafting subset where ``word-counts-cover-drafts`` fires (manifest
+    ``{1,2,3}``, on-disk ``{1,2}``, table omitting the drafted ``"02"`` key), the
+    shared-key value detector ``_check_word_counts_match_drafts`` must stay
+    silent. It compares only keys shared between the manifest-keyed recount and
+    the table, and the omitted ``"02"`` key is absent from the table, so no shared
+    key diverges. The full-verdict suites prove this only indirectly via
+    membership; this hardens the no-double-fire invariant on the *relaxed* path
+    directly (distinct from step 7.15, which targets the strict predicate).
+    """
+    spec = _drafting_subset_spec(
+        drafted=2, manifest_len=3, by_chapter={"01": 100, "03": 0}
+    )
+    working = wc.build_working_tree(spec, tmp_path)
+    state = load_state(working / "state.toml")
+    # The cover detector fires here — this is the relaxed omitted-drafted-key tree.
+    assert (
+        _check_word_counts_cover_drafts(state, working, relax_drafting=True) is not None
+    ), "guard: this subset must fire the cover detector"
+    assert _check_word_counts_match_drafts(state, working) is None, (
+        "the value detector must not co-fire on the omitted-drafted-key subset"
+    )
+
+
 def test_cover_drafts_relaxed_silent_on_coherent_subset(tmp_path: Path) -> None:
     """A relaxed drafting subset whose table covers the drafted set is silent.
 
@@ -127,6 +167,67 @@ def test_cover_drafts_relaxed_silent_on_coherent_subset(tmp_path: Path) -> None:
     assert (
         _check_word_counts_cover_drafts(state, working, relax_drafting=True) is None
     ), "a table covering every drafted key must keep the relaxed detector silent"
+
+
+def test_cover_drafts_relaxed_silent_on_empty_drafted_dir(tmp_path: Path) -> None:
+    """A drafted but empty-draft directory carrying its ``0`` key stays silent.
+
+    Pins Decision D6 (drafted means directory-present, not non-empty
+    ``draft.md``): chapter ``02``'s ``chapter-02/`` directory is present but its
+    ``draft.md`` is empty, so it is on disk and requires a ``by_chapter`` key. A
+    table covering it with ``"02": 0`` keeps the relaxed detector silent — a
+    future refactor to a non-empty filter (dropping the empty-draft chapter from
+    the drafted set) would wrongly silence on a missing key, which this case
+    catches.
+    """
+    spec = _drafting_subset_spec(
+        drafted=2,
+        manifest_len=3,
+        by_chapter={"01": 100, "02": 0, "03": 0},
+        empty_drafted={2},
+    )
+    working = wc.build_working_tree(spec, tmp_path)
+    state = load_state(working / "state.toml")
+    assert (
+        _check_word_counts_cover_drafts(state, working, relax_drafting=True) is None
+    ), "an empty-draft drafted directory covered by its 0 key must stay silent"
+
+
+def test_cover_drafts_relaxed_converges_on_empty_drafted_dir(tmp_path: Path) -> None:
+    """An empty-draft drafted directory fires when omitted, converges after RECOUNT.
+
+    The convergence counterpart of the coherence case (Decision D6, Constraint
+    7): chapter ``02``'s directory is present with an empty ``draft.md``, and the
+    table omits its key, so the relaxed detector fires the missing direction. A
+    manifest-keyed ``recount_words`` writes ``"02": 0`` (an empty draft counts as
+    ``0``, not an absence), covering every drafted key, so the missing-only
+    detector is silent — the directory-present, count-``0`` chapter converges.
+    """
+    spec = _drafting_subset_spec(
+        drafted=2,
+        manifest_len=3,
+        by_chapter={"01": 100, "03": 0},  # omits the empty-draft "02" key
+        empty_drafted={2},
+    )
+    working = wc.build_working_tree(spec, tmp_path)
+    state = load_state(working / "state.toml")
+    assert (
+        _check_word_counts_cover_drafts(state, working, relax_drafting=True) is not None
+    ), "an omitted empty-draft drafted key must fire the relaxed detector"
+
+    _current, recounted = recount_words(working, state.chapters)
+    assert recounted["02"] == 0, "an empty draft must recount to a 0 key, not absence"
+    repaired = dc.replace(
+        state,
+        word_counts=dc.replace(
+            state.word_counts,
+            current=sum(recounted.values()),
+            by_chapter=dict(recounted),
+        ),
+    )
+    assert (
+        _check_word_counts_cover_drafts(repaired, working, relax_drafting=True) is None
+    ), "a manifest-keyed recount writing the 0 key must converge"
 
 
 def test_full_relaxed_verdict_empty_on_coherent_subset(tmp_path: Path) -> None:

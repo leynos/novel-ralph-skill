@@ -113,6 +113,73 @@ def stale_done_claim_tree(tmp_path: Path) -> _Outcome:
     )
 
 
+def _relaxed_subset_cover_gap_spec() -> wc.WorkingTreeSpec:
+    """Return a mid-draft relaxed subset whose by_chapter omits a drafted key.
+
+    Manifest ``{1,2,3}``, on-disk ``{1,2}`` (chapter 3 is a real planned manifest
+    entry with no directory), phase ``drafting``, with the drafted ``"02"`` key
+    dropped from ``[word_counts].by_chapter``. The relaxed ``check`` suppresses the
+    missing-directory ``manifest-disk-bijection`` break and fires
+    ``word-counts-cover-drafts`` instead, which ``reconcile`` repairs by re-keying
+    off the manifest (roadmap task 2.3.8). This mirrors the e2e fixture so the
+    black-box scenario pins the same operator-visible contract.
+    """
+    drafted = tuple(
+        wc.ChapterSpec(
+            number=number,
+            slug=f"chapter-{number:02d}",
+            title=f"Chapter {number}",
+            target_words=100,
+            draft_words=100,
+            has_done_flag=False,
+        )
+        for number in (1, 2)
+    )
+    planned = wc.ChapterSpec(
+        number=3,
+        slug="chapter-03",
+        title="Chapter 3",
+        target_words=100,
+        draft_words=0,
+        has_done_flag=False,
+        write_directory=False,
+    )
+    return dc.replace(
+        wc.COHERENT_BASELINE,
+        chapters=(*drafted, planned),
+        current_chapter=0,
+        consecutive_clean=0,
+        convergence_target=1,
+        done_30=False,
+        done_50=False,
+        done_80=False,
+        final_pass_complete=False,
+        compiled=None,
+        by_chapter_override={"01": 100, "03": 0},
+        current_words_override=100,
+    )
+
+
+@given(
+    "a mid-draft relaxed subset whose by_chapter omits a drafted chapter's key",
+    target_fixture="outcome",
+)
+def relaxed_subset_cover_gap_tree(tmp_path: Path) -> _Outcome:
+    """Build the mid-draft relaxed-subset cover-gap tree (roadmap task 2.3.8).
+
+    Returns
+    -------
+    _Outcome
+        The built ``working/`` path and the set of files present before any
+        repair; the exit codes are filled in by the run steps.
+    """
+    working = wc.build_working_tree(_relaxed_subset_cover_gap_spec(), tmp_path)
+    files = {str(p.relative_to(working)) for p in working.rglob("*") if p.is_file()}
+    return _Outcome(
+        working=working, files_before=files, drafts_before=_draft_bytes(working)
+    )
+
+
 @given(
     "a partial-init tree whose log.md is absent beside a present state.toml",
     target_fixture="outcome",

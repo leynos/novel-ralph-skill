@@ -1107,7 +1107,7 @@ Small, surgical corrections accrued from the reviews and audits of task 2.3.8
 after it settled. Each is a lightweight, no-plan, no-review pass; the roadmap
 records the matching nested sub-task under `[x] 2.3.8`.
 
-- Addendum 2.3.8.1 (from review:2.3.8; low). Add a present-but-empty-draft case
+- [x] Addendum 2.3.8.1 (from review:2.3.8; low). Add a present-but-empty-draft case
   (a `chapter-NN/` directory whose `draft.md` has count `0`) to the cover-drafts
   convergence and coherence tests. Decision D6 pins "drafted means
   directory-present, not non-empty `draft.md`", but no test exercises a drafted
@@ -1116,7 +1116,7 @@ records the matching nested sub-task under `[x] 2.3.8`.
   chapter still requires a `by_chapter` key and converges after a manifest-keyed
   RECOUNT writes its `0` key) pins the D6 contract. Test-only; no production
   change.
-- Addendum 2.3.8.2 (from review:2.3.8; low). Add a direct
+- [x] Addendum 2.3.8.2 (from review:2.3.8; low). Add a direct
   `_check_word_counts_match_drafts` non-co-fire assertion on the relaxed
   omitted-drafted-key subset. Constraint 3 (orthogonality) is currently proven
   only indirectly via full-verdict membership; a direct unit assertion that the
@@ -1125,7 +1125,7 @@ records the matching nested sub-task under `[x] 2.3.8`.
   at the predicate level. Test-only; no production change. (Distinct from step
   7.15, which targets the *strict* predicate's latent double-fire; this pins the
   *relaxed* path's orthogonality directly.)
-- Addendum 2.3.8.3 (from audit:2.3.8; low). Add a BDD scenario to
+- [x] Addendum 2.3.8.3 (from audit:2.3.8; low). Add a BDD scenario to
   `tests/features/reconcile.feature` for the mid-draft relaxed-subset RECOUNT
   recovery (a `phase=drafting`, manifest `{1,2,3}`, on-disk `{1,2}` tree with a
   drafted key omitted from `by_chapter`: `check` exits 4 on

@@ -1223,21 +1223,21 @@ agent-improvised recovery routine. See novel-ralph-harness-design.md §4.1 and
     via `RECOUNT`; the detector and its corpus twin agree across the whole-corpus
     agreement loop; and the `manifest-disk-bijection` relaxation,
     `word-counts-match-drafts`, and the reconcile precedence stay unchanged.
-  - [ ] 2.3.8.1. Add a present-but-empty-draft case to the cover-drafts
+  - [x] 2.3.8.1. Add a present-but-empty-draft case to the cover-drafts
     convergence/coherence tests.
     - Addendum (from review:2.3.8; low). Decision D6 pins "drafted means
       directory-present, not non-empty `draft.md`", but no test exercises a
       drafted chapter directory carrying an empty `draft.md` (count `0`); add a
       targeted case so a future refactor to a non-empty filter is caught.
       Lightweight addendum pass.
-  - [ ] 2.3.8.2. Add a direct match-drafts/cover-drafts non-co-fire assertion on
+  - [x] 2.3.8.2. Add a direct match-drafts/cover-drafts non-co-fire assertion on
     the relaxed subset.
     - Addendum (from review:2.3.8; low). Constraint 3 (orthogonality) is proven
       only indirectly via full-verdict membership; add a direct unit assertion
       that `_check_word_counts_match_drafts` is silent on the omitted-drafted-key
       relaxed tree to harden the no-double-fire invariant. Lightweight addendum
       pass.
-  - [ ] 2.3.8.3. Add a BDD scenario for the mid-draft relaxed-subset RECOUNT
+  - [x] 2.3.8.3. Add a BDD scenario for the mid-draft relaxed-subset RECOUNT
     recovery.
     - Addendum (from audit:2.3.8; low). The 2.3.8 headline behaviour has unit and
       e2e coverage but no black-box scenario in `reconcile.feature` pinning the
