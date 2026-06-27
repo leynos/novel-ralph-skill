@@ -150,7 +150,13 @@ def test_undecodable_draft_exits_three(
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    """An undecodable ``draft.md`` exits ``3`` rather than escaping to exit ``1``."""
+    """An undecodable ``draft.md`` exits ``3`` rather than escaping to exit ``1``.
+
+    The shared ``draft_read_guard`` re-raises the ``UnicodeDecodeError`` as the
+    exit-``3`` ``StateInputError`` (roadmap §7.3.3); the envelope must carry the
+    formatter-owned "cannot read the drafts under" message, proving the guard is
+    wired into ``wordcount``.
+    """
     draft = coherent_working / "manuscript" / "chapter-01" / "draft.md"
     # An invalid UTF-8 byte sequence makes ``recount_words`` raise
     # ``UnicodeDecodeError``, which the command must route to the exit-3 channel.
@@ -159,6 +165,10 @@ def test_undecodable_draft_exits_three(
     code, envelope = _run_capture([], capsys)
     assert code == ExitCode.STATE_ERROR, f"expected exit 3, got {code}"
     assert envelope["ok"] is False, envelope
+    messages = typ.cast("list[str]", envelope["messages"])
+    assert any("cannot read the drafts under" in line for line in messages), (
+        f"the exit-3 envelope must carry the shared draft-read message, got {envelope}"
+    )
 
 
 def test_unknown_option_exits_two(

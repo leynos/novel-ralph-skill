@@ -650,6 +650,20 @@ present `working/` tree holds a corrupt or unreadable `draft.md`/`compiled.md`;
 it names the `working/` tree and asks for inspection or repair, never advising
 `init` (the tree exists).
 
+The `try`/`except STATE_INPUT_ERRORS → _draft_read_error` *guard* that re-raises
+a faulted draft read as that exit-3 error is itself single-homed in the
+`draft_read_guard` context manager in `state_sourcing` (roadmap §7.3.3). Where
+`_draft_read_error` owns *what* the message says, `draft_read_guard` owns *which*
+read faults become exit 3 and *how* they re-raise (chaining the caught exception
+via `from` so the `messages` channel carries only the prose). `novel wordcount`,
+`novel state recount`, and `novel desloppify` delegate to it — each wraps its
+draft read in `with draft_read_guard(working_dir): …` rather than re-spelling the
+shell — and a structural test pins that single home so it cannot silently
+re-fork. The three remaining draft-read boundaries (`novel done` and both of
+`novel compile`'s tails) still open-code the shell pending a later slice, so they
+are deliberately not yet wired to the guard; a reader should not be surprised
+that they differ.
+
 Three further formatters (roadmap §6.3.8) close the remaining raw-OS-text
 leaks, each a single-arm sibling that never advises `init` because the working
 tree already exists. `_compile_write_error` serves the `novel compile`
@@ -674,11 +688,12 @@ present-but-corrupt arm — naming the `state.toml` path — rather than the
 draft-read formatter, keeping the two faults distinct (roadmap §6.3.5).
 
 The formatters and the state-sourcing seam they build on — `WORKING_DIR_NAME`,
-the `working_dir`/`state_path` accessors, the `STATE_INPUT_ERRORS` tuple, and
-the public `load_or_state_error` loader — live in `state_sourcing`, the neutral,
-dependency-free command-layer module that is the single home for *where* a
-command looks, *what counts* as a state-input fault, and *how* a failed load
-becomes the exit-3 error. Every command imports the seam directly from
+the `working_dir`/`state_path` accessors, the `STATE_INPUT_ERRORS` tuple, the
+public `load_or_state_error` loader, and the public `draft_read_guard` context
+manager — live in `state_sourcing`, the neutral, dependency-free command-layer
+module that is the single home for *where* a command looks, *what counts* as a
+state-input fault, *how* a failed load becomes the exit-3 error, and *how* a
+faulted draft read is guarded. Every command imports the seam directly from
 `state_sourcing` rather than through the `novel_state` command facade, so a
 future `novel state` refactor cannot silently break the other commands (roadmap
 §7.3.1). `state_sourcing` imports only from `novel_ralph_skill.state` and

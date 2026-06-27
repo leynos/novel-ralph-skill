@@ -26,10 +26,7 @@ from novel_ralph_skill.commands._state_mutators import (
     _state_view_or_state_error,
     _working_dir,
 )
-from novel_ralph_skill.commands.state_sourcing import (
-    STATE_INPUT_ERRORS,
-    _draft_read_error,
-)
+from novel_ralph_skill.commands.state_sourcing import draft_read_guard
 from novel_ralph_skill.contract.exit_codes import ExitCode
 from novel_ralph_skill.contract.runner import CommandOutcome
 from novel_ralph_skill.state import (
@@ -65,15 +62,15 @@ def _recount_or_state_error(
     ``FileNotFoundError`` narrowly per chapter). Every *other* read fault —
     ``UnicodeDecodeError`` (an undecodable body, a ``ValueError`` subclass),
     ``PermissionError``, ``IsADirectoryError``, and any other non-
-    ``FileNotFoundError`` ``OSError`` — propagates out of ``recount_words``, and
-    this wrapper re-raises it as :class:`StateInputError` under the existing
-    ``STATE_INPUT_ERRORS`` tuple (whose members include ``OSError`` and
-    ``ValueError``), so it reaches the exit-``3`` channel and cannot escape to the
-    benign exit ``1`` (ExecPlan Round-1 blocking point 3; design §3.2). This
-    mirrors ``_load_document_or_state_error`` in the mutator module. The fault
-    routes through the shared :func:`_draft_read_error` formatter so the six
-    draft-read boundaries emit one actionable message naming the ``working/`` tree
-    and cannot drift apart (roadmap §6.3.5).
+    ``FileNotFoundError`` ``OSError`` — propagates out of ``recount_words``. It
+    delegates the fault translation to the shared
+    :func:`~novel_ralph_skill.commands.state_sourcing.draft_read_guard` context
+    manager (the single home for the
+    ``try/except STATE_INPUT_ERRORS → _draft_read_error`` shell, roadmap §7.3.3),
+    which re-raises the fault as :class:`StateInputError` so it reaches the
+    exit-``3`` channel and cannot escape to the benign exit ``1`` (design §3.2),
+    naming the ``working/`` tree via the shared formatter. The working directory is
+    resolved once and passed to both the reader and the guard.
 
     Parameters
     ----------
@@ -91,10 +88,9 @@ def _recount_or_state_error(
         When a chapter's ``draft.md`` is unreadable or undecodable (the exit-``3``
         channel).
     """
-    try:
-        return recount_words(_working_dir(), manifest)
-    except STATE_INPUT_ERRORS as exc:
-        raise _draft_read_error(_working_dir()) from exc
+    working_dir = _working_dir()
+    with draft_read_guard(working_dir):
+        return recount_words(working_dir, manifest)
 
 
 def _gate_ratio_remedy(state: State) -> list[str]:

@@ -44,10 +44,9 @@ from novel_ralph_skill.commands._desloppify_report import (
     report_outcome,
 )
 from novel_ralph_skill.commands.state_sourcing import (
-    STATE_INPUT_ERRORS,
     WORKING_DIR_NAME,
-    _draft_read_error,
     _rule_pack_read_error,
+    draft_read_guard,
     load_or_state_error,
 )
 from novel_ralph_skill.contract.errors import EnvelopeMessagesError
@@ -169,14 +168,17 @@ def source_chapters(chapter: int | None) -> tuple[ScannedChapter, ...]:
     :func:`~novel_ralph_skill.commands.state_sourcing.load_or_state_error` (so a
     missing or unparseable state is exit ``3``), selects the manifest chapters per
     ``chapter`` (a bad ``--chapter`` is the exit-``2`` usage fault), and reads each
-    chapter's ``draft.md``. An absent draft yields empty text; every other read
-    fault is re-raised as :class:`~novel_ralph_skill.contract.runner.StateInputError`
-    under the shared ``STATE_INPUT_ERRORS`` tuple, exactly as
-    ``_recount._recount_or_state_error`` does, so it reaches exit ``3`` and cannot
-    escape to the benign exit ``1``. The fault routes through the shared
-    :func:`~novel_ralph_skill.commands.state_sourcing._draft_read_error` formatter so
-    the six draft-read boundaries emit one actionable message naming the
-    ``working/`` tree and cannot drift apart (roadmap §6.3.5).
+    chapter's ``draft.md``. The state-load and chapter-selection faults sit
+    *outside* the guard; only the draft-reading comprehension is wrapped. An absent
+    draft yields empty text; every other read fault is translated by the shared
+    :func:`~novel_ralph_skill.commands.state_sourcing.draft_read_guard` context
+    manager (the single home for the
+    ``try/except STATE_INPUT_ERRORS → _draft_read_error`` shell, roadmap §7.3.3),
+    which re-raises it as :class:`~novel_ralph_skill.contract.runner.StateInputError`
+    so it reaches exit ``3`` and cannot escape to the benign exit ``1`` (design
+    §3.2), naming the ``working/`` tree via the shared formatter. The comprehension
+    is materialised eagerly by ``tuple(...)`` *inside* the ``with`` so the draft
+    reads happen under the guard, not after it.
 
     Parameters
     ----------
@@ -200,7 +202,7 @@ def source_chapters(chapter: int | None) -> tuple[ScannedChapter, ...]:
     working_dir = pathlib.Path(WORKING_DIR_NAME)
     state = load_or_state_error(working_dir / "state.toml")
     selected = _select_chapters(state.chapters, chapter)
-    try:
+    with draft_read_guard(working_dir):
         return tuple(
             ScannedChapter(
                 number=entry.number,
@@ -208,8 +210,6 @@ def source_chapters(chapter: int | None) -> tuple[ScannedChapter, ...]:
             )
             for entry in selected
         )
-    except STATE_INPUT_ERRORS as exc:
-        raise _draft_read_error(working_dir) from exc
 
 
 def _desloppify(*, chapter: int | None, pack: pathlib.Path | None) -> CommandOutcome:

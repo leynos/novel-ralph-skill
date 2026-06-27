@@ -224,14 +224,21 @@ def test_recount_undecodable_draft_refuses(
     """An undecodable ``draft.md`` refuses with exit ``3`` and leaves the file intact.
 
     This pins the ``UnicodeDecodeError``-as-exit-``3`` side of the fault boundary
-    (Round-1 blocking 3): the helper lets it propagate and the body re-raises it as
-    ``StateInputError``.
+    (Round-1 blocking 3): the helper lets it propagate and the shared
+    :func:`~novel_ralph_skill.commands.state_sourcing.draft_read_guard` re-raises it
+    as ``StateInputError`` (roadmap §7.3.3). The refusal message must name the
+    ``working/`` tree, proving the guard is wired into ``recount`` — not merely that
+    some exit-``3`` fired.
     """
     working = _wrong_count_tree(tmp_path)
     draft = working / "manuscript" / wc.chapter_dir_name(1) / "draft.md"
     draft.write_bytes(b"\xff\xfe")
     monkeypatch.chdir(tmp_path)
-    _refuses_leaving_file_intact(working)
+    error = _refuses_leaving_file_intact(working)
+    (message,) = error.messages
+    assert "cannot read the drafts under" in message, (
+        f"the refusal must carry the shared draft-read message, got {error.messages!r}"
+    )
 
 
 def test_recount_legitimate_gate_breach_refuses(

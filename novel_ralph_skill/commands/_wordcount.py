@@ -40,9 +40,8 @@ import typing as typ
 
 from novel_ralph_skill.commands._wordcount_report import build_report, report_outcome
 from novel_ralph_skill.commands.state_sourcing import (
-    STATE_INPUT_ERRORS,
     WORKING_DIR_NAME,
-    _draft_read_error,
+    draft_read_guard,
     load_or_state_error,
 )
 from novel_ralph_skill.contract.runner import (
@@ -68,15 +67,16 @@ def _recount_or_state_error(
     :func:`~novel_ralph_skill.state.recount_words` has already absorbed the one
     benign read fault — an absent ``draft.md`` returns ``0`` — and propagates
     every other read fault (``UnicodeDecodeError``, ``PermissionError``,
-    ``IsADirectoryError`` and any other non-``FileNotFoundError`` ``OSError``).
-    This wrapper re-raises those as
-    :class:`~novel_ralph_skill.contract.runner.StateInputError` under the shared
-    ``STATE_INPUT_ERRORS`` tuple so an undecodable draft reaches exit ``3`` and
-    cannot escape to the benign exit ``1``, mirroring
-    ``_recount._recount_or_state_error`` and ``_desloppify.source_chapters``. The
-    fault routes through the shared :func:`_draft_read_error` formatter so the six
-    draft-read boundaries emit one actionable message naming the ``working/`` tree
-    and cannot drift apart (roadmap §6.3.5).
+    ``IsADirectoryError`` and any other non-``FileNotFoundError`` ``OSError``). It
+    delegates the fault translation to the shared
+    :func:`~novel_ralph_skill.commands.state_sourcing.draft_read_guard` context
+    manager (the single home for the
+    ``try/except STATE_INPUT_ERRORS → _draft_read_error`` shell, roadmap §7.3.3),
+    which re-raises the fault as
+    :class:`~novel_ralph_skill.contract.runner.StateInputError` so an undecodable
+    draft reaches exit ``3`` and cannot escape to the benign exit ``1`` (design
+    §3.2), naming the ``working/`` tree via the shared formatter. The ``by_chapter``
+    return sits outside the guard so the guarded body is just the reader call.
 
     Parameters
     ----------
@@ -96,10 +96,8 @@ def _recount_or_state_error(
     StateInputError
         When a chapter's ``draft.md`` is unreadable or undecodable (exit ``3``).
     """
-    try:
+    with draft_read_guard(working_dir):
         _current, by_chapter = recount_words(working_dir, manifest)
-    except STATE_INPUT_ERRORS as exc:
-        raise _draft_read_error(working_dir) from exc
     return by_chapter
 
 

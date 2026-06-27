@@ -2977,7 +2977,7 @@ of truth, and a test pins it so it cannot silently re-fork.
       the `_build_mount_table` docstring so it does not imply the table's own
       iteration order is load-bearing. Lightweight addendum pass against the 7.3.2
       execplan.
-- [ ] 7.3.3. Consolidate the draft-read state-error wrapper shared by
+- [x] 7.3.3. Consolidate the draft-read state-error wrapper shared by
   `wordcount`, `recount`, and `desloppify`.
   - Reroute (source: audit:6.1.1 Finding 1; severity: low). The
     `STATE_INPUT_ERRORS` → `StateInputError` draft-read idiom — call a disk
