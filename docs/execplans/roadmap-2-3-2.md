@@ -1892,7 +1892,7 @@ design-review cycle: make the change, run `make all`, `coderabbit review
   identical before and after `reconcile` (today only "no file removed" is
   pinned, not draft byte-integrity; only `state.toml`/`log.md` should change).
   Test-only change; gate with `make all`.
-- [ ] 2.3.2.3 — Correct the `_reconcile.py` module docstring's helper-reuse
+- [x] 2.3.2.3 — Correct the `_reconcile.py` module docstring's helper-reuse
   attribution (from review:7.2.1; low). The docstring claims `reconcile` "reuses
   that module's [`_recount`'s] load/refuse helpers", but
   `_load_document_or_state_error` and `_refuse_if_incoherent` are imported from

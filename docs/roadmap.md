@@ -1067,7 +1067,7 @@ agent-improvised recovery routine. See novel-ralph-harness-design.md §4.1 and
       not that the chapter drafts stayed byte-for-byte unchanged (only
       `state.toml`/`log.md` should change). Assert every `draft.md` is
       byte-identical before and after `reconcile`. Lightweight addendum pass.
-  - [ ] 2.3.2.3. Correct the `_reconcile.py` module docstring's helper-reuse
+  - [x] 2.3.2.3. Correct the `_reconcile.py` module docstring's helper-reuse
     attribution.
     - Addendum (from review:7.2.1; low). The `commands/_reconcile.py` module
       docstring states it "reuses that module's [`_recount`'s] load/refuse

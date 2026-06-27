@@ -32,9 +32,12 @@ order ``open_pending_turn`` + write → state edit → ``log.md`` append →
 populated ``operation="reconcile"`` record a subsequent ``reconcile`` re-derives
 and finishes, and a completed run leaves a coherent tree with the receipt on disk.
 
-It lives beside :mod:`novel_ralph_skill.commands._recount` and reuses that
-module's load/refuse helpers rather than duplicating the mutator contract
-(AGENTS.md "clear file boundaries"). Its fresh ``by_chapter`` inline table is
+It lives beside :mod:`novel_ralph_skill.commands._recount` and reuses the
+load/refuse helpers (:func:`_load_document_or_state_error`,
+:func:`_refuse_if_incoherent`) from
+:mod:`novel_ralph_skill.commands._state_mutators` rather than duplicating the
+mutator contract (AGENTS.md "clear file boundaries"). Its fresh ``by_chapter``
+inline table is
 built through the shared
 :func:`~novel_ralph_skill.state.document.build_inline_table` helper, the single
 home of that idiom (roadmap task 7.2.1), exactly as ``recount`` does.
