@@ -17,12 +17,17 @@ two halves of the 1.3.6 success criterion directly:
 (a) each production ``build_app`` callable returns an app carrying the four-flag
     contract (``result_action``, ``exit_on_error``, ``print_error``,
     ``help_on_error``) in their cyclopts 4.18.0 normalised forms; and
-(b) the real ``novel`` entry point routes the multiplexer through the shared
-    ``run`` seam, confirmed by monkeypatching
-    :func:`~novel_ralph_skill.commands.novel.run` and observing that
-    :func:`~novel_ralph_skill.commands.novel.main` invokes it with a
-    four-flag-contract ``build_multiplexer()`` app (Decision Log D2 — re-homed
-    from the deleted legacy entry points onto the surviving multiplexer).
+(b) the real ``novel`` entry point routes the multiplexer through the
+    contract-level :func:`~novel_ralph_skill.contract.runner.drive` seam, which
+    forwards to the shared ``run`` seam (roadmap task 7.3.5). This is confirmed
+    by monkeypatching :func:`~novel_ralph_skill.commands.novel.drive` and
+    observing that :func:`~novel_ralph_skill.commands.novel.main` invokes it with
+    a four-flag-contract ``build_multiplexer()`` app (Decision Log D2 — re-homed
+    from the deleted legacy entry points onto the surviving multiplexer, then
+    re-homed again from ``run`` onto ``drive`` by 7.3.5). This is the
+    *entry-point half* of the ``main -> drive -> run`` transitive invariant; the
+    *seam half* (``drive`` forwards to ``run``) is proven by
+    ``tests/test_contract_drive_seam.py``.
 """
 
 from __future__ import annotations
@@ -98,35 +103,44 @@ def test_real_build_app_carries_the_four_flag_contract(
 def test_novel_entry_point_routes_through_the_shared_seam(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """The ``novel`` entry point drives the multiplexer through ``run`` (half b).
+    """The ``novel`` entry point drives the multiplexer through ``drive`` (half b).
 
-    The shared :func:`~novel_ralph_skill.contract.runner.run` seam is
+    The contract-level :func:`~novel_ralph_skill.contract.runner.drive` seam is
     monkeypatched on the ``novel`` module so it captures the app it is handed
     rather than exiting the process. A re-inlined entry point that bypassed the
     seam would never reach it, failing the ``invoked`` assertion; one that
     bypassed ``make_contract_app`` would hand over a parent app without the
     four-flag contract, failing :func:`_assert_four_flag_contract`.
+
+    This pins the entry-point half of the ``main -> drive -> run`` transitive
+    invariant. The seam half (``drive`` forwards to ``run``) is proven by
+    ``tests/test_contract_drive_seam.py``.
     """
     captured: dict[str, object] = {}
 
-    def _capture_run(
+    def _capture_drive(  # pylint: disable=too-many-arguments
         app: cyclopts.App,
         argv: cabc.Sequence[str],
-        context: object,
+        *,
+        command: str,
+        working_dir: str,
+        human: bool,
     ) -> None:
-        """Capture ``run``'s arguments instead of exiting the process."""
+        """Capture ``drive``'s arguments instead of exiting the process."""
         captured["app"] = app
         captured["argv"] = list(argv)
-        captured["context"] = context
+        captured["command"] = command
+        captured["working_dir"] = working_dir
+        captured["human"] = human
 
-    monkeypatch.setattr(novel, "run", _capture_run)
+    monkeypatch.setattr(novel, "drive", _capture_drive)
     # Pin a clean, no-argument argv so ``parse_global_flags`` has a stable input
     # and the residual argv reaching the captured seam is empty.
     monkeypatch.setattr("sys.argv", ["novel"])
 
     novel.main()
 
-    assert "app" in captured, "novel did not route through the shared run seam"
+    assert "app" in captured, "novel did not route through the shared drive seam"
     app = captured["app"]
     assert isinstance(app, cyclopts.App)
     assert app.name == ("novel",)

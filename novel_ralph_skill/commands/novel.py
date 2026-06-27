@@ -4,10 +4,11 @@ ADR 007 (superseding ADR 005) fixes the final command surface as a single
 ``novel`` multiplexer: ``novel state …``, ``novel done``, ``novel compile``,
 ``novel desloppify``, and ``novel wordcount``. This module delivers the parent
 app that mounts the five leaf/state sub-apps and the :func:`main` entry point that
-drives it through the shared :func:`novel_ralph_skill.contract.runner.run`
-wrapper. It is a pure dispatch layer: it adds no command logic, reuses each
-operation's existing ``build_app`` unchanged, and emits the same envelope and
-exit codes the five legacy entry points already produce.
+drives it through the contract-level :func:`novel_ralph_skill.contract.runner.drive`
+seam (which owns the build-``RunContext``-then-call-``run`` plumbing once and
+forwards to the shared ``run`` wrapper; roadmap task 7.3.5). It is a pure dispatch
+layer: it adds no command logic, reuses each operation's existing ``build_app``
+unchanged, and emits the same envelope and exit codes the contract demands.
 
 The mechanism is verified against the locked Cyclopts 4.18.0 (ExecPlan Decision
 Log D2/D3): mounting a child via ``parent.command(child, name=…)`` copies only
@@ -34,7 +35,7 @@ import typing as typ
 
 from novel_ralph_skill.commands.names import MULTIPLEXER_NAME, SUBCOMMAND_NAMES
 from novel_ralph_skill.commands.state_sourcing import resolved_working_dir
-from novel_ralph_skill.contract import RunContext, parse_global_flags, run
+from novel_ralph_skill.contract import drive, parse_global_flags
 from novel_ralph_skill.contract.runner import make_contract_app
 
 if typ.TYPE_CHECKING:
@@ -175,14 +176,18 @@ def _command_name_for(residual: list[str]) -> str:
 
 
 def main() -> None:
-    """``novel`` console-script entry point: parse ``--human``, drive via ``run``.
+    """``novel`` console-script entry point: parse ``--human``, delegate to ``drive``.
 
-    Generalises the ``_drive`` shape the retired ``stub.py`` used: it splits the single
-    ``--human`` global flag off ``sys.argv`` (before ``run`` is reached, because
-    ``run`` stamps the human selection into every envelope, including the
-    body-less arms), derives the spaced command name from the residual argv, and
-    drives the whole multiplexer through ``run`` exactly once. ``run`` owns every
-    ``sys.exit`` and every envelope emission.
+    A thin entry point that owns no drive plumbing of its own: it splits the
+    single ``--human`` global flag off ``sys.argv`` (before the seam is reached,
+    because the run wrapper stamps the human selection into every envelope,
+    including the body-less arms), derives the spaced command name from the
+    residual argv, and delegates to the contract-level
+    :func:`novel_ralph_skill.contract.runner.drive` seam, the single home for the
+    build-``RunContext``-then-call-``run`` plumbing (roadmap task 7.3.5). The seam
+    forwards to ``run``, which owns every ``sys.exit`` and every envelope
+    emission; ``main`` re-spells none of that plumbing inline (pinned by
+    ``tests/test_entry_point_single_home.py``).
 
     The ``working_dir`` it stamps is the *absolute, resolved* path the command
     looked at (``resolved_working_dir()``), not the bare ``"working"`` token, so
@@ -194,12 +199,10 @@ def main() -> None:
     """
     human, residual = parse_global_flags(sys.argv[1:])
     name = _command_name_for(residual)
-    run(
+    drive(
         build_multiplexer(),
         residual,
-        RunContext(
-            command=name,
-            working_dir=str(resolved_working_dir()),
-            human=human,
-        ),
+        command=name,
+        working_dir=str(resolved_working_dir()),
+        human=human,
     )

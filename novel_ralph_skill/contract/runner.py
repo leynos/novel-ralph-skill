@@ -248,3 +248,60 @@ def run(
     # body owns the 0/1/4 decision; the wrapper emits the envelope and exits.
     _emit(context, outcome)
     sys.exit(outcome.code)
+
+
+def drive(  # noqa: PLR0913  # pylint: disable=too-many-arguments
+    app: cyclopts.App,
+    argv: cabc.Sequence[str],
+    *,
+    command: str,
+    working_dir: str,
+    human: bool,
+) -> typ.NoReturn:
+    """Build the :class:`RunContext` and drive ``app`` through :func:`run`.
+
+    This is the single contract-level home for the build-context-then-``run``
+    plumbing the ``novel`` entry point used to spell inline (roadmap task
+    7.3.5). It takes the *already-resolved* command name, working directory, and
+    ``--human`` selection as keyword-only scalars, wraps them in a
+    :class:`RunContext`, and forwards the opaque ``app`` and ``argv`` to ``run``
+    unchanged. It owns nothing :func:`run` already owns: ``run`` keeps every
+    :func:`sys.exit` and every envelope emission, so this seam never returns.
+
+    Keeping name and working-directory resolution in the caller (and only the
+    ``RunContext`` construction here) means the seam imports no command module,
+    preserving the contract -> commands layering and the entry point's
+    import-laziness profile.
+
+    Parameters
+    ----------
+    app : cyclopts.App
+        The command's Cyclopts app, built with the four-flag contract; forwarded
+        to :func:`run` untouched.
+    argv : collections.abc.Sequence[str]
+        The residual argument vector to parse (the global ``--human`` flag having
+        already been split off by the caller).
+    command : str
+        The resolved command name stamped into every envelope.
+    working_dir : str
+        The resolved, absolute working directory recorded in every envelope.
+    human : bool
+        Whether to render the human rather than the machine envelope.
+
+    Returns
+    -------
+    typing.NoReturn
+        Always exits the process via :func:`run` (which calls :func:`sys.exit`).
+
+    Notes
+    -----
+    Usage (prose example only — the seam is ``typing.NoReturn``, so a runnable
+    doctest would terminate the interpreter): ``novel.main`` calls ``drive(
+    build_multiplexer(), residual, command=name, working_dir=str(
+    resolved_working_dir()), human=human)``; the call never returns.
+    """
+    run(
+        app,
+        argv,
+        RunContext(command=command, working_dir=working_dir, human=human),
+    )

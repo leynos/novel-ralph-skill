@@ -11,7 +11,7 @@ The public surface re-exported here is :class:`Envelope`, :func:`build_envelope`
 :class:`EnvelopeMessagesError`, :class:`ExitCode`, :func:`is_ok`,
 :class:`CommandOutcome`, :func:`build_finding_outcome`, :class:`RunContext`,
 :class:`StateInputError`, :func:`make_contract_app`, :func:`parse_global_flags`,
-and :func:`run`.
+:func:`run`, and :func:`drive`.
 """
 
 from __future__ import annotations
@@ -30,6 +30,7 @@ from novel_ralph_skill.contract.runner import (
     CommandOutcome,
     RunContext,
     StateInputError,
+    drive,
     make_contract_app,
     parse_global_flags,
     run,
@@ -45,6 +46,7 @@ __all__ = [
     "StateInputError",
     "build_envelope",
     "build_finding_outcome",
+    "drive",
     "is_ok",
     "make_contract_app",
     "parse_global_flags",

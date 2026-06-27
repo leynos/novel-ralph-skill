@@ -465,7 +465,12 @@ source inspection.
 The `novel` `main` entry point splits `--human` off `sys.argv` first (so `run`
 stamps the human selection even on the body-less usage and state-error arms),
 then derives the spaced command name from the residual argv through
-`_command_name_for` before driving the parent through `run` once. The name
+`_command_name_for` before delegating to the contract-level `drive` seam
+(`contract.runner.drive`). That seam is the single home for the
+build-`RunContext`-then-call-`run` plumbing (roadmap task 7.3.5): `main`
+re-spells none of it inline, so a future entry point cannot silently re-inline
+the plumbing — `tests/test_entry_point_single_home.py` fails if it does, and
+`drive` forwards to `run` once. The name
 derivation consults the registry, not inline literals: `names.py` carries
 `SUBCOMMAND_NAMES` (the spaced `novel <verb>` names) and the
 `ENVELOPE_COMMAND_NAMES` superset (those spaced names plus the bare `"novel"`

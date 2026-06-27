@@ -3037,7 +3037,7 @@ of truth, and a test pins it so it cannot silently re-fork.
     `_compile` and `_novel_done` consume; no site open-codes the path twice or
     re-stats the compile leaf in a racy in-body check; and the desloppify,
     wordcount, compile, and done-predicate suites stay green.
-- [ ] 7.3.5. Collapse the `novel.main`/`stub._drive` entry-point duplication
+- [x] 7.3.5. Collapse the `novel.main`/`stub._drive` entry-point duplication
   into one shared drive seam.
   - Reroute (source: audit:1.2.12; severity: medium). `novel.main` and
     `stub._drive` share a byte-identical parse-`--human`, resolve-command-name,
@@ -3063,6 +3063,20 @@ of truth, and a test pins it so it cannot silently re-fork.
     re-spelling the plumbing; the import-laziness profile is preserved (or its
     change is decided and recorded); and the multiplexer, stub, and
     console-scripts suites stay green.
+  - Done (see docs/execplans/roadmap-7-3-5.md). The `stub._drive` copy was
+    already retired by 1.2.15 (ADR 007, commit 9e95c49), so no live duplicate
+    survived to collapse; 7.3.5 delivered the constructive arm instead. The
+    drive-via-`run` plumbing was lifted into the contract-level
+    `contract.runner.drive` seam (keyword-scalar `command`/`working_dir`/`human`,
+    `typ.NoReturn`), re-exported from the contract package, and `novel.main` now
+    delegates to it rather than re-spelling the plumbing. The roadmap-1.3.6
+    routing tripwire was migrated onto `novel.drive` (preserving the
+    four-flag-contract assertion), a seam-forwards-to-`run` unit test pins the
+    `main -> drive -> run` invariant, a structural guard
+    (`tests/test_entry_point_single_home.py`) forbids re-inlining the plumbing in
+    `main`, and a layering guard (`tests/test_contract_layering.py`) pins that the
+    seam imports no `commands` module. Behaviour, exit codes, the absolute
+    `working_dir` stamp, and the import-laziness profile are unchanged.
 - [ ] 7.3.6. Relocate `WORKING_DIR_NAME` and the command-name vocabulary into
   the contract package.
   - Reroute (source: audit:1.2.12; severity: medium). `WORKING_DIR_NAME` is a
