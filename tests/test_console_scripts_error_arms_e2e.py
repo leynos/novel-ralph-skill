@@ -42,6 +42,10 @@ import typing as typ
 
 import pytest
 import working_corpus as wc
+from contract_drive_support import (
+    WORKING_DIR_TOKEN,
+    normalise_working_dir,
+)
 from cuprum import sh
 from cuprum.program import Program
 from cuprum.sh import ExecutionContext
@@ -273,7 +277,7 @@ def test_installed_error_arm_machine_envelope(
     180s timeout supersedes the 30s project default.
     """
     command, arm = cell
-    result, run_dir = _run_installed_arm(cell, tmp_path, run_installed, human=False)
+    result, _run_dir = _run_installed_arm(cell, tmp_path, run_installed, human=False)
     assert result.exit_code == arm.expected_code, (
         f"expected exit {arm.expected_code} for {command.name} {arm.label} arm, "
         f"got {result.exit_code}; stderr: {result.stderr}"
@@ -295,16 +299,20 @@ def test_installed_error_arm_machine_envelope(
     # bump or field-order regression — neither caught by the per-field skeleton —
     # cannot survive packaging unobserved at the subprocess boundary (addendum
     # 6.2.10.2). ``working_dir`` is now the absolute resolved path the binary
-    # stamped from *this* cell's ``run_dir`` (roadmap §6.3.4), computed the same
-    # way the production code does so symlink normalisation cannot desynchronise
-    # them.
-    expected_working_dir = str((run_dir / "working").resolve())
-    redacted = {**envelope, "messages": ["<redacted>"]}
+    # stamped from *this* cell's ``run_dir`` (roadmap §6.3.4); the shared
+    # JSON-aware ``normalise_working_dir`` redacts that machine-dependent path to
+    # the stable ``WORKING_DIR_TOKEN`` so this boundary proof stays
+    # machine-independent without recomputing the resolved path here (addendum
+    # 6.3.4.2).
+    normalised = typ.cast(
+        "dict[str, object]", json.loads(normalise_working_dir(result.stdout or "{}"))
+    )
+    redacted = {**normalised, "messages": ["<redacted>"]}
     assert redacted == {
         "command": command.name,
         "schema_version": ENVELOPE_SCHEMA_VERSION,
         "ok": False,
-        "working_dir": expected_working_dir,
+        "working_dir": WORKING_DIR_TOKEN,
         "result": {},
         "messages": ["<redacted>"],
     }, f"boundary envelope must mirror the in-process contract: {envelope}"

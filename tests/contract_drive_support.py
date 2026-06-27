@@ -9,9 +9,13 @@ cross-command contract package (``tests/cross_command_contract/``) reuses: the
 (:func:`build_phase_tree`), the volatile-field redaction guard
 (:func:`assert_no_volatile_fields` and :data:`VOLATILE_PATTERN`), the
 deterministic compiled-path token the guard exempts
-(:data:`DETERMINISTIC_PATH_TOKEN`), and the in-process ``drive`` fixture that
-drives a command through :func:`novel_ralph_skill.contract.runner.run` and
-captures its exit code and rendered stdout.
+(:data:`DETERMINISTIC_PATH_TOKEN`), the shared JSON-aware ``working_dir``
+snapshot-normaliser (:func:`normalise_working_dir` with
+:data:`WORKING_DIR_TOKEN`) that the mutator snapshots and the installed-binary
+boundary proof both route through (roadmap 6.3.4), and the in-process ``drive``
+fixture that drives a command through
+:func:`novel_ralph_skill.contract.runner.run` and captures its exit code and
+rendered stdout.
 
 It lives beside ``conftest.py`` rather than inside it solely because hosting the
 seam there would push ``conftest.py`` past the 400-line module cap (AGENTS.md);
@@ -88,6 +92,61 @@ VOLATILE_PATTERN = re.compile(
 # path, so the volatile guard exempts it rather than flagging it as
 # multi-segment-path churn. The snapshot still pins it verbatim.
 DETERMINISTIC_PATH_TOKEN = "working/manuscript/compiled.md"  # noqa: S105  # a path, not a secret
+
+# The fixed working-relative sentinel the synthetic ``RunContext`` injects. A
+# ``working_dir`` carrying exactly this token is the deterministic contract
+# constant, not the machine-dependent absolute path ``novel.main`` stamps, so
+# the normaliser below leaves it verbatim.
+WORKING_DIR_SENTINEL = "working"
+
+# The stable token the normaliser substitutes for a machine-dependent
+# ``working_dir`` so a snapshot stays machine-independent.
+WORKING_DIR_TOKEN = "<working-dir>"  # noqa: S105  # a redaction token, not a secret
+
+
+def normalise_working_dir(raw: str) -> str:
+    """Replace machine-dependent ``working_dir`` values with a stable token.
+
+    Both the in-process mutator snapshots and the installed-binary boundary
+    proof pin a rendered envelope whose ``working_dir`` — top-level or in the
+    ``result`` body — can carry the absolute resolved path ``novel.main`` stamps
+    (roadmap 6.3.4). That path is machine-dependent, so a verbatim snapshot
+    would churn per machine. This helper is JSON-aware rather than
+    pattern-based: it parses the envelope, reads the *real* ``working_dir``
+    string at each contract site, and replaces that exact literal in ``raw`` —
+    preserving the renderer's key order and whitespace byte-for-byte, so a
+    future serialiser change cannot silently desynchronise the redaction the way
+    an anchored regex would. The fixed :data:`WORKING_DIR_SENTINEL` token the
+    synthetic ``RunContext`` injects is left verbatim, since it is a
+    deterministic contract constant, not a per-machine path.
+
+    Parameters
+    ----------
+    raw : str
+        The rendered machine-mode envelope JSON string.
+
+    Returns
+    -------
+    str
+        ``raw`` with each machine-dependent ``working_dir`` literal replaced by
+        :data:`WORKING_DIR_TOKEN`, leaving every other byte untouched.
+    """
+    envelope = json.loads(raw)
+    candidates: list[str] = []
+    top = envelope.get("working_dir")
+    if isinstance(top, str) and top != WORKING_DIR_SENTINEL:
+        candidates.append(top)
+    result = envelope.get("result")
+    if isinstance(result, dict):
+        body = result.get("working_dir")
+        if isinstance(body, str) and body != WORKING_DIR_SENTINEL:
+            candidates.append(body)
+    normalised = raw
+    for value in candidates:
+        normalised = normalised.replace(
+            json.dumps(value), json.dumps(WORKING_DIR_TOKEN)
+        )
+    return normalised
 
 
 def build_phase_tree(phase: str, tmp_path: Path) -> Path:

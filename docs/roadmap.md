@@ -2227,14 +2227,14 @@ and adr-003-shared-interface-contract.md.
     `working/` (upward search), or the envelope `working_dir` is the absolute
     resolved path; running from inside `working/` no longer silently looks for
     `working/working`.
-  - [ ] 6.3.4.1.
+  - [x] 6.3.4.1.
     - Addendum (from review:6.3.4; low). Normalise the ungated POSIX-separator
       suffix assertion `result["working_dir"].endswith("/working")` in
       `tests/test_novel_state_mutators.py` (line 100) to a pathlib-based
       `.name`/`.parts` check, matching the portability convention already
       enforced on the new test modules in this task so the suite stays portable
       and consistent. Lightweight addendum pass.
-  - [ ] 6.3.4.2.
+  - [x] 6.3.4.2.
     - Addendum (from review:6.3.4; low). Extract one shared JSON-aware
       `working_dir` snapshot-normaliser and route both snapshot modules through
       it, replacing the brittle regex redaction in

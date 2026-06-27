@@ -1275,14 +1275,14 @@ fixture, not by constructing an `ExecutionContext`). No implementation performed
 Lightweight, no-plan corrections folded onto this completed task after the
 review and audit of step 6.3 settled. Each runs as a no-review lightweight pass.
 
-- **6.3.4.1 (from review:6.3.4; low).** Normalise the ungated POSIX-separator
+- [x] **6.3.4.1 (from review:6.3.4; low).** Normalise the ungated POSIX-separator
   suffix assertion `result["working_dir"].endswith("/working")` in
   `tests/test_novel_state_mutators.py` (line 100) to a pathlib-based
   `.name`/`.parts` check, matching the portability convention this task already
   enforced on its new test modules. The module is not `skipif`-gated for POSIX,
   so the separator literal diverges from the rest of the suite; the pathlib form
   keeps it portable and consistent. Scope: one assertion in one test file.
-- **6.3.4.2 (from review:6.3.4; low).** Extract one shared JSON-aware
+- [x] **6.3.4.2 (from review:6.3.4; low).** Extract one shared JSON-aware
   `working_dir` snapshot-normaliser and route both snapshot modules through it.
   Two snapshot modules now redact `result.working_dir` with divergent
   strategies — the brittle regex `_RESULT_WORKING_DIR` in

@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import json
 import typing as typ
+from pathlib import Path
 
 import pytest
 
@@ -31,7 +32,6 @@ from novel_ralph_skill.contract.runner import RunContext, run
 
 if typ.TYPE_CHECKING:
     import collections.abc as cabc
-    from pathlib import Path
 
     from conftest import WorkingTreeSpec
 
@@ -97,7 +97,7 @@ def test_init_result_names_absolute_resolved_working_dir(
     result = typ.cast("dict[str, object]", envelope["result"])
     expected = str((tmp_path / "working").resolve())
     assert result["working_dir"] == expected
-    assert typ.cast("str", result["working_dir"]).endswith("/working")
+    assert Path(typ.cast("str", result["working_dir"])).name == "working"
 
 
 def test_init_writes_premise_phase_and_target(

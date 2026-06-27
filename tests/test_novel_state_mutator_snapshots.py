@@ -25,6 +25,7 @@ import typing as typ
 import pytest
 import working_corpus as wc
 from _gate_drafting_fixtures import build, ratio_not_crossed_spec
+from contract_drive_support import normalise_working_dir
 
 from novel_ralph_skill.commands.novel_state import build_app
 from novel_ralph_skill.contract.exit_codes import ExitCode
@@ -43,11 +44,12 @@ _COMMAND = "novel state"
 _TIMESTAMP = re.compile(
     r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:[+-]\d{2}:\d{2}|Z)?"
 )
-# Redact the absolute ``result.working_dir`` body ``init`` now stamps (roadmap
-# §6.3.4) so the snapshot is machine-independent. Anchored to the ``"result":
-# {"working_dir": "..."`` body object so the *top-level* envelope ``working_dir``
-# (the synthetic-injected ``"working"`` token) is left untouched.
-_RESULT_WORKING_DIR = re.compile(r'("result": \{"working_dir": )"[^"]*"')
+# The absolute ``result.working_dir`` body ``init`` now stamps (roadmap §6.3.4)
+# is redacted to a stable token by the shared JSON-aware
+# :func:`normalise_working_dir`, so the snapshot is machine-independent. That
+# helper reads the *real* path from the parsed envelope and leaves the
+# synthetic-injected ``"working"`` top-level token verbatim, replacing the
+# brittle anchored regex this module previously carried (addendum 6.3.4.2).
 
 
 def _drive(argv: list[str]) -> tuple[int, str]:
@@ -68,7 +70,7 @@ def _drive(argv: list[str]) -> tuple[int, str]:
 def _normalise(raw: str) -> str:
     """Redact nondeterministic fields from the rendered envelope."""
     redacted = _TIMESTAMP.sub("<timestamp>", raw)
-    return _RESULT_WORKING_DIR.sub(r'\1"<working-dir>"', redacted)
+    return normalise_working_dir(redacted)
 
 
 def test_init_success_envelope_snapshot(
