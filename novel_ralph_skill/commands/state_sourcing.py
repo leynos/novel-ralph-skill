@@ -1,22 +1,27 @@
 """The neutral, public state-sourcing home for the command layer.
 
-This dependency-free module is the single home for *where* a command looks
-(``WORKING_DIR_NAME``, :func:`working_dir`, :func:`state_path`), *what counts*
-as a state-input fault (:data:`STATE_INPUT_ERRORS`), *how* a failed load is
-rendered as the contract's exit-``3`` error (:func:`_state_input_error`,
+This module is the single home for *where* a command looks
+(:data:`WORKING_DIR_NAME`, :func:`working_dir`, :func:`state_path`), *what
+counts* as a state-input fault (:data:`STATE_INPUT_ERRORS`), *how* a failed load
+is rendered as the contract's exit-``3`` error (:func:`_state_input_error`,
 :func:`load_or_state_error`), and *how* a faulted draft read is guarded
 (:func:`draft_read_guard`). Every command — the ``novel state`` subgroup, the
 four leaf verbs, and the mutators — imports the seam directly from here, so the
-``working/`` location, the fault vocabulary, the load-and-translate boundary, and
-the draft-read guard live in one place (AGENTS.md "clear file boundaries"),
-mirroring the :mod:`novel_ralph_skill.commands._state_mutators` carve-out.
+``working/`` location, the state-input fault vocabulary, the load-and-translate
+boundary, and the draft-read guard live in exactly one place (AGENTS.md "clear
+file boundaries"), mirroring the
+:mod:`novel_ralph_skill.commands._state_mutators` carve-out.
 
-It imports only from :mod:`novel_ralph_skill.state` and
-:mod:`novel_ralph_skill.contract.runner` — never from ``novel_state`` — so the
-shared helpers live here without reversing the ``_state_mutators`` →
-``novel_state`` import direction (the helper must not create an import cycle).
-The mutator modules import *from* this home, so this home importing *from* a
-command module would reintroduce the cycle the carve-out avoids.
+``WORKING_DIR_NAME`` itself now originates in
+:mod:`novel_ralph_skill.contract.names` — it is a *contract* fact, the token
+every envelope stamps into ``working_dir`` — and is re-exported here for
+back-compatibility (roadmap 7.3.6 WI2). This module therefore imports only from
+:mod:`novel_ralph_skill.state`, :mod:`novel_ralph_skill.contract.runner`, and
+:mod:`novel_ralph_skill.contract.names` — never from ``novel_state``. All three
+imports point *down* into the ``state`` and ``contract`` layers; this
+no-``novel_state``-import rule is a constraint, not an incidental (ExecPlan
+Decision Log): the mutator modules import *from* this home, so this home
+importing from a command module would reintroduce the cycle the carve-out avoids.
 """
 
 from __future__ import annotations
@@ -26,6 +31,7 @@ import pathlib
 import tomllib
 import typing as typ
 
+from novel_ralph_skill.contract.names import WORKING_DIR_NAME
 from novel_ralph_skill.contract.runner import StateInputError
 from novel_ralph_skill.state import load_state
 
@@ -48,12 +54,6 @@ __all__ = [
     "state_path",
     "working_dir",
 ]
-
-# The fixed cwd-relative working directory the design records (design line 151);
-# the same constant the entry point stamps into ``RunContext.working_dir``, so
-# the file ``check`` reads and the envelope's ``working_dir`` field cannot drift
-# (Decision Log B4/B5). There is no ``--working-dir`` flag.
-WORKING_DIR_NAME = "working"
 
 
 def working_dir() -> pathlib.Path:

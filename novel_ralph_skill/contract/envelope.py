@@ -16,8 +16,8 @@ import json
 import typing as typ
 
 from novel_ralph_skill._freeze import freeze_mapping, freeze_sequence
-from novel_ralph_skill.commands.names import ENVELOPE_COMMAND_NAMES
 from novel_ralph_skill.contract.exit_codes import ExitCode, is_ok
+from novel_ralph_skill.contract.names import ENVELOPE_COMMAND_NAMES
 
 if typ.TYPE_CHECKING:
     import collections.abc as cabc
@@ -94,7 +94,7 @@ def build_envelope(  # noqa: PLR0913  # pylint: disable=too-many-arguments
     ``ok`` is derived from :func:`is_ok` so a caller cannot set it
     inconsistently with the exit code, and ``command`` is validated against the
     single source of truth
-    (:data:`novel_ralph_skill.commands.names.ENVELOPE_COMMAND_NAMES`). That guard
+    (:data:`novel_ralph_skill.contract.names.ENVELOPE_COMMAND_NAMES`). That guard
     is the spaced ``novel <verb>`` subcommand names plus the bare ``"novel"``
     surface, so every name the multiplexer stamps validates (ADR 007; ExecPlan
     Decision Log D1).

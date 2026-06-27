@@ -16,10 +16,6 @@ from types import MappingProxyType
 
 import pytest
 
-from novel_ralph_skill.commands.names import (
-    ENVELOPE_COMMAND_NAMES,
-    SUBCOMMAND_NAMES,
-)
 from novel_ralph_skill.contract.envelope import (
     ENVELOPE_FIELD_ORDER,
     ENVELOPE_SCHEMA_VERSION,
@@ -28,6 +24,10 @@ from novel_ralph_skill.contract.envelope import (
     render_machine,
 )
 from novel_ralph_skill.contract.exit_codes import ExitCode, is_ok
+from novel_ralph_skill.contract.names import (
+    ENVELOPE_COMMAND_NAMES,
+    SUBCOMMAND_NAMES,
+)
 
 if typ.TYPE_CHECKING:
     from syrupy.assertion import SnapshotAssertion

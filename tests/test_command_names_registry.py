@@ -19,9 +19,23 @@ import importlib
 import typing as typ
 
 from novel_ralph_skill.commands import names
+from novel_ralph_skill.contract import names as contract_names
 
 if typ.TYPE_CHECKING:
     import collections.abc as cabc
+
+
+def test_registry_reexports_contract_vocabulary() -> None:
+    """The registry re-exports the *same* contract vocabulary objects (no fork).
+
+    Roadmap task 7.3.6 relocated the command-name vocabulary into
+    :mod:`novel_ralph_skill.contract.names`; ``commands.names`` re-exports it.
+    The identity check proves the re-export cannot silently fork into a second
+    copy.
+    """
+    assert names.SUBCOMMAND_NAMES is contract_names.SUBCOMMAND_NAMES
+    assert names.MULTIPLEXER_NAME is contract_names.MULTIPLEXER_NAME
+    assert names.ENVELOPE_COMMAND_NAMES is contract_names.ENVELOPE_COMMAND_NAMES
 
 
 def test_registry_matches_project_scripts(

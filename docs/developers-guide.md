@@ -418,11 +418,13 @@ which runs on POSIX only (see
 [adr-006-console-scripts-e2e-posix-policy.md](adr-006-console-scripts-e2e-posix-policy.md)),
 and [`tests/test_pyproject_scripts.py`](../tests/test_pyproject_scripts.py)
 guards the entry-point table. The spaced subcommand names live once, as data,
-in a single registry,
-[`novel_ralph_skill/commands/names.py`](../novel_ralph_skill/commands/names.py):
-`SUBCOMMAND_NAMES` is the spaced `novel <verb>` names and
-`project_scripts_table` derives the single `novel` entry from it. The
-dispatcher and every test derive their names from this registry, and
+in
+[`novel_ralph_skill/contract/names.py`](../novel_ralph_skill/contract/names.py):
+`SUBCOMMAND_NAMES` is the spaced `novel <verb>` names (the contract owns this
+vocabulary; roadmap task 7.3.6).
+[`novel_ralph_skill/commands/names.py`](../novel_ralph_skill/commands/names.py)
+re-exports them and its `project_scripts_table` derives the single `novel`
+entry. The dispatcher and every test derive their names from this registry, and
 [`tests/test_command_names_registry.py`](../tests/test_command_names_registry.py)
 asserts the registry and `[project.scripts]` agree, so a rename or dropped
 entry point cannot silently drift. Edit a command name there, not inline. The
@@ -601,17 +603,32 @@ Table 3. Second, `run` translates Cyclopts's native exit-`1` usage errors into
 the contract's exit `2`.
 
 `build_envelope` validates its `command` argument against
-`ENVELOPE_COMMAND_NAMES`, so `novel_ralph_skill/contract/` imports the registry
-from
-[`novel_ralph_skill/commands/names.py`](../novel_ralph_skill/commands/names.py).
-This edge is deliberate, not a layering leak: `names.py` is a leaf
-source-of-truth module that holds only the command names as data and carries no
-command logic. The shared name registry is therefore a leaf that both the
-`contract` layer and the `commands` layer may depend on, exactly so the names
-live once and neither layer re-spells them. The contract and command suites
-import the registry symbols for the same reason. Keep the dependency pointed
-this way: nothing in `commands/names.py` may import from `contract/`, or the
-edge would become a genuine cycle.
+`ENVELOPE_COMMAND_NAMES`. The command-name vocabulary — `MULTIPLEXER_NAME`,
+`SUBCOMMAND_NAMES`, and the `ENVELOPE_COMMAND_NAMES` superset — lives in
+[`novel_ralph_skill/contract/names.py`](../novel_ralph_skill/contract/names.py),
+so the `contract` layer owns the contract vocabulary its envelope guard
+enforces and `contract/envelope.py` validates `command` against it with **no**
+`commands` import (roadmap task 7.3.6 repaired this; the older
+`contract` → `commands.names` edge audited under sub-task 1.3.1.2 is removed).
+The `working/` directory name, `WORKING_DIR_NAME`, likewise lives in
+`contract/names.py` — it is the token every envelope stamps into its
+`working_dir` field — and is re-exported from
+[`novel_ralph_skill/commands/state_sourcing.py`](../novel_ralph_skill/commands/state_sourcing.py)
+for back-compatibility.
+
+[`novel_ralph_skill/commands/names.py`](../novel_ralph_skill/commands/names.py)
+keeps the `[project.scripts]` console-script binding — `NOVEL_MODULE` and
+`project_scripts_table()`, which name a `commands`-layer entry-point module — and
+*re-exports* the vocabulary from `contract.names` for back-compatibility. It is
+therefore no longer a dependency-free "leaf" module: re-exporting from
+`contract.names` means importing `commands.names` now transitively executes
+`contract/__init__.py` (which pulls `contract.runner`, and thus `cyclopts`).
+That is a downward, deliberate `commands` → `contract` import, **not** a cycle —
+nothing under `contract/` imports `commands` — and it does not affect the
+`novel`-import laziness guard (`novel` already pulls the contract package). Keep
+the dependency pointed this way: the whole-package layering guard
+(`tests/test_contract_layering.py`) fails if any `contract` module imports a
+`commands` module, so the inversion cannot regress.
 
 ### Disambiguated exit codes
 

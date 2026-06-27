@@ -1,22 +1,31 @@
-"""Layering guard that the contract seam never imports a commands module (7.3.5).
+"""Layering guard that the contract package never imports a commands module.
 
-The contract-level :func:`~novel_ralph_skill.contract.runner.drive` seam lifts the
-entry-point drive plumbing into the contract layer (roadmap task 7.3.5). Its
-home module — ``novel_ralph_skill.contract.runner`` — must not reach into the
-commands layer to resolve the command name or working directory: the seam takes
-those as already-resolved arguments. This pins the ADR 003 layering rule
-(contract -> commands is a forbidden inversion) statically, so a future edit that
-imported, say, ``commands.names`` or ``commands.state_sourcing`` into the seam's
-home module would fail here rather than silently inverting the dependency.
+The contract layer sits *below* commands (ADR 003), so no module under
+``novel_ralph_skill.contract`` may import a ``novel_ralph_skill.commands``
+module: that would be a forbidden ``contract`` -> ``commands`` inversion. This
+guard pins the rule statically over the **whole** ``contract`` package
+(roadmap task 7.3.6), not merely the ``drive`` seam's home module
+``novel_ralph_skill.contract.runner`` (roadmap task 7.3.5, the original
+narrower guard, retained here as a focused special case).
+
+The package-wide walk closes the inversion class for good: a future edit that
+imported, say, ``commands.names`` or ``commands.state_sourcing`` into *any*
+contract module — the way ``contract/envelope.py`` formerly imported
+``commands.names.ENVELOPE_COMMAND_NAMES`` (the edge 7.3.6 removed) — fails here
+rather than silently inverting the dependency.
 
 This complements the import-laziness guard in
 ``tests/test_multiplexer_mount_table.py`` (importing ``novel`` pulls in no leaf
-module): together they keep the seam orthogonal to the command layer in both
-directions.
+module): together they keep the contract layer orthogonal to the command layer
+in both directions.
 
-The seam module's source is read statically (via :func:`importlib.util.find_spec`,
-never executed) so the guard does not itself import the contract runner at
-collection time.
+Each contract module's source is read statically (via
+:func:`importlib.util.find_spec`, never executed) so the guard does not itself
+import the contract runner — or any other contract module — at collection time.
+Note that ``contract/finding_outcome.py`` carries a ``:func:`` docstring
+cross-reference to a ``commands`` symbol; that is *not* an import, and the
+``ast`` walk inspects only ``import``/``from``/dynamic-import nodes, so it does
+not trip on the docstring (round-2 advisory 1).
 
 Examples
 --------
@@ -30,6 +39,7 @@ from __future__ import annotations
 import ast
 import importlib.util
 import pathlib
+import pkgutil
 
 # The fully qualified name and package of the seam's home module. Resolving the
 # source statically (rather than importing the module) keeps this guard from
@@ -190,17 +200,51 @@ def _module_scope_imports(source: str, package: str) -> set[str]:
     return modules
 
 
-def _read_seam_source() -> str:
-    """Return the seam home module's source text without importing it.
+def _read_module_source(module: str) -> str:
+    """Return ``module``'s source text without importing it.
 
     Resolves the module's file via :func:`importlib.util.find_spec` and reads it
     off disk, so the guard inspects the source statically rather than executing
-    the contract runner at collection time.
+    the contract runner (or any other contract module) at collection time.
     """
-    spec = importlib.util.find_spec(_SEAM_MODULE)
-    assert spec is not None, f"cannot locate {_SEAM_MODULE}"
-    assert spec.origin is not None, f"{_SEAM_MODULE} has no source origin"
+    spec = importlib.util.find_spec(module)
+    assert spec is not None, f"cannot locate {module}"
+    assert spec.origin is not None, f"{module} has no source origin"
     return pathlib.Path(spec.origin).read_text(encoding="utf-8")
+
+
+def _commands_imports(source: str, package: str) -> list[str]:
+    """Return the ``commands`` modules ``source`` imports at module scope.
+
+    A ``commands`` import is the package itself or any submodule of it; the
+    result is sorted so a failure names the offenders deterministically.
+    """
+    return sorted(
+        module
+        for module in _module_scope_imports(source, package)
+        if module == _COMMANDS_PACKAGE or module.startswith(f"{_COMMANDS_PACKAGE}.")
+    )
+
+
+def _contract_module_names() -> list[str]:
+    """Return every importable module name under the ``contract`` package.
+
+    Walks the package with :func:`pkgutil.iter_modules` over its ``__path__`` and
+    includes the package's own ``__init__`` (which ``iter_modules`` does not
+    yield), so the guard covers the package surface as well as its submodules.
+    The list is sorted for a deterministic iteration order.
+    """
+    spec = importlib.util.find_spec(_SEAM_PACKAGE)
+    assert spec is not None, f"cannot locate {_SEAM_PACKAGE}"
+    assert spec.submodule_search_locations is not None, (
+        f"{_SEAM_PACKAGE} is not a package"
+    )
+    names = {_SEAM_PACKAGE}
+    names.update(
+        f"{_SEAM_PACKAGE}.{info.name}"
+        for info in pkgutil.iter_modules(spec.submodule_search_locations)
+    )
+    return sorted(names)
 
 
 def test_contract_seam_home_imports_no_commands_module() -> None:
@@ -209,14 +253,34 @@ def test_contract_seam_home_imports_no_commands_module() -> None:
     Asserts ``novel_ralph_skill.contract.runner`` has no module-scope import of a
     ``novel_ralph_skill.commands`` module, pinning the Constraint that the seam
     takes resolved values as arguments rather than reaching into the command
-    layer (no contract -> commands inversion).
+    layer (no contract -> commands inversion). Retained as a focused special case
+    of :func:`test_contract_package_imports_no_commands_module`.
     """
-    offenders = sorted(
-        module
-        for module in _module_scope_imports(_read_seam_source(), _SEAM_PACKAGE)
-        if module == _COMMANDS_PACKAGE or module.startswith(f"{_COMMANDS_PACKAGE}.")
-    )
+    offenders = _commands_imports(_read_module_source(_SEAM_MODULE), _SEAM_PACKAGE)
     assert not offenders, (
         "the contract seam's home module must not import a commands module "
+        f"(contract -> commands inversion): {offenders}"
+    )
+
+
+def test_contract_package_imports_no_commands_module() -> None:
+    """No module under the ``contract`` package imports a ``commands`` module.
+
+    Widens the seam-only guard to the whole ``novel_ralph_skill.contract``
+    package (roadmap 7.3.6), so the ``contract`` -> ``commands`` inversion class
+    is closed for good: a future edit that imports any ``commands`` module into
+    any contract module fails here. The walk is asserted non-empty so a packaging
+    change that hides the modules cannot make the guard pass vacuously (round-2
+    pre-mortem Scenario A).
+    """
+    modules = _contract_module_names()
+    assert modules, "the contract package walk found no modules (guard is vacuous)"
+    offenders = {
+        module: imports
+        for module in modules
+        if (imports := _commands_imports(_read_module_source(module), _SEAM_PACKAGE))
+    }
+    assert not offenders, (
+        "no contract module may import a commands module "
         f"(contract -> commands inversion): {offenders}"
     )

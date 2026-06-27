@@ -426,6 +426,13 @@ drift and seeds the snapshot suite. See novel-ralph-harness-design.md §3 and §
       recording the shared registry as a leaf both layers may depend on makes the
       dependency direction deliberate. Lightweight addendum pass against the
       1.3.1 execplan.
+    - Update (from 7.3.6). Task 7.3.6 *repaired* (not merely documented) this
+      edge: the command-name vocabulary now lives in
+      `novel_ralph_skill/contract/names.py`, so `contract/envelope.py` validates
+      `command` against a contract-owned name set with no `commands` import. The
+      `contract`→`commands.names` inversion this sub-task audited is removed, and
+      the layering guard (`tests/test_contract_layering.py`) is widened to the
+      whole `contract` package so it cannot regress.
 - [x] 1.3.2. Build the on-disk `working/` fixture corpus.
   - Requires 1.2.1.
   - Provide reusable `tmp_path` fixtures spanning all eleven phase states,
@@ -3077,7 +3084,7 @@ of truth, and a test pins it so it cannot silently re-fork.
     `main`, and a layering guard (`tests/test_contract_layering.py`) pins that the
     seam imports no `commands` module. Behaviour, exit codes, the absolute
     `working_dir` stamp, and the import-laziness profile are unchanged.
-- [ ] 7.3.6. Relocate `WORKING_DIR_NAME` and the command-name vocabulary into
+- [x] 7.3.6. Relocate `WORKING_DIR_NAME` and the command-name vocabulary into
   the contract package.
   - Reroute (source: audit:1.2.12; severity: medium). `WORKING_DIR_NAME` is a
     contract-level constant living in the `novel_state` command module, and
@@ -3105,6 +3112,24 @@ of truth, and a test pins it so it cannot silently re-fork.
     depends on a sibling command module for the working-dir name; the
     `contract`→`commands` edge documented in 1.3.1.2 is removed; and the
     contract, command, registry, and envelope suites stay green.
+  - Done (see docs/execplans/roadmap-7-3-6.md). The command-name vocabulary
+    (`MULTIPLEXER_NAME`, `SUBCOMMAND_NAMES`, `ENVELOPE_COMMAND_NAMES`) and
+    `WORKING_DIR_NAME` were relocated into the new
+    `novel_ralph_skill/contract/names.py`, so the `contract` package owns the
+    contract vocabulary its envelope guard enforces; `contract/envelope.py` now
+    validates `command` against `contract.names.ENVELOPE_COMMAND_NAMES` with no
+    `commands` import, removing the `contract`→`commands.names` inversion audited
+    under 1.3.1.2. `commands/names.py` re-exports the vocabulary (retaining only
+    the `[project.scripts]` console-script binding) and `state_sourcing.py`
+    re-exports `WORKING_DIR_NAME`, so every existing import path resolves
+    unchanged (back-compat by re-export). The envelope repoint was folded into the
+    vocabulary commit to avoid a transient `commands.names`→`contract`→
+    `contract.envelope`→`commands.names` import cycle (ExecPlan Decision D6). The
+    layering guard `tests/test_contract_layering.py` is widened from the
+    `runner.py` seam to the whole `contract` package, proven red against a
+    pre-edit `envelope.py` and green after the repoint. The vocabulary values, the
+    `[project.scripts]` table, every rendered envelope, and the `working_dir`
+    field are byte-for-byte unchanged; `make all` and `make audit` are green.
 - [ ] 7.3.7. Centralise the body-detected usage-error (exit-2) envelope in the
   contract layer.
   - Reroute (source: audit:2.2.4 Finding 1; severity: medium).

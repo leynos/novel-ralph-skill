@@ -1,4 +1,4 @@
-"""Single source of truth for the console-script and subcommand names.
+"""The console-script binding, re-exporting the contract command-name vocabulary.
 
 Roadmap task 1.2.4 collapsed the previously duplicated name lists (in the
 since-retired ``stub.py``, ``pyproject.toml``, and three test modules) onto this
@@ -8,59 +8,53 @@ multiplexer stamps into its envelopes; task 1.2.15 retired the legacy surface
 (``stub.py`` among it), so the registry now describes exactly the single
 ``novel`` multiplexer the package ships.
 
-The registry serves two roles:
+Roadmap task 7.3.6 split this module's two responsibilities (ExecPlan Decision
+Log D1):
 
-- ``[project.scripts]`` binding. :func:`project_scripts_table` derives the table
-  the build backend reads: the single ``novel`` multiplexer bound to
-  :data:`NOVEL_MODULE`.
-- Envelope command-name guard. :data:`ENVELOPE_COMMAND_NAMES` is the spaced
-  ``novel <verb>`` subcommand names (:data:`SUBCOMMAND_NAMES`) plus the bare
-  ``"novel"`` surface. The envelope guard validates ``command`` against this set,
-  so every name the multiplexer stamps (``"novel state"`` etc., plus ``"novel"``
-  on the body-less help/version arms) validates (ExecPlan Decision Log D1).
+- The **command-name vocabulary** — :data:`MULTIPLEXER_NAME`,
+  :data:`SUBCOMMAND_NAMES`, :data:`ENVELOPE_COMMAND_NAMES` — is contract data the
+  envelope guard enforces, so it now lives in
+  :mod:`novel_ralph_skill.contract.names`. This module re-exports it for
+  back-compatibility (every existing ``commands.names`` import keeps resolving),
+  but the contract package owns it.
+- The **console-script binding** — :data:`NOVEL_MODULE` and
+  :func:`project_scripts_table` — derives the ``[project.scripts]`` table the
+  build backend reads, binding the single ``novel`` multiplexer to its
+  ``commands``-layer entry-point module. That is a packaging concern that
+  legitimately references the commands layer, so it stays here and *consumes*
+  the re-exported :data:`MULTIPLEXER_NAME` in the deliberate downward direction.
 """
 
 from __future__ import annotations
 
+from novel_ralph_skill.contract.names import (
+    ENVELOPE_COMMAND_NAMES,
+    MULTIPLEXER_NAME,
+    SUBCOMMAND_NAMES,
+)
+
+__all__ = [
+    "ENVELOPE_COMMAND_NAMES",
+    "MULTIPLEXER_NAME",
+    "NOVEL_MODULE",
+    "SUBCOMMAND_NAMES",
+    "project_scripts_table",
+]
+
 NOVEL_MODULE: str = "novel_ralph_skill.commands.novel"
 """The package module that hosts the ``novel`` multiplexer entry point."""
 
-# The bare multiplexer surface name and its entry-point target. ``novel`` binds
-# to its own module's ``main`` and is the sole console-script the package ships.
-MULTIPLEXER_NAME: str = "novel"
-"""The bare ``novel`` multiplexer console-script name (ADR 007)."""
-
 _MULTIPLEXER_ENTRY_POINT: str = "main"
 """The ``novel`` multiplexer entry-point function name in :data:`NOVEL_MODULE`."""
-
-# The spaced subcommand names the multiplexer stamps into its envelopes, one per
-# operation, in the ADR 007 surface order. These are the single source the
-# dispatcher's ``_command_name_for`` consults, so it never re-spells the names
-# inline (ExecPlan Decision Log D4).
-SUBCOMMAND_NAMES: tuple[str, ...] = (
-    "novel state",
-    "novel done",
-    "novel compile",
-    "novel desloppify",
-    "novel wordcount",
-)
-"""The five spaced ``novel <verb>`` subcommand names, in surface order."""
-
-# The envelope command-name guard superset: the five spaced subcommand names and
-# the bare ``"novel"`` surface (stamped on the body-less help/version arms,
-# Decision Log D4). De-duplicated while preserving first-seen order so the guard's
-# diagnostic lists the names deterministically.
-ENVELOPE_COMMAND_NAMES: tuple[str, ...] = tuple(
-    dict.fromkeys((*SUBCOMMAND_NAMES, MULTIPLEXER_NAME))
-)
-"""The spaced ``novel <verb>`` names plus the bare ``"novel"`` surface."""
 
 
 def project_scripts_table() -> dict[str, str]:
     """Return the ``[project.scripts]`` table derived from the registry.
 
     The table is the single ``novel`` multiplexer bound to :data:`NOVEL_MODULE`
-    (ADR 007; task 1.2.15 retired the legacy five).
+    (ADR 007; task 1.2.15 retired the legacy five). It consumes
+    :data:`MULTIPLEXER_NAME`, re-exported from
+    :mod:`novel_ralph_skill.contract.names`, for the console-script name.
 
     Returns
     -------
