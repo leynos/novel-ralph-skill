@@ -906,3 +906,60 @@ re-verified against `/data/leynos/Projects/cuprum/cuprum/catalogue.py`
 (`ProgramCatalogue`, `projects=`-constructed, `is_allowed`/`allowlist`,
 lines 59–77) and the locked versions re-confirmed (cuprum 0.1.0 `uv.lock`
 line 114; Cyclopts 4.18.0 `uv.lock` line 138). No implementation has begun.
+
+## Addenda
+
+Post-merge corrections folded back onto this completed task. Each is a
+lightweight, no-plan addendum pass; they do not reopen the design.
+
+- **Addendum 7.3.2.1 — `ast` import-laziness guard** (from audit:7.3.2 Finding 4
+  / review:7.3.2; low). The laziness guard
+  `test_leaf_import_lives_inside_the_mount_table_helper`
+  (`tests/test_multiplexer_mount_table.py`) asserts each leaf name is absent from
+  the module source outside `_build_mount_table` by a raw substring scan over
+  `inspect.getsource(...).replace(...)`. That property is wider than the real
+  invariant (no module-scope leaf *import*): it false-fails the day a docstring
+  or comment legitimately mentions a leaf module by name, and cannot distinguish
+  an
+  import from a comment. Re-pin the invariant with an `ast` walk over module-scope
+  (`col_offset == 0`) `Import`/`ImportFrom` nodes — asserting no leaf is imported
+  at module scope and each leaf *is* imported inside the `_build_mount_table`
+  `FunctionDef` body — following the in-repo `ast` scanner pattern in
+  `tests/_state_layout_scanner.py`. The guard must still prove itself load-bearing
+  (fail against a temporarily module-hoisted leaf import, then revert). This
+  honours Decision D2 (the leaf imports stay inside the helper) while pinning
+  import location rather than string presence, so the guard survives reformatting
+  and prose mentions.
+
+- **Addendum 7.3.2.2 — registry-tied test verb-sets** (from audit:7.3.2
+  Findings 2 and 3; medium). The bare-verb set is hand-spelled as an inline
+  literal in `tests/test_multiplexer_dispatch.py:47` — a fourth copy untied to the
+  registry — and `test_build_multiplexer_registers_the_five_subcommands` there
+  duplicates the stronger, registry-tied
+  `test_build_multiplexer_registers_exactly_the_table_verbs` in
+  `tests/test_multiplexer_mount_table.py`. Drive the dispatch test's expected set
+  from `set(novel._SUBCOMMAND_FOR_VERB)` (or repoint it at
+  `set(novel._build_mount_table())`), retire or repoint the redundant
+  registered-mounts test (updating the dispatch module docstring if its assertion
+  moves), and add a single guard that the `_VERB_MODULE_PAIRS`/`_OPERATIONS`
+  fixture verb keys equal the registry's bare-verb set so no test surface silently
+  drifts from the single registry. This completes the refactor's "no inline verb
+  literals drift" framing on the test side without over-de-duplicating the
+  verb→module/argv fixtures.
+
+- **Addendum 7.3.2.3 — mount-map prose and observable order** (from audit:7.3.2
+  Findings 1 and 5; low). The developers' guide
+  (`docs/developers-guide.md:451-453`) names `_VERB_FOR_SUBCOMMAND` as the mount
+  driver, but `build_multiplexer` iterates `_SUBCOMMAND_FOR_VERB`; iterating
+  `_VERB_FOR_SUBCOMMAND` would yield the spaced names and `KeyError` against the
+  bare-verb-keyed table, so the named map is doubly misleading. Separately, the
+  "ordered mapping in surface order" claim across the `_build_mount_table`
+  docstring, the guide, and the tests is asserted only by set-equality, leaving
+  the one behaviourally observable order (the `--help` listing order) untested.
+  Correct
+  the guide to name the map the loop actually reads (or describe the order as
+  `SUBCOMMAND_NAMES`/ADR 007 surface order without over-committing to an
+  intermediate map), add one ordered assertion that the registered mount order
+  equals `list(novel._SUBCOMMAND_FOR_VERB)`, and soften the `_build_mount_table`
+  docstring so it does not imply the table's own iteration order is load-bearing
+  (the mount loop, not the table, fixes the surface order).

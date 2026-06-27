@@ -2895,29 +2895,78 @@ of truth, and a test pins it so it cannot silently re-fork.
       never the bare public `novel_state.load_or_state_error`; the A1 insurance
       grep is what closes that gap. Correct the D9 prose so the historical gate
       record reads true. Lightweight addendum pass against the 7.3.1 execplan.
-- [x] 7.3.2. Collapse the four entry-point functions onto a registry-driven
+- [x] 7.3.2. Collapse the multiplexer mount lines onto a registry-driven
   construction table.
-  - Reroute (source: review:1.3.6; severity: low). After 1.3.6 the four real
-    entry points (`novel_state`, `novel_done`, `novel_compile`, `desloppify`) are
-    one-liners differing only by name and `build_app` source; they could collapse
-    further into a generated table keyed off `COMMAND_ENTRY_POINTS`, eliminating
-    the remaining repetition and the deferred-import boilerplate. The 1.3.6
-    Constraint preserved the public function names and import sites, and this
-    change would alter the import-laziness profile, so it warrants its own plan
-    and review. This serves the step-7.3 command-facade single-home
-    hypothesis — one registry-driven home for entry-point construction — not the
-    step-1.3 shared-envelope hypothesis where it was raised. Coordinate with
-    7.3.1 so the table consumes the neutral state-sourcing seam.
+  - Reroute (source: review:1.3.6; severity: low). This reroute was raised
+    against the pre-ADR-007 surface, when four entry-point one-liners
+    (`novel_state`, `novel_done`, `novel_compile`, `desloppify`) differed only by
+    name and `build_app` source and could have collapsed onto a table keyed off
+    `COMMAND_ENTRY_POINTS`. ADR 007 (task 1.2.15) since retired the four-script
+    surface, `stub.py`, and the `COMMAND_ENTRY_POINTS` symbol, leaving a single
+    `novel` multiplexer with one entry point (`novel.main`). The surviving
+    repetition the reroute targets is therefore the five hand-copied mount lines
+    in `build_multiplexer`, collapsed onto a single construction table keyed off
+    the surviving `SUBCOMMAND_NAMES` registry (via the `_VERB_FOR_SUBCOMMAND`
+    derivation) rather than the retired `COMMAND_ENTRY_POINTS` (execplan
+    Decision D1). This serves the step-7.3 command-facade single-home
+    hypothesis — one registry-driven home for the multiplexer's mount
+    construction — not the step-1.3 shared-envelope hypothesis where it was
+    raised. Coordinate with 7.3.1 so the table consumes the neutral
+    state-sourcing seam.
   - Requires 1.3.6.
   - See novel-ralph-harness-design.md §4;
-    docs/adr-005-command-surface-five-scripts.md;
-    novel_ralph_skill/commands/names.py (`COMMAND_ENTRY_POINTS`).
-  - Success: the four real entry-point bodies are produced from a single
-    registry-driven table keyed off `COMMAND_ENTRY_POINTS` rather than four
-    hand-copied one-liners; the public entry-point function names, their
-    `[project.scripts]` targets, and the import-laziness profile are preserved (or
-    the laziness change is decided and recorded); and the entry-point, stub, and
-    console-scripts e2e suites stay green.
+    docs/adr-007-command-surface-novel-multiplexer.md;
+    novel_ralph_skill/commands/names.py (`SUBCOMMAND_NAMES`).
+  - Success: the five hand-copied mount lines in `build_multiplexer` are produced
+    from a single registry-driven construction table keyed off `SUBCOMMAND_NAMES`
+    (via `_VERB_FOR_SUBCOMMAND`/`_SUBCOMMAND_FOR_VERB`) rather than re-spelling
+    each mount verb inline; the public entry-point function name (`novel.main`),
+    the single `[project.scripts]` target, and the import-laziness profile are
+    preserved (or the laziness change is decided and recorded); and the
+    multiplexer shape, behavioural-parity, and console-scripts e2e suites stay
+    green.
+  - [ ] 7.3.2.1. Replace the multiplexer import-laziness substring guard with an
+    `ast` module-scope import walk.
+    - Addendum (from audit:7.3.2 Finding 4 / review:7.3.2; low). The laziness
+      guard in `tests/test_multiplexer_mount_table.py` asserts each leaf name is
+      absent from the module source outside `_build_mount_table` by raw substring
+      scan, which is wider than the real invariant (no module-scope leaf import)
+      and false-fails the day a docstring or comment mentions a leaf module by
+      name. Re-pin it with an `ast` walk over module-scope (`col_offset == 0`)
+      `Import`/`ImportFrom` nodes — asserting no leaf is imported at module scope
+      and each leaf is imported inside the `_build_mount_table` `FunctionDef` body
+      — following the in-repo `ast` scanner pattern in
+      `tests/_state_layout_scanner.py`. Lightweight addendum pass against the
+      7.3.2 execplan.
+  - [ ] 7.3.2.2. Tie the multiplexer test verb-sets back to the registry and
+    collapse the redundant registered-mounts test.
+    - Addendum (from audit:7.3.2 Findings 2 and 3; medium). The bare-verb set is
+      hand-spelled as an inline literal in
+      `tests/test_multiplexer_dispatch.py:47`, a fourth copy untied to the
+      registry, and `test_build_multiplexer_registers_the_five_subcommands` there
+      duplicates the stronger registry-tied
+      `test_build_multiplexer_registers_exactly_the_table_verbs` in
+      `tests/test_multiplexer_mount_table.py`. Drive the dispatch test's expected
+      set from `set(novel._SUBCOMMAND_FOR_VERB)` (or repoint it at
+      `set(novel._build_mount_table())`), retire or repoint the redundant
+      registered-mounts test, and add a single guard that the
+      `_VERB_MODULE_PAIRS`/`_OPERATIONS` fixture verb keys equal the registry's
+      bare-verb set so no test surface drifts from the single registry. Lightweight
+      addendum pass against the 7.3.2 execplan.
+  - [ ] 7.3.2.3. Correct the developers'-guide mount-map reference and pin the
+    observable mount order.
+    - Addendum (from audit:7.3.2 Findings 1 and 5; low). The developers' guide
+      (`docs/developers-guide.md:451-453`) names `_VERB_FOR_SUBCOMMAND` as the
+      mount driver where `build_multiplexer` actually iterates
+      `_SUBCOMMAND_FOR_VERB`, and the "ordered mapping in surface order" claim
+      across the docstring, guide, and tests is asserted only by set-equality.
+      Correct the guide to name the map the loop reads (or describe the order as
+      `SUBCOMMAND_NAMES`/ADR 007 surface order), add one ordered assertion that
+      the registered mount order equals `list(novel._SUBCOMMAND_FOR_VERB)`, and
+      soften
+      the `_build_mount_table` docstring so it does not imply the table's own
+      iteration order is load-bearing. Lightweight addendum pass against the 7.3.2
+      execplan.
 - [ ] 7.3.3. Consolidate the draft-read state-error wrapper shared by
   `wordcount`, `recount`, and `desloppify`.
   - Reroute (source: audit:6.1.1 Finding 1; severity: low). The
