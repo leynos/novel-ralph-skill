@@ -1489,3 +1489,19 @@ import for `load_toml`), A3 (named the `load.py`/`scan.py` module docstrings for
 lands over ~320 lines). This round changes no scope, dependency, or public
 surface; it only sharpens the `entries` shape, the scan mechanism, and the test
 pins.
+
+## Addenda
+
+Surgical follow-ups filed against this completed task. Each runs as a
+lightweight, no-plan, no-review addendum pass and is mirrored by a nested
+sub-task on the roadmap under task 7.2.2.
+
+- 7.2.2.1 — Harden the `loaderkit` scan property test with an independent
+  line-model oracle (from review:7.2.2; low). The Hypothesis property added by
+  this task recomputes the expected per-line hits with `splitlines()`, the same
+  call `scan_pattern` uses, so it cannot catch a class of line-splitting
+  regressions (a future move to `split("\n")` or a universal-newline edge case).
+  Add a second property that derives the expected hits from an independent
+  newline model, leaving the existing freeze property in place, so the
+  line-attribution contract is pinned against the implementation's own splitting
+  choice rather than merely echoing it.

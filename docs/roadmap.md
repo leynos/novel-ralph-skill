@@ -2748,6 +2748,54 @@ test pins it so it cannot silently re-fork.
     near-verbatim copies; each package's typed error type, exit-code mapping, and
     operator messages are unchanged; and the rule-pack and ledger suites stay
     green.
+  - [ ] 7.2.2.1. Harden the `loaderkit` scan property test with an independent
+    line-model oracle.
+    - Addendum (from review:7.2.2; low). The current Hypothesis property
+      recomputes the expected per-line hits with `splitlines()` — the same call
+      `scan_pattern` uses — so it cannot catch a class of line-splitting
+      regressions (a future move to `split("\n")` or a universal-newline edge
+      case). Add a second property that derives the expected hits from an
+      independent newline model, leaving the existing freeze property in place,
+      so the line-attribution contract is pinned against the implementation's own
+      splitting choice. Lightweight addendum pass.
+
+- [ ] 7.2.3. Relocate the shared scan shapes (`ScannedChapter`, `LineHit`) into
+  `loaderkit` to finish the 7.2.2 consolidation.
+  - Step-task (source: audit:7.2.2; severity: medium). Task 7.2.2 moved the
+    shared scan *body* into the neutral `loaderkit` home but left its input and
+    output types in `rulepack.detect`, so the ledger domain runtime-imports
+    `LineHit` from the rule-pack domain (`ledger/detect.py:35`) and a hypothetical
+    third pack family would have to as well — the exact sibling-to-sibling domain
+    edge the neutral home was introduced to remove. It also makes
+    `loaderkit/scan.py`'s "no `Rule`/`Device` knowledge" docstring untrue, because
+    the primitive's signature is still typed against shapes that live in the
+    rule-pack domain. This serves the step-7.2 hypothesis — that the
+    detection-pack loader-and-scan primitives each have a *single* home — by giving
+    the two neutral scan shapes that home rather than leaving them stranded in a
+    consumer domain, completing the consolidation 7.2.2 began and deliberately
+    deferred (the move was scoped out as a wider change; see
+    docs/execplans/roadmap-7-2-2.md Constraints and Decision D-SCANTYPES). Relocate
+    `ScannedChapter` and `LineHit` into `loaderkit`, route both detectors and the
+    `loaderkit.scan` unit test at the neutral home, and fold in the low-severity
+    tidy-ups the same pass naturally exposes: inline the thin duplicated
+    `_scan_rule`/`_scan_device` wrappers, delete the dead
+    `rulepack._coerce._require` (no caller), de-duplicate the triple-stated
+    per-line scan docstring, and add a callback-contract test for
+    `scan_pattern`'s `line_hit` factory.
+  - Requires 7.2.2.
+  - See novel-ralph-harness-design.md §6.1; docs/adr-003-shared-interface-contract.md;
+    docs/execplans/roadmap-7-2-2.md (Constraints, Decision D-SCANTYPES);
+    novel_ralph_skill/loaderkit/scan.py;
+    novel_ralph_skill/rulepack/detect.py;
+    novel_ralph_skill/ledger/detect.py.
+  - Success: `ScannedChapter` and `LineHit` live in `loaderkit`; neither
+    `loaderkit.scan` nor `ledger.detect` imports them from `rulepack.detect` (the
+    runtime `ledger → rulepack` and the `TYPE_CHECKING` `loaderkit → rulepack`
+    edges are gone); `loaderkit/scan.py`'s "no `Rule`/`Device` knowledge" docstring
+    reads true; the thin `_scan_rule`/`_scan_device` wrappers and the dead
+    `rulepack._coerce._require` are removed, the scan docstring is single-stated,
+    and a `line_hit`-callback contract test pins `scan_pattern`; and the rule-pack,
+    ledger, and `loaderkit` suites stay green.
 
 ### 7.3. Single-source the command facade, predicates, and writers
 
@@ -5146,6 +5194,34 @@ conventions are settled once.
     affected near-cap files; and `make markdownlint`, `make nixie`, and `make all`
     stay green.
 
+- [ ] 7.7.12. Settle the docs-voice and lint convention for frozen execplan
+  review artefacts.
+  - Reroute (source: review:7.2.2; severity: low). The frozen review snapshots
+    under `docs/execplans/` (for example `roadmap-7-2-2.review-r1.md` and
+    `.review-r2.md`, and the equivalent snapshots on prior branches) carry
+    first-person voice that repeatedly trips CodeRabbit, producing recurring
+    skipped-finding noise on every later task that touches the tree. Settle the
+    convention once — normalise the artefacts to the impersonal docs voice in a
+    one-off sweep, or record an explicit lint-exclusion for frozen review
+    snapshots — and capture the decision in the developers' guide so future review
+    artefacts inherit it rather than re-accreting the noise. This serves the
+    step-7.7 documentation-and-convention hypothesis (the guides read true and the
+    open conventions are settled once), not the step-7.2 single-home hypothesis
+    where it was raised, so it is rerouted here. Distinct from 7.7.11, which
+    bars transient citations from shipped *production* `__doc__`; coordinate so
+    one developers'-guide section owns both the docstring-citation and the
+    review-artefact-voice conventions.
+  - Requires 7.2.2.
+  - See novel-ralph-harness-design.md §5.4; docs/developers-guide.md;
+    docs/execplans/roadmap-7-2-2.review-r1.md;
+    docs/execplans/roadmap-7-2-2.review-r2.md.
+  - Success: the developers' guide records the convention for frozen execplan
+    review artefacts (either an impersonal-voice normalisation or an explicit
+    lint-exclusion, with its rationale); the existing review snapshots conform to
+    whatever the convention decides; CodeRabbit no longer reports recurring
+    skipped findings against those artefacts; and `make markdownlint`, `make
+    nixie`, and `make all` stay green.
+
 ## 8. Features and extensions
 
 New capabilities, deferred until the spine is consolidated and hardened in
@@ -5352,11 +5428,18 @@ Make the desloppify detection packs configurable and extend the shipped set.
     word-boundaried pattern with a tuned threshold so the rule flags *overuse*,
     not every legitimate use — selectable like the ai-isms pack (8.1.6) and
     combinable (8.1.7). Calibrate thresholds against the working/ fixture corpus
-    to avoid fiction false-positives (cf. 7.6).
+    to avoid fiction false-positives (cf. 7.6). This pack is a third pack family
+    beyond `offenders` and `ai-isms`, so it must bind the shared `loaderkit`
+    coercion, entries, and `scan_pattern` primitives (7.2.2) — supplying one more
+    error-factory bundle rather than cloning a third copy — exercising the
+    error-factory seam against a third consumer and hardening its
+    parameterisation against regression.
   - See novel-ralph-harness-design.md §6.1 and adr-001-deterministic-judgemental-boundary.md.
   - Success: `novel desloppify --pack filter-words.toml` flags a `was`-heavy or
     filter-word-heavy draft with per-rule density and threshold, passes a clean
-    draft, and the thresholds do not fire on a calibrated corpus baseline.
+    draft, the thresholds do not fire on a calibrated corpus baseline, and the
+    pack's loader consumes the shared `loaderkit` primitives (a third consumer of
+    the error-factory seam) rather than carrying its own coercion or scan copy.
 - [ ] 8.1.10. Document the desloppify `--ledger` pack schema with a complete
   example.
   - Requires 8.1.2.
