@@ -30,16 +30,14 @@ import sys
 import typing as typ
 
 import pytest
-from cross_command_contract import ENVELOPE_KEY_ORDER
+from cross_command_contract._identity_assertions import assert_envelope_skeleton
 from cuprum import sh
 from cuprum.program import Program
 from cuprum.sh import ExecutionContext
 
 from novel_ralph_skill.commands import novel
-from novel_ralph_skill.commands.names import ENVELOPE_COMMAND_NAMES
 from novel_ralph_skill.commands.novel_state import build_app
 from novel_ralph_skill.contract import parse_global_flags
-from novel_ralph_skill.contract.envelope import ENVELOPE_SCHEMA_VERSION
 from novel_ralph_skill.contract.exit_codes import ExitCode
 from novel_ralph_skill.contract.runner import RunContext, run
 
@@ -336,9 +334,10 @@ def test_installed_novel_state_check_exits_zero(
     ``schema_version``, ``command == "novel state"`` (a member of
     ``ENVELOPE_COMMAND_NAMES``), the ``ok``-iff-exit-0 mapping, the
     resolved-absolute ``working_dir``, ``result["violations"] == []``, and
-    ``str``-typed ``messages`` — against the same constants the in-process
-    cross-command suite (``tests/cross_command_contract/``) uses, so the installed
-    surface cannot silently diverge from the in-process contract pinned by 6.3.2.
+    ``str``-typed ``messages`` — through the same ``assert_envelope_skeleton``
+    helper the in-process cross-command suite (``tests/cross_command_contract/``)
+    uses, so the installed surface cannot silently diverge from the in-process
+    contract pinned by 6.3.2.
     """
     dest = tmp_path / "run"
     dest.mkdir()
@@ -357,24 +356,22 @@ def test_installed_novel_state_check_exits_zero(
     assert "Traceback" not in (result.stderr or "")
     envelope = json.loads(result.stdout or "{}")
     assert envelope["ok"] is True
-    # The full exit-0 envelope-skeleton identity, observed over the wheel: the
-    # six contract keys in the order ``render_machine`` emits them, the same
-    # ``ENVELOPE_KEY_ORDER`` the in-process cross-command suite pins (6.3.2).
-    assert tuple(envelope) == ENVELOPE_KEY_ORDER
-    assert envelope["command"] == _COMMAND
-    assert envelope["command"] in ENVELOPE_COMMAND_NAMES
-    assert envelope["schema_version"] == ENVELOPE_SCHEMA_VERSION
-    # ``ok`` is true iff the exit code is success (design §3.1), here over the
-    # installed surface.
-    assert envelope["ok"] is (result.exit_code == ExitCode.SUCCESS)
-    # The installed binary stamps the resolved-absolute ``working_dir`` (roadmap
-    # 6.3.4), not the ``"working"`` token the in-process suite asserts; compute
-    # the expected value the production way from ``dest`` so symlink
-    # normalisation under ``tmp_path`` cannot desynchronise the two sides.
-    assert envelope["working_dir"] == str((dest / "working").resolve())
+    # The full exit-0 envelope-skeleton identity, observed over the wheel, pinned
+    # through the *same* canonical helper the in-process cross-command suite uses
+    # (``tests/cross_command_contract/``) so the installed mirror cannot drift
+    # from the in-process proof (roadmap 6.3.2). The installed binary stamps the
+    # resolved-absolute ``working_dir`` (roadmap 6.3.4), not the ``"working"``
+    # token the in-process suite asserts, so the override is computed the
+    # production way from ``dest`` — ``.resolve()`` normalises the symlinked
+    # ``tmp_path`` so the two sides cannot desynchronise.
+    assert_envelope_skeleton(
+        envelope,
+        command=_COMMAND,
+        code=result.exit_code,
+        working_dir=str((dest / "working").resolve()),
+    )
     # The checker's coherent-tree body payload: an empty ``violations`` list, the
-    # installed mirror of ``test_check_coherent_tree_exits_zero``.
-    assert isinstance(envelope["result"], dict)
+    # installed mirror of ``test_check_coherent_tree_exits_zero``. This is the
+    # one command-specific assertion the shared skeleton helper deliberately
+    # leaves to the call site (the ``result`` *contents* are command-specific).
     assert envelope["result"]["violations"] == []
-    assert isinstance(envelope["messages"], list)
-    assert all(isinstance(message, str) for message in envelope["messages"])

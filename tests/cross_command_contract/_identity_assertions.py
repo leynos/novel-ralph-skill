@@ -55,17 +55,21 @@ def _require(condition: bool, message: str) -> None:  # noqa: FBT001
 
 
 def assert_envelope_skeleton(
-    envelope: dict[str, object], *, command: str, code: int
+    envelope: dict[str, object],
+    *,
+    command: str,
+    code: int,
+    working_dir: str = WORKING_DIR_CONSTANT,
 ) -> None:
     """Assert ``envelope`` carries the shared contract skeleton and field types.
 
     Asserts the six keys in :data:`ENVELOPE_KEY_ORDER` (``result`` before
     ``messages``), ``command`` equal to ``command`` and a member of
     ``ENVELOPE_COMMAND_NAMES``, ``schema_version`` equal to the contract
-    constant, ``ok`` a ``bool`` equal to ``(code == 0)``, ``working_dir`` the
-    fixed constant, ``result`` a mapping, and ``messages`` a sequence of ``str``.
-    The ``result`` *contents* are command-specific and asserted elsewhere; this
-    helper pins only the shared skeleton and types.
+    constant, ``ok`` a ``bool`` equal to ``(code == 0)``, ``working_dir`` equal
+    to ``working_dir``, ``result`` a mapping, and ``messages`` a sequence of
+    ``str``. The ``result`` *contents* are command-specific and asserted
+    elsewhere; this helper pins only the shared skeleton and types.
 
     Parameters
     ----------
@@ -75,6 +79,12 @@ def assert_envelope_skeleton(
         The spaced console name the envelope must name.
     code : int
         The exit code the command exited with; ``ok`` must equal ``(code == 0)``.
+    working_dir : str, optional
+        The ``working_dir`` value the envelope must stamp. Defaults to
+        :data:`WORKING_DIR_CONSTANT`, the fixed token the in-process suite
+        asserts. The installed boundary passes the resolved-absolute path
+        (roadmap 6.3.4) so its identity mirror can reuse this helper rather than
+        re-spell the skeleton inline.
 
     Raises
     ------
@@ -109,8 +119,8 @@ def assert_envelope_skeleton(
         f"ok {ok!r} does not mirror code {code!r} (ok is true iff code == 0)",
     )
     _require(
-        envelope["working_dir"] == WORKING_DIR_CONSTANT,
-        f"working_dir {envelope['working_dir']!r} != {WORKING_DIR_CONSTANT!r}",
+        envelope["working_dir"] == working_dir,
+        f"working_dir {envelope['working_dir']!r} != {working_dir!r}",
     )
     _require(
         isinstance(envelope["result"], dict),

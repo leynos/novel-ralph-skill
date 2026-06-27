@@ -887,7 +887,7 @@ is pinned as the deliberate 6.3.4 behaviour. The optional snapshot is dropped
 Lightweight, no-plan corrections folded onto this completed task after the
 review and audit of step 6.3 settled. Each runs as a no-review lightweight pass.
 
-- **6.3.6.1 (from review:6.3.6; low).** Make the tautological
+- [x] **6.3.6.1 (from review:6.3.6; low).** Make the tautological
   `envelope["ok"] is (result.exit_code == ExitCode.SUCCESS)` assertion in
   `test_installed_novel_state_check_exits_zero` load-bearing or document it as
   intent-only. Once `exit_code == 0` and `ok is True` are already asserted, this
@@ -895,7 +895,7 @@ review and audit of step 6.3 settled. Each runs as a no-review lightweight pass.
   no distinct failure mode. Either add a clarifying comment that it is a
   redundant mapping guard, or cross-arm parameterise it so the mapping can fail
   independently. Scope: one assertion/comment in one test.
-- **6.3.6.2 (from audit:6.3.6; medium).** Parameterise the canonical
+- [x] **6.3.6.2 (from audit:6.3.6; medium).** Parameterise the canonical
   `assert_envelope_skeleton` helper with an optional `working_dir` override
   (default `WORKING_DIR_CONSTANT`) and collapse the inline envelope-skeleton
   block re-spelled at `tests/test_novel_state_check.py` lines 363-380 onto a

@@ -2298,7 +2298,7 @@ and adr-003-shared-interface-contract.md.
     exit-code mapping match the in-process contract pinned by 6.3.2; the tripwire
     reuses the existing installed-binary cuprum fixtures rather than rebuilding
     the matrix; and the e2e and cross-command suites stay green.
-  - [ ] 6.3.6.1.
+  - [x] 6.3.6.1.
     - Addendum (from review:6.3.6; low). Make the tautological
       `envelope["ok"] is (result.exit_code == ExitCode.SUCCESS)` assertion in
       `test_installed_novel_state_check_exits_zero` load-bearing or document it
@@ -2306,7 +2306,7 @@ and adr-003-shared-interface-contract.md.
       mapping guard, or cross-arm parameterise it so the mapping check can fail
       independently of the already-asserted `exit_code == 0` and `ok is True`.
       Lightweight addendum pass.
-  - [ ] 6.3.6.2.
+  - [x] 6.3.6.2.
     - Addendum (from audit:6.3.6; medium). Parameterise the canonical
       `assert_envelope_skeleton` helper with an optional `working_dir` override
       (default `WORKING_DIR_CONSTANT`) and collapse the inline envelope-skeleton
