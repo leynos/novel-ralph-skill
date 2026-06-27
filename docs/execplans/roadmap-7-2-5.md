@@ -611,7 +611,7 @@ imports are `novel_ralph_skill.contract.errors` and the standard library.
 
 ## Addenda
 
-- 7.2.5.1 — Pin the real rule-pack/ledger error bindings to the `loaderkit`
+- [x] 7.2.5.1 — Pin the real rule-pack/ledger error bindings to the `loaderkit`
   bases and mirror the distinctness assertions (from audit:7.2.5, review:7.2.5;
   medium; three near-identical proposals merged). The success criterion's "a
   test pins it so it cannot silently re-fork" leg is unmet for the *real*

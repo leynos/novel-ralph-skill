@@ -2895,7 +2895,7 @@ test pins it so it cannot silently re-fork.
     unchanged; a test pins the factory so a third pack family inherits the
     primitive instead of cloning a third copy; and the rule-pack and ledger
     suites stay green.
-  - [ ] 7.2.5.1. Pin the real rule-pack/ledger error bindings to the
+  - [x] 7.2.5.1. Pin the real rule-pack/ledger error bindings to the
     `loaderkit` bases and mirror the distinctness assertions.
     - Addendum (from audit:7.2.5, review:7.2.5; medium; three near-identical
       proposals merged). 7.2.5's own success criterion — a test pins the
