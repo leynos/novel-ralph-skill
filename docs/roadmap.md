@@ -5484,6 +5484,18 @@ conventions are settled once.
     test; no formatter is simultaneously underscore-private and documented as the
     developer-facing exit-`3` contract; and the contract, command, and
     actionable-parity suites stay green.
+- [ ] 7.7.14. Scope the format step to the files a change actually touches.
+  - The `fmt` target runs `mdformat-all`, which reformats every Markdown file in
+    the repository, so a change touching one file produces churn on unrelated
+    files that then has to be parked and discarded (the source of a large,
+    recurring stash pile during automated runs). Scope the format step — the
+    `fmt`/`mdformat-all` invocation, or a changed-files wrapper around it — so it
+    rewrites only the files a change touches, leaving the rest byte-unchanged.
+    Mirror the fix into the df12 template so every conformant repo inherits it.
+  - See AGENTS.md (quality gates) and docs/scripting-standards.md.
+  - Success: running the format step after editing one file leaves every
+    unrelated file unchanged; `make markdownlint` and `make nixie` stay green;
+    and an automated run no longer accrues "spurious make-fmt churn" stashes.
 
 ### 7.8. Simplify the post-relocation detector scan seams
 
