@@ -50,6 +50,7 @@ from novel_ralph_skill.commands import (
     _wordcount,
     novel_state,
 )
+from novel_ralph_skill.contract.envelope import ENVELOPE_FIELD_ORDER
 
 # The five spaced command surfaces under the cross-command identity proof.
 # ``novel state`` is keyed on its read ``check`` query; ``novel compile`` on
@@ -77,12 +78,7 @@ WORKING_DIR_CONSTANT: typ.Final[str] = "working"
 
 # The six contract-fixed envelope keys, in the order ``render_machine`` emits
 # them (``result`` before ``messages``; ADR-003, design §3.1). Every command's
-# machine envelope must carry exactly these keys in this order.
-ENVELOPE_KEY_ORDER: typ.Final[tuple[str, ...]] = (
-    "command",
-    "schema_version",
-    "ok",
-    "working_dir",
-    "result",
-    "messages",
-)
+# machine envelope must carry exactly these keys in this order. Re-exported from
+# the canonical ``novel_ralph_skill.contract.envelope.ENVELOPE_FIELD_ORDER`` so
+# this package carries no second hand-spelled copy of the order.
+ENVELOPE_KEY_ORDER: typ.Final[tuple[str, ...]] = ENVELOPE_FIELD_ORDER

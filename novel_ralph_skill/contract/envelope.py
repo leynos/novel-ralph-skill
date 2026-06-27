@@ -65,6 +65,20 @@ class Envelope:
         object.__setattr__(self, "messages", freeze_sequence(self.messages))
 
 
+ENVELOPE_FIELD_ORDER: typ.Final[tuple[str, ...]] = tuple(
+    field.name for field in dataclasses.fields(Envelope)
+)
+"""The envelope's fixed contract field order, derived from :class:`Envelope`.
+
+This is the single source of truth for the six-name order (``command``,
+``schema_version``, ``ok``, ``working_dir``, ``result``, ``messages``; design
+3.1, ADR 003). :func:`render_machine` and the contract and cross-command test
+oracles all read this rather than re-spelling the order, so a field added,
+dropped, renamed, or reordered in :class:`Envelope` propagates to every
+consumer.
+"""
+
+
 def build_envelope(  # noqa: PLR0913  # pylint: disable=too-many-arguments
     # why: the five envelope fields are fixed by ADR 003 and design 3.1; this
     # constructor maps one keyword-only parameter per contract field.
@@ -123,12 +137,28 @@ def build_envelope(  # noqa: PLR0913  # pylint: disable=too-many-arguments
     )
 
 
+_FIELD_COERCIONS: typ.Final[dict[str, cabc.Callable[[object], object]]] = {
+    "result": lambda value: dict(typ.cast("cabc.Mapping[str, object]", value)),
+    "messages": lambda value: list(typ.cast("cabc.Sequence[str]", value)),
+}
+"""Per-field coercions applied before JSON serialisation in :func:`render_machine`.
+
+``result`` and ``messages`` are stored frozen (a read-only mapping and a tuple)
+by :meth:`Envelope.__post_init__`; :func:`json.dumps` must see a plain ``dict``
+and ``list`` to reproduce today's wire output. Every other field passes through
+unchanged.
+"""
+
+
 def render_machine(env: Envelope) -> str:
     """Render ``env`` as a single-line JSON object in the fixed field order.
 
-    The ordered mapping is built explicitly rather than relying on dataclass
-    field order leaking through, so the contract's field order is asserted by
-    this function rather than implied.
+    The ordered mapping is built by iterating
+    :data:`novel_ralph_skill.contract.envelope.ENVELOPE_FIELD_ORDER` -- the order
+    declared on the :class:`Envelope` dataclass -- so the renderer cannot diverge
+    from the contract it renders. ``result`` and ``messages`` are coerced to a
+    plain ``dict``/``list`` via :data:`_FIELD_COERCIONS` so the frozen read-only
+    containers serialise to the same JSON as before.
 
     Parameters
     ----------
@@ -140,14 +170,11 @@ def render_machine(env: Envelope) -> str:
     str
         The machine-mode JSON rendering with keys in contract order.
     """
-    ordered: dict[str, object] = {
-        "command": env.command,
-        "schema_version": env.schema_version,
-        "ok": env.ok,
-        "working_dir": env.working_dir,
-        "result": dict(env.result),
-        "messages": list(env.messages),
-    }
+    ordered: dict[str, object] = {}
+    for name in ENVELOPE_FIELD_ORDER:
+        value = getattr(env, name)
+        coerce = _FIELD_COERCIONS.get(name)
+        ordered[name] = coerce(value) if coerce is not None else value
     return json.dumps(ordered)
 
 

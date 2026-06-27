@@ -23,7 +23,9 @@ import typing as typ
 
 import pytest
 
-from . import BODY_PHASE, COMMANDS
+from novel_ralph_skill.contract.envelope import ENVELOPE_FIELD_ORDER
+
+from . import BODY_PHASE, COMMANDS, ENVELOPE_KEY_ORDER
 from ._identity_assertions import assert_envelope_skeleton, redact_skeleton
 
 if typ.TYPE_CHECKING:
@@ -128,3 +130,19 @@ def test_human_mode_names_command(
     _code, rendered = drive(command, working, human=True)
     assert rendered.strip(), "human mode must render a non-empty report"
     assert command.name in rendered
+
+
+def test_envelope_key_order_is_the_canonical_constant() -> None:
+    """``ENVELOPE_KEY_ORDER`` is the canonical constant, not a second copy.
+
+    Identity (``is``), not just equality, pins that this package's
+    ``ENVELOPE_KEY_ORDER`` is a re-export of
+    :data:`novel_ralph_skill.contract.envelope.ENVELOPE_FIELD_ORDER` so it cannot
+    silently re-fork into a hand-spelled tuple of its own (roadmap 7.1.5).
+
+    Returns
+    -------
+    None
+        The assertion raises on failure.
+    """
+    assert ENVELOPE_KEY_ORDER is ENVELOPE_FIELD_ORDER

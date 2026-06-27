@@ -47,7 +47,6 @@ load-bearing tie. A future reader must not add a non-existent value assertion.
 
 from __future__ import annotations
 
-import dataclasses
 import typing as typ
 
 import pytest
@@ -58,7 +57,10 @@ from _skill_contract_scanner import (
     slice_doc_region,
 )
 
-from novel_ralph_skill.contract.envelope import ENVELOPE_SCHEMA_VERSION, Envelope
+from novel_ralph_skill.contract.envelope import (
+    ENVELOPE_FIELD_ORDER,
+    ENVELOPE_SCHEMA_VERSION,
+)
 from novel_ralph_skill.contract.exit_codes import ExitCode
 
 if typ.TYPE_CHECKING:
@@ -137,8 +139,15 @@ def _meaning_has_keyword(meaning: str, keywords: tuple[str, ...]) -> bool:
 
 
 def _envelope_field_order() -> list[str]:
-    """Return the contract envelope field names in declaration order."""
-    return [field.name for field in dataclasses.fields(Envelope)]
+    """Return the contract envelope field names in declaration order.
+
+    Reads the canonical
+    :data:`novel_ralph_skill.contract.envelope.ENVELOPE_FIELD_ORDER` rather than
+    re-deriving it from ``dataclasses.fields(Envelope)``, so this guard shares
+    the single source of truth with the renderer and the cross-command oracle
+    (roadmap 7.1.5).
+    """
+    return list(ENVELOPE_FIELD_ORDER)
 
 
 class TestDevelopersGuideExitCodeTableDriftGuard:

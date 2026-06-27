@@ -2596,7 +2596,7 @@ of truth, and a test pins it so it cannot silently re-fork.
       `build_finding_outcome` closure against future builder edits beyond the
       deterministic enumerable boundary. Lightweight addendum pass.
 
-- [ ] 7.1.5. Derive the envelope field order from the `Envelope` dataclass across
+- [x] 7.1.5. Derive the envelope field order from the `Envelope` dataclass across
   the renderer and its test oracles.
   - Reroute (source: audit:6.3.7; severity: medium). Task 6.3.7 makes
     `dataclasses.fields(Envelope)` canonical for the `SKILL.md` copy of the

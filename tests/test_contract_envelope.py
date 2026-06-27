@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import json
 import typing as typ
+from types import MappingProxyType
 
 import pytest
 
@@ -20,6 +21,7 @@ from novel_ralph_skill.commands.names import (
     SUBCOMMAND_NAMES,
 )
 from novel_ralph_skill.contract.envelope import (
+    ENVELOPE_FIELD_ORDER,
     ENVELOPE_SCHEMA_VERSION,
     build_envelope,
     render_human,
@@ -30,7 +32,7 @@ from novel_ralph_skill.contract.exit_codes import ExitCode, is_ok
 if typ.TYPE_CHECKING:
     from syrupy.assertion import SnapshotAssertion
 
-_FIXED_FIELD_ORDER = (
+_EXPECTED_FIELD_ORDER = (
     "command",
     "schema_version",
     "ok",
@@ -38,6 +40,26 @@ _FIXED_FIELD_ORDER = (
     "result",
     "messages",
 )
+"""The deliberate human-readable tripwire for the envelope field order.
+
+This literal is the one place the six-name order is spelled by hand. Do NOT
+delete it as "redundant": it pins the expected names so an accidental reorder
+of the :class:`~novel_ralph_skill.contract.envelope.Envelope` dataclass reddens
+a test rather than silently propagating through the derived
+:data:`~novel_ralph_skill.contract.envelope.ENVELOPE_FIELD_ORDER` (audit 6.3.7
+Finding 1).
+"""
+
+
+def test_envelope_field_order_matches_expected() -> None:
+    """The derived field order equals the hand-written tripwire.
+
+    Returns
+    -------
+    None
+        The assertion raises on failure.
+    """
+    assert ENVELOPE_FIELD_ORDER == _EXPECTED_FIELD_ORDER
 
 
 @pytest.mark.parametrize("code", list(ExitCode))
@@ -162,10 +184,38 @@ def test_render_machine_emits_fixed_field_order() -> None:
     )
     rendered = render_machine(env)
     parsed = json.loads(rendered)
-    assert tuple(parsed) == _FIXED_FIELD_ORDER
+    assert tuple(parsed) == ENVELOPE_FIELD_ORDER
     # ok mirrors the code; the harness gates on this, not on the prose.
     assert parsed["ok"] is is_ok(ExitCode.ACTIONABLE_FINDING)
     assert parsed["result"] == {"divergent": ["ch01"]}
+
+
+def test_render_machine_coerces_frozen_containers_to_plain_json() -> None:
+    """``result``/``messages`` serialise as a plain ``dict``/``list``.
+
+    The envelope freezes ``result`` to a read-only mapping and ``messages`` to a
+    tuple at construction; building from a non-``dict`` mapping
+    (:class:`~types.MappingProxyType`) and a non-``list`` sequence (a tuple)
+    proves :func:`render_machine` still emits plain JSON containers, the
+    load-bearing coercion the wire contract depends on.
+
+    Returns
+    -------
+    None
+        The assertions raise on failure.
+    """
+    env = build_envelope(
+        command=SUBCOMMAND_NAMES[1],
+        working_dir="working",
+        code=ExitCode.ACTIONABLE_FINDING,
+        result=MappingProxyType({"divergent": ["ch01"]}),
+        messages=("compiled.md diverges from chapter drafts",),
+    )
+    parsed = json.loads(render_machine(env))
+    assert isinstance(parsed["result"], dict)
+    assert isinstance(parsed["messages"], list)
+    assert parsed["result"] == {"divergent": ["ch01"]}
+    assert parsed["messages"] == ["compiled.md diverges from chapter drafts"]
 
 
 def test_render_human_lists_messages_without_result_json() -> None:
