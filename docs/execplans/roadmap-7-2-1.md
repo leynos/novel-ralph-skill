@@ -1064,3 +1064,30 @@ near-duplication, and a "blind import removal" Risk capturing that
 `_recount.py`'s `tomlkit` imports go while `_set_chapters.py`'s stay. Work-item
 count rose from five to six; net-scope Tolerance widened from 8 files/150 lines
 to 9 files/180 lines.
+
+## Addenda (post-merge follow-ups)
+
+Lightweight addendum work items surfaced by the round-1/round-2 Logisphere
+reviews and the post-merge audit of this task. Execute each as a small addendum
+pass — no plan or design-review cycle: make the change, run `make all`,
+`coderabbit review --agent`, commit, and tick the matching roadmap sub-task on
+merge.
+
+- [ ] 7.2.1.1 — Collapse the array-of-inline-tables `[[chapters]]` builder
+  skeleton onto one shared helper (from audit:7.2.1, review:7.2.1; low; three
+  near-identical proposals merged). This actions the deferred Decision
+  D-ARRAY-FOLLOWUP. Task 7.2.1 folded only the inner inline-table idiom into
+  `build_inline_table`; the outer `tomlkit.array()` + `array.multiline(True)` +
+  append-loop skeleton that produces the four-key `[[chapters]]` array
+  (`number`, `slug`, `title`, `target_words`) is still a two-site near-copy
+  across `novel_ralph_skill/commands/_set_chapters.py` (`_chapter_array`) and
+  `tests/working_corpus/_builder.py` (`_chapters_array`); the two differ only in
+  how each derives the four-key record (a `ChapterPlanEntry` versus
+  manifest-only fallbacks). Extract a state-package helper taking an ordered
+  sequence of `(number, slug, title, target_words)` records and returning the
+  multiline `tomlkit` array, route both sites through it, pin it with a test
+  (mirroring `tests/test_build_inline_table.py`), and update the developers'
+  guide deferral note (the D-ARRAY-FOLLOWUP follow-up reference) to cite this
+  sub-task ID. Keep the four-key on-disk schema order and the multiline layout
+  unchanged; no behaviour change, so every existing `set-chapters` and corpus
+  snapshot must stay green with no `--snapshot-update`. Gate with `make all`.

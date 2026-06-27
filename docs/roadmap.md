@@ -1067,6 +1067,16 @@ agent-improvised recovery routine. See novel-ralph-harness-design.md §4.1 and
       not that the chapter drafts stayed byte-for-byte unchanged (only
       `state.toml`/`log.md` should change). Assert every `draft.md` is
       byte-identical before and after `reconcile`. Lightweight addendum pass.
+  - [ ] 2.3.2.3. Correct the `_reconcile.py` module docstring's helper-reuse
+    attribution.
+    - Addendum (from review:7.2.1; low). The `commands/_reconcile.py` module
+      docstring states it "reuses that module's [`_recount`'s] load/refuse
+      helpers", but `_load_document_or_state_error` and `_refuse_if_incoherent`
+      are imported from `_state_mutators`, not `_recount`; after 7.2.1 routed
+      `_reconcile` through `build_inline_table` it imports nothing from
+      `_recount` at module level, making the pre-existing inaccuracy more
+      visible. Correct the attribution to name `_state_mutators` as the helper
+      home. Lightweight addendum pass.
 - [x] 2.3.3. Add disk-authoritative cross-checks to the corpus oracle for the
   §5.4 structural invariants.
   - Reroute (source: review:1.3.2; severity: medium). The §1.3.2 corpus oracle
@@ -2689,6 +2699,20 @@ test pins it so it cannot silently re-fork.
     consumed by `recount`, `state/initial.py`, and the corpus builder; the
     initial-document docstring no longer flags a hand-copied twin; and the
     lossless round-trip and every current state and corpus test stay green.
+  - [ ] 7.2.1.1. Collapse the array-of-inline-tables `[[chapters]]` builder
+    skeleton onto one shared helper.
+    - Addendum (from audit:7.2.1, review:7.2.1; low; three near-identical
+      proposals merged). 7.2.1 folded only the inner inline-table idiom into
+      `build_inline_table`; the outer `tomlkit.array()` + `multiline(True)` +
+      append-loop skeleton producing the four-key `[[chapters]]` array
+      (`number`, `slug`, `title`, `target_words`) is still a two-site near-copy
+      across `commands/_set_chapters.py` (`_chapter_array`) and
+      `tests/working_corpus/_builder.py` (`_chapters_array`), explicitly
+      deferred as Decision D-ARRAY-FOLLOWUP. Extract a state-package helper
+      taking an ordered sequence of `(number, slug, title, target_words)`
+      records and returning the multiline array, route both sites through it,
+      pin it with a test, and update the developers' guide deferral note to cite
+      this sub-task. Lightweight addendum pass.
 
 - [ ] 7.2.2. Consolidate the rule-pack and device-ledger TOML-loading and scan
   primitives onto shared, error-factory-parameterised helpers.
