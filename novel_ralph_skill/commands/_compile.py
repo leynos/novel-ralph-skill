@@ -9,9 +9,10 @@ regardless of directory-listing order, because the order *is* the ascending
 "Ordering is the zero-padded chapter index").
 
 The write path reuses the one production join rule
-(:func:`~novel_ralph_skill.state.concatenate_drafts` / ``DRAFT_SEPARATOR``) and
-the one draft-body read rule
-(:func:`~novel_ralph_skill.state.present_draft_bodies`) that the §5.4
+(:func:`~novel_ralph_skill.state.compile_model.concatenate_drafts` /
+``DRAFT_SEPARATOR``) and the one draft-body read rule
+(:func:`~novel_ralph_skill.state.compile_model.present_draft_bodies`) that the
+§5.4
 ``compiled-matches-drafts`` disk-evidence invariant recomputes, so a freshly
 compiled tree is coherent under ``novel-state check`` by construction (ExecPlan
 Risk "output diverges from compiled-matches-drafts"; D-READ).
@@ -31,7 +32,8 @@ tree, reports whether ``compiled.md`` is the ordered concatenation of the presen
 drafts, **writes nothing on any path**, and exits ``4`` (an actionable finding)
 when the compile is stale or absent so the agent knows to regenerate (design
 §3.3 checker/mutator table; ADR-001). The two modes share the verdict site
-:func:`~novel_ralph_skill.state.compiled_matches_drafts` with the ``novel-done``
+:func:`~novel_ralph_skill.state.compile_model.compiled_matches_drafts` with the
+``novel-done``
 ``compile_consistent`` clause, so the command-line surface and the done clause
 cannot disagree about whether ``compiled.md`` is current (ExecPlan
 D-POLARITY/D-BYTE-COMPARE).
@@ -101,9 +103,9 @@ def compile_manuscript() -> CommandOutcome:
     boundary, refuses an absent/empty ``[chapters]`` manifest (no authoritative
     ordering; design §10, ExecPlan D-EMPTY), reads each manifest chapter's
     ``draft.md`` in ascending chapter order via the shared
-    :func:`~novel_ralph_skill.state.present_draft_bodies` rule, joins them with
-    the production ``DRAFT_SEPARATOR`` via
-    :func:`~novel_ralph_skill.state.concatenate_drafts`, and writes
+    :func:`~novel_ralph_skill.state.compile_model.present_draft_bodies` rule,
+    joins them with the production ``DRAFT_SEPARATOR`` via
+    :func:`~novel_ralph_skill.state.compile_model.concatenate_drafts`, and writes
     ``working/manuscript/compiled.md`` atomically. An absent ``draft.md``
     contributes the empty string; every other read fault (an undecodable body, a
     permission error, an absent ``manuscript/``) is re-raised as
@@ -172,18 +174,21 @@ def check_compiled() -> CommandOutcome:
     :class:`StateInputError` the write path uses (via the shared
     :func:`_require_chapter_manifest` guard), then reads the divergence verdict
     from the single production site
-    :func:`~novel_ralph_skill.state.compiled_matches_drafts` — the same routine
-    the ``novel-done`` ``compile_consistent`` clause consumes, so the two cannot
+    :func:`~novel_ralph_skill.state.compile_model.compiled_matches_drafts` — the
+    same routine the ``novel-done`` ``compile_consistent`` clause consumes, so
+    the two cannot
     disagree on whether ``compiled.md`` is current (ExecPlan Constraints "share
     one comparison routine"; D-BYTE-COMPARE).
 
     The verdict is projected to the ``compile_consistent`` polarity: only
-    :attr:`~novel_ralph_skill.state.CompiledComparison.MATCHES` is satisfied
+    :attr:`~novel_ralph_skill.state.compile_model.CompiledComparison.MATCHES` is
+    satisfied
     (exit ``0``); both :attr:`~CompiledComparison.ABSENT` and
     :attr:`~CompiledComparison.DIVERGES` are actionable findings (exit ``4``),
     because an absent ``compiled.md`` is equally "not current — regenerate it"
     (ExecPlan D-POLARITY). See
-    :func:`~novel_ralph_skill.state.compiled_matches_drafts` for the authoritative
+    :func:`~novel_ralph_skill.state.compile_model.compiled_matches_drafts` for the
+    authoritative
     three-valued table and the §5.4 disk-evidence detector's opposite absent-file
     polarity, which this surface deliberately inverts.
 

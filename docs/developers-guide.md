@@ -28,15 +28,14 @@ that reduces a requirement string to its bare distribution name), the
 one-program cuprum catalogue builder (`single_program_catalogue`), and the
 POSIX venv scripts-directory resolver (`venv_scripts_dir`).
 
-The installed-binary e2es obtain a built-and-installed `novel`
-console-script through the module-scoped `installed_novel_state` fixture, the
-sanctioned replacement for the former cross-module
-`_build_and_install_novel_state` helper that one e2e module imported from
-another (an instance of the value-import the rule below forbids). The fixture
-builds a wheel with `uv build --wheel`, installs it into a fresh `uv venv`, and
-returns the installed script's absolute path; it is **module-scoped** so the
-slow build runs once per consuming module and every test reuses the one
-install. It lives in the registered plugin module
+The installed-binary e2es obtain a built-and-installed `novel` console-script
+through the module-scoped `installed_novel_state` fixture, the sanctioned
+replacement for the former cross-module `_build_and_install_novel_state` helper
+that one e2e module imported from another (an instance of the value-import the
+rule below forbids). The fixture builds a wheel with `uv build --wheel`,
+installs it into a fresh `uv venv`, and returns the installed script's absolute
+path; it is **module-scoped** so the slow build runs once per consuming module
+and every test reuses the one install. It lives in the registered plugin module
 [`tests/installed_binary_fixtures.py`](../tests/installed_binary_fixtures.py)
 (registered via `pytest_plugins` in `conftest`) rather than in `conftest`
 itself, for the same reason the corpus plugin does: hosting it inline would push
@@ -68,24 +67,25 @@ over the wheel for `novel state check`: the six contract keys in
 `tests/cross_command_contract/` identity proof uses, so it is that proof's
 installed mirror: deliberately a single tripwire over one representative
 command, not a re-run of the command × channel matrix. It was extended in place
-rather than split into a new module to avoid a second module-scoped wheel build,
-and it carries the same `slow` / `timeout(180)` / POSIX-`skipif` marks as the
-other installed e2es. The boundary between the three proofs is therefore: this
-test covers the *success* arm, `test_console_scripts_error_arms_e2e.py` covers
-the *error* arms (exit 2/3), and `tests/cross_command_contract/` pins the same
-skeleton identity *in-process* across all five commands.
+rather than split into a new module to avoid a second module-scoped wheel
+build, and it carries the same `slow` / `timeout(180)` / POSIX-`skipif` marks
+as the other installed e2es. The boundary between the three proofs is
+therefore: this test covers the *success* arm,
+`test_console_scripts_error_arms_e2e.py` covers the *error* arms (exit 2/3), and
+`tests/cross_command_contract/` pins the same skeleton identity *in-process*
+across all five commands.
 
 The in-process command-drive seam shared by the command-surface matrix and the
 cross-command contract suite lives in the registered plugin module
-[`tests/contract_drive_support.py`](../tests/contract_drive_support.py) (roadmap
-task 6.3.2), again co-located beside `conftest` rather than inside it to keep
-`conftest` under the 400-line cap. It owns the `drive` fixture (which drives a
-command in-process through the shared `run` seam and captures its exit code and
-rendered stdout), the `CommandSpec` identity tuple, the per-cell phase-tree
-builder, and the volatile-field redaction guard. Both the matrix module and the
-`tests/cross_command_contract/` package consume the `drive` fixture by name and
-the pure helpers by importing this plugin module, the sanctioned form for a
-`conftest`-equivalent scaffolding module.
+[`tests/contract_drive_support.py`](../tests/contract_drive_support.py)
+(roadmap task 6.3.2), again co-located beside `conftest` rather than inside it
+to keep `conftest` under the 400-line cap. It owns the `drive` fixture (which
+drives a command in-process through the shared `run` seam and captures its exit
+code and rendered stdout), the `CommandSpec` identity tuple, the per-cell
+phase-tree builder, and the volatile-field redaction guard. Both the matrix
+module and the `tests/cross_command_contract/` package consume the `drive`
+fixture by name and the pure helpers by importing this plugin module, the
+sanctioned form for a `conftest`-equivalent scaffolding module.
 
 Test modules consume these by fixture name — list the fixture as a test or
 helper parameter — and never by importing from another test module or from
@@ -132,14 +132,13 @@ onto the shared fixtures).
 [novel-ralph-harness-design.md](novel-ralph-harness-design.md) §2.3. It drives
 each of the five **read** surfaces — `novel state check`, `novel done`,
 `novel wordcount`, `novel compile --check`, and `novel desloppify` — in-process
-through the
-shared `run` seam across the eleven coherent `working_corpus` phase states, in
-both machine and human output modes. It snapshots the machine-mode envelope per
-cell, asserts the `--human` rendering is present (non-empty, names the
-command), and carries semantic branch assertions pinned to the verified
+through the shared `run` seam across the eleven coherent `working_corpus` phase
+states, in both machine and human output modes. It snapshots the machine-mode
+envelope per cell, asserts the `--human` rendering is present (non-empty, names
+the command), and carries semantic branch assertions pinned to the verified
 per-phase envelopes: the phase-keyed `phase_is_done` clause, the coherent
-`novel state check` result, the `novel wordcount` zero-progress versus populated
-branches, the `novel compile --check` exit-3/4/0 split, and the
+`novel state check` result, the `novel wordcount` zero-progress versus
+populated branches, the `novel compile --check` exit-3/4/0 split, and the
 shape-stable-but-value-varying `novel desloppify` report.
 
 Beyond the body-produced envelopes (exit 0/1/4), the matrix also crosses the
@@ -148,12 +147,13 @@ body returns a value (design §3.2 and §9): the usage-error arm (exit 2, an
 unknown option) and the state-error arm (exit 3, an absent `working/`). Both
 are crossed with every read command in both output modes, so the `--human`
 selection is proven to reach these body-less envelopes too. The machine-mode
-snapshot redacts the `messages` field — the platform- and command-variable datum
-— and pins the envelope skeleton (`command`, `ok: false`, `working_dir`, empty
-`result`) while the message is asserted by its stable prefix. The state-error
-arm's message is now an actionable string that names the current directory and
-the `novel state init` remedy (roadmap §6.3.1), so only its cwd tail is volatile;
-the usage-error arm still carries a command-variable suggestion suffix.
+snapshot redacts the `messages` field — the platform- and command-variable
+datum — and pins the envelope skeleton (`command`, `ok: false`, `working_dir`,
+empty `result`) while the message is asserted by its stable prefix. The
+state-error arm's message is now an actionable string that names the current
+directory and the `novel state init` remedy (roadmap §6.3.1), so only its cwd
+tail is volatile; the usage-error arm still carries a command-variable
+suggestion suffix.
 
 The matrix deliberately bounds its surface and documents the combinatorial gaps
 it carries rather than omitting them silently (design §9): the module
@@ -173,45 +173,46 @@ and its companion feature file
 [`tests/features/cross_command_contract.feature`](../tests/features/cross_command_contract.feature)
 (roadmap task 6.3.2) are the single home for the cross-command identity proof:
 that every one of the five spaced commands — `novel state`, `novel done`,
-`novel compile`, `novel desloppify`, and `novel wordcount` — presents the *same*
-output contract. The package pins three identity claims. First, the shared
-six-field envelope skeleton (`command`, `schema_version`, `ok`, `working_dir`,
-`result`, `messages`, in that order) with the contract field types and the
-`working_dir` label. These synthetic-`RunContext` suites inject the fixed
-`working_dir="working"` constant to pin envelope *shape*; the *production* entry
-point (`novel.main`) and the installed-binary e2e instead stamp and assert the
-**absolute resolved** `working/` path via the `resolved_working_dir()` accessor,
-so a misresolution is visible in the field the harness reads (roadmap §6.3.4).
-Second, the `ok`-to-exit-code mapping: `ok` is `true` if
-and only if the exit code is 0 — a Hypothesis property over the pure
-synthetic-outcome → `run` → envelope surface plus plain parametrised driven-cell
-examples. Third, the error-channel shapes: the usage (exit 2) and state (exit 3)
-arms share one redacted skeleton across all five commands, and the
-actionable-finding (exit 4) skeleton is shared across the three commands that can
-reach it. Crucially, the package extends the identity proof to the `novel state`
-**mutators** — `init`, `set-cursor`, `advance-phase`, `recount`, `reconcile`,
-`set-chapters`, `set-gate`, `complete-final-pass`, `set-fangirl`, and
-`set-critic-pass` — whose success and refusal envelopes the matrix above
-explicitly carried as a gap. A mutator's success `result` names what it changed,
-so its contents are command-specific and snapshotted separately, never asserted
-equal across commands; only the *skeleton* and the success/refusal exit-code-to-
-`ok` mapping are asserted identical.
+`novel compile`, `novel desloppify`, and `novel wordcount` — presents the
+*same* output contract. The package pins three identity claims. First, the
+shared six-field envelope skeleton (`command`, `schema_version`, `ok`,
+`working_dir`, `result`, `messages`, in that order) with the contract field
+types and the `working_dir` label. These synthetic-`RunContext` suites inject
+the fixed `working_dir="working"` constant to pin envelope *shape*; the
+*production* entry point (`novel.main`) and the installed-binary e2e instead
+stamp and assert the **absolute resolved** `working/` path via the
+`resolved_working_dir()` accessor, so a misresolution is visible in the field
+the harness reads (roadmap §6.3.4). Second, the `ok`-to-exit-code mapping: `ok`
+is `true` if and only if the exit code is 0 — a Hypothesis property over the
+pure synthetic-outcome → `run` → envelope surface plus plain parametrised
+driven-cell examples. Third, the error-channel shapes: the usage (exit 2) and
+state (exit 3) arms share one redacted skeleton across all five commands, and
+the actionable-finding (exit 4) skeleton is shared across the three commands
+that can reach it. Crucially, the package extends the identity proof to the
+`novel state` **mutators** — `init`, `set-cursor`, `advance-phase`, `recount`,
+`reconcile`, `set-chapters`, `set-gate`, `complete-final-pass`, `set-fangirl`,
+and `set-critic-pass` — whose success and refusal envelopes the matrix above
+explicitly carried as a gap. A mutator's success `result` names what it
+changed, so its contents are command-specific and snapshotted separately, never
+asserted equal across commands; only the *skeleton* and the success/refusal
+exit-code-to- `ok` mapping are asserted identical.
 
 This proof is the cross-command *identity* axis, distinct from the matrix's
-read-command-by-phase surface: do not duplicate either. Where the matrix asserts
-each read command's own shape across the eleven phases, this package asserts the
-shapes are *equal across commands* and adds the mutator surface. Like the matrix,
-it carries its combinatorial gaps knowingly rather than silently (design §9). The
-corpus does not let every command reach every channel: the actionable-finding
-(exit 4) channel is constructible only for `novel state check` (an incoherent
-tree), `novel compile --check` (a `drafting` tree), and `novel desloppify` (an
-em-dash-flood draft), so the `novel done` and `novel wordcount` exit-4 cells are
-carried as documented gaps; and the benign-negative (exit 1) channel is
-constructible only for `novel done` (the corpus never satisfies its done
-predicate), so every other command's exit-1 cell is a carried gap too. The
-constructible-cell table lives in `tests/cross_command_contract/_cells.py`; read
-the package docstring before extending the suite so a new cell lands on a
-reachable channel rather than asserting an unreachable one.
+read-command-by-phase surface: do not duplicate either. Where the matrix
+asserts each read command's own shape across the eleven phases, this package
+asserts the shapes are *equal across commands* and adds the mutator surface.
+Like the matrix, it carries its combinatorial gaps knowingly rather than
+silently (design §9). The corpus does not let every command reach every
+channel: the actionable-finding (exit 4) channel is constructible only for
+`novel state check` (an incoherent tree), `novel compile --check` (a `drafting`
+tree), and `novel desloppify` (an em-dash-flood draft), so the `novel done` and
+`novel wordcount` exit-4 cells are carried as documented gaps; and the
+benign-negative (exit 1) channel is constructible only for `novel done` (the
+corpus never satisfies its done predicate), so every other command's exit-1
+cell is a carried gap too. The constructible-cell table lives in
+`tests/cross_command_contract/_cells.py`; read the package docstring before
+extending the suite so a new cell lands on a reachable channel rather than
+asserting an unreachable one.
 
 ### The per-chapter deterministic-loop scenario
 
@@ -270,18 +271,18 @@ The installed step definitions
 ([`tests/steps/per_chapter_loop_installed_steps.py`](../tests/steps/per_chapter_loop_installed_steps.py))
 keep only the `@given`/`@when`/`@then` bodies; the run/build seam they drive —
 the `_Installed` capture record, the `_run_installed_argv`/`_run_installed` run
-helpers, `_build_installed`, and the `_result`/`_assert_no_traceback`
-accessors — lives in the sibling support module
+helpers, `_build_installed`, and the `_result`/`_assert_no_traceback` accessors
+— lives in the sibling support module
 [`tests/steps/per_chapter_loop_installed_support.py`](../tests/steps/per_chapter_loop_installed_support.py),
-split out so the step module stays under the 400-line cap as installed arms land.
-`_run_installed_argv` is a **sanctioned command/query hybrid**: it both writes
-`installed.captures[capture_key]` (the command) and returns the
+split out so the step module stays under the 400-line cap as installed arms
+land. `_run_installed_argv` is a **sanctioned command/query hybrid**: it both
+writes `installed.captures[capture_key]` (the command) and returns the
 `(exit_code, envelope, stderr)` tuple (the query). The hybrid is a deliberate
 test-helper exception to the usual command-query separation, because the `When`
-steps want only the capture side effect while `_run_installed` wants the return;
-the single-write contract is enforced structurally by an assertion that the
-`capture_key` is not already present, so a copied `When` step that re-added a
-manual `captures[...] =` assignment fails loudly rather than double-writing. A
+steps want only the capture side effect while `_run_installed` wants the
+return; the single-write contract is enforced structurally by an assertion that
+the `capture_key` is not already present, so a copied `When` step that re-added
+a manual `captures[...] =` assignment fails loudly rather than double-writing. A
 `When` step should call it for its side effect alone and never re-assign the
 capture by hand.
 
@@ -356,8 +357,7 @@ The novel-ralph skill drives novel authoring through a Ralph Loop: an agent is
 re-entered each turn with no memory beyond what is on disk, so progress lives in
 `working/` and `state.toml`, and every command is idempotent and resumable.
 The deterministic spine is the single `novel` multiplexer — a `state` subgroup
-and four leaf verbs; the model supplies judgement.
-The authoritative design is
+and four leaf verbs; the model supplies judgement. The authoritative design is
 [novel-ralph-harness-design.md](novel-ralph-harness-design.md); the decisions
 behind it are recorded in the ADRs referenced below. This section is the
 orientation a contributor needs before reading either.
@@ -417,17 +417,17 @@ in [`tests/test_console_scripts_e2e.py`](../tests/test_console_scripts_e2e.py),
 which runs on POSIX only (see
 [adr-006-console-scripts-e2e-posix-policy.md](adr-006-console-scripts-e2e-posix-policy.md)),
 and [`tests/test_pyproject_scripts.py`](../tests/test_pyproject_scripts.py)
-guards the entry-point table. The spaced subcommand names live once, as data, in
-a single registry,
+guards the entry-point table. The spaced subcommand names live once, as data,
+in a single registry,
 [`novel_ralph_skill/commands/names.py`](../novel_ralph_skill/commands/names.py):
-`SUBCOMMAND_NAMES` is the spaced `novel <verb>` names and `project_scripts_table`
-derives the single `novel` entry from it. The dispatcher and every test derive
-their names from this registry, and
+`SUBCOMMAND_NAMES` is the spaced `novel <verb>` names and
+`project_scripts_table` derives the single `novel` entry from it. The
+dispatcher and every test derive their names from this registry, and
 [`tests/test_command_names_registry.py`](../tests/test_command_names_registry.py)
-asserts the registry and `[project.scripts]` agree, so a rename or dropped entry
-point cannot silently drift. Edit a command name there, not inline. The JSON
-envelope, the `--human` switch, and the shared exit-code helper are owned by the
-shared contract scaffolding (roadmap step 1.3).
+asserts the registry and `[project.scripts]` agree, so a rename or dropped
+entry point cannot silently drift. Edit a command name there, not inline. The
+JSON envelope, the `--human` switch, and the shared exit-code helper are owned
+by the shared contract scaffolding (roadmap step 1.3).
 
 ### The `novel` multiplexer
 
@@ -454,16 +454,16 @@ then derives the spaced command name from the residual argv through
 derivation consults the registry, not inline literals: `names.py` carries
 `SUBCOMMAND_NAMES` (the spaced `novel <verb>` names) and the
 `ENVELOPE_COMMAND_NAMES` superset (those spaced names plus the bare `"novel"`
-the body-less help and version arms stamp); `build_envelope` validates `command`
-against that superset, so every name the multiplexer stamps validates. The
-dispatch proof lives in
+the body-less help and version arms stamp); `build_envelope` validates
+`command` against that superset, so every name the multiplexer stamps
+validates. The dispatch proof lives in
 [`tests/test_multiplexer_dispatch.py`](../tests/test_multiplexer_dispatch.py)
 (the multiplexer shape, the four-flag contract tripwire, and the name mapping)
 and
 [`tests/test_multiplexer_behaviour.py`](../tests/test_multiplexer_behaviour.py)
 (in-process envelope equality between the multiplexer arm and each operation's
-direct `build_app` over the corpus, across every exit arm), sharing the `driver`
-fixture from the registered plugin
+direct `build_app` over the corpus, across every exit arm), sharing the
+`driver` fixture from the registered plugin
 [`tests/multiplexer_support.py`](../tests/multiplexer_support.py).
 
 ### Checker/mutator segregation
@@ -581,17 +581,17 @@ Table 3. Second, `run` translates Cyclopts's native exit-`1` usage errors into
 the contract's exit `2`.
 
 `build_envelope` validates its `command` argument against
-`ENVELOPE_COMMAND_NAMES`, so
-`novel_ralph_skill/contract/` imports the registry from
+`ENVELOPE_COMMAND_NAMES`, so `novel_ralph_skill/contract/` imports the registry
+from
 [`novel_ralph_skill/commands/names.py`](../novel_ralph_skill/commands/names.py).
 This edge is deliberate, not a layering leak: `names.py` is a leaf
-source-of-truth module that holds only the command names as data and
-carries no command logic. The shared name registry is therefore a leaf that
-both the `contract` layer and the `commands` layer may depend on, exactly so
-the names live once and neither layer re-spells them. The contract and command
-suites import the registry symbols for the same reason. Keep the
-dependency pointed this way: nothing in `commands/names.py` may import from
-`contract/`, or the edge would become a genuine cycle.
+source-of-truth module that holds only the command names as data and carries no
+command logic. The shared name registry is therefore a leaf that both the
+`contract` layer and the `commands` layer may depend on, exactly so the names
+live once and neither layer re-spells them. The contract and command suites
+import the registry symbols for the same reason. Keep the dependency pointed
+this way: nothing in `commands/names.py` may import from `contract/`, or the
+edge would become a genuine cycle.
 
 ### Disambiguated exit codes
 
@@ -616,41 +616,42 @@ it is always exit 3. A command body signals this exit-3 channel by raising
 a missing or unparseable `state.toml` or an absent working directory uses the
 same channel.
 
-The exit-3 messages are actionable, never raw OS text. Five sibling formatters in
-the dependency-free leaf module `_state_load` own the prose, each replacing the
-raw OS text with prose that names the offending artefact and offers a remedy.
-`_state_input_error` serves the *state.toml-load* fault (roadmap §6.3.1): a
-missing `working/` names the current directory and the `novel state init` remedy,
-while a present-but-corrupt `state.toml` names the path and asks for inspection
-or repair. `_draft_read_error` serves the six *draft-read* boundaries (roadmap
-§6.3.5) — `novel state check`'s disk-evidence read, `novel state recount`, `novel
-wordcount`, `novel done`, `novel desloppify`, and both of `novel compile`'s
-draft-read tails — when a present `working/` tree holds a corrupt or unreadable
-`draft.md`/`compiled.md`; it names the `working/` tree and asks for inspection or
-repair, never advising `init` (the tree exists).
+The exit-3 messages are actionable, never raw OS text. Five sibling formatters
+in the dependency-free leaf module `_state_load` own the prose, each replacing
+the raw OS text with prose that names the offending artefact and offers a
+remedy. `_state_input_error` serves the *state.toml-load* fault (roadmap
+§6.3.1): a missing `working/` names the current directory and the
+`novel state init` remedy, while a present-but-corrupt `state.toml` names the
+path and asks for inspection or repair. `_draft_read_error` serves the six
+*draft-read* boundaries (roadmap §6.3.5) — `novel state check`'s disk-evidence
+read, `novel state recount`, `novel wordcount`, `novel done`,
+`novel desloppify`, and both of `novel compile`'s draft-read tails — when a
+present `working/` tree holds a corrupt or unreadable `draft.md`/`compiled.md`;
+it names the `working/` tree and asks for inspection or repair, never advising
+`init` (the tree exists).
 
-Three further formatters (roadmap §6.3.8) close the remaining raw-OS-text leaks,
-each a single-arm sibling that never advises `init` because the working tree
-already exists. `_compile_write_error` serves the `novel compile` atomic-*write*
-tail: when `working/manuscript/compiled.md` cannot be written — typically because
-`manuscript/` is absent — it names the compiled-manuscript target and offers a
-*write-shaped* remedy (re-create `working/manuscript/` or restore the tree, then
-re-run the compile). `_rule_pack_read_error` serves `novel desloppify`'s rule-pack
-read: it names the pack path and offers a *file-shaped* remedy (check the `--pack`
-path is correct and readable, or omit `--pack` to use the shipped default pack).
-`_device_ledger_read_error` serves `novel desloppify --ledger`'s device-ledger
-read: it names the ledger path and offers a *file-shaped* remedy (check the
-`--ledger` path is correct and readable). The two desloppify formatters take only
-the *path*, never the typed `RulePackFileError`/`LedgerFileError`, whose own
-messages embed a raw `{exc}` repr that consuming them would re-leak (ExecPlan
-Decision D2).
+Three further formatters (roadmap §6.3.8) close the remaining raw-OS-text
+leaks, each a single-arm sibling that never advises `init` because the working
+tree already exists. `_compile_write_error` serves the `novel compile`
+atomic-*write* tail: when `working/manuscript/compiled.md` cannot be written —
+typically because `manuscript/` is absent — it names the compiled-manuscript
+target and offers a *write-shaped* remedy (re-create `working/manuscript/` or
+restore the tree, then re-run the compile). `_rule_pack_read_error` serves
+`novel desloppify`'s rule-pack read: it names the pack path and offers a
+*file-shaped* remedy (check the `--pack` path is correct and readable, or omit
+`--pack` to use the shipped default pack). `_device_ledger_read_error` serves
+`novel desloppify --ledger`'s device-ledger read: it names the ledger path and
+offers a *file-shaped* remedy (check the `--ledger` path is correct and
+readable). The two desloppify formatters take only the *path*, never the typed
+`RulePackFileError`/`LedgerFileError`, whose own messages embed a raw `{exc}`
+repr that consuming them would re-leak (ExecPlan Decision D2).
 
 Routing every boundary through one of these five formatters keeps the message
 from drifting and leaks no raw `Errno`, `{exc}` repr, or traceback. The mutator
 view-derivation boundary (`_state_view_or_state_error`) is a *state-document*
-fault, not a draft fault, so it reuses `_state_input_error`'s present-but-corrupt
-arm — naming the `state.toml` path — rather than the draft-read formatter, keeping
-the two faults distinct (roadmap §6.3.5).
+fault, not a draft fault, so it reuses `_state_input_error`'s
+present-but-corrupt arm — naming the `state.toml` path — rather than the
+draft-read formatter, keeping the two faults distinct (roadmap §6.3.5).
 
 ### State and on-disk layout
 
@@ -993,9 +994,8 @@ points here rather than restating the clauses.
   `(30, 50, 80)` percentages are taken from one `KNITTING_PERCENTAGES` constant
   shared between the booleans and the file names so they cannot drift);
 - `compile_consistent` := `manuscript/compiled.md` is present *and* byte-equal
-  to
-  the ordered concatenation of the present drafts (the content comparison; see
-  below);
+  to the ordered concatenation of the present drafts (the content comparison;
+  see below);
 - `no_unresolved_blockers` := no manifest chapter's `critic-notes.md` carries an
   unresolved BLOCKER.
 
@@ -1064,6 +1064,45 @@ test-side corpus oracle deliberately keeps its own copy of the comparison (see
 the invariant-validation twin policy) and does not import the helper, so a
 production bug cannot mask itself.
 
+**The authoritative-docstring + consumer self-projection convention (roadmap
+§7.1).** Each consolidated §7.1 projection — the compile-currency family owned by
+`compile_model.compiled_matches_drafts`, the reconciliation payload owned by
+`reconcile.reconciliation_payload`, and the projections 7.1.1, 7.1.4, and the
+remaining §7.1 tasks consolidate — keeps its full description in exactly one
+place and reroutes every other reader through a cross-reference rather than a
+re-stated copy. Three rules apply:
+
+- **Single authoritative docstring.** The defining symbol's docstring holds the
+  *full* projection table (its members, shape, or polarities). Consumers carry a
+  one-sentence self-projection describing only their own polarity, plus a
+  cross-reference to the authoritative docstring — never a re-enumeration of the
+  whole table.
+- **The defining-module path is canonical.** A consumer names its authoritative
+  target through the *defining-module* dotted path
+  (`novel_ralph_skill.state.compile_model.compiled_matches_drafts`,
+  `novel_ralph_skill.state.reconcile.reconciliation_payload`), never the
+  `novel_ralph_skill.state` re-export façade. This holds even for an
+  *intra-module* consumer that sits in the same module as the authoritative
+  symbol (for example `compile_is_current`, which lives beside
+  `compiled_matches_drafts`): use the full defining-module path, not a bare
+  relative ``:func:`name``` role. The drift-guard rejects a bare relative
+  reference, so a future §7.1 consumer that uses one is caught rather than
+  silently admitted.
+- **The reusable drift-guard pins it.** `tests/test_projection_docstring_drift_guard.py`
+  imports the relevant symbols' `__doc__` in process (no subprocess, mirroring the
+  command-contract prose-guard `tests/test_developers_guide_contract_drift_guard.py`)
+  and asserts, per projection, that the authoritative docstring carries the full
+  table while each consumer carries the defining-module cross-reference and none
+  of the re-export spelling. The authoritative-versus-consumer split is keyed by
+  registry position — the authoritative symbol is the row key — never by counting
+  member names or scanning for an "authority" token, because the real consumers
+  are heterogeneous (`check_compiled` names all three members; the phrase
+  "authoritative table" appears inside consumer docstrings). A new §7.1 task that
+  consolidates a projection registers its row in that guard — binding the
+  authoritative symbol to its consumers, its canonical path, its re-export tail,
+  and its table markers — rather than re-deciding the convention; the guard's
+  failure on a missing, re-export, or bare-relative reference is the enforcement.
+
 **The exit-`4` carve-out (the conservative reading).** `novel done` exits `4`
 (`ACTIONABLE_FINDING`) **iff** `compile_consistent` is the *sole* false clause
 **and** `compiled.md` is present — a stale-present compile the harness can
@@ -1078,8 +1117,8 @@ carries only the six booleans and cannot say *why* `compile_consistent` is
 false. The human `messages` line names a *stale* compile at exit `4` and a
 *missing* one at exit `1` (A-4).
 
-**The fault boundary.** Mirroring `novel wordcount`/`disk_evidence`, an *absent*
-on-disk artefact is a benign false clause, but every other read fault
+**The fault boundary.** Mirroring `novel wordcount`/`disk_evidence`, an
+*absent* on-disk artefact is a benign false clause, but every other read fault
 (`PermissionError`, an undecodable `critic-notes.md` or `compiled.md`)
 propagates; the command body wraps `evaluate_done` under `STATE_INPUT_ERRORS`
 and re-raises `StateInputError`, so a corrupt tree reaches the exit-`3` channel
@@ -1127,19 +1166,20 @@ it has no CLI of its own. It supplies three disciplines:
   context manager composes.
 
 The torn-turn flow is covered by a family of `pytest-bdd` behavioural scenarios
-(features under `tests/features/`, steps under `tests/steps/`) that together span
-both halves of the §5.4 reconciliation surface. `torn_turn.feature` pins the
-producer side: a bracket that raises mid-turn leaves the `[pending_turn]` intent
-record populated on disk. The recovery and rollback dispositions are then
-exercised end-to-end through the real command boundary:
+(features under `tests/features/`, steps under `tests/steps/`) that together
+span both halves of the §5.4 reconciliation surface. `torn_turn.feature` pins
+the producer side: a bracket that raises mid-turn leaves the `[pending_turn]`
+intent record populated on disk. The recovery and rollback dispositions are
+then exercised end-to-end through the real command boundary:
 
 - **COMPLETE** — `torn_turn_recovery.feature`: a crashed `reconcile` leaves a
-  recoverable torn turn that `check` reports (exit 4) and `reconcile` re-derives
-  and finishes under bounded harness re-entry (each run exits 0).
+  recoverable torn turn that `check` reports (exit 4) and `reconcile`
+  re-derives and finishes under bounded harness re-entry (each run exits 0).
 - **never-landed ROLLBACK** — `torn_turn_rollback.feature` (task 6.2.7): a torn
   turn whose declared artefact (a missing `draft.md` body or a missing
-  `done.flag`) never landed is reported by `check` and rolled back by `reconcile`
-  in a single pass, with a rollback-pending-turn receipt appended to `log.md`.
+  `done.flag`) never landed is reported by `check` and rolled back by
+  `reconcile` in a single pass, with a rollback-pending-turn receipt appended to
+  `log.md`.
 - **partial-landed ROLLBACK** — a torn turn that left a partial `.tmp` residue,
   unpromoted by `Path.replace` and unreferenced by state, is likewise reported
   by `check` and rolled back by `reconcile`, with the residue preserved
@@ -1150,8 +1190,8 @@ exercised end-to-end through the real command boundary:
   (`torn_turn_rollback_partial_done_flag.feature`, task 6.2.14). Each residue
   lands inside an existing manifest chapter directory so the manifest-disk
   bijection still holds, and the `done.flag` residue uses a non-`done.flag`
-  filename so the `done-flag-without-draft` detector never fires — both keep the
-  disposition ROLLBACK rather than REFUSE.
+  filename so the `done-flag-without-draft` detector never fires — both keep
+  the disposition ROLLBACK rather than REFUSE.
 
 The round-trip and surgical-mutation guarantees are pinned by Hypothesis
 properties over a hand-authored, comment-and-layout-bearing fixture.
@@ -1192,11 +1232,11 @@ mutator:
   must report the written value, not its input echo. `advance-phase` returns
   `{from, to}` — the transition it made, as the `Phase.value` strings. The
   `from`/`to` keys are *transition labels*, not on-disk schema keys:
-  `state.toml` persists `phase.current` plus `phase.completed`, never a `[from]`
-  /`[to]` table. `recount` and `reconcile` must follow the same write-shaped
-  discipline (the counts or discrepancies they wrote), so a later mutator does
-  not copy the checker's vocabulary by accident; a cross-subcommand test pins
-  `violations` to `check` alone.
+  `state.toml` persists `phase.current` plus `phase.completed`, never a
+  `[from]` /`[to]` table. `recount` and `reconcile` must follow the same
+  write-shaped discipline (the counts or discrepancies they wrote), so a later
+  mutator does not copy the checker's vocabulary by accident; a
+  cross-subcommand test pins `violations` to `check` alone.
 - **The two-helper document load path.** The mutators load through
   `_load_document_or_state_error` → `load_document` (`tomlkit`), **not**
   `_load_or_state_error` → `load_state` (`tomllib`), because they edit the live
@@ -1206,12 +1246,12 @@ mutator:
   load-bearing: a `state.toml` that is valid TOML but structurally incomplete
   (e.g. `schema_version = 1` alone) passes `load_document` and fails only inside
   `document_to_state`; left unwrapped that fault would exit `1`. The mutators
-  never call bare `document_to_state`. The structurally-incomplete fault's exit-3
-  message is actionable: `_state_view_or_state_error` routes it through
-  `_state_input_error`'s present-but-corrupt arm (roadmap §6.3.5), which names the
-  `state.toml` path and advises inspect/repair — the state-document remedy, kept
-  distinct from the draft-read formatter because the document, not a draft, is at
-  fault.
+  never call bare `document_to_state`. The structurally-incomplete fault's
+  exit-3 message is actionable: `_state_view_or_state_error` routes it through
+  `_state_input_error`'s present-but-corrupt arm (roadmap §6.3.5), which names
+  the `state.toml` path and advises inspect/repair — the state-document remedy,
+  kept distinct from the draft-read formatter because the document, not a
+  draft, is at fault.
 
 `init` *creates*, it does not overwrite: it refuses with exit `3` when
 `working/state.toml` already exists rather than clobbering a live project, then
@@ -1413,26 +1453,26 @@ field and compiles every pattern at load time, so a malformed pack fails loudly
 rather than silently skipping a bad rule. The loader is detect-only (ADR-001):
 it validates structure and compiles patterns but never judges prose.
 
-The loader splits its failures into the two exit-code channels `novel desloppify`
-(roadmap task 5.1.2) surfaces. Malformed *pack content* — a bad
-`schema_version`, a missing or wrong-typed field, an unknown `basis`, a
+The loader splits its failures into the two exit-code channels
+`novel desloppify` (roadmap task 5.1.2) surfaces. Malformed *pack content* — a
+bad `schema_version`, a missing or wrong-typed field, an unknown `basis`, a
 non-positive `page_words`, a negative `threshold`, or an uncompilable
 `pattern` — raises `RulePackError`, which carries the offending `rule_id` (or
 `None` for a pack-level fault) and maps to exit 2, naming the rule. An absent,
 unreadable, or undecodable pack *file* raises `RulePackFileError`, which maps
 to exit 3. The loader itself emits no envelope and never calls `sys.exit`;
 exit-code translation is the command body's job, exactly as for `parse_state`.
-Task 5.1.2 wires the `novel desloppify` command on top of `load_rulepack` and is
-responsible for catching these two errors (or extending the runner's `except`
-chain) to map each to its `ExitCode`.
+Task 5.1.2 wires the `novel desloppify` command on top of `load_rulepack` and
+is responsible for catching these two errors (or extending the runner's
+`except` chain) to map each to its `ExitCode`.
 
 Task 5.1.2 ships the first rule pack:
 [`novel_ralph_skill/rulepack/packs/offenders.toml`](../novel_ralph_skill/rulepack/packs/offenders.toml),
 the §6 high-frequency-offender table transcribed one `[[rule]]` per row. It
 lives inside the package tree so it travels in the built wheel, and
-`novel desloppify` resolves it through `importlib.resources.files` rather than a
-relative path, so the installed console-script finds it. `novel desloppify` is the
-detect-only checker built on `load_rulepack` and the pure
+`novel desloppify` resolves it through `importlib.resources.files` rather than
+a relative path, so the installed console-script finds it. `novel desloppify`
+is the detect-only checker built on `load_rulepack` and the pure
 `detect(pack, chapters)` aggregation in
 [`novel_ralph_skill/rulepack/detect.py`](../novel_ralph_skill/rulepack/detect.py):
 it scans each chapter draft line by line (the loader compiles patterns with no
@@ -1486,12 +1526,12 @@ callables, so it imports neither `rulepack` nor `ledger` and creates no import
 cycle. Both `report_outcome`
 ([`commands/_desloppify_report.py`](../novel_ralph_skill/commands/_desloppify_report.py))
 and `ledger_report_outcome`
-([`ledger/report.py`](../novel_ralph_skill/ledger/report.py)) route through it,
-injecting only their per-hit payload, id accessor, clean-pass message and — for
-the rule-pack path — the `pack`/`total_words` extra keys; the per-hit payload
-projections stay distinct and are injected unchanged (the per-hit field shape is
-8.1.4/8.1.5 territory, not this builder's). Its **scope and re-use policy**: the
-builder owns only the shared *skeleton*, so a change to the
+([`ledger/report.py`](../novel_ralph_skill/ledger/report.py)) route through
+it, injecting only their per-hit payload, id accessor, clean-pass message and —
+for the rule-pack path — the `pack`/`total_words` extra keys; the per-hit
+payload projections stay distinct and are injected unchanged (the per-hit field
+shape is 8.1.4/8.1.5 territory, not this builder's). Its **scope and re-use
+policy**: the builder owns only the shared *skeleton*, so a change to the
 violations-versus-findings relationship is made once here, while anything
 genuinely per-path (a finding's projected fields, the prose of a message) stays
 in the call site. Deriving the exit code from the `failed` filter rather than a
@@ -1508,11 +1548,11 @@ the *AI-ism* tell pack (design §6.2). Where `offenders.toml` carries the §6
 prose-craft offenders, `ai-isms.toml` carries the lexical and phrasal tells of
 LLM-default prose — "load-bearing", "a testament to", and similar. It ships by
 the same default hatchling mechanism, travels in the wheel, and resolves through
-`importlib.resources.files`. It is **opt-in**: `novel desloppify` selects it only
-when given `--pack ai-isms.toml`, and the default pack stays `offenders.toml`.
-Combining both packs in one invocation is roadmap task 7.1.7 (the multi-pack
-`novel desloppify` surface) and is not yet supported: a single run scans
-exactly one pack.
+`importlib.resources.files`. It is **opt-in**: `novel desloppify` selects it
+only when given `--pack ai-isms.toml`, and the default pack stays
+`offenders.toml`. Combining both packs in one invocation is roadmap task 7.1.7
+(the multi-pack `novel desloppify` surface) and is not yet supported: a single
+run scans exactly one pack.
 
 The AI-ism tell set is a *moving target* the maintainer owns as versioned data,
 not code (design §6.2). The cadence is:
@@ -1566,9 +1606,10 @@ recurring image, a key phrase, a bookend line — each of which is meant to land
 a fixed number of times, in a fixed set of chapters, and nowhere else (design
 §6.3, resolving open question Q3). Unlike the shipped rule packs, the ledger is
 **per-novel user data**: it is not packaged in the wheel and has no
-`importlib.resources` resolver. It is selected with `novel desloppify --ledger PATH`,
-where `PATH` is a filesystem path the novelist (or the harness) writes into
-`working/`. A run with no `--ledger` is the unchanged rule-pack scan.
+`importlib.resources` resolver. It is selected with
+`novel desloppify --ledger PATH`, where `PATH` is a filesystem path the
+novelist (or the harness) writes into `working/`. A run with no `--ledger` is
+the unchanged rule-pack scan.
 
 The ledger lives in a new package,
 [`novel_ralph_skill/ledger/`](../novel_ralph_skill/ledger/), modelled on the
@@ -1577,8 +1618,7 @@ chapter-aware vocabulary that the closed v1 rule-pack schema cannot express
 (ADR-001/003/007 still hold: detect-only, the shared envelope contract, and the
 single `novel` command surface — the ledger is a flag on `novel desloppify`,
 never a separate subcommand). The TOML shape is `schema_version` plus one or
-more `[[device]]`
-tables, each with an `id`, a regex `pattern`, and a ration:
+more `[[device]]` tables, each with an `id`, a regex `pattern`, and a ration:
 
 ```toml
 schema_version = 1

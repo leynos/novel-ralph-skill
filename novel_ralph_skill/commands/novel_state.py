@@ -133,7 +133,8 @@ def _render_reconciliation(reconciliation: Reconciliation) -> dict[str, object]:
     ``check`` reports the reconciliation a stale ``state.toml`` *implies* without
     enacting it (design §3.3, §5.4); it carries no write-shaped success
     vocabulary — ``check`` writes nothing. The serialisation is the shared
-    :func:`~novel_ralph_skill.state.reconciliation_payload` projection; this read
+    :func:`~novel_ralph_skill.state.reconcile.reconciliation_payload` projection;
+    this read
     shape and ``reconcile``'s write shape stay distinct only in their envelope
     (exit code, ``messages``), not in the dict they wrap.
     """

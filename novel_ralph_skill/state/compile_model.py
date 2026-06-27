@@ -103,8 +103,8 @@ def compile_is_current(verdict: CompiledComparison) -> bool:
     (:func:`~novel_ralph_skill.state.disk_evidence._check_compiled_matches_drafts`)
     deliberately projects the **opposite** polarity and is *not* routed through
     this predicate — do not "fix" that asymmetry. See
-    :func:`compiled_matches_drafts` for the authoritative three-valued table and
-    both opposite absent-file polarities.
+    :func:`~novel_ralph_skill.state.compile_model.compiled_matches_drafts` for the
+    authoritative three-valued table and both opposite absent-file polarities.
 
     Parameters
     ----------

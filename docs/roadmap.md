@@ -2633,7 +2633,7 @@ of truth, and a test pins it so it cannot silently re-fork.
     re-spells the six-name order; and the contract and cross-command suites stay
     green.
 
-- [ ] 7.1.6. Settle the §7.1 authoritative-docstring + consumer self-projection
+- [x] 7.1.6. Settle the §7.1 authoritative-docstring + consumer self-projection
   convention once, with a reusable drift-guard.
   - Step task (source: audit:7.1.2 Findings 2, 3, 5; review:7.1.2; severity: low;
     near-identical proposals merged). This serves the step-7.1 hypothesis
