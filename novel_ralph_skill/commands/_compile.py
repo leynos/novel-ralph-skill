@@ -182,9 +182,10 @@ def check_compiled() -> CommandOutcome:
     (exit ``0``); both :attr:`~CompiledComparison.ABSENT` and
     :attr:`~CompiledComparison.DIVERGES` are actionable findings (exit ``4``),
     because an absent ``compiled.md`` is equally "not current — regenerate it"
-    (ExecPlan D-POLARITY). This is the **opposite** polarity to the §5.4
-    ``novel-state check`` disk-evidence detector (absent = vacuously satisfied);
-    both are reconciled inside the one shared helper.
+    (ExecPlan D-POLARITY). See
+    :func:`~novel_ralph_skill.state.compiled_matches_drafts` for the authoritative
+    three-valued table and the §5.4 disk-evidence detector's opposite absent-file
+    polarity, which this surface deliberately inverts.
 
     The body never calls ``write_text_atomically`` and never reaches the write
     branch, so it writes nothing on any path (ADR-001; ExecPlan R-NOWRITE). The

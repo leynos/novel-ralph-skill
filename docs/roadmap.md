@@ -2483,7 +2483,7 @@ of truth, and a test pins it so it cannot silently re-fork.
     `working/manuscript/compiled.md` path and its working-relative token have one
     definition the four modules import; no behaviour changes; and every compile,
     done-predicate, and disk-evidence suite stays green.
-- [ ] 7.1.2. Consolidate the `CompiledComparison` absent-file projection prose
+- [x] 7.1.2. Consolidate the `CompiledComparison` absent-file projection prose
   into one authoritative docstring.
   - Reroute (source: audit:4.1.2; severity: low; carry-forward of audit-3.1.3
     Finding 3). The absent-file projection prose is now duplicated across four

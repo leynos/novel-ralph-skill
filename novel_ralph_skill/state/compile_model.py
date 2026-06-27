@@ -101,10 +101,10 @@ def compile_is_current(verdict: CompiledComparison) -> bool:
 
     The §5.4 detector
     (:func:`~novel_ralph_skill.state.disk_evidence._check_compiled_matches_drafts`)
-    deliberately uses the **opposite** polarity inline (``is not
-    CompiledComparison.DIVERGES``: an absent compile is vacuously satisfied),
-    which is a genuinely different projection and is *not* routed through this
-    predicate — do not "fix" that asymmetry.
+    deliberately projects the **opposite** polarity and is *not* routed through
+    this predicate — do not "fix" that asymmetry. See
+    :func:`compiled_matches_drafts` for the authoritative three-valued table and
+    both opposite absent-file polarities.
 
     Parameters
     ----------
@@ -125,14 +125,29 @@ def compiled_matches_drafts(state: State, working_dir: Path) -> CompiledComparis
     This is the **single production site** that decides whether
     ``working/manuscript/compiled.md`` equals the ordered concatenation of the
     present chapter drafts (design §4.3/§5.4; ``docs/issues/audit-3.1.1.md``
-    Finding 2). Both
-    :func:`~novel_ralph_skill.state.disk_evidence._check_compiled_matches_drafts`
-    (the §5.4 detector) and the
-    :func:`~novel_ralph_skill.state.done_predicate.compile_consistent` done-clause
-    consume it, each projecting the three-valued result to its own absent-file
-    polarity — the detector treats absent as satisfied, the content clause treats
-    both absent and divergent as not-done (only ``MATCHES`` holds) — so the two
-    cannot disagree on the same tree.
+    Finding 2), and the **authoritative description** of the three-valued verdict
+    and the two opposite absent-file polarities its consumers project. There are
+    three outcomes the callers must tell apart, not two
+    (:class:`CompiledComparison`): a present-and-matching compile
+    (:attr:`~CompiledComparison.MATCHES`), a present-but-stale one
+    (:attr:`~CompiledComparison.DIVERGES`), and an *absent* one
+    (:attr:`~CompiledComparison.ABSENT`).
+
+    Three consumers route through this helper, each projecting that verdict to
+    its own absent-file polarity, so they cannot disagree on the same tree:
+
+    * the §5.4 disk-evidence detector
+      :func:`~novel_ralph_skill.state.disk_evidence._check_compiled_matches_drafts`
+      treats an absent compile as **vacuously satisfied** ("nothing to diverge
+      from"); only :attr:`~CompiledComparison.DIVERGES` is a violation;
+    * the ``novel-done`` content clause
+      :func:`~novel_ralph_skill.state.done_predicate.compile_consistent` and the
+      ``novel-compile --check`` surface
+      :func:`~novel_ralph_skill.commands._compile.check_compiled` both project the
+      **opposite** content polarity (via :func:`compile_is_current`): only
+      :attr:`~CompiledComparison.MATCHES` is current, so both
+      :attr:`~CompiledComparison.ABSENT` and
+      :attr:`~CompiledComparison.DIVERGES` are not-current.
 
     The existence check precedes any draft read: an absent ``compiled.md``
     returns :attr:`CompiledComparison.ABSENT` without touching the drafts.

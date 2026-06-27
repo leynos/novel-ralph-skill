@@ -230,10 +230,10 @@ def compile_consistent(state: State, working_dir: Path) -> bool:
     performs a direct byte comparison, not a digest (ExecPlan D-BYTE-COMPARE): a
     boolean over two in-memory strings needs no ``hashlib``.
 
-    This clause carries the **opposite** absent-file polarity to that §5.4
-    detector, which treats an absent ``compiled.md`` as *vacuously satisfied*
-    ("nothing to diverge from"). The two polarities are correct for their
-    different jobs and are reconciled in the one shared helper (3.1.3).
+    See
+    :func:`~novel_ralph_skill.state.compile_model.compiled_matches_drafts` for the
+    authoritative three-valued table and the §5.4 detector's opposite absent-file
+    polarity, which this clause deliberately inverts (3.1.3).
 
     Parameters
     ----------

@@ -204,7 +204,10 @@ def _check_compiled_matches_drafts(state: State, working_dir: Path) -> Violation
     *present-and-diverging* ``compiled.md`` (:attr:`CompiledComparison.DIVERGES`)
     is a violation; an *absent* one (:attr:`CompiledComparison.ABSENT`) trivially
     satisfies the check (nothing to diverge from), exactly as the oracle's
-    ``_check_compiled_matches_drafts`` treats it (D-COMPILE; audit-3.1.1 Finding 2).
+    ``_check_compiled_matches_drafts`` treats it (D-COMPILE; audit-3.1.1
+    Finding 2). See
+    :func:`~novel_ralph_skill.state.compile_model.compiled_matches_drafts` for the
+    authoritative three-valued table and both opposite absent-file polarities.
     """
     if compiled_matches_drafts(state, working_dir) is not CompiledComparison.DIVERGES:
         return None
