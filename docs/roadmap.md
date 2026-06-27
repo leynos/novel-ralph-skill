@@ -3232,7 +3232,7 @@ of truth, and a test pins it so it cannot silently re-fork.
     `main`, and a layering guard (`tests/test_contract_layering.py`) pins that the
     seam imports no `commands` module. Behaviour, exit codes, the absolute
     `working_dir` stamp, and the import-laziness profile are unchanged.
-  - [ ] 7.3.5.1. Drop the redundant `# pylint: disable=too-many-arguments`
+  - [x] 7.3.5.1. Drop the redundant `# pylint: disable=too-many-arguments`
     suppressions on `drive` and `_capture_drive`.
     - Addendum (from review:7.3.5; low). `pylint`'s `too-many-arguments` is
       already globally disabled in `pyproject.toml`, so the two inline
@@ -3241,6 +3241,10 @@ of truth, and a test pins it so it cannot silently re-fork.
       suppressions; drop them while retaining the `# noqa: PLR0913` on `drive`
       (Ruff PLR0913 is not overridden for production code). No behaviour change.
       Lightweight addendum pass against the 7.3.5 execplan.
+    - DROPPED by operator: the premise is false. The implement pass verified that
+      removing the inline suppressions makes the lint gate fail and regresses the
+      parent's single-home invariant, so they are required, not redundant. No
+      change made; recorded done to unblock the rest of the 7.3.5 addendum.
   - [ ] 7.3.5.2. Record or remove the `drive` seam's `PLR0913` dual suppression.
     - Addendum (from audit:7.3.5 Finding 2; low). `drive` disassembles the
       `RunContext` trio into three keyword scalars then immediately rebuilds a
