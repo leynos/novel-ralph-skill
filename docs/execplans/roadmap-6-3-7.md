@@ -915,8 +915,8 @@ file instead of the deflation guard's hard-coded "SKILL.md".
 Lightweight, no-plan corrections folded onto this completed task after the
 review of step 6.3 settled. Each runs as a no-review lightweight pass.
 
-- **6.3.7.1 (from review:6.3.7; low).** Extend this task's drift-guard with one
-  assertion that the design §3.1 and ADR-003 `schema_version` values match
+- [x] **6.3.7.1 (from review:6.3.7; low).** Extend this task's drift-guard with
+  one assertion that the design §3.1 and ADR-003 `schema_version` values match
   `ENVELOPE_SCHEMA_VERSION`. The guard pins `SKILL.md`'s `schema_version` to the
   code and pins the SKILL-vs-design field order, but the design §3.1 and ADR-003
   copies' own `schema_version` value is not asserted against the code constant,
@@ -924,3 +924,6 @@ review of step 6.3 settled. Each runs as a no-review lightweight pass.
   slip past every existing guard. Closing this completes the §6.3 "documented
   once without per-command drift" hypothesis for the `schema_version` datum
   across all copies. Scope: one assertion added to the existing drift-guard test.
+  Implementation note: ADR-003 carries the `schema_version` field only in prose
+  with no literal envelope value, so the single assertion pins the design §3.1
+  numeral; there is no ADR-003 numeral to assert.

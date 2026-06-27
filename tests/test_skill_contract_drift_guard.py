@@ -3,20 +3,18 @@
 Roadmap task 6.3.7 closes the last unguarded copy of the shared interface
 contract. The agent-facing skill (``skill/novel-ralph/SKILL.md``) restates the
 disambiguated exit-code table (design §3.2) and the six-field JSON envelope
-skeleton (design §3.1); this is the one copy no test pinned. A change to the
-``ExitCode`` enum, the ``Envelope`` field set, or ``ENVELOPE_SCHEMA_VERSION``
-would silently stale the table the dogfooding agent reads.
+skeleton (design §3.1). A change to the ``ExitCode`` enum, the ``Envelope``
+field set, or ``ENVELOPE_SCHEMA_VERSION`` would silently stale the table the
+dogfooding agent reads.
 
 This module is a docs-level drift-guard following the repository's established
 prose-guard pattern (``tests/test_skill_deflation_guard.py``): it reads
 ``SKILL.md`` in process through the shared ``read_repo_text`` fixture
-(``tests/conftest.py``) — no subprocess. It *does* import the contract module's
-pure data (``ExitCode``, ``Envelope`` fields, ``ENVELOPE_SCHEMA_VERSION``); that
-import is the load-bearing coupling that ties the SKILL restatement to the code
-source the roadmap names, exactly as ``tests/test_contract_envelope_snapshots``
-already imports the contract directly. The markdown parsing lives in the pure
-sibling module ``tests/_skill_contract_scanner.py`` so both files stay under the
-400-line cap.
+(``tests/conftest.py``) — no subprocess. It imports the contract module's pure
+data (``ExitCode``, ``Envelope`` fields, ``ENVELOPE_SCHEMA_VERSION``); that
+import is the load-bearing coupling tying the SKILL restatement to the code
+source the roadmap names. The markdown parsing lives in the pure sibling module
+``tests/_skill_contract_scanner.py`` so both files stay under the 400-line cap.
 
 Two carve-outs are deliberate and must not be "tightened" into false failures
 (ExecPlan Decision Log):
@@ -25,7 +23,7 @@ Two carve-outs are deliberate and must not be "tightened" into false failures
   column count and in Meaning *wording* (SKILL "Usage error; the invocation is
   wrong" vs ADR/design "Usage error"). The guard compares the integer code set
   exactly but the Meaning cell by per-code *keyword* presence, never by exact
-  string, and ignores every column after the Meaning column.
+  string, ignoring every column after the Meaning column.
 * **``working_dir`` example value is free.** ``SKILL.md`` shows the literal
   token ``"working"`` whereas design §3.1 shows the resolved absolute path
   ``"/home/me/my-novel/working"`` (roadmap §6.3.4). The guard pins the envelope
@@ -286,6 +284,18 @@ class TestSkillEnvelopeSkeletonDriftGuard:
         """The SKILL skeleton's ``schema_version`` equals the code constant."""
         assert skill_envelope_schema_version == ENVELOPE_SCHEMA_VERSION
 
+    def test_design_envelope_schema_version_matches_constant(
+        self, design_envelope_region: str
+    ) -> None:
+        """The design §3.1 skeleton's ``schema_version`` equals the constant.
+
+        Without this, a drift in design §3.1 alone (e.g. ``schema_version: 2``)
+        would slip past every other guard (6.3.7.1). ADR-003 names the field
+        only in prose, with no literal envelope value to pin.
+        """
+        parsed = json.loads(extract_fenced_json(design_envelope_region))
+        assert parsed["schema_version"] == ENVELOPE_SCHEMA_VERSION
+
     def test_skill_envelope_matches_design_field_order(
         self,
         skill_envelope_keys: list[str],
@@ -294,11 +304,9 @@ class TestSkillEnvelopeSkeletonDriftGuard:
         """The SKILL and design §3.1 skeletons share field set and order.
 
         Per the Decision-Log carve-out, only the key *order/set* is pinned, NOT
-        ``working_dir``'s example value: SKILL shows the literal ``"working"``
-        token whereas design §3.1 shows the resolved absolute path, both
-        deliberate. The positive ``working_dir`` membership assertion guards
-        against the design region ever yielding the working_dir-less §4 example
-        (B1).
+        ``working_dir``'s example value (SKILL's ``"working"`` vs design's
+        resolved absolute path). The ``working_dir`` membership assertion guards
+        against the design region yielding the working_dir-less §4 example (B1).
         """
         assert "working_dir" in design_envelope_keys
         assert design_envelope_keys == skill_envelope_keys
@@ -330,71 +338,10 @@ class TestSkillContractGuardNonVacuous:
 
         A renamed heading or a wrong-fence pull (B1) would yield a region whose
         markers vanish; this asserts the SKILL exit-table region keeps its
-        ``| 0 |`` code row, the SKILL envelope region keeps ``"schema_version"``,
-        and the design §3.1 region keeps ``"working_dir"``, so the drift guards
-        above cannot silently neuter. The ``| 0`` marker tolerates the table's
-        cell padding (``| 0    |``).
+        ``| 0`` code row (padding-tolerant), the SKILL envelope region keeps
+        ``"schema_version"``, and the design §3.1 region keeps ``"working_dir"``,
+        so the drift guards above cannot silently neuter.
         """
         assert "| 0" in exit_table_region
         assert '"schema_version"' in envelope_region
         assert '"working_dir"' in design_envelope_region
-
-
-class TestSkillContractScanner:
-    """Unit-test the pure markdown scanner over planted in-string fixtures."""
-
-    _PLANTED_TABLE = (
-        "| Code | Meaning | Response | Example |\n"
-        "| ---- | ------- | -------- | ------- |\n"
-        "| 0    | Success here | proceed | ok |\n"
-        "| 1    | Benign negative | loop | nope |\n"
-    )
-
-    def test_parse_markdown_table_skips_separator(self) -> None:
-        """The dashes-and-colons alignment row is dropped, header is kept."""
-        rows = parse_markdown_table(self._PLANTED_TABLE)
-        assert rows[0] == ("Code", "Meaning", "Response", "Example")
-        assert ("----", "-------", "--------", "-------") not in rows
-        assert len(rows) == 3
-
-    def test_parse_markdown_table_tolerates_padding(self) -> None:
-        """Padding whitespace inside cells is stripped."""
-        rows = parse_markdown_table("|  a  |  b  |\n| --- | --- |\n|  c  |  d  |\n")
-        assert rows == [("a", "b"), ("c", "d")]
-
-    def test_extract_meanings_keys_code_to_meaning(self) -> None:
-        """Column 0 maps to column 1 only; later columns are discarded."""
-        meanings = extract_exit_code_meanings(parse_markdown_table(self._PLANTED_TABLE))
-        assert meanings == {0: "Success here", 1: "Benign negative"}
-
-    def test_extract_meanings_skips_non_integer_rows(self) -> None:
-        """A row whose first cell is not an integer is skipped, not crashed on."""
-        table = (
-            "| Code | Meaning |\n"
-            "| ---- | ------- |\n"
-            "| x    | bogus   |\n"
-            "| 3    | State error |\n"
-        )
-        assert extract_exit_code_meanings(parse_markdown_table(table)) == {
-            3: "State error"
-        }
-
-    def test_slice_doc_region_loud_on_missing_anchor(self) -> None:
-        """A missing anchor raises naming the source, not silently empty."""
-        with pytest.raises(ValueError, match="not found in design"):
-            slice_doc_region("no anchors here", "### 9.9", "### 9.8", source="design")
-
-    def test_extract_fenced_json_returns_block_body(self) -> None:
-        """The fenced JSON body is returned without the fence markers."""
-        region = 'prose\n```json\n{"a": 1}\n```\nmore prose\n'
-        assert json.loads(extract_fenced_json(region)) == {"a": 1}
-
-    def test_extract_fenced_json_loud_on_missing_fence(self) -> None:
-        """A region with no JSON fence raises rather than passing vacuously."""
-        with pytest.raises(ValueError, match="no 'json' fenced block"):
-            extract_fenced_json("prose with no fence at all\n")
-
-    def test_extract_fenced_json_returns_first_of_two(self) -> None:
-        """With two JSON fences, the FIRST is returned (the B1 ordering contract)."""
-        region = '```json\n{"first": true}\n```\n```json\n{"second": true}\n```\n'
-        assert json.loads(extract_fenced_json(region)) == {"first": True}

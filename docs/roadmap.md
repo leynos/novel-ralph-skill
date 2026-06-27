@@ -2339,7 +2339,7 @@ and adr-003-shared-interface-contract.md.
     `ExitCode`, envelope-field, and `schema_version` source; the guard reuses the
     repo's established prose-guard pattern; and the docs and contract suites stay
     green.
-  - [ ] 6.3.7.1.
+  - [x] 6.3.7.1.
     - Addendum (from review:6.3.7; low). Extend the 6.3.7 drift-guard with one
       assertion that the design §3.1 and ADR-003 `schema_version` values match
       `ENVELOPE_SCHEMA_VERSION`, closing the gap where a drift introduced in
