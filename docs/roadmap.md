@@ -2632,7 +2632,7 @@ of truth, and a test pins it so it cannot silently re-fork.
     `ENVELOPE_KEY_ORDER` so exactly one literal tripwire survives; no module
     re-spells the six-name order; and the contract and cross-command suites stay
     green.
-  - [ ] 7.1.5.1. Register the envelope field-order projection row in the §7.1
+  - [x] 7.1.5.1. Register the envelope field-order projection row in the §7.1
     projection-docstring drift guard now 7.1.5 has merged.
     - Addendum (from review:7.1.6, audit:7.1.6; low; two near-identical proposals
       merged). 7.1.6 authored `test_projection_docstring_drift_guard.py` as an

@@ -54,6 +54,12 @@ Finding 1).
 def test_envelope_field_order_matches_expected() -> None:
     """The derived field order equals the hand-written tripwire.
 
+    The tripwire pins the contract-side oracle to the canonical
+    :data:`novel_ralph_skill.contract.envelope.ENVELOPE_FIELD_ORDER`, the single
+    source of truth derived from the
+    :class:`~novel_ralph_skill.contract.envelope.Envelope` field declaration
+    (roadmap 7.1.5).
+
     Returns
     -------
     None

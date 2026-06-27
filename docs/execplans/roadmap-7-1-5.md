@@ -695,7 +695,7 @@ no plan or design-review cycle: make the change, run `make all` (plus `make
 markdownlint`/`make nixie` for Markdown), `coderabbit review --agent`, commit,
 and tick the matching roadmap sub-task on merge.
 
-- [ ] 7.1.5.1 — Register this envelope field-order projection as a row in the
+- [x] 7.1.5.1 — Register this envelope field-order projection as a row in the
   §7.1 projection-docstring drift guard (from review:7.1.6, audit:7.1.6; low;
   two near-identical proposals merged). Task 7.1.6 authored
   `tests/test_projection_docstring_drift_guard.py` as an extensible registry and
@@ -708,3 +708,22 @@ and tick the matching roadmap sub-task on merge.
   merely conventionally documented. `render_machine` already cross-references
   `ENVELOPE_FIELD_ORDER` via the defining-module path, so no docstring rewrite is
   needed; this is the registry-row addition alone. Gate with `make all`.
+
+  Implementation note (addendum pass). The guard reads `symbol.__doc__`, but
+  `ENVELOPE_FIELD_ORDER` is a module-level tuple whose runtime `__doc__` is the
+  built-in tuple docstring, not its PEP 224 attribute docstring, so it cannot
+  carry the field-order table the marker assertion checks. The row therefore
+  keys `authoritative` to the `Envelope` dataclass — the single source
+  `ENVELOPE_FIELD_ORDER` is derived from, whose docstring already enumerates the
+  six fields and so needs no rewrite — exactly as
+  `test_developers_guide_contract_drift_guard.py` keys its field set off the
+  imported `Envelope` by symbol identity. `canonical_path` is the
+  `ENVELOPE_FIELD_ORDER` dotted path the three consumers (`render_machine` and
+  the contract and cross-command oracles) cite, and `reexport_tail` is the
+  `contract`-package façade (`novel_ralph_skill.contract.ENVELOPE_FIELD_ORDER`)
+  that bypasses the defining `.envelope` module; it is not a substring of
+  `canonical_path`, keeping the tail check non-vacuous on the green tree. The
+  contract-side oracle gained a one-sentence canonical cross-reference in its
+  docstring (a test-only edit, not a production change) so it satisfies the
+  consumer cross-reference assertion. The two oracle functions are imported under
+  non-`test_` aliases so pytest does not re-collect them.

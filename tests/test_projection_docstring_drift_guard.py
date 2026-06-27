@@ -62,6 +62,7 @@ import pytest
 
 from novel_ralph_skill.commands._compile import check_compiled
 from novel_ralph_skill.commands.novel_state import _render_reconciliation
+from novel_ralph_skill.contract.envelope import Envelope, render_machine
 from novel_ralph_skill.state.compile_model import (
     compile_is_current,
     compiled_matches_drafts,
@@ -69,6 +70,16 @@ from novel_ralph_skill.state.compile_model import (
 from novel_ralph_skill.state.disk_evidence import _check_compiled_matches_drafts
 from novel_ralph_skill.state.done_predicate import compile_consistent
 from novel_ralph_skill.state.reconcile import reconciliation_payload
+
+# The two envelope field-order oracles are imported under non-``test_`` aliases so
+# pytest does not re-collect them as tests of this module; they enter the registry
+# only as consumer symbols whose docstrings the guard reads.
+from tests.cross_command_contract.test_envelope_shape import (
+    test_envelope_key_order_is_the_canonical_constant as _envelope_key_order_oracle,
+)
+from tests.test_contract_envelope import (
+    test_envelope_field_order_matches_expected as _envelope_field_order_oracle,
+)
 
 if typ.TYPE_CHECKING:
     import collections.abc as cabc
@@ -164,6 +175,37 @@ _REGISTRY: tuple[ProjectionRow, ...] = (
         canonical_path=("novel_ralph_skill.state.reconcile.reconciliation_payload"),
         reexport_tail="state.reconciliation_payload",
         table_markers=("{action, discrepancies, detail}",),
+    ),
+    # The envelope field-order projection (roadmap 7.1.5). ``ENVELOPE_FIELD_ORDER``
+    # is the consolidated constant, but it is a module-level tuple whose runtime
+    # ``__doc__`` is the built-in tuple docstring, not its PEP 224 attribute
+    # docstring; the guard reads ``symbol.__doc__``, so the authoritative table is
+    # keyed off the :class:`Envelope` dataclass it is derived from — whose
+    # docstring enumerates the six fields — exactly as
+    # ``test_developers_guide_contract_drift_guard.py`` keys its field set off the
+    # imported ``Envelope`` by symbol identity. The ``canonical_path`` is the
+    # ``ENVELOPE_FIELD_ORDER`` dotted path the consumers cite, and ``reexport_tail``
+    # is the ``contract``-package façade that bypasses the defining ``.envelope``
+    # module; it is not a substring of ``canonical_path`` (no ``.envelope.``
+    # segment), so the tail check is non-vacuous on the green tree.
+    ProjectionRow(
+        name="envelope_field_order",
+        authoritative=Envelope,
+        consumers=(
+            render_machine,
+            _envelope_field_order_oracle,
+            _envelope_key_order_oracle,
+        ),
+        canonical_path="novel_ralph_skill.contract.envelope.ENVELOPE_FIELD_ORDER",
+        reexport_tail="novel_ralph_skill.contract.ENVELOPE_FIELD_ORDER",
+        table_markers=(
+            "command",
+            "schema_version",
+            "ok",
+            "working_dir",
+            "result",
+            "messages",
+        ),
     ),
 )
 
