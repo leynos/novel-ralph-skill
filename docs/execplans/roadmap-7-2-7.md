@@ -999,3 +999,20 @@ against the real source (`rulepack/parse.py`, `ledger/parse.py`,
   D-ID-KEYWORD rationale no longer overstates the partial case, the wrong-id
   transposition risk is mandated keyword-only at multi-arg sites, and WI4 adds
   per-family id-survival wiring pins. Implementation still has not begun.
+
+## Addenda
+
+- Addendum 7.2.7.1 (from audit:7.2.7 Finding 3; medium). The developers' guide
+  `loaderkit` section still describes the pre-7.2.7 mechanisms: it says each
+  package's `_coerce.py` "builds the bundle and re-exports the underscore-named
+  wrappers" (the retired `_require*`/`_where` forwarder surface), and it justifies
+  `scan_pattern`'s `line_hit` callable and the detectors' `line_hit` lambda as the
+  seam that keeps the primitive "free of any `Rule`/`Device` knowledge" — both of
+  which this task retired (the per-family shims collapsed to one `bind_coercion(...)`
+  binding returning a frozen `BoundCoercion` bundle, and the identity lambdas were
+  dropped so `build_entry`/`line_hit` bind directly). The new
+  `bind_coercion`/`BoundCoercion` API is unnamed in the prose. Refresh the guide's
+  `loaderkit` section so it names the `bind_coercion` factory and the
+  `BoundCoercion` bundle, describes the shims as a single binding rather than a
+  wrapper re-export, and drops the retired-lambda framing — reconciling the prose
+  with the shipped code without changing behaviour. Lightweight addendum pass.

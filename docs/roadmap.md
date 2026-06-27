@@ -3010,6 +3010,14 @@ test pins it so it cannot silently re-fork.
     a test pins the shared binding so a third family inherits it; and the
     rule-pack,
     ledger, and `loaderkit` suites stay green.
+  - [ ] 7.2.7.1. Refresh the developers' guide `loaderkit` section for the
+    post-7.2.7 `bind_coercion`/`BoundCoercion` state.
+    - Addendum (from audit:7.2.7; medium). The developers' guide still describes
+      each `_coerce.py` as re-exporting the retired `_require*`/`_where` wrappers
+      and justifies the detectors' now-dropped `line_hit` lambda, and the new
+      `bind_coercion`/`BoundCoercion` API is unnamed. Name the factory and bundle,
+      describe the shims as one binding, and drop the retired-lambda framing so
+      the prose reconciles with the shipped code. Lightweight addendum pass.
 
 ### 7.3. Single-source the command facade, predicates, and writers
 
@@ -5624,6 +5632,36 @@ copies that would re-diverge.
     outside `contract/names.py`, not only the literal `.split(" ", 1)[1]`; a
     planted semantic-equivalent re-spelling fails the guard; and the multiplexer,
     console-scripts, and registry suites stay green.
+- [ ] 7.6.46. Guard against reintroduced identity-lambda builder and forwarder
+  seams in the loaderkit pack families.
+  - Reroute (source: review:7.2.7; severity: low). 7.2.7 retired the
+    `build_entry=`/`line_hit=` identity lambdas and collapsed the per-family
+    `_coerce.py` forwarder shims onto one `bind_coercion(...)` binding, but its
+    own risk register (Risk, low/medium) notes a future maintainer could silently
+    re-fork either seam — re-introducing a `build_entry=`/`line_hit=` identity
+    lambda in a parse/detect module, or a `def _where`/`def _require*` forwarder
+    in a `_coerce.py` shim — and the direct-bind tests document the supported
+    idiom but do not fail on a re-introduced lambda; the acceptance `grep`s ran
+    once at merge rather than as a standing check. This serves the step-7.6
+    guard-hardening hypothesis — keeping the now single-sourced loader seams
+    robust against re-divergence — not the settled step-7.2 single-home
+    hypothesis where it was raised. Add a standing guard (a CI/test `grep` or AST
+    scan) that fails when a `build_entry=`/`line_hit=` identity lambda reappears
+    in the rule-pack or ledger parse/detect modules, or when a
+    `def _where`/`def _require*` forwarder body
+    reappears in either `_coerce.py` shim, turning the one-shot acceptance greps
+    into a permanent gate. Coordinate with 7.5.18 so the guard consumes the shared
+    idiom-consolidation source-scan fixture rather than a hand-rolled scan.
+  - Requires 7.2.7.
+  - See novel-ralph-harness-design.md §6.1, §6.2, and §6.3;
+    docs/execplans/roadmap-7-2-7.md (Risks; Outcomes acceptance greps);
+    novel_ralph_skill/rulepack/ (`parse.py`, `detect.py`, `_coerce.py`);
+    novel_ralph_skill/ledger/ (`parse.py`, `detect.py`, `_coerce.py`).
+  - Success: a standing guard fails when a `build_entry=`/`line_hit=` identity
+    lambda reappears in any rule-pack or ledger parse/detect module, or when a
+    `def _where`/`def _require*` forwarder reappears in either `_coerce.py` shim;
+    a planted re-introduction of each form reddens the guard; and the rule-pack,
+    ledger, and `loaderkit` suites stay green.
 
 ### 7.7. Reconcile the documentation and settle the conventions
 
@@ -6046,6 +6084,60 @@ loops.
     longer returns the redundant `len(lines)` count (the total is derived at the
     seam); no detector carries a near-copy aggregate loop; and the rule-pack,
     ledger, and `loaderkit` suites stay green.
+- [ ] 7.8.3. Type `scan_pattern`'s `line_hit` seam with a `LineHitBuilder`
+  Protocol, matching `EntryBuilder[T]`.
+  - Reroute (source: audit:7.2.7, review:7.2.7; severity: medium; two
+    near-identical proposals merged). After 7.2.7 bound the builders directly,
+    `scan_pattern` still types its `line_hit` parameter as `Callable[..., LineHit]`
+    — the only ellipsis `Callable` in the package — while the parallel
+    `build_entries` seam carries a precise keyword Protocol (`EntryBuilder[T]`).
+    Promote `line_hit` to a `LineHitBuilder` Protocol whose `__call__(self, *,
+    chapter: int, line: int) -> LineHit` re-establishes the keyword-only static
+    check the ellipsis dropped, letting `ty` reject a positional-only third-family
+    constructor at the call site and making the two parallel callback seams
+    symmetric in type precision, not just call convention. This is a CQS/type-
+    precision refinement of the scan seam, not single-home consolidation, so it
+    does not serve the settled step-7.2 hypothesis; it serves the step-7.8
+    seam-simplicity hypothesis. Sequence it after 7.8.1 so it applies only if
+    7.8.1 retains the `line_hit` seam rather than retiring the callback; if 7.8.1
+    retires the callback, this task is moot and should be closed as superseded.
+  - Requires 7.8.1.
+  - See novel-ralph-harness-design.md §6.1;
+    docs/adr-003-shared-interface-contract.md;
+    novel_ralph_skill/loaderkit/scan.py;
+    novel_ralph_skill/loaderkit/parse.py.
+  - Success: if the `line_hit` seam survives 7.8.1, `scan_pattern` types it as a
+    `LineHitBuilder` Protocol with a keyword-only `__call__(*, chapter, line) ->
+    LineHit` mirroring `EntryBuilder[T]`, the only ellipsis `Callable` in the
+    package is gone, `ty` rejects a positional-only constructor at the call site,
+    and the rule-pack, ledger, and `loaderkit` suites stay green; or the task is
+    recorded as superseded by 7.8.1's callback retirement.
+- [ ] 7.8.4. Add a `require_int_array`/`require_sequence_of` primitive to
+  `loaderkit.coerce` and route ledger `allowed_chapters` through it.
+  - Reroute (source: audit:7.2.7; severity: low). `allowed_chapters` is the lone
+    coercion the shared bundle leaves object-typed, forcing `ledger/_fields.py`
+    to re-narrow ~20 lines of array-and-element validation by hand — the last
+    unnarrowed coercion boundary the loaderkit relocation left as redundant hand
+    work. Add a shared list primitive (`require_int_array` or a generic
+    `require_sequence_of`) to `loaderkit.coerce` and route `allowed_chapters`
+    through it, narrowing that boundary once and giving a future list-typed family
+    a ready-made helper. This extends the loaderkit-consolidation lineage as a
+    CQS/ergonomics simplification of the coercion seam — it adds a shared primitive
+    rather than removing a clone-per-family fork, so it does not serve the settled
+    step-7.2 single-home hypothesis; it serves the step-7.8 seam-simplicity
+    hypothesis. Coordinate with the loaderkit-consolidation lineage (7.2.2/7.2.5)
+    so the new primitive lands beside the shared coercion helpers.
+  - Requires 7.2.2.
+  - See novel-ralph-harness-design.md §6.1, §6.2, and §6.3;
+    docs/adr-003-shared-interface-contract.md;
+    novel_ralph_skill/loaderkit/coerce.py;
+    novel_ralph_skill/ledger/_fields.py.
+  - Success: `loaderkit.coerce` exposes a shared list-coercion primitive
+    (`require_int_array`/`require_sequence_of`) parameterised on the error factory;
+    `ledger/_fields.py` routes `allowed_chapters` through it rather than
+    re-narrowing the array and its elements by hand; a test pins the primitive so
+    a future list-typed family inherits it; the typed error channel and operator
+    messages are unchanged; and the ledger and `loaderkit` suites stay green.
 
 ## 8. Features and extensions
 
