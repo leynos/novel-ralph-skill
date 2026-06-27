@@ -20,6 +20,15 @@ nouns; the ledger binds it to :class:`LedgerError` with "device"/"device ledger"
 nouns; a third pack family inherits the primitives by binding one more bundle
 rather than cloning a third copy.
 
+The two-class failure *shape* every family raises lives here too (roadmap task
+7.2.5): :class:`~novel_ralph_skill.loaderkit.errors.PackError` (the exit-``2``
+content base) and :class:`~novel_ralph_skill.loaderkit.errors.PackFileError` (the
+exit-``3`` file base). Each pack binds these by subclassing them with its own
+typed channel name and id keyword (``RulePackError``/``RulePackFileError`` with
+``rule_id``; ``LedgerError``/``LedgerFileError`` with ``device_id``), so a third
+family inherits the hierarchy rather than re-spelling a third near-identical
+pair, exactly as it inherits the coercion bundle.
+
 This module depends only on the ``contract`` layer (for the
 :class:`~novel_ralph_skill.contract.errors.EnvelopeMessagesError` base it
 type-hints against) and the standard library. It imports neither ``rulepack`` nor
@@ -38,6 +47,7 @@ from novel_ralph_skill.loaderkit.coerce import (
     require_str,
     where,
 )
+from novel_ralph_skill.loaderkit.errors import PackError, PackFileError
 from novel_ralph_skill.loaderkit.load import (
     EntriesMessages,
     compile_pattern,
@@ -52,6 +62,8 @@ __all__ = [
     "EntriesMessages",
     "LineHit",
     "Mapping",
+    "PackError",
+    "PackFileError",
     "ScannedChapter",
     "compile_pattern",
     "entries",

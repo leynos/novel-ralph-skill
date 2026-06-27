@@ -14,20 +14,29 @@ a message:
 - :class:`RulePackFileError` — the pack *file* is absent, unreadable, or holds
   undecodable TOML. The command maps this to ``ExitCode.STATE_ERROR`` (exit 3).
 
-Both share the
-:class:`~novel_ralph_skill.contract.errors.EnvelopeMessagesError` base from the
-``contract`` layer (the ``rulepack`` → ``contract`` dependency direction; design
-§3.1): they store human-prose ``messages`` on the instance for the envelope the
-command will build. The loader itself never calls :func:`sys.exit` and emits no
-envelope; exit-code translation is the command body's job.
+Both bind the shared two-class shape from the neutral ``loaderkit`` leaf
+(roadmap task 7.2.5): :class:`RulePackError` subclasses
+:class:`~novel_ralph_skill.loaderkit.errors.PackError` (the exit-``2`` content
+base) and :class:`RulePackFileError` subclasses
+:class:`~novel_ralph_skill.loaderkit.errors.PackFileError` (the exit-``3`` file
+base). Those bases in turn subclass
+:class:`~novel_ralph_skill.contract.errors.EnvelopeMessagesError` from the
+``contract`` layer (the ``rulepack`` → ``loaderkit`` → ``contract`` dependency
+direction; design §3.1, §6.3): they store human-prose ``messages`` on the
+instance for the envelope the command will build. Binding the shared bases here —
+rather than re-spelling the two-class hierarchy — means a third loader family
+inherits the primitive instead of cloning a third near-identical pair, mirroring
+the coercion binding (roadmap task 7.2.2). The loader itself never calls
+:func:`sys.exit` and emits no envelope; exit-code translation is the command
+body's job.
 """
 
 from __future__ import annotations
 
-from novel_ralph_skill.contract.errors import EnvelopeMessagesError
+from novel_ralph_skill.loaderkit.errors import PackError, PackFileError
 
 
-class RulePackError(EnvelopeMessagesError):
+class RulePackError(PackError):
     """Malformed rule-pack *content*: the command maps this to exit 2.
 
     Raised by the loader when a decoded rule pack violates the v1 schema — a bad
@@ -35,7 +44,9 @@ class RulePackError(EnvelopeMessagesError):
     non-positive ``page_words``, a negative ``threshold``, or a ``pattern`` that
     will not compile. ``rule_id`` names the offending rule for a per-rule fault,
     or is ``None`` for a pack-level fault (such as a bad ``schema_version`` or a
-    missing ``pack`` key).
+    missing ``pack`` key). It binds the shared
+    :class:`~novel_ralph_skill.loaderkit.errors.PackError` content base, keeping
+    only the ``rule_id`` keyword that is public and specific to this family.
     """
 
     def __init__(self, *messages: str, rule_id: str | None = None) -> None:
@@ -54,14 +65,17 @@ class RulePackError(EnvelopeMessagesError):
         self.rule_id: str | None = rule_id
 
 
-class RulePackFileError(EnvelopeMessagesError):
+class RulePackFileError(PackFileError):
     """An absent, unreadable, or undecodable pack file: maps to exit 3.
 
     Raised by :func:`~novel_ralph_skill.rulepack.parse.load_rulepack` when the
     pack file is missing, cannot be read, or holds TOML that ``tomllib`` cannot
     decode. A decode fault is an input fault (exit 3), kept distinct from a
     *structurally valid* TOML that violates the schema (which is
-    :class:`RulePackError`, exit 2). The human-prose ``messages`` are recorded
-    once by the
+    :class:`RulePackError`, exit 2). It binds the shared
+    :class:`~novel_ralph_skill.loaderkit.errors.PackFileError` base with no extra
+    constructor, so it is handed to
+    :func:`~novel_ralph_skill.loaderkit.load.load_toml` as its ``file_error=``
+    callable; the human-prose ``messages`` are recorded once by the
     :class:`~novel_ralph_skill.contract.errors.EnvelopeMessagesError` base.
     """

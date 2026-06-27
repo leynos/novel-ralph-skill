@@ -2863,7 +2863,7 @@ test pins it so it cannot silently re-fork.
       section recording that `LineHit` remains an importable-but-unadvertised
       `rulepack.detect` attribute by design. Lightweight addendum pass.
 
-- [ ] 7.2.5. Consolidate the parallel rule-pack and device-ledger error
+- [x] 7.2.5. Consolidate the parallel rule-pack and device-ledger error
   hierarchies behind one shared `loaderkit.errors` factory.
   - Reroute (source: audit:7.3.6; severity: medium). `rulepack/errors.py` and
     `ledger/errors.py` carry structurally identical two-class hierarchies

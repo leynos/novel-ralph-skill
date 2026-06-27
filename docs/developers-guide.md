@@ -1792,7 +1792,17 @@ file-fault TOML loader (`load_toml`), and the per-line scan (`scan_pattern`).
 Roadmap task 7.2.3 also relocated the per-line scan's two neutral shapes —
 `ScannedChapter` (the scan input) and `LineHit` (the scan output) — into
 `loaderkit/scan.py`, so they live with the primitive they belong to and a third
-pack family inherits them rather than cloning or cross-importing them.
+pack family inherits them rather than cloning or cross-importing them. Roadmap
+task 7.2.5 completed the consolidation by lifting the shared error *hierarchy*
+into `loaderkit/errors.py`: `PackError` (the exit-`2` content base) and
+`PackFileError` (the exit-`3` file base), each a distinct `EnvelopeMessagesError`
+subclass. Each pack binds these by subclassing them — `RulePackError`/
+`RulePackFileError` keep the `rule_id` keyword, `LedgerError`/`LedgerFileError`
+keep `device_id` — so the two-class failure shape lives once and a third family
+inherits it rather than re-spelling a third near-identical pair, mirroring the
+coercion binding. The error channels were the one part task 7.2.2 deliberately
+scoped out (it kept each package's typed error type unchanged); task 7.2.5 is the
+sanctioned pass that retires that last near-copy.
 
 Each primitive is **parameterised on an error factory** rather than hard-wired to
 one package's exception. A pack family binds a small frozen `CoercionErrors`
@@ -1840,8 +1850,10 @@ editing the then-frozen rule-pack loader was an ExecPlan Tolerance trip during t
 ledger's own build. Task 7.2.2 is the sanctioned consolidation pass that performs
 exactly the refactor the old docstring foresaw, so the near-copy is retired. The
 shared primitives are pinned by `tests/test_loaderkit_coerce.py`,
-`tests/test_loaderkit_load.py`, and `tests/test_loaderkit_scan.py`, and both
-packages' suites stay green unchanged, so the primitives cannot silently re-fork.
+`tests/test_loaderkit_load.py`, `tests/test_loaderkit_scan.py`, and
+`tests/test_loaderkit_errors.py` (which pins the `PackError`/`PackFileError`
+bases against a test-local third-family id keyword), and both packages' suites
+stay green unchanged, so the primitives cannot silently re-fork.
 The last of those also pins the relocated scan shapes' single home: an
 AST-scoped guard asserts `ScannedChapter`/`LineHit` are defined in `loaderkit.scan`
 and that the module imports nothing from a pack domain, and a callback-contract
