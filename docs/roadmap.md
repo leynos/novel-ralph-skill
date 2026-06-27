@@ -2845,6 +2845,16 @@ test pins it so it cannot silently re-fork.
     re-export's fate is recorded (kept with a pinning test, or pruned from
     `__all__`); and the rule-pack, ledger, desloppify, and `loaderkit` suites
     stay green.
+  - [ ] 7.2.4.1. Note that `LineHit` survives as an unadvertised runtime
+    attribute of `rulepack.detect`.
+    - Addendum (from review:7.2.4; low). Post-prune,
+      `hasattr(rulepack.detect, "LineHit")` is `True` even though `LineHit` is
+      absent from `__all__`, because the detector constructs it at runtime in the
+      `line_hit` lambda (Decision D-LINEHIT-RUNTIME). This is intentional and
+      test-pinned, so a future reader could mistake the surviving attribute for
+      an incomplete prune; add a one-line note to the developers' guide `loaderkit`
+      section recording that `LineHit` remains an importable-but-unadvertised
+      `rulepack.detect` attribute by design. Lightweight addendum pass.
 
 ### 7.3. Single-source the command facade, predicates, and writers
 
@@ -5100,6 +5110,35 @@ copies that would re-diverge.
     `docs/novel-ralph-harness-design.md` and `docs/adr-*.md` (with the immutable
     historical records excluded); a module rename that dangles a design-doc or ADR
     source-file citation reddens the gate; the existing citations pass; and `make
+    markdownlint`, `make nixie`, and `make all` stay green.
+- [ ] 7.6.43. Add an ExecPlan-internal consistency gate flagging acceptance
+  probes and expected-output prose unreconciled with later Decision-Log
+  deviations.
+  - Reroute (source: review:7.2.4; severity: low). Task 7.2.4 shipped correct
+    code beneath an ExecPlan whose acceptance probes (`False False`) contradicted
+    its own Decision Log and the delivered behaviour (`False True`): the drafted
+    `not hasattr(detect, "LineHit")` probe was superseded by D-LINEHIT-RUNTIME yet
+    the probe text was only reconciled by a follow-up fix round
+    (D-PINTEST-RECONCILE), not caught at gate time. This is the same class of
+    silent living-document drift 7.6.19 hardens for the COMPLETE/checkbox skew —
+    expected-output text drifting from the delivered behaviour a later
+    Decision-Log entry records. It does not serve the settled step-7.2 single-home
+    hypothesis (the relocation is done); it makes a class of ExecPlan
+    living-document drift fail loudly, a step-7.6 robustness concern, so it is
+    rerouted here. Add a lightweight df12-build audit/gate check that flags an
+    ExecPlan whose acceptance-criteria or expected-output text (probes, `make`
+    transcripts, observable-behaviour bullets) is not reconciled with the
+    deviations recorded in its Decision Log or Surprises sections, sequenced after
+    7.6.19 so it builds on the same ExecPlan-consistency machinery.
+  - Requires 7.6.19.
+  - See AGENTS.md "Quality gates"; docs/roadmap.md; docs/execplans/;
+    docs/execplans/roadmap-7-2-4.md (Decisions D-PINTEST-LINEHIT,
+    D-PINTEST-RECONCILE).
+  - Success: a `make`/CI check (or df12-build audit step) flags an ExecPlan whose
+    acceptance probes or expected-output prose still assert an outcome a later
+    Decision-Log or Surprises entry supersedes; the check reddens against the
+    pre-reconciliation 7.2.4 ExecPlan state (the `False False` probe) and passes
+    once the prose is reconciled with the delivered behaviour; and `make
     markdownlint`, `make nixie`, and `make all` stay green.
 
 ### 7.7. Reconcile the documentation and settle the conventions

@@ -805,3 +805,21 @@ is fenced against neighbouring tasks 7.2.3.1 (guard generalisation), 7.2.3.2 and
 scan-aggregate skeleton and `count` return). No external-library behaviour is
 load-bearing; the only tool behaviour relied on (Ruff TC001, `ty`) is pinned by
 the gates rather than asserted.
+
+## Addenda
+
+Small, surgical corrections accrued after this task settled. Each runs as a
+lightweight, no-plan, no-review addendum pass.
+
+- 7.2.4.1 (from review:7.2.4; low). Note that `LineHit` survives as an
+  unadvertised runtime attribute of `rulepack.detect`. Post-prune,
+  `hasattr(rulepack.detect, "LineHit")` is `True` even though `LineHit` is absent
+  from `__all__`, because the detector constructs it at runtime in the `line_hit`
+  lambda (Decision D-LINEHIT-RUNTIME above). This is intentional and test-pinned
+  (`test_detect_no_longer_reexports_scan_shapes` asserts `LineHit` absent from
+  `__all__`, not absent as an attribute), so a future reader could mistake the
+  surviving attribute for an incomplete prune. Add a one-line note to the
+  developers' guide `loaderkit` section (`docs/developers-guide.md`, "The shared
+  loader primitives (`loaderkit`)") recording that `LineHit` remains an
+  importable-but-unadvertised `rulepack.detect` attribute by design. Doc-only;
+  run `make markdownlint` and `make nixie`.
