@@ -686,3 +686,25 @@ At the end of this work the following symbols must exist:
   `ENVELOPE_FIELD_ORDER`, same `typ.Final[tuple[str, ...]]` annotation.
 - The surviving literal tripwire and its equality test in
   `tests/test_contract_envelope.py`.
+
+## Addenda (post-merge follow-ups)
+
+Lightweight addendum work items folded back onto this completed task from the
+reviews and audits of step 7.1's tasks. Execute each as a small addendum pass —
+no plan or design-review cycle: make the change, run `make all` (plus `make
+markdownlint`/`make nixie` for Markdown), `coderabbit review --agent`, commit,
+and tick the matching roadmap sub-task on merge.
+
+- [ ] 7.1.5.1 — Register this envelope field-order projection as a row in the
+  §7.1 projection-docstring drift guard (from review:7.1.6, audit:7.1.6; low;
+  two near-identical proposals merged). Task 7.1.6 authored
+  `tests/test_projection_docstring_drift_guard.py` as an extensible registry and
+  deliberately deferred 7.1.5's row to "when 7.1.5 lands" (its Decision Log: the
+  guard must not import `ENVELOPE_FIELD_ORDER` while 7.1.5 was unmerged). Now that
+  7.1.5 has merged, add the `(authoritative, consumers, canonical_path,
+  reexport_tail, table_markers)` row binding `ENVELOPE_FIELD_ORDER`
+  (authoritative) to its consumers (`render_machine` and the two test oracles) so
+  the envelope field-order consolidation is enforced by the guard rather than
+  merely conventionally documented. `render_machine` already cross-references
+  `ENVELOPE_FIELD_ORDER` via the defining-module path, so no docstring rewrite is
+  needed; this is the registry-row addition alone. Gate with `make all`.

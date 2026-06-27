@@ -2632,6 +2632,15 @@ of truth, and a test pins it so it cannot silently re-fork.
     `ENVELOPE_KEY_ORDER` so exactly one literal tripwire survives; no module
     re-spells the six-name order; and the contract and cross-command suites stay
     green.
+  - [ ] 7.1.5.1. Register the envelope field-order projection row in the §7.1
+    projection-docstring drift guard now 7.1.5 has merged.
+    - Addendum (from review:7.1.6, audit:7.1.6; low; two near-identical proposals
+      merged). 7.1.6 authored `test_projection_docstring_drift_guard.py` as an
+      extensible registry and deferred 7.1.5's row to "when 7.1.5 lands"; add the
+      `(authoritative, consumers, canonical_path, reexport_tail, table_markers)`
+      row binding `ENVELOPE_FIELD_ORDER` to `render_machine` and the two test
+      oracles so the consolidation is guard-enforced, not merely documented.
+      Lightweight addendum pass.
 
 - [x] 7.1.6. Settle the §7.1 authoritative-docstring + consumer self-projection
   convention once, with a reusable drift-guard.
@@ -3457,6 +3466,36 @@ silently re-fork.
     the remedy cannot name different gates; an equality test pins their per-gate
     direction agreement on a shared state; and the validate, recount, and corpus
     agreement suites stay green.
+- [ ] 7.4.13. Extract a shared draft-read fault-routing context manager so every
+  draft-read boundary routes faults to exit 3 in one place.
+  - Reroute (source: audit:7.1.6; severity: low). The
+    `try/except STATE_INPUT_ERRORS -> raise _draft_read_error(dir) from exc`
+    envelope is hand-repeated verbatim at five draft-read boundaries (`_recount`,
+    `_wordcount`, `_novel_done`, `_disk_evidence_or_state_error`, and `_compile`
+    ×2): only the message is single-sourced by `_draft_read_error`, while the
+    control flow that routes faults to exit 3 is not, so a missed site silently
+    lets a draft-read fault escape to exit 1. A `draft_read_boundary` context
+    manager in `state/_state_load.py` puts the routing contract in one place,
+    completing the 6.3.5 single-sourcing of the draft-read fault path. This serves
+    the step-7.4 hypothesis — express the chapter-draft-sourcing rule (here its
+    fault-routing leg) once and share it — not the settled step-7.1 hypothesis
+    where it was raised, so it is rerouted here. Coordinate with 7.4.1 so the
+    shared `read_chapter_draft` reader routes through this boundary rather than
+    re-spelling the `try/except`.
+  - Requires 6.3.8.
+  - See novel-ralph-harness-design.md §3.2 and §4.1;
+    novel_ralph_skill/state/_state_load.py (`_draft_read_error`,
+    `STATE_INPUT_ERRORS`);
+    novel_ralph_skill/commands/_recount.py;
+    novel_ralph_skill/commands/_wordcount_report.py;
+    novel_ralph_skill/commands/_compile.py;
+    novel_ralph_skill/state/disk_evidence.py.
+  - Success: one `draft_read_boundary` context manager in `state/_state_load.py`
+    owns the `STATE_INPUT_ERRORS -> _draft_read_error -> exit 3` routing; all five
+    draft-read boundaries consume it rather than hand-repeating the `try/except`;
+    a draft-read fault at any boundary routes to exit 3 (not exit 1); the exit-code
+    policy and operator messages are unchanged; and the recount, wordcount,
+    compile, and disk-evidence suites stay green.
 
 ### 7.5. Consolidate the corpus and end-to-end test scaffolding
 
@@ -4704,6 +4743,129 @@ copies that would re-diverge.
     with 7.6.8's artefact handling; and a renumber scenario can no longer leave
     an audit pointing at the wrong task without a gate or header revealing it.
 
+- [ ] 7.6.37. Guard the envelope renderers against a future `Envelope` field
+  addition (machine coercion completeness and the human-channel subset).
+  - Reroute (source: review:7.1.5, audit:7.1.5; severity: low; two near-identical
+    renderer-drift proposals merged). 7.1.5 tied `render_machine`'s field order
+    to the `Envelope` dataclass, but two renderer edges still rest on hand-kept
+    knowledge that a future field addition silently breaks. (a) `_FIELD_COERCIONS`
+    in `contract/envelope.py` is keyed by field name and silently passes through
+    any unlisted field, so a future frozen mapping/sequence field (frozen in
+    `__post_init__`) would have `json.dumps` see a `MappingProxyType`/tuple with
+    no test forcing a coercion registration. (b) `render_human` emits a
+    hand-spelled subset (omitting `schema_version` and `result`) with no drift
+    guard and an incomplete docstring, so a new field silently leaves the human
+    channel stale.
+    Add a guard asserting every frozen-container `Envelope` field has a
+    `_FIELD_COERCIONS` coercion (or round-trips a freshly built envelope of every
+    field), and tighten `render_human`'s docstring plus a subset assertion against
+    `ENVELOPE_FIELD_ORDER`. This hardens the now single-sourced renderer against
+    the edge the audits surfaced — a step-7.6 robustness concern — not the settled
+    step-7.1 single-canonical-projection hypothesis where it was raised, so it is
+    deferred here.
+  - Requires 7.1.5.
+  - See novel-ralph-harness-design.md §3.1;
+    docs/adr-003-shared-interface-contract.md;
+    novel_ralph_skill/contract/envelope.py (`render_machine`, `render_human`,
+    `_FIELD_COERCIONS`);
+    tests/test_contract_envelope.py.
+  - Success: a guard fails if any frozen-container `Envelope` field lacks a
+    `_FIELD_COERCIONS` coercion; `render_human`'s docstring names its deliberate
+    field subset and a subset assertion fails if that subset drifts from
+    `ENVELOPE_FIELD_ORDER`; adding a frozen field without a coercion, or a new
+    field that silently strands the human channel, reddens a test; and the
+    contract and cross-command suites stay green.
+
+- [ ] 7.6.38. Pre-emptively split the three modules sitting against the 400-line
+  cap onto a deliberate seam.
+  - Reroute (source: audit:7.1.5; severity: low). Three source modules sit at
+    389-399 lines against the AGENTS.md 400-line cap
+    (`commands/_gate_drafting_mutators.py` at 399, `rulepack/parse.py` at 392,
+    `commands/_desloppify.py` at 389), so the next routine edit will breach the
+    cap and force an unplanned mid-task split. Identify a deliberate seam for each
+    now — mirroring the `_skill_contract_scanner.py` and `rulepack/parse.py`
+    (5.1.1.6) split patterns — and extract it, so cap pressure is relieved
+    proactively rather than reactively during an unrelated task. This is standing
+    maintainability hygiene against the cap risk the audit surfaced — a step-7.6
+    robustness concern — not the settled step-7.1 single-canonical-projection
+    hypothesis where it was raised, so it is deferred here.
+  - Requires 5.1.1, 7.1.5.
+  - See AGENTS.md (the 400-line module cap);
+    novel_ralph_skill/commands/_gate_drafting_mutators.py;
+    novel_ralph_skill/rulepack/parse.py;
+    novel_ralph_skill/commands/_desloppify.py;
+    docs/execplans/roadmap-5-1-1.md (the `parse.py` split pattern).
+  - Success: each of the three modules is under the 400-line cap with headroom on
+    a deliberate, named seam; no behaviour changes; and `make all` stays green.
+
+- [ ] 7.6.39. Widen the §7.1 projection drift-guard registry to the
+  normalised-but-unguarded compile-family siblings.
+  - Reroute (source: review:7.1.6; severity: low). 7.1.6 (Work item 1) normalised
+    the `concatenate_drafts` / `present_draft_bodies` / `compile_manuscript`
+    cross-references for consistency but, by its recorded coverage boundary, did
+    not add them as guarded rows in `test_projection_docstring_drift_guard.py`,
+    so those projections are normalised-but-unguarded and could silently re-fork
+    without reddening the guard. Once their wider consumer graph is audited, add
+    a `(authoritative, consumers, canonical_path, reexport_tail, table_markers)`
+    row per sibling so the convention 7.1.6 applied to them is enforced. This
+    hardens the now single-sourced guard suite against the residual coverage gap
+    the review surfaced — a step-7.6 robustness concern — not the settled
+    step-7.1 single-canonical-projection hypothesis where it was raised, so it is
+    deferred here.
+  - Requires 7.1.6.
+  - See novel-ralph-harness-design.md §4.3 and §5.4;
+    docs/execplans/roadmap-7-1-6.md (Work item 1);
+    tests/test_projection_docstring_drift_guard.py.
+  - Success: each normalised compile-family sibling
+    (`concatenate_drafts`, `present_draft_bodies`, `compile_manuscript`) carries
+    a guarded registry row binding its authoritative docstring to its audited
+    consumers; re-forking any of them reddens the guard; and the compile and
+    contract suites stay green.
+
+- [ ] 7.6.40. Strengthen the projection drift-guard's authoritative-table markers
+  from bare substrings to structural table assertions.
+  - Reroute (source: review:7.1.6; severity: low). The compile row's
+    `table_markers` (`MATCHES`/`ABSENT`/`DIVERGES`) in
+    `test_projection_docstring_drift_guard.py` are bare substrings that also appear
+    as scattered `:attr:` references, so a hollowing that retains a single `:attr:`
+    reference but deletes the polarity prose passes the guard. Assert a richer,
+    table-specific phrase per authoritative symbol (as the reconciliation row's
+    `{action, discrepancies, detail}` marker already does) so the inverse-of-
+    accepted-residual hollowing path closes. This hardens the guard against the
+    brittle-marker gap the review surfaced — a step-7.6 robustness concern — not
+    the settled step-7.1 single-canonical-projection hypothesis where it was
+    raised, so it is deferred here.
+  - Requires 7.1.6.
+  - See novel-ralph-harness-design.md §4.3 and §5.4;
+    tests/test_projection_docstring_drift_guard.py.
+  - Success: each authoritative symbol's `table_markers` assert a table-specific
+    phrase (not a bare enum-name substring that also occurs as a scattered
+    `:attr:` reference); a docstring that retains one `:attr:` reference but
+    deletes the polarity/table prose reddens the guard; and the compile, reconcile,
+    and contract suites stay green.
+
+- [ ] 7.6.41. Add a completeness check tying the §7.1 drift-guard registry to the
+  documented projection family.
+  - Reroute (source: audit:7.1.6; severity: low). The projection drift-guard pins
+    only the rows it already knows about; nothing forces a newly consolidated
+    §7.1 projection to be registered, so a future task could correctly
+    single-source a projection and silently omit its drift-guard row, defeating
+    the single-source-of-truth invariant the convention claims. Declare a
+    `CONSOLIDATED_PROJECTIONS` manifest (or equivalent) and assert it is covered
+    by `_REGISTRY`, so an unregistered consolidated projection reddens a test. This
+    hardens the guard's completeness invariant the audit surfaced — a step-7.6
+    robustness concern — not the settled step-7.1 single-canonical-projection
+    hypothesis where it was raised, so it is deferred here. Coordinate with 7.6.39,
+    which fills the known coverage gap, so the manifest and the registered rows
+    agree.
+  - Requires 7.1.6.
+  - See novel-ralph-harness-design.md §4.3 and §5.4;
+    tests/test_projection_docstring_drift_guard.py.
+  - Success: a declared manifest of consolidated §7.1 projections is checked
+    against `_REGISTRY` so an unregistered consolidated projection fails a test;
+    the manifest and the registered rows agree (with 7.6.39); and the contract and
+    compile suites stay green.
+
 ### 7.7. Reconcile the documentation and settle the conventions
 
 This step answers whether the ADRs, guides, and design read true against the
@@ -4954,6 +5116,35 @@ conventions are settled once.
     channel; the design document and developers' guide read true against the
     settled polarity; and the state-input, draft-read, and docs lint suites stay
     green.
+
+- [ ] 7.7.11. Settle a docstring convention barring transient plan-artefact
+  citations from shipped production docstrings, and sweep the §7.1 modules clean.
+  - Reroute (source: audit:7.1.6; severity: low). Several §7.1-area production
+    modules embed transient ExecPlan tags, round-review points, and `audit:`
+    back-references in `__doc__` (for example `compile_model.py`, the
+    `_state_load.py` formatters, and `_compile.py`), coupling public docstrings
+    to plan artefacts a future reader cannot resolve and pushing the prose-to-code
+    ratio up against the 400-line cap. Settle one documentation-style convention
+    — docstrings cite design sections, ADRs, and stable symbols, never ExecPlan
+    or Decision-Log artefacts — record it in the developers' guide, and sweep the
+    §7.1 modules to remove the transient citations. This serves the step-7.7
+    documentation-and-convention hypothesis (the guides and code read true and the
+    open conventions are settled once), not the settled step-7.1
+    single-canonical-projection hypothesis where it was raised, so it is rerouted
+    here. Coordinate with 7.6.38, whose cap-pressure relief this sweep partly
+    serves.
+  - Requires 7.1.6.
+  - See novel-ralph-harness-design.md §4.3 and §5.4;
+    docs/developers-guide.md;
+    novel_ralph_skill/state/compile_model.py;
+    novel_ralph_skill/state/_state_load.py;
+    novel_ralph_skill/commands/_compile.py.
+  - Success: the developers' guide records a docstring-citation convention barring
+    transient ExecPlan/Decision-Log/round-review back-references from shipped
+    production docstrings; the §7.1-area modules carry no such transient citation
+    in `__doc__`; the lowered prose-to-code ratio relieves cap pressure on the
+    affected near-cap files; and `make markdownlint`, `make nixie`, and `make all`
+    stay green.
 
 ## 8. Features and extensions
 
