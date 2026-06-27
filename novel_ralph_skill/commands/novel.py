@@ -68,8 +68,11 @@ def _build_mount_table() -> dict[str, cabc.Callable[[], cyclopts.App]]:
     factory exactly once at mount time — the same "build then mount" sequencing
     the hand-copied lines used. The keys are the registry's **bare verbs**
     (``"state"``, ``"done"``, …) — the values ``_VERB_FOR_SUBCOMMAND`` maps each
-    spaced name to, and the keys ``_SUBCOMMAND_FOR_VERB`` carries — in the ADR 007
-    surface order.
+    spaced name to, and the keys ``_SUBCOMMAND_FOR_VERB`` carries. The table is a
+    verb-keyed lookup, not an ordered list: it is the mount loop in
+    :func:`build_multiplexer` — iterating ``_SUBCOMMAND_FOR_VERB`` — that fixes
+    the ADR 007 surface (and so ``--help`` listing) order, so this table's own
+    iteration order is not load-bearing.
 
     The five leaf imports live inside this helper, not at module scope, so
     importing :mod:`novel_ralph_skill.commands.novel` pulls in no leaf module;
@@ -79,8 +82,9 @@ def _build_mount_table() -> dict[str, cabc.Callable[[], cyclopts.App]]:
     Returns
     -------
     dict[str, cabc.Callable[[], cyclopts.App]]
-        An ordered mapping of bare mount verb to the leaf module's ``build_app``
-        factory, in registry/surface order.
+        A verb-keyed mapping of bare mount verb to the leaf module's
+        ``build_app`` factory. The surface order is fixed by the mount loop's
+        registry iteration, not by this mapping's own key order.
     """
     # Deferred imports: mirror the retired ``stub.py``'s per-command laziness so
     # building the table is the only place that pulls the five leaf modules in.

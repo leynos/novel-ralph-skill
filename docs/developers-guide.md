@@ -455,12 +455,16 @@ against the locked Cyclopts 4.18.0).
 construction table rather than re-spelling each verb in a hand-copied mount
 line. The helper `_build_mount_table` returns a verb-keyed mapping of mount verb
 to the leaf module's `build_app` factory, and `build_multiplexer` mounts each
-leaf in `SUBCOMMAND_NAMES` order (via the registry-derived `_VERB_FOR_SUBCOMMAND`
-map, which resolves each verb through the registry's `verb_for` accessor rather
-than re-spelling the split inline), so the verbs the dispatcher mounts come from
-the registry, not inline in the mount lines. The spaced subcommand names live
-once, as data, in a single registry, so the names the multiplexer mounts and the
-names it stamps cannot drift apart.
+leaf in `SUBCOMMAND_NAMES` (ADR 007 surface) order by iterating the bare-verb
+keys of `_SUBCOMMAND_FOR_VERB` — the registry-derived map keyed by the same bare
+verbs the table carries, whose verbs are resolved through the registry's
+`verb_for` accessor rather than re-spelled inline — so the verbs the dispatcher
+mounts come from the registry, not inline in the mount lines. (The sibling map
+`_VERB_FOR_SUBCOMMAND` is keyed by the *spaced* names; iterating it would index
+the bare-verb-keyed table with a spaced name and raise `KeyError`, so the loop
+reads `_SUBCOMMAND_FOR_VERB`.) The spaced subcommand names live once, as data, in
+a single registry, so the names the multiplexer mounts and the names it stamps
+cannot drift apart.
 [`tests/test_multiplexer_mount_table.py`](../tests/test_multiplexer_mount_table.py)
 pins the table against the registry — its verbs equal the registry's bare-verb
 set and each entry is the leaf's own `build_app` — so a dropped or drifted

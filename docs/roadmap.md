@@ -3029,7 +3029,7 @@ of truth, and a test pins it so it cannot silently re-fork.
     preserved (or the laziness change is decided and recorded); and the
     multiplexer shape, behavioural-parity, and console-scripts e2e suites stay
     green.
-  - [ ] 7.3.2.1. Replace the multiplexer import-laziness substring guard with an
+  - [x] 7.3.2.1. Replace the multiplexer import-laziness substring guard with an
     `ast` module-scope import walk.
     - Addendum (from audit:7.3.2 Finding 4 / review:7.3.2; low). The laziness
       guard in `tests/test_multiplexer_mount_table.py` asserts each leaf name is
@@ -3042,7 +3042,7 @@ of truth, and a test pins it so it cannot silently re-fork.
       — following the in-repo `ast` scanner pattern in
       `tests/_state_layout_scanner.py`. Lightweight addendum pass against the
       7.3.2 execplan.
-  - [ ] 7.3.2.2. Tie the multiplexer test verb-sets back to the registry and
+  - [x] 7.3.2.2. Tie the multiplexer test verb-sets back to the registry and
     collapse the redundant registered-mounts test.
     - Addendum (from audit:7.3.2 Findings 2 and 3; medium). The bare-verb set is
       hand-spelled as an inline literal in
@@ -3057,7 +3057,7 @@ of truth, and a test pins it so it cannot silently re-fork.
       `_VERB_MODULE_PAIRS`/`_OPERATIONS` fixture verb keys equal the registry's
       bare-verb set so no test surface drifts from the single registry. Lightweight
       addendum pass against the 7.3.2 execplan.
-  - [ ] 7.3.2.3. Correct the developers'-guide mount-map reference and pin the
+  - [x] 7.3.2.3. Correct the developers'-guide mount-map reference and pin the
     observable mount order.
     - Addendum (from audit:7.3.2 Findings 1 and 5; low). The developers' guide
       (`docs/developers-guide.md:451-453`) names `_VERB_FOR_SUBCOMMAND` as the

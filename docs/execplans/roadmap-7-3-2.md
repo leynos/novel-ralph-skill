@@ -912,8 +912,8 @@ line 114; Cyclopts 4.18.0 `uv.lock` line 138). No implementation has begun.
 Post-merge corrections folded back onto this completed task. Each is a
 lightweight, no-plan addendum pass; they do not reopen the design.
 
-- **Addendum 7.3.2.1 — `ast` import-laziness guard** (from audit:7.3.2 Finding 4
-  / review:7.3.2; low). The laziness guard
+- [x] **Addendum 7.3.2.1 — `ast` import-laziness guard** (from audit:7.3.2
+  Finding 4 / review:7.3.2; low). The laziness guard
   `test_leaf_import_lives_inside_the_mount_table_helper`
   (`tests/test_multiplexer_mount_table.py`) asserts each leaf name is absent from
   the module source outside `_build_mount_table` by a raw substring scan over
@@ -931,7 +931,7 @@ lightweight, no-plan addendum pass; they do not reopen the design.
   import location rather than string presence, so the guard survives reformatting
   and prose mentions.
 
-- **Addendum 7.3.2.2 — registry-tied test verb-sets** (from audit:7.3.2
+- [x] **Addendum 7.3.2.2 — registry-tied test verb-sets** (from audit:7.3.2
   Findings 2 and 3; medium). The bare-verb set is hand-spelled as an inline
   literal in `tests/test_multiplexer_dispatch.py:47` — a fourth copy untied to the
   registry — and `test_build_multiplexer_registers_the_five_subcommands` there
@@ -947,7 +947,7 @@ lightweight, no-plan addendum pass; they do not reopen the design.
   literals drift" framing on the test side without over-de-duplicating the
   verb→module/argv fixtures.
 
-- **Addendum 7.3.2.3 — mount-map prose and observable order** (from audit:7.3.2
+- [x] **Addendum 7.3.2.3 — mount-map prose and observable order** (from audit:7.3.2
   Findings 1 and 5; low). The developers' guide
   (`docs/developers-guide.md:451-453`) names `_VERB_FOR_SUBCOMMAND` as the mount
   driver, but `build_multiplexer` iterates `_SUBCOMMAND_FOR_VERB`; iterating

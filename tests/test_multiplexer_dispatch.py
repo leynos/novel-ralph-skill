@@ -3,11 +3,16 @@
 ADR 007 fixes the final command surface as a single ``novel`` multiplexer:
 ``novel state …``, ``novel done``, ``novel compile``, ``novel desloppify``, and
 ``novel wordcount``. This module pins the *shape* of the dispatcher built by
-:func:`novel_ralph_skill.commands.novel.build_multiplexer`: it registers exactly
-the five sub-apps, carries the four-flag contract (the tripwire mirroring
-``tests/test_contract_app_factory.py`` so a dropped flag fails here rather than
-silently changing exit behaviour), and ``_command_name_for`` maps residual argv
-to the spaced registry name driven from the registry, not inline literals.
+:func:`novel_ralph_skill.commands.novel.build_multiplexer`: it carries the
+four-flag contract (the tripwire mirroring ``tests/test_contract_app_factory.py``
+so a dropped flag fails here rather than silently changing exit behaviour), and
+``_command_name_for`` maps residual argv to the spaced registry name driven from
+the registry, not inline literals. The registered-mounts assertion — that the
+built parent registers exactly the construction table's (and so the registry's)
+verbs — lives once in ``tests/test_multiplexer_mount_table.py``
+(``test_build_multiplexer_registers_exactly_the_table_verbs``), tied to the
+registry rather than to a hand-spelled verb literal, so it is not duplicated
+here.
 
 The in-process behavioural coverage — legacy-vs-multiplexer envelope equality
 over the corpus and every exit arm — lives in
@@ -32,19 +37,6 @@ _CONTRACT_BOOLEAN_FLAGS: tuple[str, ...] = (
     "print_error",
     "help_on_error",
 )
-
-
-def test_build_multiplexer_registers_the_five_subcommands() -> None:
-    """The multiplexer registers exactly the five sub-app mount names.
-
-    A Cyclopts ``App`` is a mapping of command name to sub-app; iterating it
-    yields the registered keys including the built-in ``--help``/``-h``/
-    ``--version`` meta-commands, so the flag keys are filtered out before the
-    five mount names are compared.
-    """
-    app = novel.build_multiplexer()
-    registered = {name for name in app if not name.startswith("-")}
-    assert registered == {"state", "done", "compile", "desloppify", "wordcount"}
 
 
 def test_verb_for_subcommand_is_registry_driven() -> None:
