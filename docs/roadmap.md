@@ -2949,6 +2949,67 @@ test pins it so it cannot silently re-fork.
     operator messages are unchanged; a test pins the skeleton so a third pack
     family inherits it instead of cloning a third copy; and the rule-pack and
     ledger suites stay green.
+  - [ ] 7.2.6.1. Replace the `PLR0913` skeleton suppressions with a per-family
+    spec bundle.
+    - Addendum (from review:7.2.6; low). `resolve_schema_version` and
+      `build_entries` each carry a paired `noqa: PLR0913` plus `pylint: disable`
+      for their keyword parameters; fold the per-family parameters into a small
+      frozen dataclass so both suppressions retire and a future third family
+      fills one bundle rather than five loose kwargs. Tidiness only; current
+      behaviour is correct. Lightweight addendum pass.
+  - [ ] 7.2.6.2. Pin the `build_entries` enumerate-build-dedup loop with a
+    Hypothesis property.
+    - Addendum (from review:7.2.6; low). The new `build_entries` tail is pinned
+      only by example-based tests; add a Hypothesis strategy generating arrays of
+      N entries with controlled id collisions and authoring orders to harden the
+      authoring-order and first-duplicate-wins guarantees against future edits,
+      per the property-test discipline AGENTS.md asks for where logic branches.
+      Lightweight addendum pass.
+  - [ ] 7.2.6.3. Bring device-ledger parse-boundary test coverage to rule-pack
+    parity over the shared skeleton.
+    - Addendum (from audit:7.2.6; medium). Both pack families now share
+      `resolve_schema_version`/`build_entries`, but only the rule pack exercises
+      the head/tail faults (unsupported/non-integer `schema_version`, unknown
+      keys, empty/missing entry array) end-to-end against fixtures; the ledger
+      binding has neither fixtures nor tests, so a mis-wired `unsupported_noun`,
+      key set, or array key in `parse_ledger` would pass the whole ledger suite
+      green. Add the
+      missing ledger fixtures and a `tests/test_ledger_loader.py` mirroring
+      `tests/test_rulepack_loader.py`, pinning `unsupported device-ledger
+      schema_version N; expected 1` verbatim. Lightweight addendum pass.
+
+- [ ] 7.2.7. Retire the parse/scan identity-lambda builder seams and collapse the
+  per-family `_coerce.py` forwarder shims.
+  - Step-task (source: audit:7.2.6; severity: low). Two residual single-home seams
+    the loaderkit consolidation surfaced and 7.2.6 left standing: (1)
+    `build_entries` and `scan_pattern` force each caller to wrap a keyword-only
+    builder in a byte-identical identity lambda, so a third family clones a third
+    copy; and (2) the two per-family `_coerce.py` shims are near-identical trivial
+    forwarders whose only differentiator is the `offending_id` keyword rename,
+    with a divergent `_require` surface. This serves the step-7.2 hypothesis
+    directly —
+    that each detection-pack loader-and-scan primitive has a *single* home and a
+    third family binds rather than clones — by collapsing the last two
+    clone-per-family seams: drop the lambdas (a positional/keyword convention fix
+    on the builder seam) and collapse the shims to a shared `bind_coercion` factory
+    or `functools.partial` bindings, so a third pack family inherits both rather
+    than cloning them. The public `rule_id`/`device_id` keywords, each typed error
+    channel, and the operator messages stay unchanged.
+  - Requires 7.2.2, 7.2.6.
+  - See novel-ralph-harness-design.md §6.1, §6.2, and §6.3;
+    docs/adr-003-shared-interface-contract.md;
+    novel_ralph_skill/loaderkit/ (`parse.py`, `scan.py`, `coerce.py`);
+    novel_ralph_skill/rulepack/_coerce.py;
+    novel_ralph_skill/ledger/_coerce.py.
+  - Success: neither `build_entries` nor `scan_pattern` requires a caller to wrap
+    its builder in an identity lambda (the keyword-only builder is bound directly);
+    the two per-family `_coerce.py` shims are replaced by a shared `bind_coercion`
+    factory (or `functools.partial` bindings) so a third family supplies one
+    binding rather than cloning a forwarder set; the public `rule_id`/`device_id`
+    keywords, each typed error channel, and the operator messages are unchanged;
+    a test pins the shared binding so a third family inherits it; and the
+    rule-pack,
+    ledger, and `loaderkit` suites stay green.
 
 ### 7.3. Single-source the command facade, predicates, and writers
 
@@ -6189,17 +6250,25 @@ Make the desloppify detection packs configurable and extend the shipped set.
     not every legitimate use — selectable like the ai-isms pack (8.1.6) and
     combinable (8.1.7). Calibrate thresholds against the working/ fixture corpus
     to avoid fiction false-positives (cf. 7.6). This pack is a third pack family
-    beyond `offenders` and `ai-isms`, so it must bind the shared `loaderkit`
-    coercion, entries, and `scan_pattern` primitives (7.2.2) — supplying one more
-    error-factory bundle rather than cloning a third copy — exercising the
-    error-factory seam against a third consumer and hardening its
-    parameterisation against regression.
-  - See novel-ralph-harness-design.md §6.1 and adr-001-deterministic-judgemental-boundary.md.
+    beyond `offenders` and `ai-isms`, so it must bind the full shared `loaderkit`
+    seam — the coercion, entries, and `scan_pattern` primitives (7.2.2), the
+    `loaderkit.errors` factory (7.2.5), and the `resolve_schema_version` /
+    `build_entries` validating-parse skeleton (7.2.6) — supplying one more
+    error-factory and parse bundle rather than cloning a third copy of any
+    loader primitive. Binding the parse skeleton end-to-end against this real
+    third consumer validates that the 7.2.6 consolidation paid off in practice
+    rather than only against the test-local `_Thing`, and confirms the `_HasId`
+    bound is not over-constraining; it exercises the error-factory and parse
+    seams against a third consumer and hardens their parameterisation against
+    regression.
+  - See novel-ralph-harness-design.md §6.1, §6.3 and adr-001-deterministic-judgemental-boundary.md.
   - Success: `novel desloppify --pack filter-words.toml` flags a `was`-heavy or
     filter-word-heavy draft with per-rule density and threshold, passes a clean
     draft, the thresholds do not fire on a calibrated corpus baseline, and the
-    pack's loader consumes the shared `loaderkit` primitives (a third consumer of
-    the error-factory seam) rather than carrying its own coercion or scan copy.
+    pack's loader binds the shared `loaderkit` coercion, scan, error-factory,
+    and `resolve_schema_version`/`build_entries` parse primitives (a third
+    consumer of those seams) rather than carrying its own coercion, scan, or
+    `parse_*` copy.
 - [ ] 8.1.10. Document the desloppify `--ledger` pack schema with a complete
   example.
   - Requires 8.1.2.

@@ -944,3 +944,32 @@ In `novel_ralph_skill/ledger/parse.py` (`parse_ledger` signature unchanged):
 No external dependencies are added; the only imports are
 `novel_ralph_skill.loaderkit` siblings, `novel_ralph_skill.contract.errors`
 (transitively, via the bundle type hints), and the standard library.
+
+## Addenda
+
+Small, surgical corrections folded onto this completed task after its reviews and
+audits. Each runs as a no-plan, no-review lightweight pass and is mirrored by a
+nested sub-task on the roadmap under 7.2.6.
+
+- 7.2.6.1 — Replace the `PLR0913` skeleton suppressions with a per-family spec
+  bundle (from review:7.2.6; low). `resolve_schema_version` and `build_entries`
+  each carry a paired `noqa: PLR0913` plus `pylint: disable` for their keyword
+  parameters. Fold the per-family parameters into a small frozen dataclass so both
+  suppressions retire and a future third family fills one bundle rather than five
+  loose kwargs. Tidiness/altitude only; current behaviour is correct.
+- 7.2.6.2 — Pin the `build_entries` enumerate-build-dedup loop with a Hypothesis
+  property (from review:7.2.6; low). The `build_entries` tail is currently pinned
+  only by example-based tests. Add a Hypothesis strategy generating arrays of N
+  entries with controlled id collisions and authoring orders to harden the
+  authoring-order and first-duplicate-wins guarantees against future edits,
+  matching the property-test discipline AGENTS.md asks for where logic branches.
+- 7.2.6.3 — Bring device-ledger parse-boundary test coverage to rule-pack parity
+  over the shared skeleton (from audit:7.2.6; medium). After this task both pack
+  families share `resolve_schema_version`/`build_entries`, but only the rule pack
+  exercises the head/tail faults (unsupported/non-integer `schema_version`,
+  unknown keys, empty/missing entry array) end-to-end against fixtures. The ledger
+  binding has neither fixtures nor tests, so a mis-wired `unsupported_noun`, key
+  set, or array key in `parse_ledger` would pass the whole ledger suite green. Add
+  the missing ledger fixtures and a `tests/test_ledger_loader.py` mirroring
+  `tests/test_rulepack_loader.py`, pinning `unsupported device-ledger
+  schema_version N; expected 1` verbatim.
