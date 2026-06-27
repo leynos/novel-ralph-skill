@@ -1689,6 +1689,53 @@ bookend the author forgot entirely passes silently. That is design-conformant
 (§6.3 specifies no floor); a "must appear" floor is the highest-value future
 enhancement, recorded here so the limitation is explicit, not accidental.
 
+### The shared loader primitives (`loaderkit`)
+
+The rule-pack and device-ledger loaders were built as deliberate parallels
+(schema → parse → detect → report), which left six near-verbatim primitives
+cloned between them. Roadmap task 7.2.2 consolidated those into one home,
+[`novel_ralph_skill/loaderkit/`](../novel_ralph_skill/loaderkit/), a neutral leaf
+package that depends only on the `contract` layer and the standard library so
+both pack families may consume it without an import cycle (design §6; ADR-001/
+003). It owns the six primitives once each: the scalar-coercion family (`where`,
+`reject_unknown_keys`, `require`, `require_str`, `require_int`), the
+array-of-tables extractor (`entries`), the eager pattern compiler
+(`compile_pattern`), the duplicate-id rejector (`reject_duplicate_ids`), the
+file-fault TOML loader (`load_toml`), and the per-line scan (`scan_pattern`).
+
+Each primitive is **parameterised on an error factory** rather than hard-wired to
+one package's exception. A pack family binds a small frozen `CoercionErrors`
+bundle carrying its content-error constructor (with the `rule_id=`/`device_id=`
+keyword already bound) and its noun pair, so one body raises *that* family's typed
+error with *that* family's noun. The rule pack binds it to `RulePackError` with
+the `"rule"`/`"rule pack"` nouns; the ledger binds it to `LedgerError` with the
+`"device"`/`"device ledger"` nouns. Each package's now-thin `_coerce.py` is a
+*binding* — it builds the bundle and re-exports the underscore-named wrappers its
+`parse.py`/`_fields.py` import — so the call sites keep their terse
+`rule_id=`/`device_id=` shape while the body lives once in `loaderkit`. A third
+pack family (design §8.1's per-novel packs) inherits the primitives by adding one
+more bundle, not a third copy.
+
+Two primitives carry a deliberate twist. `entries` is parameterised on the *full*
+verbatim message strings via an `EntriesMessages` bundle, not on the noun pair,
+because its empty-array message embeds a container noun (`pack`/`ledger`) and an
+item noun (`rule`/`device`) that are neither `CoercionErrors` noun; the strings
+therefore live at each pack's call site, keeping the shared body noun-free.
+`scan_pattern` references the `ScannedChapter`/`LineHit` shapes (still defined in
+`rulepack/detect.py`) only under `TYPE_CHECKING` and constructs each hit through
+a caller-supplied `line_hit` callable, so `loaderkit.scan` has no runtime
+`rulepack` import and the direction `rulepack.detect → loaderkit.scan` /
+`ledger.detect → loaderkit.scan` stays acyclic.
+
+This consolidation **superseded** the earlier `ledger/_coerce.py` "deliberate
+near-copy" rationale: that rationale deferred the error-factory refactor because
+editing the then-frozen rule-pack loader was an ExecPlan Tolerance trip during the
+ledger's own build. Task 7.2.2 is the sanctioned consolidation pass that performs
+exactly the refactor the old docstring foresaw, so the near-copy is retired. The
+shared primitives are pinned by `tests/test_loaderkit_coerce.py`,
+`tests/test_loaderkit_load.py`, and `tests/test_loaderkit_scan.py`, and both
+packages' suites stay green unchanged, so the primitives cannot silently re-fork.
+
 ## GitHub Actions
 
 The generated repository includes GitHub Actions workflows and local composite

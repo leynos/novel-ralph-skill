@@ -2723,7 +2723,7 @@ test pins it so it cannot silently re-fork.
       pin it with a test, and update the developers' guide deferral note to cite
       this sub-task. Lightweight addendum pass.
 
-- [ ] 7.2.2. Consolidate the rule-pack and device-ledger TOML-loading and scan
+- [x] 7.2.2. Consolidate the rule-pack and device-ledger TOML-loading and scan
   primitives onto shared, error-factory-parameterised helpers.
   - Reroute (source: audit:8.1.2; severity: medium). `_coerce` (an explicit
     "deliberate near-copy"), `_entries`, `_compile_pattern`,

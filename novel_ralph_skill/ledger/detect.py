@@ -31,6 +31,7 @@ from __future__ import annotations
 import dataclasses
 import typing as typ
 
+from novel_ralph_skill.loaderkit.scan import scan_pattern
 from novel_ralph_skill.rulepack.detect import LineHit
 
 if typ.TYPE_CHECKING:
@@ -127,14 +128,11 @@ def _scan_device(
         The total literal match count and the per-match ``LineHit`` tuple, in scan
         order.
     """
-    hits: list[LineHit] = []
-    for chapter in chapters:
-        for index, line in enumerate(chapter.text.splitlines(), start=1):
-            hits.extend(
-                LineHit(chapter=chapter.number, line=index)
-                for _match in device.compiled.finditer(line)
-            )
-    return len(hits), tuple(hits)
+    return scan_pattern(
+        device.compiled,
+        chapters,
+        line_hit=lambda chapter, line: LineHit(chapter=chapter, line=line),
+    )
 
 
 def _window(device: Device) -> tuple[str, tuple[int, ...] | None]:

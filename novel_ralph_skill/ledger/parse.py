@@ -27,18 +27,14 @@ the command body's job (task 7.1.2).
 
 from __future__ import annotations
 
-import collections.abc as cabc
-import re
-import tomllib
 import typing as typ
 
 from novel_ralph_skill.ledger._coerce import (
+    _ERRORS,
     _Mapping,
     _reject_unknown_keys,
-    _require,
     _require_int,
     _require_str,
-    _where,
 )
 from novel_ralph_skill.ledger._fields import _rationing_fields
 from novel_ralph_skill.ledger.errors import LedgerError, LedgerFileError
@@ -47,8 +43,16 @@ from novel_ralph_skill.ledger.schema import (
     Device,
     DeviceLedger,
 )
+from novel_ralph_skill.loaderkit import (
+    EntriesMessages,
+    compile_pattern,
+    entries,
+    load_toml,
+    reject_duplicate_ids,
+)
 
 if typ.TYPE_CHECKING:
+    import collections.abc as cabc
     from importlib.resources.abc import Traversable
 
 # The complete v1 key vocabularies. An unknown key on either the ledger table or
@@ -66,77 +70,16 @@ _DEVICE_KEYS: frozenset[str] = frozenset({
 })
 
 
-def _entries(raw: _Mapping) -> cabc.Sequence[_Mapping]:
-    """Return the non-empty ``device`` array as a sequence of device-entry mappings.
-
-    Parameters
-    ----------
-    raw : collections.abc.Mapping[str, object]
-        The decoded device ledger.
-
-    Returns
-    -------
-    collections.abc.Sequence[collections.abc.Mapping[str, object]]
-        The decoded ``[[device]]`` entries in authoring order.
-
-    Raises
-    ------
-    LedgerError
-        If ``device`` is absent, is not an array of tables, is empty, or holds a
-        non-mapping entry. These are ledger-level faults (``device_id is None``).
-
-    Notes
-    -----
-    The guards match the abstract shapes the boundary advertises — any
-    :class:`collections.abc.Sequence` that is not ``str``/``bytes`` for the array,
-    and any :class:`collections.abc.Mapping` for each entry — rather than the
-    concrete ``list``/``dict`` ``tomllib`` happens to return, so the boundary
-    honours the documented ``Mapping`` input contract.
-    """
-    value = _require(raw, "device", device_id=None)
-    if isinstance(value, (str, bytes)) or not isinstance(value, cabc.Sequence):
-        msg = f"'device' must be an array of tables, got {type(value).__name__}"
-        raise LedgerError(msg, device_id=None)
-    if not value:
-        msg = "'device' array is empty; a ledger must declare at least one device"
-        raise LedgerError(msg, device_id=None)
-    for index, entry in enumerate(value):
-        if not isinstance(entry, cabc.Mapping):
-            msg = f"device at index {index} must be a table, got {type(entry).__name__}"
-            raise LedgerError(msg, device_id=None)
-    return typ.cast("cabc.Sequence[_Mapping]", value)
-
-
-def _compile_pattern(pattern: str, *, device_id: str) -> re.Pattern[str]:
-    r"""Compile ``pattern`` with no flags, or raise naming ``device_id``.
-
-    An uncompilable pattern fails loudly, naming the offending device, rather
-    than being silently skipped (the roadmap 5.1.1 headline behaviour carried to
-    the ledger). The pattern is compiled with no flags so ``.`` cannot cross
-    ``\n``, matching the line-by-line scan the detector relies on.
-
-    Parameters
-    ----------
-    pattern : str
-        The regular-expression source to compile.
-    device_id : str
-        The offending device's ``id``, named in the error on failure.
-
-    Returns
-    -------
-    re.Pattern[str]
-        The compiled pattern.
-
-    Raises
-    ------
-    LedgerError
-        If ``pattern`` does not compile.
-    """
-    try:
-        return re.compile(pattern)
-    except re.error as exc:
-        msg = f"{_where(device_id)} has an invalid pattern {pattern!r}: {exc}"
-        raise LedgerError(msg, device_id=device_id) from exc
+# The ledger's verbatim array-extraction messages, bound onto the shared
+# ``entries`` primitive (Decision D-ENTRIES). These strings carry the quoted array
+# key, the container noun (``ledger``), and the item noun (``device``) whole —
+# nouns the ``CoercionErrors`` pair cannot supply — so they live at this call
+# site, not in ``loaderkit``.
+_ENTRIES_MESSAGES = EntriesMessages(
+    not_array="'device' must be an array of tables, got {type_name}",
+    empty="'device' array is empty; a ledger must declare at least one device",
+    non_mapping="device at index {index} must be a table, got {type_name}",
+)
 
 
 def _device(entry: _Mapping, *, index: int) -> Device:
@@ -181,38 +124,12 @@ def _device(entry: _Mapping, *, index: int) -> Device:
     return Device(
         id=device_id,
         pattern=pattern,
-        compiled=_compile_pattern(pattern, device_id=device_id),
+        compiled=compile_pattern(pattern, errors=_ERRORS, offending_id=device_id),
         max_count=max_count,
         allowed_chapters=allowed,
         retired_after_chapter=retired,
         reserved_for_chapter=reserved,
     )
-
-
-def _reject_duplicate_ids(devices: cabc.Sequence[Device]) -> None:
-    """Raise :class:`LedgerError` if two devices share an ``id``.
-
-    Device ids must be unique so a :class:`LedgerError` (or a later detection
-    finding in task 7.1.2) that names ``device_id`` unambiguously identifies one
-    device. The strictest loud-failure reading rejects the collision, naming the
-    duplicated id.
-
-    Parameters
-    ----------
-    devices : collections.abc.Sequence[Device]
-        The validated devices in authoring order.
-
-    Raises
-    ------
-    LedgerError
-        If any ``id`` appears on more than one device; the error names that id.
-    """
-    seen: set[str] = set()
-    for device in devices:
-        if device.id in seen:
-            msg = f"{_where(device.id)} is defined more than once; ids must be unique"
-            raise LedgerError(msg, device_id=device.id)
-        seen.add(device.id)
 
 
 def parse_ledger(raw: cabc.Mapping[str, object]) -> DeviceLedger:
@@ -260,10 +177,13 @@ def parse_ledger(raw: cabc.Mapping[str, object]) -> DeviceLedger:
             f"expected {LEDGER_SCHEMA_VERSION}"
         )
         raise LedgerError(msg, device_id=None)
-    devices = tuple(
-        _device(entry, index=index) for index, entry in enumerate(_entries(raw))
+    raw_entries = entries(
+        raw, array_key="device", messages=_ENTRIES_MESSAGES, errors=_ERRORS
     )
-    _reject_duplicate_ids(devices)
+    devices = tuple(
+        _device(entry, index=index) for index, entry in enumerate(raw_entries)
+    )
+    reject_duplicate_ids((device.id for device in devices), errors=_ERRORS)
     return DeviceLedger(schema_version=schema_version, devices=devices)
 
 
@@ -302,12 +222,5 @@ def load_ledger(path: Traversable) -> DeviceLedger:
     LedgerError
         If the decoded ledger violates the schema (propagated unchanged).
     """
-    try:
-        with path.open("rb") as handle:
-            raw = tomllib.load(handle)
-    except (OSError, tomllib.TOMLDecodeError) as exc:
-        # OSError covers FileNotFoundError and PermissionError; TOMLDecodeError
-        # is the undecodable-bytes case. All three are the exit-3 file channel.
-        msg = f"cannot read device ledger at {path}: {exc}"
-        raise LedgerFileError(msg) from exc
+    raw = load_toml(path, noun="device ledger", file_error=LedgerFileError)
     return parse_ledger(raw)

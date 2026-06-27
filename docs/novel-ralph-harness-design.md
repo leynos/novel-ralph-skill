@@ -763,6 +763,14 @@ most one window constraint per device, `max_count` may pair with one window, a
 ration-less device rejected), the two-exit-code fault split, and the
 whole-manuscript `--ledger` mode (mutually exclusive with `--chapter`).
 
+The rule-pack (§6.1) and device-ledger (§6.3) loaders share one home for their
+schema-agnostic primitives — `novel_ralph_skill/loaderkit/`, owning the coercion,
+entry-extraction, pattern-compilation, duplicate-id, file-load, and per-line scan
+bodies once each — with each pack family binding the primitives to its own typed
+error channel through an error factory, so a third pack family inherits them
+instead of cloning a third copy (roadmap task 7.2.2; the developers' guide records
+the binding seam).
+
 ## 7. Clean-context sub-agent architecture (designed; built post-v1)
 
 The judgemental passes are designed here and sequenced after the deterministic

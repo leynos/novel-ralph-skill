@@ -27,15 +27,19 @@ the command body's job (task 5.1.2).
 
 from __future__ import annotations
 
-import collections.abc as cabc
-import re
-import tomllib
 import typing as typ
 
+from novel_ralph_skill.loaderkit import (
+    EntriesMessages,
+    compile_pattern,
+    entries,
+    load_toml,
+    reject_duplicate_ids,
+)
 from novel_ralph_skill.rulepack._coerce import (
+    _ERRORS,
     _Mapping,
     _reject_unknown_keys,
-    _require,
     _require_int,
     _require_str,
     _where,
@@ -49,6 +53,7 @@ from novel_ralph_skill.rulepack.schema import (
 )
 
 if typ.TYPE_CHECKING:
+    import collections.abc as cabc
     from importlib.resources.abc import Traversable
 
 # The complete v1 key vocabularies. An unknown key on either the pack table or a
@@ -65,77 +70,16 @@ _RULE_KEYS: frozenset[str] = frozenset({
 })
 
 
-def _entries(raw: _Mapping) -> cabc.Sequence[_Mapping]:
-    """Return the non-empty ``rule`` array as a sequence of rule-entry mappings.
-
-    Parameters
-    ----------
-    raw : collections.abc.Mapping[str, object]
-        The decoded rule pack.
-
-    Returns
-    -------
-    collections.abc.Sequence[collections.abc.Mapping[str, object]]
-        The decoded ``[[rule]]`` entries in authoring order.
-
-    Raises
-    ------
-    RulePackError
-        If ``rule`` is absent, is not an array of tables, is empty, or holds a
-        non-mapping entry. These are pack-level faults (``rule_id is None``).
-
-    Notes
-    -----
-    The guards match the abstract shapes the boundary advertises — any
-    :class:`collections.abc.Sequence` that is not ``str``/``bytes`` for the
-    array, and any :class:`collections.abc.Mapping` for each entry — rather than
-    the concrete ``list``/``dict`` ``tomllib`` happens to return, so the boundary
-    honours the documented ``Mapping`` input contract (for example a
-    :class:`types.MappingProxyType`-wrapped pack loads).
-    """
-    value = _require(raw, "rule", rule_id=None)
-    if isinstance(value, (str, bytes)) or not isinstance(value, cabc.Sequence):
-        msg = f"'rule' must be an array of tables, got {type(value).__name__}"
-        raise RulePackError(msg, rule_id=None)
-    if not value:
-        msg = "'rule' array is empty; a pack must declare at least one rule"
-        raise RulePackError(msg, rule_id=None)
-    for index, entry in enumerate(value):
-        if not isinstance(entry, cabc.Mapping):
-            msg = f"rule at index {index} must be a table, got {type(entry).__name__}"
-            raise RulePackError(msg, rule_id=None)
-    return typ.cast("cabc.Sequence[_Mapping]", value)
-
-
-def _compile_pattern(pattern: str, *, rule_id: str) -> re.Pattern[str]:
-    """Compile ``pattern`` or raise :class:`RulePackError` naming ``rule_id``.
-
-    This is the roadmap 5.1.1 headline behaviour: an uncompilable pattern fails
-    loudly, naming the offending rule, rather than being silently skipped.
-    ``re.compile`` validates eagerly, so a bad pattern is caught at load time.
-
-    Parameters
-    ----------
-    pattern : str
-        The regular-expression source to compile.
-    rule_id : str
-        The offending rule's ``id``, named in the error on failure.
-
-    Returns
-    -------
-    re.Pattern[str]
-        The compiled pattern.
-
-    Raises
-    ------
-    RulePackError
-        If ``pattern`` does not compile.
-    """
-    try:
-        return re.compile(pattern)
-    except re.error as exc:
-        msg = f"{_where(rule_id)} has an invalid pattern {pattern!r}: {exc}"
-        raise RulePackError(msg, rule_id=rule_id) from exc
+# The rule pack's verbatim array-extraction messages, bound onto the shared
+# ``entries`` primitive (Decision D-ENTRIES). These strings carry the quoted array
+# key, the container noun (``pack``), and the item noun (``rule``) whole — nouns
+# the ``CoercionErrors`` pair cannot supply — so they live at this call site, not
+# in ``loaderkit``.
+_ENTRIES_MESSAGES = EntriesMessages(
+    not_array="'rule' must be an array of tables, got {type_name}",
+    empty="'rule' array is empty; a pack must declare at least one rule",
+    non_mapping="rule at index {index} must be a table, got {type_name}",
+)
 
 
 def _resolve_basis(value: str, *, rule_id: str) -> RuleBasis:
@@ -262,37 +206,11 @@ def _rule(entry: _Mapping, *, index: int) -> Rule:
     return Rule(
         id=rule_id,
         pattern=pattern,
-        compiled=_compile_pattern(pattern, rule_id=rule_id),
+        compiled=compile_pattern(pattern, errors=_ERRORS, offending_id=rule_id),
         threshold=threshold,
         basis=basis,
         page_words=page_words,
     )
-
-
-def _reject_duplicate_ids(rules: cabc.Sequence[Rule]) -> None:
-    """Raise :class:`RulePackError` if two rules share an ``id``.
-
-    Rule ids must be unique so a :class:`RulePackError` (or a later detection
-    fault in task 5.1.2) that names ``rule_id`` unambiguously identifies one
-    rule. The design does not pin id-uniqueness, so the strictest loud-failure
-    reading rejects the collision, naming the duplicated id.
-
-    Parameters
-    ----------
-    rules : collections.abc.Sequence[Rule]
-        The validated rules in authoring order.
-
-    Raises
-    ------
-    RulePackError
-        If any ``id`` appears on more than one rule; the error names that id.
-    """
-    seen: set[str] = set()
-    for rule in rules:
-        if rule.id in seen:
-            msg = f"{_where(rule.id)} is defined more than once; ids must be unique"
-            raise RulePackError(msg, rule_id=rule.id)
-        seen.add(rule.id)
 
 
 def parse_rulepack(raw: cabc.Mapping[str, object]) -> RulePack:
@@ -340,10 +258,11 @@ def parse_rulepack(raw: cabc.Mapping[str, object]) -> RulePack:
         )
         raise RulePackError(msg, rule_id=None)
     pack = _require_str(raw, "pack", rule_id=None)
-    rules = tuple(
-        _rule(entry, index=index) for index, entry in enumerate(_entries(raw))
+    raw_entries = entries(
+        raw, array_key="rule", messages=_ENTRIES_MESSAGES, errors=_ERRORS
     )
-    _reject_duplicate_ids(rules)
+    rules = tuple(_rule(entry, index=index) for index, entry in enumerate(raw_entries))
+    reject_duplicate_ids((rule.id for rule in rules), errors=_ERRORS)
     return RulePack(schema_version=schema_version, pack=pack, rules=rules)
 
 
@@ -381,12 +300,5 @@ def load_rulepack(path: Traversable) -> RulePack:
     RulePackError
         If the decoded pack violates the schema (propagated unchanged).
     """
-    try:
-        with path.open("rb") as handle:
-            raw = tomllib.load(handle)
-    except (OSError, tomllib.TOMLDecodeError) as exc:
-        # OSError covers FileNotFoundError and PermissionError; TOMLDecodeError
-        # is the undecodable-bytes case. All three are the exit-3 file channel.
-        msg = f"cannot read rule pack at {path}: {exc}"
-        raise RulePackFileError(msg) from exc
+    raw = load_toml(path, noun="rule pack", file_error=RulePackFileError)
     return parse_rulepack(raw)
