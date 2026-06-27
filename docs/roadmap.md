@@ -2424,7 +2424,7 @@ and adr-003-shared-interface-contract.md.
     `schema_version` source; the guard reuses the repo's established prose-guard
     pattern; no contract restatement copy remains unpinned by a test; and the
     docs and contract suites stay green.
-  - [ ] 6.3.9.1.
+  - [x] 6.3.9.1.
     - Addendum (from review:6.3.9 / audit:6.3.9; low). Cover the trailing-comma
       discard branch of `extract_brace_field_list`: the scanner helper documents
       that empty comma-split fragments (e.g. a trailing comma) are discarded via

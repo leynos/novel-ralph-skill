@@ -801,7 +801,7 @@ auditing guard keyword/anchor brittleness, and guarding the developers'-guide
 exit-3 formatter-count prose) were re-routed to roadmap step 7.6; this is the
 small coverage gap.
 
-- [ ] 6.3.9.1 — Cover the trailing-comma discard branch of
+- [x] 6.3.9.1 — Cover the trailing-comma discard branch of
   `extract_brace_field_list` (from review:6.3.9 / audit:6.3.9, low; two
   near-identical proposals merged). The scanner helper documents that empty
   comma-split fragments (e.g. a trailing comma) are discarded via the `if

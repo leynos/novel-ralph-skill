@@ -269,6 +269,11 @@ class TestDevelopersGuideContractScanner:
         region = "{first, set} then later {second, shorter}\n"
         assert extract_brace_field_list(region, source="planted") == ["first", "set"]
 
+    def test_extract_brace_field_list_discards_trailing_comma(self) -> None:
+        """A cosmetic trailing comma yields no spurious blank field (discard guard)."""
+        region = "the field set is {a, b, } in order\n"
+        assert extract_brace_field_list(region, source="planted") == ["a", "b"]
+
     def test_extract_brace_field_list_loud_on_missing_list(self) -> None:
         """A region with no brace-list raises naming the source, not silently empty."""
         with pytest.raises(ValueError, match="no brace-list found in planted"):
