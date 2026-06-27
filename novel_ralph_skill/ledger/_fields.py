@@ -17,12 +17,7 @@ from __future__ import annotations
 
 import collections.abc as cabc
 
-from novel_ralph_skill.ledger._coerce import (
-    _Mapping,
-    _require,
-    _require_int,
-    _where,
-)
+from novel_ralph_skill.ledger._coerce import _COERCION, _Mapping
 from novel_ralph_skill.ledger.errors import LedgerError
 
 # The three chapter-window constraints. A device may carry at most one of these
@@ -58,9 +53,9 @@ def _positive_int(entry: _Mapping, key: str, *, device_id: str) -> int:
     LedgerError
         If the value is not an integer or is not positive.
     """
-    value = _require_int(entry, key, device_id=device_id)
+    value = _COERCION.require_int(entry, key, offending_id=device_id)
     if value <= 0:
-        msg = f"{_where(device_id)} {key!r} must be positive, got {value}"
+        msg = f"{_COERCION.where(device_id)} {key!r} must be positive, got {value}"
         raise LedgerError(msg, device_id=device_id)
     return value
 
@@ -70,7 +65,8 @@ def _allowed_chapters(entry: _Mapping, *, device_id: str) -> tuple[int, ...]:
 
     The TOML array is coerced to a ``tuple`` at this boundary, every element
     runtime-checked to be a positive integer (rejecting ``bool``, as
-    :func:`_require_int` does), and the array must be non-empty (an empty allowed
+    :meth:`~novel_ralph_skill.loaderkit.coerce.BoundCoercion.require_int` does),
+    and the array must be non-empty (an empty allowed
     set would forbid the device everywhere, a no-op the author did not intend).
 
     Parameters
@@ -91,27 +87,27 @@ def _allowed_chapters(entry: _Mapping, *, device_id: str) -> tuple[int, ...]:
         If ``allowed_chapters`` is not an array, is empty, or holds a non-positive
         or non-integer element.
     """
-    value = _require(entry, "allowed_chapters", device_id=device_id)
+    value = _COERCION.require(entry, "allowed_chapters", offending_id=device_id)
     if isinstance(value, (str, bytes)) or not isinstance(value, cabc.Sequence):
         msg = (
-            f"{_where(device_id)} 'allowed_chapters' must be an array of "
+            f"{_COERCION.where(device_id)} 'allowed_chapters' must be an array of "
             f"positive integers, got {type(value).__name__}"
         )
         raise LedgerError(msg, device_id=device_id)
     if not value:
-        msg = f"{_where(device_id)} 'allowed_chapters' must be non-empty"
+        msg = f"{_COERCION.where(device_id)} 'allowed_chapters' must be non-empty"
         raise LedgerError(msg, device_id=device_id)
     chapters: list[int] = []
     for element in value:
         if isinstance(element, bool) or not isinstance(element, int):
             msg = (
-                f"{_where(device_id)} 'allowed_chapters' elements must be "
+                f"{_COERCION.where(device_id)} 'allowed_chapters' elements must be "
                 f"integers, got {type(element).__name__}"
             )
             raise LedgerError(msg, device_id=device_id)
         if element <= 0:
             msg = (
-                f"{_where(device_id)} 'allowed_chapters' elements must be "
+                f"{_COERCION.where(device_id)} 'allowed_chapters' elements must be "
                 f"positive, got {element}"
             )
             raise LedgerError(msg, device_id=device_id)
@@ -169,7 +165,7 @@ def _rationing_fields(
     if len(windows) > 1:
         listed = ", ".join(repr(key) for key in windows)
         msg = (
-            f"{_where(device_id)} carries more than one window constraint "
+            f"{_COERCION.where(device_id)} carries more than one window constraint "
             f"({listed}); a device may carry at most one of "
             f"'allowed_chapters', 'retired_after_chapter', 'reserved_for_chapter'"
         )
@@ -177,7 +173,7 @@ def _rationing_fields(
     has_max = "max_count" in entry
     if not has_max and not windows:
         msg = (
-            f"{_where(device_id)} carries no ration; declare at least one of "
+            f"{_COERCION.where(device_id)} carries no ration; declare at least one of "
             f"'max_count', 'allowed_chapters', 'retired_after_chapter', "
             f"'reserved_for_chapter'"
         )

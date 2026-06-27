@@ -67,7 +67,7 @@ def scan_pattern(
     pattern: re.Pattern[str],
     chapters: cabc.Sequence[ScannedChapter],
     *,
-    line_hit: cabc.Callable[[int, int], LineHit],
+    line_hit: cabc.Callable[..., LineHit],
 ) -> tuple[int, tuple[LineHit, ...]]:
     r"""Count one pattern's non-overlapping matches per physical line.
 
@@ -85,11 +85,14 @@ def scan_pattern(
         ``Rule``/``Device`` knowledge).
     chapters : collections.abc.Sequence[ScannedChapter]
         The scanned chapters, in order.
-    line_hit : collections.abc.Callable[[int, int], LineHit]
-        Constructs a :class:`LineHit` from ``(chapter_number, line_index)``; the
-        caller passes ``lambda chapter, line: LineHit(chapter=chapter, line=line)``.
-        This callback is the seam that keeps the shared body free of any
-        ``Rule``/``Device`` knowledge.
+    line_hit : collections.abc.Callable[..., LineHit]
+        Constructs a :class:`LineHit`, called by keyword as
+        ``line_hit(chapter=chapter_number, line=line_index)``; the caller passes
+        the :class:`LineHit` class itself (``line_hit=LineHit``), or any keyword
+        constructor with the same ``(*, chapter, line)`` signature. This callback
+        is the seam that keeps the shared body free of any ``Rule``/``Device``
+        knowledge, and the keyword-call convention lets the ``kw_only``
+        :class:`LineHit` bind directly without an identity-lambda wrapper.
 
     Returns
     -------
@@ -101,6 +104,7 @@ def scan_pattern(
     for chapter in chapters:
         for index, line in enumerate(chapter.text.splitlines(), start=1):
             hits.extend(
-                line_hit(chapter.number, index) for _match in pattern.finditer(line)
+                line_hit(chapter=chapter.number, line=index)
+                for _match in pattern.finditer(line)
             )
     return len(hits), tuple(hits)

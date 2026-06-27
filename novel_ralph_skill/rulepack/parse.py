@@ -36,14 +36,7 @@ from novel_ralph_skill.loaderkit import (
     load_toml,
     resolve_schema_version,
 )
-from novel_ralph_skill.rulepack._coerce import (
-    _ERRORS,
-    _Mapping,
-    _reject_unknown_keys,
-    _require_int,
-    _require_str,
-    _where,
-)
+from novel_ralph_skill.rulepack._coerce import _COERCION, _ERRORS, _Mapping
 from novel_ralph_skill.rulepack.errors import RulePackError, RulePackFileError
 from novel_ralph_skill.rulepack.schema import (
     RULEPACK_SCHEMA_VERSION,
@@ -110,7 +103,10 @@ def _resolve_basis(value: str, *, rule_id: str) -> RuleBasis:
         # not the string value, so ``str(member)`` renders the bare ``'per_page'``
         # a pack author actually types.
         allowed = ", ".join(repr(str(member)) for member in RuleBasis)
-        msg = f"{_where(rule_id)} has unknown basis {value!r}; allowed: {allowed}"
+        msg = (
+            f"{_COERCION.where(rule_id)} has unknown basis {value!r}; "
+            f"allowed: {allowed}"
+        )
         raise RulePackError(msg, rule_id=rule_id) from exc
 
 
@@ -145,16 +141,19 @@ def _resolve_page_words(
         value, or a non-``per_page`` rule carries a stray ``page_words``.
     """
     if basis is RuleBasis.PER_PAGE:
-        page_words = _require_int(entry, "page_words", rule_id=rule_id)
+        page_words = _COERCION.require_int(entry, "page_words", offending_id=rule_id)
         if page_words <= 0:
-            msg = f"{_where(rule_id)} 'page_words' must be positive, got {page_words}"
+            msg = (
+                f"{_COERCION.where(rule_id)} 'page_words' must be positive, "
+                f"got {page_words}"
+            )
             raise RulePackError(msg, rule_id=rule_id)
         return page_words
     if "page_words" in entry:
         # ``str(basis)`` is deliberate: a ``StrEnum``'s ``__repr__`` is the Enum
         # form, so ``str(basis)`` renders the bare ``'manuscript'`` value here.
         msg = (
-            f"{_where(rule_id)} carries 'page_words' but its basis is "
+            f"{_COERCION.where(rule_id)} carries 'page_words' but its basis is "
             f"{str(basis)!r}; 'page_words' is only valid for 'per_page'"
         )
         raise RulePackError(msg, rule_id=rule_id)
@@ -192,14 +191,17 @@ def _rule(entry: _Mapping, *, index: int) -> Rule:
     # The ``isinstance`` guard above has already narrowed ``entry["id"]``.
     rule_id = entry["id"]
 
-    _reject_unknown_keys(entry, _RULE_KEYS, rule_id=rule_id)
-    pattern = _require_str(entry, "pattern", rule_id=rule_id)
-    threshold = _require_int(entry, "threshold", rule_id=rule_id)
+    _COERCION.reject_unknown_keys(entry, _RULE_KEYS, offending_id=rule_id)
+    pattern = _COERCION.require_str(entry, "pattern", offending_id=rule_id)
+    threshold = _COERCION.require_int(entry, "threshold", offending_id=rule_id)
     if threshold < 0:
-        msg = f"{_where(rule_id)} 'threshold' must be non-negative, got {threshold}"
+        msg = (
+            f"{_COERCION.where(rule_id)} 'threshold' must be non-negative, "
+            f"got {threshold}"
+        )
         raise RulePackError(msg, rule_id=rule_id)
     basis = _resolve_basis(
-        _require_str(entry, "basis", rule_id=rule_id), rule_id=rule_id
+        _COERCION.require_str(entry, "basis", offending_id=rule_id), rule_id=rule_id
     )
     page_words = _resolve_page_words(entry, basis=basis, rule_id=rule_id)
 
@@ -270,13 +272,13 @@ def parse_rulepack(raw: cabc.Mapping[str, object]) -> RulePack:
     )
     # Read ``pack`` at the head/tail seam, preserving the live
     # ``pack``-before-``entries`` fault precedence (Decision D-SKELETON-HEAD-TAIL).
-    pack = _require_str(raw, "pack", rule_id=None)
+    pack = _COERCION.require_str(raw, "pack", offending_id=None)
     rules = build_entries(
         raw,
         array_key="rule",
         entries_messages=_ENTRIES_MESSAGES,
         errors=_ERRORS,
-        build_entry=lambda entry, index: _rule(entry, index=index),
+        build_entry=_rule,
     )
     return RulePack(schema_version=schema_version, pack=pack, rules=rules)
 

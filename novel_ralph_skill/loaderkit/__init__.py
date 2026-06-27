@@ -39,8 +39,10 @@ type-hints against) and the standard library. It imports neither ``rulepack`` no
 from __future__ import annotations
 
 from novel_ralph_skill.loaderkit.coerce import (
+    BoundCoercion,
     CoercionErrors,
     Mapping,
+    bind_coercion,
     reject_unknown_keys,
     require,
     require_int,
@@ -59,6 +61,7 @@ from novel_ralph_skill.loaderkit.parse import build_entries, resolve_schema_vers
 from novel_ralph_skill.loaderkit.scan import LineHit, ScannedChapter, scan_pattern
 
 __all__ = [
+    "BoundCoercion",
     "CoercionErrors",
     "EntriesMessages",
     "LineHit",
@@ -66,6 +69,7 @@ __all__ = [
     "PackError",
     "PackFileError",
     "ScannedChapter",
+    "bind_coercion",
     "build_entries",
     "compile_pattern",
     "entries",

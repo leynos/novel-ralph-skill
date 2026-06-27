@@ -70,6 +70,21 @@ class _HasId(typ.Protocol):
         """The entry's unique id."""
 
 
+class EntryBuilder[T](typ.Protocol):
+    """The keyword-builder seam :func:`build_entries` calls once per array entry.
+
+    The builder is called ``build_entry(entry, index=index)`` — ``index`` is a
+    keyword — so a family's keyword-only ``_rule(entry, *, index)`` /
+    ``_device(entry, *, index)`` binds **directly** as ``build_entry=_rule`` with
+    no positional-to-keyword identity lambda (roadmap 7.2.7). The skeleton never
+    inspects the entry fields itself; the builder is the only seam that names a
+    concrete entry type.
+    """
+
+    def __call__(self, entry: Mapping, *, index: int) -> T:
+        """Build one validated entry from ``entry`` at array position ``index``."""
+
+
 def resolve_schema_version(  # noqa: PLR0913  # pylint: disable=too-many-arguments
     raw: Mapping,
     *,
@@ -155,7 +170,7 @@ def build_entries[T: _HasId](  # noqa: PLR0913  # pylint: disable=too-many-argum
     array_key: str,
     entries_messages: EntriesMessages,
     errors: CoercionErrors,
-    build_entry: cabc.Callable[[Mapping, int], T],
+    build_entry: EntryBuilder[T],
     entry_id: cabc.Callable[[T], str] = _entry_id,
 ) -> tuple[T, ...]:
     """Extract, build, and de-duplicate the entry array, returning the built tuple.
@@ -179,9 +194,12 @@ def build_entries[T: _HasId](  # noqa: PLR0913  # pylint: disable=too-many-argum
         The three verbatim array-extraction fault messages for this family.
     errors : CoercionErrors
         The bound error factory.
-    build_entry : collections.abc.Callable[[Mapping, int], T]
-        The per-family builder, called ``build_entry(entry, index)`` once per array
-        element in authoring order; the skeleton never inspects entry fields itself.
+    build_entry : EntryBuilder[T]
+        The per-family builder, called ``build_entry(entry, index=index)`` — with
+        a keyword ``index`` — once per array element in authoring order; the
+        skeleton never inspects entry fields itself. The keyword-call convention
+        lets a keyword-only ``_rule(entry, *, index)``/``_device(entry, *, index)``
+        bind directly without an identity-lambda wrapper.
     entry_id : collections.abc.Callable[[T], str], optional
         Projects a built entry to its ``id`` for the duplicate-id pass. Defaults to
         :func:`_entry_id` (``entry.id``); the entry type ``T`` is bound to
@@ -203,6 +221,8 @@ def build_entries[T: _HasId](  # noqa: PLR0913  # pylint: disable=too-many-argum
     raw_entries = entries(
         raw, array_key=array_key, messages=entries_messages, errors=errors
     )
-    built = tuple(build_entry(entry, index) for index, entry in enumerate(raw_entries))
+    built = tuple(
+        build_entry(entry, index=index) for index, entry in enumerate(raw_entries)
+    )
     reject_duplicate_ids((entry_id(entry) for entry in built), errors=errors)
     return built

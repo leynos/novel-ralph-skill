@@ -29,12 +29,7 @@ from __future__ import annotations
 
 import typing as typ
 
-from novel_ralph_skill.ledger._coerce import (
-    _ERRORS,
-    _Mapping,
-    _reject_unknown_keys,
-    _require_str,
-)
+from novel_ralph_skill.ledger._coerce import _COERCION, _ERRORS, _Mapping
 from novel_ralph_skill.ledger._fields import _rationing_fields
 from novel_ralph_skill.ledger.errors import LedgerError, LedgerFileError
 from novel_ralph_skill.ledger.schema import (
@@ -114,8 +109,8 @@ def _device(entry: _Mapping, *, index: int) -> Device:
     # The ``isinstance`` guard above has already narrowed ``entry["id"]``.
     device_id = entry["id"]
 
-    _reject_unknown_keys(entry, _DEVICE_KEYS, device_id=device_id)
-    pattern = _require_str(entry, "pattern", device_id=device_id)
+    _COERCION.reject_unknown_keys(entry, _DEVICE_KEYS, offending_id=device_id)
+    pattern = _COERCION.require_str(entry, "pattern", offending_id=device_id)
     max_count, allowed, retired, reserved = _rationing_fields(
         entry, device_id=device_id
     )
@@ -191,7 +186,7 @@ def parse_ledger(raw: cabc.Mapping[str, object]) -> DeviceLedger:
         array_key="device",
         entries_messages=_ENTRIES_MESSAGES,
         errors=_ERRORS,
-        build_entry=lambda entry, index: _device(entry, index=index),
+        build_entry=_device,
     )
     return DeviceLedger(schema_version=schema_version, devices=devices)
 

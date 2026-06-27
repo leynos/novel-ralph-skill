@@ -30,16 +30,16 @@ from hypothesis import strategies as st
 from novel_ralph_skill.loaderkit.scan import LineHit, ScannedChapter, scan_pattern
 
 
-def _line_hit(chapter: int, line: int) -> LineHit:
-    """Construct a :class:`LineHit`, the constructor ``scan_pattern`` calls back."""
-    return LineHit(chapter=chapter, line=line)
-
-
 def test_two_hits_one_line_carry_same_line_number() -> None:
-    """Two matches on one line yield two hits sharing that line number."""
+    """Two matches on one line yield two hits sharing that line number.
+
+    Binds the :class:`LineHit` class directly as the ``line_hit`` callback (no
+    identity-lambda wrapper), the idiom both detectors now use, proving the
+    ``kw_only`` constructor satisfies ``scan_pattern``'s keyword-call convention.
+    """
     pattern = re.compile(r"ab")
     chapters = [ScannedChapter(number=1, text="ab ab")]
-    count, hits = scan_pattern(pattern, chapters, line_hit=_line_hit)
+    count, hits = scan_pattern(pattern, chapters, line_hit=LineHit)
     assert count == 2
     assert hits == (LineHit(chapter=1, line=1), LineHit(chapter=1, line=1))
 
@@ -51,7 +51,7 @@ def test_hits_across_chapters_carry_right_chapter() -> None:
         ScannedChapter(number=1, text="x"),
         ScannedChapter(number=2, text="x\nx"),
     ]
-    count, hits = scan_pattern(pattern, chapters, line_hit=_line_hit)
+    count, hits = scan_pattern(pattern, chapters, line_hit=LineHit)
     assert count == 3
     assert hits == (
         LineHit(chapter=1, line=1),
@@ -69,7 +69,7 @@ def test_multi_line_span_split_yields_zero_hits() -> None:
     """
     pattern = re.compile(r"foo.bar")
     chapters = [ScannedChapter(number=1, text="foo\nbar")]
-    count, hits = scan_pattern(pattern, chapters, line_hit=_line_hit)
+    count, hits = scan_pattern(pattern, chapters, line_hit=LineHit)
     assert count == 0
     assert not hits
 
@@ -81,7 +81,7 @@ def test_count_matches_len_and_lines_in_scan_order() -> None:
         ScannedChapter(number=1, text="z\nz z"),
         ScannedChapter(number=2, text="z"),
     ]
-    count, hits = scan_pattern(pattern, chapters, line_hit=_line_hit)
+    count, hits = scan_pattern(pattern, chapters, line_hit=LineHit)
     assert count == len(hits) == 4
     assert hits == (
         LineHit(chapter=1, line=1),
@@ -114,7 +114,7 @@ def test_line_attribution_matches_physical_line(lines: list[str]) -> None:
     text = "\n".join(lines)
     pattern = re.compile(r"X")
     chapters = [ScannedChapter(number=1, text=text)]
-    count, hits = scan_pattern(pattern, chapters, line_hit=_line_hit)
+    count, hits = scan_pattern(pattern, chapters, line_hit=LineHit)
 
     expected: list[int] = []
     for index, physical_line in enumerate(text.splitlines(), start=1):
@@ -215,7 +215,7 @@ def test_line_attribution_matches_independent_newline_model(text: str) -> None:
     """
     pattern = re.compile(r"X")
     chapters = [ScannedChapter(number=1, text=text)]
-    count, hits = scan_pattern(pattern, chapters, line_hit=_line_hit)
+    count, hits = scan_pattern(pattern, chapters, line_hit=LineHit)
 
     expected: list[int] = []
     for index, physical_line in enumerate(
@@ -251,17 +251,20 @@ def _loaderkit_module_paths() -> list[pathlib.Path]:
 def test_scan_pattern_builds_every_hit_via_line_hit_callback() -> None:
     """`scan_pattern` builds each hit only through the supplied factory.
 
-    The recording double ignores its arguments and returns one shared sentinel
+    The recording double ignores its values and returns one shared sentinel
     instance, so the ``hit is sentinel`` assertion proves ``scan_pattern`` uses
     the factory's *return value* verbatim and never constructs a hit by any other
-    means. The sentinel is a :class:`LineHit` (not a bare ``object``) only to
-    satisfy the ``line_hit`` callable's return annotation; its identity, not its
-    fields, is what the test checks.
+    means. Its parameters are **keyword-only** (``*, chapter, line``), so the test
+    also fails if ``scan_pattern`` were to revert to calling the callback
+    positionally — pinning the keyword-call convention the ``line_hit=LineHit``
+    direct bind depends on. The sentinel is a :class:`LineHit` (not a bare
+    ``object``) only to satisfy the ``line_hit`` callable's return annotation; its
+    identity, not its fields, is what the test checks.
     """
     calls: list[tuple[int, int]] = []
     sentinel = LineHit(chapter=-1, line=-1)
 
-    def recording_line_hit(chapter: int, line: int) -> LineHit:
+    def recording_line_hit(*, chapter: int, line: int) -> LineHit:
         """Record each ``(chapter, line)`` call and return the shared sentinel."""
         calls.append((chapter, line))
         return sentinel

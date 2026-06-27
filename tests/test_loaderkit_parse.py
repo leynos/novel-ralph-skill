@@ -72,8 +72,13 @@ class _Thing:
     value: int
 
 
-def _build_thing(entry: Mapping, index: int) -> _Thing:
-    """Build one ``_Thing`` from a decoded entry, naming ``index`` on a missing id."""
+def _build_thing(entry: Mapping, *, index: int) -> _Thing:
+    """Build one ``_Thing`` from a decoded entry, naming ``index`` on a missing id.
+
+    Keyword-only ``index`` mirrors the real ``_rule``/``_device`` builders, so the
+    happy-path and duplicate-id tests bind it directly as ``build_entry=_build_thing``
+    (no identity lambda), proving a third family inherits the keyword-builder seam.
+    """
     raw_id = entry.get("id")
     if not isinstance(raw_id, str):
         msg = f"thing at index {index} is missing a string 'id'"
@@ -237,14 +242,17 @@ def test_tail_calls_build_entry_per_entry_in_authoring_order() -> None:
     A recording double asserts ``build_entries`` calls the builder once per entry
     in authoring order with the right ``(entry, index)`` pairs and uses its return
     values verbatim (the ``line_hit``-callback idiom from
-    ``tests/test_loaderkit_scan.py``).
+    ``tests/test_loaderkit_scan.py``). The builder's ``index`` is **keyword-only**
+    (``*, index``), so the test also fails if ``build_entries`` were to revert to
+    calling the builder positionally — pinning the keyword-call convention the
+    ``build_entry=_rule`` direct bind depends on.
     """
     bundle = _bundle()
     calls: list[tuple[Mapping, int]] = []
     entry_a = {"id": "a", "value": 1}
     entry_b = {"id": "b", "value": 2}
 
-    def recording_build(entry: Mapping, index: int) -> _Thing:
+    def recording_build(entry: Mapping, *, index: int) -> _Thing:
         """Record each ``(entry, index)`` call and return a derived ``_Thing``."""
         calls.append((entry, index))
         return _Thing(id=str(entry["id"]), value=index)

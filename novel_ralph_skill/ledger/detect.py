@@ -239,11 +239,7 @@ def detect_ledger(
     """
     findings: list[DeviceFinding] = []
     for device in ledger.devices:
-        count, lines = scan_pattern(
-            device.compiled,
-            chapters,
-            line_hit=lambda chapter, line: LineHit(chapter=chapter, line=line),
-        )
+        count, lines = scan_pattern(device.compiled, chapters, line_hit=LineHit)
         findings.append(_finding(device, count=count, lines=lines))
     return LedgerReport(
         findings=tuple(findings),

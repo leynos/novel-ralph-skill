@@ -201,11 +201,7 @@ def detect(
     total_words = sum(len(chapter.text.split()) for chapter in chapters)
     findings: list[RuleFinding] = []
     for rule in pack.rules:
-        count, lines = scan_pattern(
-            rule.compiled,
-            chapters,
-            line_hit=lambda chapter, line: LineHit(chapter=chapter, line=line),
-        )
+        count, lines = scan_pattern(rule.compiled, chapters, line_hit=LineHit)
         findings.append(
             _finding(rule, count=count, lines=lines, total_words=total_words)
         )

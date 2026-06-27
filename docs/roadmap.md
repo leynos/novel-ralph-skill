@@ -2978,7 +2978,7 @@ test pins it so it cannot silently re-fork.
       `tests/test_rulepack_loader.py`, pinning `unsupported device-ledger
       schema_version N; expected 1` verbatim. Lightweight addendum pass.
 
-- [ ] 7.2.7. Retire the parse/scan identity-lambda builder seams and collapse the
+- [x] 7.2.7. Retire the parse/scan identity-lambda builder seams and collapse the
   per-family `_coerce.py` forwarder shims.
   - Step-task (source: audit:7.2.6; severity: low). Two residual single-home seams
     the loaderkit consolidation surfaced and 7.2.6 left standing: (1)

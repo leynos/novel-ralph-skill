@@ -251,3 +251,108 @@ def require_int(
         raise errors.content_error(msg, offending_id)
     # The runtime guard above has already narrowed ``value`` to ``int``.
     return value
+
+
+@dataclasses.dataclass(frozen=True, kw_only=True, slots=True)
+class BoundCoercion:
+    """One :class:`CoercionErrors` bundle exposing every coercion helper pre-bound.
+
+    A pack family obtains this from :func:`bind_coercion` instead of cloning a
+    per-family ``_coerce.py`` forwarder module (roadmap 7.2.7). Each method
+    delegates to the matching module-level free function with this bundle's
+    :attr:`errors` already supplied, so a family calls
+    ``coercion.require_str(entry, "pattern", offending_id=id)`` rather than
+    re-spelling a one-line ``errors=_ERRORS`` forwarder per helper. The
+    :attr:`errors` attribute is the raw :class:`CoercionErrors` the
+    array-extraction, schema-version, and pattern-compile primitives bind to
+    directly, so a family keeps one ``_ERRORS = bundle.errors`` alias rather than
+    repointing those raw-bundle call sites.
+
+    The family's *public* error keyword (``rule_id=``/``device_id=``) is bound
+    inside the ``content_error`` callable :func:`bind_coercion` receives, so it
+    never appears on these methods; the methods expose only the private
+    ``offending_id``. On the multi-argument helpers ``offending_id`` is
+    **keyword-only**, so a positional transposition with ``key`` is a
+    ``TypeError`` at the call site rather than a silent wrong-id message.
+
+    Attributes
+    ----------
+    errors : CoercionErrors
+        The bound error factory, exposed for the raw-bundle primitives
+        (``resolve_schema_version``, ``build_entries``, ``compile_pattern``).
+    """
+
+    errors: CoercionErrors
+
+    def where(self, offending_id: str | None) -> str:
+        """Return the message prefix for ``offending_id`` (see :func:`where`)."""
+        return where(self.errors, offending_id)
+
+    def reject_unknown_keys(
+        self, mapping: Mapping, allowed: frozenset[str], *, offending_id: str | None
+    ) -> None:
+        """Reject any key outside ``allowed`` (see :func:`reject_unknown_keys`)."""
+        reject_unknown_keys(
+            mapping, allowed, errors=self.errors, offending_id=offending_id
+        )
+
+    def require(
+        self, mapping: Mapping, key: str, *, offending_id: str | None
+    ) -> object:
+        """Return ``mapping[key]`` or raise naming the gap (see :func:`require`)."""
+        return require(mapping, key, errors=self.errors, offending_id=offending_id)
+
+    def require_str(
+        self, mapping: Mapping, key: str, *, offending_id: str | None
+    ) -> str:
+        """Return ``mapping[key]`` as a ``str`` (see :func:`require_str`)."""
+        return require_str(mapping, key, errors=self.errors, offending_id=offending_id)
+
+    def require_int(
+        self, mapping: Mapping, key: str, *, offending_id: str | None
+    ) -> int:
+        """Return ``mapping[key]`` as an ``int`` (see :func:`require_int`)."""
+        return require_int(mapping, key, errors=self.errors, offending_id=offending_id)
+
+
+def bind_coercion(
+    *,
+    content_error: cabc.Callable[[str, str | None], EnvelopeMessagesError],
+    per_id_noun: str,
+    per_level_noun: str,
+) -> BoundCoercion:
+    """Bind the coercion helpers to one family's error channel and noun pair.
+
+    Builds the family's single :class:`CoercionErrors` and returns a
+    :class:`BoundCoercion` exposing every helper with that bundle already
+    supplied. This is the one binding a third pack family makes instead of cloning
+    a per-family ``_coerce.py`` forwarder module (roadmap 7.2.7, design §6.1;
+    ADR-003): the family supplies its ``content_error`` (with the public
+    ``rule_id=``/``device_id=`` keyword bound inside it) and noun pair once, and
+    inherits the whole uniform helper surface rather than re-spelling it.
+
+    Parameters
+    ----------
+    content_error : collections.abc.Callable[[str, str | None], EnvelopeMessagesError]
+        Builds the family's content error from ``(message, offending_id)``, with
+        the public id keyword (``rule_id=``/``device_id=``) already bound, so the
+        returned bundle hides the kwarg-name difference between families.
+    per_id_noun : str
+        The per-entity noun for the message prefix (``"rule"``/``"device"``).
+    per_level_noun : str
+        The whole-document noun for a top-level fault (``"rule pack"``/
+        ``"device ledger"``).
+
+    Returns
+    -------
+    BoundCoercion
+        The bundle exposing every coercion helper with ``errors`` bound, plus the
+        raw :class:`CoercionErrors` as :attr:`BoundCoercion.errors`.
+    """
+    return BoundCoercion(
+        errors=CoercionErrors(
+            content_error=content_error,
+            per_id_noun=per_id_noun,
+            per_level_noun=per_level_noun,
+        )
+    )
