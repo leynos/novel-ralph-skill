@@ -1496,7 +1496,7 @@ Surgical follow-ups filed against this completed task. Each runs as a
 lightweight, no-plan, no-review addendum pass and is mirrored by a nested
 sub-task on the roadmap under task 7.2.2.
 
-- 7.2.2.1 — Harden the `loaderkit` scan property test with an independent
+- [x] 7.2.2.1 — Harden the `loaderkit` scan property test with an independent
   line-model oracle (from review:7.2.2; low). The Hypothesis property added by
   this task recomputes the expected per-line hits with `splitlines()`, the same
   call `scan_pattern` uses, so it cannot catch a class of line-splitting

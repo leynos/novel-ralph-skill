@@ -5,10 +5,15 @@ byte-identical behaviour the former ``_scan_rule``/``_scan_device`` bodies share
 constructing the neutral :class:`ScannedChapter`/:class:`LineHit` shapes directly
 from their ``loaderkit`` home (roadmap 7.2.3). The example cases cover the
 load-bearing v1 discipline — two hits on one line, hits across chapters, and the
-multi-line negative where ``.`` cannot cross ``\n`` — and a Hypothesis property
-pins the line-attribution invariant over arbitrary multi-line chapter text. Two
-structural guards pin the single neutral home: the shapes are defined in
-``loaderkit.scan``, and that module imports nothing from a pack domain.
+multi-line negative where ``.`` cannot cross ``\n`` — and two Hypothesis
+properties pin the line-attribution invariant over arbitrary multi-line chapter
+text: one freeze property that echoes the implementation's :meth:`str.splitlines`
+call, and one that derives the expected hits from an independent regex model over
+the full universal-newline boundary class so a future narrowing of the splitting
+choice (a move to ``split("\n")``) is caught rather than echoed (addendum
+7.2.2.1). Two structural guards pin the single neutral home: the shapes are
+defined in ``loaderkit.scan``, and that module imports nothing from a pack
+domain.
 """
 
 from __future__ import annotations
@@ -96,8 +101,12 @@ def test_line_attribution_matches_physical_line(lines: list[str]) -> None:
 
     For arbitrary multi-line chapter text, each hit must be attributed to the line
     the match actually fell on — the invariant the per-line scan exists to keep.
-    The property recomputes the expected per-line hit counts independently of
-    :func:`scan_pattern` and asserts the emitted ``LineHit.line`` indices agree.
+    This is the freeze property: it recomputes the expected per-line hit counts
+    with :meth:`str.splitlines`, the same call :func:`scan_pattern` makes, so it
+    pins the per-hit attribution but deliberately echoes the implementation's
+    splitting choice. The sibling
+    :func:`test_line_attribution_matches_independent_newline_model` pins that
+    choice against an independent model (addendum 7.2.2.1).
     """
     text = "\n".join(lines)
     pattern = re.compile(r"X")
@@ -106,6 +115,109 @@ def test_line_attribution_matches_physical_line(lines: list[str]) -> None:
 
     expected: list[int] = []
     for index, physical_line in enumerate(text.splitlines(), start=1):
+        expected.extend(index for _match in pattern.finditer(physical_line))
+
+    assert count == len(expected)
+    assert [hit.line for hit in hits] == expected
+    assert all(hit.chapter == 1 for hit in hits)
+
+
+# Every single-character boundary str.splitlines recognises. ``\r\n`` is the
+# only multi-character boundary, and the interleaving strategy below never places
+# two boundaries adjacently, so it cannot arise; modelling the single-character
+# set is therefore complete for the inputs this property generates.
+_UNIVERSAL_NEWLINE_BOUNDARIES = (
+    "\n",
+    "\r",
+    "\v",
+    "\f",
+    "\x1c",
+    "\x1d",
+    "\x1e",
+    "\x85",
+    "\u2028",
+    "\u2029",
+)
+
+# An independent splitter over the full universal-newline boundary class. ``re``
+# is a structurally different mechanism from :meth:`str.splitlines`, so this
+# oracle shares no splitting machinery with :func:`scan_pattern`. Like
+# ``splitlines`` (and unlike ``split``), it yields no trailing empty segment;
+# the interleaving strategy never emits a trailing boundary, so the two agree on
+# segment count for valid inputs while diverging the instant the implementation
+# narrows its boundary set (e.g. a move to ``split("\n")``).
+_BOUNDARY_RE = re.compile("[" + "".join(_UNIVERSAL_NEWLINE_BOUNDARIES) + "]")
+
+
+def _split_on_universal_newline_independently(text: str) -> list[str]:
+    r"""Split ``text`` on the universal-newline class without :meth:`str.splitlines`.
+
+    The independent newline model: a regex split over every boundary character
+    :meth:`str.splitlines` recognises, sharing no splitting machinery with
+    :func:`scan_pattern`. A future narrowing of the implementation's boundary
+    set \u2014 a move to ``split("\n")``, or dropping ``\r``/``\x85`` \u2014 would merge
+    two physical lines the model still separates, shifting the line indices and
+    tripping the property below.
+    """
+    return _BOUNDARY_RE.split(text)
+
+
+@st.composite
+def _boundary_separated_text(draw: st.DrawFn) -> str:
+    r"""Build text whose only line boundaries are single universal-newline chars.
+
+    Draws non-boundary tokens and interleaves a drawn boundary character between
+    each adjacent pair, so boundaries never abut (no ``\r\n`` forms) and the text
+    never starts or ends on a boundary. This keeps the regex oracle and
+    :meth:`str.splitlines` in agreement on segment count for the correct
+    implementation while exercising the full boundary class.
+    """
+    token = st.text(
+        alphabet=st.characters(
+            codec="utf-8",
+            # Exclude every str.splitlines boundary so tokens carry no boundary
+            # of their own; the interleaved separators are the only boundaries.
+            exclude_characters="".join(_UNIVERSAL_NEWLINE_BOUNDARIES),
+        ),
+        min_size=0,
+        max_size=12,
+    )
+    tokens = draw(st.lists(token, min_size=1, max_size=8))
+    separators = draw(
+        st.lists(
+            st.sampled_from(_UNIVERSAL_NEWLINE_BOUNDARIES),
+            min_size=len(tokens) - 1,
+            max_size=len(tokens) - 1,
+        )
+    )
+    pieces: list[str] = [tokens[0]]
+    for separator, next_token in zip(separators, tokens[1:], strict=True):
+        pieces.extend((separator, next_token))
+    return "".join(pieces)
+
+
+@settings(deadline=dt.timedelta(seconds=5), max_examples=200)
+@given(text=_boundary_separated_text())
+def test_line_attribution_matches_independent_newline_model(text: str) -> None:
+    r"""Hits agree with a boundary-class oracle that never calls ``splitlines``.
+
+    The sibling :func:`test_line_attribution_matches_physical_line` recomputes the
+    expected hits with :meth:`str.splitlines`, the same call ``scan_pattern`` makes,
+    so it cannot catch a line-splitting regression (a move to ``split("\n")`` or a
+    dropped universal-newline boundary). This property derives the expected
+    per-line hits from :func:`_split_on_universal_newline_independently`, a regex
+    model over the full boundary class that shares no splitting machinery with the
+    implementation, pinning the line-attribution contract against the
+    implementation's own splitting choice rather than echoing it.
+    """
+    pattern = re.compile(r"X")
+    chapters = [ScannedChapter(number=1, text=text)]
+    count, hits = scan_pattern(pattern, chapters, line_hit=_line_hit)
+
+    expected: list[int] = []
+    for index, physical_line in enumerate(
+        _split_on_universal_newline_independently(text), start=1
+    ):
         expected.extend(index for _match in pattern.finditer(physical_line))
 
     assert count == len(expected)

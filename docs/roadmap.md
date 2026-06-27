@@ -2755,7 +2755,7 @@ test pins it so it cannot silently re-fork.
     near-verbatim copies; each package's typed error type, exit-code mapping, and
     operator messages are unchanged; and the rule-pack and ledger suites stay
     green.
-  - [ ] 7.2.2.1. Harden the `loaderkit` scan property test with an independent
+  - [x] 7.2.2.1. Harden the `loaderkit` scan property test with an independent
     line-model oracle.
     - Addendum (from review:7.2.2; low). The current Hypothesis property
       recomputes the expected per-line hits with `splitlines()` — the same call
