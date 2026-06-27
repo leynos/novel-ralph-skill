@@ -213,9 +213,7 @@ def _pending_turn_edit(
     return _edit
 
 
-def _write_outcome(
-    action: ReconcileAction, reconciliation: Reconciliation
-) -> CommandOutcome:
+def _write_outcome(reconciliation: Reconciliation) -> CommandOutcome:
     """Return the exit-``0`` write-shaped success outcome for a repair action.
 
     The ``result`` names the action and what changed (the write-shaped success
@@ -296,7 +294,7 @@ def reconcile() -> CommandOutcome:
         # to re-derive: a crash leaves ``log.md`` still absent, which a subsequent
         # ``reconcile`` re-derives as RECREATE_LOG and finishes).
         _append_recovery_entry(working_dir, f"recreate-log: {reconciliation.detail}")
-        return _write_outcome(ReconcileAction.RECREATE_LOG, reconciliation)
+        return _write_outcome(reconciliation)
     if action is ReconcileAction.RECOUNT:
         edit = _recount_edit(reconciliation)
         log_line = f"recount: {reconciliation.detail}"
@@ -305,4 +303,4 @@ def reconcile() -> CommandOutcome:
         edit = _pending_turn_edit(reconciliation, working_dir)
         log_line = f"{action}: {reconciliation.detail}"
     _run_reconcile_bracket(path, working_dir, edit=edit, log_line=log_line)
-    return _write_outcome(action, reconciliation)
+    return _write_outcome(reconciliation)

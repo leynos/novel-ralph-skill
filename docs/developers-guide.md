@@ -1422,7 +1422,7 @@ never read. The full audit trail of passing rules is **recoverable** from data
 the operator already owns: the rule pack is versioned, and any non-clean
 envelope still lists every offending rule in full. Carrying every passing rule
 would also make the payload grow linearly with pack size and pack count, so a
-clean multi-pack scan would serialize dozens of `count: 0` rows no consumer
+clean multi-pack scan would serialise dozens of `count: 0` rows no consumer
 reads; slimming keeps a clean scan at `findings: []` regardless of how many
 rules ship.
 

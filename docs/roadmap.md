@@ -2535,14 +2535,14 @@ of truth, and a test pins it so it cannot silently re-fork.
     each spelling the `{action, discrepancies, detail}` shape; the CQS read/write
     vocabulary split and the exit-code policy are unchanged; no behaviour changes;
     and the check, reconcile, and disk-evidence suites stay green.
-  - [ ] 7.1.3.1. Drop the now-vestigial `action` parameter from `_write_outcome`.
+  - [x] 7.1.3.1. Drop the now-vestigial `action` parameter from `_write_outcome`.
     - Addendum (from review:7.1.3; low). After 7.1.3 routed `_write_outcome`
       through `reconciliation_payload`, its `action` parameter is no longer read
       by the body (the projection reads `reconciliation.action`); remove the
       parameter and simplify the two callers (`commands/_reconcile.py:299,308`),
       closing the gap where a caller could pass an `action` inconsistent with
       `reconciliation.action`. Lightweight addendum pass.
-  - [ ] 7.1.3.2. Replace US `serialize` with en-GB `serialise` in the developers'
+  - [x] 7.1.3.2. Replace US `serialize` with en-GB `serialise` in the developers'
     guide clean-pass section.
     - Addendum (from review:7.1.4; low). `docs/developers-guide.md:1425` carries
       `serialize`, a US spelling introduced by 7.1.3, violating the AGENTS.md en-GB

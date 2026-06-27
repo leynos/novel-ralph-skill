@@ -1102,7 +1102,7 @@ Quality method (how we check):
 Lightweight, no-plan corrections folded onto this completed task after its
 reviews and audits, triaged at the §7.1 step boundary.
 
-- **7.1.3.1 — Drop the now-vestigial `action` parameter from `_write_outcome`**
+- [x] **7.1.3.1 — Drop the now-vestigial `action` parameter from `_write_outcome`**
   (from review:7.1.3; severity: low). After this task routed `_write_outcome`
   through `reconciliation_payload`, the `action` parameter is no longer read by
   the body — the projection reads `reconciliation.action`. Remove the parameter
@@ -1110,7 +1110,7 @@ reviews and audits, triaged at the §7.1 step boundary.
   surface where a caller could pass an `action` inconsistent with
   `reconciliation.action`. The 7.1.3 plan explicitly deferred this as
   out-of-scope scope-discipline; it is now actioned as a lightweight pass.
-- **7.1.3.2 — Replace US `serialize` with en-GB `serialise`**
+- [x] **7.1.3.2 — Replace US `serialize` with en-GB `serialise`**
   (from review:7.1.4; severity: low). `docs/developers-guide.md:1425` carries
   `serialize`, a US spelling introduced by this task, violating the AGENTS.md
   en-GB Oxford convention ("-ise"/"-yse"/"-our"). Correct the single occurrence
