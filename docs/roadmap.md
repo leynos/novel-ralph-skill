@@ -2895,6 +2895,60 @@ test pins it so it cannot silently re-fork.
     unchanged; a test pins the factory so a third pack family inherits the
     primitive instead of cloning a third copy; and the rule-pack and ledger
     suites stay green.
+  - [ ] 7.2.5.1. Pin the real rule-pack/ledger error bindings to the
+    `loaderkit` bases and mirror the distinctness assertions.
+    - Addendum (from audit:7.2.5, review:7.2.5; medium; three near-identical
+      proposals merged). 7.2.5's own success criterion — a test pins the
+      consolidation so it cannot silently re-fork — is unmet for the *real*
+      bindings: `test_loaderkit_errors.py` exercises only synthetic test-local
+      subclasses, so nothing asserts that the concrete
+      `RulePackError`/`LedgerError`/`*FileError` classes actually subclass
+      `loaderkit.errors.PackError`/`PackFileError`, and the consolidation could
+      re-fork while the suite stays green. Separately, `test_contract_errors.py`
+      pins the within-family distinctness for the rule pack
+      (`not issubclass(RulePackError, RulePackFileError)` both ways) but carries
+      no ledger equivalent, and no test pins the cross-family distinctness
+      (`not issubclass(RulePackError, LedgerError)`) the Risk-3 mitigation
+      references. Add concrete-binding subclass assertions for all four real
+      classes, a ledger mirror of the rule-pack within-family distinctness pins,
+      and a cross-family distinctness pin, so a future hand-edit that re-forks a
+      binding or accidentally re-parents an error is caught. Lightweight
+      addendum pass.
+
+- [ ] 7.2.6. Consolidate the parallel rule-pack and device-ledger validating
+  parse boundaries onto a shared `loaderkit` skeleton.
+  - Step-task (source: audit:7.2.5; severity: medium). 7.2.2 consolidated the
+    coercion and scan *bodies* and 7.2.5 the error hierarchies, but the
+    validating parse boundary itself — `parse_rulepack`/`parse_ledger`, the
+    per-entry `_rule`/`_device` builders, and the `schema_version` resolve and
+    unsupported-version block — remains a near-identical structural copy across
+    `rulepack/parse.py` and `ledger/parse.py` with no drift guard, and no
+    existing roadmap task covers it (7.3.9 targets command bodies, not the loader
+    boundary; 7.8.2 targets the detector scan-aggregate, not parse). This serves
+    the step-7.2 hypothesis directly — that the detection-pack loader-and-scan
+    primitives each have a *single* home — by giving the boundary parse layer
+    that single home rather than leaving it as the last un-consolidated loader
+    primitive, completing the single-home discipline 7.2.2/7.2.5 began for the
+    coercion, scan, and error layers. Extract a shared parse skeleton
+    parameterised on each pack's schema-version constant, key set, entry-array
+    name, and per-entry projection, routing both packages through it while
+    keeping each typed error channel, the `rule_id`/`device_id` keywords, the
+    exit-code mapping, and the operator messages unchanged, so a third pack
+    family binds the skeleton rather than cloning a third copy.
+  - Requires 7.2.2, 7.2.5.
+  - See novel-ralph-harness-design.md §6.1, §6.2, and §6.3;
+    docs/adr-003-shared-interface-contract.md;
+    novel_ralph_skill/loaderkit/;
+    novel_ralph_skill/rulepack/parse.py;
+    novel_ralph_skill/ledger/parse.py.
+  - Success: one shared `loaderkit` parse skeleton owns the schema-version
+    resolve-and-reject block, the entry-array extraction, and the per-entry
+    build loop; both the rule-pack and ledger packages consume it rather than
+    carrying near-verbatim `parse_*`/`_rule`/`_device` copies; each package's
+    typed error channel, `rule_id`/`device_id` keyword, exit-code mapping, and
+    operator messages are unchanged; a test pins the skeleton so a third pack
+    family inherits it instead of cloning a third copy; and the rule-pack and
+    ledger suites stay green.
 
 ### 7.3. Single-source the command facade, predicates, and writers
 

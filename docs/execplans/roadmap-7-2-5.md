@@ -608,3 +608,27 @@ In `novel_ralph_skill/ledger/errors.py` (symmetric, `device_id`):
 `novel_ralph_skill/loaderkit/__init__.py` re-exports `PackError` and
 `PackFileError` in `__all__`. No external dependencies are added; the only
 imports are `novel_ralph_skill.contract.errors` and the standard library.
+
+## Addenda
+
+- 7.2.5.1 — Pin the real rule-pack/ledger error bindings to the `loaderkit`
+  bases and mirror the distinctness assertions (from audit:7.2.5, review:7.2.5;
+  medium; three near-identical proposals merged). The success criterion's "a
+  test pins it so it cannot silently re-fork" leg is unmet for the *real*
+  bindings: `tests/test_loaderkit_errors.py` exercises only synthetic
+  test-local subclasses (`_SampleError`/`_SampleFileError`), so no test asserts
+  that the concrete `RulePackError`/`RulePackFileError`/`LedgerError`/
+  `LedgerFileError` classes actually subclass
+  `loaderkit.errors.PackError`/`PackFileError` — the consolidation could
+  re-fork while the suite stays green. Separately, `tests/test_contract_errors.py`
+  pins the within-family distinctness for the rule pack
+  (`not issubclass(RulePackError, RulePackFileError)` both ways) but carries no
+  ledger equivalent, and no test pins the cross-family distinctness
+  (`not issubclass(RulePackError, LedgerError)`) the Risk-3 mitigation
+  references. Scope: add concrete-binding subclass assertions for all four real
+  classes against `PackError`/`PackFileError`; add a ledger mirror of the
+  rule-pack within-family distinctness pins; add a cross-family distinctness
+  pin. One focused test-only commit; structurally guaranteed today by the
+  separate `class` statements, so the value is regression-proofing a future
+  hand-edit that re-forks a binding or re-parents an error. Lightweight
+  addendum pass.
