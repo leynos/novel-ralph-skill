@@ -2828,6 +2828,24 @@ of truth, and a test pins it so it cannot silently re-fork.
     commands and `stub.py` import them from that neutral home rather than from
     `novel_state`; no command depends on the `novel_state` module for these
     seams; and every command suite stays green.
+  - [ ] 7.3.1.1. Re-anchor the two surviving `state_sourcing.py:52-67` docstring
+    citations to stable symbols rather than source line-number ranges.
+    - Addendum (from review:7.3.1; trivial). The `resolved_working_dir`
+      docstring at `state_sourcing.py:74` and the multiplexer-`main` docstring at
+      `novel.py:153` cite the cwd-relative rule as the line range
+      `state_sourcing.py:52-67`, which any header edit can silently invalidate and
+      no test guards — the same drift class that broke the design-doc citation in
+      fix round 1. Re-anchor both to the stable symbol (`working_dir` /
+      `WORKING_DIR_NAME`, or the cwd-relative rule by name). Lightweight addendum
+      pass against the 7.3.1 execplan.
+  - [ ] 7.3.1.2. Correct Decision D9's Gate-2 wording in the 7.3.1 execplan
+    record.
+    - Addendum (from review:7.3.1; low). D9 lists `load_or_state_error` inside
+      the Gate-2 alternation, but the implemented gate `novel_state\._[a-z_]*error`
+      matches only the dot-underscore `novel_state._load_or_state_error` form,
+      never the bare public `novel_state.load_or_state_error`; the A1 insurance
+      grep is what closes that gap. Correct the D9 prose so the historical gate
+      record reads true. Lightweight addendum pass against the 7.3.1 execplan.
 - [ ] 7.3.2. Collapse the four entry-point functions onto a registry-driven
   construction table.
   - Reroute (source: review:1.3.6; severity: low). After 1.3.6 the four real
@@ -3203,6 +3221,49 @@ of truth, and a test pins it so it cannot silently re-fork.
     optional precondition hook rather than re-spelling the skeleton; the
     refuse-on-incoherence behaviour is unchanged; and every mutator suite stays
     green.
+- [ ] 7.3.17. Close the `_state_mutators` re-export hop and make the
+  single-state-sourcing-home property a structural import-graph guard.
+  - Reroute-into-step (sources: audit:7.3.1 Findings 2-3; review:7.3.1, merging
+    the four near-identical "structural import-graph gate" proposals; severity:
+    medium). After 7.3.1 the seam lives in `state_sourcing`, but `_recount` and
+    `_reconcile` still reach the `state_path`/`working_dir` accessors through a
+    second-hop re-export — `_state_mutators.py` re-exports them as
+    `_state_path`/`_working_dir` (`__all__` lines 71-73) and the two consumers
+    import them from `_state_mutators`, not from `state_sourcing`. This swaps the
+    retired `novel_state` façade for a fresh `_state_mutators` one and partially
+    defeats 7.3.1's single-home goal. The structural guard
+    `tests/test_state_sourcing_home.py` only forbids importing a seam symbol from
+    `novel_state`; it does not flag a seam accessor imported from
+    `_state_mutators`, and — because it resolves only fully-qualified absolute
+    imports — it is blind to relative-import and re-pin forms. This serves the
+    step-7.3 command-facade single-home hypothesis directly: the state-sourcing
+    seam must exist exactly once, with the single-home property mechanically
+    pinned rather than policed phrase-by-phrase across four token-scoped prose
+    gates. Repoint `_recount` and `_reconcile` at `state_sourcing`, drop the
+    `_state_path`/`_working_dir` re-export from `_state_mutators`, and generalise
+    `test_state_sourcing_home` to resolve relative and absolute imports and walk
+    the `_state_mutators` re-export tail so it flags any command module importing
+    a seam accessor from anywhere but `state_sourcing`. This is the structural
+    alternative Wafflecat raised in 7.3.1 round 4 and the plan recorded as a
+    7.3.6 candidate; it warrants its own plan and review because it rewires
+    imports across modules and rewrites the structural test, so it is filed as a
+    full task here rather than a lightweight addendum.
+  - Requires 7.3.1.
+  - See novel-ralph-harness-design.md §3.1 and §4;
+    docs/adr-003-shared-interface-contract.md;
+    docs/execplans/roadmap-7-3-1.md (Decision D10; Risks; the WI5 gate block);
+    novel_ralph_skill/commands/_state_mutators.py;
+    novel_ralph_skill/commands/_recount.py;
+    novel_ralph_skill/commands/_reconcile.py;
+    tests/test_state_sourcing_home.py.
+  - Success: `_recount` and `_reconcile` import `state_path`/`working_dir`
+    directly from `state_sourcing`; `_state_mutators` no longer re-exports the
+    `_state_path`/`_working_dir` accessors; the structural home guard resolves
+    both relative and absolute imports and walks the `_state_mutators` re-export
+    tail, flagging any command module that imports a seam accessor from anywhere
+    but `state_sourcing`; re-pinning a seam accessor onto any non-`state_sourcing`
+    home reddens the guard; and the mutator, recount, reconcile, and
+    state-sourcing-home suites stay green.
 
 ### 7.4. Single-source chapter-draft sourcing, word-count, and disk-evidence
 
@@ -4914,6 +4975,35 @@ copies that would re-diverge.
     the manifest and the registered rows agree (with 7.6.39); and the contract and
     compile suites stay green.
 
+- [ ] 7.6.42. Broaden the canonical-module-path drift gate to cover the design
+  document and the ADRs.
+  - Reroute (source: review:7.3.1; severity: low). The 7.3.1 rename gate (WI5)
+    scoped its source-file citation checks to `novel_ralph_skill/`, `tests/`, and
+    `docs/developers-guide.md`, leaving design-document and ADR source-file
+    citations unguarded — precisely how the dangling `_state_load.py` citation at
+    `docs/novel-ralph-harness-design.md:163` survived the rename and reached the
+    dual review. A module rename in any future task can silently dangle a
+    design-doc or ADR source-file citation with no gate to catch it. Add a guard
+    (or widen the standard rename-checklist grep scope) covering
+    `docs/novel-ralph-harness-design.md` and `docs/adr-*.md` for module-path and
+    source-file citations, excluding the immutable historical records under
+    `docs/execplans/`, `docs/issues/`, and `docs/roadmap.md`. This hardens the
+    rename/citation gate against the blind spot the review surfaced — a step-7.6
+    robustness concern (the spine's gates made robust against the edge cases the
+    audits surfaced) — not the settled step-7.3 single-home hypothesis where it
+    was raised, so it is deferred here.
+  - Requires 7.3.1.
+  - See novel-ralph-harness-design.md §4 and §5.4;
+    docs/developers-guide.md;
+    docs/novel-ralph-harness-design.md;
+    docs/adr-003-shared-interface-contract.md;
+    docs/execplans/roadmap-7-3-1.md (WI5 gate block; Decision D11 correction).
+  - Success: the canonical-module-path / source-file citation gate covers
+    `docs/novel-ralph-harness-design.md` and `docs/adr-*.md` (with the immutable
+    historical records excluded); a module rename that dangles a design-doc or ADR
+    source-file citation reddens the gate; the existing citations pass; and `make
+    markdownlint`, `make nixie`, and `make all` stay green.
+
 ### 7.7. Reconcile the documentation and settle the conventions
 
 This step answers whether the ADRs, guides, and design read true against the
@@ -5221,6 +5311,42 @@ conventions are settled once.
     whatever the convention decides; CodeRabbit no longer reports recurring
     skipped findings against those artefacts; and `make markdownlint`, `make
     nixie`, and `make all` stay green.
+
+- [ ] 7.7.13. Resolve the state-sourcing seam API-privacy contradiction: settle
+  the cross-module actionable-message formatters as a deliberate public surface.
+  - Reroute (source: audit:7.3.1 Findings 1 and 3; severity: medium). The five
+    exit-`3` actionable-message formatters (`_state_input_error`,
+    `_draft_read_error`, `_compile_write_error`, `_rule_pack_read_error`,
+    `_device_ledger_read_error`) are declared module-private — leading
+    underscore, a "module-private" docstring, and the seam-parity test imports
+    them as private — yet they are imported across the sibling command modules
+    (`_compile`, `_recount`, `_novel_done`, `_desloppify`, `_desloppify_ledger`,
+    `_state_mutators`) and documented in the developers' guide as the
+    developer-facing exit-`3` contract shared across all five commands. The
+    underscore name and the guide's contract framing contradict each other.
+    Settle it one way — promote them to public names (drop the leading underscore,
+    update `__all__`, the module docstring, the guide `:func:` roles, and the seam
+    test) or route the cross-module surface through a public dispatcher — so the
+    privacy declaration and the documented contract agree. This serves the
+    step-7.7 documentation-and-convention hypothesis (the guides read true and the
+    open naming conventions are settled once), not the settled step-7.3
+    single-home hypothesis where it was raised: the formatters already have a
+    single home in `state_sourcing`; the open question is whether their API is
+    public or private, a docs-truth-and-naming concern. Coordinate with 7.7.11,
+    whose docstring-citation sweep touches the same formatter docstrings.
+  - Requires 7.3.1.
+  - See novel-ralph-harness-design.md §3.2 and §4;
+    docs/adr-003-shared-interface-contract.md;
+    docs/developers-guide.md;
+    novel_ralph_skill/commands/state_sourcing.py;
+    tests/test_state_load_actionable_parity.py.
+  - Success: one decision records whether the five actionable-message formatters
+    are a public seam surface or genuinely module-private; the chosen polarity is
+    applied consistently across the formatter names, `state_sourcing.__all__`, the
+    module docstring, the developers' guide `:func:` roles, and the seam-parity
+    test; no formatter is simultaneously underscore-private and documented as the
+    developer-facing exit-`3` contract; and the contract, command, and
+    actionable-parity suites stay green.
 
 ## 8. Features and extensions
 

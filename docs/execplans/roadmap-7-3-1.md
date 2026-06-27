@@ -1466,3 +1466,35 @@ single round-3 blocking point:
   pass cannot rot silently. Recorded Wafflecat's round-4 structural-import-gate
   alternative as a 7.3.6 improvement (B7 is a comment defect, so the prose gate
   is the correct fix here, not an import-graph walk).
+
+## Addenda
+
+Lightweight, post-completion corrections folded onto this task. Each is a small,
+surgical fix run as a no-plan, no-review pass; none changes the task's outcome.
+
+- [ ] A2 (from review:7.3.1; trivial). Prefer symbol citations over source
+  line-number ranges in the two surviving docstring citations. The
+  `resolved_working_dir` docstring at `state_sourcing.py:74` and the
+  `main`-multiplexer docstring at `novel.py:153` both cite the cwd-relative rule
+  as the line range `state_sourcing.py:52-67`; any header edit or reflow can
+  silently invalidate the range and no test guards it — the same drift class
+  that broke the design-doc citation in fix round 1. Re-anchor both citations to
+  the stable symbol (`working_dir` / `WORKING_DIR_NAME`, or the cwd-relative
+  rule by name) so they survive renames and reflows. Doc-only; no behaviour
+  change. Scope: `novel_ralph_skill/commands/state_sourcing.py` (docstring at
+  `resolved_working_dir`) and `novel_ralph_skill/commands/novel.py` (docstring
+  at `main`).
+
+- [ ] A3 (from review:7.3.1; low). Correct Decision D9's Gate-2 wording in this
+  execplan record. D9 (and its WI5 narrative) lists `load_or_state_error` inside
+  the Gate-2 alternation and asserts Gate 2 "catches" the
+  `novel_state.load_or_state_error` re-export role, but the gate as implemented
+  is `novel_state\._[a-z_]*error` (Stage F, the gate block): the `\._` anchor
+  matches only the dot-underscore form `novel_state._load_or_state_error`, never
+  the bare public `novel_state.load_or_state_error` (a `.l`, not `._`). The
+  bare-public façade role is in fact guarded by the A1 insurance grep
+  (`_load_or_state_error` must return nothing), not by Gate 2. Correct the D9
+  prose to state that Gate 2 matches the dot-underscore `._<…>error` forms only
+  and that A1 closes the `load_or_state_error` gap, keeping the historical record
+  precise. Doc-only; no gate semantics change. Scope: this execplan's Decision
+  D9.
