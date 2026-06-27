@@ -1,7 +1,7 @@
 """Unit proof for the shared actionable state-input (exit-3) message helper.
 
 These tests pin the executable specification for
-:func:`novel_ralph_skill.commands.novel_state._state_input_error`: the message a
+:func:`novel_ralph_skill.commands.state_sourcing._state_input_error`: the message a
 failed ``state.toml`` load emits on the exit-3 channel. They assert the two arms
 Decision Log D2 distinguishes — a *missing* ``working/`` (where ``novel state
 init`` is the remedy) versus a *present-but-corrupt* ``state.toml`` (where
@@ -19,9 +19,9 @@ import typing as typ
 
 import pytest
 
-from novel_ralph_skill.commands.novel_state import (
-    _load_or_state_error,
+from novel_ralph_skill.commands.state_sourcing import (
     _state_input_error,
+    load_or_state_error,
     state_path,
     working_dir,
 )
@@ -93,7 +93,7 @@ def test_corrupt_state_message_omits_init_remedy(
     state = _make_corrupt_state(tmp_path)
 
     with pytest.raises(StateInputError) as excinfo:
-        _load_or_state_error(state)
+        load_or_state_error(state)
 
     (message,) = excinfo.value.messages
     assert "novel state init" not in message, "init must not be advised for corruption"

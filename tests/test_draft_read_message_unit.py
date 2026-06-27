@@ -1,7 +1,7 @@
 """Unit proof for the shared actionable draft-read (exit-3) message helper.
 
 These tests pin the executable specification for
-:func:`novel_ralph_skill.commands.novel_state._draft_read_error`: the message a
+:func:`novel_ralph_skill.commands.state_sourcing._draft_read_error`: the message a
 present-but-faulted ``draft.md``/``compiled.md`` read emits on the exit-3
 channel. Unlike :func:`_state_input_error`, the draft-read formatter has a single
 arm — the ``working/`` tree exists, so ``novel state init`` is the wrong remedy —
@@ -22,7 +22,7 @@ import pathlib
 
 import pytest
 
-from novel_ralph_skill.commands.novel_state import _draft_read_error
+from novel_ralph_skill.commands.state_sourcing import _draft_read_error
 from novel_ralph_skill.contract.runner import StateInputError
 
 

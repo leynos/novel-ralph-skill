@@ -39,11 +39,11 @@ import pathlib
 import typing as typ
 
 from novel_ralph_skill.commands._wordcount_report import build_report, report_outcome
-from novel_ralph_skill.commands.novel_state import (
+from novel_ralph_skill.commands.state_sourcing import (
     STATE_INPUT_ERRORS,
     WORKING_DIR_NAME,
     _draft_read_error,
-    _load_or_state_error,
+    load_or_state_error,
 )
 from novel_ralph_skill.contract.runner import (
     CommandOutcome,
@@ -108,13 +108,13 @@ def source_state_and_drafts() -> tuple[
 ]:
     """Source the novel target, the manifest, and the drafted counts from disk.
 
-    Loads the typed ``working/state.toml`` through ``novel-state``'s shared
-    :func:`~novel_ralph_skill.commands.novel_state._load_or_state_error` (so a
+    Loads the typed ``working/state.toml`` through the shared
+    :func:`~novel_ralph_skill.commands.state_sourcing.load_or_state_error` (so a
     missing or unparseable state is exit ``3``), takes the novel target from
     ``[word_counts].target`` (configured, not derived from disk) and the chapter
     manifest from the loaded ``State``, and recounts each chapter's ``draft.md``
     from disk (the disk-authoritative numerator, ExecPlan Decision Log D-NUM). An
-    absent ``working/`` makes ``_load_or_state_error`` fail on the missing
+    absent ``working/`` makes ``load_or_state_error`` fail on the missing
     ``state.toml``, the same exit-``3`` route ``desloppify`` and the mutators take.
 
     Returns
@@ -130,7 +130,7 @@ def source_state_and_drafts() -> tuple[
         ``draft.md`` is unreadable or undecodable (the exit-``3`` channel).
     """
     working_dir = pathlib.Path(WORKING_DIR_NAME)
-    state = _load_or_state_error(working_dir / "state.toml")
+    state = load_or_state_error(working_dir / "state.toml")
     by_chapter = _recount_or_state_error(working_dir, state.chapters)
     return state.word_counts.target, state.chapters, by_chapter
 

@@ -43,12 +43,12 @@ from novel_ralph_skill.commands._desloppify_report import (
     offenders_pack_path,
     report_outcome,
 )
-from novel_ralph_skill.commands.novel_state import (
+from novel_ralph_skill.commands.state_sourcing import (
     STATE_INPUT_ERRORS,
     WORKING_DIR_NAME,
     _draft_read_error,
-    _load_or_state_error,
     _rule_pack_read_error,
+    load_or_state_error,
 )
 from novel_ralph_skill.contract.errors import EnvelopeMessagesError
 from novel_ralph_skill.contract.exit_codes import ExitCode
@@ -164,8 +164,8 @@ def _select_chapters(
 def source_chapters(chapter: int | None) -> tuple[ScannedChapter, ...]:
     """Source the scanned chapters from the ``working/`` tree (design §5.1).
 
-    Loads the typed ``working/state.toml`` through ``novel-state``'s shared
-    :func:`~novel_ralph_skill.commands.novel_state._load_or_state_error` (so a
+    Loads the typed ``working/state.toml`` through the shared
+    :func:`~novel_ralph_skill.commands.state_sourcing.load_or_state_error` (so a
     missing or unparseable state is exit ``3``), selects the manifest chapters per
     ``chapter`` (a bad ``--chapter`` is the exit-``2`` usage fault), and reads each
     chapter's ``draft.md``. An absent draft yields empty text; every other read
@@ -173,7 +173,7 @@ def source_chapters(chapter: int | None) -> tuple[ScannedChapter, ...]:
     under the shared ``STATE_INPUT_ERRORS`` tuple, exactly as
     ``_recount._recount_or_state_error`` does, so it reaches exit ``3`` and cannot
     escape to the benign exit ``1``. The fault routes through the shared
-    :func:`~novel_ralph_skill.commands.novel_state._draft_read_error` formatter so
+    :func:`~novel_ralph_skill.commands.state_sourcing._draft_read_error` formatter so
     the six draft-read boundaries emit one actionable message naming the
     ``working/`` tree and cannot drift apart (roadmap §6.3.5).
 
@@ -197,7 +197,7 @@ def source_chapters(chapter: int | None) -> tuple[ScannedChapter, ...]:
         When ``--chapter N`` names a chapter absent from the manifest (exit ``2``).
     """
     working_dir = pathlib.Path(WORKING_DIR_NAME)
-    state = _load_or_state_error(working_dir / "state.toml")
+    state = load_or_state_error(working_dir / "state.toml")
     selected = _select_chapters(state.chapters, chapter)
     try:
         return tuple(

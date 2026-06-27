@@ -53,20 +53,15 @@ from novel_ralph_skill.commands._chapter_plan_entry import (
     ChapterPlanEntry,  # noqa: TC001 - runtime global for Cyclopts annotation resolution
 )
 
-# The ``working/state.toml`` load boundary lives in a dependency-free leaf module
-# (``_state_load``) so this command module stays within the 400-line cap. These
-# symbols are re-exported here so every command — and ``_state_mutators`` — keeps
-# importing them from ``novel_state``; ``__all__`` marks the re-export so the
-# unused-import lint does not fire on the ones this module does not call directly.
-from novel_ralph_skill.commands._state_load import (
+# The ``working/state.toml`` load boundary lives in the neutral state-sourcing
+# home :mod:`novel_ralph_skill.commands.state_sourcing`; ``novel_state`` is a pure
+# command facade and imports only the seam symbols its own ``_check``/``_init``
+# bodies use, with no re-export. Every other command imports the seam directly
+# from ``state_sourcing``.
+from novel_ralph_skill.commands.state_sourcing import (
     STATE_INPUT_ERRORS,
-    WORKING_DIR_NAME,
-    _compile_write_error,
-    _device_ledger_read_error,
     _draft_read_error,
-    _load_or_state_error,
-    _rule_pack_read_error,
-    _state_input_error,
+    load_or_state_error,
     resolved_working_dir,
     state_path,
     working_dir,
@@ -86,20 +81,7 @@ from novel_ralph_skill.state import (
     write_document_atomically,
 )
 
-__all__ = [
-    "STATE_INPUT_ERRORS",
-    "WORKING_DIR_NAME",
-    "_compile_write_error",
-    "_device_ledger_read_error",
-    "_draft_read_error",
-    "_load_or_state_error",
-    "_rule_pack_read_error",
-    "_state_input_error",
-    "build_app",
-    "resolved_working_dir",
-    "state_path",
-    "working_dir",
-]
+__all__ = ["build_app"]
 
 if typ.TYPE_CHECKING:
     import pathlib
@@ -197,7 +179,7 @@ def _check() -> CommandOutcome:
         ``draft.md`` is unreadable (the exit-``3`` state-error channel).
     """
     root = working_dir()
-    state = _load_or_state_error(state_path())
+    state = load_or_state_error(state_path())
     pure_state = validate_state(state)
     disk_evidence = _disk_evidence_or_state_error(state, root)
     verdict = (*pure_state, *disk_evidence)

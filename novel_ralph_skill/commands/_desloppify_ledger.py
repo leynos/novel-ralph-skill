@@ -32,7 +32,7 @@ from __future__ import annotations
 
 import typing as typ
 
-from novel_ralph_skill.commands.novel_state import _device_ledger_read_error
+from novel_ralph_skill.commands.state_sourcing import _device_ledger_read_error
 from novel_ralph_skill.contract.exit_codes import ExitCode
 from novel_ralph_skill.contract.runner import CommandOutcome
 from novel_ralph_skill.ledger import LedgerError, LedgerFileError, load_ledger

@@ -32,14 +32,14 @@ from __future__ import annotations
 
 import typing as typ
 
-from novel_ralph_skill.commands.novel_state import (
+from novel_ralph_skill.commands.state_sourcing import (
     STATE_INPUT_ERRORS,
     _state_input_error,
 )
-from novel_ralph_skill.commands.novel_state import (
+from novel_ralph_skill.commands.state_sourcing import (
     state_path as _state_path,
 )
-from novel_ralph_skill.commands.novel_state import (
+from novel_ralph_skill.commands.state_sourcing import (
     working_dir as _working_dir,
 )
 from novel_ralph_skill.contract.exit_codes import ExitCode
@@ -62,7 +62,7 @@ if typ.TYPE_CHECKING:
     from novel_ralph_skill.state import State
 
 # ``_state_path`` and ``_working_dir`` are re-exported from
-# :mod:`novel_ralph_skill.commands.novel_state` (the single accessor home) for
+# :mod:`novel_ralph_skill.commands.state_sourcing` (the single accessor home) for
 # the sibling ``_recount``/``_reconcile`` mutator modules, which import them from
 # here; ``__all__`` marks the re-export so the unused-import lint does not fire.
 __all__ = [
@@ -86,9 +86,9 @@ def _load_document_or_state_error(path: pathlib.Path) -> TOMLDocument:
     Decision Log D4).
 
     The faulted-load message is built by the shared
-    :func:`~novel_ralph_skill.commands.novel_state._state_input_error` helper —
+    :func:`~novel_ralph_skill.commands.state_sourcing._state_input_error` helper —
     the same one the reader/checker loader
-    (:func:`~novel_ralph_skill.commands.novel_state._load_or_state_error`) routes
+    (:func:`~novel_ralph_skill.commands.state_sourcing.load_or_state_error`) routes
     through — so the mutator and reader boundaries emit byte-for-byte identical
     actionable prose and cannot drift apart (roadmap §6.3.1).
 
@@ -127,7 +127,7 @@ def _state_view_or_state_error(document: TOMLDocument) -> State:
 
     Roadmap §6.3.5 makes this boundary's exit-``3`` message *actionable* by
     routing it through 6.3.1's existing
-    :func:`~novel_ralph_skill.commands.novel_state._state_input_error` rather than
+    :func:`~novel_ralph_skill.commands.state_sourcing._state_input_error` rather than
     the new draft-read formatter. A structurally-incomplete ``state.toml`` is a
     *state-document* fault, not a draft fault (6.3.1 Decision D8 kept the two
     distinct), so it reuses the *present-but-corrupt* arm — which names the

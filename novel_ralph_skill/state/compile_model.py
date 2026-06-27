@@ -70,7 +70,7 @@ def compiled_manuscript_path(working_dir: Path) -> Path:
     (``docs/issues/audit-4.1.2.md`` Finding 2): the module already owns
     :data:`DRAFT_SEPARATOR` and the draft-concatenation join, so the path join
     belongs here too. ``working_dir`` is expected to be an already
-    ``working/``-anchored directory (``commands._state_load.working_dir`` returns
+    ``working/``-anchored directory (``commands.state_sourcing.working_dir`` returns
     exactly that segment), so the result is **not** doubly prefixed and its POSIX
     form reproduces :data:`COMPILED_REL` exactly.
 

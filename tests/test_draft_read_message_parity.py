@@ -4,7 +4,7 @@ Roadmap §6.3.5 exists to stop the six draft-read boundaries —
 ``_disk_evidence_or_state_error``, ``_recount``, ``_wordcount``, ``_novel_done``,
 ``_desloppify.source_chapters``, and ``_compile`` — from emitting divergent
 exit-3 messages. They now all route through the one
-:func:`~novel_ralph_skill.commands.novel_state._draft_read_error` formatter, so
+:func:`~novel_ralph_skill.commands.state_sourcing._draft_read_error` formatter, so
 this test drives each from a coherent ``working/`` tree whose first chapter draft
 is corrupt and asserts the one **formatter-owned remedy substring** (the fixed
 inspect/repair clause) appears in every boundary's ``messages``. A one-sided

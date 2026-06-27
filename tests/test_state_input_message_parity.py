@@ -2,7 +2,7 @@
 
 Roadmap §6.3.1 exists to stop the reader/checker loader and the mutator loader
 from emitting divergent state-input (exit-3) messages. Both now route through the
-one :func:`~novel_ralph_skill.commands.novel_state._state_input_error` helper, so
+one :func:`~novel_ralph_skill.commands.state_sourcing._state_input_error` helper, so
 this test drives each from the same ``working/``-less directory and asserts their
 ``messages`` are byte-for-byte identical. It fails the moment either boundary
 forks its own message string again.
@@ -17,8 +17,8 @@ import pytest
 from novel_ralph_skill.commands._state_mutators import (
     _load_document_or_state_error,
 )
-from novel_ralph_skill.commands.novel_state import (
-    _load_or_state_error,
+from novel_ralph_skill.commands.state_sourcing import (
+    load_or_state_error,
     state_path,
 )
 from novel_ralph_skill.contract.runner import StateInputError
@@ -41,7 +41,7 @@ def test_both_load_boundaries_emit_identical_missing_message(
     path = state_path()
 
     with pytest.raises(StateInputError) as reader:
-        _load_or_state_error(path)
+        load_or_state_error(path)
     with pytest.raises(StateInputError) as mutator:
         _load_document_or_state_error(path)
 
@@ -71,7 +71,7 @@ def test_both_load_boundaries_emit_identical_corrupt_message(
     path.write_text("this is not = \n", encoding="utf-8")
 
     with pytest.raises(StateInputError) as reader:
-        _load_or_state_error(path)
+        load_or_state_error(path)
     with pytest.raises(StateInputError) as mutator:
         _load_document_or_state_error(path)
 

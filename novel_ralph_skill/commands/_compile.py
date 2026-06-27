@@ -43,11 +43,11 @@ from __future__ import annotations
 
 import typing as typ
 
-from novel_ralph_skill.commands.novel_state import (
+from novel_ralph_skill.commands.state_sourcing import (
     STATE_INPUT_ERRORS,
     _compile_write_error,
     _draft_read_error,
-    _load_or_state_error,
+    load_or_state_error,
     state_path,
     working_dir,
 )
@@ -132,7 +132,7 @@ def compile_manuscript() -> CommandOutcome:
         is absent or empty, a chapter's ``draft.md`` is unreadable or undecodable,
         or ``working/manuscript/`` is absent (each the exit-``3`` channel).
     """
-    state = _load_or_state_error(state_path())
+    state = load_or_state_error(state_path())
     _require_chapter_manifest(state)
     root = working_dir()
     try:
@@ -212,7 +212,7 @@ def check_compiled() -> CommandOutcome:
         is absent or empty, or a chapter's ``draft.md``/``compiled.md`` is
         unreadable or undecodable (each the exit-``3`` channel).
     """
-    state = _load_or_state_error(state_path())
+    state = load_or_state_error(state_path())
     _require_chapter_manifest(state)
     try:
         verdict = compiled_matches_drafts(state, working_dir())

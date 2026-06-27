@@ -617,7 +617,7 @@ a missing or unparseable `state.toml` or an absent working directory uses the
 same channel.
 
 The exit-3 messages are actionable, never raw OS text. Five sibling formatters
-in the dependency-free leaf module `_state_load` own the prose, each replacing
+in the dependency-free leaf module `state_sourcing` own the prose, each replacing
 the raw OS text with prose that names the offending artefact and offers a
 remedy. `_state_input_error` serves the *state.toml-load* fault (roadmap
 §6.3.1): a missing `working/` names the current directory and the
@@ -652,6 +652,18 @@ view-derivation boundary (`_state_view_or_state_error`) is a *state-document*
 fault, not a draft fault, so it reuses `_state_input_error`'s
 present-but-corrupt arm — naming the `state.toml` path — rather than the
 draft-read formatter, keeping the two faults distinct (roadmap §6.3.5).
+
+The formatters and the state-sourcing seam they build on — `WORKING_DIR_NAME`,
+the `working_dir`/`state_path` accessors, the `STATE_INPUT_ERRORS` tuple, and
+the public `load_or_state_error` loader — live in `state_sourcing`, the neutral,
+dependency-free command-layer module that is the single home for *where* a
+command looks, *what counts* as a state-input fault, and *how* a failed load
+becomes the exit-3 error. Every command imports the seam directly from
+`state_sourcing` rather than through the `novel_state` command facade, so a
+future `novel state` refactor cannot silently break the other commands (roadmap
+§7.3.1). `state_sourcing` imports only from `novel_ralph_skill.state` and
+`novel_ralph_skill.contract.runner`, never from `novel_state`, so the mutator
+modules can import *from* the home without forming an import cycle.
 
 ### State and on-disk layout
 
@@ -973,7 +985,7 @@ predicate per clause, a `chapter-NN` path derivation shared through
 and the same benign-absent / propagate-everything-else fault boundary — but it
 inverts the polarity, returning `True` when a clause *holds*. The command body
 and its app live in `novel_ralph_skill/commands/_novel_done.py`, reusing
-`novel state`'s `working_dir`, `state_path`, `_load_or_state_error`, and
+`state_sourcing`'s `working_dir`, `state_path`, `load_or_state_error`, and
 `STATE_INPUT_ERRORS` seams; its `build_app` is mounted as the `done` leaf of the
 `novel` multiplexer and driven through the shared `run` wrapper exactly as the
 other leaves are.
@@ -1239,7 +1251,7 @@ mutator:
   cross-subcommand test pins `violations` to `check` alone.
 - **The two-helper document load path.** The mutators load through
   `_load_document_or_state_error` → `load_document` (`tomlkit`), **not**
-  `_load_or_state_error` → `load_state` (`tomllib`), because they edit the live
+  `load_or_state_error` → `load_state` (`tomllib`), because they edit the live
   document in place. The typed-view derivation goes through a *second* helper,
   `_state_view_or_state_error` → `document_to_state`. Both route faults to exit
   `3` under the existing `STATE_INPUT_ERRORS` tuple. The second wrap is

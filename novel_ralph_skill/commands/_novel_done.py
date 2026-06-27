@@ -24,8 +24,8 @@ stale one (preserving the 3.1.1 B1 soundness fix). The
 stale-present compile from an absent one, since :class:`DoneClauses` carries only
 the six booleans and cannot say *why* ``compile_consistent`` is false.
 
-The body mirrors ``desloppify`` exactly: it reuses ``novel-state``'s boundary
-helpers (``working_dir``, ``state_path``, ``_load_or_state_error``,
+The body mirrors ``desloppify`` exactly: it reuses ``state_sourcing``'s boundary
+helpers (``working_dir``, ``state_path``, ``load_or_state_error``,
 ``STATE_INPUT_ERRORS``) so it resolves the same fixed ``working/`` tree and maps
 load faults to the same exit-``3`` channel, and the app is built with the same
 four flags so the shared :func:`novel_ralph_skill.contract.runner.run` wrapper
@@ -36,10 +36,10 @@ from __future__ import annotations
 
 import typing as typ
 
-from novel_ralph_skill.commands.novel_state import (
+from novel_ralph_skill.commands.state_sourcing import (
     STATE_INPUT_ERRORS,
     _draft_read_error,
-    _load_or_state_error,
+    load_or_state_error,
     state_path,
     working_dir,
 )
@@ -86,7 +86,7 @@ def _novel_done() -> CommandOutcome:
         exit-``3`` state-error channel).
     """
     root = working_dir()
-    state = _load_or_state_error(state_path())
+    state = load_or_state_error(state_path())
     try:
         clauses = evaluate_done(state, root)
     except STATE_INPUT_ERRORS as exc:

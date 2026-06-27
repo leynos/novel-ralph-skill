@@ -27,7 +27,7 @@ from _state_corpus_support import (
     validator_verdict,
 )
 
-from novel_ralph_skill.commands.novel_state import STATE_INPUT_ERRORS
+from novel_ralph_skill.commands.state_sourcing import STATE_INPUT_ERRORS
 from novel_ralph_skill.state import (
     BY_CHAPTER_SUM,
     COMPLETED_PREFIX,

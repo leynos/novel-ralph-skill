@@ -22,7 +22,7 @@ import typing as typ
 import pytest
 
 from novel_ralph_skill.commands import novel
-from novel_ralph_skill.commands.novel_state import WORKING_DIR_NAME
+from novel_ralph_skill.commands.state_sourcing import WORKING_DIR_NAME
 from novel_ralph_skill.contract.runner import RunContext, run
 
 if typ.TYPE_CHECKING:

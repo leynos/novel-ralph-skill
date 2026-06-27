@@ -26,7 +26,7 @@ from novel_ralph_skill.commands._state_mutators import (
     _state_view_or_state_error,
     _working_dir,
 )
-from novel_ralph_skill.commands.novel_state import (
+from novel_ralph_skill.commands.state_sourcing import (
     STATE_INPUT_ERRORS,
     _draft_read_error,
 )

@@ -3,14 +3,14 @@
 Roadmap §6.3.8 closes the last raw-OS-text leaks on the state-input (exit-3)
 channel: the compile-write, rule-pack-read, and device-ledger-read formatters
 join the existing state-load and draft-read formatters in
-:mod:`novel_ralph_skill.commands._state_load`, all building actionable prose from
+:mod:`novel_ralph_skill.commands.state_sourcing`, all building actionable prose from
 the artefact path rather than from a caught exception's repr (ExecPlan Decision
 D2; ``scripting-standards.md`` line 678).
 
 This guard pins that no-raw-leak property *structurally* rather than relying on
 per-arm diligence, mirroring the parity-tripwire pattern roadmap 6.3.1.2 and
 6.3.2.1 established. It imports the formatters straight from their definition
-module ``_state_load`` (not the ``novel_state`` re-export) so the guard exercises
+module ``state_sourcing`` (not the ``novel_state`` re-export) so the guard exercises
 the implementation location, then drives every formatter with a faulty path and a
 representative caught exception — an ``OSError`` carrying an ``Errno`` and a
 :class:`tomllib.TOMLDecodeError` — and asserts each formatter's
@@ -48,7 +48,7 @@ import typing as typ
 
 import pytest
 
-from novel_ralph_skill.commands._state_load import (
+from novel_ralph_skill.commands.state_sourcing import (
     _compile_write_error,
     _device_ledger_read_error,
     _draft_read_error,

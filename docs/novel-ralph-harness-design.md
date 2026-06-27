@@ -160,7 +160,7 @@ Every JSON payload carries a common envelope:
   (The `novel state init` result body carries the same absolute path under
   `result.working_dir`.) The resolution rule itself is unchanged: `working/` is
   still resolved relative to the current working directory, and there is no
-  `--working-dir` flag (the rule lives in the `_state_load.py` source comment).
+  `--working-dir` flag (the rule lives in the `state_sourcing.py` source comment).
   Surfacing the resolved path makes a misresolution visible in the field the
   agent already reads — a stray `cd` into `working/` shows `.../working/working`
   rather than failing silently (roadmap §6.3.4).

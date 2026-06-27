@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import typing as typ
 
-from novel_ralph_skill.commands._state_load import (
+from novel_ralph_skill.commands.state_sourcing import (
     resolved_working_dir,
     working_dir,
 )

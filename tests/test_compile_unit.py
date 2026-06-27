@@ -27,7 +27,7 @@ from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
 from novel_ralph_skill.commands._compile import compile_manuscript
-from novel_ralph_skill.commands.novel_state import state_path, working_dir
+from novel_ralph_skill.commands.state_sourcing import state_path, working_dir
 from novel_ralph_skill.contract.exit_codes import ExitCode
 from novel_ralph_skill.contract.runner import StateInputError
 from novel_ralph_skill.state import (

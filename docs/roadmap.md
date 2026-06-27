@@ -2805,7 +2805,7 @@ of done for every task here: the duplication is removed, exactly one canonical
 implementation survives under one name, it is documented as the single source
 of truth, and a test pins it so it cannot silently re-fork.
 
-- [ ] 7.3.1. Lift the shared state-sourcing seam out of `novel_state` into a
+- [x] 7.3.1. Lift the shared state-sourcing seam out of `novel_state` into a
   dedicated module with a public `load_or_state_error`.
   - Reroute (source: audit:1.3.6 Finding 2; severity: medium).
     `_load_or_state_error` (underscore-private) plus `STATE_INPUT_ERRORS`,

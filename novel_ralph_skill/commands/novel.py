@@ -33,7 +33,7 @@ import sys
 import typing as typ
 
 from novel_ralph_skill.commands.names import MULTIPLEXER_NAME, SUBCOMMAND_NAMES
-from novel_ralph_skill.commands.novel_state import resolved_working_dir
+from novel_ralph_skill.commands.state_sourcing import resolved_working_dir
 from novel_ralph_skill.contract import RunContext, parse_global_flags, run
 from novel_ralph_skill.contract.runner import make_contract_app
 
@@ -150,7 +150,7 @@ def main() -> None:
     in the envelope field the agent already reads as ``.../working/working``
     rather than failing silently (roadmap §6.3.4; Decision Log D2). Resolution
     semantics are unchanged: the path stays cwd-relative (rule at
-    ``_state_load.py:32-48``); only the *reported* value becomes absolute.
+    ``state_sourcing.py:52-67``); only the *reported* value becomes absolute.
     """
     human, residual = parse_global_flags(sys.argv[1:])
     name = _command_name_for(residual)

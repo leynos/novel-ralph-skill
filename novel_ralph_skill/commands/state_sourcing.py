@@ -1,20 +1,24 @@
-"""The shared ``working/state.toml`` load boundary and its accessors.
+"""The neutral, public state-sourcing home for the command layer.
 
-This dependency-free leaf module hosts the single home for *where* a command
-looks (``WORKING_DIR_NAME``, :func:`working_dir`, :func:`state_path`), *what
-counts* as a state-input fault (:data:`STATE_INPUT_ERRORS`), and *how* a failed
-load is rendered as the contract's exit-``3`` error (:func:`_state_input_error`,
-:func:`_load_or_state_error`). It is re-exported by
-:mod:`novel_ralph_skill.commands.novel_state`, so every command keeps importing
-these symbols from ``novel_state`` while the command module stays within the
-400-line cap (AGENTS.md "clear file boundaries"), mirroring the
+This dependency-free module is the single home for *where* a command looks
+(``WORKING_DIR_NAME``, :func:`working_dir`, :func:`state_path`), *what counts*
+as a state-input fault (:data:`STATE_INPUT_ERRORS`), and *how* a failed load is
+rendered as the contract's exit-``3`` error (:func:`_state_input_error`,
+:func:`load_or_state_error`). Every command — the ``novel state`` subgroup, the
+four leaf verbs, and the mutators — imports the seam directly from here, so the
+``working/`` location, the state-input fault vocabulary, and the
+load-and-translate boundary live in exactly one place (AGENTS.md "clear file
+boundaries"), mirroring the
 :mod:`novel_ralph_skill.commands._state_mutators` carve-out.
 
 It imports only from :mod:`novel_ralph_skill.state` and
 :mod:`novel_ralph_skill.contract.runner` — never from ``novel_state`` — so the
 shared actionable-message helper lives here without reversing the
 ``_state_mutators`` → ``novel_state`` import direction (ExecPlan Decision Log:
-the helper must not create an import cycle).
+the helper must not create an import cycle). This no-``novel_state``-import rule
+is a constraint, not an incidental: the mutator modules import *from* this home,
+so this home importing *from* a command module would reintroduce the cycle the
+carve-out avoids.
 """
 
 from __future__ import annotations
@@ -30,6 +34,20 @@ if typ.TYPE_CHECKING:
     from importlib.resources.abc import Traversable
 
     from novel_ralph_skill.state import State
+
+# The public state-sourcing seam: the neutral home's exported surface. The
+# underscore-private actionable-message formatters move with the module but stay
+# module-private (only ``load_or_state_error`` is the promoted public loader);
+# ``INSPECT_REPAIR_REMEDY`` is module-internal and is deliberately not part of
+# the seam.
+__all__ = [
+    "STATE_INPUT_ERRORS",
+    "WORKING_DIR_NAME",
+    "load_or_state_error",
+    "resolved_working_dir",
+    "state_path",
+    "working_dir",
+]
 
 # The fixed cwd-relative working directory the design records (design line 151);
 # the same constant the entry point stamps into the ``RunContext.working_dir``,
@@ -53,7 +71,7 @@ def resolved_working_dir() -> pathlib.Path:
     """Return the absolute, resolved ``working/`` for the envelope/result label.
 
     Built on :func:`working_dir` (the cwd-relative resolution rule documented at
-    ``_state_load.py:32-48``), this returns ``working_dir().resolve()`` — the
+    ``state_sourcing.py:52-67``), this returns ``working_dir().resolve()`` — the
     absolute, normalised path the command actually looked at — so the production
     entry point can stamp *where* it resolved rather than the bare ``"working"``
     token. ``Path.resolve()`` runs in its default non-strict mode, so it
@@ -104,7 +122,7 @@ def _state_input_error(path: pathlib.Path, exc: Exception) -> StateInputError:
     """Build the actionable exit-``3`` ``StateInputError`` for a failed state load.
 
     The single source of truth for the message both load boundaries emit — the
-    reader loader :func:`_load_or_state_error` here and the mutator loader
+    reader loader :func:`load_or_state_error` here and the mutator loader
     :func:`~novel_ralph_skill.commands._state_mutators._load_document_or_state_error`
     — so the two cannot drift apart (roadmap §6.3.1). It replaces the raw
     operating-system text (an ``Errno`` and a path-as-noise) with prose naming
@@ -332,7 +350,7 @@ def _device_ledger_read_error(ledger_path: pathlib.Path) -> StateInputError:
     return _file_fault_error(message)
 
 
-def _load_or_state_error(path: pathlib.Path) -> State:
+def load_or_state_error(path: pathlib.Path) -> State:
     """Load ``path`` into a ``State``, translating load faults to ``StateInputError``.
 
     Owns the load-and-translate boundary so callers read as "load → validate →
