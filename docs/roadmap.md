@@ -2852,7 +2852,7 @@ test pins it so it cannot silently re-fork.
     re-export's fate is recorded (kept with a pinning test, or pruned from
     `__all__`); and the rule-pack, ledger, desloppify, and `loaderkit` suites
     stay green.
-  - [ ] 7.2.4.1. Note that `LineHit` survives as an unadvertised runtime
+  - [x] 7.2.4.1. Note that `LineHit` survives as an unadvertised runtime
     attribute of `rulepack.detect`.
     - Addendum (from review:7.2.4; low). Post-prune,
       `hasattr(rulepack.detect, "LineHit")` is `True` even though `LineHit` is

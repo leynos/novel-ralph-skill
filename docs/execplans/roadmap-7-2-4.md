@@ -811,7 +811,7 @@ the gates rather than asserted.
 Small, surgical corrections accrued after this task settled. Each runs as a
 lightweight, no-plan, no-review addendum pass.
 
-- 7.2.4.1 (from review:7.2.4; low). Note that `LineHit` survives as an
+- [x] 7.2.4.1 (from review:7.2.4; low). Note that `LineHit` survives as an
   unadvertised runtime attribute of `rulepack.detect`. Post-prune,
   `hasattr(rulepack.detect, "LineHit")` is `True` even though `LineHit` is absent
   from `__all__`, because the detector constructs it at runtime in the `line_hit`

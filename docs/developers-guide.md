@@ -1822,6 +1822,18 @@ through a caller-supplied `line_hit` callable, the seam that keeps it free of an
 `rulepack.detect → loaderkit.scan` / `ledger.detect → loaderkit.scan` stays
 acyclic.
 
+Roadmap task 7.2.4 pruned the temporary `rulepack.detect` re-export of the two
+scan shapes, so `rulepack.detect.__all__` is now exactly `DetectionReport`,
+`RuleFinding` and `detect`, and `ScannedChapter` is reachable only under
+`TYPE_CHECKING`. `LineHit`, by contrast, remains an importable-but-unadvertised
+runtime attribute of `rulepack.detect` *by design*: the detector constructs it in
+its `line_hit` lambda, so it stays a runtime import and `hasattr(rulepack.detect,
+"LineHit")` is `True` even though `LineHit` is absent from `__all__`. The
+surviving attribute is therefore intentional, not an incomplete prune, and is
+pinned by `tests/test_rulepack_detect.py::test_detect_no_longer_reexports_scan_shapes`,
+which asserts `LineHit` is absent from `__all__` rather than absent as an
+attribute.
+
 This consolidation **superseded** the earlier `ledger/_coerce.py` "deliberate
 near-copy" rationale: that rationale deferred the error-factory refactor because
 editing the then-frozen rule-pack loader was an ExecPlan Tolerance trip during the
