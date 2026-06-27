@@ -2927,7 +2927,7 @@ of truth, and a test pins it so it cannot silently re-fork.
     commands and `stub.py` import them from that neutral home rather than from
     `novel_state`; no command depends on the `novel_state` module for these
     seams; and every command suite stays green.
-  - [ ] 7.3.1.1. Re-anchor the two surviving `state_sourcing.py:52-67` docstring
+  - [x] 7.3.1.1. Re-anchor the two surviving `state_sourcing.py:52-67` docstring
     citations to stable symbols rather than source line-number ranges.
     - Addendum (from review:7.3.1; trivial). The `resolved_working_dir`
       docstring at `state_sourcing.py:74` and the multiplexer-`main` docstring at
@@ -2937,7 +2937,7 @@ of truth, and a test pins it so it cannot silently re-fork.
       fix round 1. Re-anchor both to the stable symbol (`working_dir` /
       `WORKING_DIR_NAME`, or the cwd-relative rule by name). Lightweight addendum
       pass against the 7.3.1 execplan.
-  - [ ] 7.3.1.2. Correct Decision D9's Gate-2 wording in the 7.3.1 execplan
+  - [x] 7.3.1.2. Correct Decision D9's Gate-2 wording in the 7.3.1 execplan
     record.
     - Addendum (from review:7.3.1; low). D9 lists `load_or_state_error` inside
       the Gate-2 alternation, but the implemented gate `novel_state\._[a-z_]*error`

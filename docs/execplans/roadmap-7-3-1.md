@@ -426,13 +426,16 @@ escalation, not a workaround.
   and the projection drift-guard pins only `compile_model`/reconciliation. They
   are therefore added to WI5 clean-up 2 (rewrite each role to the canonical
   `novel_ralph_skill.commands.state_sourcing._<formatter>` path) and the WI5
-  hard gate is broadened with a second pattern,
-  `novel_state\._\(draft_read_error\|state_input_error\|compile_write_error\|rule_pack_read_error\|device_ledger_read_error\|load_or_state_error\)`,
-  that must also return nothing after WI5. (`load_or_state_error` is included
-  in the gate pattern because the WI5 re-export drop also removes the
-  `novel_state.load_or_state_error` *re-export* path; any prose role naming it
-  on the façade must be repointed to `state_sourcing` too.) Date/Author:
-  2026-06-27, planning agent.
+  hard gate is broadened with a second pattern, `novel_state\._[a-z_]*error`
+  (Gate 2 as implemented in the WI5 gate block), that must also return nothing
+  after WI5. Its `\._` anchor matches only the dot-underscore
+  `novel_state._<…>error` formatter/seam roles — including
+  `novel_state._load_or_state_error` — and so by construction it does **not**
+  match the bare public `novel_state.load_or_state_error` re-export role (a
+  `.l`, not a `._`). The WI5 re-export drop also removes that bare public
+  `novel_state.load_or_state_error` path, but the role naming it on the façade
+  is closed by the A1 insurance grep (`_load_or_state_error` must return
+  nothing everywhere), not by Gate 2. Date/Author: 2026-06-27, planning agent.
 
 - Decision D10 (B7 — the `_state_mutators.py:64-66` "single accessor home"
   comment and the `state_sourcing.py` docstring import-home prose are
@@ -1472,7 +1475,7 @@ single round-3 blocking point:
 Lightweight, post-completion corrections folded onto this task. Each is a small,
 surgical fix run as a no-plan, no-review pass; none changes the task's outcome.
 
-- [ ] A2 (from review:7.3.1; trivial). Prefer symbol citations over source
+- [x] A2 (from review:7.3.1; trivial). Prefer symbol citations over source
   line-number ranges in the two surviving docstring citations. The
   `resolved_working_dir` docstring at `state_sourcing.py:74` and the
   `main`-multiplexer docstring at `novel.py:153` both cite the cwd-relative rule
@@ -1485,7 +1488,7 @@ surgical fix run as a no-plan, no-review pass; none changes the task's outcome.
   `resolved_working_dir`) and `novel_ralph_skill/commands/novel.py` (docstring
   at `main`).
 
-- [ ] A3 (from review:7.3.1; low). Correct Decision D9's Gate-2 wording in this
+- [x] A3 (from review:7.3.1; low). Correct Decision D9's Gate-2 wording in this
   execplan record. D9 (and its WI5 narrative) lists `load_or_state_error` inside
   the Gate-2 alternation and asserts Gate 2 "catches" the
   `novel_state.load_or_state_error` re-export role, but the gate as implemented

@@ -198,8 +198,9 @@ def main() -> None:
     a misresolution — for example a stray ``cd`` into ``working/`` — is visible
     in the envelope field the agent already reads as ``.../working/working``
     rather than failing silently (roadmap §6.3.4; Decision Log D2). Resolution
-    semantics are unchanged: the path stays cwd-relative (rule at
-    ``state_sourcing.py:52-67``); only the *reported* value becomes absolute.
+    semantics are unchanged: the path stays cwd-relative (the
+    ``WORKING_DIR_NAME``-anchored rule in :func:`state_sourcing.working_dir`);
+    only the *reported* value becomes absolute.
     """
     human, residual = parse_global_flags(sys.argv[1:])
     name = _command_name_for(residual)
