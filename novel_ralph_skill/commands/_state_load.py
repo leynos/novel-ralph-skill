@@ -143,7 +143,34 @@ def _state_input_error(path: pathlib.Path, exc: Exception) -> StateInputError:
     return StateInputError(message)
 
 
-def _draft_read_error(reported_dir: pathlib.Path, exc: Exception) -> StateInputError:
+def _file_fault_error(message: str) -> StateInputError:
+    """Wrap an already-built actionable ``message`` in a ``StateInputError``.
+
+    The single-arm constructor the four path-only file-fault formatters
+    (:func:`_draft_read_error`, :func:`_compile_write_error`,
+    :func:`_rule_pack_read_error`, :func:`_device_ledger_read_error`) share. Each
+    builds its own actionable prose from the offending artefact path and hands it
+    here, so the near-identical ``return StateInputError(message)`` tail lives in
+    one place (audit:6.3.8 Findings 1-2). The caught exception is not threaded
+    through: these formatters render from the path alone and never read it, so the
+    caller keeps it solely for ``raise … from exc`` chaining (Decision D2; the
+    ``messages`` channel carries only actionable prose — no ``Errno``, no
+    ``{exc}`` repr, no traceback).
+
+    Parameters
+    ----------
+    message : str
+        The actionable prose the formatter built; carried verbatim.
+
+    Returns
+    -------
+    StateInputError
+        The actionable error, ready to raise.
+    """
+    return StateInputError(message)
+
+
+def _draft_read_error(reported_dir: pathlib.Path) -> StateInputError:
     """Build the actionable exit-``3`` ``StateInputError`` for a faulted draft read.
 
     The single source of truth for the message the six *draft-read* boundaries
@@ -168,16 +195,15 @@ def _draft_read_error(reported_dir: pathlib.Path, exc: Exception) -> StateInputE
     is a *state-document* fault, not a draft fault, and routes through
     :func:`_state_input_error`'s present-but-corrupt arm instead, which names the
     ``state.toml`` path (the right artefact) and reuses 6.3.1's machinery
-    (ExecPlan Decision D7; 6.3.1 Decision D8). The caller chains ``exc`` via
-    ``from`` for debugging while ``exc.messages`` carries only the actionable
-    prose — no ``Errno``, no ``{exc}`` repr, no traceback.
+    (ExecPlan Decision D7; 6.3.1 Decision D8). It renders from ``reported_dir``
+    alone; the caller keeps the caught exception solely for ``raise … from exc``
+    chaining, so the ``messages`` channel carries only the actionable prose — no
+    ``Errno``, no ``{exc}`` repr, no traceback.
 
     Parameters
     ----------
     reported_dir : pathlib.Path
         The ``working/`` tree the command read; named verbatim in the message.
-    exc : Exception
-        The caught :data:`STATE_INPUT_ERRORS` member (chained by the caller).
 
     Returns
     -------
@@ -188,10 +214,10 @@ def _draft_read_error(reported_dir: pathlib.Path, exc: Exception) -> StateInputE
         f"cannot read the drafts under {reported_dir}; a draft.md (or "
         f"compiled.md) is unreadable or corrupt — {INSPECT_REPAIR_REMEDY}"
     )
-    return StateInputError(message)
+    return _file_fault_error(message)
 
 
-def _compile_write_error(target: pathlib.Path, exc: Exception) -> StateInputError:
+def _compile_write_error(target: pathlib.Path) -> StateInputError:
     """Build the exit-``3`` ``StateInputError`` for a faulted manuscript write.
 
     The write-shaped sibling of :func:`_draft_read_error` (roadmap §6.3.8). When
@@ -208,16 +234,14 @@ def _compile_write_error(target: pathlib.Path, exc: Exception) -> StateInputErro
     is missing, so the remedy is to re-create ``working/manuscript/`` (or restore
     the tree) and re-run, not to re-initialise state (Decision D6 in the 6.3.5
     plan). It keeps the ``"cannot write"`` stem the existing substring test pins.
-    The caller chains ``exc`` via ``from`` for debugging while ``exc.messages``
-    carries only the actionable prose — no ``Errno``, no ``{exc}`` repr, no
-    traceback.
+    It renders from ``target`` alone; the caller keeps the caught exception solely
+    for ``raise … from exc`` chaining, so the ``messages`` channel carries only the
+    actionable prose — no ``Errno``, no ``{exc}`` repr, no traceback.
 
     Parameters
     ----------
     target : pathlib.Path
         The compiled-manuscript path the write targeted; named in the message.
-    exc : Exception
-        The caught :data:`STATE_INPUT_ERRORS` member (chained by the caller).
 
     Returns
     -------
@@ -229,10 +253,10 @@ def _compile_write_error(target: pathlib.Path, exc: Exception) -> StateInputErro
         "working/manuscript/ exists (re-create it or restore the working tree), "
         "then re-run the compile"
     )
-    return StateInputError(message)
+    return _file_fault_error(message)
 
 
-def _rule_pack_read_error(pack_path: Traversable, exc: Exception) -> StateInputError:
+def _rule_pack_read_error(pack_path: Traversable) -> StateInputError:
     """Build the actionable exit-``3`` ``StateInputError`` for a faulted rule-pack read.
 
     The rule-pack file-fault sibling of :func:`_draft_read_error` (roadmap
@@ -247,9 +271,10 @@ def _rule_pack_read_error(pack_path: Traversable, exc: Exception) -> StateInputE
     (``rulepack/parse.py:390``), so consuming it would re-leak the operating-system
     text this task exists to remove. The remedy names ``--pack`` because the path
     is operator-supplied: check it is correct and readable, or omit ``--pack`` to
-    fall back to the shipped default pack. The caller chains ``exc`` via ``from``
-    for debugging while ``exc.messages`` carries only the actionable prose — no
-    ``Errno``, no ``{exc}`` repr, no traceback.
+    fall back to the shipped default pack. It renders from ``pack_path`` alone; the
+    caller keeps the caught exception solely for ``raise … from exc`` chaining, so
+    the ``messages`` channel carries only the actionable prose — no ``Errno``, no
+    ``{exc}`` repr, no traceback.
 
     Parameters
     ----------
@@ -258,8 +283,6 @@ def _rule_pack_read_error(pack_path: Traversable, exc: Exception) -> StateInputE
         is a ``Traversable`` (not a bare ``pathlib.Path``) because the shipped
         default pack resolves through ``importlib.resources`` while a ``--pack``
         flag supplies a filesystem ``Path``; both stringify into the message.
-    exc : Exception
-        The caught ``RulePackFileError`` (chained by the caller).
 
     Returns
     -------
@@ -270,12 +293,10 @@ def _rule_pack_read_error(pack_path: Traversable, exc: Exception) -> StateInputE
         f"cannot read rule pack {pack_path}; check the --pack path is correct "
         "and readable, or omit --pack to use the shipped default pack"
     )
-    return StateInputError(message)
+    return _file_fault_error(message)
 
 
-def _device_ledger_read_error(
-    ledger_path: pathlib.Path, exc: Exception
-) -> StateInputError:
+def _device_ledger_read_error(ledger_path: pathlib.Path) -> StateInputError:
     """Build the actionable exit-``3`` ``StateInputError`` for a faulted ledger read.
 
     The device-ledger file-fault sibling of :func:`_draft_read_error` (roadmap
@@ -289,16 +310,15 @@ def _device_ledger_read_error(
     that error's own message already embeds a raw ``{exc}`` repr
     (``ledger/parse.py:311``), so consuming it would re-leak the operating-system
     text this task exists to remove. The remedy names ``--ledger`` because the
-    path is operator-supplied: check it is correct and readable. The caller chains
-    ``exc`` via ``from`` for debugging while ``exc.messages`` carries only the
+    path is operator-supplied: check it is correct and readable. It renders from
+    ``ledger_path`` alone; the caller keeps the caught exception solely for
+    ``raise … from exc`` chaining, so the ``messages`` channel carries only the
     actionable prose — no ``Errno``, no ``{exc}`` repr, no traceback.
 
     Parameters
     ----------
     ledger_path : pathlib.Path
         The device-ledger path the read targeted; named in the message.
-    exc : Exception
-        The caught ``LedgerFileError`` (chained by the caller).
 
     Returns
     -------
@@ -309,7 +329,7 @@ def _device_ledger_read_error(
         f"cannot read device ledger {ledger_path}; check the --ledger path "
         "is correct and readable"
     )
-    return StateInputError(message)
+    return _file_fault_error(message)
 
 
 def _load_or_state_error(path: pathlib.Path) -> State:

@@ -92,6 +92,6 @@ def ledger_scan(ledger_path: pathlib.Path) -> CommandOutcome:
         # names the ledger path and offers a file-shaped remedy with no raw OS
         # text (roadmap §6.3.8); the FileError's own message embeds a raw
         # ``{exc}`` repr, so the formatter takes only the path (ExecPlan D2).
-        raise _device_ledger_read_error(ledger_path, exc) from exc
+        raise _device_ledger_read_error(ledger_path) from exc
     chapters = source_chapters(None)
     return ledger_report_outcome(detect_ledger(ledger, chapters))

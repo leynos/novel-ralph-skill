@@ -161,7 +161,7 @@ def _disk_evidence_or_state_error(
     try:
         return check_disk_evidence(state, working_dir, relax_drafting_bijection=True)
     except STATE_INPUT_ERRORS as exc:
-        raise _draft_read_error(working_dir, exc) from exc
+        raise _draft_read_error(working_dir) from exc
 
 
 def _check() -> CommandOutcome:

@@ -99,7 +99,7 @@ def _recount_or_state_error(
     try:
         _current, by_chapter = recount_words(working_dir, manifest)
     except STATE_INPUT_ERRORS as exc:
-        raise _draft_read_error(working_dir, exc) from exc
+        raise _draft_read_error(working_dir) from exc
     return by_chapter
 
 

@@ -616,24 +616,41 @@ it is always exit 3. A command body signals this exit-3 channel by raising
 a missing or unparseable `state.toml` or an absent working directory uses the
 same channel.
 
-The exit-3 messages are actionable, never raw OS text. Two sibling formatters in
-the dependency-free leaf module `_state_load` own the prose. `_state_input_error`
-serves the *state.toml-load* fault (roadmap §6.3.1): a missing `working/` names
-the current directory and the `novel state init` remedy, while a
-present-but-corrupt `state.toml` names the path and asks for inspection or repair.
-`_draft_read_error` serves the six *draft-read* boundaries (roadmap §6.3.5) —
-`novel state check`'s disk-evidence read, `novel state recount`, `novel
+The exit-3 messages are actionable, never raw OS text. Five sibling formatters in
+the dependency-free leaf module `_state_load` own the prose, each replacing the
+raw OS text with prose that names the offending artefact and offers a remedy.
+`_state_input_error` serves the *state.toml-load* fault (roadmap §6.3.1): a
+missing `working/` names the current directory and the `novel state init` remedy,
+while a present-but-corrupt `state.toml` names the path and asks for inspection
+or repair. `_draft_read_error` serves the six *draft-read* boundaries (roadmap
+§6.3.5) — `novel state check`'s disk-evidence read, `novel state recount`, `novel
 wordcount`, `novel done`, `novel desloppify`, and both of `novel compile`'s
 draft-read tails — when a present `working/` tree holds a corrupt or unreadable
 `draft.md`/`compiled.md`; it names the `working/` tree and asks for inspection or
-repair, never advising `init` (the tree exists). Routing every boundary through
-one formatter keeps the message from drifting and leaks no raw `Errno`, `{exc}`
-repr, or traceback. The mutator view-derivation boundary
-(`_state_view_or_state_error`) is a *state-document* fault, not a draft fault, so
-it reuses `_state_input_error`'s present-but-corrupt arm — naming the `state.toml`
-path — rather than the draft-read formatter, keeping the two faults distinct
-(roadmap §6.3.5). The `novel compile` atomic-*write* tail and the desloppify
-rule-pack/device-ledger faults keep their own write- and file-shaped messages.
+repair, never advising `init` (the tree exists).
+
+Three further formatters (roadmap §6.3.8) close the remaining raw-OS-text leaks,
+each a single-arm sibling that never advises `init` because the working tree
+already exists. `_compile_write_error` serves the `novel compile` atomic-*write*
+tail: when `working/manuscript/compiled.md` cannot be written — typically because
+`manuscript/` is absent — it names the compiled-manuscript target and offers a
+*write-shaped* remedy (re-create `working/manuscript/` or restore the tree, then
+re-run the compile). `_rule_pack_read_error` serves `novel desloppify`'s rule-pack
+read: it names the pack path and offers a *file-shaped* remedy (check the `--pack`
+path is correct and readable, or omit `--pack` to use the shipped default pack).
+`_device_ledger_read_error` serves `novel desloppify --ledger`'s device-ledger
+read: it names the ledger path and offers a *file-shaped* remedy (check the
+`--ledger` path is correct and readable). The two desloppify formatters take only
+the *path*, never the typed `RulePackFileError`/`LedgerFileError`, whose own
+messages embed a raw `{exc}` repr that consuming them would re-leak (ExecPlan
+Decision D2).
+
+Routing every boundary through one of these five formatters keeps the message
+from drifting and leaks no raw `Errno`, `{exc}` repr, or traceback. The mutator
+view-derivation boundary (`_state_view_or_state_error`) is a *state-document*
+fault, not a draft fault, so it reuses `_state_input_error`'s present-but-corrupt
+arm — naming the `state.toml` path — rather than the draft-read formatter, keeping
+the two faults distinct (roadmap §6.3.5).
 
 ### State and on-disk layout
 

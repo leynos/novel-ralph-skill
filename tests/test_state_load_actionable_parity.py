@@ -21,7 +21,17 @@ representative caught exception — an ``OSError`` carrying an ``Errno`` and a
 - is non-empty actionable prose;
 
 and, for the file/write-fault formatters whose contract is to name the offending
-artefact, that the path passed in appears in the message.
+artefact, that the path passed in appears in the message. For the three roadmap
+§6.3.8 file-fault arms it additionally pins each arm's stable remedy clause
+(``_REMEDY_TOKENS``), so a regression dropping the remedy — which the no-leak and
+path-naming guards would not catch — fails here (audit:6.3.8 Finding 6).
+
+The four path-only file-fault formatters render from the artefact path alone and
+no longer take the caught exception (audit:6.3.8 Findings 1-2); only
+:func:`_state_input_error` still consumes ``(path, exc)``. The guard drives each
+through :func:`_render`, which supplies the caught exception only to the
+two-argument formatter, so a future formatter regaining a misleading ``exc``
+parameter would still be exercised here.
 
 A future formatter (or a regression of any of these) that re-interpolates a
 caught exception onto the channel fails this guard. A plain parametrised example
@@ -117,6 +127,52 @@ _EXCEPTIONS: list[cabc.Callable[..., Exception]] = [
     _toml_decode_exception,
 ]
 
+# The stable remedy clause each of the three roadmap §6.3.8 file-fault arms must
+# carry. The no-leak and path-naming guards above pin *what the message omits* and
+# *that it names the artefact*, but neither pins the remedy that makes the message
+# actionable, so a regression dropping the remedy would still pass. Each token is a
+# distinctive, stable substring of the arm's remedy clause (audit:6.3.8 Finding 6).
+_REMEDY_TOKENS: tuple[tuple[str, cabc.Callable[..., StateInputError], str], ...] = (
+    (
+        "compile-write",
+        _compile_write_error,
+        "working/manuscript/ exists",
+    ),
+    (
+        "rule-pack-read",
+        _rule_pack_read_error,
+        "omit --pack to use the shipped default pack",
+    ),
+    (
+        "device-ledger-read",
+        _device_ledger_read_error,
+        "check the --ledger path",
+    ),
+)
+
+# ``_state_input_error`` reads both the path and the caught exception; the four
+# path-only file-fault formatters now render from the path alone. The guard
+# enumerates the two-argument formatters by identity so it threads ``exc`` only
+# where the trimmed signatures still accept it.
+_TWO_ARG_FORMATTERS: frozenset[cabc.Callable[..., StateInputError]] = frozenset(
+    {_state_input_error},
+)
+
+
+def _render(
+    formatter: cabc.Callable[..., StateInputError],
+    path: pathlib.Path,
+    exc: Exception,
+) -> StateInputError:
+    """Call ``formatter`` with the arity its trimmed signature accepts.
+
+    Supplies ``exc`` only to the two-argument :func:`_state_input_error`; the four
+    path-only formatters take the artefact path alone after audit:6.3.8.
+    """
+    if formatter in _TWO_ARG_FORMATTERS:
+        return formatter(path, exc)
+    return formatter(path)
+
 
 @pytest.mark.parametrize(("label", "formatter"), _ALL_FORMATTERS)
 @pytest.mark.parametrize("make_exc", _EXCEPTIONS)
@@ -133,7 +189,7 @@ def test_formatter_never_leaks_raw_os_text(
     ``str(exc)`` fragment, and no raw exception class name, and are non-empty.
     """
     exc = make_exc(faulty_path)
-    error = formatter(faulty_path, exc)
+    error = _render(formatter, faulty_path, exc)
     assert isinstance(error, StateInputError), (
         f"the {label} formatter must return a StateInputError, "
         f"got {type(error).__name__}"
@@ -166,8 +222,33 @@ def test_file_fault_formatter_names_the_artefact_path(
     faulted, so each file/write-fault formatter must interpolate the path it was
     handed into its ``messages``.
     """
-    error = formatter(faulty_path, make_exc(faulty_path))
+    error = _render(formatter, faulty_path, make_exc(faulty_path))
     text = "\n".join(error.messages)
     assert str(faulty_path) in text, (
         f"the {label} formatter must name the artefact path: {text!r}"
+    )
+
+
+@pytest.mark.parametrize(
+    "arm", _REMEDY_TOKENS, ids=[label for label, _, _ in _REMEDY_TOKENS]
+)
+@pytest.mark.parametrize("make_exc", _EXCEPTIONS)
+def test_file_fault_formatter_carries_its_remedy(
+    arm: tuple[str, cabc.Callable[..., StateInputError], str],
+    make_exc: cabc.Callable[[pathlib.Path], Exception],
+    faulty_path: pathlib.Path,
+) -> None:
+    """Each §6.3.8 file-fault arm carries its actionable remedy clause.
+
+    The no-leak and path-naming guards pin what the message omits and that it
+    names the artefact, but not the remedy that makes it actionable; without this
+    guard a regression dropping the remedy clause would still pass. Asserts the
+    arm's stable remedy substring survives in the rendered ``messages``
+    (audit:6.3.8 Finding 6).
+    """
+    label, formatter, remedy = arm
+    error = _render(formatter, faulty_path, make_exc(faulty_path))
+    text = "\n".join(error.messages)
+    assert remedy in text, (
+        f"the {label} formatter must carry its remedy clause {remedy!r}: {text!r}"
     )

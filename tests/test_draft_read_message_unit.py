@@ -46,17 +46,18 @@ def test_draft_read_message_is_actionable(
 ) -> None:
     """The draft-read message names the ``working/`` tree and a repair remedy.
 
-    Exercises a representative pair of :data:`STATE_INPUT_ERRORS` members — an
-    undecodable body (``UnicodeDecodeError``) and an unreadable file
-    (``PermissionError``) — to prove the message text is independent of the
-    caught fault: it never interpolates the ``{exc}`` repr or a raw ``Errno``.
-    Each case forbids its *own* distinctive fragment (the codec detail for the
-    decode fault, the ``Permission denied`` text for the read fault) so a leak of
-    either fault's repr is caught independently.
+    The formatter renders from the ``working/`` tree alone — it no longer accepts
+    the caught exception (audit:6.3.8 Findings 1-2) — so the message is
+    structurally independent of the fault. Each case still forbids a distinctive
+    fragment of a representative :data:`STATE_INPUT_ERRORS` member (the codec
+    detail of an ``UnicodeDecodeError`` decode fault, the ``Permission denied``
+    text of a ``PermissionError`` read fault) so a regression that re-threaded the
+    exception into the message would be caught independently.
     """
+    del exc  # the formatter renders from the path alone; only the prose is asserted.
     reported_dir = pathlib.Path("working")
 
-    error = _draft_read_error(reported_dir, exc)
+    error = _draft_read_error(reported_dir)
 
     assert isinstance(error, StateInputError)
     (message,) = error.messages
@@ -81,6 +82,6 @@ def test_draft_read_error_chains_the_cause() -> None:
     cause = PermissionError(13, "Permission denied")
 
     with pytest.raises(StateInputError) as excinfo:
-        raise _draft_read_error(pathlib.Path("working"), cause) from cause
+        raise _draft_read_error(pathlib.Path("working")) from cause
 
     assert excinfo.value.__cause__ is cause, "the original fault must be chained"

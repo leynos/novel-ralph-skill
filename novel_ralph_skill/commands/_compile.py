@@ -139,7 +139,7 @@ def compile_manuscript() -> CommandOutcome:
         # The draft read fault routes through the shared ``_draft_read_error``
         # formatter so the six draft-read boundaries emit one actionable message
         # naming the ``working/`` tree (roadmap §6.3.5).
-        raise _draft_read_error(root, exc) from exc
+        raise _draft_read_error(root) from exc
     rendered = concatenate_drafts(bodies)
     compiled_path = compiled_manuscript_path(root)
     try:
@@ -151,7 +151,7 @@ def compile_manuscript() -> CommandOutcome:
         # (ExecPlan Decision D6): it routes through the shared
         # ``_compile_write_error`` formatter, which names the compiled artefact
         # and offers a write-shaped remedy with no raw OS text (roadmap §6.3.8).
-        raise _compile_write_error(compiled_path, exc) from exc
+        raise _compile_write_error(compiled_path) from exc
     return CommandOutcome(
         code=ExitCode.SUCCESS,
         result={
@@ -215,7 +215,7 @@ def check_compiled() -> CommandOutcome:
         # ``check_compiled`` has no ``root`` local; pass ``working_dir()`` so the
         # shared ``_draft_read_error`` formatter names the same ``working/`` tree
         # the read targeted (roadmap §6.3.5).
-        raise _draft_read_error(working_dir(), exc) from exc
+        raise _draft_read_error(working_dir()) from exc
     if compile_is_current(verdict):
         return CommandOutcome(
             code=ExitCode.SUCCESS,

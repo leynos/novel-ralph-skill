@@ -93,7 +93,7 @@ def _novel_done() -> CommandOutcome:
         # The draft/compiled read fault routes through the shared
         # ``_draft_read_error`` formatter so the six draft-read boundaries emit
         # one actionable message naming the ``working/`` tree (roadmap §6.3.5).
-        raise _draft_read_error(root, exc) from exc
+        raise _draft_read_error(root) from exc
     if clauses.all_hold:
         return CommandOutcome(
             code=ExitCode.SUCCESS,

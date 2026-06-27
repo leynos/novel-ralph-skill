@@ -208,7 +208,7 @@ def source_chapters(chapter: int | None) -> tuple[ScannedChapter, ...]:
             for entry in selected
         )
     except STATE_INPUT_ERRORS as exc:
-        raise _draft_read_error(working_dir, exc) from exc
+        raise _draft_read_error(working_dir) from exc
 
 
 def _desloppify(*, chapter: int | None, pack: pathlib.Path | None) -> CommandOutcome:
@@ -268,7 +268,7 @@ def _desloppify(*, chapter: int | None, pack: pathlib.Path | None) -> CommandOut
         # draft-read formatter's scope (ExecPlan Decision D3) and routes through
         # the shared ``_rule_pack_read_error`` formatter, which names the pack path
         # and offers a file-shaped remedy with no raw OS text (roadmap §6.3.8).
-        raise _rule_pack_read_error(pack_path, exc) from exc
+        raise _rule_pack_read_error(pack_path) from exc
     chapters = source_chapters(chapter)
     return report_outcome(detect(rulepack, chapters))
 

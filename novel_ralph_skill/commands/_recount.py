@@ -96,7 +96,7 @@ def _recount_or_state_error(
     try:
         return recount_words(_working_dir(), manifest)
     except STATE_INPUT_ERRORS as exc:
-        raise _draft_read_error(_working_dir(), exc) from exc
+        raise _draft_read_error(_working_dir()) from exc
 
 
 def _inline_by_chapter(by_chapter: cabc.Mapping[str, int]) -> tomlkit.items.InlineTable:

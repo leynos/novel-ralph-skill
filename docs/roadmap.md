@@ -2376,7 +2376,7 @@ and adr-003-shared-interface-contract.md.
     the artefact and a remedy, with no raw `Errno`/`{exc}` text; the three call
     sites emit write-shaped or file-shaped sibling prose rather than the raw repr;
     and the compile, desloppify, and ledger suites stay green.
-  - [ ] 6.3.8.1.
+  - [x] 6.3.8.1.
     - Addendum (from audit:6.3.8 Findings 1-2; low). Collapse the four
       path-only file-fault formatters in `_state_load.py` onto a private
       `_file_fault_error(message)` builder and drop the dead `exc` parameter
@@ -2384,7 +2384,7 @@ and adr-003-shared-interface-contract.md.
       test to the trimmed signatures, removing the near-identical single-arm
       duplication and the misleading signature in one focused change.
       Lightweight addendum pass.
-  - [ ] 6.3.8.2.
+  - [x] 6.3.8.2.
     - Addendum (from audit:6.3.8 Finding 5; medium). Update the developers'
       guide exit-3 section (`docs/developers-guide.md`), which still reads "Two
       sibling formatters", to describe all five actionable formatters covered by
@@ -2392,7 +2392,7 @@ and adr-003-shared-interface-contract.md.
       `_device_ledger_read_error` alongside `_state_input_error` and
       `_draft_read_error` — and their write-shaped/file-shaped remedies, so the
       guide no longer undercounts the formatters. Lightweight addendum pass.
-  - [ ] 6.3.8.3.
+  - [x] 6.3.8.3.
     - Addendum (from audit:6.3.8 Finding 6; low). Pin the actionable remedy
       wording for the three exit-3 file-fault arms by adding one stable
       remedy-substring assertion per arm (or a `_REMEDY_TOKENS` table) to the
