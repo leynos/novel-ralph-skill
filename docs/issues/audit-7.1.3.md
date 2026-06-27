@@ -1,199 +1,168 @@
 # Post-merge audit — roadmap task 7.1.3
 
-Audit of the codebase after task 7.1.3 ("Slim the desloppify clean-pass findings
-trail") merged to `main` at commit `641e46c`. The task narrowed the envelope
-projection in both `novel_ralph_skill/commands/_desloppify_report.py` and
-`novel_ralph_skill/ledger/report.py` so that `result.findings` carries only the
-over-threshold (rule-pack) or over-ration (ledger) entries: a clean pass now
-emits `findings: []` rather than serialising every rule or device at count zero.
-The detection core still aggregates a finding for every rule/device; only the
-projection slims. The change regenerated the command-surface, desloppify, and
-ledger snapshots, added projection-level unit coverage in
-`tests/test_desloppify_report.py`, and documented the contract in the
-developers' and users' guides.
+Audit of the codebase after task 7.1.3 ("Extract a single `Reconciliation`
+payload projection and route the four arms through it") merged to `main` at
+commit `4f997c2`. The task replaced the four-site duplication of the
+`Reconciliation`-to-dict serialisation with one shared projection,
+`reconciliation_payload`, added to the state layer
+(`novel_ralph_skill/state/reconcile.py`) and exported from
+`novel_ralph_skill/state/__init__.py`. The four arms now route through it: the
+read-shape `check` arm (`_render_reconciliation` in
+`novel_ralph_skill/commands/novel_state.py`) and the three write-shape
+`reconcile` arms (`_write_outcome`, `_refuse_outcome`, and the `NONE` arm in
+`novel_ralph_skill/commands/_reconcile.py`). The projection serialises only —
+the exit code, the `messages`, and the read-versus-write framing stay at each
+call site — so the CQS read/write split (design §3.3) is preserved. The change
+pinned the projection with a dedicated unit file
+(`tests/test_reconciliation_payload.py`) and closes audit-2.3.2 Finding 2.
 
-Trail followed: `docs/novel-ralph-harness-design.md` §3.1, §3.3, §4.4, §6.2,
-§6.3; `docs/developers-guide.md` §"The clean-pass findings contract (roadmap
-task 7.1.3)" and §"The device ledger and per-novel rationing";
-`docs/users-guide.md` §`desloppify` exit-code table; the ADRs (ADR-001
-detect-only boundary, ADR-003 shared envelope contract, ADR-005 five-script
+Note on file provenance: the file previously at this path described a *different*
+task 7.1.3 ("Slim the desloppify clean-pass findings trail" at commit `641e46c`)
+— the roadmap was rerouted/renumbered between audits, and the earlier file was
+written against the older meaning of "7.1.3". This file replaces it with the
+audit of the task that actually merged as 7.1.3 (the reconciliation payload
+projection). The desloppify clean-pass findings work and its findings remain
+tracked under their own roadmap lane and audit history.
+
+Trail followed: `docs/novel-ralph-harness-design.md` §3.3 and §5.4;
+`docs/developers-guide.md` (the reconciliation derivation and disk-evidence
+sections); `docs/issues/audit-2.3.2.md` (Finding 2); the ADRs (ADR-001
+detect-only boundary, ADR-003 shared interface contract, ADR-005 five-script
 surface); `AGENTS.md` (quality gates, 400-line file cap, CQS, en-GB Oxford
-spelling); the `python-router`/`leta`/`sem` and `en-gb-oxendict` skills for
-navigation, history, and prose. Files inspected:
-`novel_ralph_skill/commands/_desloppify_report.py`,
-`novel_ralph_skill/commands/_wordcount_report.py`,
-`novel_ralph_skill/ledger/report.py`,
-`novel_ralph_skill/rulepack/detect.py`, `novel_ralph_skill/ledger/detect.py`,
-`novel_ralph_skill/contract/runner.py`;
-`tests/test_desloppify_report.py`, `tests/test_desloppify_snapshots.py`,
-`tests/test_ledger_snapshots.py`, and the regenerated snapshot `.ambr` files;
-`docs/roadmap.md` §7.25 and §7.26.
+spelling); the three Logisphere review rounds recorded as ExecPlan artefacts
+(`docs/execplans/roadmap-7-1-3.logisphere-review-r1/r2/r3.md`); the
+`python-router`/`leta`/`sem` and `en-gb-oxendict` skills for navigation,
+history, and prose. Files inspected:
+`novel_ralph_skill/state/reconcile.py`,
+`novel_ralph_skill/state/__init__.py`,
+`novel_ralph_skill/commands/_reconcile.py`,
+`novel_ralph_skill/commands/novel_state.py`;
+`tests/test_reconciliation_payload.py`, `tests/test_reconcile_refuse.py`;
+`pyproject.toml` (ruff `select`); `docs/roadmap.md` §7.1.
 
-The merged change is high quality: the slimming is a one-line filter swap in each
-projection, the rationale is documented as an authoritative contract in the
-developers' guide with both guides cross-referencing it, the unit tests pin the
-slimming directly below the snapshot suites, and the snapshot churn is a net
-deletion (the payload no longer grows linearly with pack size). The findings
-below are minor: a **near-duplicate envelope-projection skeleton** the change
-intensified (Finding 1, the substantive one), a **latent consistency coupling**
-between the exit code and the slimmed `violations`/`findings` (Finding 2), a
-**unit test gap on the projected exit code** (Finding 3), and a **stale
-forward-reference** in the ledger module docstring (Finding 4).
+The merged change is high quality: the projection is a small, total, fixed-shape
+function placed beside its `Reconciliation` dataclass; the docstring states the
+CQS rationale and the snapshot-pinned key-order invariant; the four arms route
+through it cleanly; and the new unit file is the named primary write-side
+key-order pin (the `REFUSE` snapshot is `sort_keys=True` and pins the field set,
+not the order). The findings below are minor: a **dead parameter left by the
+refactor** (Finding 1, the substantive one), a **redundant pass-through wrapper**
+(Finding 2), a **missing lint rule that would have caught Finding 1** (Finding
+3), and a **documentation gap for the new exported projection** (Finding 4).
 
-## Finding 1 — `report_outcome` and `ledger_report_outcome` are now near-identical skeletons (severity: medium)
+## Finding 1 — `_write_outcome`'s `action` parameter is dead after the refactor (severity: low)
 
-**Category:** duplication
+**Category:** ergonomics
 
-**Location:** `novel_ralph_skill/commands/_desloppify_report.py:155-197`
-(`report_outcome`) and `novel_ralph_skill/ledger/report.py:107-145`
-(`ledger_report_outcome`).
+**Location:** `novel_ralph_skill/commands/_reconcile.py:216-228` (`_write_outcome`);
+callers at `:299` and `:308`.
 
-Both functions now share a verbatim skeleton:
+Before 7.1.3, `_write_outcome` built `"action": str(action)` from its `action`
+parameter. The refactor replaced that body with
+`result = reconciliation_payload(reconciliation)`, and the projection reads
+`str(reconciliation.action)` — so `action` (the parameter at line 217) is now
+never referenced in the function body. The round-2 Logisphere review (B3,
+`docs/execplans/roadmap-7-1-3.logisphere-review-r2.md:80-114`) verified that the
+substitution is behaviour-preserving precisely *because* every caller passes
+`action == reconciliation.action`, but the now-redundant parameter was left in
+place. It is a latent trap: a future caller could pass an `action` that disagrees
+with `reconciliation.action`, silently doing nothing (the parameter is ignored)
+and lulling the author into believing the discrepancy is honoured. The two
+current callers (`:299` passing `ReconcileAction.RECREATE_LOG`, `:308` passing
+the derived `action`) both already hold the invariant, so this is not a live bug.
 
-```python
-failed = [finding for finding in report.findings if not finding.passed]
-code = ExitCode.SUCCESS if report.passed else ExitCode.ACTIONABLE_FINDING
-return CommandOutcome(
-    code=code,
-    result={
-        ...,
-        "violations": [<id> for finding in failed],
-        "findings": [_finding_payload(finding) for finding in failed],
-    },
-    messages=[_finding_message(finding) for finding in failed]
-    or [<clean-pass note>],
-)
-```
+**Proposed fix:** Remove the `action` parameter from `_write_outcome`, giving it
+the signature `_write_outcome(reconciliation: Reconciliation) -> CommandOutcome`,
+and drop the argument at both call sites (`:299` becomes
+`_write_outcome(reconciliation)`; `:308` likewise). This deletes the dead
+parameter and the invariant the r2 review had to reason about, leaving
+`reconciliation.action` the single source of the serialised action — exactly what
+the projection already enforces. The `RECREATE_LOG` path keeps its literal action
+only where it is actually used (the `_append_recovery_entry` log line at `:298`),
+which is unaffected.
 
-They differ in exactly four particulars: the per-hit `_finding_payload`, the
-id attribute name (`rule_id` vs `device_id`), the extra `result` keys the
-rule-pack path adds (`pack`, `total_words`), and the clean-pass message string
-(`"no slop detected"` vs `"no rationing breaches detected"`). Before 7.1.3 the
-two `findings` projections diverged (one slimmed to `failed`, the ledger emitted
-the full trail), which partly masked the similarity; the slimming made the
-skeletons identical, so a future change to the gating/projection shape (for
-instance the multi-pack surface at roadmap 7.1.6/7.1.7, or any change to how
-`violations` relate to `findings`) must now be made in two places and kept in
-lockstep by hand. The third sibling, `_wordcount_report.py:report_outcome`, is
-genuinely different (always `SUCCESS`, no violations) and is *not* part of this
-duplication.
+## Finding 2 — `_render_reconciliation` is now a single-line pass-through wrapper (severity: low)
 
-Note the explicit ExecPlan constraint preserved in
-`novel_ralph_skill/ledger/report.py:7-13`: the ledger must NOT reuse or alter the
-rule-pack `_finding_payload` (per-hit payload decisions 7.1.4/7.1.5 are still
-open). Any fix must therefore extract the **skeleton**, not the per-hit
-payload — the payload function stays a per-package injection point.
+**Category:** complexity
 
-**Proposed fix:** Extract a shared finding-outcome builder into the contract
-package — e.g. `contract/runner.py` or a small `contract/projection.py` — with a
-signature like
-`finding_outcome(*, report, id_of, payload_of, extra_result, clean_message)`
-that owns the `failed` filter, the `code` ternary, and the
-`violations`/`findings`/`messages` assembly. Each call site passes its
-`id_of`/`payload_of` callables, its `extra_result` dict, and its clean-pass
-string. This collapses the skeleton to one home while leaving each package's
-per-hit payload and operator messages untouched. This is distinct from roadmap
-§7.25 (which consolidates the *loader/scan* primitives, explicitly not the
-projection) and from §7.26 (the reconciliation payload), so it warrants its own
-deferred lane (see proposed roadmap items below).
+**Location:** `novel_ralph_skill/commands/novel_state.py:130-140`
+(`_render_reconciliation`); sole caller at `:207`.
 
-## Finding 2 — exit code and slimmed `violations`/`findings` are derived from two independent sources (severity: low)
+After the refactor `_render_reconciliation` is `return
+reconciliation_payload(reconciliation)` — a one-line delegation with a single
+caller. Its remaining value is the docstring, which carries the read-side CQS
+framing ("`check` reports the reconciliation a stale `state.toml` *implies*
+without enacting it … `check` writes nothing"). That framing is genuine, but a
+named, exported-shadowing private wrapper around a one-line call is borderline
+redundant indirection: the four-site duplication the projection eliminated no
+longer exists, so the wrapper's only job is to host a comment.
 
-**Category:** cqs
+**Proposed fix:** Either (a) inline the call at `:207` —
+`result["reconciliation"] = reconciliation_payload(derive_reconciliation(state,
+root))` — and move the read-side CQS rationale to a comment at the call site or
+into `reconciliation_payload`'s docstring (which already documents both shapes);
+or (b) keep the wrapper but add a one-line note that it exists purely to host the
+read-side framing, so the next reader does not mistake it for behaviour the
+projection lacks. Option (a) is preferred: the projection docstring already owns
+the read-versus-write narrative, so the wrapper adds a hop without adding
+behaviour. This is a judgement call, not a defect — flag, do not force.
 
-**Location:** `novel_ralph_skill/commands/_desloppify_report.py:179-186` and
-`novel_ralph_skill/ledger/report.py:130-135`.
-
-The `code` is derived from the stored `report.passed` flag, while `violations`
-and the slimmed `findings` are derived independently from the
-`failed = [f for f in report.findings if not f.passed]` filter. The
-`DetectionReport.passed` and `LedgerReport.passed` docstrings declare the
-invariant "True iff every finding passed", and the production constructors honour
-it (`detect.py:277` and `:279` set `passed=all(finding.passed for finding in
-findings)`). But nothing in the projection enforces the invariant: a report
-whose `passed=True` disagrees with a failing finding — constructible by hand, as
-the new tests do, or by a future detector that sets `passed` separately — would
-emit `code=SUCCESS` (`ok: true`, exit 0) alongside a non-empty `violations`
-list, a self-contradictory envelope the harness would mis-gate on. This is a
-latent coupling rather than a live bug, because every production path computes
-`passed` from the findings.
-
-**Proposed fix:** Derive `passed`/`code` from the same `failed` filter inside the
-projection — `code = ExitCode.SUCCESS if not failed else
-ExitCode.ACTIONABLE_FINDING` — so the exit code and the violations cannot
-diverge by construction, and drop the reliance on the separately-stored
-`report.passed` in the projection. (Folds naturally into the Finding 1
-extraction, where the shared builder would own this single derivation.)
-Alternatively, if `report.passed` must remain authoritative, add an assertion or
-a typed invariant at construction so the two cannot drift.
-
-## Finding 3 — projection-level tests assert findings/violations but not the exit code (severity: low)
+## Finding 3 — ruff `ARG` (unused-argument) is not in the lint `select`, so Finding 1 was not caught (severity: low)
 
 **Category:** test-gap
 
-**Location:** `tests/test_desloppify_report.py:43-131`.
+**Location:** `pyproject.toml:35-85` (`[tool.ruff.lint] select`).
 
-The four new projection tests assert `result["findings"]` and
-`result["violations"]`, but none asserts `outcome.code`. The exit-code mapping is
-covered end-to-end by the snapshot suites (`test_desloppify_snapshots.py:105`,
-`:142`), but the pure projection — the unit the new file deliberately pins "below
-the snapshot suites" — never asserts that a clean report projects
-`ExitCode.SUCCESS` and a failing report projects `ExitCode.ACTIONABLE_FINDING`.
-Combined with Finding 2, this means the very divergence Finding 2 describes
-(code disagreeing with violations) is unenforced at the only layer that could
-cheaply enforce it.
+The ruff `select` list is extensive (F, B, RUF, PLR, ANN, D, and many more) but
+does not include `ARG` (flake8-unused-arguments). That is why the dead `action`
+parameter in Finding 1 passed the gates: nothing flags a function parameter that
+is never read. Given the codebase's heavy functional style — many small pure
+projections and mutators threaded through call sites — a refactor that hollows
+out a parameter (exactly what 7.1.3 did) is a recurring risk that `ARG` would
+catch cheaply.
 
-**Proposed fix:** Add `assert outcome.code == ExitCode.SUCCESS` to the two
-clean-pass tests and `assert outcome.code == ExitCode.ACTIONABLE_FINDING` to the
-two over-threshold/over-ration tests. If Finding 2's fix derives `code` from
-`failed`, add one test that hand-builds a report with `passed=True` but a failing
-finding and asserts the projection treats it as a finding (or rejects it),
-pinning the invariant directly.
+**Proposed fix:** Add `"ARG"` to the ruff `select` list. Expect to triage a small
+number of intentional unused arguments (protocol/callback conformance, abstract
+overrides); silence those locally with `# noqa: ARG00x` and a one-line reason, or
+the conventional leading-underscore parameter name where the signature is fixed
+by an interface. The immediate payoff is that Finding 1 (and any future
+refactor-orphaned parameter) becomes a gate failure rather than an audit finding.
 
-## Finding 4 — ledger `report.py` module docstring references a now-resolved decision and a stale "WI5 snapshot" seam (severity: low)
+## Finding 4 — the new exported `reconciliation_payload` projection is undocumented in the developers' guide (severity: low)
 
 **Category:** docs-gap
 
-**Location:** `novel_ralph_skill/ledger/report.py:6-13`.
+**Location:** `novel_ralph_skill/state/__init__.py:159` (`__all__` export);
+`docs/developers-guide.md` (no mention).
 
-The module docstring was updated for 7.1.3 (it now records the slimming) but the
-surrounding framing still reads as forward-looking against decisions this commit
-settled. The phrasing "it must NOT reuse or alter the rule-pack
-`_finding_payload` (ExecPlan Constraint: do not pre-empt the per-hit
-payload-contract decisions 7.1.4/7.1.5)" is correct and load-bearing, but the
-prior 7.1.2 docstring's "the round-1 review notes 7.1.3's clean-pass slimming may
-later revisit this, and the WI5 snapshot is the churn-absorbing seam" was
-replaced only partially: the "WI5 snapshot … churn-absorbing seam" rationale no
-longer appears, yet the developers' guide and the function docstrings are now the
-authoritative home for the contract. A reader of the module docstring alone does
-not learn that the §7.25 loader-consolidation lane is the place where the two
-packages' shared structure is tracked, nor that the Finding 1 projection
-skeleton is *not* in §7.25's scope.
+`reconciliation_payload` is a new public, exported symbol that owns the
+machine-payload key order for both the `check` read shape and the `reconcile`
+write shapes — a contract concern. The developers' guide documents the sibling
+state-layer contract helpers by name where they carry contract weight
+(`derive_reconciliation` at `developers-guide.md:532`/`:905`,
+`compile_model.compiled_matches_drafts` at `:654`/`:1021`/`:1037`), but it does
+not mention `reconciliation_payload`. A maintainer reading the guide learns that
+`check` and `reconcile` share a payload shape only by reading the code; the
+single-source guarantee — the whole point of 7.1.3 — has no prose home outside
+the function docstring and the roadmap entry. The function docstring itself is
+thorough, so this is a guide-completeness gap, not a code-comment gap.
 
-**Proposed fix:** Tighten the module docstring to (a) keep the 7.1.4/7.1.5
-per-hit constraint, (b) state plainly that the clean-pass slimming is now settled
-and authoritative in the developers' guide "The clean-pass findings contract",
-and (c) if Finding 1 is accepted, cross-reference the projection-skeleton lane so
-the next reader knows the duplication is tracked rather than accidental. Mirror
-the same cross-reference in `_desloppify_report.py`'s module docstring.
+**Proposed fix:** Add a short paragraph to the developers' guide, beside the
+existing reconciliation derivation material, naming `reconciliation_payload` as
+the single source of the `{action, discrepancies, detail}` (+ optional
+`current`/`by_chapter`) payload shared by the `check` read shape and the
+`reconcile` write shapes, and noting that the read/write distinction lives in the
+envelope (exit code, `messages`), not in the projected dict. Cross-reference the
+key-order pin in `tests/test_reconciliation_payload.py` so the next editor knows
+where the order invariant is enforced.
 
 ## Proposed roadmap items (proposal only — the root agent owns the roadmap)
 
-1. **Single-home the finding-outcome envelope projection** (severity: medium).
-   Extract the shared `failed`-filter / `code`-ternary /
-   `violations`-`findings`-`messages` skeleton from `report_outcome`
-   (`_desloppify_report.py`) and `ledger_report_outcome` (`ledger/report.py`)
-   into one builder in the `contract` package, injecting each package's per-hit
-   payload, id accessor, extra `result` keys, and clean-pass message. Distinct
-   from §7.25 (loader/scan primitives, explicitly not the projection) and §7.26
-   (reconciliation payload). Rationale: 7.1.3 made the two projection skeletons
-   verbatim-identical, so the multi-pack surface (7.1.6/7.1.7) and any future
-   change to the violations↔findings relationship must otherwise be kept in
-   lockstep across two files by hand.
-
-2. **Derive the desloppify/ledger exit code from the slimmed `failed` filter**
-   (severity: low). Make the projection compute `code` from the same `failed`
-   list that feeds `violations`/`findings`, removing the latent path where
-   `report.passed` could disagree with a non-empty `violations` list and emit a
-   self-contradictory `ok: true` envelope. Folds into item 1 if accepted; add a
-   unit test pinning the invariant either way.
+1. **Enable ruff `ARG` (unused-argument) in the lint `select`** (severity: low).
+   Add `"ARG"` to `pyproject.toml` `[tool.ruff.lint] select`, triage the existing
+   intentional unused arguments with local `# noqa: ARG00x` plus a reason (or the
+   leading-underscore convention for interface-fixed signatures), and remove
+   `_write_outcome`'s dead `action` parameter (Finding 1) as the first
+   beneficiary. Rationale: the codebase's functional style makes
+   refactor-orphaned parameters a recurring risk that a gate should catch, not an
+   audit.
