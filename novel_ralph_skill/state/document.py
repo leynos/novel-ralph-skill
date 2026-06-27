@@ -208,6 +208,55 @@ def build_inline_table(pairs: cabc.Mapping[str, object]) -> tomlkit.items.Inline
     return table
 
 
+class ChapterRecord(typ.NamedTuple):
+    """One ``[[chapters]]`` manifest entry, in the on-disk schema key order.
+
+    A small positional record carrying the four manifest keys a chapter array
+    entry holds (``number``, ``slug``, ``title``, ``target_words``). It is the
+    shared currency of :func:`build_chapter_array`: each caller derives the
+    four values its own way (``set-chapters`` from a ``ChapterPlanEntry``, the
+    corpus builder from a spec with manifest-only fallbacks) and hands them over
+    as records, leaving the ``tomlkit`` array skeleton in one place.
+    """
+
+    number: int
+    slug: str
+    title: str
+    target_words: int
+
+
+def build_chapter_array(
+    records: cabc.Sequence[ChapterRecord],
+) -> tomlkit.items.Array:
+    """Return a fresh multiline ``[[chapters]]`` array of inline tables.
+
+    This is the single home of the array-of-inline-tables skeleton —
+    ``tomlkit.array()``, ``multiline(True)``, and an append loop over
+    :func:`build_inline_table` — that ``set-chapters`` and the working-corpus
+    reference builder previously hand-copied (audit:7.2.1, review:7.2.1; the
+    deferred Decision D-ARRAY-FOLLOWUP). Each record's four values serialise in
+    the on-disk schema order (``number``, ``slug``, ``title``,
+    ``target_words``), one inline table per line, so the written ``[chapters]``
+    block keeps the layout both former sites produced.
+
+    Parameters
+    ----------
+    records : collections.abc.Sequence[ChapterRecord]
+        The manifest entries, already in the caller's chosen order (the array
+        preserves that order; it does not re-sort).
+
+    Returns
+    -------
+    tomlkit.items.Array
+        The populated multiline array, ready to assign into a document.
+    """
+    array = tomlkit.array()
+    array.multiline(multiline=True)
+    for record in records:
+        array.append(build_inline_table(record._asdict()))
+    return array
+
+
 def open_pending_turn(
     document: TOMLDocument, *, operation: str, paths: cabc.Sequence[str]
 ) -> None:

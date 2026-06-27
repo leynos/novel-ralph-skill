@@ -1073,7 +1073,7 @@ pass — no plan or design-review cycle: make the change, run `make all`,
 `coderabbit review --agent`, commit, and tick the matching roadmap sub-task on
 merge.
 
-- [ ] 7.2.1.1 — Collapse the array-of-inline-tables `[[chapters]]` builder
+- [x] 7.2.1.1 — Collapse the array-of-inline-tables `[[chapters]]` builder
   skeleton onto one shared helper (from audit:7.2.1, review:7.2.1; low; three
   near-identical proposals merged). This actions the deferred Decision
   D-ARRAY-FOLLOWUP. Task 7.2.1 folded only the inner inline-table idiom into

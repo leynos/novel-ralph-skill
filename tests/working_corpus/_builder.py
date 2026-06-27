@@ -15,13 +15,19 @@ import typing as typ
 
 import tomlkit
 
-# This is the corpus suite's only production import, and it is deliberately
-# safe: ``build_inline_table`` is pure ``tomlkit`` plumbing with no schema or
-# value-derivation logic, so importing it does not couple the corpus suite's
+# These are the corpus suite's only production imports, and they are
+# deliberately safe: ``build_inline_table``, ``build_chapter_array``, and the
+# ``ChapterRecord`` carrier are pure ``tomlkit`` plumbing with no schema or
+# value-derivation logic, so importing them does not couple the corpus suite's
 # value-derivation oracle (``_specs.derive_*`` and the ``_oracle*`` cross-checks)
-# to production. The single-home inline-table builder is shared (roadmap task
-# 7.2.1; ExecPlan Decision D-CORPUS); only schema *derivation* stays independent.
-from novel_ralph_skill.state.document import build_inline_table
+# to production. The single-home inline-table and chapter-array builders are
+# shared (roadmap tasks 7.2.1 and 7.2.1.1; ExecPlan Decision D-CORPUS); only
+# schema *derivation* stays independent.
+from novel_ralph_skill.state.document import (
+    ChapterRecord,
+    build_chapter_array,
+    build_inline_table,
+)
 
 from ._specs import (
     _CREATED_AT,
@@ -117,19 +123,18 @@ def _chapters_array(spec: WorkingTreeSpec) -> tomlitems.Array:
         | set(spec.manifest_only_numbers)
     )
     by_number = {chapter.number: chapter for chapter in spec.chapters}
-    array = tomlkit.array()
-    array.multiline(multiline=True)
+    records = []
     for number in numbers:
         chapter = by_number.get(number)
-        array.append(
-            build_inline_table({
-                "number": number,
-                "slug": chapter.slug if chapter else f"chapter-{number:02d}",
-                "title": chapter.title if chapter else f"Chapter {number}",
-                "target_words": chapter.target_words if chapter else 0,
-            })
+        records.append(
+            ChapterRecord(
+                number=number,
+                slug=chapter.slug if chapter else f"chapter-{number:02d}",
+                title=chapter.title if chapter else f"Chapter {number}",
+                target_words=chapter.target_words if chapter else 0,
+            )
         )
-    return array
+    return build_chapter_array(records)
 
 
 def _build_state_document(spec: WorkingTreeSpec) -> tomlkit.TOMLDocument:

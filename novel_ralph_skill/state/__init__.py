@@ -48,6 +48,8 @@ from novel_ralph_skill.state.disk_evidence import (
     check_disk_evidence,
 )
 from novel_ralph_skill.state.document import (
+    ChapterRecord,
+    build_chapter_array,
     build_inline_table,
     clear_pending_turn,
     document_to_state,
@@ -123,6 +125,7 @@ __all__ = [
     "WORD_COUNTS_COVER_DRAFTS",
     "WORD_COUNTS_MATCH_DRAFTS",
     "ChapterEntry",
+    "ChapterRecord",
     "CompiledComparison",
     "CriticState",
     "Drafting",
@@ -140,6 +143,7 @@ __all__ = [
     "State",
     "Violation",
     "WordCounts",
+    "build_chapter_array",
     "build_initial_document",
     "build_inline_table",
     "chapter_dir_name",

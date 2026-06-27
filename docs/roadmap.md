@@ -2708,7 +2708,7 @@ test pins it so it cannot silently re-fork.
     consumed by `recount`, `state/initial.py`, and the corpus builder; the
     initial-document docstring no longer flags a hand-copied twin; and the
     lossless round-trip and every current state and corpus test stay green.
-  - [ ] 7.2.1.1. Collapse the array-of-inline-tables `[[chapters]]` builder
+  - [x] 7.2.1.1. Collapse the array-of-inline-tables `[[chapters]]` builder
     skeleton onto one shared helper.
     - Addendum (from audit:7.2.1, review:7.2.1; low; three near-identical
       proposals merged). 7.2.1 folded only the inner inline-table idiom into

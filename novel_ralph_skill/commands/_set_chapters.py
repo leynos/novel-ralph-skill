@@ -27,9 +27,6 @@ from __future__ import annotations
 import datetime as dt
 import typing as typ
 
-import tomlkit
-import tomlkit.items
-
 from novel_ralph_skill.commands._chapter_plan_entry import ChapterPlanEntry
 from novel_ralph_skill.commands._state_mutators import (
     _load_document_or_state_error,
@@ -42,6 +39,8 @@ from novel_ralph_skill.contract.exit_codes import ExitCode
 from novel_ralph_skill.contract.runner import CommandOutcome, StateInputError
 from novel_ralph_skill.state import (
     SET_CHAPTERS_OPERATION,
+    ChapterRecord,
+    build_chapter_array,
     build_inline_table,
     chapter_dir_name,
     clear_pending_turn,
@@ -53,6 +52,7 @@ if typ.TYPE_CHECKING:
     import collections.abc as cabc
     import pathlib
 
+    import tomlkit.items
     from tomlkit import TOMLDocument
 
 # Re-exported so existing importers (`from _set_chapters import ChapterPlanEntry`)
@@ -151,23 +151,21 @@ def _ordered_chapters(
 def _chapter_array(ordered: cabc.Sequence[ChapterPlanEntry]) -> tomlkit.items.Array:
     """Return a fresh multiline ``[[chapters]]`` array of inline tables.
 
-    Each entry carries the four manifest keys (``number``, ``slug``, ``title``,
-    ``target_words``) in the on-disk schema order; the array is multiline so the
-    written ``[chapters]`` reads one inline table per line, matching the corpus
-    builder's layout (``tests/working_corpus/_builder.py``).
+    Maps each plan entry to a :class:`ChapterRecord` (the four manifest keys in
+    on-disk schema order) and routes the sequence through
+    :func:`build_chapter_array`, the shared array-of-inline-tables builder, so
+    the multiline ``[chapters]`` layout lives in one place rather than a copy of
+    the corpus builder's skeleton (``tests/working_corpus/_builder.py``).
     """
-    array = tomlkit.array()
-    array.multiline(multiline=True)
-    for entry in ordered:
-        array.append(
-            build_inline_table({
-                "number": entry.number,
-                "slug": entry.slug,
-                "title": entry.title,
-                "target_words": entry.target_words,
-            })
+    return build_chapter_array([
+        ChapterRecord(
+            number=entry.number,
+            slug=entry.slug,
+            title=entry.title,
+            target_words=entry.target_words,
         )
-    return array
+        for entry in ordered
+    ])
 
 
 def _zero_word_counts(

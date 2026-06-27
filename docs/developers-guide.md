@@ -1315,8 +1315,15 @@ the helper carries no schema or value-derivation logic, so the import does not
 couple the suite's value-derivation oracle to production (only schema
 *derivation* stays independent). The array-of-inline-tables skeleton that
 `set-chapters` and the corpus builder both wrap around this helper
-(`tomlkit.array()` plus `multiline` plus a loop) is a separate, wider idiom left
-as a deferred follow-up, not folded in here.
+(`tomlkit.array()` plus `multiline` plus a loop) is itself a single home,
+`build_chapter_array` alongside `build_inline_table` in
+[`novel_ralph_skill/state/document.py`](../novel_ralph_skill/state/document.py)
+(roadmap task 7.2.1.1, actioning the deferred Decision D-ARRAY-FOLLOWUP): it
+takes an ordered sequence of `ChapterRecord` four-key records (`number`, `slug`,
+`title`, `target_words`) and returns the multiline `[[chapters]]` array, so
+`set-chapters` (`_chapter_array`) and the corpus builder (`_chapters_array`)
+route through it rather than re-copy the skeleton — each still deriving its four
+values its own way (a `ChapterPlanEntry` versus manifest-only fallbacks).
 
 ### The state-layout direct-edit guard
 
