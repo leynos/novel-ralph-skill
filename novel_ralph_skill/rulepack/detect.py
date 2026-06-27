@@ -8,18 +8,14 @@ envelope, so it is trivially unit-testable and reusable by the later ai-isms /
 device-ledger packs (roadmap 7.1). Exit-code translation and text sourcing are
 the command body's job (:mod:`novel_ralph_skill.commands._desloppify`).
 
-Detection scans **line by line**, not over whole-chapter text. The loader
-compiles every pattern with ``re.compile`` and no flags
-(:func:`novel_ralph_skill.rulepack.parse._compile_pattern`), so ``.`` cannot
-cross ``\n``; splitting each chapter into physical lines with
-:meth:`str.splitlines` and running :meth:`re.Pattern.finditer` per line makes
-line numbers exact, bounds every match to a single line, and stops a greedy span
-running to a distant unrelated token (ExecPlan defect 3). A multi-token offender
-hard-wrapped across a line break is therefore **not** detected in v1, a
-documented limitation: the writer's drafts wrap at sentence or paragraph
-granularity, so single-line coverage catches the common case, and multi-token
-rows express their span as a bounded lazy non-newline window ``[^\n]{0,N}?``
-rather than greedy ``.*``.
+Detection scans **line by line**, not over whole-chapter text, via the shared
+:func:`~novel_ralph_skill.loaderkit.scan.scan_pattern` primitive (see its
+docstring for why the no-flags compilation makes a per-line scan the exact
+line-numbering discipline). A multi-token offender hard-wrapped across a line
+break is therefore **not** detected in v1, a documented limitation: the writer's
+drafts wrap at sentence or paragraph granularity, so single-line coverage catches
+the common case, and multi-token rows express their span as a bounded lazy
+non-newline window ``[^\n]{0,N}?`` rather than greedy ``.*``.
 
 The result shapes follow the package's frozen, slotted, keyword-only house style
 (``novel_ralph_skill/rulepack/schema.py``).
@@ -30,7 +26,11 @@ from __future__ import annotations
 import dataclasses
 import typing as typ
 
-from novel_ralph_skill.loaderkit.scan import scan_pattern
+from novel_ralph_skill.loaderkit.scan import (
+    LineHit,
+    ScannedChapter,
+    scan_pattern,
+)
 from novel_ralph_skill.rulepack.schema import RuleBasis
 
 if typ.TYPE_CHECKING:
@@ -38,39 +38,13 @@ if typ.TYPE_CHECKING:
 
     from novel_ralph_skill.rulepack.schema import Rule, RulePack
 
-
-@dataclasses.dataclass(frozen=True, kw_only=True, slots=True)
-class ScannedChapter:
-    """One chapter's number and in-memory draft text, the detection input.
-
-    Attributes
-    ----------
-    number : int
-        The one-based chapter number, echoed into every :class:`LineHit` so a
-        whole-manuscript finding names the source chapter, not a synthesised
-        global buffer (ExecPlan Risk "line numbers drift").
-    text : str
-        The chapter's draft body, scanned line by line.
-    """
-
-    number: int
-    text: str
-
-
-@dataclasses.dataclass(frozen=True, kw_only=True, slots=True)
-class LineHit:
-    """One rule match located at ``(chapter, line)`` (design §4.4).
-
-    Attributes
-    ----------
-    chapter : int
-        The one-based chapter number the match was found in.
-    line : int
-        The one-based physical line index within that chapter.
-    """
-
-    chapter: int
-    line: int
+__all__ = [
+    "DetectionReport",
+    "LineHit",
+    "RuleFinding",
+    "ScannedChapter",
+    "detect",
+]
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True, slots=True)
@@ -144,38 +118,6 @@ class DetectionReport:
     total_words: int
     findings: tuple[RuleFinding, ...]
     passed: bool
-
-
-def _scan_rule(
-    rule: Rule, chapters: cabc.Sequence[ScannedChapter]
-) -> tuple[int, tuple[LineHit, ...]]:
-    r"""Count one rule's non-overlapping matches per physical line.
-
-    Splits each chapter into physical lines and runs the rule's precompiled
-    pattern over each line independently, recording the one-based line index
-    directly (the enumeration index, no offset arithmetic). This is the
-    line-by-line scan the loader's no-flags compilation requires: ``.`` cannot
-    cross ``\n``, so a per-line scan makes line numbers exact and bounds every
-    match to one line (ExecPlan defect 3).
-
-    Parameters
-    ----------
-    rule : Rule
-        The rule whose precompiled pattern is scanned.
-    chapters : collections.abc.Sequence[ScannedChapter]
-        The scanned chapters, in order.
-
-    Returns
-    -------
-    tuple[int, tuple[LineHit, ...]]
-        The total non-overlapping match count and the per-match ``LineHit``
-        tuple, in scan order.
-    """
-    return scan_pattern(
-        rule.compiled,
-        chapters,
-        line_hit=lambda chapter, line: LineHit(chapter=chapter, line=line),
-    )
 
 
 def _finding(
@@ -264,7 +206,11 @@ def detect(
     total_words = sum(len(chapter.text.split()) for chapter in chapters)
     findings: list[RuleFinding] = []
     for rule in pack.rules:
-        count, lines = _scan_rule(rule, chapters)
+        count, lines = scan_pattern(
+            rule.compiled,
+            chapters,
+            line_hit=lambda chapter, line: LineHit(chapter=chapter, line=line),
+        )
         findings.append(
             _finding(rule, count=count, lines=lines, total_words=total_words)
         )

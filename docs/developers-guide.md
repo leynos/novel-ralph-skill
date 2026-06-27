@@ -1714,6 +1714,10 @@ both pack families may consume it without an import cycle (design §6; ADR-001/
 array-of-tables extractor (`entries`), the eager pattern compiler
 (`compile_pattern`), the duplicate-id rejector (`reject_duplicate_ids`), the
 file-fault TOML loader (`load_toml`), and the per-line scan (`scan_pattern`).
+Roadmap task 7.2.3 also relocated the per-line scan's two neutral shapes —
+`ScannedChapter` (the scan input) and `LineHit` (the scan output) — into
+`loaderkit/scan.py`, so they live with the primitive they belong to and a third
+pack family inherits them rather than cloning or cross-importing them.
 
 Each primitive is **parameterised on an error factory** rather than hard-wired to
 one package's exception. A pack family binds a small frozen `CoercionErrors`
@@ -1733,11 +1737,15 @@ verbatim message strings via an `EntriesMessages` bundle, not on the noun pair,
 because its empty-array message embeds a container noun (`pack`/`ledger`) and an
 item noun (`rule`/`device`) that are neither `CoercionErrors` noun; the strings
 therefore live at each pack's call site, keeping the shared body noun-free.
-`scan_pattern` references the `ScannedChapter`/`LineHit` shapes (still defined in
-`rulepack/detect.py`) only under `TYPE_CHECKING` and constructs each hit through
-a caller-supplied `line_hit` callable, so `loaderkit.scan` has no runtime
-`rulepack` import and the direction `rulepack.detect → loaderkit.scan` /
-`ledger.detect → loaderkit.scan` stays acyclic.
+`scan_pattern` now references the `ScannedChapter`/`LineHit` shapes that
+`loaderkit/scan.py` itself **defines** (roadmap 7.2.3); both detectors import them
+from the neutral home, so the temporary `TYPE_CHECKING` `loaderkit → rulepack`
+edge roadmap 7.2.2 introduced is gone. The primitive still constructs each hit
+through a caller-supplied `line_hit` callable, the seam that keeps it free of any
+`Rule`/`Device` knowledge, so `loaderkit.scan` imports neither `rulepack` nor
+`ledger` at runtime *or* under `TYPE_CHECKING` and the direction
+`rulepack.detect → loaderkit.scan` / `ledger.detect → loaderkit.scan` stays
+acyclic.
 
 This consolidation **superseded** the earlier `ledger/_coerce.py` "deliberate
 near-copy" rationale: that rationale deferred the error-factory refactor because
@@ -1747,6 +1755,11 @@ exactly the refactor the old docstring foresaw, so the near-copy is retired. The
 shared primitives are pinned by `tests/test_loaderkit_coerce.py`,
 `tests/test_loaderkit_load.py`, and `tests/test_loaderkit_scan.py`, and both
 packages' suites stay green unchanged, so the primitives cannot silently re-fork.
+The last of those also pins the relocated scan shapes' single home: an
+AST-scoped guard asserts `ScannedChapter`/`LineHit` are defined in `loaderkit.scan`
+and that the module imports nothing from a pack domain, and a callback-contract
+test pins that `scan_pattern` builds every hit through the caller's `line_hit`
+factory.
 
 ## GitHub Actions
 

@@ -7,7 +7,10 @@ array-of-tables extractor, the eager pattern compiler, the duplicate-id rejector
 the file-fault TOML loader, and the per-line scan. They differed only in their
 typed error channel and a noun ("rule"/"rule pack" versus "device"/"device
 ledger"). Roadmap task 7.2.2 consolidates them here so exactly one body of each
-primitive survives (design §6; ADR-001).
+primitive survives (design §6; ADR-001), and roadmap 7.2.3 relocates the per-line
+scan's two neutral shapes — :class:`ScannedChapter` and :class:`LineHit` — here
+too, so a third pack family inherits them rather than cloning or cross-importing
+them.
 
 Each primitive is **parameterised on an error factory** rather than hard-wired to
 one package's exception: a caller binds a small :class:`CoercionErrors` bundle of
@@ -42,12 +45,14 @@ from novel_ralph_skill.loaderkit.load import (
     load_toml,
     reject_duplicate_ids,
 )
-from novel_ralph_skill.loaderkit.scan import scan_pattern
+from novel_ralph_skill.loaderkit.scan import LineHit, ScannedChapter, scan_pattern
 
 __all__ = [
     "CoercionErrors",
     "EntriesMessages",
+    "LineHit",
     "Mapping",
+    "ScannedChapter",
     "compile_pattern",
     "entries",
     "load_toml",

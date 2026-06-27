@@ -2759,7 +2759,7 @@ test pins it so it cannot silently re-fork.
       so the line-attribution contract is pinned against the implementation's own
       splitting choice. Lightweight addendum pass.
 
-- [ ] 7.2.3. Relocate the shared scan shapes (`ScannedChapter`, `LineHit`) into
+- [x] 7.2.3. Relocate the shared scan shapes (`ScannedChapter`, `LineHit`) into
   `loaderkit` to finish the 7.2.2 consolidation.
   - Step-task (source: audit:7.2.2; severity: medium). Task 7.2.2 moved the
     shared scan *body* into the neutral `loaderkit` home but left its input and

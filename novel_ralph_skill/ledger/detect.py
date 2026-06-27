@@ -9,18 +9,18 @@ so it is trivially unit-testable. Exit-code translation and text sourcing are th
 command body's job (:mod:`novel_ralph_skill.commands._desloppify_ledger`).
 
 It mirrors :mod:`novel_ralph_skill.rulepack.detect`: detection scans **line by
-line**, not over whole-chapter text. The loader compiles every pattern with no
-flags, so ``.`` cannot cross ``\n``; splitting each chapter into physical lines
-and running :meth:`re.Pattern.finditer` per line makes the ``{chapter, line}``
-attribution exact and bounds every match to a single line. A multi-token device
-must therefore use a bounded non-newline window ``[^\n]{0,N}?`` rather than greedy
-``.*`` (the same v1 limitation the rule-pack detector documents).
+line**, not over whole-chapter text, via the shared
+:func:`~novel_ralph_skill.loaderkit.scan.scan_pattern` primitive (see its
+docstring for why the no-flags compilation makes a per-line scan the exact
+line-numbering discipline). A multi-token device must therefore use a bounded
+non-newline window ``[^\n]{0,N}?`` rather than greedy ``.*`` (the same v1
+limitation the rule-pack detector documents).
 
 The current spend is **recomputed from the chapter text on every run**: the count
 is the literal total of ``finditer`` hits across the scanned lines, with no
 semantic gate (design §6.3 "recomputed from disk on every run"). The detector
-reuses :class:`~novel_ralph_skill.rulepack.detect.ScannedChapter` and
-:class:`~novel_ralph_skill.rulepack.detect.LineHit` so the chapter-number
+reuses the neutral :class:`~novel_ralph_skill.loaderkit.scan.ScannedChapter` and
+:class:`~novel_ralph_skill.loaderkit.scan.LineHit` shapes so the chapter-number
 attribution the window checks depend on is identical to the rule-pack path.
 
 The result shapes follow the package's frozen, slotted, keyword-only house style.
@@ -31,14 +31,13 @@ from __future__ import annotations
 import dataclasses
 import typing as typ
 
-from novel_ralph_skill.loaderkit.scan import scan_pattern
-from novel_ralph_skill.rulepack.detect import LineHit
+from novel_ralph_skill.loaderkit.scan import LineHit, scan_pattern
 
 if typ.TYPE_CHECKING:
     import collections.abc as cabc
 
     from novel_ralph_skill.ledger.schema import Device, DeviceLedger
-    from novel_ralph_skill.rulepack.detect import ScannedChapter
+    from novel_ralph_skill.loaderkit.scan import ScannedChapter
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True, slots=True)
@@ -103,36 +102,6 @@ class LedgerReport:
 
     findings: tuple[DeviceFinding, ...]
     passed: bool
-
-
-def _scan_device(
-    device: Device, chapters: cabc.Sequence[ScannedChapter]
-) -> tuple[int, tuple[LineHit, ...]]:
-    r"""Count one device's literal matches per physical line.
-
-    Splits each chapter into physical lines and runs the device's precompiled
-    pattern over each line independently, recording the one-based line index. The
-    no-flags compilation means ``.`` cannot cross ``\n``, so a per-line scan makes
-    the ``{chapter, line}`` attribution exact and bounds every match to one line.
-
-    Parameters
-    ----------
-    device : Device
-        The device whose precompiled pattern is scanned.
-    chapters : collections.abc.Sequence[ScannedChapter]
-        The scanned chapters, in order.
-
-    Returns
-    -------
-    tuple[int, tuple[LineHit, ...]]
-        The total literal match count and the per-match ``LineHit`` tuple, in scan
-        order.
-    """
-    return scan_pattern(
-        device.compiled,
-        chapters,
-        line_hit=lambda chapter, line: LineHit(chapter=chapter, line=line),
-    )
 
 
 def _window(device: Device) -> tuple[str, tuple[int, ...] | None]:
@@ -270,7 +239,11 @@ def detect_ledger(
     """
     findings: list[DeviceFinding] = []
     for device in ledger.devices:
-        count, lines = _scan_device(device, chapters)
+        count, lines = scan_pattern(
+            device.compiled,
+            chapters,
+            line_hit=lambda chapter, line: LineHit(chapter=chapter, line=line),
+        )
         findings.append(_finding(device, count=count, lines=lines))
     return LedgerReport(
         findings=tuple(findings),

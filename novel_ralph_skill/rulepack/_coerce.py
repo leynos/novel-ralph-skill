@@ -20,7 +20,6 @@ from novel_ralph_skill.loaderkit.coerce import (
     CoercionErrors,
     Mapping,
     reject_unknown_keys,
-    require,
     require_int,
     require_str,
     where,
@@ -50,11 +49,6 @@ def _reject_unknown_keys(
 ) -> None:
     """Reject any key outside ``allowed`` (see :func:`reject_unknown_keys`)."""
     reject_unknown_keys(mapping, allowed, errors=_ERRORS, offending_id=rule_id)
-
-
-def _require(mapping: _Mapping, key: str, *, rule_id: str | None) -> object:
-    """Return ``mapping[key]`` or raise naming the gap (see :func:`require`)."""
-    return require(mapping, key, errors=_ERRORS, offending_id=rule_id)
 
 
 def _require_str(mapping: _Mapping, key: str, *, rule_id: str | None) -> str:
