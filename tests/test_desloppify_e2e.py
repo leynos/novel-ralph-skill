@@ -50,6 +50,28 @@ if typ.TYPE_CHECKING:
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 
+def _assert_raw_result_key_order(stdout: str, expected: tuple[str, ...]) -> None:
+    """Assert ``result``'s keys appear in ``expected`` order in the *raw* stdout.
+
+    ``render_machine`` serialises ``result`` with ``json.dumps`` and **no**
+    ``sort_keys`` (``contract/envelope.py``), so the contract key order is only
+    observable in the un-parsed wire line — the ``.ambr`` snapshots sort keys and
+    every consumer reads ``result`` by key, so a stray ``sort_keys=True`` would
+    pass every other suite while breaking the wire contract. This walks the raw
+    string, finding each expected key's quoted-and-colon marker (e.g.
+    ``"pack":``) strictly after the previous one, so the assertion fails if the
+    renderer reorders the keys. The markers are searched from ``result``'s opening
+    brace onward and in contract order, so a nested ``"findings"`` inside a payload
+    cannot be mistaken for the top-level key.
+    """
+    cursor = stdout.index('"result":')
+    for key in expected:
+        marker = f'"{key}":'
+        position = stdout.find(marker, cursor)
+        assert position != -1, f"{marker} missing or out of order in {stdout!r}"
+        cursor = position + len(marker)
+
+
 def _materialise_working(dest: Path, baseline: Path, draft_text: str) -> None:
     """Copy ``baseline`` to ``dest/working`` and overwrite each draft with text.
 
@@ -137,6 +159,11 @@ def test_installed_desloppify_flags_offender(
     envelope = json.loads(result.stdout or "{}")
     assert envelope["ok"] is False
     assert "em-dash" in envelope["result"]["violations"]
+    # The rule-pack path inserts pack/total_words before violations/findings; a
+    # sort_keys slip in render_machine would reorder these on the wire.
+    _assert_raw_result_key_order(
+        result.stdout or "", ("pack", "total_words", "violations", "findings")
+    )
 
 
 @pytest.mark.skipif(
@@ -231,6 +258,9 @@ def test_installed_desloppify_ledger_flags_over_ration(
     envelope = json.loads(result.stdout or "{}")
     assert envelope["ok"] is False
     assert "sternum" in envelope["result"]["violations"]
+    # The ledger path carries no extra keys, so the wire order is exactly
+    # violations then findings; a sort_keys slip would reorder them.
+    _assert_raw_result_key_order(result.stdout or "", ("violations", "findings"))
 
 
 @pytest.mark.skipif(

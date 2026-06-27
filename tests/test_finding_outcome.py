@@ -14,6 +14,9 @@ from __future__ import annotations
 import dataclasses
 import typing as typ
 
+from hypothesis import given, settings
+from hypothesis import strategies as st
+
 from novel_ralph_skill.contract.exit_codes import ExitCode
 from novel_ralph_skill.contract.finding_outcome import build_finding_outcome
 
@@ -130,3 +133,38 @@ def test_builder_preserves_extra_result_key_order() -> None:
 
     without_extra = _outcome(findings)
     assert list(without_extra.result) == ["violations", "findings"]
+
+
+_FINDINGS = st.lists(
+    st.builds(
+        _DummyFinding,
+        ident=st.text(min_size=1, max_size=8),
+        passed=st.booleans(),
+        note=st.text(max_size=8),
+    ),
+    max_size=8,
+)
+
+
+@settings(max_examples=200)
+@given(findings=_FINDINGS)
+def test_builder_exit_code_tracks_any_failed_finding(
+    findings: list[_DummyFinding],
+) -> None:
+    """The exit code is ``ACTIONABLE_FINDING`` iff any finding failed.
+
+    The four enumerated unit cases pin the exit-code-from-``failed`` contract over
+    the deterministic boundary; this property hardens the closure against future
+    builder edits over arbitrary pass/fail finding vectors. The oracle is the
+    contract restated structurally — ``failed`` is the negation of the injected
+    ``passed`` projection (roadmap addendum 8.1.3.2 / its 7.1.3.2 twin) — never the
+    builder's own derivation, so the property would notice a builder that read an
+    external ``passed`` flag instead. The findings come straight from a strategy
+    over the ``passed`` booleans (no filtering), so shrinking yields a minimal
+    counter-example.
+    """
+    outcome = _outcome(tuple(findings))
+
+    any_failed = any(not finding.passed for finding in findings)
+    expected = ExitCode.ACTIONABLE_FINDING if any_failed else ExitCode.SUCCESS
+    assert outcome.code is expected

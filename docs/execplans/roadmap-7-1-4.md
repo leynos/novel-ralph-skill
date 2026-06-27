@@ -1132,7 +1132,7 @@ change in Work item 2 (still within the five-to-six-file Scope tolerance).
 Lightweight, no-plan corrections folded onto this completed task after its
 reviews and audits, triaged at the §7.1 step boundary.
 
-- **7.1.4.1 — Add an end-to-end raw-JSON `result` key-order assertion per
+- [x] **7.1.4.1 — Add an end-to-end raw-JSON `result` key-order assertion per
   extra-result shape** (from audit:7.1.4 Finding 1; severity: low). The `result`
   key-order contract this task protects is guarded only at the pre-render dict
   level (`list(outcome.result)` in `tests/test_desloppify_report.py` and the
@@ -1145,8 +1145,8 @@ reviews and audits, triaged at the §7.1 step boundary.
   (`tests/test_desloppify_e2e.py` and the ledger e2e), making the renderer-level
   invariant a gate failure rather than something only the pre-render dict
   assertions defend.
-- **7.1.4.2 — Add a Hypothesis property pinning exit-code-from-`failed`** (from
-  review:7.1.4; severity: low). The four enumerated unit cases in
+- [x] **7.1.4.2 — Add a Hypothesis property pinning exit-code-from-`failed`**
+  (from review:7.1.4; severity: low). The four enumerated unit cases in
   `tests/test_finding_outcome.py` fully pin the `build_finding_outcome`
   exit-code-from-`failed` contract over the deterministic enumerable boundary;
   add a Hypothesis property over arbitrary pass/fail findings vectors to harden

@@ -2578,7 +2578,7 @@ of truth, and a test pins it so it cannot silently re-fork.
     per-hit payload projection is unchanged; the §3.2 exit-code contract and the
     slimmed clean-pass findings contract are preserved; and the desloppify and
     ledger suites (including the snapshot suites) stay green.
-  - [ ] 7.1.4.1. Add an end-to-end raw-JSON `result` key-order assertion per
+  - [x] 7.1.4.1. Add an end-to-end raw-JSON `result` key-order assertion per
     extra-result shape.
     - Addendum (from audit:7.1.4 Finding 1; low). The `result` key-order contract
       7.1.4 protects is guarded only at the pre-render dict level
@@ -2588,7 +2588,7 @@ of truth, and a test pins it so it cannot silently re-fork.
       stdout assertion per `extra_result` shape (rule-pack with
       `pack`/`total_words`, ledger without) to the desloppify/ledger e2e suites.
       Lightweight addendum pass.
-  - [ ] 7.1.4.2. Add a Hypothesis property pinning exit-code-from-`failed` over
+  - [x] 7.1.4.2. Add a Hypothesis property pinning exit-code-from-`failed` over
     arbitrary findings vectors.
     - Addendum (from review:7.1.4; low). The four enumerated unit cases pin the
       builder's exit-code-from-`failed` contract today; add a Hypothesis property
