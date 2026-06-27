@@ -2796,6 +2796,55 @@ test pins it so it cannot silently re-fork.
     `rulepack._coerce._require` are removed, the scan docstring is single-stated,
     and a `line_hit`-callback contract test pins `scan_pattern`; and the rule-pack,
     ledger, and `loaderkit` suites stay green.
+  - [ ] 7.2.3.1. Generalise the `loaderkit` import-direction guard beyond
+    `loaderkit.scan`.
+    - Addendum (from review:7.2.3; low). The D-GUARD test
+      `test_loaderkit_scan_imports_no_pack_domain` pins only `scan.py` against
+      pack-domain imports, yet the neutral-leaf invariant (design §6/§6.3,
+      ADR-003) holds for every `loaderkit` module (`coerce.py`, `load.py`,
+      `__init__.py`); parametrise the guard to walk all of them so a future
+      regression in any module is caught, not just one in `scan.py`. Lightweight
+      addendum pass.
+  - [ ] 7.2.3.2. Align `loaderkit/scan.py` docstrings with the post-7.2.3
+    callback framing.
+    - Addendum (from review:7.2.3; low). The module and `scan_pattern`
+      docstrings still justify the `line_hit` callback as preventing import of a
+      "pack-domain hit type", which is self-contradictory now `LineHit` lives in
+      that module; retune both to the developers' guide's "free of any
+      `Rule`/`Device` knowledge" framing. Lightweight addendum pass.
+
+- [ ] 7.2.4. Repoint the scan-shape stragglers off the `rulepack.detect`
+  re-export and settle the re-export's fate.
+  - Step-task (source: audit:7.2.3 Findings 1, 3; severity: medium). 7.2.3
+    relocated `ScannedChapter`/`LineHit` into `loaderkit.scan`, but
+    `commands/_desloppify.py` and two ledger tests
+    (`tests/test_ledger_properties.py`, `tests/test_ledger_detect.py`) still
+    import `ScannedChapter` through the `rulepack.detect` re-export, leaving the
+    runtime `ledger → rulepack` (via the tests) and `command → rulepack`
+    detection-shape edges the relocation set out to remove. Repoint every
+    straggler — and the stale Sphinx `:class:` cross-references in
+    `ledger/__init__.py`, `commands/_desloppify.py`, `tests/test_ledger_detect.py`,
+    and `tests/test_desloppify_sourcing.py` (Finding 3) — at `loaderkit.scan`,
+    then decide and document the fate of the `rulepack.detect` re-export
+    (retain as a deliberate compatibility seam with a pinning test, or prune it
+    and drop it from `__all__`). This serves the step-7.2 hypothesis directly —
+    that each detection-pack loader-and-scan primitive has a *single* home — by
+    completing the single-home consolidation 7.2.3 began but left partial.
+  - Requires 7.2.3.
+  - See novel-ralph-harness-design.md §6.1;
+    docs/adr-003-shared-interface-contract.md;
+    docs/execplans/roadmap-7-2-3.md (Decision D-SCANTYPES);
+    novel_ralph_skill/rulepack/detect.py;
+    novel_ralph_skill/loaderkit/scan.py;
+    novel_ralph_skill/commands/_desloppify.py;
+    novel_ralph_skill/ledger/__init__.py.
+  - Success: no module or test imports `ScannedChapter` or `LineHit` through the
+    `rulepack.detect` re-export — every consumer imports them from
+    `loaderkit.scan`; the stale `rulepack.detect.ScannedChapter` Sphinx
+    cross-references are repointed at `loaderkit.scan`; the `rulepack.detect`
+    re-export's fate is recorded (kept with a pinning test, or pruned from
+    `__all__`); and the rule-pack, ledger, desloppify, and `loaderkit` suites
+    stay green.
 
 ### 7.3. Single-source the command facade, predicates, and writers
 
@@ -5347,6 +5396,72 @@ conventions are settled once.
     test; no formatter is simultaneously underscore-private and documented as the
     developer-facing exit-`3` contract; and the contract, command, and
     actionable-parity suites stay green.
+
+### 7.8. Simplify the post-relocation detector scan seams
+
+This step answers whether the detector scan seams, now that `LineHit` and
+`ScannedChapter` are co-located with `scan_pattern` in `loaderkit.scan`, are as
+simple as the consolidation allows — or whether they still carry indirection and
+duplication that the single-home relocation made redundant. It is a
+cross-cutting CQS-and-ergonomics concern distinct from the step-7.2
+single-home hypothesis (which is settled) and from the step-7.6 robustness
+hypothesis (these are not edge-case hardening); confirming it leaves the
+detectors expressing the scan-aggregate with no vacuous seams and no near-copy
+loops.
+
+- [ ] 7.8.1. Retire the now-vacuous `line_hit` callback from
+  `loaderkit.scan.scan_pattern`.
+  - Reroute (source: review:7.2.3, audit:7.2.3 Finding 2; severity: medium; two
+    near-identical proposals merged). The `line_hit` callback's original
+    D-SCANTYPES justification — avoid importing a hit type from a consumer
+    domain — dissolved once 7.2.3 relocated `LineHit` into `loaderkit.scan`
+    itself; both detectors now pass an identical forwarding
+    `lambda chapter, line: LineHit(chapter=chapter, line=line)` over the module's
+    own type. Decide explicitly between giving `scan_pattern` a default factory
+    that constructs `LineHit` directly versus retaining the seam as a deliberate
+    forward-compatibility hook, then — if removed — drop the duplicated lambdas
+    from `rulepack/detect.py` and `ledger/detect.py`, delete the stale "never
+    imports a pack-domain hit type" rationale from the code and the developers'
+    guide, and retire or replace the `line_hit`-callback contract test 7.2.3
+    added. This does not serve the settled step-7.2 single-home hypothesis (the
+    relocation is done) nor step-7.6 robustness; it is cross-cutting CQS
+    simplification, so it is rerouted here.
+  - Requires 7.2.3.
+  - See novel-ralph-harness-design.md §6.1;
+    docs/adr-003-shared-interface-contract.md;
+    docs/execplans/roadmap-7-2-3.md (Decision D-SCANTYPES);
+    novel_ralph_skill/loaderkit/scan.py;
+    novel_ralph_skill/rulepack/detect.py;
+    novel_ralph_skill/ledger/detect.py;
+    docs/developers-guide.md.
+  - Success: the `line_hit` callback's fate is decided and documented; if
+    retired, `scan_pattern` constructs `LineHit` directly, both detectors no
+    longer pass a forwarding lambda, the "pack-domain hit type" rationale is gone
+    from the code and the developers' guide, and the callback-contract test is
+    retired or replaced by an equivalent direct-construction pin; and the
+    rule-pack, ledger, and `loaderkit` suites stay green.
+- [ ] 7.8.2. Extract the shared detector scan-aggregate skeleton and drop the
+  redundant `scan_pattern` count return.
+  - Reroute (source: audit:7.2.3 Findings 4, 5; severity: low). `detect`
+    (`rulepack/detect.py`) and `detect_ledger` (`ledger/detect.py`) share a
+    near-identical scan-aggregate loop, and `scan_pattern` returns a count that
+    is always `len(lines)`, a redundant value that invites a CQS read/derive
+    split. Extract the shared scan-aggregate skeleton into a `loaderkit` helper
+    (parameterised on each pack's per-rule/per-device projection) and drop the
+    vacuous count return, deriving the total from the hit tuple at the seam.
+    These are ergonomics/CQS cleanups, not single-home consolidation, so they do
+    not serve the step-7.2 hypothesis; they are sequenced after 7.8.1 because
+    retiring the `line_hit` callback unblocks a clean helper extraction.
+  - Requires 7.8.1.
+  - See novel-ralph-harness-design.md §6.1;
+    novel_ralph_skill/loaderkit/scan.py;
+    novel_ralph_skill/rulepack/detect.py;
+    novel_ralph_skill/ledger/detect.py.
+  - Success: one `loaderkit` helper owns the scan-aggregate skeleton both
+    detectors consume, injecting only their per-hit projection; `scan_pattern` no
+    longer returns the redundant `len(lines)` count (the total is derived at the
+    seam); no detector carries a near-copy aggregate loop; and the rule-pack,
+    ledger, and `loaderkit` suites stay green.
 
 ## 8. Features and extensions
 

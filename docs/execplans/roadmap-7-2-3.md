@@ -1181,3 +1181,25 @@ mentions a `loaderkit → rulepack` `TYPE_CHECKING` import.
   remove the module-docstring rationale. D-DOCSTRING, the Risks mitigation, and
   the Surprises section were updated to match. No code, work-item ordering, or
   other acceptance criteria changed; this is a pure acceptance-correctness fix.
+
+## Addenda
+
+- **7.2.3.1 — Generalise the loaderkit import-direction guard beyond
+  `loaderkit.scan`** (from review:7.2.3; low). The D-GUARD test
+  `test_loaderkit_scan_imports_no_pack_domain` pins only `scan.py` against
+  pack-domain imports, but the neutral-leaf invariant (design §6/§6.3, ADR-003)
+  applies to every `loaderkit` module — `coerce.py`, `load.py`, and
+  `__init__.py` — each of which must import neither `rulepack` nor `ledger`.
+  Parametrise the guard to walk every module in the `loaderkit` package (or its
+  `__init__` re-export surface) so a future regression in any of them is caught,
+  not just one in `scan.py`. Test-only; no production change. Lightweight
+  addendum pass.
+- **7.2.3.2 — Align `loaderkit/scan.py` docstrings with the post-7.2.3 callback
+  framing** (from review:7.2.3; low). The `scan.py` module docstring and the
+  `scan_pattern` docstring still justify the `line_hit` callback as preventing
+  import of a "pack-domain hit type", which is now self-contradictory because
+  `LineHit` is defined in that very module after 7.2.3 relocated it. The
+  developers' guide already uses the correct "free of any `Rule`/`Device`
+  knowledge" framing. Retune both docstrings to that framing so the rationale no
+  longer contradicts the relocated type's home. Doc-only; no behaviour change.
+  Lightweight addendum pass.
