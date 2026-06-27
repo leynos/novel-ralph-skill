@@ -10,12 +10,13 @@ means ``.`` cannot cross ``\n``, so a per-line scan makes line numbers exact and
 bounds every match to one line (the v1 single-line-coverage discipline; ADR-001).
 
 The primitive carries no ``Rule``/``Device`` knowledge: the caller dereferences
-``rule.compiled``/``device.compiled`` before calling, and supplies a ``line_hit``
-constructor so this module never imports a pack-domain hit type. Both scan shapes
-are plain frozen dataclasses with only stdlib-typed fields, so this module imports
-neither ``rulepack`` nor ``ledger`` at runtime *or* under
-:data:`typing.TYPE_CHECKING`; the direction ``rulepack.detect → loaderkit.scan`` /
-``ledger.detect → loaderkit.scan`` stays acyclic.
+``rule.compiled``/``device.compiled`` before calling, and the ``line_hit``
+constructor is the seam that keeps the shared body free of any ``Rule``/``Device``
+knowledge. Both scan shapes are plain frozen dataclasses with only stdlib-typed
+fields defined here, so this module imports neither ``rulepack`` nor ``ledger`` at
+runtime *or* under :data:`typing.TYPE_CHECKING`; the direction
+``rulepack.detect → loaderkit.scan`` / ``ledger.detect → loaderkit.scan`` stays
+acyclic.
 """
 
 from __future__ import annotations
@@ -86,8 +87,9 @@ def scan_pattern(
         The scanned chapters, in order.
     line_hit : collections.abc.Callable[[int, int], LineHit]
         Constructs a :class:`LineHit` from ``(chapter_number, line_index)``; the
-        caller passes ``lambda chapter, line: LineHit(chapter=chapter, line=line)``
-        so this module never imports a pack-domain hit type at runtime.
+        caller passes ``lambda chapter, line: LineHit(chapter=chapter, line=line)``.
+        This callback is the seam that keeps the shared body free of any
+        ``Rule``/``Device`` knowledge.
 
     Returns
     -------

@@ -1184,7 +1184,7 @@ mentions a `loaderkit → rulepack` `TYPE_CHECKING` import.
 
 ## Addenda
 
-- **7.2.3.1 — Generalise the loaderkit import-direction guard beyond
+- [x] **7.2.3.1 — Generalise the loaderkit import-direction guard beyond
   `loaderkit.scan`** (from review:7.2.3; low). The D-GUARD test
   `test_loaderkit_scan_imports_no_pack_domain` pins only `scan.py` against
   pack-domain imports, but the neutral-leaf invariant (design §6/§6.3, ADR-003)
@@ -1194,7 +1194,7 @@ mentions a `loaderkit → rulepack` `TYPE_CHECKING` import.
   `__init__` re-export surface) so a future regression in any of them is caught,
   not just one in `scan.py`. Test-only; no production change. Lightweight
   addendum pass.
-- **7.2.3.2 — Align `loaderkit/scan.py` docstrings with the post-7.2.3 callback
+- [x] **7.2.3.2 — Align `loaderkit/scan.py` docstrings with the post-7.2.3 callback
   framing** (from review:7.2.3; low). The `scan.py` module docstring and the
   `scan_pattern` docstring still justify the `line_hit` callback as preventing
   import of a "pack-domain hit type", which is now self-contradictory because

@@ -2803,7 +2803,7 @@ test pins it so it cannot silently re-fork.
     `rulepack._coerce._require` are removed, the scan docstring is single-stated,
     and a `line_hit`-callback contract test pins `scan_pattern`; and the rule-pack,
     ledger, and `loaderkit` suites stay green.
-  - [ ] 7.2.3.1. Generalise the `loaderkit` import-direction guard beyond
+  - [x] 7.2.3.1. Generalise the `loaderkit` import-direction guard beyond
     `loaderkit.scan`.
     - Addendum (from review:7.2.3; low). The D-GUARD test
       `test_loaderkit_scan_imports_no_pack_domain` pins only `scan.py` against
@@ -2812,7 +2812,7 @@ test pins it so it cannot silently re-fork.
       `__init__.py`); parametrise the guard to walk all of them so a future
       regression in any module is caught, not just one in `scan.py`. Lightweight
       addendum pass.
-  - [ ] 7.2.3.2. Align `loaderkit/scan.py` docstrings with the post-7.2.3
+  - [x] 7.2.3.2. Align `loaderkit/scan.py` docstrings with the post-7.2.3
     callback framing.
     - Addendum (from review:7.2.3; low). The module and `scan_pattern`
       docstrings still justify the `line_hit` callback as preventing import of a

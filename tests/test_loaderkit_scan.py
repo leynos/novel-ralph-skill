@@ -12,15 +12,18 @@ call, and one that derives the expected hits from an independent regex model ove
 the full universal-newline boundary class so a future narrowing of the splitting
 choice (a move to ``split("\n")``) is caught rather than echoed (addendum
 7.2.2.1). Two structural guards pin the single neutral home: the shapes are
-defined in ``loaderkit.scan``, and that module imports nothing from a pack
-domain.
+defined in ``loaderkit.scan``, and a parametrised guard walks every module in the
+``loaderkit`` package to prove none imports a pack domain.
 """
 
 from __future__ import annotations
 
+import ast
 import datetime as dt
+import pathlib
 import re
 
+import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
@@ -231,23 +234,18 @@ def test_scan_shapes_are_defined_in_loaderkit() -> None:
     assert LineHit.__module__ == "novel_ralph_skill.loaderkit.scan"
 
 
-def test_loaderkit_scan_imports_no_pack_domain() -> None:
-    """`loaderkit.scan` imports nothing from a pack domain."""
-    import ast
-    import pathlib
+def _loaderkit_module_paths() -> list[pathlib.Path]:
+    """Return the source path of every module in the ``loaderkit`` package.
 
-    from novel_ralph_skill.loaderkit import scan
+    Walking the package directory — rather than naming ``scan.py`` alone — keeps
+    the import-direction guard honest as the package grows: a future regression in
+    ``coerce.py``, ``load.py``, ``__init__.py``, or any module added later is caught
+    too, not just one in ``scan.py``.
+    """
+    from novel_ralph_skill import loaderkit
 
-    source = pathlib.Path(scan.__file__).read_text(encoding="utf-8")
-    tree = ast.parse(source)
-    imported: list[str] = []
-    for node in ast.walk(tree):
-        if isinstance(node, ast.ImportFrom) and node.module:
-            imported.append(node.module)
-        elif isinstance(node, ast.Import):
-            imported.extend(alias.name for alias in node.names)
-    banned = ("novel_ralph_skill.rulepack", "novel_ralph_skill.ledger")
-    assert not [module for module in imported if module.startswith(banned)]
+    package_dir = pathlib.Path(loaderkit.__file__).parent
+    return sorted(package_dir.glob("*.py"))
 
 
 def test_scan_pattern_builds_every_hit_via_line_hit_callback() -> None:
@@ -277,3 +275,27 @@ def test_scan_pattern_builds_every_hit_via_line_hit_callback() -> None:
     assert count == 4
     assert calls == [(3, 1), (3, 2), (3, 2), (7, 1)]
     assert all(hit is sentinel for hit in hits)
+
+
+@pytest.mark.parametrize(
+    "module_path",
+    _loaderkit_module_paths(),
+    ids=lambda path: path.name,
+)
+def test_loaderkit_module_imports_no_pack_domain(module_path: pathlib.Path) -> None:
+    """Every ``loaderkit`` module imports nothing from a pack domain.
+
+    The neutral-leaf invariant (design §6/§6.3, ADR-003) applies to the whole
+    package: no ``loaderkit`` module may import ``rulepack`` or ``ledger``, so both
+    packs can depend on ``loaderkit`` without an import cycle.
+    """
+    source = module_path.read_text(encoding="utf-8")
+    tree = ast.parse(source)
+    imported: list[str] = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ImportFrom) and node.module:
+            imported.append(node.module)
+        elif isinstance(node, ast.Import):
+            imported.extend(alias.name for alias in node.names)
+    banned = ("novel_ralph_skill.rulepack", "novel_ralph_skill.ledger")
+    assert not [module for module in imported if module.startswith(banned)]
