@@ -81,6 +81,7 @@ from novel_ralph_skill.state import (
     build_initial_document,
     check_disk_evidence,
     derive_reconciliation,
+    reconciliation_payload,
     validate_state,
     write_document_atomically,
 )
@@ -130,20 +131,13 @@ def _render_reconciliation(reconciliation: Reconciliation) -> dict[str, object]:
     """Render a :class:`Reconciliation` as the read-only ``check`` payload.
 
     ``check`` reports the reconciliation a stale ``state.toml`` *implies* without
-    enacting it (design §3.3, §5.4): the action name, the discrepancy names that
-    drove it, and the human detail, plus the disk-derived counts for a ``recount``
-    so an operator can see exactly what ``reconcile`` would write. It carries no
-    write-shaped success vocabulary — ``check`` writes nothing.
+    enacting it (design §3.3, §5.4); it carries no write-shaped success
+    vocabulary — ``check`` writes nothing. The serialisation is the shared
+    :func:`~novel_ralph_skill.state.reconciliation_payload` projection; this read
+    shape and ``reconcile``'s write shape stay distinct only in their envelope
+    (exit code, ``messages``), not in the dict they wrap.
     """
-    payload: dict[str, object] = {
-        "action": str(reconciliation.action),
-        "discrepancies": list(reconciliation.discrepancies),
-        "detail": reconciliation.detail,
-    }
-    if reconciliation.recounted_by_chapter is not None:
-        payload["current"] = reconciliation.recounted_current
-        payload["by_chapter"] = dict(reconciliation.recounted_by_chapter)
-    return payload
+    return reconciliation_payload(reconciliation)
 
 
 def _disk_evidence_or_state_error(

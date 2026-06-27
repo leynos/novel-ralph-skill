@@ -152,6 +152,31 @@ class Reconciliation:
     missing_paths: tuple[str, ...] = ()
 
 
+def reconciliation_payload(
+    reconciliation: Reconciliation,
+) -> dict[str, object]:
+    """Project a ``Reconciliation`` into its payload dict.
+
+    The single source of the ``{action, discrepancies, detail}`` base shape both
+    ``check`` reports (read shape) and ``reconcile`` returns (write shape), plus
+    the ``current``/``by_chapter`` recount pair for a ``RECOUNT`` (added iff
+    ``recounted_by_chapter`` is present). It serialises only; the exit code, the
+    ``messages``, and the read-versus-write framing stay at each call site, so
+    the CQS read/write split (design §3.3) is preserved (audit-2.3.2 Finding 2).
+    Key order is fixed — ``action``, ``discrepancies``, ``detail``, then the
+    recount pair — because the JSON envelope is snapshot-pinned.
+    """
+    payload: dict[str, object] = {
+        "action": str(reconciliation.action),
+        "discrepancies": list(reconciliation.discrepancies),
+        "detail": reconciliation.detail,
+    }
+    if reconciliation.recounted_by_chapter is not None:
+        payload["current"] = reconciliation.recounted_current
+        payload["by_chapter"] = dict(reconciliation.recounted_by_chapter)
+    return payload
+
+
 def _refuse(discrepancies: cabc.Sequence[str]) -> Reconciliation:
     """Return a REFUSE reconciliation naming the refused discrepancies."""
     names = ", ".join(discrepancies)

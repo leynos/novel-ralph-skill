@@ -59,6 +59,7 @@ from novel_ralph_skill.state import (
     clear_pending_turn,
     derive_reconciliation,
     open_pending_turn,
+    reconciliation_payload,
     write_document_atomically,
 )
 
@@ -221,14 +222,7 @@ def _write_outcome(
     vocabulary), never ``check``'s ``violations`` read shape (developers' guide;
     audit-2.2.2 Finding 2).
     """
-    result: dict[str, object] = {
-        "action": str(action),
-        "discrepancies": list(reconciliation.discrepancies),
-        "detail": reconciliation.detail,
-    }
-    if reconciliation.recounted_by_chapter is not None:
-        result["current"] = reconciliation.recounted_current
-        result["by_chapter"] = dict(reconciliation.recounted_by_chapter)
+    result = reconciliation_payload(reconciliation)
     return CommandOutcome(
         code=ExitCode.SUCCESS, result=result, messages=[reconciliation.detail]
     )
@@ -247,11 +241,7 @@ def _refuse_outcome(
     _append_recovery_entry(working_dir, f"refuse: {reconciliation.detail}")
     return CommandOutcome(
         code=ExitCode.ACTIONABLE_FINDING,
-        result={
-            "action": str(reconciliation.action),
-            "discrepancies": list(reconciliation.discrepancies),
-            "detail": reconciliation.detail,
-        },
+        result=reconciliation_payload(reconciliation),
         messages=[reconciliation.detail],
     )
 
@@ -293,11 +283,7 @@ def reconcile() -> CommandOutcome:
     if action is ReconcileAction.NONE:
         return CommandOutcome(
             code=ExitCode.SUCCESS,
-            result={
-                "action": str(action),
-                "discrepancies": [],
-                "detail": reconciliation.detail,
-            },
+            result=reconciliation_payload(reconciliation),
             messages=[reconciliation.detail],
         )
     if action is ReconcileAction.REFUSE:

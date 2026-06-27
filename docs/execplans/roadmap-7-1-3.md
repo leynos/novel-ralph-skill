@@ -1,960 +1,1098 @@
-# Decide and pin the desloppify clean-pass findings contract
+# Single-source the `Reconciliation` payload projection
 
 This ExecPlan (execution plan) is a living document. The sections
 `Constraints`, `Tolerances`, `Risks`, `Progress`, `Surprises & Discoveries`,
 `Decision Log`, and `Outcomes & Retrospective` must be kept up to date as work
 proceeds.
 
-Status: DRAFT (revised round 3)
+Status: DELIVERED
 
 ## Purpose / big picture
 
-Roadmap task 7.1.3 settles a single payload-contract question before the
-multi-pack detection surface grows: when `desloppify` finishes a scan, does the
-machine-mode JSON envelope's `result.findings` list carry **every rule in the
-pack** (including rules with `count: 0` that are well within threshold — the
-"full audit trail"), or **only the over-threshold findings** (the
-"violations-only" slimming)?
+Today the serialisation of a `Reconciliation` into its `{action,
+discrepancies, detail}` payload dict — plus the optional `current`/`by_chapter`
+recount pair — is hand-written at four sites across two command modules, even
+though `Reconciliation` already has a natural owner in
+`novel_ralph_skill/state/reconcile.py` (the module that defines the dataclass
+and the one pure `derive_reconciliation` derivation both `check` and `reconcile`
+share).
 
-Today both detection projections serialise the full audit trail. In
-`novel_ralph_skill/commands/_desloppify_report.py`, `report_outcome` emits
-`"findings": [_finding_payload(finding) for finding in report.findings]` — one
-entry per rule, passing or not. In `novel_ralph_skill/ledger/report.py`,
-`ledger_report_outcome` does the same for every device. For the single shipped
-§6 `offenders.toml` pack this is harmless, but it grows linearly as the
-`ai-isms.toml` (roadmap 7.1.1) and `device-ledger.toml` (roadmap 7.1.2) packs
-ship and as the multi-pack run surface (7.1.6/7.1.7) combines them: a clean scan
-over three packs would serialise dozens of `count: 0` rows the harness never
-reads. The roadmap entry exists so this decision is made **once, deliberately,
-before** the multi-pack surface lands, so the per-hit payload contract the §7.1
-packs inherit is not churned later.
+The four sites that independently spell the same dict shape are:
 
-After this change a reader can observe the decision three ways. First, the
-decision and its rationale are written into the design (or developers' guide) as
-the authoritative contract. Second, `desloppify` and `desloppify --ledger` emit
-the chosen `findings` shape on a clean pass, demonstrable by running each over a
-slop-free manuscript and reading the envelope. Third, the
-suites that read the full trail (`tests/test_desloppify_snapshots.py`,
-`tests/test_ledger_snapshots.py`, and the cross-command shape matrix
-`tests/test_command_surface_matrix.py`) pin the chosen shape, so the contract is
-regression-guarded and a future drift fails a test rather than slipping through
-review.
+1. `_render_reconciliation`
+   (`novel_ralph_skill/commands/novel_state.py:129`) — the read-shaped `check`
+   payload: the base three keys plus the recount pair when
+   `recounted_by_chapter is not None`.
+2. `_write_outcome` (`novel_ralph_skill/commands/_reconcile.py:215`) — the
+   write-shaped `reconcile` success `result`: the same base three keys plus the
+   same guarded recount pair as `_render_reconciliation`, with one textual
+   difference that is value-identical today — `_write_outcome` serialises its
+   `action` *parameter* (`str(action)`, line 225), not the attribute
+   `str(reconciliation.action)`. Both `_write_outcome` callers pass
+   `action == reconciliation.action` (line 322 passes `action`, bound to
+   `reconciliation.action` at line 291; line 313 passes the literal
+   `RECREATE_LOG`, which equals `reconciliation.action` because
+   `derive_reconciliation` builds that `Reconciliation` with
+   `action=RECREATE_LOG`, `reconcile.py:332-333`), so the two spellings produce
+   the same string and routing through the projection is behaviour-preserving
+   (Work Item 3 records the caller invariant; `tests/test_reconcile.py:262` pins
+   the literal-passing `RECREATE_LOG` case).
+3. `_refuse_outcome` (`novel_ralph_skill/commands/_reconcile.py:237`) — the
+   exit-`4` refusal `result`: the base three keys only (a `REFUSE` never carries
+   a recount pair).
+4. The `NONE` arm of `reconcile`
+   (`novel_ralph_skill/commands/_reconcile.py:293`) — the coherent-tree no-op
+   `result`: the base three keys with an empty `discrepancies` list inlined.
 
-This is a decision-and-conformance task, not a feature. The bulk of the work is
-recording a justified contract and making the two existing projections plus
-their snapshots agree with it. No new command, flag, library, or schema field is
-introduced.
+Because `derive_reconciliation` already guarantees that `check` and `reconcile`
+re-derive an *identical* `Reconciliation` for the same tree (Decision Log
+D-SHARED, pinned by the cross-check test), the only remaining way the two
+commands can drift is by serialising that identical object into *different*
+dict shapes. A field added to the reported reconciliation, or a rename of
+`discrepancies`, is shotgun surgery across four call sites in two modules, and a
+partial edit would silently let `check` and `reconcile` report different shapes
+for the same derivation — the very divergence D-SHARED exists to prevent
+(audit-2.3.2 Finding 2).
 
-## The decision (proposed default, to be ratified in Work item 1)
+After this change `reconcile.py` owns one canonical projection —
+`reconciliation_payload(reconciliation)` (a free function beside the dataclass,
+mirroring the module's existing free-function vocabulary `derive_reconciliation`
+rather than introducing a method) — that returns the base `{action,
+discrepancies, detail}` dict plus the optional recount pair, and all four arms
+route through it. The "the read shape and the write shape serialise an identical
+`Reconciliation` identically" invariant becomes structurally enforced (one
+projection) rather than only test-pinned.
 
-The plan proposes, and Work item 1 ratifies, the **violations-only** contract:
-`result.findings` carries only the over-threshold (failing) findings; the
-machine-actionable `result.violations` slug list and the `ok`/exit-code remain
-unchanged, so a clean pass emits `findings: []` and `violations: []`.
+This is deliberately the *serialisation* only. The audit (audit-2.3.2 Finding 2;
+carried from audit-2.2.2 Finding 2) is explicit that `check`'s read shape and
+`reconcile`'s write shape keep distinct *vocabulary* and *envelope code*: the
+exit codes (`check` exits `0`/`4`; `reconcile` success exits `0` and refusal
+exits `4`), the `messages` lists, the `CommandOutcome` construction, and the
+read-versus-write framing all stay exactly where they are. Only the
+`Reconciliation`-to-dict serialisation is centralised.
 
-Rationale (recorded here so the implementer does not re-litigate it; Work item 1
-captures the same rationale in the design):
+You can observe success three ways. The observables below are scoped to the
+*executable* dict-construction form `"action": str(` — the literal key string
+each arm uses to begin the base dict — because that is the duplicated
+serialisation this task removes. They deliberately exclude docstring prose that
+mentions `action`/`discrepancies`/`detail` (those describe the shape and are
+correct to keep).
 
-1. The design's envelope contract (§3.1) states `result` "holds the
-   command-specific structured payload and **every machine-actionable datum**:
-   the names of failed clauses, rule ids and hit counts". A rule at `count: 0`
-   within threshold is, by construction, not machine-actionable: the harness
-   gates on `ok` and reads `result.violations` (§3.3, the checker read shape);
-   it never needs the passing rules enumerated. The full audit trail is
-   human-audit data, and `messages` already carries the human prose. So the
-   slimmer shape is the one §3.1 actually describes.
-2. The payload grows linearly with pack size and pack count. Violations-only
-   makes a clean multi-pack scan emit `findings: []` regardless of how many
-   rules ship, which is the scaling property the roadmap entry asks us to settle
-   before the surface grows.
-3. The information a slimmed clean pass drops — "rule X ran and found nothing" —
-   is recoverable: the pack is versioned data the operator already owns, and a
-   non-clean finding still lists every offending rule in full. No *runtime*
-   consumer in the repository reads passing findings: the skill and harness read
-   `violations`/`ok` only (`grep -rn findings skill/` finds no envelope
-   consumer). Three *test* consumers read the full `result.findings` trail and
-   must be re-pinned to the slimmed shape — the two snapshot suites
-   (`test_desloppify_snapshots.py`, `test_ledger_snapshots.py`) and the
-   cross-command shape matrix `test_command_surface_matrix.py`. Re-pinning these
-   is a mechanical snapshot/assertion update, not a behavioural change to a
-   production consumer; Work item 0 enumerates them exhaustively and Work item 2
-   updates all three together (see the corrected inventory below).
+1. `git grep -n '"action": str(' novel_ralph_skill/` returns exactly one hit,
+   inside `reconciliation_payload` in
+   `novel_ralph_skill/state/reconcile.py`. None of `novel_state.py`,
+   `_reconcile.py` constructs the base dict by hand any more (each calls
+   `reconciliation_payload`, then `check`/`reconcile` add only their
+   command-specific envelope — `messages`, exit code, and, where they genuinely
+   differ, extra `result` keys).
+2. `git grep -n 'reconciliation_payload' novel_ralph_skill/` resolves the
+   definition to `state/reconcile.py`, the re-export to
+   `state/__init__.py`, and exactly four consumer call sites
+   (`_render_reconciliation`, `_write_outcome`, `_refuse_outcome`, the `NONE`
+   arm).
+3. `make all` is green with **no pre-existing test edited for new behaviour**:
+   every reconcile, check, disk-evidence, derivation, refusal, integration,
+   BDD, e2e, and snapshot suite stays green unchanged, plus one small new test
+   that pins the projection (its dict shape across the recount-bearing and
+   recount-absent cases). This is a pure no-behaviour-change refactor (roadmap
+   7.1.3 success criterion: "no behaviour changes").
 
-If Work item 1's review rejects violations-only in favour of the full audit
-trail, the rest of the plan still applies with the filter inverted: the contract
-is documented either way, and the snapshots pin whichever shape is ratified. The
-plan does not leave the shape undecided — it proposes one, justifies it, and
-gates ratification at Work item 1's review.
+## Scope and explicit non-goals
+
+This task is an internal **DRY refactor** of pure Python: it consolidates one
+serialisation into `novel_ralph_skill/state/reconcile.py` and routes four arms
+in `novel_ralph_skill/commands/` through it. It changes no exit code, no
+envelope shape, no message text, no on-disk path, and no public console-script
+behaviour.
+
+In scope (roadmap 7.1.3; audit-2.3.2 Finding 2):
+
+- A single free function
+  `reconciliation_payload(reconciliation: Reconciliation) -> dict[str, object]`
+  in `state/reconcile.py`, beside the `Reconciliation` dataclass, returning the
+  base `{action, discrepancies, detail}` dict plus the optional
+  `current`/`by_chapter` recount pair when `recounted_by_chapter is not None`.
+- Exporting `reconciliation_payload` from
+  `novel_ralph_skill/state/__init__.py` beside the existing `Reconciliation` /
+  `ReconcileAction` / `derive_reconciliation` exports.
+- Routing the four arms through it: `_render_reconciliation`
+  (`novel_state.py`), and `_write_outcome`, `_refuse_outcome`, and the `NONE`
+  arm (`_reconcile.py`).
+- One focused unit test pinning the projection (the base shape; the recount-pair
+  extension present iff `recounted_by_chapter is not None`).
+
+Explicit non-goals (other roadmap tasks / audit findings own these; do **not**
+touch them):
+
+- The **CQS read/write vocabulary split** between `check`'s `violations` read
+  shape and `reconcile`'s write-shaped `result`. The audit is explicit
+  (audit-2.3.2 Finding 2; audit-2.2.2 Finding 2): the *envelope code* and *exit
+  codes* "genuinely differ" and stay where they are. Only the
+  `Reconciliation`-to-dict serialisation is centralised. The read and write
+  *framing* docstrings stay (trim only the redundant inline-dict comment, not
+  the read/write distinction).
+- The **exit-code policy.** `check` exits `0`/`4`; `reconcile` success exits
+  `0`, refusal exits `4`. `reconciliation_payload` returns a *dict only* — it
+  constructs no `CommandOutcome` and chooses no exit code. The four arms keep
+  their own `CommandOutcome(code=…, result=…, messages=…)` construction.
+- The `_RECONCILE_PATHS` `working/`-prefix inconsistency (audit-2.3.2
+  Finding 3), the call-time `disk_word_counts` import (Finding 4), the
+  blended-CQS `edit` callback (Finding 5), and the self-recovery test gaps
+  (Finding 6) — none is this task; do not touch them.
+- The compile-currency seam (roadmap 7.1.1, delivered) and the
+  finding-outcome envelope builder (roadmap 7.1.4).
+
+If, while implementing, it emerges that routing an arm through the projection
+forces a behaviour change (an exit code, an envelope field, a message string,
+or a snapshot byte to move), **stop and escalate** (see `Tolerances`): the task
+is defined as *no behavioural change*, so any required change is a signal the
+projection shape is wrong, not licence to edit a snapshot.
 
 ## Constraints
 
 Hard invariants that must hold throughout implementation. Violation requires
 escalation, not a workaround.
 
-- The shared envelope shape `{command, schema_version, ok, working_dir, result,
-  messages}` (design §3.1; ADR-003) must not change. Only the contents of
-  `result.findings` are in scope.
-- `result.violations` (the slug list the harness gates on) and the `ok` flag /
-  exit-code contract (§3.2: 0 clean, 4 actionable finding) must be byte-for-byte
-  unchanged. This task touches the *audit-trail* list only, never the gating
-  data.
-- The two detection cores must not change. `novel_ralph_skill/rulepack/detect.py`
-  (`DetectionReport`, `RuleFinding`) and `novel_ralph_skill/ledger/detect.py`
-  (`LedgerReport`, `DeviceFinding`) still aggregate **every** rule/device; the
-  slimming is a *projection* concern, applied in the two `report.py` modules
-  only. Detection stays a complete, pure aggregation so the count cannot drift
-  (design §4.4, §6.3).
-- Do not pre-empt sibling tasks. Adding a matched-text span (7.1.4) and the
-  canonical finding projection (7.1.5) are out of scope; this task changes
-  *which* findings appear, not *which fields* a finding carries.
-- No new external dependency, command, flag, or pack-schema field.
-- en-GB Oxford spelling ("-ize"/"-yse"/"-our") in all prose, comments, and
-  commits (AGENTS.md).
-- Each commit passes every gate in AGENTS.md ("Change quality and committing"):
-  `make check-fmt`, `make lint`, `make typecheck`, `make test`, `make audit`;
-  and for any `.md` change, `make markdownlint` and `make nixie`.
-- No code file may exceed 400 lines (AGENTS.md). Both `report.py` modules are
-  well under the cap; the change is a few lines each.
+- **No behaviour change.** No exit code, envelope field, `result` key, message
+  string, or on-disk path may change. Every existing test must pass **without
+  edit** (snapshots included). The roadmap 7.1.3 success criterion is explicit:
+  "the CQS read/write vocabulary split and the exit-code policy are unchanged;
+  no behaviour changes; and the check, reconcile, and disk-evidence suites stay
+  green." (design §3.3, §5.4; ADR-003 shared interface contract.)
+- **`reconciliation_payload` lives in `state/reconcile.py`**, beside the
+  `Reconciliation` dataclass and `derive_reconciliation` (the module the roadmap
+  and audit name: "a small free function beside it in `state/reconcile.py`").
+- **It returns a dict, not a `CommandOutcome`.** The projection has no knowledge
+  of exit codes, `messages`, or the read/write framing; those stay at the four
+  call sites. This preserves the CQS read/write split (non-goals).
+- **The base-dict order is preserved** — `action`, then `discrepancies`, then
+  `detail`, then (when present) `current`, then `by_chapter` — matching the
+  current insertion order at all four sites, and Python dict iteration is
+  insertion-ordered. Two distinct mechanisms guard this order, and they cover
+  different paths, so read them precisely:
+  - The **only** snapshot that pins *insertion order* is
+    `tests/__snapshots__/test_novel_state_check_disk.ambr`. It is rendered by
+    `render_machine` (`novel_ralph_skill/contract/envelope.py:151`,
+    `json.dumps(ordered)` with **no** `sort_keys`) and asserted with
+    `raw == snapshot` (`tests/test_novel_state_check_disk.py:234,248`), so the
+    code's insertion order leaks through verbatim. Its stored
+    `reconciliation` blocks show `{action, discrepancies, detail[, current,
+    by_chapter]}` — the code order, not the alphabetical order. This is the
+    insertion-order backstop, but it covers **only the READ (`check`) path**
+    (it pins both the `recount` and `refuse` classes, but only as `check`
+    *reports* them, never the write-side `reconcile` `result`).
+  - `tests/__snapshots__/test_reconcile_refuse.ambr` does **not** pin
+    insertion order. `tests/test_reconcile_refuse.py:187` asserts
+    `json.dumps(env, sort_keys=True) == snapshot`, so the stored bytes are
+    **alphabetically sorted** (`{action, detail, discrepancies}` —
+    `detail` before `discrepancies`, the opposite of the code's insertion
+    order). It pins the *field set* of the write-side `REFUSE` envelope, not
+    its order. A reordered projection would still serialise to the same sorted
+    bytes and pass this snapshot.
+  - The **named primary order pin** for the write-side `REFUSE`/`NONE`
+    `result` envelope is therefore the Work Item 2 unit test's
+    `list(reconciliation_payload(...).items()) == [...]` ordered assertion. It
+    is the *only* check that fails if the write-side projection reorders its
+    keys, because no snapshot does (the refuse snapshot is sorted, and the
+    `check_disk` snapshot covers only the read path). Do not weaken or remove
+    it: without it, a future reorder bug could ship green on the write path.
+- **The recount pair is gated exactly as today** — added iff
+  `reconciliation.recounted_by_chapter is not None`, with `current` taken from
+  `recounted_current` and `by_chapter` from `dict(recounted_by_chapter)`. The
+  `REFUSE` and `NONE` arms never carry it (they have no recount pair to add), so
+  routing them through the same projection is a behaviour-preserving no-op for
+  those keys.
+- **Detect-only / mutator boundary unchanged (§3.3, ADR-001):** `check` still
+  writes nothing; `reconcile` still drives the same D-SELF bracket. The
+  projection is pure (a dict over an immutable dataclass) and touches no disk.
+- **en-GB Oxford spelling** ("-ize"/"-yse"/"-our") in all new prose, comments,
+  docstrings, and commit messages (workflow standing rule;
+  `docs/documentation-style-guide.md`).
+- **Quality gates:** 100% docstring coverage (`interrogate`, `pyproject.toml`
+  `[tool.interrogate] fail-under = 100`); module line cap 400
+  (`[tool.pylint.main] max-module-lines = 400` — `reconcile.py` is at 342 lines,
+  so the projection plus its docstring must fit under 400; check after the
+  addition); Ruff line-length 88; Markdown prose wrapped at 80 columns
+  (AGENTS.md "Markdown guidance").
 
 ## Tolerances (exception triggers)
 
-- Scope: if the implementation requires changes to more than 9 files or more
-  than ~200 net lines of code, stop and escalate. The expected edit set is
-  pre-counted at eight files and is in bounds: 2 source files
-  (`_desloppify_report.py`, `ledger/report.py`), 3 snapshot `.ambr` files
-  (`test_desloppify_snapshots.ambr`, `test_ledger_snapshots.ambr`,
-  `test_command_surface_matrix.ambr`), 2 snapshot/assertion test modules
-  (`test_desloppify_snapshots.py`, `test_ledger_snapshots.py`) and the matrix
-  module (`test_command_surface_matrix.py`), plus 1 doc file and 1 new
-  projection-level unit-test module. The threshold was raised from 6 to 9 in
-  round 2 after the round-1 review found the third full-trail consumer
-  (`test_command_surface_matrix.py` + its `.ambr`) that the original count
-  omitted; the headroom is deliberate, not a licence to grow scope further.
-- Detection-core edit: if satisfying the contract appears to require editing
-  `rulepack/detect.py` or `ledger/detect.py` (the aggregation cores), stop and
-  escalate — that signals the design has been misread (the cores must stay
-  complete; only the projection slims).
-- Gating drift: if any change would alter `result.violations`, `ok`, or an exit
-  code for any input, stop and escalate — that is out of contract.
-- Decision reversal: if Work item 1's review rejects the proposed
-  violations-only default, record the ratified alternative in the Decision Log
-  and proceed with the inverted filter; do not implement both shapes.
-- Iterations: if the snapshot suites still fail after 3 update attempts, stop
-  and escalate.
-- Ambiguity: the three known test consumers of the full `result.findings`
-  trail — `tests/test_desloppify_snapshots.py`,
-  `tests/test_ledger_snapshots.py`, and
-  `tests/test_command_surface_matrix.py::test_desloppify_shape_across_phases` —
-  are **pre-resolved** in this plan as mechanical snapshot/assertion updates (see
-  Work item 2); the implementer must update them, not escalate on them. This
-  Tolerance fires only if Work item 0's exhaustive sweep finds a *fourth*
-  consumer not listed here, **or** a *production* (non-test) reader of a passing
-  finding in `novel_ralph_skill/` or `skill/`. Either of those would make the
-  slimming a behavioural change to a live consumer rather than a pure trail trim,
-  and warrants escalation.
+- **Behaviour drift:** if any existing test (including either snapshot
+  `.ambr`) must be edited to keep green, stop and escalate — that means the
+  projection moved behaviour (Constraints "No behaviour change").
+- **Scope:** if the refactor requires editing any module beyond
+  `state/reconcile.py`, `commands/novel_state.py`, `commands/_reconcile.py`,
+  and `state/__init__.py` (plus adding/extending one test file), stop and
+  escalate — it has drifted beyond the four named arms.
+- **CQS contamination:** if it appears the projection should also fold in the
+  `messages`, the exit code, or the read/write framing, stop and escalate — the
+  audit explicitly keeps those distinct (non-goals).
+- **Line cap:** if `reconcile.py` would exceed 400 lines after the addition,
+  stop and escalate rather than splitting the module ad hoc.
+- **Dependencies:** if any new third-party dependency is required, stop and
+  escalate. None is expected — this is internal Python with no new imports.
+- **Iterations:** if `make all` still fails after 3 focused attempts on a work
+  item, stop and escalate.
 
 ## Risks
 
-    - Risk: A full-trail consumer reads a passing finding out of
-      `result.findings` and goes red when the passing entries disappear. This
-      risk already materialised once: round-1 review found the third consumer
-      `tests/test_command_surface_matrix.py::test_desloppify_shape_across_phases`
-      (line 717, `len(result["findings"]) == 24` across eleven clean phases) plus
-      its snapshot `tests/__snapshots__/test_command_surface_matrix.ambr` (the
-      eleven `test_machine_envelope_matrix[desloppify-*]` blocks, 264 `rule_id`
-      rows, all with empty `violations`), which the original plan omitted.
+    - Risk: the projection reorders the dict keys (or the recount pair lands
+      before ``detail``), so the snapshot-pinned JSON envelope byte moves and a
+      ``.ambr`` snapshot fails.
       Severity: high
-      Likelihood: high (already realised for the known three; low for any
-      further consumer)
-      Mitigation: the three known full-trail test consumers
-      (`test_desloppify_snapshots.py`, `test_ledger_snapshots.py`,
-      `test_command_surface_matrix.py` + its `.ambr`) are enumerated in Work
-      item 0 and updated together in Work item 2 — the matrix `== 24` assertion
-      becomes the slimmed clean shape (`findings == []` with the `set(result)`
-      membership unchanged) and all three `.ambr` files regenerate in the same
-      commit. Work item 0 additionally runs an exhaustive `tests/` + source +
-      `skill/` sweep to confirm no *fourth* full-trail or *production* consumer
-      exists; finding one trips the Ambiguity Tolerance.
+      Likelihood: medium
+      Mitigation: Constraint "base-dict order is preserved" fixes the order
+      ``action, discrepancies, detail[, current, by_chapter]`` to match the
+      current insertion order at all four sites. The PRIMARY order pin is Work
+      Item 2's unit test, which asserts the projection's key order against an
+      explicit expected sequence (compared by ``list(payload.items())``, not
+      just ``==``, since two dicts compare equal regardless of order). This
+      ``items()`` assertion is the **only** order check covering the write-side
+      ``REFUSE``/``NONE`` ``result`` envelope, so it must not be weakened.
+      The snapshot backstop is asymmetric and covers only part of the surface:
+      only ``test_novel_state_check_disk.ambr`` pins *insertion* order (it
+      renders through ``render_machine``'s ``json.dumps`` with no ``sort_keys``
+      and asserts ``raw == snapshot``), and it covers only the READ (``check``)
+      path. ``test_reconcile_refuse.ambr`` does **not** pin order at all: its
+      assertion is ``json.dumps(env, sort_keys=True)``, so the stored bytes are
+      alphabetically sorted and a reordered projection would still pass it.
+      The write-side order is therefore guarded by the Work Item 2 ``items()``
+      pin alone — that is why it is named the primary pin.
 
-    - Risk: The snapshot suites churn in a way that hides a real regression
-      behind an expected one, so the snapshot stops proving the contract.
+    - Risk: the projection is introduced but an arm keeps an inline
+      ``{"action": str(...), ...}`` (incomplete routing), so the duplication the
+      task removes survives at one of the four sites — most easily the inlined
+      ``NONE`` arm, which is a literal dict in the ``reconcile`` body rather than
+      a named helper.
       Severity: medium
       Likelihood: medium
-      Mitigation: Each snapshot update is paired with a semantic assertion that
-      independently pins the slimmed shape (the existing suites already follow
-      AGENTS.md "avoid snapshot-only coverage"). Add an explicit assertion that
-      a clean pass yields `findings == []`, so the snapshot is never the only
-      guard for the slimming.
+      Mitigation: the success observation is a ``git grep '"action": str('``
+      that must return exactly one hit (the projection's own definition); Work
+      Item 3's validation runs it. The ``NONE`` arm is explicitly enumerated as
+      the fourth site in Work Item 3.
 
-    - Risk: The decision is made but the two projections drift apart (one slims,
-      one does not), leaving the §7.1 packs with an inconsistent contract.
-      Severity: medium
+    - Risk: routing the ``REFUSE`` or ``NONE`` arm through the projection
+      accidentally adds the recount pair (or drops the empty ``discrepancies``
+      list), changing the refusal/no-op ``result`` shape.
+      Severity: high
       Likelihood: low
-      Mitigation: Work item 2 changes both projections in one commit and the
-      ledger clean-pass snapshot block is regenerated in the same task (the
-      ledger over-ration block is unchanged because its sole finding is already
-      the failing one — see Work item 2 test edit 2), so the two slimmed shapes
-      are pinned together. A shared one-line helper docstring records the contract
-      decision in both modules pointing at the same doc anchor.
+      Mitigation: the projection gates the recount pair on
+      ``recounted_by_chapter is not None``; a ``REFUSE``/``NONE``
+      ``Reconciliation`` has ``recounted_by_chapter = None`` (the dataclass
+      default), so the projection yields exactly the base three keys for them —
+      identical to today. Work Item 2 pins both a recount-bearing and a
+      recount-absent case. ``tests/test_reconcile_refuse.py`` (and its snapshot)
+      pins the ``REFUSE`` *field set and values* (the ``sort_keys=True``
+      assertion catches an added ``current``/``by_chapter`` pair or a dropped
+      ``discrepancies`` key — this risk is about the field set, not order, so
+      the sorted snapshot is a valid backstop here); the ``NONE`` shape is
+      pinned by the reconcile integration/derivation suites.
 
-    - Risk: A future maintainer cannot tell whether the slim shape is deliberate
-      or an oversight.
+    - Risk: ``reconciliation_payload`` is added to ``state/reconcile.py`` but not
+      exported from ``state/__init__.py``, so the two command modules importing
+      from the package surface (``from novel_ralph_skill.state import ...``)
+      cannot reach it.
       Severity: low
       Likelihood: medium
-      Mitigation: Work item 1 writes the decision and rationale into the design
-      (or developers' guide) with the roadmap-task reference, and both
-      projection docstrings cite that anchor.
+      Mitigation: Work Item 1 adds ``reconciliation_payload`` to both the
+      ``from novel_ralph_skill.state.reconcile import (...)`` block and the
+      ``__all__`` of ``state/__init__.py``, mirroring the existing
+      ``derive_reconciliation`` entry; ``make all`` (pyright/ty + import
+      resolution) catches a missed export.
 
 ## Progress
 
-    - [x] Work item 0: Confirm the findings-consumer inventory and ratify the
-      decision input (no code change).
-    - [x] Work item 1: Record the clean-pass findings contract in the design /
-      developers' guide. Authoritative anchor is the new developers' guide
-      section "The clean-pass findings contract (roadmap task 7.1.3)" (after the
-      rule-pack `desloppify` description); the ledger section cross-references it.
-    - [x] Work item 2: Make `desloppify` and `desloppify --ledger` emit the
-      chosen findings shape; update and pin all three full-trail consumers (the
-      two snapshot suites and the command-surface matrix) with semantic
-      assertions and regenerate all three `.ambr` files. Both projections now
-      build `findings` from the `failed` filter; the red-green ordering was
-      confirmed (the three clean-pass assertions failed before the source edit
-      and passed after); snapshot regeneration matched the plan exactly — the
-      desloppify `.ambr` regenerated both blocks, the matrix `.ambr` regenerated
-      only the eleven `desloppify-*` blocks, and the ledger `.ambr` regenerated
-      only the clean block (the over-ration block was untouched). Added
-      `tests/test_desloppify_report.py` with four projection-level unit tests
-      (slimming and clean-pass for both paths). `make all` green.
-    - [x] Work item 3: Cross-reference sweep — update the projection docstrings,
-      the roadmap success criterion, and any guide prose that describes the old
-      shape; final whole-suite gate. Projection docstrings were updated in Work
-      item 2. The sweep refined the developers' guide rule-pack description
-      (`result.findings` carries only the over-threshold subset, cross-referenced
-      to the new contract section) and the users' guide exit-0 bullet (a clean
-      pass carries `findings: []`). The roadmap 7.1.3 success criterion is
-      deliberately decision-neutral and left as-is; the ratified shape is recorded
-      in Outcomes below. The design doc carried no stale full-trail prose. `make
-      all` green at HEAD.
+    - [x] Work Item 1: add ``reconciliation_payload`` to
+      ``state/reconcile.py``; export it from ``state/__init__.py``.
+      (commit ``45243c8``; ``make all`` green; ``reconcile.py`` now 366
+      lines, under the 400-line cap. The recount-absent base shape prints
+      ``{'action': 'none', 'discrepancies': [], 'detail': 'ok'}`` as the
+      plan validation requires.)
+    - [x] Work Item 2: pin the projection with a focused unit test (base shape;
+      recount-pair present iff ``recounted_by_chapter is not None``; key order),
+      red first. (commit ``c4e821a``; ``make all`` green. Red demonstrated by
+      temporarily removing the ``state/__init__.py`` export — collection failed
+      with ``ImportError: cannot import name 'reconciliation_payload'`` — then
+      restored to green (4 passed). The defensive-copy assertion was reshaped to
+      an identity check (``payload["by_chapter"] is not by_chapter``) because the
+      ``ty`` checker narrows an ``isinstance``-guarded ``object`` to
+      ``list[Unknown]``/``dict[Unknown, Unknown]`` and then rejects mutation
+      through that narrowed local; the identity/equality form pins the same
+      defensive-copy invariant without the narrowing. CodeRabbit (run 2) asked
+      for assert messages and a test class; messages were added, but the
+      module-level function form was kept — it is the codebase's dominant
+      convention (114 module-function files vs 13 class files).)
+    - [x] Work Item 3: route the four arms through the projection
+      (``_render_reconciliation``, ``_write_outcome``, ``_refuse_outcome``, the
+      ``NONE`` arm); confirm the single-source greps are clean. (commit
+      ``0f77915``; ``make all`` green with **no test edited**.
+      ``git grep '"action": str('`` returns exactly one hit
+      (``reconcile.py:170``, the projection). ``reconciliation_payload`` resolves
+      to its definition, the ``state/__init__.py`` re-export, the two command
+      imports, and four call sites. The runtime import landed in
+      ``novel_state.py``'s line-80 ``state`` block beside
+      ``derive_reconciliation`` (not the ``TYPE_CHECKING`` block), as the plan's
+      B2 correction required. ``_write_outcome``'s ``action`` parameter is now
+      unread by the dict body but kept: Ruff does not flag it (ARG rules off),
+      callers still pass it, and tightening the signature is out of scope.)
 
 ## Surprises & discoveries
 
-    - Observation: The exhaustive Work item 0 sweep confirmed the round-2/round-3
-      inventory exactly — no fourth full-trail consumer and no production reader
-      exist. The plan was accurate as written; implementation proceeds without
-      escalation.
-      Evidence: `grep -rn '\["findings"\]\|get("findings")' tests/ skill/
-      novel_ralph_skill/` returned exactly the three predicted envelope-payload
-      reads (`test_desloppify_snapshots.py:109,141`,
-      `test_command_surface_matrix.py:717`, `test_ledger_snapshots.py:149`). All
-      `skill/` hits are critic-notes prose; the `_compile.py` and
-      `state/schema.py` source hits are docstring prose and critic-pass state
-      counts, not the envelope payload.
-      Impact: none — the violations-only contract is a pure trail trim, ratified
-      at Work item 0 without Tolerance breach.
+    - Observation: the file previously at this path was a stale round-3 ExecPlan
+      titled "Decide and pin the desloppify clean-pass findings contract", a
+      different task from the current roadmap entry 7.1.3 ("Extract a single
+      ``Reconciliation`` payload projection and route the four arms through it").
+      Evidence: ``docs/roadmap.md`` line 2513 names the reconciliation-projection
+      task; the on-disk file described a desloppify findings-list contract.
+      Impact: the stale file was discarded and rewritten for the actual task
+      (Decision Log), exactly as the sibling ``roadmap-7-1-1.md`` plan recorded
+      after the same roadmap renumbering.
+
+    - Observation: the two reconciliation snapshots pin different things, and
+      only one pins key *order*. ``test_novel_state_check_disk.ambr`` stores
+      ``reconciliation`` as ``{action, discrepancies, detail[, current,
+      by_chapter]}`` (the code's insertion order); ``test_reconcile_refuse.ambr``
+      stores ``result`` as ``{action, detail, discrepancies}`` (alphabetical).
+      Evidence: ``test_novel_state_check_disk.py:234,248`` assert
+      ``raw == snapshot`` against ``render_machine``'s unsorted ``json.dumps``
+      (``contract/envelope.py:151``); ``test_reconcile_refuse.py:187`` asserts
+      ``json.dumps(env, sort_keys=True) == snapshot``. Inspecting both ``.ambr``
+      files confirms the differing stored orders.
+      Impact: only the check_disk snapshot is an insertion-order backstop, and
+      only for the READ (``check``) path; the write-side ``REFUSE``/``NONE``
+      order is guarded solely by the Work Item 2 ``items()`` assertion. The
+      round-1 plan's claim that both snapshots are the order backstop was false
+      and was corrected (Decision Log, round 2).
+
+    - Observation: ``novel_state.py`` imports ``Reconciliation`` ONLY under
+      ``TYPE_CHECKING`` (line 108), not at runtime, because the module has
+      ``from __future__ import annotations`` (line 41) and uses
+      ``Reconciliation`` solely in the ``_render_reconciliation`` annotation. The
+      runtime ``state`` import block (line 80) imports ``derive_reconciliation``
+      but not ``Reconciliation``. ``_reconcile.py`` differs: its runtime block
+      (line 55) imports both ``Reconciliation`` and ``derive_reconciliation``.
+      Evidence: reading ``novel_state.py:41,80,108`` and ``_reconcile.py:55-63``.
+      Impact: ``reconciliation_payload`` is *called* at runtime in both modules,
+      so it must join each module's **runtime** ``state`` import — line 80 in
+      ``novel_state.py`` (beside ``derive_reconciliation``) and line 55 in
+      ``_reconcile.py``. A "follow where ``Reconciliation`` is imported"
+      heuristic would wrongly place it in ``novel_state.py``'s ``TYPE_CHECKING``
+      block and raise ``NameError`` (round-3 B2; corrected in Work Item 3).
+
+    - Observation: ``_write_outcome`` serialises its ``action`` *parameter*
+      (``str(action)``, ``_reconcile.py:225``), not the attribute
+      ``str(reconciliation.action)`` the projection uses. They are value-identical
+      at every call site only because both callers pass
+      ``action == reconciliation.action`` (``:322`` passes ``action``, bound to
+      ``reconciliation.action`` at ``:291``; ``:313`` passes the literal
+      ``RECREATE_LOG``, equal to ``reconciliation.action`` because
+      ``derive_reconciliation`` builds that ``Reconciliation`` with
+      ``action=RECREATE_LOG`` at ``reconcile.py:332-333``).
+      Evidence: reading ``_reconcile.py:215-234,286-322`` and
+      ``reconcile.py:331-336``; the literal-passing case is pinned by
+      ``tests/test_reconcile.py:262`` (``result["action"] == "recreate-log"``).
+      Impact: the round-1/2 plan called the ``_write_outcome`` body
+      "byte-identical" to ``_render_reconciliation``, which is textually false on
+      the action key; corrected to "value-identical, given the caller invariant"
+      (round-3 B3) so the implementer understands *why* the substitution is safe
+      and which test pins it.
 
 ## Decision log
 
-    - Decision: Propose the violations-only clean-pass contract as the default,
-      to be ratified at Work item 1.
-      Rationale: design §3.1 defines `result` as "every machine-actionable
-      datum"; a passing rule is not machine-actionable (the harness gates on
-      `ok`/`violations` per §3.3), so the slim shape is the one the contract
-      already describes, and it is the shape that scales as packs multiply.
-      Date/Author: 2026-06-25, planning agent.
+    - Decision: the stale desloppify-findings ExecPlan previously occupying this
+      file was discarded and the file rewritten for the actual roadmap 7.1.3
+      task.
+      Rationale: the roadmap was renumbered; the on-disk
+      ``docs/execplans/roadmap-7-1-3.md`` described a desloppify clean-pass
+      findings-contract task that no longer maps to roadmap entry 7.1.3. The plan
+      must match the task it is named for (the same situation
+      ``roadmap-7-1-1.md`` recorded).
+      Date/Author: 2026-06-27, planning agent.
 
-    - Decision: Confine the change to the two `report.py` projection modules and
-      leave both detection cores untouched.
-      Rationale: detection must remain a complete pure aggregation so counts
-      cannot drift (design §4.4, §6.3); slimming is a presentation choice that
-      belongs at the envelope boundary, not in the aggregator.
-      Date/Author: 2026-06-25, planning agent.
+    - Decision: the projection is a free function ``reconciliation_payload`` in
+      ``state/reconcile.py``, not a ``Reconciliation.to_payload()`` method.
+      Rationale: the module's established vocabulary is free functions over the
+      dataclass (``derive_reconciliation``, ``_refuse``, ``_recount``), and the
+      sibling consolidation precedent (roadmap 7.1.1) added free functions
+      (``compile_is_current``, ``compiled_manuscript_path``) beside their
+      dataclass/enum rather than methods. The roadmap success criterion names
+      either form ("``to_payload()`` / ``reconciliation_payload()``"); the free
+      function keeps the dataclass a pure data shape (``python-data-shapes``:
+      frozen ``slots`` dataclass, no behaviour) and matches the module's grain.
+      Date/Author: 2026-06-27, planning agent.
 
-    - Decision: The complete full-trail `result.findings` consumer inventory is
-      exactly three test sites (no production reader): (1)
-      `tests/test_desloppify_snapshots.py` (lines 109, 141, plus its `.ambr`);
-      (2) `tests/test_ledger_snapshots.py` (line 149, plus its `.ambr`); (3)
-      `tests/test_command_surface_matrix.py::test_desloppify_shape_across_phases`
-      (line 717, `len(result["findings"]) == 24`, plus
-      `tests/__snapshots__/test_command_surface_matrix.ambr`). The clean cases in
-      `tests/test_desloppify_command.py` (line ~199) and
-      `tests/test_ai_isms_e2e.py` (line ~250) read `result["violations"]` only,
-      not `findings`, so they are unaffected. The skill and harness read
-      `violations`/`ok` only (`grep -rn findings skill/` finds no envelope
-      reader). The remaining `findings` matches across `tests/` are detection-core
-      reads (`report.findings` on `DetectionReport`/`LedgerReport`, e.g.
-      `test_rulepack_detect.py`, `test_ledger_detect.py`, `test_ledger_properties.py`)
-      or unrelated local variables (`_state_layout_scanner.py`,
-      `test_done_predicate_blockers.py`) — none read the envelope payload.
-      Rationale: round-1 review (B1) found the original plan's "only two
-      consumers" premise false; this entry pins the corrected, exhaustive
-      inventory (verified by `grep -rn 'findings' tests/ skill/
-      novel_ralph_skill/` on 2026-06-25) so Work item 2 cannot leave a suite red.
-      Date/Author: 2026-06-25, planning agent (round 2).
+    - Decision: the projection returns a ``dict[str, object]`` only — no
+      ``CommandOutcome``, no exit code, no ``messages``.
+      Rationale: audit-2.3.2 Finding 2 is explicit that the read/write
+      *envelope code* and *exit codes* "genuinely differ" and stay at the call
+      sites; only the ``Reconciliation``-to-dict serialisation is centralised.
+      Folding the envelope in would collapse the CQS read/write split the slice
+      deliberately maintains (audit-2.2.2 Finding 2).
+      Date/Author: 2026-06-27, planning agent.
 
-    - Decision: The ledger over-ration snapshot is **not** red-green under
-      slimming and its `.ambr` block does not regenerate; the ledger slimming is
-      proven solely by the clean-ledger snapshot collapsing to `findings: []`.
-      Rationale: round-2 review (B1, Doggylump) found the plan falsely asserted a
-      "passing sibling device" in the over-ration case. The `_LEDGER` fixture
-      (`tests/test_ledger_snapshots.py:35-42`) defines exactly one device
-      (`sternum`); the over-ration block (`tests/__snapshots__/
-      test_ledger_snapshots.ambr` lines 40-82) is a single `passed: False`
-      finding, which violations-only slimming keeps. `len(findings) == 1`
-      therefore holds before and after and pins nothing about the slimming, so
-      the misleading rationale was removed from
-      `test_over_ration_envelope_snapshot`. Only
-      `test_clean_ledger_envelope_snapshot` (a single passing `sternum`, `.ambr`
-      lines 2-39) regenerates to `findings: []` and is the genuine red-green proof
-      for the ledger path. Verified by reading the fixture and both `.ambr` blocks
-      on 2026-06-25, and by `grep -c rule_id` confirming the desloppify one-hit
-      block carries 24 rows (genuinely red-green there, unlike the ledger
-      over-ration block's single row).
-      Date/Author: 2026-06-25, planning agent (round 3).
+    - Decision: the Purpose-section success observable is the executable
+      dict-opening form ``"action": str(`` (one hit after the change), not a
+      grep for the field names ``action``/``discrepancies``/``detail``.
+      Rationale: the field names appear legitimately in docstrings that describe
+      the payload shape (and in the read/write framing prose), which this task
+      keeps; only the hand-built dict construction is removed. Scoping the
+      observable to the dict-opening literal makes the stated end state match the
+      actual (correct) one, mirroring the 7.1.1 plan's executable-form scoping.
+      Date/Author: 2026-06-27, planning agent.
 
-    - Decision: Ratify the violations-only clean-pass contract (Work item 0).
-      Rationale: the exhaustive sweep
-      (`grep -rn '\["findings"\]\|get("findings")' tests/ skill/
-      novel_ralph_skill/`, 2026-06-25) confirmed the full-trail envelope payload
-      is read by exactly three test sites — `tests/test_desloppify_snapshots.py`
-      (lines 109, 141), `tests/test_command_surface_matrix.py` (line 717), and
-      `tests/test_ledger_snapshots.py` (line 149) — and no production consumer.
-      The `skill/` `findings` hits are all critic-notes prose; the
-      `novel_ralph_skill/commands/_compile.py` and
-      `novel_ralph_skill/state/schema.py` hits are docstring prose and
-      critic-pass blocker/major/minor counts, not the envelope payload. No
-      fourth full-trail consumer and no production reader exist, so the Ambiguity
-      Tolerance does not fire and violations-only stands as the ratified shape.
-      Date/Author: 2026-06-25, implementation agent (Work item 0).
+    - Decision: the round-1 reviewer's B1 is correct and resolved by prose-only
+      edits (no design change). The write-side ``REFUSE``/``NONE`` ``result``
+      key order is NOT guarded by any snapshot — ``test_reconcile_refuse.ambr``
+      is ``sort_keys=True`` and ``test_novel_state_check_disk.ambr`` covers only
+      the READ path — so the Work Item 2 ``list(payload.items())`` assertion is
+      named the primary order pin and marked load-bearing (must not be
+      weakened).
+      Rationale: verified against source —
+      ``render_machine`` (``contract/envelope.py:151``) emits
+      ``json.dumps(ordered)`` with no ``sort_keys`` and is asserted
+      ``raw == snapshot`` (``test_novel_state_check_disk.py:234,248``), whereas
+      ``test_reconcile_refuse.py:187`` asserts
+      ``json.dumps(env, sort_keys=True) == snapshot`` and the stored bytes read
+      ``{action, detail, discrepancies}`` (alphabetical), proving the refuse
+      snapshot does not pin insertion order. The design is sound; only the
+      backstop claims were wrong, so the fix is prose.
+      Date/Author: 2026-06-27, planning agent (round 2).
+
+    - Decision: the round-3 reviewer's B2 and B3 are correct and resolved by
+      prose-only edits (no design change). B2 — ``reconciliation_payload`` must
+      be imported into ``novel_state.py``'s **runtime** ``state`` block at line
+      80 (beside ``derive_reconciliation``), NOT the ``TYPE_CHECKING`` block at
+      line 108 where ``Reconciliation`` is imported; the prior "where
+      ``Reconciliation`` is imported" heuristic was wrong under
+      ``from __future__ import annotations`` and would raise a runtime
+      ``NameError``. B3 — the ``_write_outcome`` "byte-identical" claim was
+      textually false: ``_write_outcome`` serialises its ``action`` *parameter*
+      (``str(action)``, ``_reconcile.py:225``) while the projection serialises
+      ``str(reconciliation.action)``; they are value-identical only because both
+      callers pass ``action == reconciliation.action``, and that caller
+      invariant (with its pin ``test_reconcile.py:262``) is now stated.
+      Rationale: verified against source — ``novel_state.py:41`` carries
+      ``from __future__ import annotations``; ``:80`` is the runtime ``state``
+      import (``derive_reconciliation``, not ``Reconciliation``); ``:108`` is the
+      ``TYPE_CHECKING`` ``Reconciliation`` import. ``_reconcile.py:225``
+      serialises ``str(action)``; callers at ``:313``/``:322`` pass
+      ``action == reconciliation.action`` (``:291`` binds
+      ``action = reconciliation.action``; ``derive_reconciliation`` builds the
+      RECREATE_LOG ``Reconciliation`` with ``action=RECREATE_LOG`` at
+      ``reconcile.py:332-333``); ``test_reconcile.py:262`` asserts
+      ``result["action"] == "recreate-log"``. The design (one projection, four
+      arms, dict-only return, no behaviour change) is unchanged; only the
+      import-block direction and the action-key provenance prose were corrected.
+      Date/Author: 2026-06-27, planning agent (round 3).
 
 ## Outcomes & retrospective
 
-The **violations-only** clean-pass contract was ratified and survived review:
-the Work item 0 sweep confirmed no production reader and no fourth full-trail
-consumer, so the proposed default stood unchanged. `result.findings` now carries
-only the over-threshold findings on both the rule-pack and the `--ledger` paths;
-a clean pass emits `findings: []` and `violations: []` at exit `0`, while
-`violations`, `ok`, and every exit code are byte-for-byte unchanged. The
-detection cores were untouched — they still aggregate a finding for every
-rule/device, and the slimming lives entirely in the two `report.py` projections.
-
-Both projections and all three full-trail snapshot suites agree: the red-green
-ordering was observed (the desloppify, ledger, and matrix clean-pass assertions
-failed before the source edit and passed after), and snapshot regeneration
-matched the plan exactly — the desloppify `.ambr` regenerated both blocks, the
-matrix `.ambr` regenerated only the eleven `desloppify-*` blocks, and the ledger
-`.ambr` regenerated only the clean block (the over-ration block kept its sole
-failing finding). The new `tests/test_desloppify_report.py` pins the slimming at
-the projection boundary for both paths. The contract is recorded in the
-developers' guide ("The clean-pass findings contract") as the authoritative
-anchor that the design, the ledger guide section, the users' guide, and both
-projection docstrings reference. The multi-pack surface (7.1.6/7.1.7) inherits
-this shape and does not re-litigate it.
-
-The edit set landed at eight files plus the new projection-test module, within
-the Scope Tolerance. No Tolerance fired. `make all` is green at HEAD.
+    - Delivered in three gated commits: ``45243c8`` (projection + export),
+      ``c4e821a`` (projection unit test, red-first), ``0f77915`` (route the four
+      arms). ``make all`` is green at HEAD; the two ``.ambr`` snapshots and every
+      pre-existing reconcile/check/disk-evidence/derivation/refusal/integration/
+      BDD/e2e suite passed **unedited** — the no-behaviour-change guarantee held.
+    - The single-source observables resolved exactly as the plan predicted:
+      ``git grep '"action": str('`` returns one hit (the projection itself), and
+      ``reconciliation_payload`` has one definition, one re-export, and four
+      routed consumers.
+    - Two real deviations, both prose/test-shape only, no design change:
+      (1) the defensive-copy test used an identity assertion
+      (``payload["by_chapter"] is not by_chapter``) rather than mutating a
+      narrowed ``isinstance`` local, because ``ty`` narrows an
+      ``isinstance``-guarded ``object`` to ``list[Unknown]``/``dict[Unknown,
+      Unknown]`` and then rejects mutation through it; the invariant pinned is
+      unchanged. (2) CodeRabbit asked for a test class and assert messages —
+      messages were added, the class was declined as counter to the codebase's
+      dominant module-level-function convention (114 vs 13).
+    - CodeRabbit raised no actionable finding against any of the three code
+      commits; all of its findings targeted untracked ``*review*.md`` scratch
+      files outside this task's scope.
 
 ## Context and orientation
 
-Assume no prior knowledge of this repository. The relevant pieces:
+Read these before starting. They are the source of truth.
 
-- `desloppify` is one of five deterministic console-scripts. It reads a
-  versioned TOML *rule pack* and reports prose-slop hits without editing or
-  judging (design §4.4). It emits the shared JSON envelope
-  `{command, schema_version, ok, working_dir, result, messages}` (design §3.1;
-  `docs/adr-003-shared-interface-contract.md`). The harness reads `result` and
-  `ok`; it never parses `messages`.
-- The detection core is pure. `novel_ralph_skill/rulepack/detect.py` defines
-  `RuleFinding` (one aggregated result per rule: `rule_id`, `pattern`, `count`,
-  `threshold`, `basis`, `density`, `passed`, `lines`) and `DetectionReport`
-  (`pack`, `total_words`, `findings`, `passed`). `detect(pack, chapters)`
-  returns a finding for **every** rule in pack-authoring order.
-- The envelope projection is separate. `report_outcome` in
-  `novel_ralph_skill/commands/_desloppify_report.py` turns a `DetectionReport`
-  into a `CommandOutcome`. Today it sets
-  `result.findings = [_finding_payload(f) for f in report.findings]` (every
-  rule) and `result.violations = [f.rule_id for f in failed]` (over-threshold
-  only). This is the line the slimming changes.
-- The ledger path mirrors this. Roadmap 7.1.2 added
-  `desloppify --ledger`, whose projection `ledger_report_outcome` in
-  `novel_ralph_skill/ledger/report.py` emits a full per-device audit trail and
-  **explicitly defers the slimming decision to 7.1.3** (see that module's
-  docstring: "The ledger payload carries a full audit trail … the round-1 review
-  notes 7.1.3's clean-pass slimming may later revisit this, and the WI5 snapshot
-  is the churn-absorbing seam"). This task is that revisit.
-- The contract is regression-guarded by snapshot suites:
-  `tests/test_desloppify_snapshots.py` (with `tests/__snapshots__/
-  test_desloppify_snapshots.ambr`) and `tests/test_ledger_snapshots.py` (with
-  its `.ambr`). Each snapshot is paired with semantic assertions so the snapshot
-  is never the sole guard (AGENTS.md "avoid snapshot-only coverage"; design §9).
-- A third suite also pins the full trail: the cross-command shape matrix
-  `tests/test_command_surface_matrix.py`. Its
-  `test_desloppify_shape_across_phases` (line 717) drives `desloppify` across all
-  eleven workflow phases and hard-asserts `len(result["findings"]) == 24` (the
-  full shipped pack) with `result["violations"] == []` on every phase — eleven
-  clean passes. Its companion snapshot
-  `tests/__snapshots__/test_command_surface_matrix.ambr` captures the same full
-  trail in the eleven `test_machine_envelope_matrix[desloppify-*]` blocks (264
-  `rule_id` rows total, every block with empty `violations`). Under
-  violations-only slimming each of these eleven clean cases becomes
-  `findings == []`, so the `== 24` assertion and all eleven snapshot blocks must
-  be updated in Work item 2 (see B1 in the round-1 review). This consumer was
-  missed in round 1 and is now first-class in the inventory.
-- The behavioural / command / e2e tests
-  (`tests/test_desloppify_command.py` line ~199, `tests/test_desloppify_e2e.py`,
-  `tests/test_ai_isms_e2e.py` line ~250) assert on `result.violations` and `ok`,
-  **not** on the full `findings` list, so they are robust to the slimming
-  (verified: both clean cases read `result["violations"] == []`). The e2e tests
-  drive the installed console-script through a cuprum catalogue (see below).
+- `docs/novel-ralph-harness-design.md` §3.3 (command/query segregation — the
+  checker/mutator split that keeps `check` read-only and `reconcile` the only
+  writer; the read/write vocabulary distinction this task must preserve) and
+  §5.4 (disk-authoritative reconciliation — `check` reports the reconciliation a
+  stale tree implies and exits 4; `reconcile` enacts it, recomputing
+  independently; "loud, never silent" — the `result` payload and the `log.md`
+  receipt). These establish *why* the projection is one shared fact and why the
+  read and write *framing* are deliberately distinct.
+- `docs/issues/audit-2.3.2.md` — the originating audit. Finding 2 (the
+  `{action, discrepancies, detail}` payload is hand-built in four places; give
+  `Reconciliation` a single `to_payload()` / `reconciliation_payload()`
+  projection beside it and route all four sites through it; keep the read/write
+  envelope code and exit codes where they are). Findings 1, 3, 4, 5, 6 are
+  **not** this task (non-goals).
+- `docs/adr-001-deterministic-judgemental-boundary.md` (detect-only;
+  `check` writes nothing — the projection is a pure read of an immutable
+  dataclass).
+- `docs/adr-003-shared-interface-contract.md` (the envelope and exit-code
+  contract this refactor must not perturb).
+- `AGENTS.md` "Python verification and testing" (unit/behavioural/property
+  discipline; the snapshot rule — keep snapshots on stable boundaries, pair them
+  with semantic assertions, no snapshot-only coverage for logic assertable
+  directly) and "Markdown guidance".
+- `docs/scripting-standards.md` and `docs/documentation-style-guide.md` for
+  prose/comment conventions and Oxford spelling.
+- `docs/execplans/roadmap-7-1-1.md` — the delivered sibling consolidation
+  (a single canonical projection extracted into the state-layer owner module,
+  four consumers routed through it, no behaviour change). This plan mirrors its
+  structure and discipline.
 
-Terms of art, defined:
+Key code, by full path:
 
-- *Full audit trail*: `result.findings` carries one entry per rule/device in the
-  pack, passing or failing. The current behaviour.
-- *Violations-only / slimmed*: `result.findings` carries only the
-  over-threshold (failing) entries. A clean pass yields `findings: []`.
-- *Projection*: the pure function that maps a detection report to the envelope
-  payload, living in a `report.py` module. The slimming is applied here.
+- `novel_ralph_skill/state/reconcile.py` — defines `ReconcileAction` (enum,
+  line 108), the frozen `Reconciliation` dataclass (line 119, fields `action`,
+  `discrepancies`, `detail`, `recounted_current`, `recounted_by_chapter`,
+  `operation`, `missing_paths`), the `_refuse` / `_classify_pending_turn` /
+  `_recount` builders, and `derive_reconciliation` (line 283). The new
+  `reconciliation_payload` lands here, beside the dataclass.
+- `novel_ralph_skill/commands/novel_state.py` — `_render_reconciliation`
+  (line 129) builds the read-shaped payload (base three keys + recount pair);
+  it is called from `_check` at line 213 to attach `result["reconciliation"]`.
+  Route it through `reconciliation_payload`.
+- `novel_ralph_skill/commands/_reconcile.py` — three write-side arms:
+  `_write_outcome` (line 215, base three keys + recount pair, same shape as
+  `_render_reconciliation` but serialising its `action` *parameter*
+  `str(action)` rather than `str(reconciliation.action)` — value-identical
+  because every caller passes `action == reconciliation.action`; see "Verified
+  external facts"),
+  `_refuse_outcome` (line 237, base three
+  keys only), and the `NONE` arm inlined in `reconcile` (line 293, base three
+  keys with an empty `discrepancies` list). Each wraps the dict in a
+  `CommandOutcome` with its own exit code and `messages`; route only the dict
+  through `reconciliation_payload`, leaving the `CommandOutcome` construction in
+  place.
+- `novel_ralph_skill/state/__init__.py` — re-exports the `reconcile` symbols
+  (import block line 63-67: `ReconcileAction`, `Reconciliation`,
+  `derive_reconciliation`; `__all__` line 137-149). Add
+  `reconciliation_payload` to both.
 
-### cuprum and external-library pinning (e2e relevance)
+Terms defined:
 
-The installed-binary e2e tests run the real console-script through **cuprum**,
-the locked allowlisting subprocess wrapper at `/data/leynos/Projects/cuprum`. The
-fixtures this task may touch use exactly these cuprum APIs, all verified against
-the locked source:
+- *Reconciliation payload*: the JSON-serialisable dict the `check` `result`
+  reports under `reconciliation` and the `reconcile` `result` returns directly —
+  the base `{action, discrepancies, detail}` plus a `current`/`by_chapter` pair
+  for a `RECOUNT`.
+- *Read shape / write shape*: `check`'s read-only payload reports a *finding*
+  (what `reconcile` *would* do); `reconcile`'s write-shaped `result` reports the
+  *action taken*. The audit keeps their *vocabulary* and *exit codes* distinct;
+  this task shares only the dict serialisation, which is identical.
+- *CQS*: command/query segregation (§3.3) — checkers (`check`) read and report;
+  mutators (`reconcile`) write. The split this task must not blur.
 
-- `cuprum.ProgramCatalogue` and `cuprum.ProjectSettings`
-  (`cuprum/catalogue.py`: `class ProjectSettings` line 33, `class
-  ProgramCatalogue` line 59) build the one-project allowlist; the e2e fixture
-  `tests/installed_binary_fixtures.py:_one_program_catalogue` constructs
-  `ProgramCatalogue(projects=(ProjectSettings(name=…, programs=(program,),
-  documentation_locations=(), noise_rules=()),))`.
-- `cuprum.program.Program` is the allowlisted executable token.
-- `cuprum.sh.make(program, catalogue=…)` (`cuprum/sh.py:make`, line 528) returns
-  the callable bound to the catalogue; calling it yields a `SafeCmd`
-  (`cuprum/sh.py:349`).
-- `SafeCmd.run_sync(...)` (`cuprum/sh.py:441`) returns a result whose
-  `.exit_code: int` (`cuprum/sh.py:115`), `.stdout: str | None`
-  (`cuprum/sh.py:163`), and `.stderr` are read by the fixtures.
+## Verified external facts (do not re-derive)
 
-**This task does not add or change any cuprum invocation.** The e2e tests assert
-on `result.violations` and `ok`, which this task leaves unchanged, so no e2e
-fixture or cuprum call needs editing. The cuprum surface is documented here only
-to confirm that the e2e layer is *unaffected*: if implementation finds an e2e
-test asserting on a *passing* finding's presence (it does not, per the pre-work
-grep), that is a Tolerance breach to escalate, not a fixture edit to improvise.
-
-No other locked external library's behaviour is load-bearing for this task.
-Cyclopts (the CLI parser), `pytest-timeout`, `pytest-xdist`, and `uv`
-resolution all sit underneath the existing command and test machinery, which
-this task does not change: it edits two pure projection functions and their
-snapshots. The plan therefore makes **no** new behavioural claim about those
-libraries that would need firecrawl verification; the only behaviours it relies
-on (envelope rendering via `render_machine`, snapshot capture via syrupy) are
-already exercised by the green suites this task inherits.
+- **No external library behaviour is load-bearing for this task.** This is a
+  pure internal-Python refactor: it adds no subprocess, no new console-script
+  path, no new `--flag`, and no new third-party import. The four arms are
+  reached either by direct function call in unit tests
+  (`reconciliation_payload`, `_render_reconciliation`) or through the
+  already-existing `run(build_app(), …)` / installed-script harness in the
+  reconcile and check suites; this task adds neither a new invocation surface
+  nor a new subprocess. The standing cuprum / Cyclopts / `pytest-timeout` /
+  `uv run` research the workflow mandates therefore has **no bearing on any work
+  item here** — there is no place in this plan where a cuprum catalogue, a
+  Cyclopts argument, or a `pytest-timeout` override is exercised by a code
+  change. (Verified by inspection of the four arms and their callers
+  — `novel_state.py:129,213`, `_reconcile.py:215,237,293` — and by the
+  parallel finding in the delivered `docs/execplans/roadmap-7-1-1.md` "Verified
+  external facts" for the same class of pure-Python state-layer refactor.) The
+  existing e2e suite (`tests/test_reconcile_e2e.py`) already pins the installed
+  behaviour through cuprum, and it must stay green **unedited**, which is
+  precisely the no-behaviour-change guarantee. This is stated explicitly rather
+  than hedged: there is no undecided external-library fork in this plan.
+- The reconciliation JSON envelope is snapshot-pinned at
+  `tests/__snapshots__/test_novel_state_check_disk.ambr` (the `check` read
+  shape) and `tests/__snapshots__/test_reconcile_refuse.ambr` (the `REFUSE`
+  write shape). (Verified by `grep` for `reconciliation`/`discrepancies` in
+  `tests/__snapshots__/`.) The projection must reproduce these bytes exactly;
+  the snapshots are the no-behaviour-change backstop for the *field set* and
+  *values* and must stay green unedited. Their *order-pinning* power is
+  asymmetric, and the plan relies on the precise difference (see Constraints
+  "base-dict order is preserved"):
+  - `test_novel_state_check_disk.ambr` is rendered by `render_machine`
+    (`novel_ralph_skill/contract/envelope.py:151`, `json.dumps(ordered)` with
+    no `sort_keys`) and asserted `raw == snapshot`
+    (`tests/test_novel_state_check_disk.py:234,248`), so it pins *insertion
+    order* — but only for the READ (`check`) path. Its stored `reconciliation`
+    blocks read `{action, discrepancies, detail[, current, by_chapter]}` (code
+    order). (Verified by inspecting the `.ambr` and `render_machine`.)
+  - `test_reconcile_refuse.ambr` is asserted `json.dumps(env, sort_keys=True)
+    == snapshot` (`tests/test_reconcile_refuse.py:187`), so its stored bytes
+    are alphabetically sorted (`result` reads `{action, detail,
+    discrepancies}` — `detail` before `discrepancies`, NOT the code's
+    insertion order). It pins the field set of the write-side `REFUSE`
+    envelope, **not** its order: a reordered projection would still pass it.
+    (Verified by inspecting the `.ambr` line and the `sort_keys=True`
+    assertion.) The write-side order pin is the Work Item 2 `items()` test.
+- The state package already re-exports the `reconcile` surface
+  (`novel_ralph_skill/state/__init__.py:63-67` import, `:137-149` `__all__`),
+  so adding one name there is the established pattern, not a new mechanism.
+  (Verified by reading `state/__init__.py`.)
+- `_render_reconciliation` and `_write_outcome` build the same dict shape (base
+  three keys + the `recounted_by_chapter is not None`-guarded recount pair), but
+  their `action` key is **not** spelled identically: `_render_reconciliation`
+  uses `str(reconciliation.action)` (`novel_state.py:139`), while
+  `_write_outcome` uses `str(action)` — its *parameter* (`_reconcile.py:225`).
+  The projection uses `str(reconciliation.action)`, so routing `_write_outcome`
+  through it changes the *source* of the action string from the parameter to the
+  attribute.
+  This is behaviour-preserving because both `_write_outcome` callers pass
+  `action == reconciliation.action`:
+  - `_reconcile.py:322` passes `action`, bound at `_reconcile.py:291` to
+    `reconciliation.action` (`action = reconciliation.action`).
+  - `_reconcile.py:313` passes the literal `ReconcileAction.RECREATE_LOG`, which
+    equals `reconciliation.action` because `derive_reconciliation` builds that
+    `Reconciliation` with `action=ReconcileAction.RECREATE_LOG`
+    (`reconcile.py:332-333`).
+  So `str(action)` and `str(reconciliation.action)` are the same string for
+  every call today. The one nominally-distinct (literal-passing) case is the
+  `RECREATE_LOG` path, pinned by `tests/test_reconcile.py:262`
+  (`result["action"] == "recreate-log"`), which stays green unedited.
+  `_refuse_outcome` and the `NONE` arm build only the base three keys (no
+  recount pair), and both already serialise `str(reconciliation.action)` /
+  `str(action)` where `action == reconciliation.action` on those arms too.
+  (Verified by reading `novel_state.py:129-146`, `_reconcile.py:215-256`,
+  `_reconcile.py:286-322`, `reconcile.py:331-336`, and
+  `tests/test_reconcile.py:250-270`.)
 
 ## Plan of work
 
-The work proceeds in four ordered, independently committable items. Work item 0
-is a no-code confirmation gate; Work item 1 records the decision; Work item 2
-implements and pins it; Work item 3 sweeps cross-references and runs the full
-markdown + code gate.
+Three ordered, independently committable work items. Stage B (the projection +
+its test) precedes Stage C (routing), so the routing edits land against a
+pinned-and-green projection. The new-structure test is written red first (Work
+Item 2); the routing (Work Item 3) is a behaviour-preserving substitution the
+**existing, unedited** suites and snapshots already cover.
 
-### Work item 0 — Confirm the consumer inventory and ratify the decision input
+### Work Item 1 — add `reconciliation_payload` to `reconcile.py` and export it (Stage B)
 
-No code change. The purpose is to make the slimming provably a pure trail trim,
-not a behavioural change to a hidden consumer.
+In `novel_ralph_skill/state/reconcile.py`, add one free function beside the
+`Reconciliation` dataclass (after the dataclass definition; keep it close to the
+dataclass, before the private builders):
 
-Implements: roadmap 7.1.3 "make the deliberate full-audit-trail-versus-
-violations-only decision once"; design §3.1 (`result` is machine-actionable
-data), §3.3 (checker read shape is `violations`).
+        def reconciliation_payload(
+            reconciliation: Reconciliation,
+        ) -> dict[str, object]:
+            """Project a ``Reconciliation`` into its payload dict.
 
-Steps:
+            The single source of the ``{action, discrepancies, detail}`` base
+            shape both ``check`` reports (read shape) and ``reconcile`` returns
+            (write shape), plus the ``current``/``by_chapter`` recount pair for a
+            ``RECOUNT`` (added iff ``recounted_by_chapter`` is present). It
+            serialises only; the exit code, the ``messages``, and the
+            read-versus-write framing stay at each call site, so the CQS
+            read/write split (design §3.3) is preserved (audit-2.3.2 Finding 2).
+            Key order is fixed — ``action``, ``discrepancies``, ``detail``, then
+            the recount pair — because the JSON envelope is snapshot-pinned.
+            """
+            payload: dict[str, object] = {
+                "action": str(reconciliation.action),
+                "discrepancies": list(reconciliation.discrepancies),
+                "detail": reconciliation.detail,
+            }
+            if reconciliation.recounted_by_chapter is not None:
+                payload["current"] = reconciliation.recounted_current
+                payload["by_chapter"] = dict(reconciliation.recounted_by_chapter)
+            return payload
 
-1. Run an **exhaustive** sweep — not just `skill/` (the round-1 plan's gap) but
-   every directory — for reads of the envelope `findings` field. Run
-   `grep -rn 'findings' tests/ skill/ novel_ralph_skill/` and `leta refs` for
-   the `findings` attribute on `DetectionReport`/`LedgerReport`, plus a `grepai`
-   sweep for JSON-consuming positions (`result["findings"]`, `["findings"]`,
-   `.get("findings")`). Classify every hit as one of: envelope-payload read
-   (in scope), detection-core read (`report.findings`, out of scope — the cores
-   are untouched), or unrelated local variable. Record the full classified list
-   in the Decision Log.
-2. Confirm the full-trail *envelope-payload* consumers are exactly the three
-   already pinned in the Decision Log inventory — `test_desloppify_snapshots.py`,
-   `test_ledger_snapshots.py`, and
-   `test_command_surface_matrix.py::test_desloppify_shape_across_phases` (with
-   their three `.ambr` files) — and that the skill and harness read
-   `violations`/`ok` only. The clean cases in `test_desloppify_command.py` and
-   `test_ai_isms_e2e.py` read `violations`, not `findings`, and are unaffected.
-   These three test consumers are **expected, mechanical updates** handled in
-   Work item 2, **not** escalation triggers (Tolerance "Ambiguity" is
-   pre-resolved for them). Escalate only if the sweep reveals a *fourth*
-   full-trail consumer or any *production* (non-test) reader of a passing
-   finding.
-3. Record the ratified decision (violations-only, unless escalation overturns
-   it) in the Decision Log with the §3.1/§3.3 rationale.
+This is byte-for-byte the body already in `_render_reconciliation` (which
+serialises `str(reconciliation.action)`), lifted to its owner module. It is
+*value*-identical to `_write_outcome`'s body, which serialises its `action`
+*parameter* (`str(action)`); the projection canonicalises on the attribute
+`reconciliation.action`, and Work Item 3 records why that substitution is
+behaviour-preserving (both `_write_outcome` callers pass
+`action == reconciliation.action`). Export it from
+`novel_ralph_skill/state/__init__.py`: add `reconciliation_payload` to the
+`from novel_ralph_skill.state.reconcile import (...)` block (line 63-67) and to
+`__all__` (line 137-149), beside `derive_reconciliation` / `Reconciliation`.
 
-Docs to read: design §3.1 (envelope, `result`), §3.2 (exit codes), §3.3
-(command/query segregation, the `violations` read shape), §4.4 (`desloppify`),
-§6.1-§6.3 (rule-pack and device-ledger packs).
+Validation:
 
-Skills to load: `leta` (refs/grep for the consumer inventory); `grepai`
-(semantic sweep for envelope consumers). No code skill needed (no code change).
+- `uv run python -c "from novel_ralph_skill.state import reconciliation_payload,
+  Reconciliation, ReconcileAction; r =
+  Reconciliation(action=ReconcileAction.NONE, discrepancies=(), detail='ok');
+  print(reconciliation_payload(r))"` prints
+  `{'action': 'none', 'discrepancies': [], 'detail': 'ok'}` (the base shape, no
+  recount pair).
+- `make all` green; commit (gate first).
 
-Tests: none (no code change). The deliverable is the Decision Log entry —
-specifically the classified, exhaustive consumer inventory that names all three
-full-trail test consumers and confirms no fourth or production reader exists.
+Docs to read: design §3.3, §5.4; `audit-2.3.2.md` Finding 2; `reconcile.py` as
+the structural template (mirror its docstring style and the
+`derive_reconciliation` free-function grain).
+Skills to load: `python-router` → `python-data-shapes` (the frozen-dataclass
+projection shape; why a free function over a method keeps the data shape pure)
+and `python-types-and-apis` (the `Reconciliation -> dict[str, object]`
+signature).
 
-Validation: this item commits only the updated ExecPlan. Run `make markdownlint`
-and `make nixie` over the changed `.md`. No `make all` needed because no source
-or test changed, but running `make all` is harmless and confirms a clean
-baseline.
+### Work Item 2 — pin the projection with a focused unit test (Stage B, red first)
 
-### Work item 1 — Record the clean-pass findings contract in the docs
+Add the projection's pins to a new `tests/test_reconciliation_payload.py`
+(prefer a dedicated file for a clean boundary; do not put unit tests in the
+package tree — AGENTS.md). It must:
 
-Write the ratified decision into the authoritative documentation so the contract
-is captured "in the design or developers' guide" (roadmap 7.1.3 success
-criterion). The developers' guide "Rule packs and the loader boundary" section
-(around `desloppify`'s `result` description, near
-`docs/developers-guide.md:1044-1053`) is the natural home, with a one-line
-cross-reference from design §4.4 if the design proves the better anchor;
-implementer picks the single authoritative location and the other merely
-references it (do not duplicate the normative statement).
+- Assert the **base shape and key order** for a recount-absent reconciliation
+  (e.g. a `REFUSE` or `NONE`): build a `Reconciliation(action=…,
+  discrepancies=(…,), detail=…)`, call `reconciliation_payload`, and assert
+  `list(payload.items()) == [("action", "<value>"), ("discrepancies", [...]),
+  ("detail", "...")]` — comparing `items()` (ordered), not just `==` (which
+  ignores order), so a reordered projection is red here. This `items()`
+  assertion is the **NAMED PRIMARY order pin** for the write-side
+  `REFUSE`/`NONE` `result` envelope: it is the *only* test that fails on a
+  write-side key reorder, because neither snapshot guards it. The
+  `check_disk` snapshot pins insertion order for the READ (`check`) path only,
+  and the `reconcile_refuse` snapshot is `sort_keys=True` (it pins the field
+  set, not the order — see Constraints "base-dict order is preserved" and Risk
+  "reorders the dict keys"). Treat this assertion as load-bearing: it must not
+  be weakened or removed in any future edit, or a write-side reorder bug could
+  ship green.
+- Assert the **recount pair is absent** when `recounted_by_chapter is None`
+  (the projection has exactly the three base keys).
+- Assert the **recount pair is present and correct** when
+  `recounted_by_chapter is not None`: build a
+  `Reconciliation(action=ReconcileAction.RECOUNT, …, recounted_current=N,
+  recounted_by_chapter={...})` and assert the payload's `current` equals `N`,
+  `by_chapter` equals the mapping (as a plain `dict`), and the key order places
+  `current`/`by_chapter` *after* `detail`.
+- Assert `discrepancies` and `by_chapter` are **independent copies** (the
+  projection uses `list(...)` / `dict(...)`), so mutating the payload does not
+  alias the frozen dataclass's tuple/mapping — a `python-data-shapes`
+  defensive-copy pin.
 
-Implements: roadmap 7.1.3 ("the contract is captured in the design or
-developers' guide"); design §4.4, §6.2.
+These are unit/example tests over a pure function — no `working/` tree, no
+subprocess, no snapshot. The input space is a small set of `Reconciliation`
+shapes (recount-bearing vs recount-absent), so example-based tests suffice;
+Hypothesis/CrossHair/mutmut are **not** required (`python-verification`: there
+is no generated input space and the logic is a fixed-shape projection of a
+closed dataclass). Write them **red first** against the not-yet-exported symbol
+(import error), then green after Work Item 1 — or, if WI1 and WI2 are committed
+together, demonstrate the red by temporarily removing the `reconciliation_payload`
+export from `state/__init__.py`, then restore it (record the red/green
+transcript in `Progress`/`Surprises`, as the 7.1.1 plan did).
 
-Content to write (the normative statement):
+Validation:
 
-- State that `result.findings` carries **only over-threshold findings**; a clean
-  pass emits `findings: []` and `violations: []` at exit 0.
-- State the rationale in one or two sentences (machine-actionable data only, per
-  §3.1; the audit trail is recoverable from the versioned pack and the
-  non-clean envelope).
-- State that the decision applies uniformly to both the rule-pack path and the
-  `--ledger` path, so the §7.1 packs (ai-isms, device-ledger, and the future
-  multi-pack run) inherit one shape.
-- Note explicitly that this is the contract the multi-pack surface
-  (7.1.6/7.1.7) inherits, so it is not re-litigated there.
+- `uv run pytest tests/test_reconciliation_payload.py -q` passes.
+- `make all` green; commit.
 
-Docs to read: `docs/developers-guide.md` "Rule packs and the loader boundary"
-(lines ~966-1053) and "The device ledger and per-novel rationing" (line ~1113);
-design §3.1, §4.4, §6.1-§6.3; `docs/documentation-style-guide.md` for prose
-conventions; AGENTS.md "Documentation maintenance".
+Docs to read: AGENTS.md "Python verification and testing" (unit + example
+discipline; snapshots only for stable boundaries — this is *not* a snapshot
+test; pair semantic assertions with the existing snapshot suites);
+`tests/test_reconcile_derivation.py` as the `Reconciliation`-construction
+template.
+Skills to load: `python-router` → `python-testing` (parametrization over the
+recount-bearing/recount-absent cases, ids) and `python-verification` (to confirm
+the fixed-shape projection needs no Hypothesis/CrossHair/mutmut adversary).
 
-Skills to load: `en-gb-oxendict` (enforce Oxford spelling in the new prose).
+### Work Item 3 — route the four arms through the projection (Stage C)
 
-Tests: none (documentation only).
+Behaviour-preserving substitution. After this, no hand-built `{"action": str(…),
+"discrepancies": list(…), "detail": …}` dict remains outside
+`reconciliation_payload`.
 
-Validation: `make markdownlint` and `make nixie` over the changed `.md` files;
-both must pass. Commit the doc change alone so the contract lands before the code
-conforms to it (the doc is the source of truth the code then satisfies).
+1. `novel_ralph_skill/commands/novel_state.py` — in `_render_reconciliation`
+   (line 129), replace the hand-built `payload` (lines 138-145) with
+   `return reconciliation_payload(reconciliation)`. Trim the docstring to keep
+   the **read-shape framing** ("renders a `Reconciliation` as the read-only
+   `check` payload … carries no write-shaped success vocabulary") but drop the
+   now-redundant by-hand-field description; point at `reconciliation_payload`
+   for the shape. Add `reconciliation_payload` to the **runtime**
+   `from novel_ralph_skill.state import (...)` block at `novel_state.py:80` —
+   the block that already imports `derive_reconciliation` at runtime — and
+   **not** the `TYPE_CHECKING` block at `novel_state.py:108`. This matters
+   because `novel_state.py` has `from __future__ import annotations` (line 41)
+   and imports `Reconciliation` **only** as a type-checking name in the
+   `if typ.TYPE_CHECKING:` block at line 108 (it is used solely in the
+   `_render_reconciliation` *annotation*), whereas the line-80 runtime block
+   imports `derive_reconciliation` (alongside `build_initial_document`,
+   `check_disk_evidence`, `validate_state`, `write_document_atomically`) but
+   **not** `Reconciliation`. `reconciliation_payload` is *called* at runtime, so
+   it must be a runtime import. Do **not** apply a "put it where
+   `Reconciliation` is imported" heuristic: that resolves to the line-108
+   `TYPE_CHECKING` block, where the name is absent at runtime, and the call
+   would raise `NameError`. Place it in the line-80 block beside
+   `derive_reconciliation`. (Confirm the two blocks with
+   `leta show novel_ralph_skill.commands.novel_state`: the runtime `state`
+   import is at line 80; the `TYPE_CHECKING` `Reconciliation` import at line
+   108.) If `_render_reconciliation` now collapses to a one-line passthrough,
+   that is the intended end state — keep it as a named function so the
+   read-shape framing docstring and the call site at line 213 are unchanged.
+2. `novel_ralph_skill/commands/_reconcile.py` —
+   - `_write_outcome` (line 215): replace the hand-built `result` dict
+     (lines 224-231) with `result = reconciliation_payload(reconciliation)`;
+     keep the `CommandOutcome(code=ExitCode.SUCCESS, result=result,
+     messages=[reconciliation.detail])` construction and the write-shape framing
+     docstring unchanged. **Note the one non-byte-identical detail and why the
+     substitution is still safe.** `_write_outcome` currently serialises its
+     `action` *parameter* (`str(action)`, `_reconcile.py:225`), whereas
+     `reconciliation_payload` serialises the *attribute*
+     `str(reconciliation.action)`. These differ textually but are
+     value-identical at both call sites, because both callers pass
+     `action == reconciliation.action`:
+     - `_reconcile.py:322` passes `action`, which is
+       `reconciliation.action` (bound at `_reconcile.py:291`,
+       `action = reconciliation.action`), so they are the same object.
+     - `_reconcile.py:313` passes the literal
+       `ReconcileAction.RECREATE_LOG`, which equals `reconciliation.action`
+       because `derive_reconciliation` builds that `Reconciliation` with
+       `action=ReconcileAction.RECREATE_LOG` (`reconcile.py:332-333`).
+     So `str(action)` and `str(reconciliation.action)` evaluate to the same
+     string for every `_write_outcome` call today; the substitution is
+     behaviour-preserving on the action key. The one nominally-distinct case —
+     the literal-passing `RECREATE_LOG` caller — is pinned by
+     `tests/test_reconcile.py:262` (`result["action"] == "recreate-log"`), which
+     stays green unedited and is the regression proof for this specific
+     substitution. (`_write_outcome`'s `action` parameter is no longer read by
+     the dict after the swap — it is consulted only for the value the projection
+     now reads from `reconciliation.action` — but leave the signature unchanged:
+     callers still pass it, and tightening the signature is out of scope.)
+   - `_refuse_outcome` (line 237): replace the inline three-key `result=` dict
+     (lines 250-254) with `reconciliation_payload(reconciliation)`; keep the
+     `_append_recovery_entry` receipt, the `ExitCode.ACTIONABLE_FINDING`, and
+     the `messages` unchanged. (A `REFUSE` has `recounted_by_chapter = None`, so
+     the projection yields exactly the base three keys — identical to today.)
+   - the `NONE` arm in `reconcile` (line 293-302): replace the inlined
+     `result={"action": str(action), "discrepancies": [], "detail":
+     reconciliation.detail}` with `result=reconciliation_payload(reconciliation)`;
+     keep the `CommandOutcome(code=ExitCode.SUCCESS, …, messages=…)`. (A `NONE`
+     reconciliation has `discrepancies = ()` and `recounted_by_chapter = None`,
+     so the projection yields `{"action": "none", "discrepancies": [], "detail":
+     …}` — identical to the inlined dict, including the empty list.)
+   - Add `reconciliation_payload` to the existing
+     `from novel_ralph_skill.state import (...)` block (lines 55-63, which
+     already imports `Reconciliation`, `ReconcileAction`,
+     `derive_reconciliation`).
 
-### Work item 2 — Emit the chosen findings shape and pin it with snapshots
+No test is edited for new behaviour: the existing reconcile, check,
+disk-evidence, derivation, refusal, integration, BDD, e2e, and snapshot suites
+are the regression net and must stay green **unedited**. That is the
+no-behaviour-change proof.
 
-Make both projections emit the slimmed `findings` list, update all three
-full-trail consumer suites (the two snapshot suites plus the command-surface
-shape matrix), and add a semantic assertion that a clean pass yields
-`findings == []` so the snapshot is never the sole guard.
+Validation:
 
-Implements: roadmap 7.1.3 ("7.1.1/7.1.2 emit the chosen shape"); design §3.1,
-§4.4, §9 (snapshot coverage of the envelope plus boundary examples).
+- `git grep -n '"action": str(' novel_ralph_skill/` returns exactly one hit,
+  inside `reconciliation_payload` in `state/reconcile.py`.
+- `git grep -n 'reconciliation_payload' novel_ralph_skill/` resolves to the
+  definition (`state/reconcile.py`), the re-export (`state/__init__.py`), and
+  four consumer call sites.
+- `uv run pytest tests/test_reconcile.py tests/test_reconcile_refuse.py
+  tests/test_reconcile_derivation.py tests/test_reconcile_integration.py
+  tests/test_novel_state_check_disk.py tests/test_disk_evidence.py -q` passes
+  unchanged.
+- `make all` green (full suite, including the two `.ambr` snapshot suites, BDD,
+  and e2e, all unedited); commit.
 
-Source edits (both in one commit, so the two paths cannot drift):
-
-1. `novel_ralph_skill/commands/_desloppify_report.py`, in `report_outcome`
-   (current line 182): change
-   `"findings": [_finding_payload(finding) for finding in report.findings]`
-   to project from the already-computed `failed` list (the over-threshold
-   findings), so the slimmed list is built from the same filter that feeds
-   `violations`. The `violations`, `pack`, `total_words`, `ok`, and exit-code
-   are untouched. Update the function and module docstrings to state the slimmed
-   contract and cite the Work item 1 doc anchor.
-2. `novel_ralph_skill/ledger/report.py`, in `ledger_report_outcome`
-   (current line 131): the same change — project `findings` from the `failed`
-   list rather than `report.findings`. Update the module docstring (which today
-   says "carries a full audit trail … 7.1.3's clean-pass slimming may later
-   revisit this") to record that 7.1.3 has now slimmed it, citing the same
-   anchor.
-
-Detection cores (`rulepack/detect.py`, `ledger/detect.py`) are **not** touched:
-they still aggregate every rule/device; only the projection slims (Constraint).
-
-Test edits:
-
-1. `tests/test_desloppify_snapshots.py`:
-   - `test_clean_pass_envelope_snapshot`: add an explicit semantic assertion
-     `assert result["findings"] == []` (the slimmed clean-pass shape), so the
-     snapshot is paired with a behavioural guard for the slimming specifically.
-     Note: this test's existing `for finding in findings: assert
-     isinstance(finding["basis"], str)` loop becomes a no-op once `findings` is
-     empty, so the new explicit `== []` assertion is load-bearing — without it
-     the slimming would be snapshot-only here (AGENTS.md "avoid snapshot-only
-     coverage"). Regenerate the snapshot (`tests/__snapshots__/
-     test_desloppify_snapshots.ambr`) so the clean-pass envelope now shows an
-     empty `findings` list.
-   - `test_one_hit_past_threshold_envelope_snapshot`: this case has exactly one
-     over-threshold rule, so its `findings` list now contains exactly that one
-     `smirked` finding (no passing rules). Add `assert len(findings) == 1` and
-     keep the existing `phrase`/`lines`/`basis` assertions on the `smirked`
-     entry; regenerate the snapshot.
-2. `tests/test_ledger_snapshots.py`: the ledger path differs in an important way
-   from the desloppify path, because the `_LEDGER` fixture
-   (`tests/test_ledger_snapshots.py:35-42`) defines exactly **one** device
-   (`sternum`); there is no sibling device. The two cases therefore behave
-   asymmetrically under slimming:
-   - `test_clean_ledger_envelope_snapshot`: the within-ration scan currently
-     emits a single **passing** `sternum` finding (the
-     `tests/__snapshots__/test_ledger_snapshots.ambr` clean block, lines 2-39,
-     `passed: True`). Under violations-only slimming this passing finding drops
-     out, so the clean ledger trail becomes `findings: []` and its `.ambr` block
-     **regenerates**. This is the genuinely red-green case for the ledger path.
-     The test today reads only `result["violations"]` and never touches
-     `findings`; add an explicit `assert result["findings"] == []` so the clean
-     ledger's slimmed trail is semantically guarded (this assertion fails before
-     the source edit and passes after), then regenerate its block.
-   - `test_over_ration_envelope_snapshot`: the over-ration scan's sole device is
-     the **failing** `sternum` finding (the `.ambr` over-ration block, lines
-     40-82, `passed: False`). Because that one finding is already over-threshold,
-     violations-only slimming does **not** remove it: `findings` contains exactly
-     the same single `sternum` entry before and after the change, so the
-     over-ration `.ambr` block does **not** regenerate under this task. The
-     existing `next(f for f in findings if f["device_id"] == "sternum")` extractor
-     still resolves and its `count == 3` / `passed is False` / line-order
-     assertions stand unchanged. Do **not** add `assert len(findings) == 1` to
-     this test as a slimming proof: it would hold identically before and after
-     (it is not red-green and pins nothing about the slimming, since the single
-     device is the failing one). If a `len(findings) == 1` assertion is added at
-     all, label it honestly as confirming the single-device fixture is present,
-     not as evidence that slimming occurred. The ledger slimming is proven solely
-     by `test_clean_ledger_envelope_snapshot` regenerating to `findings: []`.
-3. `tests/test_command_surface_matrix.py::test_desloppify_shape_across_phases`
-   (line 717): this is the third full-trail consumer the round-1 review (B1)
-   surfaced. Change the per-phase assertion from
-   `assert len(typ.cast("list[object]", result["findings"])) == 24` to
-   `assert result["findings"] == []` — every one of the eleven phases is a clean
-   pass (`violations == []`), so the slimmed shape is an empty trail on all of
-   them. Keep the surrounding assertions unchanged: the `set(result) == {"pack",
-   "total_words", "violations", "findings"}` membership check (the `findings` key
-   still exists, now empty), `result["violations"] == []`, and the `total_words`
-   per-phase expectation. Update the docstring sentence that today says "the full
-   24-rule shipped pack on every phase" to describe the slimmed clean shape
-   (`findings == []`; the 24-rule pack is still aggregated by the detection core,
-   but the clean envelope no longer enumerates it). Then regenerate
-   `tests/__snapshots__/test_command_surface_matrix.ambr`: the eleven
-   `test_machine_envelope_matrix[desloppify-*]` blocks must each collapse their
-   24-row `findings` list to an empty list (264 `rule_id` rows removed across the
-   eleven blocks); the non-desloppify blocks in that file are untouched. This
-   `.ambr` regenerates in the same Work item 2 commit as the other two so the
-   three snapshots and the source stay in lockstep.
-4. Add (or extend) one focused unit test asserting the slimming at the
-   projection boundary directly, independent of the full command run, so the
-   contract is pinned at the smallest unit: build a `DetectionReport` (or use an
-   existing factory) with a mix of passing and failing findings and assert
-   `report_outcome(report).result["findings"]` contains exactly the failing
-   rule_ids while `result["violations"]` is unchanged. Place it in the existing
-   `tests/test_desloppify_finding_message.py` neighbourhood or a new
-   `tests/test_desloppify_report.py` if no projection-level module exists.
-   Add the symmetric ledger-projection unit test for `ledger_report_outcome`.
-
-Docs to read: design §9 (verification strategy: snapshot the machine envelope
-plus boundary examples; "avoid snapshot-only coverage"); AGENTS.md "Change
-quality and committing" (Python testing rules); `python-testing` skill for
-syrupy snapshot regeneration discipline.
-
-Skills to load: `python-router` then `python-data-shapes` (the finding payload
-is a data shape and the change is which entries the projection emits);
-`python-testing` (snapshot regeneration, pairing snapshots with semantic
-assertions). No property-based or mutation tooling is warranted here: the change
-is a deterministic list filter with a fixed, enumerable boundary (clean pass /
-one-hit-past-threshold), which design §9 explicitly says `desloppify` covers
-with snapshots plus boundary examples, **not** a property or mutation suite. If
-during implementation the filter logic turns out to have a non-obvious boundary
-(it should not — it is `if not finding.passed`), reconsider `hypothesis` via
-`python-verification`; otherwise do not add it.
-
-Validation: regenerate the snapshots with the project's snapshot-update
-invocation (`pytest --snapshot-update tests/test_desloppify_snapshots.py
-tests/test_ledger_snapshots.py tests/test_command_surface_matrix.py`), then run
-the full `make all` gate (`make check-fmt`, `make lint`, `make typecheck`, `make
-test`, `make audit`). Which `.ambr` blocks actually regenerate is asymmetric and
-must be understood so a stray non-regeneration is not mistaken for a bug:
-
-- `test_desloppify_snapshots.ambr`: **both** blocks regenerate — the clean block
-  collapses 24 rows to `findings: []`, and the one-hit block collapses 24 rows to
-  the single failing `smirked` finding.
-- `test_command_surface_matrix.ambr`: the eleven
-  `test_machine_envelope_matrix[desloppify-*]` blocks each collapse their 24-row
-  `findings` list to empty; the non-desloppify blocks are untouched.
-- `test_ledger_snapshots.ambr`: **only** the clean block regenerates (its sole
-  passing `sternum` finding drops to `findings: []`). The over-ration block does
-  **not** change, because its sole finding is already the failing one (see Work
-  item 2 test edit 2). The ledger `.ambr` file is therefore still modified, but
-  only in the clean-pass block.
-
-The new clean-pass assertions (`findings == []` in the desloppify and ledger
-snapshot suites, and the changed `== []` matrix assertion) must fail before the
-source edit and pass after (red-green); confirm this by staging the test edits
-first, observing the failures, then applying the projection edit. The
-desloppify one-hit `len(findings) == 1` assertion is likewise red-green (24 → 1).
-The ledger over-ration case is **not** red-green and is not part of the proof
-(its findings are unchanged by slimming). Commit source, all three test modules,
-and the modified `.ambr` files together so no full-trail consumer is left red.
-
-### Work item 3 — Cross-reference sweep and final gate
-
-Tidy every place that describes the old full-audit-trail shape so the
-documentation is internally consistent, and run the complete gate including
-markdown lint and nixie.
-
-Implements: roadmap 7.1.3 success criterion (the contract is captured and the
-emitters agree); AGENTS.md "Documentation maintenance" (proactively update
-affected docs).
-
-Steps:
-
-1. Update the roadmap 7.1.3 entry's checkbox to done once merged is out of
-   scope for this plan (the workflow owns merge), but ensure the success
-   criterion wording in `docs/roadmap.md` still matches what was built; if the
-   plan's ratified shape differs from the roadmap's neutral phrasing, leave the
-   roadmap criterion as-is (it is deliberately decision-neutral) and record the
-   chosen shape in the Outcomes section here.
-2. Sweep the developers' guide and design for any prose that asserts the
-   envelope "carries the full per-rule findings" or "every device's finding,
-   including passing devices" (e.g. `_desloppify_report.py` and
-   `ledger/report.py` docstrings already updated in Work item 2; the developers'
-   guide line ~1049 "reports a per-rule finding"). Reword to the slimmed
-   contract where the text claims a full trail; leave wording that merely
-   describes a *finding's fields* untouched (that is 7.1.4/7.1.5 territory).
-3. Confirm no stray reference still tells a reader to expect `count: 0` rows in
-   a clean envelope.
-4. Run the complete gate: `make all`, then `make markdownlint` and `make nixie`
-   over every changed `.md`. All must pass.
-
-Docs to read: `docs/developers-guide.md` (rule-pack and ledger sections),
-`docs/novel-ralph-harness-design.md` §4.4/§6, `docs/roadmap.md` 7.1.3 entry.
-
-Skills to load: `en-gb-oxendict` (prose), `leta`/`grepai` (find stale
-descriptions).
-
-Tests: none new; the suites from Work item 2 are the regression guard.
-
-Validation: `make all` green; `make markdownlint` and `make nixie` green on all
-`.md` changes. Update `Progress` and `Outcomes & retrospective`.
+Docs to read: `audit-2.3.2.md` Finding 2 (the CQS read/write envelope and exit
+codes stay where they are); design §3.3 (the read/write split the framing
+docstrings preserve); `tests/test_reconcile_refuse.py` and
+`tests/test_novel_state_check_disk.py` (the snapshot suites that pin the two
+envelope shapes the projection must reproduce byte-for-byte).
+Skills to load: `python-router` → `python-testing` (to confirm the existing
+suites are the right regression net). Use `leta refs Reconciliation` and
+`leta grep '"action": str'` to confirm every hand-built-dict site is accounted
+for before editing, and `leta` for the import checks.
 
 ## Concrete steps
 
 Run everything from the worktree root
 `/data/leynos/Projects/novel-ralph-skill.worktrees/roadmap-7-1-3`.
 
-Work item 0 (inventory):
+1. Confirm the branch and a clean tree:
 
-    leta refs RuleFinding
-    leta refs DetectionReport
-    grepai search --workspace Projects --project novel-ralph-skill \
-        "envelope result findings consumer" --toon --compact
-    grep -rn 'findings' tests/ skill/ novel_ralph_skill/
+        $ git branch --show
+        roadmap-7-1-3
+        $ git status --porcelain   # expect empty before starting
 
-Expect: the envelope-payload *writers* are `_desloppify_report.py` and
-`ledger/report.py`; the full-trail *reader* consumers are exactly three test
-sites — `tests/test_desloppify_snapshots.py`, `tests/test_ledger_snapshots.py`,
-and `tests/test_command_surface_matrix.py::test_desloppify_shape_across_phases`
-(line 717) — plus their three `.ambr` snapshots. Every other `findings` hit is a
-detection-core `report.findings` read or an unrelated local. Record the full
-classified list in the Decision Log.
+2. Work Item 1: add `reconciliation_payload` to `reconcile.py`, export from
+   `state/__init__.py`. Verify:
 
-Work item 1 (docs) and Work item 3 (sweep): edit the `.md` files, then:
+        $ uv run python -c "$(printf '%s\n' \
+            'from novel_ralph_skill.state import (reconciliation_payload,' \
+            '    Reconciliation, ReconcileAction)' \
+            'r = Reconciliation(action=ReconcileAction.NONE,' \
+            '    discrepancies=(), detail=\"ok\")' \
+            'print(reconciliation_payload(r))')"
+        {'action': 'none', 'discrepancies': [], 'detail': 'ok'}
 
-    make markdownlint
-    make nixie
+   Then `make all`; commit (gate first).
 
-Expect both to report success on the changed files.
+3. Work Item 2: add `tests/test_reconciliation_payload.py`, red first, then
+   green:
 
-Work item 2 (code + snapshots): after editing the two `report.py` modules and
-the test modules, regenerate and gate:
+        $ uv run pytest tests/test_reconciliation_payload.py -q
+        ... passed
 
-    pytest --snapshot-update \
-        tests/test_desloppify_snapshots.py tests/test_ledger_snapshots.py \
-        tests/test_command_surface_matrix.py
-    make all
+   Then `make all`; commit.
 
-Expect `make all` to end with all tests passed, lint/format/type/audit clean.
-All three `.ambr` files (`test_desloppify_snapshots.ambr`,
-`test_ledger_snapshots.ambr`, `test_command_surface_matrix.ambr`) show as
-modified after regeneration, but the *blocks* that change differ. The desloppify
-`.ambr` regenerates both blocks. The matrix `.ambr` change is confined to the
-eleven `test_machine_envelope_matrix[desloppify-*]` blocks (each `findings` list
-collapses to empty). The ledger `.ambr` changes **only** its
-`test_clean_ledger_envelope_snapshot` block (the sole passing `sternum` finding
-becomes `findings: []`); its `test_over_ration_envelope_snapshot` block is
-unchanged because that block's only finding is already the failing one, which
-slimming keeps.
+4. Work Item 3: route the four arms; then verify the duplication is gone:
 
-To prove the red-green ordering, stage the test edits first and run the affected
-clean-pass / matrix tests before applying the projection edit. The ledger clean
-test is included because it is the genuinely red-green ledger case; the ledger
-over-ration test is deliberately omitted, as it is unchanged by slimming:
+        $ git grep -n '"action": str(' novel_ralph_skill/
+        novel_ralph_skill/state/reconcile.py: ...   # only the projection itself
+        $ git grep -n 'reconciliation_payload' novel_ralph_skill/
+        # definition + re-export + four call sites
 
-    pytest tests/test_desloppify_snapshots.py::test_clean_pass_envelope_snapshot \
-        tests/test_ledger_snapshots.py::test_clean_ledger_envelope_snapshot \
-        tests/test_command_surface_matrix.py::test_desloppify_shape_across_phases
+   Then `make all` (full suite, all unedited); commit.
 
-Expect failures on `assert result["findings"] == []` (the desloppify and ledger
-clean snapshot suites) and on the changed matrix assertion before the source
-edit, and passes after.
+Each commit is gated by `make all` per the workflow standing rule. There are no
+Markdown changes in Work Items 1-3, so `make markdownlint` / `make nixie` are
+**not** required for the code commits; they are required only for the ExecPlan
+file itself (this document), run once when the plan is committed. Commit only
+when the user has approved the plan and asked to proceed.
 
 ## Validation and acceptance
 
-Acceptance is observable behaviour plus a pinned contract:
-
-- Running `desloppify` over a slop-free manuscript emits an envelope whose
-  `result.findings` is `[]`, `result.violations` is `[]`, `ok` is `true`, at
-  exit 0. Running `desloppify --ledger` over a within-ration manuscript does the
-  same.
-- Running `desloppify --chapter N` over a chapter with exactly one over-threshold
-  rule emits `result.findings` containing exactly that one finding (no passing
-  rules), `result.violations` naming that rule, `ok: false`, exit 4 —
-  unchanged gating, slimmed trail.
-- The decision and rationale are written in the design or developers' guide and
-  both projection docstrings cite it.
-
 Quality criteria (what "done" means):
 
-- Tests: `make test` passes; the new clean-pass `findings == []` assertions fail
-  before the projection edit and pass after; all three full-trail suites
-  (`test_desloppify_snapshots.py`, `test_ledger_snapshots.py`,
-  `test_command_surface_matrix.py`) are green with the slimmed snapshots; the two
-  new projection-level unit tests pass.
-- Lint/typecheck/format/audit: `make lint`, `make typecheck`, `make check-fmt`,
-  `make audit` all clean (i.e. `make all` green).
-- Markdown: `make markdownlint` and `make nixie` clean on every changed `.md`.
-- No change to `result.violations`, `ok`, or any exit code for any input.
+- Tests: `tests/test_reconciliation_payload.py` passes (and failed red before
+  Work Item 1's symbol existed). Every pre-existing reconcile, check,
+  disk-evidence, derivation, refusal, integration, BDD, e2e, and snapshot suite
+  passes **without edit** — that is the no-behaviour-change proof (roadmap 7.1.3
+  success criterion).
+- Lint/typecheck: `make all` (build, check-fmt, lint, typecheck, test) is green
+  — Ruff, `interrogate` 100% (the new function carries a docstring), Pylint
+  (`reconcile.py` under the 400-line cap after the addition), `pyright`/`ty`
+  (the new signature and the new export resolve).
+- Structural: the two `git grep` checks in Work Item 3 confirm the
+  serialisation has exactly one home (`reconciliation_payload` in
+  `reconcile.py`) and four routed consumers.
+- en-GB Oxford spelling throughout the new docstring and comments.
 
-Quality method (how we check): run `make all` for code commits and `make
-markdownlint` + `make nixie` for markdown commits, exactly as AGENTS.md requires;
-read back the clean-pass and one-hit envelopes to confirm the observable shape.
+Quality method (how we check):
+
+- Local: `make all` after each work item; the same gates run in CI
+  (`.github/workflows/ci.yml`).
+- Markdown gates: `make markdownlint` and `make nixie` on this ExecPlan file
+  (the only Markdown this task touches). No Mermaid is added; `make nixie` is
+  run per the workflow rule for Markdown changes.
+- Behaviour acceptance: the two snapshot suites
+  (`tests/test_novel_state_check_disk.py`,
+  `tests/test_reconcile_refuse.py`) still pass, proving the `check` read shape
+  and the `reconcile` `REFUSE` write shape are byte-identical to before — now
+  backed by one shared `reconciliation_payload` projection rather than four
+  hand-built dicts. Note the asymmetry: `test_novel_state_check_disk.py`
+  asserts the *unsorted* `render_machine` bytes (`raw == snapshot`), so it
+  also pins key order for the READ path; `test_reconcile_refuse.py` asserts
+  `json.dumps(env, sort_keys=True)`, so it pins the write-side field set and
+  values but not order. The write-side `REFUSE`/`NONE` key order is pinned by
+  the Work Item 2 `items()` unit assertion, not by a snapshot.
 
 ## Idempotence and recovery
 
-Every step is re-runnable. Re-running the snapshot regeneration is safe — it
-rewrites the `.ambr` from the current code, so a half-applied edit recovers by
-re-running `pytest --snapshot-update` after the source edit is complete. The doc
-edits are plain text edits with no side effects. If a gate fails, fix and re-run;
-nothing is destructive and there is no migration or external state. If Work item
-2's snapshots are regenerated *before* the source edit is finished, they capture
-the wrong shape — recover by completing the source edit and regenerating again,
-then re-running `make all`.
+- Every edit is a behaviour-preserving substitution or an additive symbol;
+  re-running any work item is safe. No `working/` tree, `state.toml`, or
+  `log.md` is mutated by any step (the projection is a pure read of an immutable
+  dataclass; ADR-001).
+- If a commit's gate fails, fix forward on the same work item; do not advance.
+  If a snapshot moves (it must not), treat it as a Tolerance breach (behaviour
+  drift) — stop and escalate rather than re-recording the snapshot.
+- The new test file is additive; deleting it leaves the tree buildable. The
+  routing edits are reversible by restoring the inline dicts, but there is no
+  reason to.
 
 ## Interfaces and dependencies
 
-No new interface is introduced. The two functions whose behaviour changes keep
-their signatures:
+- New, in `novel_ralph_skill/state/reconcile.py` (and re-exported from
+  `novel_ralph_skill/state/__init__.py`):
 
-- `novel_ralph_skill.commands._desloppify_report.report_outcome(report:
-  DetectionReport) -> CommandOutcome` — `result["findings"]` now lists only
-  over-threshold findings; all other keys unchanged.
-- `novel_ralph_skill.ledger.report.ledger_report_outcome(report: LedgerReport)
-  -> CommandOutcome` — same slimming for the per-device trail.
+        def reconciliation_payload(
+            reconciliation: Reconciliation,
+        ) -> dict[str, object]:
+            """Project a ``Reconciliation`` into its JSON-serialisable payload …"""
 
-Both continue to consume the unchanged detection cores
-`novel_ralph_skill.rulepack.detect.detect` and
-`novel_ralph_skill.ledger.detect.detect`, which still return a finding per
-rule/device. The slimming lives entirely in the projection, at the envelope
-boundary, consistent with ADR-003's single shared envelope contract.
-
-No new external dependency. The e2e layer's cuprum usage
-(`cuprum.ProgramCatalogue`, `cuprum.ProjectSettings`, `cuprum.program.Program`,
-`cuprum.sh.make`, `SafeCmd.run_sync`, the `exit_code`/`stdout`/`stderr` result
-fields — all verified against the locked source under
-`/data/leynos/Projects/cuprum`) is untouched, because the e2e assertions read
-`violations`/`ok`, not the slimmed trail.
+- Reused, unchanged: `Reconciliation`, `ReconcileAction`,
+  `derive_reconciliation`; the `_render_reconciliation` read-shape framing and
+  its call site in `_check`; the `_write_outcome` / `_refuse_outcome` /
+  `NONE`-arm `CommandOutcome` construction, exit codes, and `messages`; the
+  D-SELF reconcile bracket; the `novel-state`/`reconcile` Cyclopts apps and the
+  shared `run`/envelope machinery (all untouched).
+- Dependencies: **no new third-party dependency**; the only new import crossing
+  a module boundary is `reconciliation_payload`. No external library behaviour
+  (cuprum, Cyclopts, `pytest-timeout`, `uv run`) is exercised by any code change
+  in this task (see "Verified external facts").
 
 ## Revision note
 
-Initial draft (2026-06-25). Decomposes roadmap 7.1.3 into a no-code consumer
-inventory (WI0), a documentation decision record (WI1), the projection slimming
-with snapshot conformance (WI2), and a cross-reference sweep with the full gate
-(WI3). Proposes and justifies the violations-only clean-pass contract rather than
-leaving the shape undecided; pins the cuprum and snapshot facts the plan relies
-on against the locked sources.
-
-Round 2 revision (2026-06-25). Resolves the round-1 logisphere review's single
-blocking defect (B1: incomplete consumer inventory / suite goes red) and the
-related advisory A2. What changed: (1) corrected the false "only two consumers"
-premise throughout the Purpose, rationale point 3, Context, Risks, and Decision
-Log — the full-trail envelope is read by **three** test consumers, the third
-being `tests/test_command_surface_matrix.py::test_desloppify_shape_across_phases`
-(line 717, `len(result["findings"]) == 24` across eleven clean phases) and its
-snapshot `tests/__snapshots__/test_command_surface_matrix.ambr` (eleven
-`test_machine_envelope_matrix[desloppify-*]` blocks, 264 `rule_id` rows). (2)
-Work item 0 now runs an exhaustive `tests/` + `skill/` + `novel_ralph_skill/`
-sweep (verified: `grep -rn 'findings'` over all three) and records a classified
-inventory in the Decision Log; the three full-trail test sites are confirmed and
-no fourth or production reader exists. (3) Work item 2 now changes the matrix
-`== 24` assertion to the slimmed `findings == []` (keeping the `set(result)`
-membership check), updates the matrix docstring, and regenerates the third
-`.ambr` alongside the other two in the same commit. (4) The Scope Tolerance was
-raised from 6 to 9 files with the eight-file edit set pre-counted, and the
-Ambiguity Tolerance was re-scoped so the three known test consumers are
-mechanical updates rather than escalation triggers — escalation now fires only on
-a fourth full-trail consumer or a production reader. (5) Pre-resolved the ledger
-over-ration `next(... device_id == "sternum")` mechanics (still resolves
-post-slim) and noted the clean-pass desloppify test's `for finding in findings`
-loop becomes a no-op, making the explicit `== []` assertion load-bearing. The
-remaining work is unchanged in shape; the edit set is now eight files and stays
-in bounds.
-
-Round 3 revision (2026-06-25). Resolves the round-2 review's single blocking
-defect (B1, Doggylump): Work item 2 step 2 misdescribed the ledger over-ration
-snapshot. It claimed a "passing sibling device" that "drops out" under slimming
-and instructed adding `assert len(findings) == 1` to
-`test_over_ration_envelope_snapshot` to pin that drop-out. That is false: the
-`_LEDGER` fixture (`tests/test_ledger_snapshots.py:35-42`) defines exactly one
-device (`sternum`), confirmed against `tests/__snapshots__/
-test_ledger_snapshots.ambr` (the over-ration block, lines 40-82, is a single
-`passed: False` finding). Under violations-only slimming that sole finding is the
-failing one, so the over-ration `findings` is unchanged — `len(findings) == 1`
-holds identically before and after and is not red-green, and the over-ration
-`.ambr` block does **not** regenerate. What changed: Work item 2 test edit 2 now
-states the fixture is single-device, distinguishes the two ledger cases (the
-**clean** block is the genuinely red-green case that regenerates to `findings:
-[]`; the over-ration block is unchanged by slimming), drops the misleading
-`len(findings) == 1` rationale from the over-ration test, and pins the ledger
-slimming solely on `test_clean_ledger_envelope_snapshot`. The Concrete-steps
-red-green ordering, the Work item 2 validation paragraph, and the Risks
-"projections drift apart" mitigation were corrected to stop implying the
-over-ration ledger `.ambr` regenerates and to spell out per-block which `.ambr`
-blocks actually change. No work-item structure, scope, or file count changed; the
-edit set remains eight files.
-
-## Addenda
-
-Post-merge corrections folded onto this completed task. Each runs as a
-lightweight addendum pass (no plan, no design-review cycle): the change, the
-gates, and a merge. They are tracked as nested sub-tasks under 7.1.3 on the
-roadmap.
-
-- 7.1.3.1 — Extend the ledger snapshot fixture to a multi-device pack
-  (from review:7.1.3; low). The `_LEDGER` snapshot fixture
-  (`tests/test_ledger_snapshots.py:35-42`) is single-device (`sternum`), so the
-  end-to-end ledger envelope never exercises a passing sibling device dropping
-  out under violations-only slimming — only the new unit test covers that drop.
-  Round 3 of this plan corrected the over-ration test precisely because the
-  single-device fixture cannot show the drop. Add a multi-device ledger fixture
-  (one over-ration device beside an in-ration sibling) so the snapshot layer
-  gets the same sibling-drop coverage the rule-pack path's one-hit snapshot
-  enjoys, and regenerate the affected `.ambr` block. Test/fixture-only.
-
-- 7.1.3.2 — Derive the desloppify/ledger exit code from the slimmed failed
-  filter (from audit:7.1.3; low). In both `report_outcome`
-  (`commands/_desloppify_report.py`) and `ledger_report_outcome`
-  (`ledger/report.py`) the exit `code` derives from `report.passed` while
-  `violations`/`findings` derive independently from the `failed` filter, leaving
-  a latent path where a report whose `passed` disagrees with its findings emits
-  a self-contradictory `ok: true` envelope with non-empty `violations`. Compute
-  `code` from the same `failed` list (`SUCCESS` when empty else
-  `ACTIONABLE_FINDING`) so the exit code and `violations` cannot diverge by
-  construction, and add a unit test pinning the invariant. If the
-  finding-outcome envelope-projection consolidation (phase 7 reroute) lands
-  first, this derivation folds into the shared builder there. Localised
-  correctness fix plus one unit test.
+- 2026-06-27: initial DRAFT. The file previously held a stale round-3 ExecPlan
+  ("Decide and pin the desloppify clean-pass findings contract") that did not
+  match the renumbered roadmap entry 7.1.3; it was discarded (Decision Log) and
+  rewritten for the actual task — extracting a single `reconciliation_payload`
+  projection into `state/reconcile.py` and routing the four arms through it
+  (audit-2.3.2 Finding 2). Decomposed into three ordered, gate-passable work
+  items (projection + export; projection test red-first; route the four arms).
+  Pinned the load-bearing facts against source: the four hand-built sites and
+  their exact bodies (`_render_reconciliation` / `_write_outcome`
+  byte-identical; `_refuse_outcome` / `NONE` base-only), the two `.ambr`
+  snapshots that pin the read and `REFUSE` field sets (the no-behaviour-change
+  backstop), the key-order constraint — pinned for the READ path by
+  `test_novel_state_check_disk.ambr` (`render_machine`'s unsorted
+  `json.dumps`), while `test_reconcile_refuse.ambr` is `sort_keys=True` and so
+  pins the field set only, leaving the write-side `REFUSE`/`NONE` order to the
+  Work Item 2 `items()` pin — the CQS
+  projection returns a dict, not a `CommandOutcome`), and the established
+  `state/__init__.py` re-export pattern. Followed the delivered
+  `docs/execplans/roadmap-7-1-1.md` structure and its executable-form observable
+  scoping. Stated explicitly that no external-library behaviour is load-bearing
+  for this internal refactor — there is no undecided external fork.
+- 2026-06-27 (round 2, prose-only): the design reviewer flagged B1 — the plan
+  misrepresented `test_reconcile_refuse.ambr` as an insertion-order backstop,
+  but `tests/test_reconcile_refuse.py:187` asserts
+  `json.dumps(env, sort_keys=True) == snapshot` (keys SORTED), and the stored
+  snapshot shows `result` as the alphabetical `{action, detail, discrepancies}`,
+  not the code's insertion order `{action, discrepancies, detail}`. Verified
+  against source: `render_machine` (`contract/envelope.py:151`) is
+  `json.dumps(ordered)` with no `sort_keys`, asserted `raw == snapshot` at
+  `test_novel_state_check_disk.py:234,248` (so only the check_disk recount and
+  refuse snapshots pin *insertion order*, and only on the READ path); the
+  reconcile_refuse snapshot is sorted (pins the field set, not order). Corrected
+  the Constraints "base-dict order is preserved" bullet, Risk 1, the "Verified
+  external facts" snapshot entry, Risk 3, the Validation behaviour-acceptance
+  bullet, and this revision note, and elevated the Work Item 2
+  `list(payload.items())` ordered assertion to the NAMED PRIMARY order pin for
+  the write-side `REFUSE`/`NONE` `result` envelope (the only check that fails on
+  a write-side reorder, since no snapshot guards it). No design change: the
+  projection, the four-arm routing, the work-item decomposition, and the
+  no-behaviour-change guarantee are unchanged; only the order-backstop prose was
+  corrected.
+- 2026-06-27 (round 3, prose-only): the design reviewer flagged B2 and B3, both
+  prose-only. B2 — Work Item 3's import-block guidance misdirected
+  `novel_state.py`: it told the implementer to add `reconciliation_payload` to
+  "the block that already imports `Reconciliation`", but `novel_state.py` has
+  `from __future__ import annotations` (line 41) and imports `Reconciliation`
+  **only** in the `TYPE_CHECKING` block at line 108; the runtime `state` import
+  block is at line 80 (it imports `derive_reconciliation`, not
+  `Reconciliation`). Since `reconciliation_payload` is *called* at runtime, the
+  literal heuristic
+  would place it in the line-108 `TYPE_CHECKING` block and raise `NameError`.
+  Fixed Work Item 3 step 1 to direct the implementer to the runtime block at
+  line 80 (beside `derive_reconciliation`), explicitly **not** the line-108
+  `TYPE_CHECKING` block, and dropped the misdirecting "where `Reconciliation` is
+  imported" heuristic. The `_reconcile.py` guidance (the line-55 runtime block,
+  which imports `Reconciliation` **and** `derive_reconciliation` at runtime) was
+  already correct and is unchanged. Verified against source:
+  `novel_state.py:41` (`from __future__ import annotations`), `:80` (runtime
+  `state` import, no `Reconciliation`), `:108` (`TYPE_CHECKING` `Reconciliation`
+  import); `_reconcile.py:55-63` (runtime block with `Reconciliation`).
+  B3 — the "byte-identical" claim for `_write_outcome` rested on an unstated,
+  unpinned invariant: `_write_outcome` serialises its `action` *parameter*
+  (`str(action)`, `_reconcile.py:225`), while the projection serialises
+  `str(reconciliation.action)`; they are value-identical only because both
+  `_write_outcome` callers pass `action == reconciliation.action`
+  (`_reconcile.py:322` passes `action`, bound to `reconciliation.action` at
+  `:291`; `:313` passes the literal `RECREATE_LOG`, equal to
+  `reconciliation.action` because `derive_reconciliation` builds that
+  `Reconciliation` with `action=RECREATE_LOG`, `reconcile.py:332-333`). The plan
+  stated something textually false ("byte-identical body") and never named the
+  parameter-vs-attribute distinction or the caller invariant. Fixed: recorded
+  the distinction and the caller invariant in Work Item 3's `_write_outcome`
+  step, the Purpose section, the Context orientation, Work Item 1's lifting
+  note, and the "Verified external facts" entry, and named
+  `tests/test_reconcile.py:262` (`result["action"] == "recreate-log"`) as the
+  pin for the one nominally-distinct (literal-passing `RECREATE_LOG`) case. No
+  design change: the
+  projection, the four-arm routing, the work-item decomposition, and the
+  no-behaviour-change guarantee are unchanged; only the import-block direction
+  and the action-key provenance prose were corrected.

@@ -63,6 +63,7 @@ from novel_ralph_skill.state.reconcile import (
     ReconcileAction,
     Reconciliation,
     derive_reconciliation,
+    reconciliation_payload,
 )
 from novel_ralph_skill.state.schema import (
     SET_CHAPTERS_OPERATION,
@@ -155,6 +156,7 @@ __all__ = [
     "parse_state",
     "pending_turn",
     "present_draft_bodies",
+    "reconciliation_payload",
     "recount_words",
     "validate_state",
     "write_document_atomically",

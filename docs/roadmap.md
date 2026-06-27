@@ -2510,7 +2510,7 @@ of truth, and a test pins it so it cannot silently re-fork.
     each carry only a one-sentence self-projection pointing at the authoritative
     docstring; no fourth full copy remains; and `make all` stays green.
 
-- [ ] 7.1.3. Extract a single `Reconciliation` payload projection and route the
+- [x] 7.1.3. Extract a single `Reconciliation` payload projection and route the
   four arms through it.
   - Reroute (source: audit:6.2.13; severity: low). audit-2.3.2 Finding 2 recorded
     the four-site duplication of the `Reconciliation`-to-dict serialisation
