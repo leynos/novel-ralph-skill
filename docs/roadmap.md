@@ -2506,9 +2506,10 @@ of truth, and a test pins it so it cannot silently re-fork.
     novel_ralph_skill/commands/_compile.py.
   - Success: the three-valued verdict and the two opposite absent-file polarities
     are described authoritatively once in `compiled_matches_drafts`'s docstring;
-    `compile_consistent`, `_check_compiled_matches_drafts`, and `check_compiled`
-    each carry only a one-sentence self-projection pointing at the authoritative
-    docstring; no fourth full copy remains; and `make all` stays green.
+    `compile_is_current` (consolidated in 7.1.1), `compile_consistent`,
+    `_check_compiled_matches_drafts`, and `check_compiled` each carry only a
+    one-sentence self-projection pointing at the authoritative docstring; no
+    further full copy remains; and `make all` stays green.
 
 - [x] 7.1.3. Extract a single `Reconciliation` payload projection and route the
   four arms through it.
@@ -2534,6 +2535,18 @@ of truth, and a test pins it so it cannot silently re-fork.
     each spelling the `{action, discrepancies, detail}` shape; the CQS read/write
     vocabulary split and the exit-code policy are unchanged; no behaviour changes;
     and the check, reconcile, and disk-evidence suites stay green.
+  - [ ] 7.1.3.1. Drop the now-vestigial `action` parameter from `_write_outcome`.
+    - Addendum (from review:7.1.3; low). After 7.1.3 routed `_write_outcome`
+      through `reconciliation_payload`, its `action` parameter is no longer read
+      by the body (the projection reads `reconciliation.action`); remove the
+      parameter and simplify the two callers (`commands/_reconcile.py:299,308`),
+      closing the gap where a caller could pass an `action` inconsistent with
+      `reconciliation.action`. Lightweight addendum pass.
+  - [ ] 7.1.3.2. Replace US `serialize` with en-GB `serialise` in the developers'
+    guide clean-pass section.
+    - Addendum (from review:7.1.4; low). `docs/developers-guide.md:1425` carries
+      `serialize`, a US spelling introduced by 7.1.3, violating the AGENTS.md en-GB
+      Oxford convention; correct it to `serialise`. Lightweight addendum pass.
 
 - [x] 7.1.4. Extract the shared finding-outcome envelope skeleton into a
   contract-package builder and route both projections through it.
@@ -2565,6 +2578,23 @@ of truth, and a test pins it so it cannot silently re-fork.
     per-hit payload projection is unchanged; the §3.2 exit-code contract and the
     slimmed clean-pass findings contract are preserved; and the desloppify and
     ledger suites (including the snapshot suites) stay green.
+  - [ ] 7.1.4.1. Add an end-to-end raw-JSON `result` key-order assertion per
+    extra-result shape.
+    - Addendum (from audit:7.1.4 Finding 1; low). The `result` key-order contract
+      7.1.4 protects is guarded only at the pre-render dict level
+      (`list(outcome.result)`); the e2e oracles `json.loads` stdout and the
+      `.ambr` snapshots sort keys, so a stray `sort_keys=True` in `render_machine`
+      would pass every suite while breaking the wire contract. Add one un-parsed
+      stdout assertion per `extra_result` shape (rule-pack with
+      `pack`/`total_words`, ledger without) to the desloppify/ledger e2e suites.
+      Lightweight addendum pass.
+  - [ ] 7.1.4.2. Add a Hypothesis property pinning exit-code-from-`failed` over
+    arbitrary findings vectors.
+    - Addendum (from review:7.1.4; low). The four enumerated unit cases pin the
+      builder's exit-code-from-`failed` contract today; add a Hypothesis property
+      over arbitrary pass/fail findings vectors to harden the
+      `build_finding_outcome` closure against future builder edits beyond the
+      deterministic enumerable boundary. Lightweight addendum pass.
 
 - [ ] 7.1.5. Derive the envelope field order from the `Envelope` dataclass across
   the renderer and its test oracles.
@@ -2592,6 +2622,46 @@ of truth, and a test pins it so it cannot silently re-fork.
     `ENVELOPE_KEY_ORDER` so exactly one literal tripwire survives; no module
     re-spells the six-name order; and the contract and cross-command suites stay
     green.
+
+- [ ] 7.1.6. Settle the §7.1 authoritative-docstring + consumer self-projection
+  convention once, with a reusable drift-guard.
+  - Step task (source: audit:7.1.2 Findings 2, 3, 5; review:7.1.2; severity: low;
+    near-identical proposals merged). This serves the step-7.1 hypothesis
+    directly: the definition of done for every §7.1 task is that the surviving
+    canonical projection "is documented as the single source of truth, and a test
+    pins it so it cannot silently re-fork", yet 7.1.1/7.1.2 settled that pattern
+    without a uniform cross-reference style or a drift-guard, so the
+    documentation-and-test legs of the invariant are themselves un-single-sourced.
+    Two of three consumers spell the authoritative target via the defining-module
+    path (`novel_ralph_skill.state.compile_model.compiled_matches_drafts`) while
+    `_compile.py`'s `check_compiled` and its module docstring use the re-export
+    path (`novel_ralph_skill.state.compiled_matches_drafts`); both resolve, but
+    the mixed spelling weakens the single-canonical-target intent and would
+    dangle if the re-export were pruned. Fix the canonical cross-reference style
+    to the defining-module form across the §7.1 consumers (compile-currency and
+    reconciliation-payload projections), normalising the sibling
+    `CompiledComparison`/`compile_is_current` mentions in `_compile.py` to match,
+    and add a reusable docstring drift-guard helper that asserts the authoritative
+    docstring is the single full copy and each consumer carries a resolving
+    cross-reference rather than a re-enumerated projection table. Apply the
+    convention and guard to the remaining §7.1 task (7.1.5) so each inherits the
+    convention rather than re-deciding it. Doc-and-test only; no behaviour change.
+  - Requires 7.1.2, 7.1.3, 7.1.4.
+  - See novel-ralph-harness-design.md §4.3 and §5.4;
+    docs/issues/audit-7.1.2.md (Findings 2, 3, 5);
+    novel_ralph_skill/state/compile_model.py;
+    novel_ralph_skill/state/done_predicate.py;
+    novel_ralph_skill/state/disk_evidence.py;
+    novel_ralph_skill/commands/_compile.py;
+    tests/test_compile_model_seam.py.
+  - Success: every §7.1 consumer names its authoritative target through the
+    defining-module cross-reference path (no re-export-path or mixed spelling
+    survives); a reusable drift-guard helper pins, for each consolidated
+    projection, that exactly one authoritative docstring carries the full
+    projection and each consumer carries only a resolving cross-reference (not a
+    re-enumerated table); re-expanding any consumer's docstring or breaking a
+    cross-reference reddens the guard; and the compile, done-predicate,
+    disk-evidence, and reconcile suites stay green.
 
 ### 7.2. Single-source the loaders, builders, and scan primitives
 
@@ -4508,6 +4578,107 @@ copies that would re-diverge.
     tables; a benign re-heading or re-wording that preserves the contract no
     longer reds a guard (or the load-bearing text is explicitly documented as such);
     and the docs and contract suites stay green.
+
+- [ ] 7.6.33. Enable ruff `ARG` (unused-argument) in the lint select and triage
+  the existing intentional unused arguments.
+  - Reroute (source: audit:7.1.3 / audit:7.1.4; severity: low; two consecutive
+    §7.1 audits naming the same gap, merged). The codebase's functional style —
+    many small projections and mutators threaded through call sites, and (since
+    7.1.4) a `build_finding_outcome` builder parameterised over four injected
+    callables — makes refactor-orphaned parameters a recurring risk that a gate
+    should catch rather than an audit; 7.1.3's refactor left `_write_outcome`'s
+    `action` parameter dead and ruff did not flag it because `ARG` is absent from
+    the `select` list. Add `"ARG"` (flake8-unused-arguments) to
+    `pyproject.toml` `[tool.ruff.lint] select`, triaging the intentional unused
+    arguments (interface/callback conformance) with local `# noqa: ARG00x` plus
+    a one-line reason or the leading-underscore convention, turning this whole
+    class of defect into a gate failure. This is cross-cutting lint-gate
+    hardening, not the settled step-7.1 single-canonical-projection hypothesis
+    where it was raised, so it is deferred here.
+  - Requires 7.1.3, 7.1.4.
+  - See AGENTS.md (quality gates); `pyproject.toml` (`[tool.ruff.lint] select`);
+    docs/issues/audit-7.1.3.md (Finding 3); docs/issues/audit-7.1.4.md
+    (Finding 4); novel_ralph_skill/contract/finding_outcome.py.
+  - Success: `"ARG"` is in the ruff `select` list; every existing intentional
+    unused argument is triaged with a local `# noqa: ARG00x` plus a reason or the
+    leading-underscore convention; a deliberately-orphaned parameter reddens the
+    lint gate; and `make all` stays green.
+
+- [ ] 7.6.34. Add an enforced docstring cross-reference resolution check to the
+  lint gate.
+  - Reroute (source: review:7.1.2; severity: low). The spine relies heavily on
+    Sphinx-style `:func:`/`:class:`/`:attr:` cross-references in docstrings as the
+    primary documentation-DRY mechanism — the §7.1 consolidation adds several
+    more — yet no gate validates that those targets resolve, so cross-reference
+    rot is silent: a future rename could leave dangling pointers that pass
+    `make all`. Add a lightweight reference-resolution check (a `sphinx -n`
+    nitpicky docs build, or a custom AST/regex linter that resolves each
+    cross-reference target) so a dangling `:func:` reference reddens the gate,
+    protecting the consolidation pattern the whole §7.1 line invests in. This is
+    cross-cutting lint-gate hardening, not the settled step-7.1
+    single-canonical-projection hypothesis where it was raised, so it is deferred
+    here.
+  - Requires 7.1.6.
+  - See AGENTS.md (quality gates); the project `Makefile`;
+    novel_ralph_skill/state/compile_model.py;
+    novel_ralph_skill/state/done_predicate.py.
+  - Success: a reference-resolution check runs in the gate and resolves every
+    docstring `:func:`/`:class:`/`:attr:` cross-reference; a deliberately-dangling
+    cross-reference reddens the gate; and `make all` stays green on the current
+    tree.
+
+- [ ] 7.6.35. Collapse `Reconciliation`'s recount Optionals into a single co-set
+  recount sub-shape.
+  - Reroute (source: review:7.1.3; severity: low). `recounted_current`
+    (`int | None`) and `recounted_by_chapter` (`Mapping | None`) are independent
+    Optionals on the `Reconciliation` dataclass but are invariantly set together
+    by the sole `_recount` constructor, and `reconciliation_payload` now leans on
+    that co-set invariant (gating on `by_chapter` while emitting `current`).
+    Represent the recount data as one Optional value (e.g. a frozen
+    `RecountResult{current, by_chapter}`), updating the `_recount` constructor and
+    the payload projection, so the co-set invariant is
+    unrepresentable-when-violated and the latent `None`-`current` edge the
+    projection currently inherits is removed. This hardens the reconciliation
+    payload against the edge case the review surfaced — a step-7.6 concern — not
+    the settled step-7.1 single-canonical-projection hypothesis where it was
+    raised, so it is deferred here.
+  - Requires 7.1.3.
+  - See novel-ralph-harness-design.md §3.3 and §5.4;
+    docs/issues/audit-7.1.3.md; novel_ralph_skill/state/reconcile.py.
+  - Success: the recount data is carried by one Optional co-set value on
+    `Reconciliation`; the `_recount` constructor and `reconciliation_payload`
+    consume it so a present-recount with a `None` `current` is unrepresentable;
+    the exit-code policy and the projected payload shape are unchanged; and the
+    reconcile, check, and disk-evidence suites stay green.
+
+- [ ] 7.6.36. Pin post-merge audit filenames to the roadmap id at merge time so
+  a renumber cannot orphan an audit.
+  - Reroute (source: audit:7.1.2 Finding 1; severity: high). A roadmap renumber
+    left a stale `audit-7.1.2.md` auditing the device-ledger task (now roadmap
+    8.1.2) under the wrong number, so a reader consulting it for the
+    compile-projection consolidation found an unrelated feature; the live
+    cross-package duplication finding it carried is now homed correctly by task
+    7.2.2, but nothing prevents the next renumber from orphaning another audit.
+    The duplication analysis itself needs no further action (7.2.2 owns it); this
+    task settles the forward-looking convention. Record a build-workflow rule that
+    derives the post-merge audit filename from the task's roadmap id at merge time
+    (and/or carries the audited commit and roadmap-id in a header the auditor
+    writes), so a later renumber cannot silently mis-file an audit; capture it in
+    AGENTS.md or docs/scripting-standards.md. This serves the step-7.6
+    documentation-process-robustness hypothesis — making the audit trail robust
+    to predictable renumber churn — not the settled step-7.1
+    single-canonical-projection hypothesis where it was raised. Coordinate with
+    7.6.8 so the audit-artefact convention is consistent with the design-review
+    artefact convention settled there.
+  - Requires 1.3.1.
+  - See AGENTS.md; docs/scripting-standards.md;
+    docs/issues/audit-7.1.2.md (Finding 1); docs/issues/ (the `audit-*.md`
+    artefacts); the `df12-build` workflow audit step.
+  - Success: a recorded convention derives the post-merge audit filename (or a
+    written-in header) from the task's roadmap id at merge time; AGENTS.md or
+    docs/scripting-standards.md names the convention; the convention is consistent
+    with 7.6.8's artefact handling; and a renumber scenario can no longer leave
+    an audit pointing at the wrong task without a gate or header revealing it.
 
 ### 7.7. Reconcile the documentation and settle the conventions
 

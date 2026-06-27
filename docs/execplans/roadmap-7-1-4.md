@@ -1126,3 +1126,29 @@ isolated builder test still pins the builder's order, but is no longer claimed a
 the call-site guard. No mechanism or scope change otherwise; the edit set grows
 only by assertions inside the already-planned `tests/test_desloppify_report.py`
 change in Work item 2 (still within the five-to-six-file Scope tolerance).
+
+## Addenda
+
+Lightweight, no-plan corrections folded onto this completed task after its
+reviews and audits, triaged at the §7.1 step boundary.
+
+- **7.1.4.1 — Add an end-to-end raw-JSON `result` key-order assertion per
+  extra-result shape** (from audit:7.1.4 Finding 1; severity: low). The `result`
+  key-order contract this task protects is guarded only at the pre-render dict
+  level (`list(outcome.result)` in `tests/test_desloppify_report.py` and the
+  builder twin in `tests/test_finding_outcome.py`); the e2e oracles `json.loads`
+  stdout and the `.ambr` snapshots sort keys, so a stray `sort_keys=True` in
+  `render_machine` (`contract/envelope.py:151`) would pass every existing suite
+  while breaking the wire contract. Add one un-parsed stdout assertion per
+  `extra_result` shape — the rule-pack path with `pack`/`total_words` and the
+  ledger path without — to the desloppify/ledger e2e suites
+  (`tests/test_desloppify_e2e.py` and the ledger e2e), making the renderer-level
+  invariant a gate failure rather than something only the pre-render dict
+  assertions defend.
+- **7.1.4.2 — Add a Hypothesis property pinning exit-code-from-`failed`** (from
+  review:7.1.4; severity: low). The four enumerated unit cases in
+  `tests/test_finding_outcome.py` fully pin the `build_finding_outcome`
+  exit-code-from-`failed` contract over the deterministic enumerable boundary;
+  add a Hypothesis property over arbitrary pass/fail findings vectors to harden
+  the closure against future builder edits. The ExecPlan flagged this as a
+  reconsider-later item; it is now taken as a lightweight pass.
