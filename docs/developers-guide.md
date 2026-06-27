@@ -421,7 +421,11 @@ guards the entry-point table. The spaced subcommand names live once, as data,
 in
 [`novel_ralph_skill/contract/names.py`](../novel_ralph_skill/contract/names.py):
 `SUBCOMMAND_NAMES` is the spaced `novel <verb>` names (the contract owns this
-vocabulary; roadmap task 7.3.6).
+vocabulary; roadmap task 7.3.6). The bare mount verbs are derived once from those
+names as `SUBCOMMAND_VERBS` (the `state`/`done`/… tuple) with a `verb_for(spaced)`
+accessor that looks up a single spaced name's verb and raises `KeyError` for any
+non-registry name, so the spaced-name-to-verb split lives in exactly one place
+(roadmap task 7.3.8).
 [`novel_ralph_skill/commands/names.py`](../novel_ralph_skill/commands/names.py)
 re-exports them and its `project_scripts_table` derives the single `novel`
 entry. The dispatcher and every test derive their names from this registry, and
@@ -452,10 +456,11 @@ construction table rather than re-spelling each verb in a hand-copied mount
 line. The helper `_build_mount_table` returns a verb-keyed mapping of mount verb
 to the leaf module's `build_app` factory, and `build_multiplexer` mounts each
 leaf in `SUBCOMMAND_NAMES` order (via the registry-derived `_VERB_FOR_SUBCOMMAND`
-map), so the verbs the dispatcher mounts come from the registry, not inline in
-the mount lines. The spaced subcommand names live once, as data, in a single
-registry, so the names the multiplexer mounts and the names it stamps cannot
-drift apart.
+map, which resolves each verb through the registry's `verb_for` accessor rather
+than re-spelling the split inline), so the verbs the dispatcher mounts come from
+the registry, not inline in the mount lines. The spaced subcommand names live
+once, as data, in a single registry, so the names the multiplexer mounts and the
+names it stamps cannot drift apart.
 [`tests/test_multiplexer_mount_table.py`](../tests/test_multiplexer_mount_table.py)
 pins the table against the registry — its verbs equal the registry's bare-verb
 set and each entry is the leaf's own `build_app` — so a dropped or drifted
@@ -621,7 +626,8 @@ legitimate home of its own path, a separate concern from a body-detected fault.
 
 `build_envelope` validates its `command` argument against
 `ENVELOPE_COMMAND_NAMES`. The command-name vocabulary — `MULTIPLEXER_NAME`,
-`SUBCOMMAND_NAMES`, and the `ENVELOPE_COMMAND_NAMES` superset — lives in
+`SUBCOMMAND_NAMES`, the `ENVELOPE_COMMAND_NAMES` superset, and the derived
+spaced-name-to-verb accessor (`SUBCOMMAND_VERBS` / `verb_for`) — lives in
 [`novel_ralph_skill/contract/names.py`](../novel_ralph_skill/contract/names.py),
 so the `contract` layer owns the contract vocabulary its envelope guard
 enforces and `contract/envelope.py` validates `command` against it with **no**

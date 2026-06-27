@@ -3162,7 +3162,7 @@ of truth, and a test pins it so it cannot silently re-fork.
     `CommandOutcome`; the exit-2 envelope construction lives in exactly one
     place; a unit test pins the shared helper's envelope; and the gate/drafting,
     desloppify, and contract suites stay green.
-- [ ] 7.3.8. Hoist the spaced-name-to-verb derivation into `names.py` and route
+- [x] 7.3.8. Hoist the spaced-name-to-verb derivation into `names.py` and route
   `novel.py` and the e2e suite through it.
   - Reroute (source: audit:1.2.15; severity: medium; the audit:1.2.13 proposal it
     reproduces folded in). The `name.split(" ", 1)[1]` verb-extraction idiom is

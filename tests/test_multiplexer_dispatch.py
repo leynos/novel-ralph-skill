@@ -20,7 +20,7 @@ from __future__ import annotations
 import pytest
 
 from novel_ralph_skill.commands import novel
-from novel_ralph_skill.commands.names import SUBCOMMAND_NAMES
+from novel_ralph_skill.commands.names import SUBCOMMAND_NAMES, verb_for
 
 # The three boolean contract flags the multiplexer must carry so the shared
 # ``run`` wrapper owns every exit and envelope. ``result_action`` is asserted
@@ -45,6 +45,18 @@ def test_build_multiplexer_registers_the_five_subcommands() -> None:
     app = novel.build_multiplexer()
     registered = {name for name in app if not name.startswith("-")}
     assert registered == {"state", "done", "compile", "desloppify", "wordcount"}
+
+
+def test_verb_for_subcommand_is_registry_driven() -> None:
+    """The dispatcher's private verb map is built from the registry accessor.
+
+    Pins that ``_VERB_FOR_SUBCOMMAND`` derives each verb through
+    :func:`~novel_ralph_skill.commands.names.verb_for` rather than re-spelling
+    ``split(" ", 1)[1]`` inline (roadmap task 7.3.8). A future inline re-spelling
+    that diverged from the registry would fail here.
+    """
+    expected = {name: verb_for(name) for name in SUBCOMMAND_NAMES}
+    assert expected == novel._VERB_FOR_SUBCOMMAND
 
 
 def test_multiplexer_returns_the_leaf_body_value() -> None:

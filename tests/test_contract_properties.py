@@ -22,7 +22,11 @@ import pytest
 from hypothesis import given
 from hypothesis import strategies as st
 
-from novel_ralph_skill.commands.names import SUBCOMMAND_NAMES
+from novel_ralph_skill.commands.names import (
+    MULTIPLEXER_NAME,
+    SUBCOMMAND_NAMES,
+    verb_for,
+)
 from novel_ralph_skill.contract.envelope import build_envelope
 from novel_ralph_skill.contract.exit_codes import ExitCode
 from novel_ralph_skill.contract.runner import CommandOutcome, RunContext, run
@@ -125,6 +129,28 @@ def test_non_zero_codes_are_pairwise_distinct() -> None:
     assert len(set(values)) == len(values)
     assert int(ExitCode.BENIGN_NEGATIVE) != int(ExitCode.ACTIONABLE_FINDING)
     assert int(ExitCode.USAGE_ERROR) != int(ExitCode.STATE_ERROR)
+
+
+@given(spaced=st.sampled_from(SUBCOMMAND_NAMES))
+def test_verb_for_round_trips_over_the_registry(spaced: str) -> None:
+    """Re-prepending the multiplexer name to ``verb_for`` reconstructs the name.
+
+    For any spaced name drawn from the fixed registry, ``f"{MULTIPLEXER_NAME}
+    {verb_for(spaced)}"`` equals the original name, proving ``verb_for`` strips
+    exactly the leading ``"novel "`` prefix and nothing else. ``sampled_from``
+    over the fixed five-element registry avoids the Hypothesis filtering trap.
+
+    Parameters
+    ----------
+    spaced : str
+        A registered spaced subcommand name.
+
+    Returns
+    -------
+    None
+        The assertion raises on failure.
+    """
+    assert f"{MULTIPLEXER_NAME} {verb_for(spaced)}" == spaced
 
 
 def _drive(app: cyclopts.App, argv: list[str]) -> int:

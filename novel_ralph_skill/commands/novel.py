@@ -33,7 +33,11 @@ from __future__ import annotations
 import sys
 import typing as typ
 
-from novel_ralph_skill.commands.names import MULTIPLEXER_NAME, SUBCOMMAND_NAMES
+from novel_ralph_skill.commands.names import (
+    MULTIPLEXER_NAME,
+    SUBCOMMAND_NAMES,
+    verb_for,
+)
 from novel_ralph_skill.commands.state_sourcing import resolved_working_dir
 from novel_ralph_skill.contract import drive, parse_global_flags
 from novel_ralph_skill.contract.runner import make_contract_app
@@ -43,11 +47,11 @@ if typ.TYPE_CHECKING:
 
     import cyclopts
 
-# The mount name (``state``/``done``/…) for each spaced subcommand name, derived
-# once from the registry so the dispatcher never re-spells the verbs inline
-# (Decision Log D4). ``"novel done"`` -> ``"done"``.
+# The mount name (``state``/``done``/…) for each spaced subcommand name, resolved
+# through the registry accessor so the dispatcher never re-spells the verbs inline
+# (Decision Log D4; roadmap task 7.3.8). ``"novel done"`` -> ``"done"``.
 _VERB_FOR_SUBCOMMAND: dict[str, str] = {
-    name: name.split(" ", 1)[1] for name in SUBCOMMAND_NAMES
+    name: verb_for(name) for name in SUBCOMMAND_NAMES
 }
 # The reverse: the leading non-flag token (``"state"``) -> its spaced registry
 # name (``"novel state"``). Consulted by :func:`_command_name_for`.

@@ -35,7 +35,11 @@ from cuprum import sh
 from cuprum.program import Program
 from cuprum.sh import ExecutionContext
 
-from novel_ralph_skill.commands.names import SUBCOMMAND_NAMES
+from novel_ralph_skill.commands.names import (
+    SUBCOMMAND_NAMES,
+    SUBCOMMAND_VERBS,
+    verb_for,
+)
 from novel_ralph_skill.contract.exit_codes import ExitCode
 
 # Roadmap task 1.2.13 re-points this loop onto the single ``novel`` multiplexer:
@@ -66,7 +70,7 @@ _REAL_PATH_ARGV: dict[str, tuple[str, ...]] = {
 # ``tests/test_compile_e2e.py``, ``tests/test_novel_done_e2e.py``,
 # ``tests/test_wordcount_e2e.py``).
 assert SUBCOMMAND_NAMES, "the subcommand registry must not be empty"
-assert set(_REAL_PATH_ARGV) <= {s.split(" ", 1)[1] for s in SUBCOMMAND_NAMES}, (
+assert set(_REAL_PATH_ARGV) <= set(SUBCOMMAND_VERBS), (
     "every extra-argv key must be a real mount verb"
 )
 
@@ -120,7 +124,7 @@ def _assert_scripts_real_state_error(
     catalogue = single_program_catalogue("novel-ralph-e2e-scripts", prog)
     builder = sh.make(prog, catalogue=catalogue)
     for spaced_name in SUBCOMMAND_NAMES:
-        verb = spaced_name.split(" ", 1)[1]
+        verb = verb_for(spaced_name)
         argv = (verb, *_REAL_PATH_ARGV.get(verb, ()))
         result = builder(*argv).run_sync(
             context=ExecutionContext(cwd=run_cwd), capture=True

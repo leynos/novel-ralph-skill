@@ -25,6 +25,8 @@ from __future__ import annotations
 import importlib.util
 import pathlib
 
+import pytest
+
 import novel_ralph_skill.contract as contract_package
 from novel_ralph_skill.commands import names as commands_names
 from novel_ralph_skill.commands import state_sourcing
@@ -77,6 +79,50 @@ def test_commands_names_reexports_contract_vocabulary() -> None:
     assert (
         commands_names.ENVELOPE_COMMAND_NAMES is contract_names.ENVELOPE_COMMAND_NAMES
     )
+
+
+def test_subcommand_verbs_pin_the_five_mount_verbs() -> None:
+    """``SUBCOMMAND_VERBS`` is the five bare mount verbs in surface order."""
+    assert contract_names.SUBCOMMAND_VERBS == (
+        "state",
+        "done",
+        "compile",
+        "desloppify",
+        "wordcount",
+    )
+
+
+@pytest.mark.parametrize(
+    ("spaced", "verb"),
+    [
+        ("novel state", "state"),
+        ("novel done", "done"),
+        ("novel compile", "compile"),
+        ("novel desloppify", "desloppify"),
+        ("novel wordcount", "wordcount"),
+    ],
+)
+def test_verb_for_resolves_each_spaced_name(spaced: str, verb: str) -> None:
+    """``verb_for`` returns each spaced name's bare mount verb."""
+    assert contract_names.verb_for(spaced) == verb
+
+
+@pytest.mark.parametrize("name", ["novel bogus", "state", "", "novel"])
+def test_verb_for_rejects_unknown_name(name: str) -> None:
+    """``verb_for`` raises ``KeyError`` for any non-registry name.
+
+    The lookup is the registry's loud rejection: a typo, a bare verb, or any
+    string outside :data:`SUBCOMMAND_NAMES` fails rather than being silently
+    split (ExecPlan Decision Log, roadmap task 7.3.8).
+    """
+    with pytest.raises(KeyError):
+        contract_names.verb_for(name)
+
+
+def test_commands_names_reexports_verb_accessor() -> None:
+    """``commands.names`` re-exports the *same* verb accessor objects (no fork)."""
+    assert commands_names.SUBCOMMAND_VERBS is contract_names.SUBCOMMAND_VERBS
+    assert commands_names.verb_for is contract_names.verb_for
 
 
 def test_working_dir_name_imports_from_contract() -> None:

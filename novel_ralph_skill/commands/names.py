@@ -12,9 +12,10 @@ Roadmap task 7.3.6 split this module's two responsibilities (ExecPlan Decision
 Log D1):
 
 - The **command-name vocabulary** — :data:`MULTIPLEXER_NAME`,
-  :data:`SUBCOMMAND_NAMES`, :data:`ENVELOPE_COMMAND_NAMES` — is contract data the
-  envelope guard enforces, so it now lives in
-  :mod:`novel_ralph_skill.contract.names`. This module re-exports it for
+  :data:`SUBCOMMAND_NAMES`, :data:`ENVELOPE_COMMAND_NAMES`, and the derived
+  spaced-name-to-verb accessor :data:`SUBCOMMAND_VERBS` / :func:`verb_for`
+  (roadmap task 7.3.8) — is contract data the envelope guard enforces, so it now
+  lives in :mod:`novel_ralph_skill.contract.names`. This module re-exports it for
   back-compatibility (every existing ``commands.names`` import keeps resolving),
   but the contract package owns it.
 - The **console-script binding** — :data:`NOVEL_MODULE` and
@@ -31,6 +32,8 @@ from novel_ralph_skill.contract.names import (
     ENVELOPE_COMMAND_NAMES,
     MULTIPLEXER_NAME,
     SUBCOMMAND_NAMES,
+    SUBCOMMAND_VERBS,
+    verb_for,
 )
 
 __all__ = [
@@ -38,7 +41,9 @@ __all__ = [
     "MULTIPLEXER_NAME",
     "NOVEL_MODULE",
     "SUBCOMMAND_NAMES",
+    "SUBCOMMAND_VERBS",
     "project_scripts_table",
+    "verb_for",
 ]
 
 NOVEL_MODULE: str = "novel_ralph_skill.commands.novel"
