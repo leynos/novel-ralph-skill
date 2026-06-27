@@ -49,8 +49,7 @@ from novel_ralph_skill.commands.state_sourcing import (
     draft_read_guard,
     load_or_state_error,
 )
-from novel_ralph_skill.contract.errors import EnvelopeMessagesError
-from novel_ralph_skill.contract.exit_codes import ExitCode
+from novel_ralph_skill.contract import BodyUsageError, usage_error_outcome
 from novel_ralph_skill.contract.runner import CommandOutcome, make_contract_app
 from novel_ralph_skill.loaderkit.scan import ScannedChapter
 from novel_ralph_skill.rulepack import RulePackError, RulePackFileError, load_rulepack
@@ -64,18 +63,18 @@ if typ.TYPE_CHECKING:
     from novel_ralph_skill.state import ChapterEntry
 
 
-class DesloppifyUsageError(EnvelopeMessagesError):
-    """A body-detected usage fault routed to exit ``2`` (design §3.2).
+class DesloppifyUsageError(BodyUsageError):
+    """A ``desloppify`` body-detected usage fault (a bad ``--chapter``).
 
-    Raised when the invocation is wrong in a way the Cyclopts parser cannot
-    catch — specifically ``--chapter N`` naming a chapter absent from the
-    ``[chapters]`` manifest. The command body converts it to a
-    :class:`~novel_ralph_skill.contract.runner.CommandOutcome` carrying
-    :data:`~novel_ralph_skill.contract.exit_codes.ExitCode.USAGE_ERROR`, never the
-    exit-``3`` state channel, because a bad ``--chapter`` is a caller error, not a
-    corrupt ``working/`` tree. The optional ``messages`` payload (recorded once by
-    :class:`~novel_ralph_skill.contract.errors.EnvelopeMessagesError`) carries the
-    human prose for the emitted envelope.
+    The thin domain leaf of the shared
+    :class:`~novel_ralph_skill.contract.errors.BodyUsageError` marker: raised when
+    ``--chapter N`` names a chapter absent from the ``[chapters]`` manifest, or
+    ``--ledger`` is combined with ``--chapter`` — both faults the Cyclopts parser
+    cannot catch, and a caller error rather than a corrupt ``working/`` tree (so
+    exit ``2``, never the exit-``3`` state channel). The exit-``2`` envelope is
+    built once by
+    :func:`~novel_ralph_skill.contract.runner.usage_error_outcome`; the optional
+    ``messages`` payload is recorded once by the shared base.
     """
 
 
@@ -257,11 +256,10 @@ def _desloppify(*, chapter: int | None, pack: pathlib.Path | None) -> CommandOut
     try:
         rulepack = load_rulepack(pack_path)
     except RulePackError as exc:
-        # Malformed pack *content* is a usage error (exit 2); map it locally to a
-        # CommandOutcome rather than coupling the shared runner to rulepack.
-        return CommandOutcome(
-            code=ExitCode.USAGE_ERROR, messages=list(exc.messages) or [str(exc)]
-        )
+        # Malformed pack *content* is a usage error (exit 2); RulePackError is an
+        # EnvelopeMessagesError, so route it through the shared exit-2 home rather
+        # than coupling the runner to rulepack or re-spelling the envelope.
+        return usage_error_outcome(exc)
     except RulePackFileError as exc:
         # An absent/unreadable/undecodable pack *file* is the exit-3 state channel,
         # which the shared runner already maps from StateInputError. It is a *pack*
@@ -349,9 +347,7 @@ def _scan_or_usage(
     try:
         return _dispatch(chapter=chapter, pack=pack, ledger=ledger)
     except DesloppifyUsageError as exc:
-        return CommandOutcome(
-            code=ExitCode.USAGE_ERROR, messages=list(exc.messages) or [str(exc)]
-        )
+        return usage_error_outcome(exc)
 
 
 def build_app() -> cyclopts.App:

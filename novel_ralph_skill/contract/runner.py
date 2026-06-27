@@ -147,6 +147,34 @@ class CommandOutcome:
         object.__setattr__(self, "messages", freeze_sequence(self.messages))
 
 
+def usage_error_outcome(exc: EnvelopeMessagesError) -> CommandOutcome:
+    """Build the exit-``2`` usage-error outcome for a body-detected fault.
+
+    The single home for the exit-``2`` envelope a command body returns when it
+    detects a bad invocation the Cyclopts parser accepted (design §3.2; ADR-003).
+    The ``messages`` payload prefers the exception's recorded prose and falls back
+    to its ``str`` when none was supplied, so every command site emits the same
+    shape rather than re-spelling it (audit-2.2.4 Finding 1).
+
+    Parameters
+    ----------
+    exc : EnvelopeMessagesError
+        The raised body fault. A
+        :class:`~novel_ralph_skill.contract.errors.BodyUsageError` subclass for a
+        genuine usage fault, or a malformed-content error (``RulePackError``,
+        ``LedgerError``) whose exit-``2`` envelope is identical in shape.
+
+    Returns
+    -------
+    CommandOutcome
+        An ``ExitCode.USAGE_ERROR`` outcome carrying ``exc``'s prose (or its
+        ``str`` fallback) and an empty ``result``.
+    """
+    return CommandOutcome(
+        code=ExitCode.USAGE_ERROR, messages=list(exc.messages) or [str(exc)]
+    )
+
+
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class RunContext:
     """The per-invocation context :func:`run` stamps into every envelope.

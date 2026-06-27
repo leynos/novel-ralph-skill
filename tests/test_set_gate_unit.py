@@ -28,7 +28,9 @@ from _gate_drafting_fixtures import (
     ratio_not_crossed_spec,
 )
 
+from novel_ralph_skill.commands._gate_drafting_mutators import GateDraftingUsageError
 from novel_ralph_skill.commands.novel_state import build_app
+from novel_ralph_skill.contract import BodyUsageError
 from novel_ralph_skill.contract.exit_codes import ExitCode
 from novel_ralph_skill.contract.runner import RunContext, run
 
@@ -36,6 +38,18 @@ if typ.TYPE_CHECKING:
     from pathlib import Path
 
 _COMMAND = "novel state"
+
+
+def test_gate_drafting_usage_error_is_body_usage_error() -> None:
+    """The leaf rebases onto the shared ``BodyUsageError`` marker (roadmap 7.3.7).
+
+    Pins the rebase so a future revert to the bare ``EnvelopeMessagesError`` base
+    is caught: ``GateDraftingUsageError`` must remain a ``BodyUsageError`` so its
+    exit-2 envelope routes through the shared ``usage_error_outcome`` home.
+    """
+    assert issubclass(GateDraftingUsageError, BodyUsageError), (
+        "GateDraftingUsageError must subclass the shared BodyUsageError marker"
+    )
 
 
 def _run(

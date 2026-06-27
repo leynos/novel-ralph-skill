@@ -33,14 +33,15 @@ from __future__ import annotations
 import typing as typ
 
 from novel_ralph_skill.commands.state_sourcing import _device_ledger_read_error
-from novel_ralph_skill.contract.exit_codes import ExitCode
-from novel_ralph_skill.contract.runner import CommandOutcome
+from novel_ralph_skill.contract import usage_error_outcome
 from novel_ralph_skill.ledger import LedgerError, LedgerFileError, load_ledger
 from novel_ralph_skill.ledger.detect import detect_ledger
 from novel_ralph_skill.ledger.report import ledger_report_outcome
 
 if typ.TYPE_CHECKING:
     import pathlib
+
+    from novel_ralph_skill.contract.runner import CommandOutcome
 
 
 def ledger_scan(ledger_path: pathlib.Path) -> CommandOutcome:
@@ -80,11 +81,10 @@ def ledger_scan(ledger_path: pathlib.Path) -> CommandOutcome:
     try:
         ledger = load_ledger(ledger_path)
     except LedgerError as exc:
-        # Malformed ledger *content* is a usage error (exit 2); map it locally to
-        # a CommandOutcome rather than coupling the shared runner to the ledger.
-        return CommandOutcome(
-            code=ExitCode.USAGE_ERROR, messages=list(exc.messages) or [str(exc)]
-        )
+        # Malformed ledger *content* is a usage error (exit 2); LedgerError is an
+        # EnvelopeMessagesError, so route it through the shared exit-2 home rather
+        # than coupling the runner to the ledger or re-spelling the envelope.
+        return usage_error_outcome(exc)
     except LedgerFileError as exc:
         # An absent/unreadable/undecodable ledger *file* is the exit-3 state
         # channel, which the shared runner already maps from StateInputError. It

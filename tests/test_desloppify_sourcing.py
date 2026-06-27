@@ -25,11 +25,24 @@ from novel_ralph_skill.commands._desloppify import (
     DesloppifyUsageError,
     source_chapters,
 )
+from novel_ralph_skill.contract import BodyUsageError
 from novel_ralph_skill.contract.runner import StateInputError
 
 if typ.TYPE_CHECKING:
     import collections.abc as cabc
     from pathlib import Path
+
+
+def test_desloppify_usage_error_is_body_usage_error() -> None:
+    """The leaf rebases onto the shared ``BodyUsageError`` marker (roadmap 7.3.7).
+
+    Pins the rebase so a future revert to the bare ``EnvelopeMessagesError`` base
+    is caught: ``DesloppifyUsageError`` must remain a ``BodyUsageError`` so its
+    exit-2 envelope routes through the shared ``usage_error_outcome`` home.
+    """
+    assert issubclass(DesloppifyUsageError, BodyUsageError), (
+        "DesloppifyUsageError must subclass the shared BodyUsageError marker"
+    )
 
 
 def _draft_path(working: Path, number: int) -> Path:

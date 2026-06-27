@@ -3130,7 +3130,7 @@ of truth, and a test pins it so it cannot silently re-fork.
     pre-edit `envelope.py` and green after the repoint. The vocabulary values, the
     `[project.scripts]` table, every rendered envelope, and the `working_dir`
     field are byte-for-byte unchanged; `make all` and `make audit` are green.
-- [ ] 7.3.7. Centralise the body-detected usage-error (exit-2) envelope in the
+- [x] 7.3.7. Centralise the body-detected usage-error (exit-2) envelope in the
   contract layer.
   - Reroute (source: audit:2.2.4 Finding 1; severity: medium).
     `GateDraftingUsageError(EnvelopeMessagesError)` plus its `_set_gate_or_usage`

@@ -602,6 +602,23 @@ live in
 Table 3. Second, `run` translates Cyclopts's native exit-`1` usage errors into
 the contract's exit `2`.
 
+That `run` arm owns only the *parser*-detected usage fault — the unknown option
+or missing argument Cyclopts itself rejects. A command *body* can also detect a
+usage fault the parser accepted (a no-flag `set-gate`, a `--chapter` outside the
+manifest, or a malformed `--pack`/`--ledger`), and the exit-`2` envelope every
+such body fault builds is single-homed in `contract.runner.usage_error_outcome`
+(roadmap task 7.3.7). A body raises a thin domain subclass of the shared
+`BodyUsageError` marker (`DesloppifyUsageError`, `GateDraftingUsageError`) — or,
+for a malformed-content fault that keeps its own typed identity, a `RulePackError`
+or `LedgerError` — and the adapter returns `usage_error_outcome(exc)` rather than
+re-spelling the `CommandOutcome(code=ExitCode.USAGE_ERROR, …)` construction. So
+`desloppify`, `set-gate`, and the `--ledger` arm all delegate to one home while
+keeping their distinct trigger types. The structural guard
+`tests/test_usage_error_outcome_single_home.py` pins that single home: it fails
+if any command module re-spells the exit-`2` `CommandOutcome` inline. The
+runner's parser-fault arm is deliberately outwith that guard's scope — it is the
+legitimate home of its own path, a separate concern from a body-detected fault.
+
 `build_envelope` validates its `command` argument against
 `ENVELOPE_COMMAND_NAMES`. The command-name vocabulary — `MULTIPLEXER_NAME`,
 `SUBCOMMAND_NAMES`, and the `ENVELOPE_COMMAND_NAMES` superset — lives in

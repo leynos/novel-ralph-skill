@@ -31,11 +31,12 @@ with exit ``3`` naming the rule, *before* the §5.2 pass.
 The one usage fault these mutators detect themselves — a no-flag ``set-gate``,
 which the Cyclopts parser cannot catch because it parses cleanly to ``{}`` — is
 routed to exit ``2`` via a domain :class:`GateDraftingUsageError` caught by the
-thin :func:`_set_gate_or_usage` adapter, which returns an exit-``2``
-:class:`CommandOutcome` directly (never via the runner's ``str(CycloptsError)``
-arm, which would crash). This copies the proven
-``_desloppify.DesloppifyUsageError`` + ``_scan_or_usage`` precedent (Decision D9;
-Surprise S3).
+thin :func:`_set_gate_or_usage` adapter, which delegates to the shared
+:func:`~novel_ralph_skill.contract.runner.usage_error_outcome` home (never the
+runner's ``str(CycloptsError)`` arm, which would crash). The leaf subclasses the
+shared :class:`~novel_ralph_skill.contract.errors.BodyUsageError` marker that
+``_desloppify.DesloppifyUsageError`` also subclasses (roadmap task 7.3.7;
+Decision D9; Surprise S3).
 """
 
 from __future__ import annotations
@@ -51,7 +52,7 @@ from novel_ralph_skill.commands._state_mutators import (
     _state_path,
     _state_view_or_state_error,
 )
-from novel_ralph_skill.contract.errors import EnvelopeMessagesError
+from novel_ralph_skill.contract import BodyUsageError, usage_error_outcome
 from novel_ralph_skill.contract.exit_codes import ExitCode
 from novel_ralph_skill.contract.runner import CommandOutcome, StateInputError
 from novel_ralph_skill.state import write_document_atomically
@@ -94,19 +95,19 @@ class GateSelection:
         return any(value is not None for value in flags)
 
 
-class GateDraftingUsageError(EnvelopeMessagesError):
-    """A body-detected usage fault routed to exit ``2`` (design §3.2).
+class GateDraftingUsageError(BodyUsageError):
+    """A gate/drafting body-detected usage fault (a no-flag ``set-gate``).
 
-    Raised when a gate/drafting mutator is invoked in a way the Cyclopts parser
-    cannot catch — specifically a no-flag ``set-gate``, which parses cleanly to
-    ``{}``. The registrar wrapper raises it and :func:`_set_gate_or_usage` returns
-    an exit-``2`` :class:`~novel_ralph_skill.contract.runner.CommandOutcome`
-    directly, never via the runner's ``str(CycloptsError)`` arm (which would crash
-    on a bare ``cyclopts.ValidationError``; ExecPlan Surprise S3, Decision D9).
-    This copies the ``_desloppify.DesloppifyUsageError`` precedent in shape; the
-    optional ``messages`` payload (recorded once by
-    :class:`~novel_ralph_skill.contract.errors.EnvelopeMessagesError`) carries the
-    human prose for the emitted envelope.
+    The thin domain leaf of the shared
+    :class:`~novel_ralph_skill.contract.errors.BodyUsageError` marker: raised when
+    a gate/drafting mutator is invoked in a way the Cyclopts parser cannot catch —
+    specifically a no-flag ``set-gate``, which parses cleanly to ``{}``. The
+    registrar wrapper raises it and :func:`_set_gate_or_usage` returns the
+    exit-``2`` outcome via
+    :func:`~novel_ralph_skill.contract.runner.usage_error_outcome`, never the
+    runner's ``str(CycloptsError)`` arm (which would crash on a bare
+    ``cyclopts.ValidationError``; ExecPlan Surprise S3, Decision D9). The optional
+    ``messages`` payload is recorded once by the shared base.
     """
 
 
@@ -201,9 +202,7 @@ def _set_gate_or_usage(selection: GateSelection) -> CommandOutcome:
     try:
         return _set_gate(_require_any_flag(selection))
     except GateDraftingUsageError as exc:
-        return CommandOutcome(
-            code=ExitCode.USAGE_ERROR, messages=list(exc.messages) or [str(exc)]
-        )
+        return usage_error_outcome(exc)
 
 
 def _require_any_flag(selection: GateSelection) -> GateSelection:
