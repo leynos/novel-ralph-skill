@@ -2270,7 +2270,7 @@ and adr-003-shared-interface-contract.md.
     message naming the `working/` tree and a remedy, with no raw `Errno`/`{exc}`
     text; all six draft-read call sites and the mutator view-derivation boundary
     emit the shared actionable prose; and the affected command suites stay green.
-  - [ ] 6.3.5.1.
+  - [x] 6.3.5.1.
     - Addendum (from review:6.3.5; low). Extract the shared inspect/repair remedy
       tail (`inspect and repair it, or restore it from a known-good copy`) into
       one constant both `_state_input_error` and `_draft_read_error` in

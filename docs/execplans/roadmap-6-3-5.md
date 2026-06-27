@@ -1016,7 +1016,7 @@ here would breach the coordination the roadmap records.
 Lightweight, no-plan corrections folded onto this completed task after the
 review of step 6.3 settled. Each runs as a no-review lightweight pass.
 
-- **6.3.5.1 (from review:6.3.5; low).** Extract the shared inspect/repair remedy
+- [x] **6.3.5.1 (from review:6.3.5; low).** Extract the shared inspect/repair remedy
   tail (`inspect and repair it, or restore it from a known-good copy`) into one
   constant both `_state_input_error` and `_draft_read_error` in
   `novel_ralph_skill/commands/_state_load.py` interpolate. The two sibling

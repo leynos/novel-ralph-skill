@@ -90,6 +90,15 @@ STATE_INPUT_ERRORS: tuple[type[Exception], ...] = (
     TypeError,
 )
 
+# The shared inspect/repair remedy tail both the present-but-corrupt
+# ``_state_input_error`` arm and ``_draft_read_error`` interpolate. Folding it
+# into one constant makes the parity those sibling formatters already promise
+# structural rather than incidental: a one-sided re-wording can no longer drift
+# the tail apart, and only the lead-in separator (a semicolon for the
+# ``state.toml`` arm, an em-dash for the draft-read arm) now differs between the
+# two messages (Addendum 6.3.5.1).
+INSPECT_REPAIR_REMEDY = "inspect and repair it, or restore it from a known-good copy"
+
 
 def _state_input_error(path: pathlib.Path, exc: Exception) -> StateInputError:
     """Build the actionable exit-``3`` ``StateInputError`` for a failed state load.
@@ -130,10 +139,7 @@ def _state_input_error(path: pathlib.Path, exc: Exception) -> StateInputError:
             "or run 'novel state init' to create one"
         )
     else:
-        message = (
-            f"{path} is unreadable or corrupt; inspect and repair it, "
-            "or restore it from a known-good copy"
-        )
+        message = f"{path} is unreadable or corrupt; {INSPECT_REPAIR_REMEDY}"
     return StateInputError(message)
 
 
@@ -180,8 +186,7 @@ def _draft_read_error(reported_dir: pathlib.Path, exc: Exception) -> StateInputE
     """
     message = (
         f"cannot read the drafts under {reported_dir}; a draft.md (or "
-        "compiled.md) is unreadable or corrupt — inspect and repair it, or "
-        "restore it from a known-good copy"
+        f"compiled.md) is unreadable or corrupt — {INSPECT_REPAIR_REMEDY}"
     )
     return StateInputError(message)
 
