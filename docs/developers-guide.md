@@ -1808,6 +1808,30 @@ coercion binding. The error channels were the one part task 7.2.2 deliberately
 scoped out (it kept each package's typed error type unchanged); task 7.2.5 is the
 sanctioned pass that retires that last near-copy.
 
+Roadmap task 7.2.6 retired the final un-consolidated loader primitive: the
+*validating parse boundary* itself. Both `parse_rulepack` and `parse_ledger`
+carried a structurally identical orchestration — reject an unknown top-level key,
+resolve and reject an unsupported `schema_version`, extract the non-empty entry
+array, build one validated entry per element, reject duplicate ids — that
+`loaderkit/parse.py` now owns as a **head/tail pair**. The head,
+`resolve_schema_version`, rejects unknown keys and resolves the version (taking
+the per-family hyphenated noun — `"rule-pack"`/`"device-ledger"` — for the
+unsupported-version sentence); the tail, `build_entries`, extracts the array,
+builds each entry through a caller-supplied builder, and rejects duplicate ids
+over a caller-supplied `entry_id` projection (defaulting to `.id`). The skeleton
+returns only *neutral* products — the resolved version int and the built entry
+tuple — so each package binds it by supplying its constant, key set, array key,
+builder, and `EntriesMessages`, then constructs its own `RulePack`/`DeviceLedger`
+at the leaf; `loaderkit` never imports a pack result type. The split into two
+functions is deliberate: the rule pack reads its extra top-level `pack` string
+**at the head/tail seam** — after the version resolve but before the entry-array
+extraction — preserving its live `pack`-before-`entries` fault precedence (a
+simultaneously missing-`pack` and bad-array input still raises the missing-`pack`
+fault). The ledger has no such field, so its head and tail run back-to-back with
+nothing read at the seam. A third pack family binds the skeleton rather than
+cloning a third `parse_*` orchestration, exactly as it inherits the coercion and
+error bindings.
+
 Each primitive is **parameterised on an error factory** rather than hard-wired to
 one package's exception. A pack family binds a small frozen `CoercionErrors`
 bundle carrying its content-error constructor (with the `rule_id=`/`device_id=`
@@ -1854,10 +1878,15 @@ editing the then-frozen rule-pack loader was an ExecPlan Tolerance trip during t
 ledger's own build. Task 7.2.2 is the sanctioned consolidation pass that performs
 exactly the refactor the old docstring foresaw, so the near-copy is retired. The
 shared primitives are pinned by `tests/test_loaderkit_coerce.py`,
-`tests/test_loaderkit_load.py`, `tests/test_loaderkit_scan.py`, and
+`tests/test_loaderkit_load.py`, `tests/test_loaderkit_scan.py`,
 `tests/test_loaderkit_errors.py` (which pins the `PackError`/`PackFileError`
-bases against a test-local third-family id keyword), and both packages' suites
-stay green unchanged, so the primitives cannot silently re-fork.
+bases against a test-local third-family id keyword), and
+`tests/test_loaderkit_parse.py` (which pins the head/tail skeleton against a
+test-local third-family binding, including the head/tail seam independence that
+buys the rule pack's `pack`-before-`entries` precedence), and both packages'
+suites stay green unchanged, so the primitives cannot silently re-fork. The
+rule pack's precedence is additionally pinned by
+`tests/test_rulepack_loader.py::test_missing_pack_precedes_empty_array`.
 The last of those also pins the relocated scan shapes' single home: an
 AST-scoped guard asserts `ScannedChapter`/`LineHit` are defined in `loaderkit.scan`
 and that the module imports nothing from a pack domain, and a callback-contract

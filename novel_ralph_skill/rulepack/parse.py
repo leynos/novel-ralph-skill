@@ -31,10 +31,10 @@ import typing as typ
 
 from novel_ralph_skill.loaderkit import (
     EntriesMessages,
+    build_entries,
     compile_pattern,
-    entries,
     load_toml,
-    reject_duplicate_ids,
+    resolve_schema_version,
 )
 from novel_ralph_skill.rulepack._coerce import (
     _ERRORS,
@@ -248,21 +248,36 @@ def parse_rulepack(raw: cabc.Mapping[str, object]) -> RulePack:
     are not this function's concern — they belong to :func:`load_rulepack`, which
     raises :class:`RulePackFileError`. Task 5.1.2 can therefore catch exactly
     these two types and map each to its exit code.
+
+    The orchestration is the shared ``loaderkit`` validating-parse skeleton
+    (roadmap 7.2.6): the head
+    :func:`~novel_ralph_skill.loaderkit.parse.resolve_schema_version` rejects
+    unknown keys and resolves the version, then the ``pack`` string is read **at
+    the head/tail seam** — between the version resolve and the entry-array
+    extraction, exactly where the original reads it — so a simultaneously
+    missing-``pack`` and bad-``rule``-array input still raises the missing-``pack``
+    fault, not the entry-array one. The tail
+    :func:`~novel_ralph_skill.loaderkit.parse.build_entries` extracts the array,
+    builds each :class:`Rule`, and rejects duplicate ids. The :class:`RulePack`
+    construction stays here, at the leaf (the skeleton names no pack type).
     """
-    _reject_unknown_keys(raw, _PACK_KEYS, rule_id=None)
-    schema_version = _require_int(raw, "schema_version", rule_id=None)
-    if schema_version != RULEPACK_SCHEMA_VERSION:
-        msg = (
-            f"unsupported rule-pack schema_version {schema_version}; "
-            f"expected {RULEPACK_SCHEMA_VERSION}"
-        )
-        raise RulePackError(msg, rule_id=None)
-    pack = _require_str(raw, "pack", rule_id=None)
-    raw_entries = entries(
-        raw, array_key="rule", messages=_ENTRIES_MESSAGES, errors=_ERRORS
+    schema_version = resolve_schema_version(
+        raw,
+        allowed_keys=_PACK_KEYS,
+        schema_version_constant=RULEPACK_SCHEMA_VERSION,
+        unsupported_noun="rule-pack",
+        errors=_ERRORS,
     )
-    rules = tuple(_rule(entry, index=index) for index, entry in enumerate(raw_entries))
-    reject_duplicate_ids((rule.id for rule in rules), errors=_ERRORS)
+    # Read ``pack`` at the head/tail seam, preserving the live
+    # ``pack``-before-``entries`` fault precedence (Decision D-SKELETON-HEAD-TAIL).
+    pack = _require_str(raw, "pack", rule_id=None)
+    rules = build_entries(
+        raw,
+        array_key="rule",
+        entries_messages=_ENTRIES_MESSAGES,
+        errors=_ERRORS,
+        build_entry=lambda entry, index: _rule(entry, index=index),
+    )
     return RulePack(schema_version=schema_version, pack=pack, rules=rules)
 
 

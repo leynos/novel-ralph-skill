@@ -144,6 +144,25 @@ def test_missing_id_names_the_rule_index() -> None:
     assert any("0" in message for message in error.messages)
 
 
+def test_missing_pack_precedes_empty_array() -> None:
+    """A simultaneously missing ``pack`` and empty ``rule`` array names ``pack`` first.
+
+    The rule pack reads its top-level ``pack`` string **at the head/tail seam** of
+    the shared ``loaderkit`` skeleton — after the schema-version resolve but before
+    the entry-array extraction — so for an input that trips both the missing-``pack``
+    and empty-array faults at once, the missing-``pack`` fault wins (roadmap 7.2.6,
+    Decision D-SKELETON-HEAD-TAIL). No other fixture combines the two faults, so this
+    pins the ``pack``-before-``entries`` precedence the rest of the corpus leaves
+    latent. The message names ``'pack'`` and not the empty-``rule``-array sentence.
+    """
+    with pytest.raises(RulePackError) as excinfo:
+        load_rulepack(_fixture("missing-pack-and-empty-array.toml"))
+    error = excinfo.value
+    assert error.rule_id is None
+    assert any("'pack'" in message for message in error.messages)
+    assert not any("array is empty" in message for message in error.messages)
+
+
 def test_non_integer_threshold_is_not_coerced() -> None:
     """A string ``threshold`` raises rather than being treated as the integer 0."""
     with pytest.raises(RulePackError):

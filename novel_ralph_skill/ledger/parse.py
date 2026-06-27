@@ -33,7 +33,6 @@ from novel_ralph_skill.ledger._coerce import (
     _ERRORS,
     _Mapping,
     _reject_unknown_keys,
-    _require_int,
     _require_str,
 )
 from novel_ralph_skill.ledger._fields import _rationing_fields
@@ -45,10 +44,10 @@ from novel_ralph_skill.ledger.schema import (
 )
 from novel_ralph_skill.loaderkit import (
     EntriesMessages,
+    build_entries,
     compile_pattern,
-    entries,
     load_toml,
-    reject_duplicate_ids,
+    resolve_schema_version,
 )
 
 if typ.TYPE_CHECKING:
@@ -168,22 +167,32 @@ def parse_ledger(raw: cabc.Mapping[str, object]) -> DeviceLedger:
     this function's concern — they belong to :func:`load_ledger`, which raises
     :class:`LedgerFileError`. Task 7.1.2 can therefore catch exactly these two
     types and map each to its exit code.
+
+    The orchestration is the shared ``loaderkit`` validating-parse skeleton
+    (roadmap 7.2.6): the head
+    :func:`~novel_ralph_skill.loaderkit.parse.resolve_schema_version` rejects
+    unknown keys and resolves the version, then the tail
+    :func:`~novel_ralph_skill.loaderkit.parse.build_entries` extracts the array,
+    builds each :class:`Device`, and rejects duplicate ids. Unlike the rule pack
+    the ledger has **no** top-level string field, so the head and tail run
+    back-to-back with nothing read at the seam — there is no precedence question
+    and no asymmetry to preserve. The :class:`DeviceLedger` construction stays
+    here, at the leaf (the skeleton names no pack type).
     """
-    _reject_unknown_keys(raw, _LEDGER_KEYS, device_id=None)
-    schema_version = _require_int(raw, "schema_version", device_id=None)
-    if schema_version != LEDGER_SCHEMA_VERSION:
-        msg = (
-            f"unsupported device-ledger schema_version {schema_version}; "
-            f"expected {LEDGER_SCHEMA_VERSION}"
-        )
-        raise LedgerError(msg, device_id=None)
-    raw_entries = entries(
-        raw, array_key="device", messages=_ENTRIES_MESSAGES, errors=_ERRORS
+    schema_version = resolve_schema_version(
+        raw,
+        allowed_keys=_LEDGER_KEYS,
+        schema_version_constant=LEDGER_SCHEMA_VERSION,
+        unsupported_noun="device-ledger",
+        errors=_ERRORS,
     )
-    devices = tuple(
-        _device(entry, index=index) for index, entry in enumerate(raw_entries)
+    devices = build_entries(
+        raw,
+        array_key="device",
+        entries_messages=_ENTRIES_MESSAGES,
+        errors=_ERRORS,
+        build_entry=lambda entry, index: _device(entry, index=index),
     )
-    reject_duplicate_ids((device.id for device in devices), errors=_ERRORS)
     return DeviceLedger(schema_version=schema_version, devices=devices)
 
 

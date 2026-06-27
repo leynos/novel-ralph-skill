@@ -1,0 +1,7 @@
+# Simultaneously missing the top-level 'pack' key AND carrying an empty 'rule'
+# array. The loader reads 'pack' at the head/tail seam — after the schema-version
+# resolve but before the entry-array extraction — so this trips the missing-'pack'
+# fault first, never reaching the empty-array fault. Pins the
+# pack-before-entries precedence (roadmap 7.2.6, Decision D-SKELETON-HEAD-TAIL).
+schema_version = 1
+rule = []

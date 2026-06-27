@@ -2915,7 +2915,7 @@ test pins it so it cannot silently re-fork.
       binding or accidentally re-parents an error is caught. Lightweight
       addendum pass.
 
-- [ ] 7.2.6. Consolidate the parallel rule-pack and device-ledger validating
+- [x] 7.2.6. Consolidate the parallel rule-pack and device-ledger validating
   parse boundaries onto a shared `loaderkit` skeleton.
   - Step-task (source: audit:7.2.5; severity: medium). 7.2.2 consolidated the
     coercion and scan *bodies* and 7.2.5 the error hierarchies, but the

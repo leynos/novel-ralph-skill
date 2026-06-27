@@ -55,6 +55,7 @@ from novel_ralph_skill.loaderkit.load import (
     load_toml,
     reject_duplicate_ids,
 )
+from novel_ralph_skill.loaderkit.parse import build_entries, resolve_schema_version
 from novel_ralph_skill.loaderkit.scan import LineHit, ScannedChapter, scan_pattern
 
 __all__ = [
@@ -65,6 +66,7 @@ __all__ = [
     "PackError",
     "PackFileError",
     "ScannedChapter",
+    "build_entries",
     "compile_pattern",
     "entries",
     "load_toml",
@@ -73,6 +75,7 @@ __all__ = [
     "require",
     "require_int",
     "require_str",
+    "resolve_schema_version",
     "scan_pattern",
     "where",
 ]
