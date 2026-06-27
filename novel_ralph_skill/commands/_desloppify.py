@@ -53,8 +53,9 @@ from novel_ralph_skill.commands.state_sourcing import (
 from novel_ralph_skill.contract.errors import EnvelopeMessagesError
 from novel_ralph_skill.contract.exit_codes import ExitCode
 from novel_ralph_skill.contract.runner import CommandOutcome, make_contract_app
+from novel_ralph_skill.loaderkit.scan import ScannedChapter
 from novel_ralph_skill.rulepack import RulePackError, RulePackFileError, load_rulepack
-from novel_ralph_skill.rulepack.detect import ScannedChapter, detect
+from novel_ralph_skill.rulepack.detect import detect
 
 if typ.TYPE_CHECKING:
     import collections.abc as cabc
@@ -185,7 +186,7 @@ def source_chapters(chapter: int | None) -> tuple[ScannedChapter, ...]:
     Returns
     -------
     tuple[ScannedChapter, ...]
-        One :class:`~novel_ralph_skill.rulepack.detect.ScannedChapter` per
+        One :class:`~novel_ralph_skill.loaderkit.scan.ScannedChapter` per
         selected chapter, in ascending ``number`` order.
 
     Raises

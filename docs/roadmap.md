@@ -2813,7 +2813,7 @@ test pins it so it cannot silently re-fork.
       that module; retune both to the developers' guide's "free of any
       `Rule`/`Device` knowledge" framing. Lightweight addendum pass.
 
-- [ ] 7.2.4. Repoint the scan-shape stragglers off the `rulepack.detect`
+- [x] 7.2.4. Repoint the scan-shape stragglers off the `rulepack.detect`
   re-export and settle the re-export's fate.
   - Step-task (source: audit:7.2.3 Findings 1, 3; severity: medium). 7.2.3
     relocated `ScannedChapter`/`LineHit` into `loaderkit.scan`, but

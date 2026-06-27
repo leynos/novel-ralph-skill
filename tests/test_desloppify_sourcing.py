@@ -2,7 +2,7 @@
 
 These pin :func:`novel_ralph_skill.commands._desloppify.source_chapters`, the
 helper that turns the ``working/`` tree into the
-:class:`~novel_ralph_skill.rulepack.detect.ScannedChapter` sequence the detection
+:class:`~novel_ralph_skill.loaderkit.scan.ScannedChapter` sequence the detection
 core consumes (design §4.4, §5.1). The suite proves the manifest-driven scope
 (whole manuscript vs ``--chapter N``), the absent-draft-is-empty-text benign
 case, and the exit-2 vs exit-3 fault split: a ``--chapter`` outside the manifest

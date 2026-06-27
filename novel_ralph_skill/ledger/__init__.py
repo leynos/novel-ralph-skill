@@ -10,8 +10,8 @@ undecodable file), and the :func:`parse_ledger` / :func:`load_ledger` boundary
 the ``desloppify --ledger`` enforcement (roadmap task 7.1.2) consumes.
 
 The package is a deliberate parallel to :mod:`novel_ralph_skill.rulepack`: it
-shares the proven schema→parse→detect→report shape and the
-:class:`~novel_ralph_skill.rulepack.detect.ScannedChapter` input type, but carries
+shares the proven schema→parse→detect→report shape and the neutral
+:class:`~novel_ralph_skill.loaderkit.scan.ScannedChapter` scan shape, but carries
 its own chapter-aware rationing vocabulary (``max_count``, ``allowed_chapters``,
 ``retired_after_chapter``, ``reserved_for_chapter``) that the closed v1 rule-pack
 schema cannot express, keeping the rule-pack contract frozen (ADR-003).

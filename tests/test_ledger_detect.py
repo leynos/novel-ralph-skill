@@ -5,7 +5,7 @@ aggregation over a :class:`~novel_ralph_skill.ledger.schema.DeviceLedger` and
 in-memory chapter text (design §6.3). The detector has no filesystem and no
 ``sys.exit``, so it is exercised directly here with hand-built
 :class:`Device`/:class:`DeviceLedger` shapes and synthesised
-:class:`~novel_ralph_skill.rulepack.detect.ScannedChapter`s.
+:class:`~novel_ralph_skill.loaderkit.scan.ScannedChapter`s.
 
 The suite pins one breach and one clean case per constraint kind (``max_count``,
 ``allowed_chapters``, ``retired_after_chapter``, ``reserved_for_chapter``), the
@@ -24,7 +24,7 @@ import pytest
 
 from novel_ralph_skill.ledger.detect import DeviceFinding, LedgerReport, detect_ledger
 from novel_ralph_skill.ledger.schema import Device, DeviceLedger
-from novel_ralph_skill.rulepack.detect import ScannedChapter
+from novel_ralph_skill.loaderkit.scan import ScannedChapter
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True, slots=True)

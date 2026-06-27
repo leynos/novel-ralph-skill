@@ -21,11 +21,10 @@ import re
 
 import pytest
 
+from novel_ralph_skill.loaderkit.scan import LineHit, ScannedChapter
 from novel_ralph_skill.rulepack.detect import (
     DetectionReport,
-    LineHit,
     RuleFinding,
-    ScannedChapter,
     detect,
 )
 from novel_ralph_skill.rulepack.schema import Rule, RuleBasis, RulePack
@@ -205,3 +204,25 @@ def test_single_line_span_yields_one_hit() -> None:
         f"hit on line 1 expected, got {finding.lines}"
     )
     assert finding.passed is False, "one hit over a zero threshold must fail"
+
+
+def test_detect_no_longer_reexports_scan_shapes() -> None:
+    """`rulepack.detect` advertises only its own contract, not the neutral shapes.
+
+    The re-export is pruned: ``__all__`` lists exactly the frozen rule-pack
+    contract (``DetectionReport``/``RuleFinding``/``detect``), and neither neutral
+    scan shape is advertised. ``ScannedChapter`` is no longer a module attribute
+    at all (it moved under ``TYPE_CHECKING``); ``LineHit`` remains a private
+    runtime import because the detector constructs it in its ``line_hit`` lambda,
+    so the assertion is that it is *not advertised*, not that it is absent.
+    """
+    import novel_ralph_skill.rulepack.detect as detect_module
+
+    assert set(detect_module.__all__) == {
+        "DetectionReport",
+        "RuleFinding",
+        "detect",
+    }
+    assert "ScannedChapter" not in detect_module.__all__
+    assert "LineHit" not in detect_module.__all__
+    assert not hasattr(detect_module, "ScannedChapter")

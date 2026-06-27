@@ -37,7 +37,7 @@ from hypothesis import strategies as st
 from novel_ralph_skill.ledger import parse_ledger
 from novel_ralph_skill.ledger.detect import detect_ledger
 from novel_ralph_skill.ledger.schema import Device, DeviceLedger
-from novel_ralph_skill.rulepack.detect import ScannedChapter
+from novel_ralph_skill.loaderkit.scan import ScannedChapter
 
 if typ.TYPE_CHECKING:
     import collections.abc as cabc

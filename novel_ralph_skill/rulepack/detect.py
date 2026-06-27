@@ -26,23 +26,18 @@ from __future__ import annotations
 import dataclasses
 import typing as typ
 
-from novel_ralph_skill.loaderkit.scan import (
-    LineHit,
-    ScannedChapter,
-    scan_pattern,
-)
+from novel_ralph_skill.loaderkit.scan import LineHit, scan_pattern
 from novel_ralph_skill.rulepack.schema import RuleBasis
 
 if typ.TYPE_CHECKING:
     import collections.abc as cabc
 
+    from novel_ralph_skill.loaderkit.scan import ScannedChapter
     from novel_ralph_skill.rulepack.schema import Rule, RulePack
 
 __all__ = [
     "DetectionReport",
-    "LineHit",
     "RuleFinding",
-    "ScannedChapter",
     "detect",
 ]
 
