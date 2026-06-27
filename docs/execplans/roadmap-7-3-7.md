@@ -910,3 +910,18 @@ Both re-exported from `novel_ralph_skill.contract` (added to `__all__`).
 subclass `BodyUsageError`. All four command exit-2 sites call
 `usage_error_outcome`. No new third-party dependency. No public signature changes
 beyond the two additive names.
+
+## Addenda
+
+Lightweight, post-completion corrections folded onto this task. Each is a small,
+surgical fix run as a no-plan, no-review pass; none changes the task's outcome.
+
+- [ ] A1 (from audit:7.3.7 Finding 5; low). Add behavioural coverage for
+  `desloppify` body-detected exit-2 faults. The body-detected exit-2 path through
+  `usage_error_outcome` is exercised end-to-end only for `set-gate`'s no-flag
+  fault; `desloppify`'s bad-chapter and `--ledger`+`--chapter` body faults are
+  covered only at the unit-driver level. Add a scenario driving a real
+  `desloppify` invocation with a manifest-absent `--chapter` (and one for the
+  `--ledger`+`--chapter` combination) so the 7.3.7 single home is proven
+  end-to-end for `desloppify` too. Behaviour-preserving test addition. Scope: the
+  desloppify behavioural suite. Mirrors roadmap sub-task 7.3.7.1.

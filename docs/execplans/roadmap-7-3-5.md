@@ -1023,3 +1023,38 @@ Revision 2 (2026-06-27), addressing the round-1 Logisphere design review
 No remaining work is gated on an undecided fork: the seam home (D3) is
 pre-decided and moot (runner.py is 250 lines), and the mechanism (constructive
 single-home seam) is unchanged from round 1, which the reviewer endorsed.
+
+## Addenda
+
+Lightweight, post-completion corrections folded onto this task. Each is a small,
+surgical fix run as a no-plan, no-review pass; none changes the task's outcome.
+
+- [ ] A1 (from review:7.3.5; low). Drop the redundant
+  `# pylint: disable=too-many-arguments` suppressions on `drive` and
+  `_capture_drive`. `pylint`'s `too-many-arguments` is already globally disabled
+  in `pyproject.toml`, so the two inline `# pylint: disable` comments are
+  belt-and-braces and contradict the AGENTS.md preference against unnecessary
+  suppressions. Drop them while retaining the `# noqa: PLR0913` on `drive` (Ruff
+  PLR0913 is not overridden for production code). No behaviour change. Scope:
+  `novel_ralph_skill/contract/runner.py` (the `drive`/`_capture_drive`
+  suppressions). Mirrors roadmap sub-task 7.3.5.1.
+
+- [ ] A2 (from audit:7.3.5 Finding 2; low). Record or remove the `drive` seam's
+  `PLR0913` dual suppression. `drive` disassembles the `RunContext` trio into
+  three keyword scalars then immediately rebuilds a `RunContext`, pushing the
+  signature to five params and requiring the only double-barrelled
+  argument-count suppression in the slice. Either pass an already-built
+  `RunContext` (the sole production caller constructs it inline; layering
+  untouched) to drop the suppression, or record the disassembled-pass trade-off
+  in the `drive` docstring Notes so the suppression reads as a decision rather
+  than an oversight. Scope: `novel_ralph_skill/contract/runner.py` (`drive`).
+  Mirrors roadmap sub-task 7.3.5.2.
+
+- [ ] A3 (from audit:7.3.5 Findings 3 and 4; low). Close the direct-test gaps for
+  `_command_name_for`'s three documented fallbacks to bare `novel` (exercised
+  only transitively) and for `make_contract_app`'s name round-trip (which
+  `build_multiplexer` and envelope command-stamping depend on, asserted only
+  obliquely). Add two small parametrised assertions converting the docstring
+  promises into executable contracts so a future value-carrying global flag or a
+  name regression fails loudly. Scope: the multiplexer/contract-app test modules.
+  Mirrors roadmap sub-task 7.3.5.3.

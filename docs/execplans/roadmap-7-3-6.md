@@ -890,3 +890,17 @@ naming constants"; WI4 describes `commands/names.py` honestly as no longer a
 dependency-free leaf (transitive contract import, not a cycle) — recorded as
 Decision D5. No new undecided forks; no external-library claim is load-bearing
 (D0 unchanged, confirmed by the round-1 reviewer).
+
+## Addenda
+
+Lightweight, post-completion corrections folded onto this task. Each is a small,
+surgical fix run as a no-plan, no-review pass; none changes the task's outcome.
+
+- [ ] A1 (from review:7.3.6; low). De-tense the now-complete forward-looking
+  conditional in the `contract/names.py` docstring. The module retains a clause
+  ("once roadmap task 7.3.6 WI2 lands it") that is now factually complete, so the
+  shipped docstring reads as if the relocation were still pending. Re-word the
+  clause to the settled present tense so the docstring describes the delivered
+  state. Doc-only; no behaviour change. Scope:
+  `novel_ralph_skill/contract/names.py` (module docstring). Mirrors roadmap
+  sub-task 7.3.6.1.

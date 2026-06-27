@@ -2863,6 +2863,39 @@ test pins it so it cannot silently re-fork.
       section recording that `LineHit` remains an importable-but-unadvertised
       `rulepack.detect` attribute by design. Lightweight addendum pass.
 
+- [ ] 7.2.5. Consolidate the parallel rule-pack and device-ledger error
+  hierarchies behind one shared `loaderkit.errors` factory.
+  - Reroute (source: audit:7.3.6; severity: medium). `rulepack/errors.py` and
+    `ledger/errors.py` carry structurally identical two-class hierarchies
+    differing only in the id-attribute name (`rule_id`/`device_id`) and the
+    nouns, and the `*FileError` classes are already passed as interchangeable
+    `file_error=` factories to `loaderkit.load.load_toml`. Task 7.2.2
+    deliberately kept each package's typed error channel as a parallel near-copy
+    while consolidating only the coercion and scan bodies, so the error
+    hierarchies remain the same near-copy 7.2.2 retired for coercion by lifting
+    bodies into `loaderkit.coerce`. Add a `loaderkit.errors` factory (preserving
+    the public `rule_id`/`device_id` names and each typed error channel) so a
+    third loader family adds a binding rather than a third copy — the seam
+    `8.1.9` already assumes exists. This serves the step-7.2 hypothesis — that
+    the detection-pack loader primitives each have a single home — not the
+    step-7.3 command-facade hypothesis where it was raised, so it is rerouted
+    here. Coordinate with the loaderkit-consolidation lineage (7.2.2/7.2.3) so the
+    error factory lands beside the shared coercion and scan primitives.
+  - Requires 7.2.2.
+  - See novel-ralph-harness-design.md §6.1, §6.2, and §6.3;
+    docs/adr-003-shared-interface-contract.md;
+    novel_ralph_skill/loaderkit/;
+    novel_ralph_skill/rulepack/errors.py;
+    novel_ralph_skill/ledger/errors.py.
+  - Success: one `loaderkit.errors` factory owns the two-class
+    `Error`/`FileError` hierarchy shape, parameterised on the id-attribute name
+    and nouns; the rule-pack and ledger packages bind it rather than carrying
+    near-identical copies; the public `rule_id`/`device_id` names, each typed
+    error channel, the exit-code mapping, and the operator messages are
+    unchanged; a test pins the factory so a third pack family inherits the
+    primitive instead of cloning a third copy; and the rule-pack and ledger
+    suites stay green.
+
 ### 7.3. Single-source the command facade, predicates, and writers
 
 This step answers whether the command-facade and entry-point seams, the
@@ -3084,6 +3117,35 @@ of truth, and a test pins it so it cannot silently re-fork.
     `main`, and a layering guard (`tests/test_contract_layering.py`) pins that the
     seam imports no `commands` module. Behaviour, exit codes, the absolute
     `working_dir` stamp, and the import-laziness profile are unchanged.
+  - [ ] 7.3.5.1. Drop the redundant `# pylint: disable=too-many-arguments`
+    suppressions on `drive` and `_capture_drive`.
+    - Addendum (from review:7.3.5; low). `pylint`'s `too-many-arguments` is
+      already globally disabled in `pyproject.toml`, so the two inline
+      `# pylint: disable` comments on `drive` and `_capture_drive` are
+      belt-and-braces and contradict the AGENTS.md preference against unnecessary
+      suppressions; drop them while retaining the `# noqa: PLR0913` on `drive`
+      (Ruff PLR0913 is not overridden for production code). No behaviour change.
+      Lightweight addendum pass against the 7.3.5 execplan.
+  - [ ] 7.3.5.2. Record or remove the `drive` seam's `PLR0913` dual suppression.
+    - Addendum (from audit:7.3.5 Finding 2; low). `drive` disassembles the
+      `RunContext` trio into three keyword scalars then immediately rebuilds a
+      `RunContext`, pushing the signature to five params and requiring the only
+      double-barrelled argument-count suppression in the slice. Either pass an
+      already-built `RunContext` (the sole production caller constructs it inline;
+      layering untouched) to drop the suppression, or record the
+      disassembled-pass trade-off in the `drive` docstring Notes so the
+      suppression reads as a decision rather than an oversight. Lightweight
+      addendum pass against the 7.3.5 execplan.
+  - [ ] 7.3.5.3. Close the direct-test gaps for `_command_name_for` fallbacks and
+    the `make_contract_app` name round-trip.
+    - Addendum (from audit:7.3.5 Findings 3 and 4; low). `_command_name_for`'s
+      three documented fallbacks to bare `novel` are exercised only transitively,
+      and `make_contract_app`'s name round-trip (which `build_multiplexer` and
+      envelope command-stamping depend on) is asserted only obliquely. Add two
+      small parametrised assertions that convert the docstring promises into
+      executable contracts so a future value-carrying global flag or a name
+      regression fails loudly. Lightweight addendum pass against the 7.3.5
+      execplan.
 - [x] 7.3.6. Relocate `WORKING_DIR_NAME` and the command-name vocabulary into
   the contract package.
   - Reroute (source: audit:1.2.12; severity: medium). `WORKING_DIR_NAME` is a
@@ -3130,6 +3192,14 @@ of truth, and a test pins it so it cannot silently re-fork.
     pre-edit `envelope.py` and green after the repoint. The vocabulary values, the
     `[project.scripts]` table, every rendered envelope, and the `working_dir`
     field are byte-for-byte unchanged; `make all` and `make audit` are green.
+  - [ ] 7.3.6.1. De-tense the now-complete forward-looking conditional in the
+    `contract/names.py` docstring.
+    - Addendum (from review:7.3.6; low). `contract/names.py` retains a
+      forward-looking conditional clause ("once roadmap task 7.3.6 WI2 lands it")
+      that is now factually complete, so the shipped docstring reads as if the
+      relocation were still pending. Re-word the clause to the settled present
+      tense so the module docstring describes the delivered state. Doc-only; no
+      behaviour change. Lightweight addendum pass against the 7.3.6 execplan.
 - [x] 7.3.7. Centralise the body-detected usage-error (exit-2) envelope in the
   contract layer.
   - Reroute (source: audit:2.2.4 Finding 1; severity: medium).
@@ -3162,6 +3232,16 @@ of truth, and a test pins it so it cannot silently re-fork.
     `CommandOutcome`; the exit-2 envelope construction lives in exactly one
     place; a unit test pins the shared helper's envelope; and the gate/drafting,
     desloppify, and contract suites stay green.
+  - [ ] 7.3.7.1. Add behavioural coverage for `desloppify` body-detected exit-2
+    faults.
+    - Addendum (from audit:7.3.7 Finding 5; low). The body-detected exit-2 path
+      through `usage_error_outcome` is exercised end-to-end only for `set-gate`'s
+      no-flag fault; `desloppify`'s bad-chapter and `--ledger`+`--chapter` body
+      faults are covered only at the unit-driver level. Add a scenario driving a
+      real `desloppify` invocation with a manifest-absent `--chapter` (and one for
+      the `--ledger`+`--chapter` combination) so the 7.3.7 single home is proven
+      end-to-end for `desloppify` too. Behaviour-preserving test addition.
+      Lightweight addendum pass against the 7.3.7 execplan.
 - [x] 7.3.8. Hoist the spaced-name-to-verb derivation into `names.py` and route
   `novel.py` and the e2e suite through it.
   - Reroute (source: audit:1.2.15; severity: medium; the audit:1.2.13 proposal it
@@ -3188,6 +3268,25 @@ of truth, and a test pins it so it cannot silently re-fork.
     through it rather than re-spelling `split(" ", 1)[1]`; no spaced-name-to-verb
     split survives outside the registry; and the multiplexer, console-scripts, and
     registry suites stay green.
+  - [ ] 7.3.8.1. Correct the 7.3.8 execplan's grep-based acceptance wording to
+    reference the live-code count.
+    - Addendum (from review:7.3.8; low). The execplan documents an observable
+      acceptance ("grep … expect: exactly one hit") that is literally false — the
+      raw grep returns ten hits and only the live-code count is one — so a future
+      agent running the documented command is misled. Re-word the acceptance to
+      point at the WI4 tokenizer guard / live-code count, or scope the grep to
+      exclude comments and strings. Doc-only fix to the 7.3.8 execplan record.
+      Lightweight addendum pass against the 7.3.8 execplan.
+  - [ ] 7.3.8.2. Build the multiplexer verb map from the registry rather than one
+    `verb_for` call at a time.
+    - Addendum (from audit:7.3.8; low). `novel.py` rebuilds
+      `_VERB_FOR_SUBCOMMAND` one `verb_for()` call at a time, reconstructing the
+      relation the contract already holds. Build it from
+      `dict(zip(SUBCOMMAND_NAMES, SUBCOMMAND_VERBS, strict=True))` — or expose a
+      registry `verb_map()` accessor — so the spaced-name-to-verb map is owned in
+      one place, serving the same single-source intent 7.3.8 established for the
+      scalar split. Behaviour-preserving. Lightweight addendum pass against the
+      7.3.8 execplan.
 - [ ] 7.3.9. Unify the desloppify and ledger pack-detect pipelines onto one
   shared seam.
   - Reroute (source: audit:6.3.3 Finding 2; severity: low). `_desloppify` and
@@ -3411,6 +3510,102 @@ of truth, and a test pins it so it cannot silently re-fork.
     but `state_sourcing`; re-pinning a seam accessor onto any non-`state_sourcing`
     home reddens the guard; and the mutator, recount, reconcile, and
     state-sourcing-home suites stay green.
+
+- [ ] 7.3.18. Migrate the three remaining draft-read boundaries onto
+  `state_sourcing.draft_read_guard` and make the structural guard exhaustive.
+  - Step-task (sources: review:7.3.3, two near-identical proposals merged;
+    severity: low). Task 7.3.3 homed the draft-read guard in `state_sourcing` and
+    migrated the three roadmap-named commands (Decision D2), but `_novel_done`
+    (one handler) and `_compile` (two handlers) still open-code the identical
+    `try/except STATE_INPUT_ERRORS -> _draft_read_error` shell the guard was
+    deliberately written to serve for all six boundaries with no signature change
+    (Decision D2 / Risk R3). This serves the step-7.3 command-facade single-home
+    hypothesis directly: the draft-read seam must exist exactly once, and the
+    single-home guarantee is only exhaustive once every boundary consumes it.
+    Migrate the three remaining boundaries and broaden the structural anti-drift
+    test to scan all draft-read boundaries rather than an allow-list, so a future
+    open-coded boundary reddens the guard. It warrants its own plan because the
+    400-line cap on `state_sourcing.py` leaves no docstring headroom and the
+    migration may need a measured line-budget plan; it is filed here as a full
+    task rather than a lightweight addendum. Distinct from 7.4.13, which extracts
+    the lower-level `draft_read_boundary` context manager in
+    `state/_state_load.py`.
+  - Requires 7.3.3.
+  - See novel-ralph-harness-design.md §3.2 and §4.5;
+    docs/execplans/roadmap-7-3-3.md (Decision D2; Risk R3);
+    novel_ralph_skill/commands/state_sourcing.py (`draft_read_guard`);
+    novel_ralph_skill/commands/_novel_done.py;
+    novel_ralph_skill/commands/_compile.py.
+  - Success: `_novel_done` and both `_compile` draft-read tails consume
+    `state_sourcing.draft_read_guard` rather than open-coding the
+    `try/except STATE_INPUT_ERRORS -> _draft_read_error` shell; no draft-read
+    boundary re-spells the shell; the structural anti-drift test scans all six
+    draft-read boundaries rather than an allow-list so an open-coded boundary
+    fails the guard; the exit-3 fault-routing and operator messages are unchanged;
+    and the done-predicate, compile, recount, wordcount, and desloppify suites
+    stay green.
+- [ ] 7.3.19. Repoint the vocabulary consumers off the `commands.names`
+  re-export onto `contract.names` and narrow the re-export.
+  - Step-task (source: review:7.3.6; severity: low). Task 7.3.6 relocated the
+    command-name vocabulary into `contract.names` but deliberately preserved
+    `commands.names` as a re-export for zero blast radius. Once the surviving
+    consumers (`commands.novel` and the roughly eight test modules) import the
+    vocabulary directly from `contract.names`, the `commands.names` re-export can
+    be reduced to the console-script binding alone, eliminating the dual-home
+    ambiguity the identity tests currently guard. This serves the step-7.3
+    command-facade single-home hypothesis directly — finishing the
+    exactly-one-canonical-home consolidation 7.3.6 began but left behind a
+    compatibility re-export — and mirrors the 7.2.x straggler-repointing pattern
+    already in the roadmap. It warrants its own plan because it rewires imports
+    across `commands.novel` and the test surface and narrows a public re-export,
+    so it is filed as a full task rather than a lightweight addendum.
+  - Requires 7.3.6.
+  - See novel-ralph-harness-design.md §4;
+    docs/adr-007-command-surface-novel-multiplexer.md;
+    novel_ralph_skill/contract/names.py;
+    novel_ralph_skill/commands/names.py;
+    novel_ralph_skill/commands/novel.py.
+  - Success: `commands.novel` and the test modules import the command-name
+    vocabulary directly from `contract.names`; the `commands.names` re-export is
+    narrowed to the `[project.scripts]` console-script binding alone; the
+    dual-home identity tests are retired or repointed at the single home; no
+    consumer reaches the vocabulary through the `commands.names` re-export; and
+    the command, registry, console-scripts, and envelope suites stay green.
+- [ ] 7.3.20. Collapse the exit-2 usage adapters onto the shared
+  `BodyUsageError` and co-locate `usage_error_outcome`.
+  - Step-task (sources: audit:7.3.7 Findings 1, 2, 3, 6; severity: medium). After
+    7.3.7 single-homed the exit-2 envelope construction, `_scan_or_usage` and
+    `_set_gate_or_usage` are structurally identical `try/except` wrappers that
+    still each catch their own concrete leaf rather than the shared
+    `BodyUsageError` base 7.3.7 introduced to unify them, and `usage_error_outcome`
+    — a pure construction-side projection — is housed in `runner.py` (the
+    parser-driving seam), split from its `BodyUsageError` sibling in `errors.py`
+    and leaving the runner's own `CycloptsError` arm re-spelling the identical
+    exit-2 shape. This serves the step-7.3 command-facade single-home hypothesis,
+    continuing it one level up from the envelope to the adapter: catching the
+    shared `BodyUsageError` base (or lifting the wrapper into one contract-level
+    helper) removes the last per-module re-spelling, and relocating
+    `usage_error_outcome` beside `BodyUsageError` then routing the runner's parser
+    arm through it collapses the two exit-2 construction sites into one spelling
+    without widening the single-home guard's scope (resolving the four
+    cross-references Finding 6 flags). It warrants its own plan because it rewires
+    adapters and the runner across modules, so it is filed as a full task rather
+    than a lightweight addendum.
+  - Requires 7.3.7.
+  - See novel-ralph-harness-design.md §3.2 and §4;
+    docs/adr-003-shared-interface-contract.md;
+    docs/issues/audit-7.3.7.md (Findings 1, 2, 3, 6);
+    novel_ralph_skill/contract/errors.py;
+    novel_ralph_skill/contract/runner.py;
+    novel_ralph_skill/commands/_desloppify.py;
+    novel_ralph_skill/commands/_gate_drafting_mutators.py.
+  - Success: `_scan_or_usage` and `_set_gate_or_usage` catch the shared
+    `BodyUsageError` base (or delegate to one contract-level wrapper) rather than
+    each catching their own concrete leaf; `usage_error_outcome` lives in a
+    construction-side module beside `BodyUsageError`; the runner's parser-driven
+    `CycloptsError` arm delegates to it so the two exit-2 construction sites share
+    one spelling; no per-module exit-2 adapter re-spelling survives; and the
+    gate/drafting, desloppify, runner, and contract suites stay green.
 
 ### 7.4. Single-source chapter-draft sourcing, word-count, and disk-evidence
 
@@ -3752,6 +3947,32 @@ silently re-fork.
     a draft-read fault at any boundary routes to exit 3 (not exit 1); the exit-code
     policy and operator messages are unchanged; and the recount, wordcount,
     compile, and disk-evidence suites stay green.
+
+- [ ] 7.4.14. Hoist a shared `recount_under_guard` seam into `state_sourcing` to
+  collapse the duplicated `_recount_or_state_error`.
+  - Reroute (source: audit:7.3.6; severity: medium). `_recount.py` and
+    `_wordcount.py` each carry a private `_recount_or_state_error` whose
+    load-bearing body and near-identical docstring duplicate the
+    `with draft_read_guard(working_dir): recount_words(...)` shell. Task 7.3.3
+    already housed the read-guard plumbing in `state_sourcing`; a
+    `recount_under_guard` seam there is the natural single home, with the two
+    callers choosing whether to resolve or accept `working_dir` and whether to
+    keep the total. This serves the step-7.4 hypothesis — that the word-count
+    single-source seams each have one canonical implementation — by giving the
+    recount-under-guard shell one home, not the step-7.3 command-facade hypothesis
+    where it was raised; the recount call it wraps is a word-count seam.
+    Coordinate with 7.3.3 so the seam consumes the `draft_read_guard` rather than
+    re-spelling the `try/except`.
+  - Requires 7.3.3 and 6.1.1.
+  - See novel-ralph-harness-design.md §4.1 and §4.5;
+    novel_ralph_skill/commands/state_sourcing.py (`draft_read_guard`);
+    novel_ralph_skill/commands/_recount.py;
+    novel_ralph_skill/commands/_wordcount.py.
+  - Success: one `recount_under_guard` seam in `state_sourcing` owns the
+    `draft_read_guard`-wrapped `recount_words` call; `_recount` and `_wordcount`
+    delegate to it rather than each carrying a private `_recount_or_state_error`,
+    supplying only the working-dir-resolution and keep-total choices; no caller
+    re-spells the shell; and the recount and wordcount suites stay green.
 
 ### 7.5. Consolidate the corpus and end-to-end test scaffolding
 
@@ -4165,6 +4386,60 @@ single source of truth, and a test pins it so it cannot silently re-fork.
     `require_index` companion; the skill-contract scanner and the deflation guard
     consume it rather than each carrying a find-or-fail slicer; three slicers
     collapse to one; and the prose-guard and deflation-guard suites stay green.
+
+- [ ] 7.5.17. Extract the duplicated AST-scanner helpers into a shared
+  `tests/_ast_scan.py` support module.
+  - Reroute (sources: audit:7.3.5 Finding 1, review:7.3.5; severity: medium; two
+    near-identical proposals merged). The two guard tests added by 7.3.5
+    (`tests/test_contract_layering.py`, `tests/test_entry_point_single_home.py`)
+    each carry a byte-identical `_callee_name` and a near-identical
+    walk-then-prune-at-nested-scope loop that also overlaps with
+    `tests/_state_layout_scanner.py` and
+    `tests/test_multiplexer_mount_table.py` — four copies of the same
+    `ast`-scanning idiom, the exact duplication pattern
+    these guards exist to prevent. The repo already has the shared-scanner-helper
+    convention (`tests/_skill_contract_scanner.py`,
+    `tests/_state_layout_scanner.py`); consolidating into `tests/_ast_scan.py`
+    (`callee_name`, a nested-scope predicate, a scope-pruning walker) gives future
+    AST guards one home and removes the twice-told prune rationale. This serves
+    the step-7.5 hypothesis — that the test harness shares one set of
+    primitives — not the step-7.3 command-facade hypothesis where it was raised,
+    so it is rerouted here. Coordinate with 7.5.15/7.5.16 so the AST-scan,
+    fence-parse, and doc-slice primitives land as coherent shared test homes.
+  - Requires 7.3.5.
+  - See novel-ralph-harness-design.md §9; docs/developers-guide.md
+    ("Shared test scaffolding"); tests/test_contract_layering.py;
+    tests/test_entry_point_single_home.py; tests/_state_layout_scanner.py.
+  - Success: one `tests/_ast_scan.py` owns `callee_name`, the nested-scope
+    predicate, and the scope-pruning walker; `test_contract_layering.py`,
+    `test_entry_point_single_home.py`, and the other `ast`-scanning guards consume
+    it rather than each re-deriving the idiom; the prune rationale has a single
+    home; no second copy of the AST-scan helpers survives; and the affected guard
+    suites stay green.
+- [ ] 7.5.18. Extract a reusable idiom-consolidation source-scan fixture for the
+  banned-idiom guards.
+  - Reroute (source: review:7.3.8; severity: low). `tests/
+    test_verb_derivation_home.py` and `tests/test_legacy_surface_retired.py` both
+    hand-roll tokenizer/source-scan guards that assert a banned idiom survives in
+    exactly one (or zero) places, each re-deriving the non-code-offset tokenizer
+    logic. A small shared helper — given an idiom string, an owning file, and
+    excluded paths — would let future consolidation tasks add a durable
+    single-home guard in a few lines. This serves the step-7.5 hypothesis — that
+    the test harness shares one set of primitives — not the step-7.3
+    command-facade hypothesis where it was raised, so it is rerouted here.
+    Coordinate with 7.5.17 so the AST-scan and source-scan fixtures land in
+    coherent shared test homes (the AST walker and the tokenizer scan are distinct
+    primitives serving different guard families).
+  - Requires 7.3.8.
+  - See novel-ralph-harness-design.md §9; docs/developers-guide.md
+    ("Shared test scaffolding"); tests/test_verb_derivation_home.py;
+    tests/test_legacy_surface_retired.py.
+  - Success: one shared source-scan fixture takes an idiom string, owning file,
+    and excluded paths and asserts the idiom survives only in its single home;
+    `test_verb_derivation_home.py` and `test_legacy_surface_retired.py` consume
+    it rather than each hand-rolling the non-code-offset tokenizer logic; no
+    second copy of the source-scan idiom survives; and the affected guard suites
+    stay green.
 
 ### 7.6. Harden the contract guards, detectors, and gates
 
@@ -5179,6 +5454,57 @@ copies that would re-diverge.
     pre-reconciliation 7.2.4 ExecPlan state (the `False False` probe) and passes
     once the prose is reconciled with the delivered behaviour; and `make
     markdownlint`, `make nixie`, and `make all` stay green.
+
+- [ ] 7.6.44. Make the exit-2-versus-exit-3 envelope pairing type-enforced across
+  the contract helpers.
+  - Reroute (source: review:7.3.7; severity: low). `usage_error_outcome` accepts
+    any `EnvelopeMessagesError`, so the type system does not prevent an exit-3
+    fault (`StateInputError`) being passed to the exit-2 builder; today the
+    pairing is guarded only structurally and behaviourally. Evaluate whether a
+    tagged-union or per-exit-code helper family would make the pairing
+    type-enforced without re-introducing an upward import, and apply it if the
+    audit finds it worthwhile. This serves the step-7.6 hypothesis — hardening the
+    now single-sourced contract helpers so a mis-routing is unrepresentable rather
+    than merely caught — not the settled step-7.3 single-home hypothesis where it
+    was raised (the exit-2 envelope already has its single home). Coordinate with
+    7.3.20 so the hardening lands on the consolidated `usage_error_outcome` rather
+    than a pre-consolidation copy.
+  - Requires 7.3.7.
+  - See novel-ralph-harness-design.md §3.2 and §4;
+    docs/adr-003-shared-interface-contract.md;
+    novel_ralph_skill/contract/errors.py;
+    novel_ralph_skill/contract/runner.py.
+  - Success: the exit-2-versus-exit-3 envelope pairing is either type-enforced
+    (a tagged union or per-exit-code helper family makes passing a
+    `StateInputError` to the exit-2 builder a type error) or the audit records
+    why the current structural-plus-behavioural guard is the deliberate design;
+    no upward import is re-introduced; and the contract and command suites stay
+    green.
+- [ ] 7.6.45. Broaden the verb-derivation regression guard to catch
+  semantic-equivalent re-spellings.
+  - Reroute (source: review:7.3.8; severity: low). The 7.3.8 guard matches only
+    the exact `.split(" ", 1)[1]` literal, leaving the consolidated debt
+    re-openable via any equivalent expression that computes a verb outside the
+    registry; the audit history (1.2.13/1.2.15) shows this idiom recurs. A guard
+    keyed on "derives a verb from a spaced name anywhere but `contract/names.py`"
+    — flagging any `.split`/`.partition`/`.rsplit`/slice applied to a
+    `SUBCOMMAND_NAMES` element — would make the consolidation genuinely durable
+    rather than literal-specific. This serves the step-7.6 guard-hardening
+    hypothesis — keeping the now single-sourced verb-derivation proof robust
+    against re-spelling — not the settled step-7.3 single-home hypothesis where
+    it was raised. Coordinate with 7.5.18 so the broadened guard consumes the
+    shared idiom-consolidation source-scan fixture rather than a hand-rolled
+    scan.
+  - Requires 7.3.8.
+  - See novel-ralph-harness-design.md §4;
+    docs/adr-007-command-surface-novel-multiplexer.md;
+    novel_ralph_skill/contract/names.py;
+    tests/test_verb_derivation_home.py.
+  - Success: the verb-derivation guard flags any spaced-name-to-verb derivation
+    (`.split`/`.partition`/`.rsplit`/slice over a `SUBCOMMAND_NAMES` element)
+    outside `contract/names.py`, not only the literal `.split(" ", 1)[1]`; a
+    planted semantic-equivalent re-spelling fails the guard; and the multiplexer,
+    console-scripts, and registry suites stay green.
 
 ### 7.7. Reconcile the documentation and settle the conventions
 

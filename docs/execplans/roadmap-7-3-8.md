@@ -756,3 +756,27 @@ guard; WI5 docs + gates). Resolves the cited-file-vs-actual-home ambiguity in
 Decision Log D1 (define in `contract/names.py`, re-export from
 `commands/names.py`). Pins the cuprum 0.1.0 and Cyclopts 4.18.0 APIs the e2e
 relies on as verified-unchanged. No remaining undecided forks.
+
+## Addenda
+
+Lightweight, post-completion corrections folded onto this task. Each is a small,
+surgical fix run as a no-plan, no-review pass; none changes the task's outcome.
+
+- [ ] A1 (from review:7.3.8; low). Correct this execplan's grep-based acceptance
+  wording to reference the live-code count. The plan documents an observable
+  acceptance ("grep … expect: exactly one hit") that is literally false — the raw
+  grep returns ten hits and only the live-code count is one — so a future agent
+  running the documented command is misled. Re-word the acceptance to point at the
+  WI4 tokenizer guard / live-code count, or scope the grep to exclude comments and
+  strings. Doc-only fix to this execplan record. Mirrors roadmap sub-task 7.3.8.1.
+
+- [ ] A2 (from audit:7.3.8; low). Build the multiplexer verb map from the registry
+  rather than one `verb_for` call at a time. `novel.py` rebuilds
+  `_VERB_FOR_SUBCOMMAND` one `verb_for()` call at a time, reconstructing the
+  relation the contract already holds. Build it from
+  `dict(zip(SUBCOMMAND_NAMES, SUBCOMMAND_VERBS, strict=True))` — or expose a
+  registry `verb_map()` accessor — so the spaced-name-to-verb map is owned in one
+  place, serving the same single-source intent 7.3.8 established for the scalar
+  split. Behaviour-preserving. Scope: `novel_ralph_skill/commands/novel.py` (and
+  `contract/names.py` if a `verb_map()` accessor is added). Mirrors roadmap
+  sub-task 7.3.8.2.
