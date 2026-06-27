@@ -2895,7 +2895,7 @@ of truth, and a test pins it so it cannot silently re-fork.
       never the bare public `novel_state.load_or_state_error`; the A1 insurance
       grep is what closes that gap. Correct the D9 prose so the historical gate
       record reads true. Lightweight addendum pass against the 7.3.1 execplan.
-- [ ] 7.3.2. Collapse the four entry-point functions onto a registry-driven
+- [x] 7.3.2. Collapse the four entry-point functions onto a registry-driven
   construction table.
   - Reroute (source: review:1.3.6; severity: low). After 1.3.6 the four real
     entry points (`novel_state`, `novel_done`, `novel_compile`, `desloppify`) are

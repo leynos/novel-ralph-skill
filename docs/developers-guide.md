@@ -437,15 +437,30 @@ multiplexer — `novel state …`, `novel done`, `novel compile`,
 `novel desloppify`, and `novel wordcount`.
 [`novel_ralph_skill/commands/novel.py`](../novel_ralph_skill/commands/novel.py)
 builds a parent contract app via `make_contract_app("novel")` and mounts each
-operation's existing `build_app` as a sub-app
-(`app.command(novel_state.build_app(), name="state")`, and likewise for the
-four leaf verbs). The multiplexer is a **pure dispatch layer**: it adds no
-command logic, reuses each `build_app` unchanged, and emits the same envelope
-and exit codes each mounted leaf produces. Mounting copies only the child's
-group and version defaults — never its contract flags — so each mounted leaf
-keeps its four-flag contract and the parent returns the leaf body's
-`CommandOutcome` to the shared `run` wrapper unchanged (verified against the
-locked Cyclopts 4.18.0).
+operation's existing `build_app` as a sub-app. The multiplexer is a **pure
+dispatch layer**: it adds no command logic, reuses each `build_app` unchanged,
+and emits the same envelope and exit codes each mounted leaf produces. Mounting
+copies only the child's group and version defaults — never its contract flags —
+so each mounted leaf keeps its four-flag contract and the parent returns the
+leaf body's `CommandOutcome` to the shared `run` wrapper unchanged (verified
+against the locked Cyclopts 4.18.0).
+
+`build_multiplexer` mounts the five leaves by iterating a single registry-driven
+construction table rather than re-spelling each verb in a hand-copied mount
+line. The helper `_build_mount_table` returns a verb-keyed mapping of mount verb
+to the leaf module's `build_app` factory, and `build_multiplexer` mounts each
+leaf in `SUBCOMMAND_NAMES` order (via the registry-derived `_VERB_FOR_SUBCOMMAND`
+map), so the verbs the dispatcher mounts come from the registry, not inline in
+the mount lines. The spaced subcommand names live once, as data, in a single
+registry, so the names the multiplexer mounts and the names it stamps cannot
+drift apart.
+[`tests/test_multiplexer_mount_table.py`](../tests/test_multiplexer_mount_table.py)
+pins the table against the registry — its verbs equal the registry's bare-verb
+set and each entry is the leaf's own `build_app` — so a dropped or drifted
+mount fails a test rather than shipping. The leaf imports live inside
+`_build_mount_table`, preserving the per-command import laziness (importing
+`novel` pulls in no leaf module); the same test pins that invariant by static
+source inspection.
 
 The `novel` `main` entry point splits `--human` off `sys.argv` first (so `run`
 stamps the human selection even on the body-less usage and state-error arms),

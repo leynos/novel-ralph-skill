@@ -38,6 +38,8 @@ from novel_ralph_skill.contract import RunContext, parse_global_flags, run
 from novel_ralph_skill.contract.runner import make_contract_app
 
 if typ.TYPE_CHECKING:
+    import collections.abc as cabc
+
     import cyclopts
 
 # The mount name (``state``/``done``/…) for each spaced subcommand name, derived
@@ -53,27 +55,30 @@ _SUBCOMMAND_FOR_VERB: dict[str, str] = {
 }
 
 
-def build_multiplexer() -> cyclopts.App:
-    """Build the ``novel`` parent app mounting state and the four leaf verbs.
+def _build_mount_table() -> dict[str, cabc.Callable[[], cyclopts.App]]:
+    """Return the verb-keyed construction table for the five mounted leaves.
 
-    The parent is itself a contract app (built by
-    :func:`novel_ralph_skill.contract.runner.make_contract_app`), so it carries
-    the four-flag contract and returns each mounted leaf's
-    :class:`~novel_ralph_skill.contract.runner.CommandOutcome` to ``run``
-    unchanged. The five ``build_app`` builders are imported inside this function
-    so the dispatcher preserves the per-command import laziness the retired
-    ``stub.py`` relied on (the leaf modules pull in their state/predicate
-    machinery only when the multiplexer is actually built).
+    The table maps each mount verb to its leaf module's ``build_app`` *factory*
+    (the bound function, not its return value), so the mount loop calls each
+    factory exactly once at mount time — the same "build then mount" sequencing
+    the hand-copied lines used. The keys are the registry's **bare verbs**
+    (``"state"``, ``"done"``, …) — the values ``_VERB_FOR_SUBCOMMAND`` maps each
+    spaced name to, and the keys ``_SUBCOMMAND_FOR_VERB`` carries — in the ADR 007
+    surface order.
+
+    The five leaf imports live inside this helper, not at module scope, so
+    importing :mod:`novel_ralph_skill.commands.novel` pulls in no leaf module;
+    only calling this helper does. This preserves the per-command import laziness
+    the retired ``stub.py`` relied on (ExecPlan Decision Log D2).
 
     Returns
     -------
-    cyclopts.App
-        The configured ``novel`` parent app exposing ``state``, ``done``,
-        ``compile``, ``desloppify``, and ``wordcount`` as sub-apps.
+    dict[str, cabc.Callable[[], cyclopts.App]]
+        An ordered mapping of bare mount verb to the leaf module's ``build_app``
+        factory, in registry/surface order.
     """
     # Deferred imports: mirror the retired ``stub.py``'s per-command laziness so
-    # building the multiplexer is the only place that pulls the five leaf modules
-    # in.
+    # building the table is the only place that pulls the five leaf modules in.
     from novel_ralph_skill.commands import (
         _compile,
         _desloppify,
@@ -82,12 +87,47 @@ def build_multiplexer() -> cyclopts.App:
         novel_state,
     )
 
+    return {
+        "state": novel_state.build_app,
+        "done": _novel_done.build_app,
+        "compile": _compile.build_app,
+        "desloppify": _desloppify.build_app,
+        "wordcount": _wordcount.build_app,
+    }
+
+
+def build_multiplexer() -> cyclopts.App:
+    """Build the ``novel`` parent app mounting state and the four leaf verbs.
+
+    The parent is itself a contract app (built by
+    :func:`novel_ralph_skill.contract.runner.make_contract_app`), so it carries
+    the four-flag contract and returns each mounted leaf's
+    :class:`~novel_ralph_skill.contract.runner.CommandOutcome` to ``run``
+    unchanged. Rather than re-spelling each verb in a hand-copied
+    ``app.command(...)`` line, the five leaves are mounted by iterating a single
+    registry-driven construction table (:func:`_build_mount_table`) in
+    ``_SUBCOMMAND_FOR_VERB`` order: each verb comes from the registry (no inline
+    verb literals survive), so the names the dispatcher mounts cannot drift from
+    the names it stamps. A verb the registry names but the table omits raises a
+    loud, test-caught ``KeyError`` rather than silently dropping a mount.
+
+    The deferred leaf imports live in :func:`_build_mount_table`, so importing
+    this module still pulls in no leaf module; the import-laziness profile is
+    unchanged. Mounting a child via ``app.command(child, name=…)`` copies only the
+    child's group and version defaults, never its contract flags (verified against
+    the locked Cyclopts 4.18.0), so each mounted leaf keeps its four-flag
+    contract.
+
+    Returns
+    -------
+    cyclopts.App
+        The configured ``novel`` parent app exposing ``state``, ``done``,
+        ``compile``, ``desloppify``, and ``wordcount`` as sub-apps.
+    """
     app = make_contract_app(MULTIPLEXER_NAME)
-    app.command(novel_state.build_app(), name="state")
-    app.command(_novel_done.build_app(), name="done")
-    app.command(_compile.build_app(), name="compile")
-    app.command(_desloppify.build_app(), name="desloppify")
-    app.command(_wordcount.build_app(), name="wordcount")
+    table = _build_mount_table()
+    for verb in _SUBCOMMAND_FOR_VERB:
+        app.command(table[verb](), name=verb)
     return app
 
 
