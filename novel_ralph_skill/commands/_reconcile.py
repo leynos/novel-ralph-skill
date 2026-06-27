@@ -33,8 +33,11 @@ populated ``operation="reconcile"`` record a subsequent ``reconcile`` re-derives
 and finishes, and a completed run leaves a coherent tree with the receipt on disk.
 
 It lives beside :mod:`novel_ralph_skill.commands._recount` and reuses that
-module's load/refuse helpers and the inline-table builder rather than duplicating
-the mutator contract (AGENTS.md "clear file boundaries").
+module's load/refuse helpers rather than duplicating the mutator contract
+(AGENTS.md "clear file boundaries"). Its fresh ``by_chapter`` inline table is
+built through the shared
+:func:`~novel_ralph_skill.state.document.build_inline_table` helper, the single
+home of that idiom (roadmap task 7.2.1), exactly as ``recount`` does.
 """
 
 from __future__ import annotations
@@ -42,7 +45,6 @@ from __future__ import annotations
 import datetime as dt
 import typing as typ
 
-from novel_ralph_skill.commands._recount import _inline_by_chapter
 from novel_ralph_skill.commands._state_mutators import (
     _load_document_or_state_error,
     _refuse_if_incoherent,
@@ -56,6 +58,7 @@ from novel_ralph_skill.state import (
     SET_CHAPTERS_OPERATION,
     ReconcileAction,
     Reconciliation,
+    build_inline_table,
     clear_pending_turn,
     derive_reconciliation,
     open_pending_turn,
@@ -142,7 +145,7 @@ def _recount_edit(
     def _edit(document: TOMLDocument) -> None:
         """Rewrite ``[word_counts]`` and refuse an incoherent proposed state."""
         document["word_counts"]["current"] = current
-        document["word_counts"]["by_chapter"] = _inline_by_chapter(by_chapter)
+        document["word_counts"]["by_chapter"] = build_inline_table(by_chapter)
         proposed = _state_view_or_state_error(document)
         _refuse_if_incoherent(proposed, context="reconcile recount")
 
@@ -204,7 +207,7 @@ def _pending_turn_edit(
         view = _state_view_or_state_error(document)
         current, by_chapter = disk_word_counts(view, working_dir)
         document["word_counts"]["current"] = current
-        document["word_counts"]["by_chapter"] = _inline_by_chapter(by_chapter)
+        document["word_counts"]["by_chapter"] = build_inline_table(by_chapter)
         _refuse_if_incoherent(
             _state_view_or_state_error(document),
             context="reconcile complete-pending-turn",

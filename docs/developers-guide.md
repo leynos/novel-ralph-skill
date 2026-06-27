@@ -1256,6 +1256,28 @@ state-error channel) and leaves the prior `state.toml` byte-for-byte intact.
 The behavioural proof is the `pytest-bdd` scenario
 `tests/features/recount.feature`.
 
+The fresh-inline-table idiom every mutator shares —
+`tomlkit.inline_table()` then `update(mapping)` — has one home,
+`build_inline_table` in the `state` package
+([`novel_ralph_skill/state/document.py`](../novel_ralph_skill/state/document.py)),
+re-exported from `novel_ralph_skill.state` (roadmap task 7.2.1). Its five
+consumers are `init` (the empty `by_chapter` and the populated
+`last_finding_counts`), `recount` and `reconcile` (the rebuilt `by_chapter`),
+`set-chapters` (the zero-seeded `by_chapter` and the `[[chapters]]` entries),
+and the working-corpus reference builder
+([`tests/working_corpus/_builder.py`](../tests/working_corpus/_builder.py)). A
+future sixth consumer should import this helper rather than re-copy the idiom.
+The helper takes the widest read-only `Mapping[str, object]`, builds structure
+only (it never serialises or writes), and preserves the caller's iteration order
+— the property `recount`'s byte-for-byte deterministic write relies on. The
+corpus builder may import it without weakening its oracle independence because
+the helper carries no schema or value-derivation logic, so the import does not
+couple the suite's value-derivation oracle to production (only schema
+*derivation* stays independent). The array-of-inline-tables skeleton that
+`set-chapters` and the corpus builder both wrap around this helper
+(`tomlkit.array()` plus `multiline` plus a loop) is a separate, wider idiom left
+as a deferred follow-up, not folded in here.
+
 ### The state-layout direct-edit guard
 
 Because direct editing of `state.toml` is eliminated (design §4.1; ADR-002

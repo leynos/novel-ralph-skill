@@ -19,9 +19,6 @@ from __future__ import annotations
 
 import typing as typ
 
-import tomlkit
-import tomlkit.items
-
 from novel_ralph_skill.commands._state_mutators import (
     _load_document_or_state_error,
     _refuse_if_incoherent,
@@ -37,6 +34,7 @@ from novel_ralph_skill.contract.exit_codes import ExitCode
 from novel_ralph_skill.contract.runner import CommandOutcome
 from novel_ralph_skill.state import (
     GATE_THRESHOLDS,
+    build_inline_table,
     recount_words,
     write_document_atomically,
 )
@@ -97,29 +95,6 @@ def _recount_or_state_error(
         return recount_words(_working_dir(), manifest)
     except STATE_INPUT_ERRORS as exc:
         raise _draft_read_error(_working_dir()) from exc
-
-
-def _inline_by_chapter(by_chapter: cabc.Mapping[str, int]) -> tomlkit.items.InlineTable:
-    """Return a fresh ``tomlkit`` inline table for ``by_chapter``.
-
-    Rebuilding ``[word_counts].by_chapter`` as a fresh inline table in the
-    mapping's (ascending) key order keeps the write deterministic, so a second
-    ``recount`` over unchanged drafts yields a byte-for-byte identical
-    ``state.toml`` (ExecPlan Risk "non-idempotent write"; Decision Log D-KEY).
-
-    Parameters
-    ----------
-    by_chapter : collections.abc.Mapping[str, int]
-        The recounted per-chapter mapping, already in ascending key order.
-
-    Returns
-    -------
-    tomlkit.items.InlineTable
-        The populated inline table to assign to ``document["word_counts"]``.
-    """
-    table = tomlkit.inline_table()
-    table.update(dict(by_chapter))
-    return table
 
 
 def _gate_ratio_remedy(state: State) -> list[str]:
@@ -231,7 +206,7 @@ def recount() -> CommandOutcome:
     prior = _state_view_or_state_error(document)
     current, by_chapter = _recount_or_state_error(prior.chapters)
     document["word_counts"]["current"] = current
-    document["word_counts"]["by_chapter"] = _inline_by_chapter(by_chapter)
+    document["word_counts"]["by_chapter"] = build_inline_table(by_chapter)
     proposed = _state_view_or_state_error(document)
     _refuse_if_incoherent(proposed, context="recount", remedy=_gate_ratio_remedy)
     write_document_atomically(document, path)

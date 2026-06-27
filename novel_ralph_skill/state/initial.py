@@ -8,10 +8,15 @@ freshly initialised tree parses cleanly and ``novel-state check`` accepts it
 (design §5.2; ExecPlan Decision Log D5, Risk "init builds an unreadable
 document").
 
-The shape mirrors the corpus reference builder
+The schema *shape* mirrors the corpus reference builder
 (``tests/working_corpus/_builder.py`` ``_build_state_document``) field for
-field, but is re-derived from ``state/parse.py`` rather than importing test
-code: ``schema_version``; ``[novel]`` (with ``created_at``); ``[phase]``
+field, re-derived from ``state/parse.py`` rather than importing test code. The
+inline-table *materialisation* idiom is no longer hand-copied: both modules now
+build their inline tables through the shared
+:func:`~novel_ralph_skill.state.document.build_inline_table` helper (roadmap
+task 7.2.1), so only the schema field set is mirrored here, not the builder
+plumbing. The mirrored fields are: ``schema_version``; ``[novel]`` (with
+``created_at``); ``[phase]``
 (``current = "premise"``, an empty ``completed``); ``[drafting]`` with its
 ``[drafting.critic]`` and ``[drafting.fangirl]`` sub-tables; ``[gates.knitting]``
 and ``[gates.final]`` all-false; ``[word_counts]`` with a present empty
@@ -29,6 +34,7 @@ import typing as typ
 
 import tomlkit
 
+from novel_ralph_skill.state.document import build_inline_table
 from novel_ralph_skill.state.phase import Phase
 
 if typ.TYPE_CHECKING:
@@ -38,18 +44,6 @@ if typ.TYPE_CHECKING:
 # The §5.1 default convergence ceiling: a single clean critic pass converges a
 # chapter (design §5.1; the corpus ``_pre_drafting_spec`` uses the same value).
 _DEFAULT_CONVERGENCE_TARGET = 1
-
-
-def _inline(pairs: dict[str, object]) -> tomlitems.InlineTable:
-    """Return a ``tomlkit`` inline table populated from ``pairs``.
-
-    Mirrors ``_inline`` in the corpus builder so the initial document's inline
-    tables (``last_finding_counts`` and the empty ``by_chapter``) match the
-    on-disk style the schema parser reads back.
-    """
-    table = tomlkit.inline_table()
-    table.update(pairs)
-    return table
 
 
 def _novel_table(
@@ -97,7 +91,7 @@ def _drafting_table() -> tomlitems.Table:
     critic["pass"] = 1
     critic["consecutive_clean"] = 0
     critic["convergence_target"] = _DEFAULT_CONVERGENCE_TARGET
-    critic["last_finding_counts"] = _inline({
+    critic["last_finding_counts"] = build_inline_table({
         "blocker": 0,
         "major": 0,
         "minor": 0,
@@ -134,7 +128,7 @@ def _word_counts_table(target_word_count: int) -> tomlitems.Table:
     table = tomlkit.table()
     table["target"] = target_word_count
     table["current"] = 0
-    table["by_chapter"] = _inline({})
+    table["by_chapter"] = build_inline_table({})
     return table
 
 

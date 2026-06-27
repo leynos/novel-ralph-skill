@@ -2671,7 +2671,7 @@ task here: the duplication is removed, exactly one canonical implementation
 survives under one name, it is documented as the single source of truth, and a
 test pins it so it cannot silently re-fork.
 
-- [ ] 7.2.1. Collapse the duplicated `tomlkit` inline-table builders onto one
+- [x] 7.2.1. Collapse the duplicated `tomlkit` inline-table builders onto one
   shared helper.
   - Reroute (source: audit:2.3.1; severity: low). `recount`'s
     `_inline_by_chapter` (`commands/_recount.py`) is the third copy of the same

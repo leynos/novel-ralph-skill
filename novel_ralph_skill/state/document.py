@@ -42,6 +42,7 @@ import typing as typ
 from pathlib import Path
 
 import tomlkit
+import tomlkit.items
 from tomlkit import TOMLDocument
 
 from novel_ralph_skill.state.parse import parse_state
@@ -174,6 +175,37 @@ def write_document_atomically(document: TOMLDocument, path: Path) -> None:
         The target ``state.toml`` path. Its parent must already exist.
     """
     write_text_atomically(tomlkit.dumps(document), path)
+
+
+def build_inline_table(pairs: cabc.Mapping[str, object]) -> tomlkit.items.InlineTable:
+    """Return a fresh ``tomlkit`` inline table populated from ``pairs``.
+
+    This is the single home of the inline-table materialisation idiom the
+    ``state`` slice re-derives ``[word_counts].by_chapter``,
+    ``[drafting.critic].last_finding_counts``, and the ``[[chapters]]`` entries
+    from (design §5.3; ADR-002; roadmap task 7.2.1). It builds an empty inline
+    table and updates it with ``pairs`` **in the mapping's iteration order**, so
+    a caller that hands an order-stable mapping gets an order-stable
+    table — the property ``recount`` relies on for a byte-for-byte deterministic
+    write (``_recount`` docstring; design §5.2 invariant 3). The returned table
+    does not alias ``pairs``: ``tomlkit`` copies the values in, so a later
+    mutation of ``pairs`` does not change the table.
+
+    Parameters
+    ----------
+    pairs : collections.abc.Mapping[str, object]
+        The key-value pairs to materialise, in iteration order. Values may be of
+        mixed type (e.g. the ``[[chapters]]`` entry's ``int`` and ``str``
+        values); the widest read-only ``Mapping`` covers every call site.
+
+    Returns
+    -------
+    tomlkit.items.InlineTable
+        The populated inline table, ready to assign into a document.
+    """
+    table = tomlkit.inline_table()
+    table.update(pairs)
+    return table
 
 
 def open_pending_turn(

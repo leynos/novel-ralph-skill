@@ -14,6 +14,8 @@ are pinned.
 
 from __future__ import annotations
 
+import tomlkit.items
+
 import novel_ralph_skill.state as state_pkg
 from novel_ralph_skill.state import (
     Phase,
@@ -55,6 +57,29 @@ def test_initial_document_parses_then_carries_initial_fields() -> None:
     assert state.drafting.critic.pass_number == 1
     assert state.drafting.critic.consecutive_clean == 0
     assert state.drafting.critic.convergence_target == 1
+
+
+def test_initial_document_keeps_inline_table_form() -> None:
+    """The reroute keeps ``by_chapter`` and ``last_finding_counts`` inline tables.
+
+    After routing through the shared ``build_inline_table`` helper, the two
+    inline-table structures must stay inline (not block) tables, so the on-disk
+    style the schema parser reads back is unchanged (design §5.1/§5.2).
+    """
+    document = build_initial_document(
+        title="T",
+        slug="s",
+        target_word_count=80000,
+        created_at=_CREATED_AT,
+    )
+    by_chapter = document["word_counts"]["by_chapter"]
+    last_finding_counts = document["drafting"]["critic"]["last_finding_counts"]
+    assert isinstance(by_chapter, tomlkit.items.InlineTable), (
+        "by_chapter must stay an inline table after the helper reroute"
+    )
+    assert isinstance(last_finding_counts, tomlkit.items.InlineTable), (
+        "last_finding_counts must stay an inline table after the helper reroute"
+    )
 
 
 def test_initial_state_is_coherent() -> None:

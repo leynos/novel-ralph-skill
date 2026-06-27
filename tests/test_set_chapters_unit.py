@@ -18,6 +18,7 @@ from __future__ import annotations
 import typing as typ
 
 import pytest
+import tomlkit.items
 import working_corpus as wc
 
 from novel_ralph_skill.commands._set_chapters import (
@@ -111,6 +112,33 @@ def test_set_chapters_writes_manifest(
     assert "set-chapters" in (working / "log.md").read_text(encoding="utf-8"), (
         "set-chapters must append a recovery receipt to log.md"
     )
+
+
+def test_set_chapters_writes_inline_table_form(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The reroute keeps ``by_chapter`` and each ``[[chapters]]`` entry inline.
+
+    After routing both ``_set_chapters`` builders through the shared
+    ``build_inline_table`` helper, the written ``[word_counts].by_chapter`` and
+    every ``[[chapters]]`` array entry must stay inline (not block) tables, so
+    the on-disk schema order and byte-stability hold (design §5.1; Decision D13).
+    """
+    working = _empty_manifest_tree(tmp_path)
+    monkeypatch.chdir(working.parent)
+
+    assert set_chapters(chapters=list(_PLAN)).code == ExitCode.SUCCESS
+
+    document = load_document(working / "state.toml")
+    by_chapter = document["word_counts"]["by_chapter"]
+    assert isinstance(by_chapter, tomlkit.items.InlineTable), (
+        "by_chapter must stay an inline table after the helper reroute"
+    )
+    for entry in document["chapters"]:
+        assert isinstance(entry, tomlkit.items.InlineTable), (
+            "each [[chapters]] entry must stay an inline table after the reroute"
+        )
 
 
 def _entry(number: int, slug: str, *, target_words: int = 100) -> ChapterPlanEntry:

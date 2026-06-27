@@ -549,6 +549,14 @@ mutators depend on it and is recorded in
 `docs/adr-002-toml-round-trip-tomlkit.md`. The failed `tomli_w` snippet in the
 reference is removed.
 
+The one `tomlkit` idiom every mutator shares — building a fresh inline table
+from a mapping (`tomlkit.inline_table()` then `update`) — has a single home in
+`state/document.py:build_inline_table`, consumed by `init`, `recount`,
+`reconcile`, `set-chapters`, and the working-corpus reference builder rather
+than re-copied per mutator (roadmap task 7.2.1). It builds structure only — it
+never serialises or writes — and preserves the caller's mapping order, the
+property `recount`'s byte-for-byte deterministic write relies on.
+
 ### 5.4 Disk-authoritative reconciliation
 
 `novel state check` and `novel state reconcile` together implement the recovery

@@ -42,6 +42,7 @@ from novel_ralph_skill.contract.exit_codes import ExitCode
 from novel_ralph_skill.contract.runner import CommandOutcome, StateInputError
 from novel_ralph_skill.state import (
     SET_CHAPTERS_OPERATION,
+    build_inline_table,
     chapter_dir_name,
     clear_pending_turn,
     open_pending_turn,
@@ -158,14 +159,14 @@ def _chapter_array(ordered: cabc.Sequence[ChapterPlanEntry]) -> tomlkit.items.Ar
     array = tomlkit.array()
     array.multiline(multiline=True)
     for entry in ordered:
-        table = tomlkit.inline_table()
-        table.update({
-            "number": entry.number,
-            "slug": entry.slug,
-            "title": entry.title,
-            "target_words": entry.target_words,
-        })
-        array.append(table)
+        array.append(
+            build_inline_table({
+                "number": entry.number,
+                "slug": entry.slug,
+                "title": entry.title,
+                "target_words": entry.target_words,
+            })
+        )
     return array
 
 
@@ -180,9 +181,7 @@ def _zero_word_counts(
     the §5.4 ``word-counts-cover-drafts`` coverage satisfied so ``check`` exits 0
     immediately after ``set-chapters`` (Decision D13).
     """
-    table = tomlkit.inline_table()
-    table.update({f"{entry.number:02d}": 0 for entry in ordered})
-    return table
+    return build_inline_table({f"{entry.number:02d}": 0 for entry in ordered})
 
 
 def _declared_paths(ordered: cabc.Sequence[ChapterPlanEntry]) -> list[str]:

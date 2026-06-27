@@ -15,6 +15,14 @@ import typing as typ
 
 import tomlkit
 
+# This is the corpus suite's only production import, and it is deliberately
+# safe: ``build_inline_table`` is pure ``tomlkit`` plumbing with no schema or
+# value-derivation logic, so importing it does not couple the corpus suite's
+# value-derivation oracle (``_specs.derive_*`` and the ``_oracle*`` cross-checks)
+# to production. The single-home inline-table builder is shared (roadmap task
+# 7.2.1; ExecPlan Decision D-CORPUS); only schema *derivation* stays independent.
+from novel_ralph_skill.state.document import build_inline_table
+
 from ._specs import (
     _CREATED_AT,
     _resolve_compiled,
@@ -30,13 +38,6 @@ if typ.TYPE_CHECKING:
     import tomlkit.items as tomlitems
 
     from ._specs import ChapterSpec, WorkingTreeSpec
-
-
-def _inline(pairs: dict[str, object]) -> tomlitems.InlineTable:
-    """Return a ``tomlkit`` inline table populated from ``pairs``."""
-    table = tomlkit.inline_table()
-    table.update(pairs)
-    return table
 
 
 def _novel_table(spec: WorkingTreeSpec) -> tomlitems.Table:
@@ -67,7 +68,7 @@ def _drafting_table(spec: WorkingTreeSpec) -> tomlitems.Table:
     critic["pass"] = 1
     critic["consecutive_clean"] = spec.consecutive_clean
     critic["convergence_target"] = spec.convergence_target
-    critic["last_finding_counts"] = _inline({
+    critic["last_finding_counts"] = build_inline_table({
         "blocker": 0,
         "major": 0,
         "minor": 0,
@@ -100,7 +101,7 @@ def _word_counts_table(spec: WorkingTreeSpec) -> tomlitems.Table:
     table["target"] = spec.target_words
     by_chapter = derive_by_chapter(spec)
     table["current"] = derive_current(spec)
-    table["by_chapter"] = _inline(dict(by_chapter))
+    table["by_chapter"] = build_inline_table(dict(by_chapter))
     return table
 
 
@@ -121,7 +122,7 @@ def _chapters_array(spec: WorkingTreeSpec) -> tomlitems.Array:
     for number in numbers:
         chapter = by_number.get(number)
         array.append(
-            _inline({
+            build_inline_table({
                 "number": number,
                 "slug": chapter.slug if chapter else f"chapter-{number:02d}",
                 "title": chapter.title if chapter else f"Chapter {number}",

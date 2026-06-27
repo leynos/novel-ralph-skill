@@ -48,6 +48,7 @@ from novel_ralph_skill.state.disk_evidence import (
     check_disk_evidence,
 )
 from novel_ralph_skill.state.document import (
+    build_inline_table,
     clear_pending_turn,
     document_to_state,
     load_document,
@@ -140,6 +141,7 @@ __all__ = [
     "Violation",
     "WordCounts",
     "build_initial_document",
+    "build_inline_table",
     "chapter_dir_name",
     "check_disk_evidence",
     "clear_pending_turn",
