@@ -2535,7 +2535,7 @@ of truth, and a test pins it so it cannot silently re-fork.
     vocabulary split and the exit-code policy are unchanged; no behaviour changes;
     and the check, reconcile, and disk-evidence suites stay green.
 
-- [ ] 7.1.4. Extract the shared finding-outcome envelope skeleton into a
+- [x] 7.1.4. Extract the shared finding-outcome envelope skeleton into a
   contract-package builder and route both projections through it.
   - Reroute (source: audit:8.1.3; severity: medium). After 8.1.3, `report_outcome`
     (`commands/_desloppify_report.py`) and `ledger_report_outcome`
@@ -4849,6 +4849,11 @@ Make the desloppify detection packs configurable and extend the shipped set.
       the code from the same `failed` list so the exit code and `violations`
       cannot diverge by construction, and add a unit test pinning the invariant.
       Lightweight addendum pass.
+    - Subsumed by 7.1.4. The shared `build_finding_outcome` builder
+      (`novel_ralph_skill/contract/finding_outcome.py`) derives the exit code
+      from the `failed` list it filters, and both `report_outcome` and
+      `ledger_report_outcome` now route through it, so this divergence is closed
+      by construction; `tests/test_finding_outcome.py` pins the invariant.
 - [ ] 8.1.4. Add a matched-text span (or human label) to each desloppify per-hit
   finding.
   - Reroute (source: review:5.1.2; severity: low). The per-hit `phrase` field

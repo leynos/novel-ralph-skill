@@ -1434,6 +1434,33 @@ run — all inherit one shape. The multi-pack surface (roadmap tasks 7.1.6 and
 7.1.7) inherits this contract; it is settled here once and is not re-litigated
 there.
 
+The uniformity is enforced by a single shared helper, not by keeping two
+projections in lockstep by hand. `build_finding_outcome`
+([`novel_ralph_skill/contract/finding_outcome.py`](../novel_ralph_skill/contract/finding_outcome.py),
+roadmap task 7.1.4) is the **single finding-outcome envelope skeleton**: it
+filters a report's findings to the failed ones, derives the exit code from that
+same `failed` list, and assembles `result` (any path-specific extra keys first,
+then `violations`, then the slimmed `findings`) and `messages` (one human line
+per failed finding, or a clean-pass note). It lives in the lowest-layer
+`contract` package and is generic over an opaque finding type with injected
+callables, so it imports neither `rulepack` nor `ledger` and creates no import
+cycle. Both `report_outcome`
+([`commands/_desloppify_report.py`](../novel_ralph_skill/commands/_desloppify_report.py))
+and `ledger_report_outcome`
+([`ledger/report.py`](../novel_ralph_skill/ledger/report.py)) route through it,
+injecting only their per-hit payload, id accessor, clean-pass message and — for
+the rule-pack path — the `pack`/`total_words` extra keys; the per-hit payload
+projections stay distinct and are injected unchanged (the per-hit field shape is
+8.1.4/8.1.5 territory, not this builder's). Its **scope and re-use policy**: the
+builder owns only the shared *skeleton*, so a change to the
+violations-versus-findings relationship is made once here, while anything
+genuinely per-path (a finding's projected fields, the prose of a message) stays
+in the call site. Deriving the exit code from the `failed` filter rather than a
+separate `passed` flag (design §3.2; ADR-003) closes the latent
+self-contradictory-envelope path: a report whose `passed` flag disagreed with
+its findings can no longer emit `ok: true` alongside a non-empty `violations`
+list.
+
 #### The ai-isms pack: cadence, ownership, and membership
 
 Roadmap task 7.1.1 ships a second packaged pack beside `offenders.toml`:

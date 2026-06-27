@@ -26,12 +26,12 @@ from __future__ import annotations
 import importlib.resources
 import typing as typ
 
-from novel_ralph_skill.contract.exit_codes import ExitCode
-from novel_ralph_skill.contract.runner import CommandOutcome
+from novel_ralph_skill.contract.finding_outcome import build_finding_outcome
 
 if typ.TYPE_CHECKING:
     from importlib.resources.abc import Traversable
 
+    from novel_ralph_skill.contract.runner import CommandOutcome
     from novel_ralph_skill.rulepack.detect import DetectionReport, RuleFinding
 
 
@@ -165,6 +165,17 @@ def report_outcome(report: DetectionReport) -> CommandOutcome:
     only the over-threshold rules, so a clean pass emits ``findings: []``; the
     detection core still aggregates a finding for every rule.
 
+    The envelope skeleton — the failed filter, the exit-code derivation, and the
+    ``violations``/``findings``/``messages`` assembly — comes from the shared
+    :func:`~novel_ralph_skill.contract.finding_outcome.build_finding_outcome`
+    builder (roadmap 7.1.4); this function injects only the rule-pack details:
+    the ``rule_id`` accessor, the per-hit :func:`_finding_payload`, the per-hit
+    :func:`_finding_message`, the ``pack``/``total_words`` extra keys (inserted
+    before ``violations``/``findings`` to preserve key order), and the clean-pass
+    message. The builder derives the exit code from the same ``failed`` filter it
+    projects (design §3.2), so a report whose ``passed`` flag disagrees with its
+    findings can no longer emit a self-contradictory envelope.
+
     Parameters
     ----------
     report : DetectionReport
@@ -176,22 +187,12 @@ def report_outcome(report: DetectionReport) -> CommandOutcome:
         ``ExitCode.SUCCESS`` with empty ``violations`` when clean, or
         ``ExitCode.ACTIONABLE_FINDING`` naming the offending rules.
     """
-    failed = [finding for finding in report.findings if not finding.passed]
-    code = ExitCode.SUCCESS if report.passed else ExitCode.ACTIONABLE_FINDING
-    return CommandOutcome(
-        code=code,
-        result={
-            "pack": report.pack,
-            "total_words": report.total_words,
-            "violations": [finding.rule_id for finding in failed],
-            # Slim the audit trail to the over-threshold findings (the clean-pass
-            # findings contract, roadmap 7.1.3; developers' guide "The clean-pass
-            # findings contract"). ``findings`` is projected from the same
-            # ``failed`` filter that feeds ``violations``, so a clean pass emits
-            # ``findings: []``. The detection core still aggregates every rule;
-            # only this projection slims.
-            "findings": [_finding_payload(finding) for finding in failed],
-        },
-        messages=[_finding_message(finding) for finding in failed]
-        or ["no slop detected"],
+    return build_finding_outcome(
+        report.findings,
+        identify=lambda finding: finding.rule_id,
+        payload=_finding_payload,
+        describe=_finding_message,
+        passed=lambda finding: finding.passed,
+        clean_message="no slop detected",
+        extra_result={"pack": report.pack, "total_words": report.total_words},
     )

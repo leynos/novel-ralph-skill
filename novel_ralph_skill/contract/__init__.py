@@ -9,8 +9,9 @@ re-inventing an output shape.
 The public surface re-exported here is :class:`Envelope`, :func:`build_envelope`,
 :func:`render_machine`, :func:`render_human`, :data:`ENVELOPE_SCHEMA_VERSION`,
 :class:`EnvelopeMessagesError`, :class:`ExitCode`, :func:`is_ok`,
-:class:`CommandOutcome`, :class:`RunContext`, :class:`StateInputError`,
-:func:`make_contract_app`, :func:`parse_global_flags`, and :func:`run`.
+:class:`CommandOutcome`, :func:`build_finding_outcome`, :class:`RunContext`,
+:class:`StateInputError`, :func:`make_contract_app`, :func:`parse_global_flags`,
+and :func:`run`.
 """
 
 from __future__ import annotations
@@ -24,6 +25,7 @@ from novel_ralph_skill.contract.envelope import (
 )
 from novel_ralph_skill.contract.errors import EnvelopeMessagesError
 from novel_ralph_skill.contract.exit_codes import ExitCode, is_ok
+from novel_ralph_skill.contract.finding_outcome import build_finding_outcome
 from novel_ralph_skill.contract.runner import (
     CommandOutcome,
     RunContext,
@@ -42,6 +44,7 @@ __all__ = [
     "RunContext",
     "StateInputError",
     "build_envelope",
+    "build_finding_outcome",
     "is_ok",
     "make_contract_app",
     "parse_global_flags",

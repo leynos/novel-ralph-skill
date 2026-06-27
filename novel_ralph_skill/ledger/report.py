@@ -4,9 +4,14 @@ This module holds the pure projection from a
 :class:`~novel_ralph_skill.ledger.detect.LedgerReport` to the shared envelope's
 :class:`~novel_ralph_skill.contract.runner.CommandOutcome`. It lives in the
 ``ledger`` package (not beside the rule-pack projection) because the ledger emits
-its **own** payload: it must NOT reuse or alter the rule-pack ``_finding_payload``
-(ExecPlan Constraint: do not pre-empt the per-hit payload-contract decisions
-7.1.4/7.1.5). Roadmap 7.1.3 has now slimmed the audit trail: ``findings`` carries
+its **own** per-hit payload: the ledger ``_finding_payload`` must NOT reuse or
+alter the rule-pack ``_finding_payload`` (the per-hit payloads are distinct,
+settled contracts; 8.1.4/8.1.5 own the per-hit field shape). The *envelope
+skeleton* is shared, however: both this projection and the rule-pack
+``report_outcome`` route through the single
+:func:`~novel_ralph_skill.contract.finding_outcome.build_finding_outcome` builder
+(roadmap 7.1.4), which injects each path's per-hit payload and never merges them.
+Roadmap 7.1.3 has now slimmed the audit trail: ``findings`` carries
 only the over-ration devices, uniformly with the rule-pack path, so a
 within-ration manuscript emits ``findings: []`` (the clean-pass findings
 contract; developers' guide "The clean-pass findings contract"). The detection
@@ -23,10 +28,10 @@ from __future__ import annotations
 
 import typing as typ
 
-from novel_ralph_skill.contract.exit_codes import ExitCode
-from novel_ralph_skill.contract.runner import CommandOutcome
+from novel_ralph_skill.contract.finding_outcome import build_finding_outcome
 
 if typ.TYPE_CHECKING:
+    from novel_ralph_skill.contract.runner import CommandOutcome
     from novel_ralph_skill.ledger.detect import DeviceFinding, LedgerReport
 
 
@@ -116,6 +121,16 @@ def ledger_report_outcome(report: LedgerReport) -> CommandOutcome:
     contract"), ``findings`` lists only the over-ration devices, so a clean ledger
     emits ``findings: []``; the detection core still aggregates every device.
 
+    The envelope skeleton — the failed filter, the exit-code derivation, and the
+    ``violations``/``findings``/``messages`` assembly — comes from the shared
+    :func:`~novel_ralph_skill.contract.finding_outcome.build_finding_outcome`
+    builder (roadmap 7.1.4); this function injects only the ledger details: the
+    ``device_id`` accessor, the ledger :func:`_finding_payload`, the ledger
+    :func:`_finding_message`, and the clean-pass message (the ledger carries no
+    extra ``result`` keys). The builder derives the exit code from the same
+    ``failed`` filter it projects (design §3.2), so a report whose ``passed`` flag
+    disagrees with its findings can no longer emit a self-contradictory envelope.
+
     Parameters
     ----------
     report : LedgerReport
@@ -127,19 +142,11 @@ def ledger_report_outcome(report: LedgerReport) -> CommandOutcome:
         ``ExitCode.SUCCESS`` with empty ``violations`` when every device is within
         ration, or ``ExitCode.ACTIONABLE_FINDING`` naming the over-ration devices.
     """
-    failed = [finding for finding in report.findings if not finding.passed]
-    code = ExitCode.SUCCESS if report.passed else ExitCode.ACTIONABLE_FINDING
-    return CommandOutcome(
-        code=code,
-        result={
-            "violations": [finding.device_id for finding in failed],
-            # Slim the audit trail to the over-ration devices (the clean-pass
-            # findings contract, roadmap 7.1.3; developers' guide "The clean-pass
-            # findings contract"), so a within-ration manuscript emits
-            # ``findings: []``. The detection core still aggregates every device;
-            # only this projection slims, in lockstep with the rule-pack path.
-            "findings": [_finding_payload(finding) for finding in failed],
-        },
-        messages=[_finding_message(finding) for finding in failed]
-        or ["no rationing breaches detected"],
+    return build_finding_outcome(
+        report.findings,
+        identify=lambda finding: finding.device_id,
+        payload=_finding_payload,
+        describe=_finding_message,
+        passed=lambda finding: finding.passed,
+        clean_message="no rationing breaches detected",
     )

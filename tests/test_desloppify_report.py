@@ -14,6 +14,7 @@ from __future__ import annotations
 import typing as typ
 
 from novel_ralph_skill.commands._desloppify_report import report_outcome
+from novel_ralph_skill.contract.exit_codes import ExitCode
 from novel_ralph_skill.ledger.detect import DeviceFinding, LedgerReport
 from novel_ralph_skill.ledger.report import ledger_report_outcome
 from novel_ralph_skill.rulepack.detect import DetectionReport, RuleFinding
@@ -62,6 +63,7 @@ def test_report_outcome_slims_findings_to_over_threshold() -> None:
     projected = typ.cast("list[dict[str, object]]", result["findings"])
     assert [finding["rule_id"] for finding in projected] == ["smirked"]
     assert result["violations"] == ["smirked"]
+    assert outcome.code is ExitCode.ACTIONABLE_FINDING
 
 
 def test_report_outcome_clean_pass_emits_empty_findings() -> None:
@@ -78,6 +80,26 @@ def test_report_outcome_clean_pass_emits_empty_findings() -> None:
 
     assert outcome.result["findings"] == []
     assert outcome.result["violations"] == []
+    assert outcome.code is ExitCode.SUCCESS
+
+
+def test_report_outcome_preserves_result_key_order() -> None:
+    """The wired rule-pack call site keeps ``result`` keys in insertion order.
+
+    ``render_machine`` serialises ``result`` with no ``sort_keys``, so the raw
+    machine JSON depends on the call site inserting ``pack``/``total_words``
+    before ``violations``/``findings``. This guards against a mis-wired
+    ``extra_result`` at the real call site — the ``.ambr`` snapshots sort keys and
+    every command suite reads by key, so none of them catches a reorder.
+    """
+    findings = (_rule_finding(rule_id="smirked", count=3, threshold=1),)
+    report = DetectionReport(
+        pack="offenders", total_words=18, findings=findings, passed=False
+    )
+
+    outcome = report_outcome(report)
+
+    assert list(outcome.result) == ["pack", "total_words", "violations", "findings"]
 
 
 def _device_finding(*, device_id: str, count: int, max_count: int) -> DeviceFinding:
@@ -118,6 +140,7 @@ def test_ledger_report_outcome_slims_findings_to_over_ration() -> None:
     projected = typ.cast("list[dict[str, object]]", result["findings"])
     assert [finding["device_id"] for finding in projected] == ["sternum"]
     assert result["violations"] == ["sternum"]
+    assert outcome.code is ExitCode.ACTIONABLE_FINDING
 
 
 def test_ledger_report_outcome_clean_pass_emits_empty_findings() -> None:
@@ -129,3 +152,20 @@ def test_ledger_report_outcome_clean_pass_emits_empty_findings() -> None:
 
     assert outcome.result["findings"] == []
     assert outcome.result["violations"] == []
+    assert outcome.code is ExitCode.SUCCESS
+
+
+def test_ledger_report_outcome_preserves_result_key_order() -> None:
+    """The wired ledger call site keeps ``result`` keys in insertion order.
+
+    The ledger carries no extra ``result`` keys, so the order is exactly
+    ``violations`` then ``findings``. As with the rule-pack guard, the snapshots
+    sort keys and the command suites read by key, so this call-site assertion is
+    the load-bearing guard against a reorder in the raw machine JSON.
+    """
+    findings = (_device_finding(device_id="sternum", count=3, max_count=2),)
+    report = LedgerReport(findings=findings, passed=False)
+
+    outcome = ledger_report_outcome(report)
+
+    assert list(outcome.result) == ["violations", "findings"]
