@@ -24,6 +24,8 @@ dev = [
     "hypothesis",
     "syrupy",
     "pytest-bdd>=8.1.0",
+    "pyyaml>=6.0.3",
+    "mutmut>=3.6.0",
 ]
 
 [tool.ruff]
@@ -316,6 +318,23 @@ ignore-private = false
 ignore-semiprivate = false
 ignore-module = false
 ignore-nested-functions = false
+
+[tool.mutmut]
+source_paths = ["novel_ralph_skill/"]
+pytest_add_cli_args_test_selection = ["tests/"]
+# The @slow tier builds a wheel from the working copy and drives the installed
+# console scripts in a fresh venv. Under mutmut the working copy is the
+# mutants/ sandbox, whose sources import mutmut's trampoline — absent from
+# that venv by construction — so the installed-binary e2e tier cannot
+# exercise mutants and would abort the baseline instead; the in-process
+# tests cover the same command surface.
+pytest_add_cli_args = ["-m", "not slow"]
+# mutmut copies only tests/, pyproject.toml, and the source paths into its
+# mutants/ working copy. The suite also reads these repo-root paths at
+# runtime: the Makefile (test_interrogate_gate), docs/ (the drift guards and
+# conftest helpers), skill/ (the skill markdown guards), and README.md (the
+# installed-binary e2e builds a wheel, whose metadata references it).
+also_copy = ["Makefile", "README.md", "docs/", "skill/"]
 
 [tool.pytest.ini_options]
 # Tests automatically killed after seconds elapsed
