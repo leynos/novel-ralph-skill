@@ -68,6 +68,12 @@ pytest_plugins = (
     # cross-command contract package share. Hosting it here would push this
     # module past the 400-line cap, so it lives in a registered plugin module.
     "contract_drive_support",
+    # The mutmut 3.6.0 chdir workaround (boxed/mutmut#526): absolutises the
+    # mutmut configuration's ``source_paths`` before collection so the
+    # trampoline's strict re-resolution survives ``monkeypatch.chdir``. A
+    # no-op outside mutmut runs; hosted in a plugin module to respect the
+    # 400-line cap here.
+    "_mutmut_compat",
 )
 
 if typ.TYPE_CHECKING:

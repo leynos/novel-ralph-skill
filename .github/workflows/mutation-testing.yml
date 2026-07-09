@@ -1,0 +1,30 @@
+name: Mutation testing
+
+# Thin caller of the shared mutation-testing reusable workflow; caller
+# guide: leynos/shared-actions docs/mutation-mutmut-workflow.md.
+on:
+  schedule:
+    - cron: "35 12 * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: mutation-testing-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  mutation:
+    permissions:
+      contents: read
+      id-token: write # OIDC workflow-source resolution
+    uses: leynos/shared-actions/.github/workflows/mutation-mutmut.yml@859416a90eb3987b46a57682c5d6b8964ad3f0a6
+    with:
+      # Flat package layout: the mutable source lives in
+      # novel_ralph_skill/, not src/, and no prefix precedes the module
+      # path when translating changed files to module globs.
+      paths: "novel_ralph_skill/"
+      module-prefix-strip: ""
+      # requires-python is >= 3.14, so the workflow's default 3.13
+      # interpreter cannot run the project.
+      python-version: "3.14"
