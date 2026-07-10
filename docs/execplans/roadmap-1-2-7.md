@@ -99,7 +99,7 @@ Hard invariants that must hold throughout implementation.
     - Risk: conftest helpers consumed as importable functions. pytest auto-loads
       `tests/conftest.py`, but importing module-level helpers via
       `from tests.conftest import ...` is fragile across import modes and is a
-      recognised anti-pattern. Reaching for `tests/_helpers.py` instead would
+      recognized anti-pattern. Reaching for `tests/_helpers.py` instead would
       add a second shared module the audits did not ask for.
       Severity: medium
       Likelihood: medium
@@ -162,7 +162,7 @@ Hard invariants that must hold throughout implementation.
       pytest's default `prepend` import mode because the rootdir is inserted on
       `sys.path`.
       Impact: the fixture-first approach removes this import entirely rather
-      than legitimising it, avoiding any `tests/__init__.py` / import-mode
+      than legitimizing it, avoiding any `tests/__init__.py` / import-mode
       change (see Tolerances).
     - Observation: `Program` is `typing.NewType("Program", str)` with no
       validation.
@@ -594,7 +594,7 @@ repeatable. If a migration breaks a module, restore that module from
 `git checkout -- tests/<module>.py` and re-apply the fixture consumption
 incrementally.
 
-## Artifacts and notes
+## Artefacts and notes
 
 The cross-module private import to be removed
 (`tests/test_venv_scripts_dir.py:18`):

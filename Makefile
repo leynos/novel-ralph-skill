@@ -30,11 +30,11 @@ PURGE_TREE_BYTECODE = $(UV_ENV) $(UV) run python -c "import pathlib, shutil, sys
 
 
 .PHONY: help all audit clean build build-release lint lint-python fmt check-fmt \
-        markdownlint nixie test typecheck $(TOOLS) $(VENV_TOOLS)
+        markdownlint spelling nixie test typecheck $(TOOLS) $(VENV_TOOLS)
 
 .DEFAULT_GOAL := all
 
-all: build check-fmt lint typecheck test
+all: build check-fmt lint typecheck test spelling
 
 define ensure_uv
 	@command -v $(UV) >/dev/null 2>&1 || { \
@@ -60,6 +60,7 @@ clean: ## Remove build artifacts
 	  .mypy_cache .pytest_cache .coverage coverage.* \
 	  lcov.info htmlcov .venv .uv-cache .uv-tools
 	find . -type d -name '__pycache__' -print0 | xargs -0 -r rm -rf
+	rm -f .typos-oxendict-base.json .typos-oxendict-base.toml
 
 define ensure_tool
 	@command -v $(1) >/dev/null 2>&1 || { \
@@ -117,6 +118,15 @@ audit: build ## Audit dependencies for known vulnerabilities
 
 markdownlint: $(MDLINT) ## Lint Markdown files
 	env -u NO_COLOR $(MDLINT) '**/*.md'
+	+$(MAKE) spelling
+
+TYPOS_VERSION ?= 1.48.0
+TYPOS := $(UV) tool run typos@$(TYPOS_VERSION)
+
+spelling: ## Enforce en-GB-oxendict spelling in Markdown prose
+	$(UV) run scripts/generate_typos_config.py
+	find . -type f -name '*.md' -not -path './.venv/*' -print0 | \
+		xargs -0 -r $(TYPOS) --config typos.toml --force-exclude
 
 nixie: ## Validate Mermaid diagrams
 	$(call ensure_tool,$(NIXIE))

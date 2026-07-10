@@ -16,7 +16,7 @@ predicate"). One clause, `no_unresolved_blockers`, is supposed to keep the loop
 running while any chapter's spiteful-critic notes still carry an unaddressed
 BLOCKER finding.
 
-Today that clause is unsound against real input. The recogniser
+Today that clause is unsound against real input. The recognizer
 (`novel_ralph_skill/state/done_predicate.py:276-296`) treats a
 `critic-notes.md` line as an unresolved BLOCKER only when its *stripped text
 starts with* the bare word `BLOCKER` and does *not end with* a trailing
@@ -67,7 +67,7 @@ escalation, not a workaround.
    task does not touch chapter iteration.
 5. The corpus oracle twin
    (`tests/working_corpus/_done_predicate_oracle.py`) must **not** import the
-   production recogniser; it re-spells the rule independently and a corpus test
+   production recognizer; it re-spells the rule independently and a corpus test
    pins the two equal on every `novel-done` tree (the invariant-validation twin
    policy, developers-guide "Shared test scaffolding"). When the production rule
    changes, the twin changes in the same commit.
@@ -88,10 +88,10 @@ Stop and escalate, recording the trigger in the Decision Log, when any holds:
   `novel-done` envelope JSON, or any public function signature outside
   `done_predicate.py`'s private helpers.
 - Dependencies: any new third-party dependency is required (none is expected;
-  the recogniser is pure `str`/`pathlib`).
+  the recognizer is pure `str`/`pathlib`).
 - Producer-contract ambiguity: if, while drafting the resolution convention, two
   materially different conventions are equally defensible *and* the choice
-  changes the recogniser grammar, stop and present both with trade-offs rather
+  changes the recognizer grammar, stop and present both with trade-offs rather
   than picking silently. (The plan pins one convention in the Decision Log as
   D-BLOCKER-FORMAT; this tolerance covers a discovery that contradicts it.)
 - Iterations: tests still red after 3 focused attempts on one work item.
@@ -100,7 +100,7 @@ Stop and escalate, recording the trigger in the Decision Log, when any holds:
 
 ## Risks
 
-- Risk: the recogniser must distinguish a *live* `### Bn` finding from a
+- Risk: the recognizer must distinguish a *live* `### Bn` finding from a
   *resolved* one and from the literal convergence sentinel
   `No BLOCKER. No MAJOR.` (critic-personas.md:116-118). A naive "any `### B`
   line under `## BLOCKER`" rule could misread the sentinel or a heading-only
@@ -158,13 +158,13 @@ Stop and escalate, recording the trigger in the Decision Log, when any holds:
   construction, case/variant out of scope) and rewrote the `done-conditions.md`
   consumer note to match. `make markdownlint`, `make nixie`, and `make all`
   green; coderabbit 0 findings. Commit `0cb41e9`.
-- [x] W2 — Realign the recogniser in `done_predicate.py` to the heading-based
+- [x] W2 — Realign the recognizer in `done_predicate.py` to the heading-based
   format plus the documented resolution token; update unit + property tests.
   See Decision Log D-BLOCKER-MODULE (relocated) and Surprises (W2/W3 folded).
 - [x] W3 — Update the corpus specs, the oracle twin, and the corpus/BDD/snapshot
   trees to drive the clause clean and dirty from real critic-personas-shaped
   output. Folded into the W2 commit (see Surprises & discoveries) because the
-  recogniser cannot land `make all`-green without the corpus realignment.
+  recognizer cannot land `make all`-green without the corpus realignment.
 - [x] W4 — Update `developers-guide.md` (and §4.2 status note) to the new
   grammar; run the markdown gates. Rewrote "The BLOCKER format" to the
   heading-based grammar, naming all three documented edges (case/variant out of
@@ -178,7 +178,7 @@ Stop and escalate, recording the trigger in the Decision Log, when any holds:
 ## Surprises & discoveries
 
 - Deviation: W2 and W3 were committed **together** as one atomic commit rather
-  than as two. The recogniser realignment (W2) makes every existing corpus note
+  than as two. The recognizer realignment (W2) makes every existing corpus note
   body (the old `BLOCKER …` strings) read clean under the new grammar, so the
   W2-only tree would leave `test_failers_each_break_exactly_one_clause`,
   `test_blocker_edges`, `test_blocker_oracle_twin_agrees`, and two BDD scenarios
@@ -239,14 +239,14 @@ Stop and escalate, recording the trigger in the Decision Log, when any holds:
 - Decision (D-BLOCKER-SENTINEL): the convergence sentinel `No BLOCKER. No
   MAJOR.` (critic-personas.md:116-118) is clean by construction — the critic
   writes it *instead of* a `## BLOCKER` section, so there is no `## BLOCKER`
-  heading and the recogniser finds no findings. A pinned test asserts this.
+  heading and the recognizer finds no findings. A pinned test asserts this.
   Rationale: avoids a special-case in the parser; the absence of the section is
   the resolution signal for the convergence path.
   Date/Author: 2026-06-24, planning agent.
 
 - Decision (D-BLOCKER-CASE): case- and alternative-spelling variants of the
   resolution token (`[RESOLVED]`, `(resolved)`) and of the headings remain *out
-  of scope*, matching D-BLOCKER-SCOPE (roadmap 3.1.4). The recogniser stays
+  of scope*, matching D-BLOCKER-SCOPE (roadmap 3.1.4). The recognizer stays
   case-sensitive on `## BLOCKER`, `### B<n>`, and `[resolved]`. W1 records this
   and W2 pins it with an asserting-current-behaviour test (audit-3.1.4 Finding
   3) so a future "fix" cannot silently flip it.
@@ -259,10 +259,10 @@ Stop and escalate, recording the trigger in the Decision Log, when any holds:
   heading (`### B1 — label [resolved] (see log 42)`) is *forbidden* by the
   convention and therefore treated as **unresolved** by design, closing
   audit-3.1.4 Finding 2's false-dirty direction by ruling it out at the producer
-  rather than relaxing the recogniser. W1 states this in the convention; W2 pins
+  rather than relaxing the recognizer. W1 states this in the convention; W2 pins
   it with a test.
   Rationale: the convention owns the producer; a forbidden shape needs no
-  recogniser tolerance. Keeps the positional rule simple and the contract
+  recognizer tolerance. Keeps the positional rule simple and the contract
   single-sided.
   Date/Author: 2026-06-24, planning agent.
 
@@ -289,7 +289,7 @@ against the Purpose: a real critic-personas-shaped unresolved blocker must drive
 `novel-done` to exit `1`, and the documented resolution convention must drive it
 to exit `0`, with the contract written once and shared by producer and consumer.
 
-Outcome (2026-06-24, implementing agent): Purpose met. The recogniser now parses
+Outcome (2026-06-24, implementing agent): Purpose met. The recognizer now parses
 the real `## BLOCKER`/`### Bn` structure (`_blocker_notes.py`); a live `### B1`
 finding under `## BLOCKER` drives `no_unresolved_blockers` false (the headline
 exit-code flip pinned by `test_no_unresolved_blockers_clean_and_blocking` and the
@@ -297,7 +297,7 @@ new `a live B1 finding …` BDD scenario, exit `1`), and a trailing
 space-then-`[resolved]` token clears it (exit `0`). The convention is written
 once in `critic-personas.md` ("Resolving a BLOCKER") and `done-conditions.md`,
 shared by producer and consumer. Two atomic commits: `0cb41e9` (W0/W1
-references), `c004265` (W2/W3 recogniser + corpus + oracle twin + BDD); W4 docs
+references), `c004265` (W2/W3 recognizer + corpus + oracle twin + BDD); W4 docs
 follow. `make all` green throughout; coderabbit `0` findings on each run.
 Deviations: W2/W3 folded into one commit (deterministic-gate coupling, also
 satisfying R-TWIN-DRIFT); D-BLOCKER-MODULE relocated the parser to a sibling
@@ -372,11 +372,11 @@ Tests (the `tests/` tree; AGENTS.md keeps all pytest tests here):
 Term definitions:
 
 - **§1.3.2 corpus tree**: house shorthand for a `WorkingTreeSpec` added to
-  `tests/working_corpus/_done_predicate_specs.py`, materialised by the corpus
+  `tests/working_corpus/_done_predicate_specs.py`, materialized by the corpus
   builder, cross-checked by an independent oracle twin, and asserted in
   `tests/test_working_corpus_done_predicate.py` (used the same way by roadmap
   3.1.4, see `docs/execplans/roadmap-3-1-4.md`).
-- **Recogniser**: the pure predicate that classifies a `critic-notes.md` body as
+- **Recognizer**: the pure predicate that classifies a `critic-notes.md` body as
   carrying an unresolved BLOCKER or not.
 
 ## Plan of work
@@ -423,7 +423,7 @@ D-BLOCKER-FORMAT, D-BLOCKER-TRAILING, and D-BLOCKER-CASE in prose:
 - When the critic re-runs and the chapter has no blockers, it writes
   `No BLOCKER. No MAJOR.` and emits no `## BLOCKER` section (the normal
   resolution path; the in-place token is for the cap-reached logged case).
-- Case and spelling variants of the token are not recognised (out of scope).
+- Case and spelling variants of the token are not recognized (out of scope).
 
 Edit `skill/novel-ralph/references/done-conditions.md` lines 191-195: replace the
 current trailing-`[resolved]`-on-a-`BLOCKER`-prefixed-line note with the new
@@ -438,7 +438,7 @@ and W3, which consume the convention.
 Validation: `make markdownlint` and `make nixie` (Constraint 6; both pass).
 Commit: reference-only change defining the producer contract.
 
-### W2 — Realign the recogniser and its unit/property tests (Stage C: implementation)
+### W2 — Realign the recognizer and its unit/property tests (Stage C: implementation)
 
 Edit `novel_ralph_skill/state/done_predicate.py`:
 
@@ -512,10 +512,10 @@ function, but the implementer may run `crosshair cover` on
 a branch unexercised).
 Tests added/updated: the eight unit cases above plus the rewritten property, all
 in `tests/test_done_predicate.py`. Each new behavioural case fails against the
-pre-change recogniser (red) and passes after (green) — note in the Progress log
+pre-change recognizer (red) and passes after (green) — note in the Progress log
 which cases were confirmed red first.
 Validation: `make all` (build, check-fmt, lint, typecheck, test) green.
-Commit: recogniser realignment plus its unit/property suite.
+Commit: recognizer realignment plus its unit/property suite.
 
 ### W3 — Corpus, oracle twin, BDD, and snapshot from real critic output (Stage C cont.)
 
@@ -573,7 +573,7 @@ oracle-twin policy from the developers-guide.
 Tests added/updated: corpus edge trees + sentinel tree, the rewritten oracle
 twin, the extended `test_blocker_edges`, the new BDD scenario, optional snapshot.
 Validation: `make all` green; the new BDD scenario fails red against the
-pre-change recogniser and passes after.
+pre-change recognizer and passes after.
 Commit: corpus + oracle twin + BDD (+ optional snapshot), updated together so the
 twin and production never drift in a single commit (R-TWIN-DRIFT).
 
@@ -617,7 +617,7 @@ red-green discipline:
 make test  # expect the new unresolved-### B1 case(s) to FAIL (red)
 ```
 
-Then implement the recogniser and re-run:
+Then implement the recognizer and re-run:
 
 ```bash
 make all
@@ -648,7 +648,7 @@ Quality criteria (what "done" means):
 - Tests: `make test` passes. The new behavioural cases — a live `### B1` finding
   under `## BLOCKER` driving `no_unresolved_blockers` false, and the documented
   documented space-then-`[resolved]` token clearing it — fail before W2's
-  recogniser change and pass
+  recognizer change and pass
   after. The new BDD scenario in `novel_done.feature` exits `1` against genuine
   critic output. The Hypothesis positional property holds over generated finding
   headings. The oracle twin agrees with production on every corpus tree.
@@ -668,7 +668,7 @@ evidence is captured in the Progress log per work item.
 
 Acceptance against the roadmap 3.1.5 success criteria: the resolution convention
 is defined once in `critic-personas.md` and `done-conditions.md` (W1); the
-recogniser parses the real `## BLOCKER`/`### Bn` structure and the documented
+recognizer parses the real `## BLOCKER`/`### Bn` structure and the documented
 token, with the case/variant decision recorded (W2, D-BLOCKER-CASE); a §1.3.2
 corpus tree built from critic-personas-shaped output drives the clause both clean
 and dirty (W3); an unresolved blocker in genuine critic output is reported (W2
@@ -682,7 +682,7 @@ writes nothing; Constraint 1). If a commit's gate fails, fix forward and re-run
 the gate; nothing to roll back beyond `git restore` of the working tree. Commit
 per work item so a failed later item never strands an earlier green one.
 
-## Artifacts and notes
+## Artefacts and notes
 
 The headline evidence is the exit-code flip: a genuine critic-personas-shaped
 unresolved blocker, which exits `0` (falsely clean) today, must exit `1` after
@@ -691,7 +691,7 @@ W2. Capture that transcript in the Progress log when W2 lands.
 ## Interfaces and dependencies
 
 In `novel_ralph_skill/state/done_predicate.py` (or, per D-BLOCKER-MODULE, a new
-`novel_ralph_skill/state/_blocker_notes.py`), the recogniser ends as two pure
+`novel_ralph_skill/state/_blocker_notes.py`), the recognizer ends as two pure
 helpers plus the file-boundary wrapper:
 
 ```python
@@ -703,7 +703,7 @@ def _contains_unresolved_blocker(notes_path: Path) -> bool: ...  # file-fault bo
 
 The public `no_unresolved_blockers(state: State, working_dir: Path) -> bool` and
 the `DoneClauses` shape are unchanged. No new third-party dependency; the
-recogniser uses only `str`, `re` (optional, for the `### B<digits>` match), and
+recognizer uses only `str`, `re` (optional, for the `### B<digits>` match), and
 `pathlib`. The corpus oracle twin in
 `tests/working_corpus/_done_predicate_oracle.py` re-implements the same
 heading-based rule independently and must not import the production helpers.
@@ -715,7 +715,7 @@ a no-plan, no-review addendum pass (roadmap sub-task under the `[x]` 3.1.5
 parent).
 
 - [x] **Roadmap 3.1.5.1 — pin the decorated `## BLOCKER` heading false-clean
-  direction** (from review:3.1.5; severity low). The recogniser enters a section
+  direction** (from review:3.1.5; severity low). The recognizer enters a section
   only on a line whose stripped text equals `## BLOCKER` (D-BLOCKER-FORMAT), so
   a decorated heading such as `## BLOCKER (chapter 3)` reads clean by design and
   matches the producer contract — but no test pins this single-sided behaviour,

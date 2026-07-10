@@ -16,7 +16,7 @@ Three domain exception types hand-repeat the same `messages`-carrying
 JSON envelope (`messages` field, design §3.1; ADR-003 §"Functional
 requirements"). Because the storage logic is copied across three sites in two
 layers, a future change to the envelope-messages contract — for example
-normalising or validating the prose, or changing how it is frozen — must be
+normalizing or validating the prose, or changing how it is frozen — must be
 mirrored in three places, and the three can silently drift.
 
 After this change, a single base exception, `EnvelopeMessagesError`, lives in a
@@ -250,7 +250,7 @@ files are needed.
   including `StateInputError`, via an import block and an `__all__` list.
 - `novel_ralph_skill/rulepack/__init__.py` — re-exports `RulePackError` and
   `RulePackFileError`.
-- `novel_ralph_skill/_freeze.py` — read-only normalisers (`freeze_mapping`,
+- `novel_ralph_skill/_freeze.py` — read-only normalizers (`freeze_mapping`,
   `freeze_sequence`) used by frozen dataclasses such as `CommandOutcome`. This
   task does **not** use them: a `*messages` varargs tuple is already immutable,
   so the base does not need `freeze_sequence`. Mentioned only to forestall
@@ -530,13 +530,13 @@ make test 2>&1 | grep -E "test_state_error_exits_three|test_the_two_error_types_
 ## Idempotence and recovery
 
 Every step is re-runnable. Adding the new module and test is additive; rebasing
-the three exceptions onto the base is a localised edit. If a `make all` run
+the three exceptions onto the base is a localized edit. If a `make all` run
 fails, fix forward (do not delete the base) and re-run `make all`; the build
 cache makes re-runs cheap. To abandon a half-finished work item, `git restore`
 the touched files and re-apply from this plan. No step is destructive; no
 backups are required.
 
-## Artifacts and notes
+## Artefacts and notes
 
 The load-bearing current code, for reference during implementation:
 

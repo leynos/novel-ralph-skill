@@ -55,9 +55,9 @@ Consequences:
   guard registry (WI3) lists `compile_manuscript` or the `_compile` module as a
   consumer of `concatenate_drafts`/`present_draft_bodies`, the "no bare
   re-export spelling" assertion reddens against lines 104/106 the plan never
-  normalises — a green-after failure baked into the plan.
+  normalizes — a green-after failure baked into the plan.
 
-Fix required: WI1 must enumerate and normalise all eight references (or state
+Fix required: WI1 must enumerate and normalize all eight references (or state
 an explicit, justified carve-out, which there is no reason for here). The
 registry in WI3 must then be reconciled with the full consumer set.
 
@@ -112,7 +112,7 @@ discriminator does not false-positive on a legitimate three-member consumer.
 The plan claims the pre-edit grep proves "the re-export spellings live only in
 the named consumer docstrings." `tests/test_reconciliation_payload.py:3` carries
 `:func:`novel_ralph_skill.state.reconciliation_payload``. Harmless to the
-guard (test docstrings are out of the registry), but the Artifacts bullet and
+guard (test docstrings are out of the registry), but the Artefacts bullet and
 the implicit invariant are false as stated. Reword to "live only in the named
 *production* consumer docstrings; one test docstring also names it and is out
 of scope," and have WI2's grep step expect that hit rather than treating it as
@@ -126,10 +126,10 @@ registered consumer (it cross-references `concatenate_drafts`/
 `compiled_matches_drafts`). The plan's registry currently binds consumers to
 `compiled_matches_drafts` only; the `concatenate_drafts`/`present_draft_bodies`
 projections have their own authoritative docstrings and are not represented as
-registry rows at all, yet WI1 normalises references to them. Either add rows
-for them or state in the Decision Log why they are normalised-but-unguarded
+registry rows at all, yet WI1 normalizes references to them. Either add rows
+for them or state in the Decision Log why they are normalized-but-unguarded
 (consistency-only), so the guard's coverage boundary is explicit and a future
-reader is not surprised that normalised refs are unpinned.
+reader is not surprised that normalized refs are unpinned.
 
 ### 💡 Open question (Wafflecat) — is the member-enumeration heuristic worth keeping at all?
 
@@ -153,7 +153,7 @@ in the Decision Log rather than leaving WI3 with a heuristic that does not hold.
 
 ## Pre-mortem (Doggylump)
 
-1. **Most likely failure:** the implementer follows WI1 literally, normalises
+1. **Most likely failure:** the implementer follows WI1 literally, normalizes
    six
    refs, runs `make all` green (no guard yet), commits — leaving lines 104/106
    on the re-export path. WI3's guard then either (a) does not cover

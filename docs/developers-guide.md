@@ -17,13 +17,17 @@ Run `make audit` as the dependency vulnerability gate. It runs `pip-audit` for
 Python dependencies, and Rust-enabled projects also run `cargo audit` from the
 `rust_extension` crate directory.
 
+Run `make spelling` to refresh the shared en-GB-oxendict dictionary into an
+untracked local cache, merge `typos.local.toml`, regenerate `typos.toml`, and
+check maintained Markdown with the pinned `typos` release.
+
 ## Shared test scaffolding
 
 [`tests/conftest.py`](../tests/conftest.py) is the single home for scaffolding
 shared across the test suite. It exposes the project-root path
 (`project_root`), the parsed `pyproject.toml` (`pyproject`), a repo-relative
 UTF-8 reader (`read_repo_text`), a TOML-table accessor (`toml_table`), the PEP
-508 dependency-name normaliser (`dist_name`, a `(spec) -> str | None` callable
+508 dependency-name normalizer (`dist_name`, a `(spec) -> str | None` callable
 that reduces a requirement string to its bare distribution name), the
 one-program cuprum catalogue builder (`single_program_catalogue`), and the
 POSIX venv scripts-directory resolver (`venv_scripts_dir`).
@@ -121,7 +125,7 @@ discharges the duplication and cross-module-import findings recorded in
 [`audit-1.2.5.md`](issues/audit-1.2.5.md),
 [`audit-1.2.6.md`](issues/audit-1.2.6.md), and
 [`audit-1.2.7.md`](issues/audit-1.2.7.md) (Findings 1-2: the seventh
-`pyproject` parse and the divergent dependency-name normaliser, both now folded
+`pyproject` parse and the divergent dependency-name normalizer, both now folded
 onto the shared fixtures).
 
 ### The combinatorial command-surface matrix
@@ -184,7 +188,7 @@ stamp and assert the **absolute resolved** `working/` path via the
 `resolved_working_dir()` accessor, so a misresolution is visible in the field
 the harness reads (roadmap §6.3.4). Second, the `ok`-to-exit-code mapping: `ok`
 is `true` if and only if the exit code is 0 — a Hypothesis property over the
-pure synthetic-outcome → `run` → envelope surface plus plain parametrised
+pure synthetic-outcome → `run` → envelope surface plus plain parametrized
 driven-cell examples. Third, the error-channel shapes: the usage (exit 2) and
 state (exit 3) arms share one redacted skeleton across all five commands, and
 the actionable-finding (exit 4) skeleton is shared across the three commands
@@ -855,7 +859,7 @@ agree on every corpus tree.
 
 `recount` re-derives `[word_counts]` from the on-disk chapter drafts and writes
 *only* that table — it never writes `[gates]`. This is deliberate: disk does
-not store the "knitting pass integrated" fact, so the harness cannot synthesise
+not store the "knitting pass integrated" fact, so the harness cannot synthesize
 it. A `recount` that would move the drafted ratio across a 30/50/80%
 knitting-gate threshold while the matching gate flag still lags would therefore
 make the recounted state breach `gate-ratio-consistent`, and the
@@ -974,7 +978,7 @@ not de-duplicate the twins — collapsing them would defeat the cross-check.
 
 The corpus oracle's **disk-evidence** predicates follow the same twin
 discipline, but against a different production module. After tasks 2.3.2/2.3.3
-the oracle reads the materialised `working/` tree for all eight §5.4
+the oracle reads the materialized `working/` tree for all eight §5.4
 disk-evidence invariants (`manifest-disk-bijection`, `done-flag-without-draft`,
 `compiled-matches-drafts`, `pending-turn-cleared`, `cursor-plan-present`,
 `word-counts-match-drafts`, `log-present`, and `word-counts-cover-drafts`), so
@@ -1102,7 +1106,7 @@ chapter-source statement left to diverge.
 **The BLOCKER format.** An unresolved BLOCKER is a live `### Bn` finding
 heading under the `## BLOCKER` section of a `critic-notes.md` body — the
 spiteful critic's strict output format (`critic-personas.md`, "Resolving a
-BLOCKER"; roadmap 3.1.5). The recogniser enters the section on a line whose
+BLOCKER"; roadmap 3.1.5). The recognizer enters the section on a line whose
 stripped text equals `## BLOCKER`, leaves it on the next `##`-level heading,
 and treats a `### B<digit>` heading inside it as unresolved unless that heading
 ends with a single space then the `[resolved]` token. The token is a trailing
@@ -1832,7 +1836,7 @@ nothing read at the seam. A third pack family binds the skeleton rather than
 cloning a third `parse_*` orchestration, exactly as it inherits the coercion and
 error bindings.
 
-Each primitive is **parameterised on an error factory** rather than hard-wired to
+Each primitive is **parameterized on an error factory** rather than hard-wired to
 one package's exception. A pack family binds a small frozen `CoercionErrors`
 bundle carrying its content-error constructor (with the `rule_id=`/`device_id=`
 keyword already bound) and its noun pair, so one body raises *that* family's typed
@@ -1845,7 +1849,7 @@ the `"rule"`/`"rule pack"` nouns; the ledger binds it to `LedgerError` with the
 pack family (design §8.1's per-novel packs) inherits the primitives by adding one
 more bundle, not a third copy.
 
-Two primitives carry a deliberate twist. `entries` is parameterised on the *full*
+Two primitives carry a deliberate twist. `entries` is parameterized on the *full*
 verbatim message strings via an `EntriesMessages` bundle, not on the noun pair,
 because its empty-array message embeds a container noun (`pack`/`ledger`) and an
 item noun (`rule`/`device`) that are neither `CoercionErrors` noun; the strings
@@ -1910,7 +1914,7 @@ actions under `.github/`.
   `make test WITH_ACT=1` outside the coverage path.
 - `.github/workflows/release.yml` publishes wheels when a `v*.*.*` tag is
   pushed. It builds a pure Python wheel, creates a GitHub release with
-  generated release notes, downloads wheel artifacts, and uploads them to the
+  generated release notes, downloads wheel artefacts, and uploads them to the
   tag release.
 - `.github/workflows/build-wheels.yml` is a reusable workflow for extension
   builds. It accepts a Python version and builds wheels across Linux, Windows,
@@ -1919,9 +1923,9 @@ actions under `.github/`.
   the CodeScene coverage CLI installer, computes its SHA-256 digest, and writes
   the result to the `CODESCENE_CLI_SHA256` repository variable.
 - `.github/actions/build-wheels` wraps `cibuildwheel` with `uvx` and uploads
-  architecture-specific wheel artifacts.
+  architecture-specific wheel artefacts.
 - `.github/actions/pure-python-wheel` builds a pure Python wheel with
-  `uv build --wheel` and uploads the resulting artifact.
+  `uv build --wheel` and uploads the resulting artefact.
 - `.github/dependabot.yml` enables dependency update pull requests for GitHub
   Actions and Python packages. Rust-enabled projects also receive Cargo updates.
 

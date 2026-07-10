@@ -12,7 +12,7 @@ Verdict: PROCEED. The plan is implementable and design-conformant as written.
   The freeze step does not reorder keys, so the builder's insertion order survives
   through to the JSON line. CONFIRMED (closes a latent gap the plan does not
   explicitly call out but relies upon).
-- The `.ambr` snapshot serialises rule-pack `result` keys alphabetically
+- The `.ambr` snapshot serializes rule-pack `result` keys alphabetically
   (`findings, pack, total_words, violations` in
   `test_desloppify_snapshots.ambr`), proving syrupy sorts and the snapshots
   cannot guard insertion order. CONFIRMED.

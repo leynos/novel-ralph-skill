@@ -5,7 +5,7 @@ exit-3 coverage to `reconcile` and `wordcount`", commit `fdb351d`) merged to
 `main`. The task closed the installed-binary exit-3 asymmetry that the 6.2.4
 audit recorded as Finding 6: `recount` already had an installed exit-3 proof,
 but `reconcile` and `wordcount` had only happy-path installed proofs. Task 6.2.6
-added parametrised (missing / unparseable `state.toml`) installed exit-3 e2e
+added parametrized (missing / unparseable `state.toml`) installed exit-3 e2e
 proofs for both commands.
 
 The new tests are correct, well-documented, and prove the intended boundary. The
@@ -69,11 +69,11 @@ full ~15-line copy instead.
 
 - **Proposed fix:** Land roadmap task 7.23.2 (the shared `run_installed` helper)
   and then express these three tests as thin delegations: a single
-  parametrised body that takes the invocation arguments
+  parametrized body that takes the invocation arguments
   (`("recount",)`, `("reconcile",)`, `()`) and the script source, calls
   `run_installed(...)`, and asserts the shared exit-3 triplet through one helper
   (e.g. `assert_state_error_envelope(result)`). This collapses three near-identical
-  bodies to one parametrised case and gives the exit-3 contract assertion a single
+  bodies to one parametrized case and gives the exit-3 contract assertion a single
   owner. Because the consolidation is already triaged at 7.23.2, the actionable
   step is to record on that roadmap item that 6.2.6 added two more call sites it
   must now retire (see Finding 4).
@@ -87,7 +87,7 @@ full ~15-line copy instead.
   `tests/test_wordcount_e2e.py:87`
   (`test_installed_wordcount_reports_gate_triggers`, one build) and
   `tests/test_wordcount_e2e.py:134`
-  (`test_installed_wordcount_state_error_exits_three`, parametrised
+  (`test_installed_wordcount_state_error_exits_three`, parametrized
   `[None, b"not = toml ="]`, one build per case).
 
 `reconcile` and `recount` draw their installed script from the module-scoped
@@ -95,7 +95,7 @@ full ~15-line copy instead.
 module builds the wheel exactly once no matter how many cases it runs. The
 `wordcount` module instead calls the function-scoped `_build_and_install_wordcount`
 helper from every test. Before 6.2.6 that module had one installed test (one
-build). Task 6.2.6 added a two-case parametrised test, each case of which calls
+build). Task 6.2.6 added a two-case parametrized test, each case of which calls
 the helper, so the module now performs **three** full wheel-build + venv +
 `uv pip install` cycles where one would do. Each cycle is the slow part the
 harness design (§9) and the `installed_novel_state` docstring both call out, and
@@ -104,14 +104,14 @@ the per-test `180s` timeout exists precisely because a single cycle is slow. The
 6.2.6 measurably worsened it for `wordcount` specifically.
 
 - **Proposed fix:** Route `wordcount` through a module-scoped installed-script
-  fixture, as roadmap task 7.23.1 already proposes (a binary-parametrised
+  fixture, as roadmap task 7.23.1 already proposes (a binary-parametrized
   module-scoped fixture factory in `installed_binary_fixtures.py`). Until that
   lands, the narrow stop-gap is to convert `_build_and_install_wordcount` into a
   module-scoped fixture local to the module so the two test functions share one
   build; the exit-3 case writes its faulty `working/` into a per-test `tmp_path`
   subdirectory (it already does — `run-state-error`), so the build is genuinely
   reusable across cases. Record on roadmap 7.23.1 that the `wordcount` module now
-  carries a parametrised consumer, making the per-test-rebuild cost it converges
+  carries a parametrized consumer, making the per-test-rebuild cost it converges
   three builds rather than one.
 
 ## Finding 3: A binary-shaped seam (`novel-state <sub>` versus top-level script) is encoded by copy rather than expressed once
@@ -134,7 +134,7 @@ console-script invoked with no subcommand, so it runs with the empty call
 between the prose and the call site in every module instead of living in one
 table the e2es read.
 
-- **Proposed fix:** When task 7.23.1 introduces the binary-parametrised fixture
+- **Proposed fix:** When task 7.23.1 introduces the binary-parametrized fixture
   factory, carry the invocation shape alongside the script name in one place —
   e.g. a small mapping `{"reconcile": ("reconcile",), "recount": ("recount",),
   "wordcount": ()}` — so a test names its binary and the harness supplies both
@@ -151,7 +151,7 @@ table the e2es read.
 
 The two consolidation tasks were written against the 6.2.4 snapshot. Since then,
 task 6.2.6 has added a second installed exit-3 copy (Finding 1 above) and a
-parametrised function-scoped-build consumer to `test_wordcount_e2e.py`
+parametrized function-scoped-build consumer to `test_wordcount_e2e.py`
 (Finding 2 above). Task 7.23.2's success criterion ("one shared `run_installed`
 helper owns the installed-script run convention every e2e site delegates to")
 and 7.23.1's
@@ -191,7 +191,7 @@ small (in-process coverage exists), but it is the symmetric remainder of the ver
 asymmetry 6.2.6 set out to close.
 
 - **Proposed fix:** Once the `run_installed` helper (7.23.2) and the shared
-  installed exit-3 assertion (Finding 1) exist, add a parametrised installed
+  installed exit-3 assertion (Finding 1) exist, add a parametrized installed
   exit-3 case to `tests/test_desloppify_e2e.py` mirroring the three siblings, so
   every state-input command's exit-3 path is proven at the packaging boundary,
   not only in-process. Until then, record the `desloppify` gap explicitly so it

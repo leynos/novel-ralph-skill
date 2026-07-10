@@ -62,7 +62,7 @@ call `working_dir()`. But `_desloppify` and `_wordcount` instead import the raw
 `WORKING_DIR_NAME` constant and rebuild `working_dir = pathlib.Path(WORKING_DIR_NAME)`
 inline — exactly the line the accessor was created to delete. The same two sites
 then write `load_or_state_error(working_dir / "state.toml")`, re-spelling the
-`working/state.toml` path that the `state_path()` accessor already centralises
+`working/state.toml` path that the `state_path()` accessor already centralizes
 (audit:1.3.5, audit:2.2.2) and that `_compile`/`_novel_done`/`novel_state` all
 route through as `load_or_state_error(state_path())`. 7.3.6 re-anchored
 `WORKING_DIR_NAME` in the contract package, so these two stragglers are now the
@@ -137,9 +137,9 @@ already retired by lifting the scalar-coercion bodies into
 `loaderkit.coerce` — the error hierarchies are the same near-copy one layer up,
 not yet consolidated.
 
-Proposed fix: add a `loaderkit.errors` home with a factory (or parametrised base)
+Proposed fix: add a `loaderkit.errors` home with a factory (or parametrized base)
 that mints a content-error class carrying a configurable id-attribute name plus
-a file-error class, mirroring how `loaderkit.coerce.CoercionErrors` parametrises
+a file-error class, mirroring how `loaderkit.coerce.CoercionErrors` parametrizes
 the
 nouns and content-error constructor. Each package then declares its pair by
 binding the id keyword (`rule_id`/`device_id`) and nouns, exactly as

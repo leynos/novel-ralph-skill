@@ -90,7 +90,7 @@ disk-independence.
   adopted (live-draft oracle); no better structural option exists. A leaner
   variant worth weighing: since the existing
   `test_incoherent_agreement_restricted_to_owned` already discharges the
-  literal roadmap Success clause (validator vs spec-oracle over the materialised
+  literal roadmap Success clause (validator vs spec-oracle over the materialized
   `state.toml`, restricted to owned), the *only* genuinely new value this task
   adds is the live-draft basis for the two proxy invariants. Framing the task
   as "add the live-draft reconciliation for the two proxies, plus the

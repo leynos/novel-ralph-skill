@@ -863,7 +863,7 @@ destructive; there are no migrations, no data writes, no network calls. If a wor
 item's `make all` fails, fix forward within the iteration tolerance (3 attempts)
 or revert that single commit and escalate.
 
-## Artifacts and notes
+## Artefacts and notes
 
 The load-bearing existing test that proves behaviour is unchanged is
 `tests/test_draft_read_message_parity.py`: it drives all six draft-read boundaries

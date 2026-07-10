@@ -4,7 +4,7 @@ Audit of the codebase after task 2.3.3 ("Add disk-authoritative cross-checks to
 the corpus oracle") merged to `main` at commit `c7ebfaf`. The task rerouted three
 corpus-oracle disk-evidence predicates (`_check_manifest_disk_bijection`,
 `_check_done_flag_without_draft`, `_check_compiled_matches_drafts`) from reading
-the `WorkingTreeSpec` to reading the materialised `working/` tree, so all six
+the `WorkingTreeSpec` to reading the materialized `working/` tree, so all six
 disk-evidence twins are now genuinely disk-vs-disk.
 
 Trail followed: `docs/novel-ralph-harness-design.md` §§3.3/5.2/5.4,
@@ -71,7 +71,7 @@ already share reads, so the oracle side is the laggard.
 helper in the oracle (parsing `state.toml` once) and have the five predicates call
 it. The per-`corpus_check` re-parse cannot be collapsed without threading the
 parsed table through `corpus_check` (the predicates take `working_dir`, not a
-parsed view), but centralising the read literal removes the copy-paste and the
+parsed view), but centralizing the read literal removes the copy-paste and the
 skew risk; if the repeated parse becomes a measured cost, pass the parsed table
 into the disk predicates from `corpus_check`. Keep the helper oracle-local so the
 deliberate-twin independence from production is preserved.

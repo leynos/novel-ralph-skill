@@ -270,7 +270,7 @@ escalation, not a workaround.
       `tests/test_ledger_detect.py` (13 tests) pinning each constraint's breach
       and clean case, the per-chapter attribution, the `max_count`+window
       pairing, and the recompute-from-disk behaviour. The three window cases are
-      parametrised (a typed `_Ration` config keeps the `_device` factory within
+      parametrized (a typed `_Ration` config keeps the `_device` factory within
       the argument-count gate). A trivial CodeRabbit suggestion to convert the
       builder helpers to fixtures was declined: the sibling template
       `tests/test_rulepack_detect.py` uses module-level builder functions, and
@@ -447,7 +447,7 @@ escalation, not a workaround.
       the developers' guide as the highest-value future enhancement.
     - CodeRabbit drove several test-quality improvements: assertion messages on
       every check, a typed `_Ration` config to drop a `too-many-arguments`
-      suppression, parametrised window cases, and cwd-independent test-data paths
+      suppression, parametrized window cases, and cwd-independent test-data paths
       derived from `__file__`. Two trivial "convert helpers to fixtures"
       suggestions were declined to stay consistent with the sibling
       `test_rulepack_detect.py` / `test_desloppify_command.py` templates (which
@@ -767,7 +767,7 @@ Add `tests/test_ledger_properties.py`, mirroring
   rationing field and at most one window constraint; every present `max_count`/
   `retired_after_chapter`/`reserved_for_chapter` is positive; every
   `allowed_chapters` is a non-empty tuple of positive ints.
-- Detector invariant: for `ScannedChapter`s synthesised from a strategy over the
+- Detector invariant: for `ScannedChapter`s synthesized from a strategy over the
   scanned chapters' numbers and device-bearing/clean lines, every `LineHit`'s
   `chapter` is one of the scanned chapters' numbers, and each `DeviceFinding`'s
   `count` equals the total number of its `lines` (count cannot drift from the
@@ -814,7 +814,7 @@ Two additions:
    - a malformed ledger (`tests/data/ledgers/` bad-fixtures mirroring
      `tests/data/rulepacks/`) exits `2` naming the offending device.
    Drive them through the real `desloppify` app via the shared `run` wrapper
-   (`monkeypatch.chdir` into a materialised tree, `capsys` for the envelope),
+   (`monkeypatch.chdir` into a materialized tree, `capsys` for the envelope),
    exactly as `test_desloppify_command.py` does.
 
 Add the bad-ledger fixtures under `tests/data/ledgers/` (e.g.
@@ -841,7 +841,7 @@ Add a POSIX-only, `slow`-marked wheel e2e (in `tests/test_ledger_e2e.py` or
 appended to `tests/test_desloppify_e2e.py`), mirroring
 `test_installed_desloppify_flags_offender`:
 
-- Build the wheel, install into a throwaway venv, materialise a `working/` tree
+- Build the wheel, install into a throwaway venv, materialize a `working/` tree
   via `baseline_tree`, write a device-bearing draft and a `device-ledger.toml`
   into the tree, and run the installed
   `desloppify --ledger <tree>/device-ledger.toml` through a
@@ -1017,7 +1017,7 @@ Quality method (how we check):
   wholesale on re-edit; no migration.
 - The `--ledger` mode is detect-only (ADR-001): no `working/` tree,
   `state.toml`,
-  or draft is mutated by any step; the e2e materialises throwaway trees under
+  or draft is mutated by any step; the e2e materializes throwaway trees under
   `tmp_path`, which pytest discards.
 - The wheel e2e builds into a `tmp_path` venv/wheel dir pytest discards;
   re-running rebuilds cleanly. If a build fails mid-run, delete the `tmp_path`

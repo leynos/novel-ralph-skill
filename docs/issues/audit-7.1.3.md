@@ -3,14 +3,14 @@
 Audit of the codebase after task 7.1.3 ("Extract a single `Reconciliation`
 payload projection and route the four arms through it") merged to `main` at
 commit `4f997c2`. The task replaced the four-site duplication of the
-`Reconciliation`-to-dict serialisation with one shared projection,
+`Reconciliation`-to-dict serialization with one shared projection,
 `reconciliation_payload`, added to the state layer
 (`novel_ralph_skill/state/reconcile.py`) and exported from
 `novel_ralph_skill/state/__init__.py`. The four arms now route through it: the
 read-shape `check` arm (`_render_reconciliation` in
 `novel_ralph_skill/commands/novel_state.py`) and the three write-shape
 `reconcile` arms (`_write_outcome`, `_refuse_outcome`, and the `NONE` arm in
-`novel_ralph_skill/commands/_reconcile.py`). The projection serialises only —
+`novel_ralph_skill/commands/_reconcile.py`). The projection serializes only —
 the exit code, the `messages`, and the read-versus-write framing stay at each
 call site — so the CQS read/write split (design §3.3) is preserved. The change
 pinned the projection with a dedicated unit file
@@ -76,7 +76,7 @@ the signature `_write_outcome(reconciliation: Reconciliation) -> CommandOutcome`
 and drop the argument at both call sites (`:299` becomes
 `_write_outcome(reconciliation)`; `:308` likewise). This deletes the dead
 parameter and the invariant the r2 review had to reason about, leaving
-`reconciliation.action` the single source of the serialised action — exactly what
+`reconciliation.action` the single source of the serialized action — exactly what
 the projection already enforces. The `RECREATE_LOG` path keeps its literal action
 only where it is actually used (the `_append_recovery_entry` log line at `:298`),
 which is unaffected.

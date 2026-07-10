@@ -38,14 +38,14 @@ genuinely resolved.
   `drafting`-phase tree with `completed=("premise","characters")`; prior
   verdict is `["completed-prefix"]`, and advancing keeps it
   `completed-prefix`-violated, so the advance is refused. Confirmed live. The
-  "advance cannot skip; out-of-order is realised solely as the prior-coherence
+  "advance cannot skip; out-of-order is realized solely as the prior-coherence
   guard" reasoning matches `validate.py:_check_completed_prefix`.
 - **Cyclopts 4.18.0 kebab mapping.** Registered `set_cursor`/`advance_phase` on
   a
   real app; command names resolve to `set-cursor`/`advance-phase` and
   keyword-only params map to `--chapter` etc. Confirmed live, not from memory.
 - **BR2-2 directory skeleton.** `skill/novel-ralph/references/state-layout.md`
-  "Initialisation" step 1 is
+  "Initialization" step 1 is
   `mkdir -p working/{characters,world,reader,plan,manuscript,reviews}`, step 3
   creates an empty `log.md`, default `target_word_count` 80000,
   `phase.current = "premise"`. "First turn: working/ does not exist" + "Never
@@ -84,7 +84,7 @@ genuinely resolved.
 
 - **Pandalump (structure):** boundaries hold — mutators write only through
   `write_document_atomically`, validate the proposed state via a read-only
-  `document_to_state` view, and never re-serialise the lossy `State`. The
+  `document_to_state` view, and never re-serialize the lossy `State`. The
   document-is-write-source / `State`-is-validation-view split is preserved.
 - **Telefono (contracts):** no public signature changes; two module-private
   helpers added; the exit-3 refusal contract is closed on every path (load,

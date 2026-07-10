@@ -1,4 +1,4 @@
-# Centralise the body-detected usage-error (exit-2) envelope in the contract layer
+# Centralize the body-detected usage-error (exit-2) envelope in the contract layer
 
 This ExecPlan (execution plan) is a living document. The sections
 `Constraints`, `Tolerances`, `Risks`, `Progress`, `Surprises & Discoveries`,
@@ -870,7 +870,7 @@ will catch the difference before the commit lands (they run in `make all`). The
 red/green check in WI5 is reversible (re-inline then revert) and leaves the tree
 clean.
 
-## Artifacts and notes
+## Artefacts and notes
 
 After WI4, `grep -rn "messages=list(exc.messages) or \[str(exc)\]"
 novel_ralph_skill/commands/` returns **zero hits** — the inline exit-2 idiom is

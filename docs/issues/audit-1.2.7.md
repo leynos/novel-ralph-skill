@@ -30,7 +30,7 @@ consolidation closed the six modules in its own scope but left a seventh test
 module — `test_contract_test_deps.py`, landed in parallel by roadmap task 1.3.1
 at commit `2270db9` — outside the new home, still hand-rolling the same
 `pyproject` parse and dev-dependency-group extraction the conftest now owns. A
-second copy of dependency-name normalisation logic now exists, and the two
+second copy of dependency-name normalization logic now exists, and the two
 copies disagree on correctness. The `docs/contents.md` index gaps carried since
 audit 1.2.5 also remain.
 
@@ -71,7 +71,7 @@ and read the dev group as
 (`test_hypothesis_import_and_version`, `test_syrupy_version`) read installed
 distribution metadata rather than `pyproject.toml`, so they stay as they are.
 
-## Finding 2 — Dependency-name normalisation is duplicated and the two copies disagree
+## Finding 2 — Dependency-name normalization is duplicated and the two copies disagree
 
 - **Category:** duplication
 - **Severity:** medium
@@ -81,7 +81,7 @@ distribution metadata rather than `pyproject.toml`, so they stay as they are.
   [`tests/test_contract_test_deps.py:79`](../../tests/test_contract_test_deps.py)
   (the inline `spec.split()[0].split(">")[0].split("=")[0]` expression)
 
-Two test modules independently normalise a PEP 508 requirement string to its
+Two test modules independently normalize a PEP 508 requirement string to its
 bare distribution name in order to assert a dependency is declared in
 `[dependency-groups].dev`. `test_interrogate_gate` uses a documented regex
 (`_DIST_NAME`) that correctly stops at the first non-name character, so it
@@ -94,7 +94,7 @@ the bracket or operator into the "name", and the assertion could spuriously fail
 on a legitimate future edit. The same logic existing twice, with one copy
 buggier than the other, is the classic divergence trap.
 
-**Proposed fix:** lift the requirement-name normaliser into `tests/conftest.py`
+**Proposed fix:** lift the requirement-name normalizer into `tests/conftest.py`
 as a fixture (for example `dist_name` returning a `(spec: str) -> str | None`
 callable backed by the `_DIST_NAME` regex), and have both
 `test_interrogate_gate` and `test_contract_test_deps` consume it. This removes

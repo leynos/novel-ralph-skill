@@ -114,7 +114,7 @@ roadmap's success criterion. That is a single, precise, addressable defect.
   alone. Verified, including token-count preservation.
 - **Work item 1 is sound.** Line anchors (`_oracle.py` 158-171, 212-221,
   234-248) accurate. The reroute mirrors the production twin exactly; the
-  builder materialises the spec faithfully, so every existing corpus verdict is
+  builder materializes the spec faithfully, so every existing corpus verdict is
   preserved and the three named agreement suites
   (`test_union_detector_agrees_with_corpus_oracle`,
   `test_word_counts_twin_equals_corpus_oracle`,

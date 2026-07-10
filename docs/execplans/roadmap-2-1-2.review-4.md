@@ -107,7 +107,7 @@ violation when `target <= 0`, mirroring the oracle exactly.
 The round-3 pre-mortem failure path (a `ZeroDivisionError` flake on a
 `target == 0` draw, papered over with `assume(target > 0)` while
 `validate_state` still crashes
-on a materialised `target == 0` state in 2.1.3) is now designed out: the validator
+on a materialized `target == 0` state in 2.1.3) is now designed out: the validator
 is total, the strategies draw `target >= 1`, and the guard's verdict is pinned by
 a direct example rather than left to the property. No new most-likely failure path
 surfaces.

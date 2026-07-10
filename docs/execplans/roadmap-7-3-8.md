@@ -687,7 +687,7 @@ destructive and nothing writes outside the repository. The e2e builds into a
 forks the object (identity test fails), the fix is to import the symbol from
 `contract.names` rather than redefining it — revert and re-import.
 
-## Artifacts and notes
+## Artefacts and notes
 
 The single surviving derivation, after the change, in
 `novel_ralph_skill/contract/names.py`:

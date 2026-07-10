@@ -60,7 +60,7 @@ friendship, some odd-couple narratives.
 ### 7. Whydunit
 
 The protagonist investigates a mystery whose answer changes the shape of their
-world. Mystery fiction's home, but also many literary novels organised around a
+world. Mystery fiction's home, but also many literary novels organized around a
 buried truth.
 
 ### 8. Fool Triumphant

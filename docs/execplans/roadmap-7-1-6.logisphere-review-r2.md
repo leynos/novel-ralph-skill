@@ -3,7 +3,7 @@
 Verdict: 🔄 **Revise.** Round 2 correctly closed all three round-1 findings (B1
 all eight refs, B2 by adopting Wafflecat's cross-reference-only discriminator,
 B3 narrative). But the round-2 redesign of the discriminator introduced two new
-load-bearing defects that make Work Item 3 fail `make all` on the normalised
+load-bearing defects that make Work Item 3 fail `make all` on the normalized
 tree as specified. Both are verified against the real source. They go back to
 the planner.
 
@@ -17,11 +17,11 @@ the planner.
   alternative round-1 Wafflecat recommended and the Tolerance sanctions. The
   `check_compiled`-shaped negative fixture (must PASS) is the right regression
   guard.
-- **B3 resolved.** The Source-verification section and Artifacts now expect the
+- **B3 resolved.** The Source-verification section and Artefacts now expect the
   three test-docstring hits as out-of-scope.
 - **Registry coverage boundary** is now explicit (Decision Log "registry
   coverage"): `concatenate_drafts`/`present_draft_bodies` are
-  normalised-but-unguarded by design, `compile_manuscript` is not a registry
+  normalized-but-unguarded by design, `compile_manuscript` is not a registry
   row. This satisfies round-1's Improvement.
 - **cuprum / no-subprocess scoping** remains correct. The guard reads `__doc__`
   in process, mirroring `test_developers_guide_contract_drift_guard.py`. There is
@@ -54,7 +54,7 @@ compile_is_current carries bare re-export tail?       False
 The plan simultaneously asserts (Relevant files; "Source verification") that
 `compile_model.py` "needs no spelling change" and registers `compile_is_current`
 as a consumer whose `__doc__` the guard will require to carry the full canonical
-path. These two statements contradict. On the normalised tree (WI1/WI2 do not
+path. These two statements contradict. On the normalized tree (WI1/WI2 do not
 touch `compile_model.py`), the `compiled_matches_drafts` registry row's
 consumer-cross-reference assertion **reds on `compile_is_current`**, so WI3's
 positive case fails `make all` — a green-after failure baked into the plan,
@@ -73,7 +73,7 @@ The other three compile-family consumers are fine:
 Only `compile_is_current` is the offender.
 
 **Fix required — choose one and record it in the Decision Log:**
-(a) Add a WI (or fold into WI1's scope) that normalises `compile_is_current`'s
+(a) Add a WI (or fold into WI1's scope) that normalizes `compile_is_current`'s
    bare `:func:\`compiled_matches_drafts\`` reference to the canonical
    defining-module path, so the registered consumer satisfies the guard; or
 (b) Drop `compile_is_current` from the consumer set with a recorded rationale
@@ -107,7 +107,7 @@ reconcile canonical contains tail?     False
 Consequences:
 
 - "every occurrence of the tail is immediately preceded by `compile_model.`" is
-  incoherent: on the normalised tree the tail substring `state.compiled_matches_drafts`
+  incoherent: on the normalized tree the tail substring `state.compiled_matches_drafts`
   occurs **zero** times (the canonical spelling does not contain it), so there is
   nothing to be "preceded." An implementer coding this literally either writes a
   vacuously-true check or, worse, mis-derives a prefix test that never matches.
@@ -124,7 +124,7 @@ inconsistent and must not be handed to the implementer as written.
 
 **Fix required:** restate the check as the simple, correct invariant — for each
 consumer `__doc__`, the bare re-export tail substring count is **zero** (i.e.
-`state.compiled_matches_drafts` does not appear), since after normalisation every
+`state.compiled_matches_drafts` does not appear), since after normalization every
 reference is the canonical `state.compile_model.compiled_matches_drafts`. Drop
 the false "preceded by"/"equal counts" framing entirely. If the planner wants a
 belt-and-braces check that the canonical form is present *and* the bare form is
@@ -180,8 +180,8 @@ consumer check and re-red the tree).
 The cross-reference-only design adopted in round 2 is the right structural
 choice; no stronger alternative exists for this doc-and-test task. The remaining
 question is purely the *scope of the consumer set*: include `compile_is_current`
-(and normalise its relative ref to canonical) versus exclude it as
-intra-module. Including-and-normalising is marginally stronger (one more pinned
+(and normalize its relative ref to canonical) versus exclude it as
+intra-module. Including-and-normalizing is marginally stronger (one more pinned
 cross-reference) and keeps the registry uniform; excluding is less churn but
 needs a documented carve-out. Either is viable; the plan must pick one rather
 than leave the contradiction.
@@ -190,7 +190,7 @@ than leave the contradiction.
 
 1. (R2-B1) Decide edit-or-drop for `compile_model.compile_is_current` and make
    the registry, WI scope, and the "needs no spelling change" claim mutually
-   consistent. If editing, add the normalisation to a work item; if dropping,
+   consistent. If editing, add the normalization to a work item; if dropping,
    record the carve-out and reconcile WI4's convention text.
 2. (R2-B2) Replace the "no bare re-export" recipe with the correct invariant —
    bare re-export tail substring count is zero per consumer `__doc__` — and drop

@@ -20,7 +20,7 @@ be cross-checked against it (the 1.3.2 execplan,
 2.1.3 must complete).
 
 An agreement suite already exists — `tests/test_validate_state_corpus.py` (237
-lines). It already drives the validator from each fixture's materialised
+lines). It already drives the validator from each fixture's materialized
 `state.toml` (`load_state(working_dir / "state.toml")`), restricts both
 verdicts to `PURE_STATE_INVARIANT_NAMES`, handles the parse-enforced
 `phase-in-enum` case, and pins the scope boundary (the validator emits no
@@ -77,7 +77,7 @@ Both are decoupled on purpose from the `[word_counts]` table so a
 
 After this change, a single named acceptance test asserts that for **every**
 §1.3.2 corpus fixture — every coherent tree and every incoherent variant — the
-§5.2 validator's verdict, run against the materialised `state.toml`, matches a
+§5.2 validator's verdict, run against the materialized `state.toml`, matches a
 **live-draft oracle's** verdict **exactly** once both are restricted to the
 eight pure-state invariants the validator owns: coherent trees pass (empty
 verdict) and each incoherent variant is rejected on its one named invariant.
@@ -131,7 +131,7 @@ escalated, not absorbed.
   drafted-words total or the drafted-chapters count it reconciles the gate
   booleans and the `consecutive_clean` counter against. (developers-guide
   "Invariant validation", deliberate-twin policy.)
-- The cross-check's validator side must read the materialised `state.toml` via
+- The cross-check's validator side must read the materialized `state.toml` via
   the production parser (`novel_ralph_skill.state.load_state`). The live-draft
   oracle's drafted-words total and drafted-chapters count must both come from
   the on-disk `draft.md` bodies, never from `[word_counts]`. (roadmap 2.1.3
@@ -165,7 +165,7 @@ escalated, not absorbed.
 - Production change: if making the live-draft agreement pass requires **any**
   edit
   under `novel_ralph_skill/`, stop and escalate — that means the validator and
-  the live drafts disagree on a materialised tree, which is a real finding (a
+  the live drafts disagree on a materialized tree, which is a real finding (a
   validator bug or a corpus-builder bug), not a test to be bent. Record the
   tree, the validator verdict, and the live-draft oracle verdict in
   `Decision Log` before escalating.
@@ -308,7 +308,7 @@ Progress notes (2026-06-23, implementation agent):
 - Observation: Design §5.2 invariant 3 is *already* read from disk by the
   oracle; only the live-draft reconciliation remained. Evidence:
   `tests/working_corpus/_oracle.py::_check_by_chapter_sum` (lines 108-119)
-  already reads `[word_counts]` from the materialised `state.toml` and compares
+  already reads `[word_counts]` from the materialized `state.toml` and compares
   `sum(by_chapter) == current`; the 1.3.2 fix-round-1 decision
   (`docs/execplans/roadmap-1-3-2.md` lines 630-654) moved it there. The genuine
   residual gap the developers' guide (lines 329-334) names is the live-draft
@@ -458,7 +458,7 @@ Progress notes (2026-06-23, implementation agent):
   planning agent.
 
 - Decision: cuprum plays no part in this task.
-  Rationale: The corpus materialises trees under `tmp_path` and both checkers
+  Rationale: The corpus materializes trees under `tmp_path` and both checkers
   read files directly (`tomllib` / `load_state` / `draft.md` text); no
   subprocess or external executable is invoked, so the cuprum catalogue
   boundary is irrelevant. Verified against
@@ -590,13 +590,13 @@ repository-relative to the worktree root
     `word` tokens (empty for `n <= 0`); `derive_by_chapter` / `derive_current`;
     `GATE_THRESHOLDS = (0.30, 0.50, 0.80)`; `chapter_dir_name(n)` (`chapter-NN`)
     and `by_chapter_key(n)` (`"NN"`).
-  - `_builder.py` — `build_working_tree(spec, dest) -> Path` materialises the
+  - `_builder.py` — `build_working_tree(spec, dest) -> Path` materializes the
     tree; `_write_chapter` (line 169-172) writes
     `draft_body(chapter.draft_words)` into `working/manuscript/chapter-NN/draft.md`
     when `write_draft` is true (the default), suppressing it entirely when false.
   - `_oracle.py` — `corpus_check(spec, working_dir) -> tuple[str, ...]` returns
     the `CORPUS_INVARIANT_NAMES` a tree violates. `_check_by_chapter_sum` (lines
-    108-119) already reads `[word_counts]` from the materialised `state.toml`;
+    108-119) already reads `[word_counts]` from the materialized `state.toml`;
     `_check_gate_ratio_consistent` (lines 190-203) uses `sum(chapter.draft_words)`
     — the honest-draft numerator the live oracle reproduces from disk.
   - `_library.py` — `PHASE_STATES` (the eleven coherent phase trees) and
@@ -763,7 +763,7 @@ signature.
 
 Either way, the live oracle:
 
-1. reads the materialised `working_dir / "state.toml"` with `tomllib` once, for
+1. reads the materialized `working_dir / "state.toml"` with `tomllib` once, for
    the `[word_counts].target`, the `[word_counts].current`, the
    `[word_counts].by_chapter` table, and the `[gates.knitting]` booleans (it
    reads the table only to *check it against the drafts*, never to derive
@@ -862,7 +862,7 @@ commit until Work item 2 is also green — see Work item 2's "Commit".)
 ### Work item 2 — the whole-corpus live-draft agreement test (keyed on `CORPUS_INVARIANT_NAMES`)
 
 What it implements: roadmap task 2.1.3 Success clause — "for every §1.3.2
-corpus fixture the §5.2 validator's verdict, run against the materialised
+corpus fixture the §5.2 validator's verdict, run against the materialized
 `state.toml`, matches the oracle's `CORPUS_INVARIANT_NAMES` labels exactly",
 with the oracle now the live-draft oracle so the match is against a genuinely
 independent source. Design references: `docs/novel-ralph-harness-design.md`
@@ -1079,7 +1079,7 @@ worktree root; capture the tails in `Progress`.
 
 ## Idempotence and recovery
 
-Every step is re-runnable. The test fixtures materialise trees under pytest's
+Every step is re-runnable. The test fixtures materialize trees under pytest's
 `tmp_path`, which is fresh per test, so reruns never inherit a previous tree.
 Adding a test, an oracle entry point, or a fixture is additive; if a stage's
 validation fails, revert the stage's edit (`git checkout -- <file>`) and
@@ -1157,7 +1157,7 @@ dependency is added):
   runs `pytest -n auto`); the new tests are ordinary fixture-driven unit tests
   with no shared mutable state, so they are xdist-safe (each builds its own
   `tmp_path` trees).
-- `tomllib` (standard library) — parsing the materialised `state.toml` for the
+- `tomllib` (standard library) — parsing the materialized `state.toml` for the
   table-coherence read, the gate booleans, and the
   `[drafting.critic].consecutive_clean` counter, exactly as
   `_check_by_chapter_sum` already reads the table. `pathlib.Path.glob` and
@@ -1235,7 +1235,7 @@ first-class `by_chapter_override` corpus divergence variant (review:2.1.3 /
 audit:2.1.3) to roadmap step 2.1 (task 2.1.5, because it adds §1.3.2 corpus data
 and hardens the validator cross-check that proves the step-2.1 hypothesis), and
 the lane-wide `mutmut` run (review:2.1.3) to roadmap step 7.6 (a deferred
-verification-hardening extension); the three below are the small, localised
+verification-hardening extension); the three below are the small, localized
 fixes. Audit Finding 5 (the inline owned-name restriction) and Finding 6 (the
 users'-guide verdict vocabulary) are not folded here: Finding 6's vocabulary
 enumeration already shipped in task 2.1.2.7, with its residual operator-meaning

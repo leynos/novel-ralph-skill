@@ -215,7 +215,7 @@ escalation, not a workaround.
       Mitigation: Decision D2 pins the exact construction. Tests assert against
       the *same* construction the production code uses (resolve the run
       directory the test created, then join ``working``), not against an
-      independently-built literal, so symlink normalisation cannot desynchronise
+      independently-built literal, so symlink normalization cannot desynchronize
       them.
 
     - Risk: a third production stamp of a path-bearing ``working_dir`` (a legacy
@@ -345,7 +345,7 @@ escalation, not a workaround.
       ``result.working_dir``. After D6 the body value becomes
       ``str((tmp_path / "working").resolve())`` — a per-machine absolute path —
       so the snapshot breaks and then churns per-machine unless ``_normalise``
-      is extended to normalise the ``result.working_dir`` body value (the
+      is extended to normalize the ``result.working_dir`` body value (the
       top-level label stays the injected ``"working"`` token and must NOT be
       touched).
       Impact: ``tests/test_novel_state_mutator_snapshots.py`` (its ``_normalise``
@@ -397,7 +397,7 @@ escalation, not a workaround.
 
     - Observation (Work item 0, CodeRabbit): the ``coderabbit review --agent``
       pass over this commit raised five *minor* findings, all doc-style nits on
-      living planning artifacts (first/second-person voice and 80-column reflow
+      living planning artefacts (first/second-person voice and 80-column reflow
       across ``roadmap-6-3-4.md`` and the ``*review*`` logs, plus first-use
       expansion of ``cwd``/``e2e``).
       Disposition: the 80-column overruns in
@@ -462,11 +462,11 @@ escalation, not a workaround.
       as ``str(resolved_working_dir())`` and used in ``novel state init``'s
       result body.
       Rationale: ``Path.resolve()`` (non-strict default on Python 3.14) returns
-      an absolute, normalised path even when ``working/`` does not yet exist, so
+      an absolute, normalized path even when ``working/`` does not yet exist, so
       it works on the exit-3 "no working/" arm and on ``init``. It keeps
       ``WORKING_DIR_NAME``/``working_dir`` as the single resolution home for this
       module and adds one sibling accessor rather than a parallel rule. Tests
-      assert against the same construction to avoid symlink-normalisation
+      assert against the same construction to avoid symlink-normalization
       flakiness.
       Date/Author: 2026-06-26, planning agent.
 
@@ -534,7 +534,7 @@ escalation, not a workaround.
       envelope label; the ``result.working_dir`` body comes from production code
       and becomes a per-machine absolute path. The file's ``_normalise`` helper
       (lines 57-59) redacts only ``created_at`` and would let the body churn, so
-      it must be extended to normalise the body ``result.working_dir`` (not the
+      it must be extended to normalize the body ``result.working_dir`` (not the
       top-level label). The round-2 plan listed the ``.ambr`` in the Work item 0
       inventory but never named the snapshot module, its ``_normalise`` helper,
       or its stale docstring as edit sites, and capped Scope at 9 files — below
@@ -551,7 +551,7 @@ escalation, not a workaround.
       "the envelope carries no absolute path (``working_dir`` is the fixed
       ``"working"`` token)." After D6 this is false for the ``init`` body: the
       ``result.working_dir`` carries an absolute resolved path. The docstring is
-      a load-bearing statement of the module's normalisation contract, so it is
+      a load-bearing statement of the module's normalization contract, so it is
       corrected (in Work item 1, where the snapshot regenerates) to state the new
       truth: the *production entry point* ``novel.main`` and the ``novel state
       init`` result body now carry the absolute resolved path; only the
@@ -717,7 +717,7 @@ Terms:
   the shared `run` wrapper stamps before any command body executes; it still
   carries the top-level `working_dir` field (`docs/novel-ralph-harness-design.md`
   §3.2).
-- *Resolve (a path)*: `pathlib.Path.resolve()` returns an absolute, normalised
+- *Resolve (a path)*: `pathlib.Path.resolve()` returns an absolute, normalized
   path; with its default non-strict mode it succeeds even when the path does not
   exist.
 - *Synthetic `RunContext`*: a `RunContext` a test builds itself with an explicit
@@ -900,8 +900,8 @@ every test module and function carries a docstring per the interrogate gate):
     "mirroring the existing message redaction" wording was wrong, review B5).**
     Target only the `result.working_dir` body value: the top-level envelope
     `working_dir` is the synthetic-injected `"working"` token and must stay
-    verbatim, so prefer a JSON-aware normalisation (parse the envelope, rewrite
-    `result["working_dir"]`, re-serialise) or a regex anchored to the `"result":
+    verbatim, so prefer a JSON-aware normalization (parse the envelope, rewrite
+    `result["working_dir"]`, re-serialize) or a regex anchored to the `"result":
     {...}` object, not a blanket substitution of every `working_dir` occurrence.
   - Regenerate `tests/__snapshots__/test_novel_state_mutator_snapshots.ambr` by
     re-accepting the snapshot (`--snapshot-update`); the regenerated line 22 reads
@@ -1039,7 +1039,7 @@ passes or update its expected strings.
 
 Validation: `make all`, then `make markdownlint` and `make nixie` (required for
 markdown changes per AGENTS.md and the standing rules). Run `make fmt` to
-normalise the markdown after editing.
+normalize the markdown after editing.
 
 Commit: "Document the absolute working_dir contract (roadmap 6.3.4)".
 
@@ -1134,10 +1134,10 @@ Quality method: run `make all` after every work item; run
   token before comparison, so re-accepting the snapshot yields a path-independent
   value identical on every machine. The top-level `working_dir` stays the
   injected `"working"` token, so it is unaffected by the redaction.
-- The docs edits are plain text; re-running `make fmt` re-normalises them
+- The docs edits are plain text; re-running `make fmt` re-normalizes them
   idempotently.
 
-## Artifacts and notes
+## Artefacts and notes
 
 The production change is a one-function accessor plus two stamps:
 
@@ -1177,7 +1177,7 @@ git checkout):
 
 - **Standard library `pathlib`** (Python `>=3.14`, per `pyproject.toml`):
   `Path.resolve()` with its default non-strict mode returns an absolute,
-  normalised path even when the target does not exist. Verified locally:
+  normalized path even when the target does not exist. Verified locally:
   `chdir(tmpdir); Path("working").resolve()` yields `<tmpdir>/working` with no
   `working/` present (Python 3.14, this environment), and confirmed in the
   round-1 review. No external dependency is introduced.
@@ -1275,7 +1275,7 @@ fixture, not by constructing an `ExecutionContext`). No implementation performed
 Lightweight, no-plan corrections folded onto this completed task after the
 review and audit of step 6.3 settled. Each runs as a no-review lightweight pass.
 
-- [x] **6.3.4.1 (from review:6.3.4; low).** Normalise the ungated POSIX-separator
+- [x] **6.3.4.1 (from review:6.3.4; low).** Normalize the ungated POSIX-separator
   suffix assertion `result["working_dir"].endswith("/working")` in
   `tests/test_novel_state_mutators.py` (line 100) to a pathlib-based
   `.name`/`.parts` check, matching the portability convention this task already
@@ -1283,11 +1283,11 @@ review and audit of step 6.3 settled. Each runs as a no-review lightweight pass.
   so the separator literal diverges from the rest of the suite; the pathlib form
   keeps it portable and consistent. Scope: one assertion in one test file.
 - [x] **6.3.4.2 (from review:6.3.4; low).** Extract one shared JSON-aware
-  `working_dir` snapshot-normaliser and route both snapshot modules through it.
+  `working_dir` snapshot-normalizer and route both snapshot modules through it.
   Two snapshot modules now redact `result.working_dir` with divergent
   strategies — the brittle regex `_RESULT_WORKING_DIR` in
   `tests/test_novel_state_mutator_snapshots.py` versus a robust JSON parse
-  elsewhere. A single JSON-aware normaliser removes the regex fragility and
+  elsewhere. A single JSON-aware normalizer removes the regex fragility and
   prevents per-machine snapshot churn if the envelope renderer's key order or
   whitespace changes. Scope: extract one shared test helper; route both snapshot
   modules onto it.

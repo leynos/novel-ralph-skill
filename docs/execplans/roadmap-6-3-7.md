@@ -210,7 +210,7 @@ escalation, not a workaround.
       the design fence sliced to the §3.1 region and a working_dir-present
       assertion (B1).
     - [x] Work item 4: Harden against vacuous-pass (including the design §3.1
-      slice), add the planted-divergence red/green proof, and finalise docs
+      slice), add the planted-divergence red/green proof, and finalize docs
       validation. No inventory update (B3).
 
 ## Surprises & discoveries
@@ -222,9 +222,9 @@ escalation, not a workaround.
       `_MIN_CODE_ROW_CELLS` constant. The guard module itself, being
       `test_*.py`, keeps the bare-assert and magic-value allowances.
     - `make markdownlint` globs every markdown file, including the untracked
-      planning artifact `docs/execplans/roadmap-6-3-7.logisphere-review-r1.md`,
+      planning artefact `docs/execplans/roadmap-6-3-7.logisphere-review-r1.md`,
       which carries pre-existing MD013/MD038 errors from the planning phase.
-      That artifact is outside this task's commit surface (only the execplan and
+      That artefact is outside this task's commit surface (only the execplan and
       the two test files are committed); the execplan itself lints clean
       (`markdownlint-cli2 docs/execplans/roadmap-6-3-7.md` → 0 errors). Recorded
       in Open issues for the orchestrator's awareness; no code/docs this task
@@ -246,7 +246,7 @@ escalation, not a workaround.
       repo-wide reformat that is out of scope and destructive (Tolerances:
       scope).
     - CodeRabbit's WI3 and WI4 runs raised findings only against the parked
-      planning artifacts `roadmap-6-3-7.logisphere-review-r1.md` and `-r2.md`
+      planning artefacts `roadmap-6-3-7.logisphere-review-r1.md` and `-r2.md`
       (stale helper names, a §3.1/§3.2 label slip, the `make fmt` request).
       Those review files are planning scaffolding, not part of this task's
       commit surface, and were stashed out of the working tree; no finding
@@ -442,7 +442,7 @@ The established prose-guard pattern this plan copies:
 - `tests/test_contract_envelope_snapshots.py` shows that importing the contract
   module (`ExitCode`, `build_envelope`, `render_machine`) directly from a test
   is the sanctioned way to tie a test to the code, and that `working_dir` is
-  normalised to the literal `"working"` token for snapshotting.
+  normalized to the literal `"working"` token for snapshotting.
 
 The shared fixture: `tests/conftest.py` defines `read_repo_text` (an in-process
 repo-relative UTF-8 reader) and the `RepoTextReader` protocol; `project_root`
@@ -563,7 +563,7 @@ functions:
   discards the rest. Rows whose column-0 cell is not an integer (e.g. a stray
   blank line) are skipped, so a malformed region cannot silently corrupt the map.
 - `slice_doc_region(text: str, start: str, end: str, *, source: str) -> str` —
-  the generalised, source-labelled region slicer (Decision Log). Mirrors the
+  the generalized, source-labelled region slicer (Decision Log). Mirrors the
   deflation guard's `_slice_between` (loud failure when either anchor is missing)
   but names `source` in the message, so a missing `### 3.2` in the design doc
   does not report "not found in SKILL.md".
@@ -805,7 +805,7 @@ Quality method (how we check):
   live contract (a Tolerance breach), stop, do not "fix" it by editing the
   contract or the table, and escalate per the Tolerances section.
 
-## Artifacts and notes
+## Artefacts and notes
 
 Captured during implementation (the `SKILL.md` edits were transient and
 reverted; `git status` confirmed `SKILL.md` clean before each commit):

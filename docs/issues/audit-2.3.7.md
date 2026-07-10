@@ -197,7 +197,7 @@ that the set of gates the remedy advises on is exactly the set of gates the
 assert "no `set-gate` verb leaks" globally, which is a partial guard, but there
 is no positive assertion tying remedy lines to the validator's named gates. If
 Finding 1 is left as-is (two independent computations), this is the test that
-would catch a future desynchronisation; if Finding 1 is fixed (shared helper),
+would catch a future desynchronization; if Finding 1 is fixed (shared helper),
 this test pins the contract the refactor must preserve.
 
 **Proposed fix:** Add a unit test that, for a refusal carrying a

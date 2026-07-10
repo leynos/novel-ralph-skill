@@ -178,7 +178,7 @@ projections and mutators threaded through call sites — makes refactor-orphaned
 parameters a recurring risk a gate should catch cheaply. That proposal has not
 been actioned: `ARG` is still absent from the (otherwise extensive) `select`
 list. Task 7.1.4 makes the recommendation more, not less, relevant. The new
-builder is parameterised over four injected callables, and both call sites supply
+builder is parameterized over four injected callables, and both call sites supply
 small `lambda finding: …` projections and same-shaped helper functions. This is
 exactly the shape where an injected callable's parameter (or a helper's) can be
 left unread after a future tweak — and exactly the case `ARG` exists to catch.

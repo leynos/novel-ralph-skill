@@ -188,7 +188,7 @@ Known uncertainties, with mitigations.
   the existence-only function is a single named helper a one-edit swap replaces
   (D-COMPILE-EXISTENCE), and a test pins both that it is false when `compiled.md`
   is absent and true when present (stale or not), so 3.1.2's behaviour change is
-  localised and visible.
+  localized and visible.
 
 - Risk (R-ALLHOLD): no §1.3.2 corpus tree satisfies all six clauses, so the
   roadmap 3.1.1 success criterion ("exit 0 only when every clause holds") cannot
@@ -360,7 +360,7 @@ commit. Update this section with a timestamp at every stopping point.
   to 3.1.2 (roadmap 3.1.2; design §4.2 lines 337-343) keeps the exit-0 path sound
   for the absent case from day one. The clause is a single named function
   `compile_consistent_exists(working_dir) -> bool` whose docstring names task
-  3.1.2 as the owner of the hash half, so 3.1.2's swap is a localised edit. The
+  3.1.2 as the owner of the hash half, so 3.1.2's swap is a localized edit. The
   residual stale-but-present window is Risk R-STALE, documented in the
   users'/developers' guides. (This is the reviewer's preferred B1 option (b) and
   the Wafflecat-recommended split.) Date/Author: 2026-06-24, planning agent
@@ -537,7 +537,7 @@ on are already in place and stable:
   (lines 93-95) is currently a stub; this task rewires it like `desloppify()`
   (lines 103-123).
 - `tests/working_corpus/` — the §1.3.2 fixture corpus. `_specs.py` declares
-  `ChapterSpec`/`WorkingTreeSpec`; `_builder.py` materialises a tree on disk;
+  `ChapterSpec`/`WorkingTreeSpec`; `_builder.py` materializes a tree on disk;
   `_library.py` holds `PHASE_STATES`/`COHERENT_BASELINE`; `_oracle.py`/
   `_oracle_disk.py` hold the independent cross-check oracles; `tests/conftest.py`
   re-exposes corpus data as fixtures; `tests/working_corpus/__init__.py` is the
@@ -675,11 +675,11 @@ conftest fixtures) — **without altering `PHASE_STATES`/`COHERENT_BASELINE` or
 Tests (this commit): a focused test module asserting the builder writes
 `reviews/knitting-NN.md` and `critic-notes.md` exactly as specified and adds
 **no other** files relative to the same spec without them (R-CHURN guard); that
-the all-hold spec materialises every artefact the six clauses need; and the
+the all-hold spec materializes every artefact the six clauses need; and the
 oracle twins (D-TWIN): a corpus-side reader for review-existence and for the
 BLOCKER scan, each pinned equal to the production predicate by a cross-check
 test over the new specs, mirroring how `disk_evidence` twins `_oracle.py`. Also
-assert that the existing `PHASE_STATES`/`COHERENT_BASELINE` trees materialise
+assert that the existing `PHASE_STATES`/`COHERENT_BASELINE` trees materialize
 byte-identically to before (no `reviews/`, no `critic-notes.md`).
 
 ### Work item 3 — wire the `novel-done` command and retire the stub
@@ -712,7 +712,7 @@ come from the single `COMMAND_ENTRY_POINTS` registry (`stub.py:23`; roadmap
 1.2.4), so no name is re-spelled.
 
 Tests (this commit): `tests/test_novel_done_command.py` — drive `build_app()`
-in-process over corpus trees materialised under `tmp_path` (chdir into the
+in-process over corpus trees materialized under `tmp_path` (chdir into the
 parent so `working/` resolves), asserting exit `0` only on the all-hold tree,
 exit `1` on each single-clause-fail tree (including the absent-`compiled.md`
 tree — proving the existence half drives a benign `1`, never a false `0`), exit
@@ -878,7 +878,7 @@ step is destructive and no backup is required. The corpus extensions (Work item
 2) default to the existing behaviour and add only **new** named specs, so a
 half-applied change leaves every existing fixture and snapshot byte-identical.
 
-## Artifacts and notes
+## Artefacts and notes
 
 Key reuse points the implementer should not reinvent:
 

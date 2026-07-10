@@ -57,7 +57,7 @@ recipe slips past the guard when in fact it is caught — the doc understates th
 guard's reach, which is the inverse of the usual drift but equally misleading.
 
 **Proposed fix:** update the parenthetical at `docs/developers-guide.md:208` to
-list all five library writers the guard recognises (`tomlkit.dump`, `tomli_w`,
+list all five library writers the guard recognizes (`tomlkit.dump`, `tomli_w`,
 `.write_text`, `.write_bytes`, `.writelines`), so the prose matches
 `_LIBRARY_WRITE_TOKENS`. Optionally add a one-clause note that the list is the
 documented mirror of that tuple, so a future broadening updates both in lockstep.
@@ -150,7 +150,7 @@ the shared fixtures, reading the dev group as
 `_dev_dependencies`. The two version-pin tests read installed distribution
 metadata rather than `pyproject.toml`, so they stay as they are.
 
-## Finding 5 — Dependency-name normalisation is duplicated and the two copies disagree (carried from audit-1.2.7 Finding 2)
+## Finding 5 — Dependency-name normalization is duplicated and the two copies disagree (carried from audit-1.2.7 Finding 2)
 
 - **Category:** duplication
 - **Severity:** medium
@@ -160,7 +160,7 @@ metadata rather than `pyproject.toml`, so they stay as they are.
   [`tests/test_contract_test_deps.py:79`](../../tests/test_contract_test_deps.py)
   (the inline `spec.split()[0].split(">")[0].split("=")[0]` expression)
 
-audit-1.2.7 Finding 2 recorded that two modules independently normalise a PEP 508
+audit-1.2.7 Finding 2 recorded that two modules independently normalize a PEP 508
 requirement string to its bare distribution name, and that the two copies
 disagree on correctness: `test_interrogate_gate`'s documented `_DIST_NAME` regex
 correctly stops at the first non-name character (so it handles extras such as
@@ -170,7 +170,7 @@ inline `spec.split()[0].split(">")[0].split("=")[0]` splits only on whitespace,
 would leak the bracket or operator into the "name". The 1.2.8 slice touched
 neither, so both copies — and the divergence — remain.
 
-**Proposed fix:** as audit-1.2.7 proposed — lift the requirement-name normaliser
+**Proposed fix:** as audit-1.2.7 proposed — lift the requirement-name normalizer
 into `tests/conftest.py` as a fixture (for example `dist_name` returning a
 `(spec: str) -> str | None` callable backed by the `_DIST_NAME` regex), and have
 both `test_interrogate_gate` and `test_contract_test_deps` consume it. This

@@ -73,7 +73,7 @@ ADRs 008, 009, and 010 were authored against the `novel-state` surface and
 still name it inline. ADR 008 goes further: line 52 presents a fenced bash
 example, `novel-state set-chapters --chapters '[…]'`, as a runnable
 invocation — not as period history. `contents.md`, the documentation index,
-then echoes those names when summarising what each ADR records (`novel-state
+then echoes those names when summarizing what each ADR records (`novel-state
 set-chapters`, `novel-state check`, `novel-state set-gate`).
 
 This is the same surface defect the 1.2.14/1.2.16/1.2.17 lineage exists to

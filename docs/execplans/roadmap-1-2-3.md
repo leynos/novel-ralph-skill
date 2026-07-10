@@ -710,7 +710,7 @@ work item.
   (`tests/test_console_scripts_e2e.py`, the new `tests/test_venv_scripts_dir.py`,
   the new ADR, and the two doc cross-references) and updates to this execplan.
 
-## Artifacts and notes
+## Artefacts and notes
 
 - Locked versions, verified: `cuprum 0.1.0`, `cyclopts 4.18.0`,
   `pytest-timeout 2.4.0` (`uv.lock`; `importlib.metadata`).

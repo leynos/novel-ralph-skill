@@ -89,7 +89,7 @@ re-export were ever pruned the `_compile.py` references would dangle while the
 others would not. The same re-export-vs-defining-module split applies to the
 sibling references in `_compile.py` (e.g. `~novel_ralph_skill.state.CompiledComparison`).
 
-**Proposed fix:** Normalise the three `_compile.py` references (and the sibling
+**Proposed fix:** Normalize the three `_compile.py` references (and the sibling
 `CompiledComparison`/`compile_is_current` mentions) to the defining-module path
 `novel_ralph_skill.state.compile_model.*` so every consumer names the authoritative
 home identically. Doc-only; no behaviour change. Fold into task 7.1.4/7.1.5 if
@@ -127,7 +127,7 @@ This is judgement-call hardening — a textual guard can be brittle — so scope
 to the cross-reference presence (the load-bearing invariant) rather than the full
 prose, mirroring the existing contract-restatement drift-guards.
 
-## Finding 4 — `compile_consistent`'s docstring restates the full polarity rule the task meant to centralise (severity: low)
+## Finding 4 — `compile_consistent`'s docstring restates the full polarity rule the task meant to centralize (severity: low)
 
 **Category:** docs-gap
 
@@ -143,7 +143,7 @@ however, still spells out the full content-polarity rule in prose ("An absent
 the ordered draft concatenation and `False` otherwise"), plus the byte-compare
 rationale and the soundness/Risk-R-STALE history. That is materially more than a
 one-sentence self-projection, so a slice of the polarity prose the task aimed to
-centralise still lives in a consumer. The retained history (B1 soundness, R-STALE)
+centralize still lives in a consumer. The retained history (B1 soundness, R-STALE)
 is arguably worth keeping locally, so this is a soft deviation, not a defect.
 
 **Proposed fix:** Trim `compile_consistent`'s docstring to its own polarity in one

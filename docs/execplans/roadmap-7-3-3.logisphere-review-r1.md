@@ -140,7 +140,7 @@ silently dropped. Acceptable.
 ### Dinolump (long-term viability) — sound
 
 The pattern already exists in-tree (`document.py:pending_turn`), the home is
-documented, the anti-drift test institutionalises the single-home property, and
+documented, the anti-drift test institutionalizes the single-home property, and
 WI6 updates the developers-guide so a future reader is not surprised the other
 three sites still open-code the shell. This matches a team that already maintains
 exactly this kind of structural test (`test_state_sourcing_home.py`,

@@ -91,12 +91,12 @@ the implementer picks deliberately rather than defaulting to the heavier path.
 ### A3 (Doggylump) — W3 step 5 BDD step wiring is conditional and unverified
 
 The plan says wire the Given step "reusing the existing tree-builder step
-machinery; add a step only if no parameterised tree-by-name step exists." The
+machinery; add a step only if no parameterized tree-by-name step exists." The
 existing `single_failer_tree` step is keyed off `DONE_PREDICATE_FAILERS[clause]`
 (`novel_done_steps.py:89-98`), not an arbitrary tree-by-name, and the new
 incidental tree is **not** a failer in that dict. So a new Given step (or a new
 dict entry) is required, not optional. State this definitively so W3 does not
-stall discovering the machinery does not generalise.
+stall discovering the machinery does not generalize.
 
 ### A4 (Buzzy Bee / Wafflecat) — snapshot decision deferred to implementer
 

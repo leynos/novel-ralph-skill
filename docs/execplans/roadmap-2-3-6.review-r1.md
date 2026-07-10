@@ -98,7 +98,7 @@ still a valid cover divergence, but muddies the worked example in Purpose).
 ### A2 — `_VARIANT_ACTIONS` is exhaustive; name that contract
 
 `tests/test_reconcile_derivation.py::_VARIANT_ACTIONS` is an explicit
-variant→action map parametrised over its own items. It is **not** auto-derived
+variant→action map parametrized over its own items. It is **not** auto-derived
 from `INCOHERENT_VARIANTS`, so a new variant that is not added here is simply not
 exercised (silent gap) rather than a hard failure. Work item 3 does add both
 variants, but should note that this map is the manual enrolment point and that

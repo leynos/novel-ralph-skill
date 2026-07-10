@@ -16,7 +16,7 @@ summary.
 The plan's snapshot gate (WI1, WI4-D3, WI6, Acceptance) is only
 `"command': '(novel-state|novel-done|novel-compile|desloppify|wordcount)'"` —
 the single-quoted syrupy-repr form. But the 12 snapshot files store the legacy
-command in **three** serialisations:
+command in **three** serializations:
 
 - syrupy repr: `'command': 'novel-done',` (5 files)
 - rendered JSON envelope: `{"command": "novel-state", ...}` (7 files:
@@ -97,7 +97,7 @@ contradiction explicitly.
   symbol (`_ReadCommand`, `_ErrorArm`, `_ErrorCell` exist). Correct the symbol
   name so the implementer greps for the right thing.
 - A2: The "9 affected snapshots" phrasing (WI2 step 5, Tolerances) conflicts
-  with the Context inventory's 12 and the verified count of 12. Standardise on
+  with the Context inventory's 12 and the verified count of 12. Standardize on
   12 to avoid an implementer stopping early.
 - A3: `test_installed_command_names.py` (the source-of-truth legacy→spaced
   pairing) is deleted in WI5 while WI2 depends on that pairing. Verified the WI2

@@ -144,7 +144,7 @@ enacted both by `wordcount._chapter_word_count` (the named home, used by
 chapter `draft.md` and re-derives `len(...split())` rather than reusing the
 single-chapter helper. The two are equivalent today, but the whole task rests on
 the rule being singular; a second open-coded copy inside the same production
-package is the seam where a future drift (e.g. someone normalising whitespace in
+package is the seam where a future drift (e.g. someone normalizing whitespace in
 one site) would silently break the "compiled divergence is the only divergence"
 guarantee. (The audit-2.3.3 Finding 5 flagged the related `chapter-NN` path
 open-coding; this is the sibling token-rule spread and is worth tracking with it.)

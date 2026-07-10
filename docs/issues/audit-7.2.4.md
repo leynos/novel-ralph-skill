@@ -117,7 +117,7 @@ sequenced after 7.8.1 because retiring the callback unblocks a clean extraction.
 
 - **Proposed fix:** Execute roadmap 7.8.2. After 7.8.1 removes the `line_hit`
   lambda, lift the shared scan-and-`_finding` loop into a small `loaderkit`
-  helper parameterised on each pack's per-entity `_finding` projection, leaving
+  helper parameterized on each pack's per-entity `_finding` projection, leaving
   each detector to assemble only its own report (which carries the
   domain-specific `total_words`/report type). If the divergence is judged to
   outweigh the saving, leave the loops and add a one-line comment in each noting

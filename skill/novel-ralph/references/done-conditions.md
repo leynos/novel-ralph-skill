@@ -194,7 +194,7 @@ And stops.
 ## Anti-patterns
 
 - **Declaring done because the context is full.** Context
-  exhaustion is not completion. Truncate, summarise, and continue.
+  exhaustion is not completion. Truncate, summarize, and continue.
 - **Declaring done because no more changes are obvious.** The
   predicate is structural, not aesthetic. Run it.
 - **Declaring done with knitting-80 unresolved because "the book

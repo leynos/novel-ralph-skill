@@ -59,7 +59,7 @@ worktree (and the read-only cuprum checkout). No blocking defects remain.
   crosses the ADR-001 deterministic/judgemental line.
 - Telefono (contracts): no public signature changes; the `compiled-matches-drafts`
   exit-4 contract (ADR-003) is preserved untouched. Docstring/prose edits only.
-- Doggylump (failure/ops): the "prove it fails red" step is realisable — editing
+- Doggylump (failure/ops): the "prove it fails red" step is realizable — editing
   `recount_words` to count `compiled.md` makes case 1 fail (present divergent
   file) and case 2 fail (absent file → 0 or error ≠ drafted sum). Idempotence and
   the temporary-edit-revert discipline are spelled out.
@@ -69,7 +69,7 @@ worktree (and the read-only cuprum checkout). No blocking defects remain.
   cannot key `by_chapter`). No stronger viable alternative exists for a
   reconciliation task whose rule is already shipped.
 - Dinolump (viability): the regression guard's value is forward-looking (guards
-  a future refactor), correctly characterised as a non-tautology via the single
+  a future refactor), correctly characterized as a non-tautology via the single
   `recount_words(...)[0]` oracle plus the fail-red demonstration.
 
 ## Advisory (improve, not blocking)

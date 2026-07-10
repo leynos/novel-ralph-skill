@@ -671,7 +671,7 @@ Edit `docs/developers-guide.md`. After the existing `gate-ratio-consistent`
 discussion (lines 615-674), add a short subsection ("The recount-gate
 coupling") explaining: recount re-derives `[word_counts]` only and never writes
 `[gates]`; a recount that would cross a 30/50/80% threshold while the gate flag
-lags is refused with exit `3` on `gate-ratio-consistent` (it must not synthesise
+lags is refused with exit `3` on `gate-ratio-consistent` (it must not synthesize
 the "pass integrated" fact disk does not store); the refusal message names the
 crossed threshold and points at `novel-state set-gate --knitting-NN` as the
 repair once the pending knitting pass is integrated. Cross-reference the

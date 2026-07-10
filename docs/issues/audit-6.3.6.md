@@ -76,7 +76,7 @@ eight checks. `result["violations"] == []` is a command-specific *body* payload
 and is correctly asserted separately; the helper is explicit that the `result`
 contents are "asserted elsewhere".
 
-- **Proposed fix**: Parameterise `assert_envelope_skeleton` with an optional
+- **Proposed fix**: Parameterize `assert_envelope_skeleton` with an optional
   `working_dir: str | None = None` argument that defaults to
   `WORKING_DIR_CONSTANT`, so existing in-process callers are unchanged and the
   installed test can pass the resolved-absolute path. Then replace the inline
@@ -116,7 +116,7 @@ inlines the catalogue build, the `sh.make(...).run_sync(...)` drive, the
 `json.loads(result.stdout or "{}")` parse, and the no-`Traceback` guard
 directly in the test body — the same mechanics `assert_installed_state_error`
 consolidated for the error arm. Today there is a single installed success-arm
-site, so the duplication is latent rather than realised, and the wider
+site, so the duplication is latent rather than realized, and the wider
 "run an installed script and parse its envelope" idiom appears across roughly a
 dozen e2e modules (a separately scoped concern). But the asymmetry is worth
 recording: the error arm has a sanctioned shared run-and-assert harness while
@@ -139,7 +139,7 @@ shape again.
 ## Proposed roadmap items (for the root agent only)
 
 - **Reuse `assert_envelope_skeleton` in the installed identity mirror**
-  (severity: medium). Parameterise
+  (severity: medium). Parameterize
   `tests/cross_command_contract/_identity_assertions.py::assert_envelope_skeleton`
   with an optional `working_dir` override (default `WORKING_DIR_CONSTANT`) and
   replace the inline skeleton assertions in

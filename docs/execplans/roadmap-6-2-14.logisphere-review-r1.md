@@ -98,10 +98,10 @@ ROLLBACK-action assertion catch this loudly. Both are designed in.
 
 ## Strongest alternative (Wafflecat)
 
-Add a third `Examples` row to a parametrised `torn_turn_rollback_partial`
+Add a third `Examples` row to a parametrized `torn_turn_rollback_partial`
 outline instead of a new feature. Rejected correctly by D-SINGLEFEATURE: the
 existing partial feature is a concrete `Scenario` with `draft.md`-specific
-helper phrasing, and parametrising residue *filename* + *declared operation*
+helper phrasing, and parametrizing residue *filename* + *declared operation*
 together is exactly the scaffolding consolidation the roadmap parks at 7.23.
 The sibling-feature approach matches how 6.2.12/6.2.13 are kept separate. No
 credible better alternative for this task in isolation.

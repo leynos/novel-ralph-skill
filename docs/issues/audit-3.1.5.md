@@ -18,7 +18,7 @@ the developers' guide, and design §4.2, and expands the unit, property, corpus
 oracle, and BDD coverage in both directions.
 
 The slice is correct and of a high standard. It closes the exact exit-`0` lie
-that audit-3.1.4 Finding 1 flagged as the headline contract gap: the recogniser
+that audit-3.1.4 Finding 1 flagged as the headline contract gap: the recognizer
 now matches genuine critic output, the producer convention is written once and
 shared by both the side that writes notes and the side that reads them, the
 section-scoping walk is sound, and the new module keeps `done_predicate.py` under
@@ -56,7 +56,7 @@ reference is the right place to record this padding too.
 - Proposed fix: in the pseudocode, write the path as
   `f"manuscript/chapter-{chapter_id:02d}/critic-notes.md"` (and the sibling
   `done.flag` join, if present), or add a one-line note under the predicate that
-  the materialised layout is the zero-padded `chapter-NN` form per
+  the materialized layout is the zero-padded `chapter-NN` form per
   `state-layout.md`, so the pseudocode and the shipped `_chapter_dir_name` agree.
 
 ## Finding 2 — no end-to-end scenario covers the cap-reached `[resolved]` path letting `novel-done` exit 0
@@ -135,7 +135,7 @@ the documented token in the references against drifting apart.
   independence is the point), but add a single assertion — or a doctest — that
   pins the production `_RESOLVED_TOKEN` literal equal to the spelling quoted in
   `critic-personas.md` / `done-conditions.md`, so a future token change cannot
-  silently desynchronise the predicate from its own producer contract. If a
+  silently desynchronize the predicate from its own producer contract. If a
   lighter touch is preferred, a code comment in `_blocker_notes.py` naming the
   two reference sites as the source of truth would at least make the coupling
   discoverable.

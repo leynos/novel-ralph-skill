@@ -90,7 +90,7 @@ Two established conventions in the second domain are load-bearing for this work:
 Prior art the skill builds on includes the Save the Cat beat sheet, the
 jobs-to-be-done framing for fiction, and conflict-as-attractor analysis, all
 already captured in the skill's reference files. The desloppify checklist
-encodes a recognisable set of large-language-model prose tells (em-dash
+encodes a recognizable set of large-language-model prose tells (em-dash
 flooding, "it's not just X, it's Y", tricolons of abstraction, "found herself"
 passives, and a high-frequency-offender table with numeric thresholds).
 
@@ -280,7 +280,7 @@ whole field report at once. The roadmap must hold the parity-first line.
   `make test`, `make audit`).
 - Commands are idempotent: re-running a mutator converges state without
   destructive side effects, consistent with `docs/scripting-standards.md`.
-- State serialisation round-trips losslessly, preserving the on-disk
+- State serialization round-trips losslessly, preserving the on-disk
   `state.toml` formatting and comments rather than corrupting them.
 
 ### 7.3 Strategic success (the maintainer)
@@ -323,16 +323,16 @@ whole field report at once. The roadmap must hold the parity-first line.
   reference removed. *Consequence if false:* the schema must be redesigned
   before the state command can validate it, widening v1 scope.
 - **A2.** Lossless TOML round-tripping (preserving formatting and
-  comments) is achievable with an available library or an owned serialiser.
+  comments) is achievable with an available library or an owned serializer.
   *Consequence if false:* either formatting is sacrificed or a custom
-  serialiser is built, adding effort to the state command.
+  serializer is built, adding effort to the state command.
 - **A3.** The desloppify checklist's §6 table and the AI-isms set are
   expressible as regular-expression rule packs over chapter or manuscript text.
   *Consequence if false:* some tells need a richer matcher than regex,
   increasing linter complexity.
 - **A4.** Peer-capability, clean-context sub-agents are available to the
   harness for the later judgemental phases. *Consequence if false:* the
-  judgemental phases (G7) cannot be realised as designed and the skill retains
+  judgemental phases (G7) cannot be realized as designed and the skill retains
   self-marking for those passes.
 - **A5.** Chapter ordering is the zero-padded chapter-directory index
   (`chapter-01`, `chapter-02`, …), a total deterministic order that needs no
@@ -352,14 +352,14 @@ whole field report at once. The roadmap must hold the parity-first line.
 - **D2.** `docs/scripting-standards.md` and `AGENTS.md` govern how the
   scripts are written and gated; they are inputs, not deliverables.
 - **D3.** A TOML round-trip library (or the decision to own a
-  serialiser) is required by the state command (see A2). The specific choice is
+  serializer) is required by the state command (see A2). The specific choice is
   an open question (§9).
 
 ## 9. Open questions
 
 - **Q1 — TOML round-trip mechanism.** Which mechanism preserves
   `state.toml` formatting and comments across mutation: a library such as
-  `tomlkit`, or an owned serialiser over the standard-library `tomllib` reader?
+  `tomlkit`, or an owned serializer over the standard-library `tomllib` reader?
   - *Why it matters:* gates the state-mutation command's
     implementation and the A2 assumption.
   - *Resolution:* an implementation spike comparing round-trip fidelity
@@ -423,11 +423,11 @@ sub-agent*, *knitting gate*, *AI-isms rule pack*.
 ADRs are recorded in `docs/`, named `adr-NNN-short-description.md` per the
 documentation style guide.
 
-- **Deterministic/judgemental boundary** (G1, G3): the organising
+- **Deterministic/judgemental boundary** (G1, G3): the organizing
   principle of the rebuild; an ADR fixes it as the project's controlling
   decision.
 - **TOML round-trip mechanism** (Q1): hard to reverse once the state
-  serialiser is built; warrants an ADR.
+  serializer is built; warrants an ADR.
 - **Shared interface contract** (Q2): the JSON envelope and the
   disambiguated exit-code table (benign negative versus actionable finding); an
   ADR fixes the contract the five commands share.

@@ -60,7 +60,7 @@ This is wrong. `tests/test_novel_state_check.py` lines 307-345 contains
 `@pytest.mark.timeout(180)`, POSIX-skipif installed e2e that:
 
 - builds and installs the wheel via `installed_novel_state`,
-- materialises a coherent `working/` tree,
+- materializes a coherent `working/` tree,
 - drives `novel state check` through the installed script with
   `sh.make(prog, catalogue=...)("state", "check").run_sync(
   context=ExecutionContext(cwd=dest), capture=True)`,
@@ -134,7 +134,7 @@ keep the explicit value and the `ENVELOPE_COMMAND_NAMES` membership check.
 
 ### A3. Optional snapshot adds churn for little gain (Wafflecat — alternatives)
 
-The "Artifacts and notes" / Work item 1 optional `.ambr` snapshot redacts
+The "Artefacts and notes" / Work item 1 optional `.ambr` snapshot redacts
 `working_dir` and `messages` but keeps `result: {"violations": []}`. The
 cross-command suite already snapshots the redacted skeleton in-process; an
 installed snapshot would only re-pin the same fixed fields the semantic

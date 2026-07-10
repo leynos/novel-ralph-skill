@@ -98,7 +98,7 @@ file split are verbatim copies. A future change to the load-error contract (say,
 a new file-error arm) must be applied in both, with no guard that they stay in
 step.
 
-- **Proposed fix:** Extract the shared shape into one parametrised helper, e.g.
+- **Proposed fix:** Extract the shared shape into one parametrized helper, e.g.
   `run_pack_detect(*, load, content_error, file_error, file_noun, detect,
   report_outcome, chapter)` that owns the two-arm error handling, the
   `source_chapters` call, and the report projection; have both bodies call it

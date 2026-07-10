@@ -2,7 +2,7 @@
 
 Task 7.2.2 consolidated the near-verbatim TOML-loading and per-line scan
 primitives that were cloned across the `rulepack` and `ledger` packages into a
-new shared `novel_ralph_skill/loaderkit/` package, parameterised on an
+new shared `novel_ralph_skill/loaderkit/` package, parameterized on an
 error-factory bundle (`CoercionErrors`) and a verbatim-message bundle
 (`EntriesMessages`). Both packages now reroute their `_coerce`, `entries`,
 `compile_pattern`, `reject_duplicate_ids`, `load_toml`, and `scan_pattern` onto

@@ -59,7 +59,7 @@ guards (`tests/test_legacy_surface_retired.py`, `tests/conftest.py`);
 - cuprum 0.1.0 and Cyclopts 4.18.0 are the locked versions (`uv.lock`); cuprum
   is test-only and the seam shells out to nothing, so "no new cuprum surface"
   holds. No new Cyclopts behavioural claim is introduced.
-- The roadmap success criterion's "parametrised by the command-name resolver"
+- The roadmap success criterion's "parametrized by the command-name resolver"
   is satisfied in substance by D1/D2's command-agnostic seam (taking the
   *resolved* name as an argument, leaving the resolver in `main` where the
   value-carrying-flag guard lives). The round-1 reviewer endorsed this

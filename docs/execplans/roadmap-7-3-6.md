@@ -170,7 +170,7 @@ workaround.
   which still imported `ENVELOPE_COMMAND_NAMES` *up* from `commands.names` (the
   inversion WI3 was scheduled to remove). That closes a genuine circular import:
   `commands.names` -> `contract` (package init) -> `contract.envelope` ->
-  `commands.names` (partially initialised). It is masked in the in-process
+  `commands.names` (partially initialized). It is masked in the in-process
   `pytest` run by import ordering but fails the fresh console-script import — the
   e2e suites (`test_console_scripts_e2e.py` et al.) went red with
   `ImportError: cannot import name 'ENVELOPE_COMMAND_NAMES' from partially
@@ -583,7 +583,7 @@ production importer is `envelope.py` before repointing.
    the `build_envelope` docstring cross-reference (currently
    `:data:`novel_ralph_skill.commands.names.ENVELOPE_COMMAND_NAMES``) to the
    contract path. No logic changes.
-2. Widen the layering guard. Either generalise `tests/test_contract_layering.py`
+2. Widen the layering guard. Either generalize `tests/test_contract_layering.py`
    so its `_module_scope_imports` walk runs over *every* module in the
    `novel_ralph_skill.contract` package (iterate the package's `.py` files via
    `importlib`/`pkgutil`, reusing the existing `_read_*_source` and
@@ -681,7 +681,7 @@ new doc needs indexing).
 2. In `docs/roadmap.md`, append a short note under sub-task 1.3.1.2 recording
    that 7.3.6 *repaired* (not merely documented) the edge it audited, and tick
    task 7.3.6 `[x]` with a one-paragraph "Done (see
-   docs/execplans/roadmap-7-3-6.md)" record summarising the relocation, the
+   docs/execplans/roadmap-7-3-6.md)" record summarizing the relocation, the
    re-export back-compat, and the widened layering guard — mirroring the 7.3.5
    done-record style.
 3. Update this ExecPlan's `Outcomes & retrospective` and `Progress`.
@@ -810,7 +810,7 @@ recovery is `git restore`/`git checkout -- <file>` on the offending file. Commit
 boundaries are the natural rollback points: each WI is a single revertable
 commit.
 
-## Artifacts and notes
+## Artefacts and notes
 
 The load-bearing diffs to capture in commit bodies:
 

@@ -221,7 +221,7 @@ the set grows.
 - **Guard quality.** The Makefile assertion checks *same-line* co-occurrence of
   `interrogate` and `$(PYTHON_TARGETS)`, so deleting the recipe line fails the
   gate even though `$(PYTHON_TARGETS)` appears on other lines — a deliberate,
-  non-tautological check. The dev-dependency assertion normalises each PEP 508
+  non-tautological check. The dev-dependency assertion normalizes each PEP 508
   requirement to its bare distribution name via `_dist_name`, so it holds across
   version specifiers and extras. The `_table` helper narrows TOML values with
   `match`/`case` and a precise failure message.

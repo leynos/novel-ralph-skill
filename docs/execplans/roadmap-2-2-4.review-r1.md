@@ -134,7 +134,7 @@ and an e2e assertion depends on it.
    against
    `COHERENT_BASELINE` (the only named tree), discovers `done_30` is already
    true, and either (a) silently weakens the assertion to a no-op, or (b)
-   constructs an incoherent prior without realising it has changed the
+   constructs an incoherent prior without realizing it has changed the
    contract's meaning. Both ship a `set-gate` whose behaviour nobody clearly
    specified. Mitigation: B1 + B2 force the prior's coherence status and the
    fixture recipe to be decided in the plan, before code.

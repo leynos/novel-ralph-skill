@@ -269,7 +269,7 @@ escalation, not a workaround.
   specific; a `done.flag` residue asserts a different filename and a different
   declared operation. A sibling feature mirrors how 6.2.12 and 6.2.13 are kept in
   separate features and keeps each scenario's prose self-describing. If a future
-  reviewer prefers parametrisation, that is a follow-up refactor, not a blocker.
+  reviewer prefers parametrization, that is a follow-up refactor, not a blocker.
   Date/Author: 2026-06-26, planning agent.
 
 ## Outcomes & retrospective
@@ -344,7 +344,7 @@ Key files for this task:
 - `novel_ralph_skill/contract/exit_codes.py` — `ExitCode` (SUCCESS = 0,
   ACTIONABLE_FINDING = 4, etc.).
 - `tests/working_corpus/` — the corpus builder. `working_corpus.build_working_tree`
-  materialises a `WorkingTreeSpec` into a real `working/` tree.
+  materializes a `WorkingTreeSpec` into a real `working/` tree.
   `working_corpus.COHERENT_BASELINE` is the canonical mid-drafting coherent tree:
   three chapters, each with a non-empty `draft.md`; chapter-01 and chapter-02
   carry a `done.flag`, chapter-03 does not. The chapter the torn turn declares
@@ -371,7 +371,7 @@ Terms used in this plan:
   a torn turn's declared artefact is unrecoverable from disk; `reconcile` clears
   the record and leaves any partial artefacts in place (design §5.4 item 2).
 - "Partial-landed residue": a partial artefact (here a `.tmp` temp file) that
-  *did* materialise before the crash and must be preserved byte-for-byte,
+  *did* materialize before the crash and must be preserved byte-for-byte,
   unreferenced by state.
 - "Command boundary": invocation through `novel_ralph_skill.contract.runner.run`
   over `build_app()`, the same entry path an operator drives.
@@ -732,7 +732,7 @@ commit's gates fail, amend the work item's diff and re-run the suite before
 committing — no rollback of prior commits is needed because the items are
 independent and additive. No destructive operation is involved.
 
-## Artifacts and notes
+## Artefacts and notes
 
 Load-bearing source evidence (verified during planning, worktree
 `roadmap-6-2-14`):
@@ -771,7 +771,7 @@ interfaces:
 - `novel_ralph_skill.contract.exit_codes.ExitCode` — `SUCCESS` (0),
   `ACTIONABLE_FINDING` (4).
 - `working_corpus.build_working_tree(COHERENT_BASELINE, tmp_path)` — to
-  materialise the baseline tree.
+  materialize the baseline tree.
 - `pytest_bdd` `given`/`when`/`then`/`scenarios` — the behavioural harness.
 
 New test artefacts created at the end of this plan:

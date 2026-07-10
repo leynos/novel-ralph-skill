@@ -97,7 +97,7 @@ future reconciliation of `done-conditions.md` is traceable.
 ## Advisory (non-blocking but fix before implementation)
 
 - A1 (citation): The plan states `disk_evidence.py` "already exposes
-  `_chapter_dir_name`" (Context line ~328; Artifacts cites
+  `_chapter_dir_name`" (Context line ~328; Artefacts cites
   `disk_evidence.py:133-161`). `_chapter_dir_name` is defined in
   `novel_ralph_skill/state/_disk_paths.py`; `disk_evidence.py` only imports it.
   The implementer should import from `_disk_paths` (or re-derive), not expect it

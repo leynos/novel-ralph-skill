@@ -203,7 +203,7 @@ Thresholds that trigger escalation rather than autonomous workaround.
 
 - Risk: An implementer trusts the roadmap/design line numbers (`SKILL.md:107`,
   `SKILL.md:304`, `state-layout.md:38`) and either "re-fixes" already-correct
-  skill prose or edits the wrong line, instead of recognising that the skill
+  skill prose or edits the wrong line, instead of recognizing that the skill
   files are already corrected and only §8's *record* is stale. Severity:
   medium. Likelihood: medium. Mitigation: Work Item 1 verifies the current
   on-disk state of defects (1) and (3) by content (grep on text), not line
@@ -709,7 +709,7 @@ nothing is destructive and no state is written outside the working tree. If
 `make all` surfaces an unrelated pre-existing failure, leave the docs commits
 in place and escalate with the gate output rather than working around it.
 
-## Artifacts and notes
+## Artefacts and notes
 
 Evidence captured during planning:
 
@@ -761,7 +761,7 @@ points:
    `git log -L 106,107:...SKILL.md` and
    `git merge-base --is-ancestor 8d4a07c HEAD` returning non-zero). Work Item 1
    and the §8 edit cite `916313c` (or no SHA), never `8d4a07c`. Purpose,
-   Surprises, Decision Log, Risks, and Artifacts updated accordingly.
+   Surprises, Decision Log, Risks, and Artefacts updated accordingly.
 2. **Unachievable success grep.** The success criterion is scoped to
    `grep -rn "novel_predicate" skill/` (Constraints 5-6). The closed-work
    records in `docs/roadmap.md:929,937` and `docs/execplans/roadmap-3-1-1*.md`

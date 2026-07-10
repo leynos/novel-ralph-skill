@@ -225,7 +225,7 @@ writes a coherent initial `state.toml`. It takes `--title` (the novel title),
 `--slug` (the project slug), and `--target-word-count` (the target word count,
 defaulting to `80000`). To protect a live project, `init` *creates* but never
 overwrites: when `working/state.toml` already exists it refuses with exit `3`
-rather than clobbering it, so re-running `init` over an initialised project is
+rather than clobbering it, so re-running `init` over an initialized project is
 safe.
 
 `novel state set-cursor` moves the drafting cursor. It takes three integer

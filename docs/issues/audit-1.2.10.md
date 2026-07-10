@@ -82,7 +82,7 @@ pattern the conftest fixtures already apply to `read_repo_text`, `toml_table`,
 and `single_program_catalogue`. Consider folding it into the 1.2.11 conftest
 migration since both touch the same file.
 
-## Finding 3 — Three divergent PEP 508 distribution-name normalisers (carried; roadmap 1.2.11)
+## Finding 3 — Three divergent PEP 508 distribution-name normalizers (carried; roadmap 1.2.11)
 
 - **Category:** duplication
 - **Severity:** medium
@@ -96,7 +96,7 @@ migration since both touch the same file.
 
 This is the duplication first raised in `audit-1.2.7.md` Findings 1–3 and carried
 in `audit-1.2.8.md` Findings 4–6; it remains open after 1.2.10. `test_interrogate_gate.py`
-carries a robust regex normaliser (`_dist_name`) that strips version specifiers,
+carries a robust regex normalizer (`_dist_name`) that strips version specifiers,
 extras, and markers, whereas `test_contract_test_deps.py` carries a weaker
 ad-hoc `split()`-chain that only handles `>` and `=` separators and would mis-key
 a specifier using `~=`, `<`, `!=`, `;`-markers, or an extras bracket. The two

@@ -18,7 +18,7 @@ not land), per design §3.4 and §5.4 item 2.
 
 Task 6.2.7 already proved the `ROLLBACK` disposition at the `reconcile` command
 boundary for the case where the declared unrecoverable `draft.md` **never
-materialised** (`tests/test_torn_turn_rollback_bdd.py`): a real §3.4
+materialized** (`tests/test_torn_turn_rollback_bdd.py`): a real §3.4
 `pending_turn` bracket raises mid-turn declaring `working/manuscript/
 chapter-99/draft.md`, the chapter never lands, `check` reports
 `rollback-pending-turn`, and `reconcile` clears the record. But design §5.4's
@@ -181,12 +181,12 @@ escalation, not a workaround.
   wrong).
 - **Iterations.** If `make all` still fails after 3 fix attempts on any work
   item, stop and escalate.
-- **Interpretation.** The roadmap clause reads "a partial `draft.md` materialised
+- **Interpretation.** The roadmap clause reads "a partial `draft.md` materialized
   before the crash". Taken literally as *a new chapter's `draft.md` landed
   partially*, this is mechanically impossible to classify as ROLLBACK in v1: a
   new `chapter-NN/draft.md` creates a new chapter directory that breaks the
   refuse-class `manifest-disk-bijection`, short-circuiting to REFUSE before the
-  pending-turn branch (verified, probe G). The faithful achievable realisation
+  pending-turn branch (verified, probe G). The faithful achievable realization
   is the atomic-write **partial residue** (`draft.md.<rand>.tmp`) that the §3.4
   temp-then-`Path.replace` discipline leaves when the rename never happens,
   landed **inside an existing manifest chapter directory** so the bijection
@@ -201,7 +201,7 @@ escalation, not a workaround.
 ## Risks
 
 - Risk: The partial residue, if landed as a new `chapter-NN/draft.md` (the most
-  literal reading of "a partial `draft.md` materialised"), creates a new chapter
+  literal reading of "a partial `draft.md` materialized"), creates a new chapter
   directory that trips the refuse-class `manifest-disk-bijection` invariant,
   short-circuiting `derive_reconciliation` to `REFUSE` *before* the pending-turn
   branch — so the scenario would prove a REFUSE, not the intended ROLLBACK.
@@ -499,7 +499,7 @@ Key terms (defined for a first-time reader):
   writes a partial residue and then raises inside it to manufacture a genuine
   torn ROLLBACK turn with a partial artefact on disk.
 - **`working_corpus`** — `tests/working_corpus/`, the test-only package that
-  materialises `working/` trees from declarative specs. `build_working_tree(spec,
+  materializes `working/` trees from declarative specs. `build_working_tree(spec,
   tmp_path)` returns the built `working/` path; `COHERENT_BASELINE` is the
   settled mid-drafting baseline spec (3 chapters, `compiled is None`). Consume it
   by the sanctioned `import working_corpus as wc` value import.
@@ -709,7 +709,7 @@ Real transcripts (implementing agent, 2026-06-25):
 - Probe H, re-run during implementation over the actual baseline (residue at
   `manuscript/chapter-03/draft.md.partial.tmp`, declaring `chapter-99/draft.md`
   missing), yielded `PROBE_H_ACTION rollback-pending-turn` and
-  `PROBE_H_DISCREP ['pending-turn-cleared']`; the baseline materialised
+  `PROBE_H_DISCREP ['pending-turn-cleared']`; the baseline materialized
   `chapter-01`, `chapter-02`, `chapter-03`, confirming chapter-03 is an existing
   manifest chapter and chapter-99 never lands.
 - `uv run pytest tests/test_torn_turn_rollback_partial_bdd.py -q` →
@@ -782,7 +782,7 @@ cache rewards sequential runs).
 
 ## Idempotence and recovery
 
-Every step is re-runnable. The tests materialise throwaway `working/` trees under
+Every step is re-runnable. The tests materialize throwaway `working/` trees under
 pytest `tmp_path`, so re-running leaves no residue. The `pending_turn` bracket
 and the partial-residue write touch only the throwaway tree, and
 `monkeypatch.chdir` is restored at the end of each test, so nothing leaks across
@@ -790,7 +790,7 @@ tests. Editing the roadmap checkbox and this plan is a plain text edit;
 re-running the markdown gates is safe. If a gate fails mid-way, fix and re-run
 the same command; nothing is destructive.
 
-## Artifacts and notes
+## Artefacts and notes
 
 The verified mechanism (probes G and H, `Surprises` S-BIJECTION): a partial
 residue inside an existing manifest chapter directory keeps the disposition

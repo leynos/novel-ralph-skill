@@ -61,7 +61,7 @@ escalation, not a workaround.
 - Scope fence against neighbouring tasks: do **not** drop or default the
   `line_hit` callback (7.8.1), do **not** extract a shared scan-aggregate
   skeleton or change `scan_pattern`'s return shape (7.8.2), and do **not**
-  generalise the loaderkit import-direction guard (7.2.3.1). This task is purely
+  generalize the loaderkit import-direction guard (7.2.3.1). This task is purely
   import-repointing, Sphinx-reference repointing, and the re-export prune-or-keep
   decision.
 - The `loaderkit` package must remain a neutral leaf that imports neither
@@ -154,7 +154,7 @@ Thresholds that trigger escalation when breached.
   import ordering clean, no TC001 regression. coderabbit run 1: two minor findings,
   both on docs (execplan prose voice — addressed by reflowing to impersonal voice;
   and a count mismatch in `roadmap-7-2-4.logisphere-review-r1.md`, a pre-existing
-  review artifact outside this task's edit scope — skipped, see Decision Log).
+  review artefact outside this task's edit scope — skipped, see Decision Log).
 - [x] Work item 2 — Repoint the stale Sphinx `:class:` cross-references in the
   test docstrings (`tests/test_ledger_detect.py`,
   `tests/test_desloppify_sourcing.py`).
@@ -235,7 +235,7 @@ Thresholds that trigger escalation when breached.
   re-export of types the module no longer defines would re-advertise rule-pack
   ownership of neutral shapes — the precise impression Finding 3 says is no longer
   warranted — and would leave a third import source for one type. The audit's
-  Finding 1 proposed fix explicitly authorises the prune "if nothing external
+  Finding 1 proposed fix explicitly authorizes the prune "if nothing external
   depends on the old path". Pruning is the design-aligned single-home outcome.
   Date/Author: 2026-06-27, planning agent.
 
@@ -753,7 +753,7 @@ mid-task stop leaves a consistent, buildable tree. To revert, `git restore` the
 touched files or reset the offending commit; there are no migrations, generated
 artefacts, or external side effects.
 
-## Artifacts and notes
+## Artefacts and notes
 
 Pre-change inventory (verified during planning):
 
@@ -800,7 +800,7 @@ gate-passable work items: (1) repoint the four runtime straggler imports at
 `loaderkit.scan`; (2-3) repoint the four stale Sphinx `:class:` cross-references;
 (4) prune the `rulepack.detect` scan-shape re-export (Decision D-PRUNE) and pin
 it with a unit test, with a documented retain-fallback (D-PRUNE-FALLBACK). Scope
-is fenced against neighbouring tasks 7.2.3.1 (guard generalisation), 7.2.3.2 and
+is fenced against neighbouring tasks 7.2.3.1 (guard generalization), 7.2.3.2 and
 7.8.1 (the `line_hit` callback rationale and retirement), and 7.8.2 (the
 scan-aggregate skeleton and `count` return). No external-library behaviour is
 load-bearing; the only tool behaviour relied on (Ruff TC001, `ty`) is pinned by

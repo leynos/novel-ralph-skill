@@ -31,7 +31,7 @@ AGENTS.md's committing policy. These must be corrected before implementation.
    "describing the atomic rename discipline". This is wrong. Line 212 is a
    Markdown heading `## Atomic writes`; lines 214-228 are prose plus a numbered
    list. There is **no fenced code block** there. The two real `text` fences
-   are at 234-243 (Initialisation) and 249-257 (Resumption); neither describes
+   are at 234-243 (Initialization) and 249-257 (Resumption); neither describes
    the write/rename discipline. The atomic-write language the guard must not
    flag lives in **prose** (lines 60-61 and 214-228), which is already outside
    any fence and therefore already safe under fence-scoped scanning. Correct
@@ -99,7 +99,7 @@ AGENTS.md's committing policy. These must be corrected before implementation.
 - Token surface (tomli_w historical, tomlkit.dump/dumps, raw write primitives,
   shell redirects, path-anchored backstop) is complete for the enumerable
   hand-edit forms; tomlkit 0.15.0 and read-only stdlib `tomllib` are correctly
-  characterised (verified against pyproject/uv.lock).
+  characterized (verified against pyproject/uv.lock).
 - Keeping the two `tomli_w` substring tests as additive regressions is right.
 - Not pre-empting 1.2.7's shared `conftest` keeps the task atomic — correct.
 - No uncited memory-based locked-library behavioural claim requires

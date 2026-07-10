@@ -101,7 +101,7 @@ workaround.
 - **Layering / no import cycle.** `loaderkit` imports neither `rulepack` nor
   `ledger` at runtime or under `TYPE_CHECKING` (design §3.1; ADR-003). The
   `bind_coercion` factory lives in `loaderkit/coerce.py` and stays pack-agnostic:
-  it is parameterised on a `content_error` callable and the noun pair, exactly as
+  it is parameterized on a `content_error` callable and the noun pair, exactly as
   `CoercionErrors` already is.
 - **Behaviour, not just compile.** Each work item must leave `make all` green and
   ships or updates a test that fails before the change and passes after.
@@ -422,7 +422,7 @@ Deviation D-FSTRING-WRAP (2026-06-27, implementer): repointing `_where(rule_id)`
 to the longer `_COERCION.where(rule_id)` pushed three single-line `msg = f"…"`
 assignments in `rulepack/parse.py` (the unknown-basis, `page_words`-positive, and
 `threshold`-non-negative sentences) past the 88-column ruff limit. Each was
-wrapped into a parenthesised implicit-concatenation f-string that produces a
+wrapped into a parenthesized implicit-concatenation f-string that produces a
 **byte-identical** runtime string; the rule-pack snapshot/loader suites confirm
 no message drift. `ruff format` does not break string literals, so this manual wrap
 was required and is the only net deviation from the planned in-place renames.
@@ -854,7 +854,7 @@ Run everything from the worktree root
        make markdownlint
        make nixie
 
-       # the code gate (sequential — do not parallelise; honours build cache):
+       # the code gate (sequential — do not parallelize; honours build cache):
        make all
 
    `make all` runs format-check, lint (ruff + interrogate 100% docstring + pylint),

@@ -6,7 +6,7 @@ shared `bind_coercion` factory in `loaderkit/coerce.py` that returns a frozen
 `BoundCoercion` bundle exposing every coercion helper pre-bound to one family's
 `CoercionErrors`, so each family's `_coerce.py` is now a single `bind_coercion`
 call rather than a hand-written set of `_where`/`_require*`/`_reject_unknown_keys`
-forwarders. In parallel it changed the two parameterised seams in
+forwarders. In parallel it changed the two parameterized seams in
 `loaderkit/parse.py` and `loaderkit/scan.py` to a keyword-call convention
 (`build_entry(entry, index=index)` and `line_hit(chapter=…, line=…)`) so the
 keyword-only `_rule`/`_device` builders and the `kw_only` `LineHit` class bind
@@ -46,7 +46,7 @@ single-source steps).
   `novel_ralph_skill/loaderkit/parse.py:73-84` (the new `EntryBuilder[T]`
   `Protocol` with `def __call__(self, entry: Mapping, *, index: int) -> T`).
 
-Task 7.2.7 moved both parameterised seams to a keyword-call convention, but typed
+Task 7.2.7 moved both parameterized seams to a keyword-call convention, but typed
 them in opposite ways. The `build_entries` seam gained a precise structural
 contract: a new `EntryBuilder[T]` `Protocol` whose `__call__` declares the
 keyword-only `(entry, *, index: int)` signature, so a type checker rejects a

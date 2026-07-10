@@ -1,6 +1,6 @@
 # Desloppify checklist
 
-AI prose has a tell set as recognisable as a perfume. The model has been
+AI prose has a tell set as recognizable as a perfume. The model has been
 trained on the internet and reaches by default for the prose attractors most
 rewarded by RLHF: balanced, sonorous, em-dashed, abstract, tricolon-heavy,
 motion-blur emotional. The pattern is audible at a hundred paces.
@@ -40,7 +40,7 @@ that as well.
 
 ### "It's not just X, it's Y."
 
-The most recognisable LLM rhetorical move. A pretend-argument that sounds like
+The most recognizable LLM rhetorical move. A pretend-argument that sounds like
 clarification but adds nothing. Variants: "Not merely X but Y." "Not just X —
 Y." Every instance gets cut or rewritten.
 
@@ -81,10 +81,10 @@ chill ran through her", "goosebumps prickled her skin."
 Cliché. Cut. Same for "the silence stretched", "the tension was palpable", "the
 room held its breath."
 
-### Capitalised abstract nouns
+### Capitalized abstract nouns
 
 "There was a Knowing in her eyes." "The Truth, when it came, was Heavy." The
-capitalisation is a sentimentality flag. Decapitalise and consider whether the
+capitalization is a sentimentality flag. Decapitalise and consider whether the
 abstraction earns its place at all.
 
 ### Sentence-initial "Listen", "Here's the thing", "I want you to"
@@ -110,7 +110,7 @@ last action; let the cliff edge form itself.
 ### Mirror-gaze self-description
 
 "She caught her reflection in the window and saw a woman she barely
-recognised." A way to describe the protagonist without giving her a witness.
+recognized." A way to describe the protagonist without giving her a witness.
 Almost always replaceable with something more interesting.
 
 ### "A part of her…"
@@ -142,7 +142,7 @@ character.
 
 ### The recap paragraph
 
-A paragraph that summarises earlier events for the reader's benefit. The reader
+A paragraph that summarizes earlier events for the reader's benefit. The reader
 doesn't need it; they read those events. Cut. If a reminder is necessary, find
 one image or line that resurfaces it.
 
@@ -269,7 +269,7 @@ a tic; more than five is a problem.
 | "And in that moment"               | 0          |
 | "Some things…" (sententious)       | 0          |
 | "a part of her"                    | 1          |
-| capitalised abstract noun          | 1          |
+| capitalized abstract noun          | 1          |
 | "smirked"                          | 1          |
 | "[verb]-ed sadly/quietly/softly"   | 2          |
 | "the silence stretched"            | 0          |

@@ -411,7 +411,7 @@ import of `novel_ralph_skill`, mirroring `tests/test_state_layout_reference.py`.
 It asserts, case-insensitively, that the deflation-compensation mechanism is
 present and recorded:
 
-1. The string `expand to target` (or a normalised variant such as
+1. The string `expand to target` (or a normalized variant such as
    `expand-to-target`) appears in `SKILL.md`.
 2. An expand-to-target step appears within the **Phase 8** region (between the
    `### Phase 8` heading and the `### Phase 9` heading) and names `wordcount` as
@@ -703,7 +703,7 @@ SKILL.md edit is wrong, revert the file with `git checkout -- skill/novel-ralph/
 SKILL.md` and redo. If the guard test is brittle, loosen its substrings (Risks)
 rather than weakening the SKILL.md mechanism. No backups beyond git are needed.
 
-## Artifacts and notes
+## Artefacts and notes
 
 Key facts pinned during research:
 
@@ -781,7 +781,7 @@ verifying the loop and gate code.
   verified loop is sequential d→e→f→g and the critic loop's desloppify re-run is
   at `SKILL.md:406`; at the f→g point the critic has already converged, so new
   prose would reach `done.flag` unreviewed. Updated the Constraint, the Risks
-  ordering entry, Work item 2, Validation, and Artifacts accordingly.
+  ordering entry, Work item 2, Validation, and Artefacts accordingly.
 - Destructive re-run (point 2): dropped the "re-run desloppify on the new prose"
   instruction (it would discard 10-20% of the added material) and replaced it
   with a measure → expand → reprocess (via the existing d/e) → re-measure loop;
@@ -823,7 +823,7 @@ hypothesis.
   `wordcount` mention falls **after** the `desloppify` step heading; in the
   Phase 9 region, assert the expand step's offset falls **after** the
   structural-critic step's offset and **before** `complete-final-pass`, so a
-  destructive pass can never sit last after expansion. Mechanise the ordering
+  destructive pass can never sit last after expansion. Mechanize the ordering
   property the guard currently leaves to manual review, reducing regression risk
   on future `SKILL.md` refactors. Confine the change to
   `tests/test_skill_deflation_guard.py`.

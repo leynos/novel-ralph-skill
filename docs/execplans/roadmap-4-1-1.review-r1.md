@@ -106,7 +106,7 @@ consistent with merged precedent. Not a defect.
    `.state.toml.XXXX.tmp` inside `manuscript/`. Functionally harmless (same
    directory, atomic rename), and the Work item 1 leaked-temp assertion still
    works, but the name is misleading. Consider a neutral prefix (e.g.
-   `.compiled.md.`) or a shared generic prefix when the writer is generalised.
+   `.compiled.md.`) or a shared generic prefix when the writer is generalized.
    Not load-bearing.
 
 3. The plan asserts `len(rendered.encode("utf-8"))` for the `bytes` field. This

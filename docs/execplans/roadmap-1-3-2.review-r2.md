@@ -72,7 +72,7 @@ flagged in B2 (rule restated, then bent):
   `if TYPE_CHECKING:`" from `tests/working_corpus.py`. Documenting a new
   import-contract clause for a new module **is** a guide amendment. The plan
   cannot both leave the guide unamended and write this clause into it.
-- More fundamentally, the guide as written does not authorise a `TYPE_CHECKING`
+- More fundamentally, the guide as written does not authorize a `TYPE_CHECKING`
   import from any module other than `conftest`. So the plan's central claim of
   conformance is false on the page it relies on most.
 
@@ -178,7 +178,7 @@ seventh+ cross-module-import finding, because the contract the plan claimed was
 radius: the "consumed unchanged" criterion breaks when the import is refactored
 across every phase-2-6 consumer that copied the pattern. Missed signal: the
 corpus self-test is green throughout, because the self-test never exercises the
-import *contract*, only the materialised trees. Prevention designed in now:
+import *contract*, only the materialized trees. Prevention designed in now:
 resolve D1 by either putting spec types in `conftest` (literal carve-out) or
 amending the guide in Work item 5 and dropping the "no amendment" claim — and
 have Work item 5 state the contract in the exact words the guide will carry, so

@@ -118,9 +118,9 @@ Stop and escalate (document in `Decision Log`, then await direction) when:
 ## Risks
 
 - Risk: the installed `recount`, being a mutator, writes `state.toml` under the
-  subprocess cwd; if the test materialises its tree under the wheel/venv
+  subprocess cwd; if the test materializes its tree under the wheel/venv
   `tmp_path` subtree, the build and the mutation could interfere. Severity:
-  low. Likelihood: low. Mitigation: materialise the run tree under a per-test
+  low. Likelihood: low. Mitigation: materialize the run tree under a per-test
   `run_dir = tmp_path / "run"` and pass it as `ExecutionContext(cwd=run_dir)`,
   exactly as `test_installed_novel_state_check_exits_zero` does (lines
   353-367). With the module-scoped fixture the wheel and venv live under
@@ -153,12 +153,12 @@ Stop and escalate (document in `Decision Log`, then await direction) when:
   `@pytest.mark.timeout(180)` (Constraint 7). The `installed_novel_state`
   fixture is **module-scoped** (`scope="module"`, fed by `tmp_path_factory`),
   so it builds the wheel and venv **once per consuming test module** and every
-  test in that module — including the two parametrised cases of Work item 3's
+  test in that module — including the two parametrized cases of Work item 3's
   exit-3 test — reuses the one install. This is the exact shape the proven
   `installed_desloppify` fixture uses (`test_ai_isms_e2e.py` lines 152-164:
   `scope="module"`, `tmp_path_factory`, "the wheel build, venv create, and
-  install … run once and every parametrised case reuses the installed script").
-  Each test still materialises its own throwaway `working/` tree under a
+  install … run once and every parametrized case reuses the installed script").
+  Each test still materializes its own throwaway `working/` tree under a
   per-test `tmp_path`, so the cases stay independent (Decision D-CWD). Net
   wheel-build count for the whole suite becomes **three** — one per module that
   owns installed e2es: `test_novel_state_check.py` (1 installed test),
@@ -190,7 +190,7 @@ Stop and escalate (document in `Decision Log`, then await direction) when:
       Constraint 5). CodeRabbit: 0 findings.
 - [x] Work item 3: Add the installed-binary `novel-state` exit-3 state-error
       e2e. Added `test_installed_novel_state_recount_state_error_exits_three`,
-      parametrised over `missing-state` and `unparseable-state`. The installed
+      parametrized over `missing-state` and `unparseable-state`. The installed
       binary exits 3 with an `ok: false` envelope and no traceback for both
       faults — the design §3.2 contract holds (no behaviour fork). CodeRabbit: 0
       findings.
@@ -323,7 +323,7 @@ Stop and escalate (document in `Decision Log`, then await direction) when:
   criterion ("at least one exit-3 state-error path … asserted against a real
   installed console-script") is met by one such case; the plan adds the
   missing-`state.toml` case and, budget permitting, the unparseable case as a
-  parametrised second. Date/Author: 2026-06-24, planning agent.
+  parametrized second. Date/Author: 2026-06-24, planning agent.
 - Decision: D-CWD — every installed run uses `ExecutionContext(cwd=run_dir)`
   with a dedicated per-test `run_dir = tmp_path / "run"` holding a
   `working_dir = run_dir / "working"` tree, never the build/venv subtree (which
@@ -332,7 +332,7 @@ Stop and escalate (document in `Decision Log`, then await direction) when:
   it; isolating the run tree per test mirrors the proven `check` e2e (lines
   353-367) and avoids the mutator interfering with the shared install. The names
   `run_dir`/`working_dir` are used consistently across Work items 2 and 3 and
-  the Artifacts snippet so the template is copy-correct for both. Date/Author:
+  the Artefacts snippet so the template is copy-correct for both. Date/Author:
   2026-06-24, planning agent.
 
 ## Outcomes & retrospective
@@ -342,7 +342,7 @@ Milestone closed (2026-06-25). Against the Purpose:
 - The installed `novel-state recount` is now proven at the wheel/venv boundary:
   `test_installed_novel_state_recount_exits_zero` corrects wrong counts and exits
   0 with the recounted `{current, by_chapter}` envelope, and
-  `test_installed_novel_state_recount_state_error_exits_three` (parametrised over
+  `test_installed_novel_state_recount_state_error_exits_three` (parametrized over
   `missing-state` and `unparseable-state`) exits 3 with an `ok: false` envelope
   and no traceback. All three new cases pass under `make all`.
 - The cross-module `_build_and_install_novel_state` import is retired; the helper
@@ -359,7 +359,7 @@ Deviations from the plan (each with rationale, recorded in the Decision Log):
   version breached the 400-line module cap. This is the codebase's own pattern
   for fixture surfaces that would overflow `conftest`; behaviour is identical.
 - A `_run_ok` helper folds the uv-step exit-code guards to satisfy Ruff PLR0914.
-- The execplan and its review artifacts were caught by an inadvertent `make fmt`
+- The execplan and its review artefacts were caught by an inadvertent `make fmt`
   mdformat reflow early in WI1; the spurious churn to unrelated tracked docs was
   stashed (matching the long-standing "spurious make-fmt mdformat churn" pattern
   in this repo), and the execplan's two over-width inline-code lines were
@@ -368,9 +368,9 @@ Deviations from the plan (each with rationale, recorded in the Decision Log):
   rewrites every Markdown file in the tree.
 
 CodeRabbit raised two findings across the run, both against the ExecPlan or its
-`review-r1.md` artifact (Markdown width in the plan, and a citation nuance in the
+`review-r1.md` artefact (Markdown width in the plan, and a citation nuance in the
 review note). The plan's over-width lines were fixed; the `review-r1.md` citation
-is a pre-existing design-review artifact left verbatim as the historical record,
+is a pre-existing design-review artefact left verbatim as the historical record,
 not live code, so it was not rewritten. No finding touched the implementation.
 
 ## Context and orientation
@@ -401,7 +401,7 @@ Key terms, defined for a newcomer:
   `state.toml`, opens no `[pending_turn]` bracket, and is idempotent over
   unchanged drafts (`novel_ralph_skill/commands/_recount.py`; design §4.1).
 - **`working_corpus`** (aliased `wc` in tests): the in-repo builder that
-  materialises a coherent `working/` tree from a `WorkingTreeSpec` /
+  materializes a coherent `working/` tree from a `WorkingTreeSpec` /
   `ChapterSpec` under a `tmp_path` (`tests/working_corpus/`). Tests consume it
   by direct value import (`import working_corpus as wc`), the sanctioned
   carve-out the BDD step modules use.
@@ -604,13 +604,13 @@ Then reroute the consumers:
   (line 32) and rewrite its **two**
   installed e2es to take the `installed_novel_state` fixture. Both now share
   the one module-scoped install (the reconcile module drops from 2 wheel builds
-  to 1), and each still materialises its own throwaway `working/` tree per test.
+  to 1), and each still materializes its own throwaway `working/` tree per test.
 
 The fixture lives in `conftest.py` (not a test module) so all three consuming
 modules see it by name without a value import (Constraint 6). Module scope —
 not function and not session — is deliberate: each module owns an independent
 install (no cross-module install coupling) while the wheel is built once per
-module, which is the minimum scope that lets WI3's two parametrised exit-3
+module, which is the minimum scope that lets WI3's two parametrized exit-3
 cases share a single build (Decision D-SCOPE).
 
 Tests added/updated: no new assertions — this work item is a refactor proven by
@@ -669,9 +669,9 @@ its own run tree), the function-scoped `single_program_catalogue` (for the
 *run* catalogue against the resolved script), and the module-scoped
 `installed_novel_state` fixture (the `novel-state` script `Path`). Use the
 proven `check` template's directory shape verbatim so the names match the
-shared Artifacts snippet (`run_dir` is the cwd; it contains `working/`):
+shared Artefacts snippet (`run_dir` is the cwd; it contains `working/`):
 
-1. `run_dir = tmp_path / "run"`; materialise the two-chapter `drafting` tree
+1. `run_dir = tmp_path / "run"`; materialize the two-chapter `drafting` tree
    *under* `run_dir / "working"` with deliberately *wrong* hand-typed
    `[word_counts]` via `working_corpus`. Build the tree by pointing the
    `working_corpus` builder at `run_dir` (it creates the `working/` child),
@@ -743,7 +743,7 @@ implemented before WI2, add the same imports listed in Work item 2.
 
 Change: add `test_installed_novel_state_recount_state_error_exits_three` to
 `tests/test_recount_e2e.py`, with the same three marks (skipif-POSIX, slow,
-timeout 180), parametrised over two fault shapes. As in Work item 2, the cwd is
+timeout 180), parametrized over two fault shapes. As in Work item 2, the cwd is
 `run_dir = tmp_path / "run"` and the state tree lives under
 `working_dir = run_dir / "working"`:
 
@@ -776,7 +776,7 @@ the mutator-refusal-is-3 rule at the installed boundary (Constraint 4). This
 satisfies the roadmap success criterion ("at least one exit-3 state-error path
 … asserted against a real installed console-script") with two cases for safety.
 
-Tests added: one parametrised slow installed-binary e2e (two cases). No
+Tests added: one parametrized slow installed-binary e2e (two cases). No
 snapshot (the asserted facts are `exit_code` and `ok`, directly assertable).
 
 Validation: `make all`. Direct observation:
@@ -854,7 +854,7 @@ Run everything from the worktree root
 
    Commit (gated): `test: assert installed novel-state recount exits 0`.
 
-4. Work item 3 (exit-3 state-error e2e). Add the parametrised test to
+4. Work item 3 (exit-3 state-error e2e). Add the parametrized test to
    `tests/test_recount_e2e.py`. Then:
 
    ```bash
@@ -913,7 +913,7 @@ by node id; the `tmp_path` is rebuilt clean each time. The doc edits are plain
 text and re-applying them is harmless. No destructive step exists; no rollback
 plan is needed beyond `git restore` on an unstaged edit.
 
-## Artifacts and notes
+## Artefacts and notes
 
 Reference template for the installed-binary run (from the proven `check` e2e,
 `tests/test_novel_state_check.py` lines 363-368), the shape both new tests
@@ -1033,7 +1033,7 @@ Initial draft (2026-06-24). Decomposes roadmap 6.2.4 into four atomic work
 items: (1) promote the wheel-build/install helper to a shared `conftest`
 fixture and retire the existing cross-module import; (2) add the
 installed-binary `novel-state recount` exit-0 e2e asserting the recounted
-envelope; (3) add the installed-binary exit-3 state-error e2e (parametrised
+envelope; (3) add the installed-binary exit-3 state-error e2e (parametrized
 over missing and unparseable `state.toml`); (4) reconcile design §9, the
 developers' guide, and the roadmap tick. Every external mechanism is pinned to
 locked `cuprum==0.1.0` source or to an existing passing installed-binary test,
@@ -1053,17 +1053,17 @@ Revision 2 (2026-06-24) — design-review round 1 response. What changed:
    `_venv_scripts_dir`), exactly as the codebase's own module-scoped
    `installed_desloppify` already does (`test_ai_isms_e2e.py` lines 49-83,
    152-164). New Decision D-SCOPE records this. Updated: Work item 1, the
-   Interfaces signature, the Context fixture notes, and the new Artifacts
+   Interfaces signature, the Context fixture notes, and the new Artefacts
    fixture template.
 2. **Reuse claim made true (blocking 2).** The Risks mitigation no longer
    promises wheel reuse a function-scoped fixture could not deliver. Module
    scope builds the wheel once per consuming module, so Work item 3's two
-   parametrised exit-3 cases now genuinely share one install. The corrected
+   parametrized exit-3 cases now genuinely share one install. The corrected
    net-cost arithmetic (three wheel builds total, versus six for a
    function-scoped fixture, and the reconcile module dropping from two builds
    to one) is stated with the per-module test counts verified against the
    source.
-3. **cwd-naming normalised (advisory).** Work items 2 and 3 and the Artifacts
+3. **cwd-naming normalized (advisory).** Work items 2 and 3 and the Artefacts
    run-snippet now use one consistent shape — `run_dir = tmp_path / "run"` as
    the cwd, `working_dir = run_dir / "working"` for the state tree — matching
    the proven `check` template, so the shared snippet is copy-correct for both
@@ -1094,7 +1094,7 @@ Revision 3 (2026-06-24) — design-review round 2 response. What changed:
    citing the precedent `test_ai_isms_e2e.py` lines 31-32. The Context "Files
    this plan touches" bullet, the verified-external-facts block (now pinning
    `from cuprum import sh` and `Program` against `cuprum/__init__.py` lines
-   62/77/134 and `cuprum/sh.py` line 528), the Artifacts fixture template (a
+   62/77/134 and `cuprum/sh.py` line 528), the Artefacts fixture template (a
    leading import comment), and the Interfaces section (a new conftest-import
    sub-bullet) all list this import change. New Decision D-IMPORTS records it.
 2. **Same gap closed for the test module (completeness).** `test_recount_e2e.py`

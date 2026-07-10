@@ -108,7 +108,7 @@ escalation, not a workaround.
 
     - Risk: a naive "iterate fields and getattr" rewrite of render_machine drops
       the dict/list coercion of result/messages, producing JSON that differs
-      (e.g. a MappingProxyType serialised differently) or a snapshot churn.
+      (e.g. a MappingProxyType serialized differently) or a snapshot churn.
       Severity: medium
       Likelihood: medium
       Mitigation: keep an explicit per-field coercion (a small mapping of
@@ -224,7 +224,7 @@ escalation, not a workaround.
       than a blanket getattr.
       Rationale: result/messages are stored frozen (MappingProxyType / tuple) by
       `__post_init__`; json.dumps must see a plain dict/list to reproduce today's
-      wire output (Constraints). A blanket getattr would change the serialised
+      wire output (Constraints). A blanket getattr would change the serialized
       shape and churn the snapshots.
       Date/Author: 2026-06-27, planning agent.
 
@@ -442,7 +442,7 @@ and `messages` a plain `list` exactly as today. For example:
         The ordered mapping is built by iterating ENVELOPE_FIELD_ORDER — the
         order declared on the Envelope dataclass — so the renderer cannot
         diverge from the contract it renders. result and messages are coerced
-        to a plain dict/list so the frozen read-only containers serialise to
+        to a plain dict/list so the frozen read-only containers serialize to
         the same JSON as before.
         ...
         """
@@ -646,7 +646,7 @@ file deletions beyond replacing two in-module literal tuples with imports. If a
 snapshot unexpectedly changes, do not `--snapshot-update`; stop and escalate
 (Constraints), because a snapshot change here means a real contract regression.
 
-## Artifacts and notes
+## Artefacts and notes
 
 The load-bearing before/after is the `render_machine` body. Before (today,
 `envelope.py` lines 143-151):

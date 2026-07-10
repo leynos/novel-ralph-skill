@@ -559,7 +559,7 @@ regression test is added in WI-3, which owns `test_conftest_helpers.py`). To
 prove the tightening has teeth, run a **temporary red probe**: in a scratch
 file (not committed), add a `RepoTextReader`-annotated parameter calling
 `read_repo_text(123)` and confirm `ty` flags it (`invalid-argument-type`); then
-delete the probe before committing. Record the transcript in `Artifacts and
+delete the probe before committing. Record the transcript in `Artefacts and
 notes`.
 
 Validation: `make all` (Ruff format-check and lint, interrogate 100%, Pylint,
@@ -747,7 +747,7 @@ throwaway file deleted before commit; if forgotten, `make lint`/`ty` will flag
 it, and removing it restores green. No backups or rollback of committed history
 are needed because each commit is independently gate-passing.
 
-## Artifacts and notes
+## Artefacts and notes
 
 Pre-draft verification transcript (locked `ty` 0.0.51), with the Protocol
 defined inside conftest's `TYPE_CHECKING` block, to be reproduced in WI-2:

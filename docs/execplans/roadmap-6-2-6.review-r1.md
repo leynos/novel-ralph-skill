@@ -115,7 +115,7 @@ field list `CommandResult(program, argv, exit_code, pid, stdout, stderr)`.
   message string — is correctly rejected (Decision Log) because the contract
   fixes the envelope/exit, not the wording. No better structural option exists;
   this is the minimal faithful closure of Finding 6.
-- Buzzy Bee (scaling): +1 wheel build for reconcile is amortised by the
+- Buzzy Bee (scaling): +1 wheel build for reconcile is amortized by the
   module-scoped fixture; wordcount's per-test rebuild is pre-existing
   convention, deliberately not widened here. 180s timeout covers it.
 - Telefono (contracts): the asserted triple (exit 3 / `ok: false` / no

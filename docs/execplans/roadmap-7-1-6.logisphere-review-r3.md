@@ -29,7 +29,7 @@ console-script fixtures, never in the in-process prose guards.
 
 - R2-B1: `compile_is_current.__doc__` — canonical present **False**, re-export
   tail present **False**, bare relative `:func:\`compiled_matches_drafts\``
-  present **True**. WI1 must normalise it; the plan does. Confirmed.
+  present **True**. WI1 must normalize it; the plan does. Confirmed.
 - R2-B2: tail `state.compiled_matches_drafts` is NOT a substring of the
   canonical `...state.compile_model.compiled_matches_drafts`; reconcile tail
   likewise absent from its canonical. The "tail count == 0" framing is correct.
@@ -85,10 +85,10 @@ proof obligation is not met.
 
 ## Advisory (non-blocking)
 
-- A3-1 (Wafflecat). WI1 normalises the sibling `concatenate_drafts` /
+- A3-1 (Wafflecat). WI1 normalizes the sibling `concatenate_drafts` /
   `present_draft_bodies` / `CompiledComparison` re-export refs but the guard does
   not pin a tail for those on `check_compiled`. The plan documents this as the
-  deliberate "registry coverage" boundary (normalised-but-unguarded by design).
+  deliberate "registry coverage" boundary (normalized-but-unguarded by design).
   Accepted; flagging only so the implementer does not mistake it for an omission.
 - A3-2 (Dinolump). The roadmap's "apply the convention and guard to ... 7.1.5"
   is satisfied by documentation + an extensible registry, not by editing 7.1.5
@@ -107,7 +107,7 @@ proof obligation is not met.
    never proven non-vacuous (B3-1). Mitigation: fix B3-1; the bare-relative
    negative fixture (already specified) plus a properly isolated tail fixture
    close this.
-2. Second: WI1 normalises a docstring that a behavioural suite greps verbatim.
+2. Second: WI1 normalizes a docstring that a behavioural suite greps verbatim.
    Mitigated — verified no doctests, and the three test-module hits are
    out-of-scope test prose that assert nothing against production spelling.
 3. Third: 7.1.5 lands and re-spells via the re-export path. Mitigated by the

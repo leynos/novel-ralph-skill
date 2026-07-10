@@ -56,7 +56,7 @@ state = _load_or_state_error(working_dir / "state.toml")
 ```
 
 This re-spells both the `working/` root and the `state.toml` join the accessors
-were created to centralise, so the invariant 2.2.2.2 established is now only
+were created to centralize, so the invariant 2.2.2.2 established is now only
 partially held: `novel-state`, the mutators, `_reconcile`, `_compile`, and
 `_novel_done` route through the accessors, while `wordcount` and `desloppify`
 do not. The two modules already import `_load_or_state_error` from
@@ -121,7 +121,7 @@ for exit-3 translation. They differ only in the final projection
 benign-`FileNotFoundError`-but-propagate-everything-else rule is therefore
 written out twice, with the subtle "why a broad `except OSError` is wrong"
 comment duplicated in both bodies. This is the same draft-read boundary the
-codebase already centralised for the structural checks in `disk_evidence.py`.
+codebase already centralized for the structural checks in `disk_evidence.py`.
 
 - **Proposed fix:** extract one shared reader beside the path helpers — e.g.
   `_disk_paths.read_chapter_draft(working_dir, number) -> str | None` returning
@@ -146,7 +146,7 @@ codebase already centralised for the structural checks in `disk_evidence.py`.
 The `"manuscript"` directory name and the `"draft.md"` filename are bare string
 literals repeated across at least six modules. `_disk_paths.py` already owns the
 `chapter-NN` segment via `_chapter_dir_name`, but the surrounding `manuscript/`
-and `draft.md` segments of the same `state-layout.md` path are not centralised,
+and `draft.md` segments of the same `state-layout.md` path are not centralized,
 so the layout the design fixes in one place is spelled out in many. This is the
 softest of the four findings — the literals are stable — but it is the residue
 of the same layout-knowledge-by-copy pattern Findings 2 and 3 address.

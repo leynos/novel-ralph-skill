@@ -93,7 +93,7 @@ Both bodies carry the same write-time precondition shape: test a bound, build a
 `raise StateInputError(summary, detail)`. The wording is parallel and the
 construction is identical save for the predicate and the two strings. This is the
 "check a bound, refuse with a named rule" idiom that `set-chapters`'
-`manifest_coherence_violations` (ADR 008) generalises for its own domain, but the
+`manifest_coherence_violations` (ADR 008) generalizes for its own domain, but the
 two scalar preconditions here re-spell it inline.
 
 - **Proposed fix:** Extract a small `_refuse_unless(condition, *, rule, detail)`
@@ -151,7 +151,7 @@ lane was a documentation/naming sweep, not a refactoring lane.
 
 - **Proposed fix:** No new action required from this audit. This is already
   triaged as the `_coerce` reroute at `docs/roadmap.md:4201-4219` (source
-  audit:7.1.2 Finding 2): extract a shared coercion module parameterised on an
+  audit:7.1.2 Finding 2): extract a shared coercion module parameterized on an
   injected error factory plus a shared scan-pattern primitive, with each package
   binding its own error type, noun, and keyword. Recorded here for continuity so
   the standing duplication is visible from the 1.2.14 checkpoint.
@@ -180,7 +180,7 @@ adapter.
   base and one `usage_error_outcome(exc)` helper into the `contract` layer so the
   exit-2 envelope has one tested home, with each command keeping a thin domain
   subclass for its docstring-level trigger. (A `run`-level catch arm — symmetric
-  with the existing `StateInputError` arm — would be the most direct realisation
+  with the existing `StateInputError` arm — would be the most direct realization
   and is worth weighing against the helper-only approach when 7.16.7 is planned.)
   Recorded here for continuity.
 

@@ -95,7 +95,7 @@ tempted to edit docstrings and stray into 7.1.2.
 Most likely six-months-later incident: someone runs the Purpose-section grep
 during a later audit, sees docstring hits in `_compile.py`/`_novel_done.py`,
 concludes the refactor is "incomplete", and edits the docstrings to satisfy the
-grep — silently doing 7.1.2's work and possibly desynchronising the prose that
+grep — silently doing 7.1.2's work and possibly desynchronizing the prose that
 7.1.2 wants to consolidate authoritatively. Prevention: fix defects 1 and 2 so
 the stated observables match the actual (correct) end state. Blast radius: low
 (docs only), but it corrodes the audit trail. Signal missed: the Purpose grep

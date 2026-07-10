@@ -120,7 +120,7 @@ Stop and escalate when any of these is breached; do not work around it.
 - Risk: Re-pointing the envelope command-name guard onto a superset that
   includes
   the spaced names while keeping `[project.scripts]` at the legacy five could
-  desynchronise the two registry consumers, breaking the existing
+  desynchronize the two registry consumers, breaking the existing
   `test_command_names_registry.py` / `test_pyproject_scripts.py` gates.
   Severity: medium Likelihood: medium Mitigation: Work item 2 decouples the two
   roles explicitly — a `SCRIPT_NAMES` / `project_scripts_table` view for
@@ -331,7 +331,7 @@ Files you will read and touch:
 
 - `novel_ralph_skill/commands/stub.py` — the five legacy entry points and the
   shared `_drive(name, build_app)` body (the pattern the multiplexer entry
-  point generalises). Read it; do not remove its entries.
+  point generalizes). Read it; do not remove its entries.
 - `novel_ralph_skill/commands/names.py` — the command-name registry. Today
   `COMMAND_NAMES` is exactly the legacy five and double-serves both the
   `[project.scripts]` table and the envelope guard. Work item 2 decouples these.
@@ -421,7 +421,7 @@ Work item 3 (Stage C — the dispatcher). Add a new module
   `name = _command_name_for(residual)`; then `run` is called with
   `build_multiplexer()`, `residual`, and a `RunContext` carrying `command=name`,
   `working_dir=WORKING_DIR_NAME`, and `human=human`. This reuses the exact
-  `_drive`-style shape `stub.py` already uses, generalised to compute the
+  `_drive`-style shape `stub.py` already uses, generalized to compute the
   subcommand name.
 
 Register the entry point: add `novel = "novel_ralph_skill.commands.novel:main"`
@@ -602,7 +602,7 @@ Quality method (how we check):
 - No destructive operations. The legacy entry points remain a working fallback
   throughout, so a half-applied change never leaves the package unrunnable.
 
-## Artifacts and notes
+## Artefacts and notes
 
 Verified Cyclopts 4.18.0 probe (run in this worktree's venv during planning):
 

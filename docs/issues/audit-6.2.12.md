@@ -111,7 +111,7 @@ would not discover that the partial-residue preservation guarantee (§5.4 item
 
 This is not a defect in 6.2.12's diff — the task's ExecPlan documents the new
 scenario thoroughly, and the guide's generic note remains true — but the
-guide's torn-turn map has fallen behind the scenario family it summarises.
+guide's torn-turn map has fallen behind the scenario family it summarizes.
 
 - **Proposed fix:** Extend the `docs/developers-guide.md:824-827` note to name
   the torn-turn scenario family and the distinct guarantee each pins: the

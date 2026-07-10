@@ -75,7 +75,7 @@ Adopt **Option B: a single `novel` multiplexer**. ADR 005's pro-five reasons hav
 weakened: its headline argument was "avoid renaming every reference", but the two
 generic names must be renamed regardless, the surface has already become a
 partial multiplexer, and the rename churn is cheapest now. The multiplexer's
-"trade-aways" that ADR 005 cited against it — independent per-command versioning
+"trade-offs" that ADR 005 cited against it — independent per-command versioning
 and subset installation — are equally unwanted under five scripts, so they no
 longer favour five. Against a residual cost (a mechanical, test-covered rename),
 the multiplexer delivers a uniform structure, a clean single-name `PATH`

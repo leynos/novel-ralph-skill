@@ -84,7 +84,7 @@ Design §5.4 item 2 has two halves: a rollback "removes nothing" *and* leaves th
 partial artefacts that did land in place (it clears only the `[pending_turn]`
 record, fabricating no prose). The scenario picks an unrecoverable artefact —
 `working/manuscript/chapter-99/draft.md` — that the coherent baseline never
-materialises, so it never lands; `rollback_preserves_files` therefore proves only
+materializes, so it never lands; `rollback_preserves_files` therefore proves only
 the "removes nothing" half (`files_before <= after` and drafts unchanged). A torn
 turn whose *recoverable* sibling artefacts (a `state.toml` edit, a partial
 `log.md` line) did land before the unrecoverable one failed is not exercised, so
@@ -124,9 +124,9 @@ boundary should demonstrate).
 
 - **Proposed fix:** Record a low-severity follow-up (candidate roadmap item under
   step 6.2 or wherever the torn-turn surface coverage is tracked) to add a second
-  parametrisation of the ROLLBACK scenario declaring an unrecoverable `done.flag`
+  parametrization of the ROLLBACK scenario declaring an unrecoverable `done.flag`
   rather than a `draft.md`, so both branches of `_RECOMPUTABLE_BASENAMES`-exclusion
-  have a command-boundary proof. The existing scenario already parametrises cleanly
+  have a command-boundary proof. The existing scenario already parametrizes cleanly
   on `_UNRECOVERABLE_DRAFT`; a `pytest.mark.parametrize` over `(declared_path,
   expected_basename)` would cover both with one step module.
 

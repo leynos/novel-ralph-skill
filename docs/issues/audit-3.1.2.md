@@ -120,7 +120,7 @@ as a string constant in a fifth, with no shared helper:
 - [`_novel_done.py`](../../novel_ralph_skill/commands/_novel_done.py) line 171
   (`_sole_stale_compile`): `root / "manuscript" / "compiled.md"`.
 
-The project already centralises the sibling `chapter-NN` derivation in
+The project already centralizes the sibling `chapter-NN` derivation in
 [`_disk_paths._chapter_dir_name`](../../novel_ralph_skill/state/_disk_paths.py)
 precisely so the layout is defined once; `compiled.md` is the one manuscript
 artefact that escaped that discipline. Five independent literals are a drift

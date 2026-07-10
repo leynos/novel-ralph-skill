@@ -22,7 +22,7 @@ An installed-boundary exit-0 proof for `novel state check` **already exists**:
 `tests/test_novel_state_check.py::test_installed_novel_state_check_exits_zero`
 (lines 307-344) is a `@pytest.mark.slow`, `@pytest.mark.timeout(180)`,
 POSIX-`skipif` e2e that builds and installs the wheel through
-`installed_novel_state`, materialises a coherent `working/` tree from
+`installed_novel_state`, materializes a coherent `working/` tree from
 `baseline_tree`, drives `novel state check` through the installed script with
 `sh.make(prog, catalogue=...)("state", "check").run_sync(context=ExecutionContext(cwd=dest),
 capture=True)`, and asserts `result.exit_code == 0` and `envelope["ok"] is True`.
@@ -111,7 +111,7 @@ Hard invariants that must hold throughout implementation.
   contract-fixed fields (`command`, `schema_version`, `ok`, `result`, `messages`)
   plus the *resolved absolute* `working_dir`, computed from *its* run dir `dest`
   as `str((dest / "working").resolve())` — the same way the production code
-  resolves it — so symlink normalisation cannot desynchronise them. Do not assert
+  resolves it — so symlink normalization cannot desynchronize them. Do not assert
   the installed
   `working_dir` equals `"working"`.
 - The installed e2e is POSIX-only (ADR-006): every external program runs by
@@ -211,7 +211,7 @@ Hard invariants that must hold throughout implementation.
       absolute `working_dir`, computing the expected value as
       `str((run_dir / "working").resolve())` exactly as
       `test_console_scripts_error_arms_e2e.py` lines 301-307 do (so symlink
-      normalisation under `tmp_path` cannot desynchronise them). Pin the key
+      normalization under `tmp_path` cannot desynchronize them). Pin the key
       order and types against `ENVELOPE_KEY_ORDER` from the cross-command
       package. Do not call the in-process `assert_envelope_skeleton` verbatim —
       its `working_dir == "working"` check is in-process-only.
@@ -227,7 +227,7 @@ Hard invariants that must hold throughout implementation.
       fixtures, so importing them is permitted (the developers-guide rule bars
       cross-module *fixture/value-via-fixture* imports, not shared constants).
       `ENVELOPE_SCHEMA_VERSION`, `ExitCode`, and `ENVELOPE_COMMAND_NAMES` come
-      from production modules. The existing test does not currently materialise
+      from production modules. The existing test does not currently materialize
       via `BODY_PHASE`; it uses `baseline_tree`, which is the coherent tree. Keep
       `baseline_tree` (it is the established coherent corpus the test already
       copies) and assert against the *constants*, so the installed assertion
@@ -340,7 +340,7 @@ Hard invariants that must hold throughout implementation.
       `test_installed_identity_tripwire_e2e.py` module.
       Rationale: Two paths are defensible. (a) *Extend in place*: the existing
       test already builds and installs the wheel through the module-scoped
-      `installed_novel_state`, materialises the coherent `baseline_tree`, and
+      `installed_novel_state`, materializes the coherent `baseline_tree`, and
       drives `("state", "check")` through the installed script; the missing
       skeleton assertions are additive over the same `result`, so they cost zero
       extra wheel build. (b) *New module*: a separate
@@ -356,10 +356,10 @@ Hard invariants that must hold throughout implementation.
       Date/Author: 2026-06-26, planning agent.
 
     - Decision: Representative command is `novel state check`; keep the existing
-      test's coherent `baseline_tree`, not a `BODY_PHASE`-materialised tree.
+      test's coherent `baseline_tree`, not a `BODY_PHASE`-materialized tree.
       Rationale: `novel state check` is the canonical read surface, and the
       existing installed test already drives it through the `state` sub-app with
-      the argv shape `("state", "check")`. That test materialises its coherent
+      the argv shape `("state", "check")`. That test materializes its coherent
       tree by copying `baseline_tree()` into `dest/working`
       (`test_novel_state_check.py` lines 332-335); `baseline_tree` is the
       established coherent corpus tree and a coherent tree exits 0 with
@@ -416,9 +416,9 @@ Hard invariants that must hold throughout implementation.
       Progress and Decision Log) and passes `make markdownlint`; diverging for one
       document would break corpus consistency. The impersonal-voice nit on the
       success paragraph (lines 55-61) was a cheap prose improvement and was
-      applied. The two logisphere review artifacts' trailing-punctuation headings
+      applied. The two logisphere review artefacts' trailing-punctuation headings
       and one over-length line were corrected to keep `make markdownlint` green;
-      the machine-path nit in the r2 artifact was left as-is (the artifact is a
+      the machine-path nit in the r2 artefact was left as-is (the artefact is a
       transient review record, not a tracked deliverable, and deleting it was
       denied by the sandbox).
       Date/Author: 2026-06-26, implementing agent.
@@ -435,7 +435,7 @@ Hard invariants that must hold throughout implementation.
       existing test's run directory (`test_novel_state_check.py` line 330), the
       same directory passed as `ExecutionContext(cwd=dest)` — so the divergence is
       asserted *as the intended 6.3.4 behaviour*, not papered over, and symlink
-      normalisation under `tmp_path` cannot desynchronise the two sides.
+      normalization under `tmp_path` cannot desynchronize the two sides.
       Date/Author: 2026-06-26, planning agent.
 
 ## Outcomes & retrospective
@@ -453,7 +453,7 @@ error-arm e2e and the in-process cross-command proof. No production source under
 introduced; `test_novel_state_check.py` stayed at 380 lines, under the 400-line
 cap. `make all` green (1310 passed, 1 pre-existing skip); `make markdownlint` and
 `make nixie` green on the edited Markdown. Two coderabbit runs: the first
-surfaced three minor doc nits (one prose-voice fix applied, two artifact lint
+surfaced three minor doc nits (one prose-voice fix applied, two artefact lint
 fixes applied, one house-style nit declined with rationale); the second reported
 zero findings.
 
@@ -611,7 +611,7 @@ command/arm). The edit:
   6. assert `envelope["working_dir"] == str((dest / "working").resolve())`
       — the resolved-absolute `working_dir` the binary stamps post-6.3.4
       (computed the production way from `dest`, the test's run directory, so
-      symlink normalisation under `tmp_path` cannot desynchronise the two sides),
+      symlink normalization under `tmp_path` cannot desynchronize the two sides),
       NOT the `"working"` token;
   7. assert `isinstance(envelope["result"], dict)` and
       `envelope["result"]["violations"] == []` — the checker's coherent-tree body
@@ -811,7 +811,7 @@ fails (e.g. a transient `uv` error), re-run the test; the build is hermetic.
 Reverting the branch to `origin/main` discards all changes cleanly, as the task
 edits only one existing test and one documentation file.
 
-## Artifacts and notes
+## Artefacts and notes
 
 Expected machine envelope for the success cell the extended test now pins
 (illustrative; `working_dir` is the run's absolute resolved path, redacted here):
@@ -893,9 +893,9 @@ review and audit of step 6.3 settled. Each runs as a no-review lightweight pass.
   intent-only. Once `exit_code == 0` and `ok is True` are already asserted, this
   mapping check cannot fail independently, so it carries documentation value but
   no distinct failure mode. Either add a clarifying comment that it is a
-  redundant mapping guard, or cross-arm parameterise it so the mapping can fail
+  redundant mapping guard, or cross-arm parameterize it so the mapping can fail
   independently. Scope: one assertion/comment in one test.
-- [x] **6.3.6.2 (from audit:6.3.6; medium).** Parameterise the canonical
+- [x] **6.3.6.2 (from audit:6.3.6; medium).** Parameterize the canonical
   `assert_envelope_skeleton` helper with an optional `working_dir` override
   (default `WORKING_DIR_CONSTANT`) and collapse the inline envelope-skeleton
   block re-spelled at `tests/test_novel_state_check.py` lines 363-380 onto a

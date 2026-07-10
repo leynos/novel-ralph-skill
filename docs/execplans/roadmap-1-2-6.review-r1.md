@@ -100,7 +100,7 @@ The roadmap offered delete-vs-rewrite-to-`tomlkit`; the plan resolves to delete
 and the resolution is correct (§4.1 forbids demonstrating any direct edit, so a
 `tomlkit` rewrite would re-introduce the forbidden pattern). The only credible
 *structural* alternative is to fold the guard test's invariant into the existing
-`test_interrogate_gate.py`-style suite as a parametrised "reference-files
+`test_interrogate_gate.py`-style suite as a parametrized "reference-files
 carry no direct-edit recipe" check rather than a new module — but that broadens
 scope toward the pre-mortem gap and 6.2.3's territory, so the plan's
 separate-module choice is the right trade for a surgical doc fix. No stronger

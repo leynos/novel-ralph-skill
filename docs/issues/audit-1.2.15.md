@@ -82,7 +82,7 @@ is called with both flavours.
 Task 1.2.15 deleted `novel_ralph_skill/commands/stub.py`, but three docstrings
 and comments in `novel.py` still describe it as a live module: "the per-command
 import laziness `stub.py` already relies on" (line 64), "mirror `stub.py`'s
-per-command laziness" (line 74), and "Generalises the `_drive` shape `stub.py`
+per-command laziness" (line 74), and "Generalizes the `_drive` shape `stub.py`
 uses" (line 139). These read as present-tense references to code that no longer
 exists, so a maintainer following the citation will look for a module that was
 removed in the same task that wrote (and now keeps) these lines.

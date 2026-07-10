@@ -121,7 +121,7 @@ escalation, not a workaround.
   Severity: medium
   Likelihood: medium
   Mitigation: Work Item 2 reuses the module's own `_build_and_install_wordcount`
-  helper, building the wheel once and parametrising the exit-3 cases off that one
+  helper, building the wheel once and parametrizing the exit-3 cases off that one
   install, mirroring how `test_installed_wordcount_reports_gate_triggers` already
   calls the helper. No cross-module fixture import.
 
@@ -162,13 +162,13 @@ escalation, not a workaround.
 
 - [x] (done) Work Item 1: add the installed `reconcile` exit-3 e2e to
   `tests/test_reconcile_e2e.py`. Added
-  `test_installed_novel_state_reconcile_state_error_exits_three`, parametrised
+  `test_installed_novel_state_reconcile_state_error_exits_three`, parametrized
   over `missing-state`/`unparseable-state`, mirroring the recount proof. Both
   cases pass; flipping the asserted exit code to `0` makes both fail, proving the
   assertion is load-bearing. `make all` green at this point.
 - [x] (done) Work Item 2: add the installed `wordcount` exit-3 e2e to
   `tests/test_wordcount_e2e.py`. Added
-  `test_installed_wordcount_state_error_exits_three`, parametrised over
+  `test_installed_wordcount_state_error_exits_three`, parametrized over
   `missing-state`/`unparseable-state`, invoking the installed `wordcount` with
   the empty call `()` (no subcommand) and reusing the module's function-scoped
   `_build_and_install_wordcount` helper. Both cases pass; flipping the asserted
@@ -196,7 +196,7 @@ escalation, not a workaround.
 - Decision: mirror `test_installed_novel_state_recount_state_error_exits_three`
   (`tests/test_recount_e2e.py:150`) rather than invent a new e2e shape.
   Rationale: the roadmap task and audit Finding 6 both say "mirroring the
-  `recount` proof 6.2.4 added"; reusing the proven shape (two parametrised fault
+  `recount` proof 6.2.4 added"; reusing the proven shape (two parametrized fault
   cases, assert exit 3 + `ok: false` + no traceback) keeps the surface uniform and
   the diff minimal.
   Date/Author: 2026-06-25, planning agent.
@@ -237,7 +237,7 @@ Done. Both work items landed as atomic commits, each gated on `make all`:
   `test_installed_novel_state_reconcile_state_error_exits_three`
   (`tests/test_reconcile_e2e.py`), and Work Item 2 added
   `test_installed_wordcount_state_error_exits_three`
-  (`tests/test_wordcount_e2e.py`), each parametrised over the `missing-state`
+  (`tests/test_wordcount_e2e.py`), each parametrized over the `missing-state`
   and `unparseable-state` fault shapes.
 - The purpose is met: each of `recount`, `reconcile`, and `wordcount` now
   asserts installed exit-3 on a bad `state.toml` against a real wheel/venv, not
@@ -282,7 +282,7 @@ Key terms:
   `result` payload (`docs/adr-003-shared-interface-contract.md` §"Decision",
   `ok` row).
 - **`working_corpus` (alias `wc`).** The in-tree test helper
-  (`tests/working_corpus/`) that materialises a `working/` tree from a
+  (`tests/working_corpus/`) that materializes a `working/` tree from a
   `WorkingTreeSpec`; `wc.build_working_tree(spec, dest)` returns the `working/`
   path. `wc.COHERENT_BASELINE` and `wc.INCOHERENT_VARIANTS` are reusable specs.
 
@@ -293,17 +293,17 @@ Files this plan touches:
   `working_corpus as wc`, and the `os`/`json`/`typ` stdlib, and reuses the
   module-scoped `installed_novel_state` fixture and the function-scoped
   `single_program_catalogue` fixture (its two existing installed e2es,
-  `tests/test_reconcile_e2e.py:194,243`). Work Item 1 adds one parametrised
+  `tests/test_reconcile_e2e.py:194,243`). Work Item 1 adds one parametrized
   test here.
 - `tests/test_wordcount_e2e.py` — the `wordcount` e2e. It builds the wheel with
   its own `_build_and_install_wordcount` helper (`:42`) and reuses
   `single_program_catalogue` and `venv_scripts_dir`. Work Item 2 adds one
-  parametrised test here.
+  parametrized test here.
 
 Reference model (do not modify, only mirror):
 `tests/test_recount_e2e.py:139-186`
 (`test_installed_novel_state_recount_state_error_exits_three`) — the canonical
-two-case installed exit-3 proof. It parametrises
+two-case installed exit-3 proof. It parametrizes
 `state_bytes` over `[None, b"not = toml ="]` with ids `["missing-state",
 "unparseable-state"]`, creates `run_dir/working/`, writes the bad bytes when not
 `None`, runs the installed program with `ExecutionContext(cwd=run_dir)`, and
@@ -451,7 +451,7 @@ For each work item, follow red-green-refactor:
    make test PYTEST_ARGS='tests/test_reconcile_e2e.py -k state_error_exits_three'
    ```
 
-   Expected after the body is correct: `2 passed` for the two parametrised ids
+   Expected after the body is correct: `2 passed` for the two parametrized ids
    (`missing-state`, `unparseable-state`); `0 failed`.
 
 2. (Green) Run the full gate:
@@ -485,7 +485,7 @@ execplan adds no Mermaid, so `nixie` has nothing to validate here and passes.
 Quality criteria (what "done" means):
 
 - Tests: `make test` passes. On POSIX the two new tests each contribute two
-  passing parametrised cases:
+  passing parametrized cases:
   `tests/test_reconcile_e2e.py::test_installed_novel_state_reconcile_state_error_exits_three[missing-state]`
   and `[unparseable-state]`, and the `wordcount` equivalents. Each fails if the
   asserted exit code is changed from `3`, proving it is load-bearing.
@@ -513,7 +513,7 @@ Quality method (how we check):
 
 ## Idempotence and recovery
 
-The work is additive and re-runnable. Each test materialises its own throwaway
+The work is additive and re-runnable. Each test materializes its own throwaway
 `working/` tree under a per-test `tmp_path`, so cases are independent and leave
 no state behind. `tmp_path` and the `uv venv` are cleaned by pytest. If a
 stage's
@@ -521,7 +521,7 @@ stage's
 Re-running the suite rebuilds the wheel cleanly. There is no migration, no schema
 change, and no rollback path needed.
 
-## Artifacts and notes
+## Artefacts and notes
 
 Reference proof shape mirrored, from `tests/test_recount_e2e.py:172-185`:
 

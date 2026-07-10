@@ -795,7 +795,7 @@ and hygiene only.
 
 - [x] 1.2.8.1 — Enforce a single code-fence style (MD048) in the markdownlint
   config (from review:1.2.8, low). Add the MD048 rule (backtick-only) and
-  normalise any tilde fences repo-wide. Gate with `make markdownlint`.
+  normalize any tilde fences repo-wide. Gate with `make markdownlint`.
 - [x] 1.2.8.2 — Split `tests/test_state_layout_reference.py` before it breaches
   the 400-line cap (from review:1.2.8, low). Extract the recipe corpus or
   scanner helpers into a small support module (coordinate with the 1.2.7 shared

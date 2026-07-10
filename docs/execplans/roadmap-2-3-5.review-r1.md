@@ -32,7 +32,7 @@ Case 2 requires simultaneously: (a) `compiled.md` "absent or an exact
 `concatenate_drafts`" so `compiled-matches-drafts` does not REFUSE, and (b) the
 tree's "`compiled.md` token count diverges from the drafted sum." By B1 these
 are mutually exclusive. The plan's own Risk #3 says "If the orthogonality cannot
-be realised, escalate" — it cannot, as written. Case 2 can still test
+be realized, escalate" — it cannot, as written. Case 2 can still test
 recount==reconcile agreement, but the "compiled token count diverges" leg must
 be dropped from the case-2 tree (it belongs only to a tree with a deliberately
 non-concatenation `compiled.md`, which forces REFUSE and so cannot reach the

@@ -60,7 +60,7 @@ round-1 and round-2 blocking defects are genuinely closed.
   not selected) nor Pylint (`unused-argument` not in the curated `enable` list)
   flags an unused fixture parameter, so this is not a gate trap. The plan's
   "behaviourally identical / pure refactor" framing holds.
-- **Module-scoped install mutated by mutator tests.** Every run materialises its
+- **Module-scoped install mutated by mutator tests.** Every run materializes its
   own per-test `run_dir = tmp_path / "run"` and mutates `state.toml` there,
   never the shared install under `tmp_path_factory`. The subtrees never overlap
   (Decision D-CWD). Confirmed against the existing check/reconcile e2e bodies,

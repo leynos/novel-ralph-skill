@@ -2,7 +2,7 @@
 
 Audit of the codebase after roadmap task 7.1.1 ("Extract compile-currency
 predicate and compiled.md path seam") merged to `main` at commit `e606735`. The
-task centralised two things that were hand-repeated across the compile surface:
+task centralized two things that were hand-repeated across the compile surface:
 the compile-agreement invariant (now the named `compile_is_current(verdict)`
 predicate) and the `working/manuscript/compiled.md` location (now the
 `compiled_manuscript_path` / `COMPILED_REL` path seam). Both seam members live
@@ -163,7 +163,7 @@ envelope token is carried entirely in prose; a caller that passed a differently
 named `working/` directory (e.g. a renamed scratch dir in a future test harness)
 would silently produce a path whose POSIX form no longer matches `COMPILED_REL`,
 with no type or assertion catching it. This is the residual seam after 7.1.1:
-the path *join* is centralised, but the "input must be the `working/` segment"
+the path *join* is centralized, but the "input must be the `working/` segment"
 precondition is not enforced anywhere it is called.
 
 **Proposed fix:** This is a watch-item rather than an actionable defect for a

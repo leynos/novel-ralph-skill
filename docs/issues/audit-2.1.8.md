@@ -12,7 +12,7 @@ that fails if the schema `novel-state init` emits ever again carries a leaf or
 table header absent from the reference's `## state.toml schema` fence.
 
 The slice is sound and discharges its Success clause. The guard derives its
-required leaf-name and table-header nets from the *serialised* dump of
+required leaf-name and table-header nets from the *serialized* dump of
 `build_initial_document(...)` rather than a type walk, so the documented fence
 must mirror the textual shape `init` writes; the two known emitted-vs-fence shape
 mismatches (the parent-only `[gates]` table emitting no bare header, and the
@@ -24,7 +24,7 @@ reference, and the emitter (`state/initial.py`) agree on the emitted key set.
 
 None of the findings below is a blocking defect. The dominant theme is a
 *value-semantics gap the new guard does not close*: the guard pins key and
-header *presence* but never a field's *value*, and the freshly-initialised
+header *presence* but never a field's *value*, and the freshly-initialized
 critic sub-state (`pass`, `consecutive_clean`, `convergence_target`) is not
 pinned by any test, so the one place a value can drift — the inline
 `pass = 1` documented as "0 means no pass run yet" — is both an undocumented
@@ -69,7 +69,7 @@ severity.
   schema fence (line 91: `pass = 1  # 0 means no pass run yet`) and "Critic
   sub-state" prose (line 171).
 
-A freshly initialised novel has run zero critic passes — `phase.current` is
+A freshly initialized novel has run zero critic passes — `phase.current` is
 `premise`, the cursor is zeroed, and `last_finding_counts` is all zeros — yet
 `build_initial_document` emits `pass = 1`. The reference's own inline comment
 documents the field as "`0` means no pass run yet", so the emitted value
@@ -154,7 +154,7 @@ guards are easily confused (both scan `state-layout.md`, both read it through
 **Proposed fix:** add a short "The state-layout schema-drift guard" subsection
 to the developers' guide alongside the existing direct-edit-guard subsection,
 stating that the guard derives the required leaf and header nets from the
-serialised `build_initial_document(...)` dump, that adding an emitted field
+serialized `build_initial_document(...)` dump, that adding an emitted field
 obliges a matching line in the `## state.toml schema` fence, and that the two
 documented exclusions (`gates` parent-only header, `chapters` empty-array leaf)
 are deliberate. Cross-reference design §5.1 and roadmap 2.1.8.
@@ -168,7 +168,7 @@ are deliberate. Cross-reference design §5.1 and roadmap 2.1.8.
   `_emitted_leaf_names` (lines 134-136).
 
 To recover the inner names of the `last_finding_counts` inline table — which
-serialise on one physical line and so are not their own `key =` lines — the
+serialize on one physical line and so are not their own `key =` lines — the
 helper subscripts `document["drafting"]["critic"]["last_finding_counts"]` with
 a hardcoded three-segment path. The subscription is correct for today's schema,
 but if a future slice relocates or renames the inline table the helper raises a

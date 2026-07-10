@@ -7,7 +7,7 @@ Accepted, 2026-06-25. While `[phase].current == drafting`, the user-facing
 **disk-subset-of-manifest**: every on-disk `chapter-NN/` directory must still map
 to a manifest entry, but a manifest entry need not yet have a directory. The
 orphan direction and the manifest-contiguity check still fire in every phase, and
-the exact bijection returns at `final-pass` and `done`. This realises roadmap task
+the exact bijection returns at `final-pass` and `done`. This realizes roadmap task
 2.1.7 under ADR 001 and design §5.2/§5.4.
 
 ## Date

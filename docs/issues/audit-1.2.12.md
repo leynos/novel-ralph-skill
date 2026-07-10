@@ -45,7 +45,7 @@ Trail followed: explored with `leta`/`grep` and traced history with
 `main` and `_drive` share a byte-identical driving body: `parse_global_flags(
 sys.argv[1:])`, then `run(app, residual, RunContext(command=…,
 working_dir=WORKING_DIR_NAME, human=human))`. `main`'s own docstring concedes it
-"generalises the `_drive` shape `stub.py` uses". The only real difference is how
+"generalizes the `_drive` shape `stub.py` uses". The only real difference is how
 the `command` name is obtained: `_drive` takes a fixed `name`, while `main`
 derives it from the residual argv via `_command_name_for`. This is the entry-
 point seam ADR 003 §3.1 deliberately keeps single; having two copies of it means
@@ -54,7 +54,7 @@ places. Roadmap task 1.2.13 removes the five legacy entry points from `stub.py`
 but **not** `_drive` itself (the leaf `build_app` callables it drives survive),
 so the duplication persists past 1.2.13 unless addressed.
 
-- **Proposed fix:** generalise `_drive` to accept a name *resolver* instead of a
+- **Proposed fix:** generalize `_drive` to accept a name *resolver* instead of a
   fixed string — e.g. `name: str | Callable[[list[str]], str]` resolved against
   the residual argv — and have `novel.main` call `_drive(_command_name_for,
   build_multiplexer)`. Alternatively, lift the shared three-line body into a
@@ -86,7 +86,7 @@ such import (`novel.py:36`). The constant belongs beside `RunContext` in the
 `contract` package, where the working-directory field it feeds already lives.
 
 - **Proposed fix:** move `WORKING_DIR_NAME` (and the `working_root()` accessor at
-  `novel_state.py:106-111`, if it generalises cleanly) into
+  `novel_state.py:106-111`, if it generalizes cleanly) into
   [`novel_ralph_skill/contract/runner.py`](../../novel_ralph_skill/contract/runner.py)
   beside `RunContext`, re-export it from `novel_ralph_skill.contract`, and update
   the six import sites. Leave a thin re-export in `novel_state` only if a gate

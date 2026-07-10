@@ -69,7 +69,7 @@ contract — remains open and is the larger soundness risk.
 Proposed fix: close the contract from the producing side, not by loosening the
 predicate. (a) Add a "Resolving a BLOCKER" convention to `critic-personas.md`
 and/or `done-conditions.md` that defines exactly how a resolved finding is
-marked, and align the predicate's recogniser to the actual heading-based format
+marked, and align the predicate's recognizer to the actual heading-based format
 (match `### B<n>` finding lines under a `## BLOCKER` section, or a `BLOCKER:`
 inline form, whichever the loop is told to emit). (b) Add a corpus tree built
 from a *real* critic-personas-shaped `critic-notes.md` with an unresolved `### B1`
@@ -105,7 +105,7 @@ Proposed fix: pin the decision explicitly. If trailing text after the marker is
 forbidden, say so in the producer convention (Finding 1) and add a corpus/unit
 case asserting `… [resolved] trailing` is treated as unresolved *by design*
 (documenting the trade as deliberate). If trailing text should be tolerated,
-relax the recogniser to "the stripped line *contains* `[resolved]` as a trailing
+relax the recognizer to "the stripped line *contains* `[resolved]` as a trailing
 *token* (last whitespace-separated token, or last token before terminal
 punctuation)" and add the corresponding case. Either way the developers' guide's
 "limitations in both directions" sentence should name this third edge so the

@@ -28,7 +28,7 @@ and the loader boundary", "Disambiguated exit codes"; scripting-standards
 
 2. **Two placeholder rows are unpinned, and one obvious reading contradicts the
    checklist's own example (Doggylump / ambiguity tolerance).** The plan pins
-   "found [herself]" and "capitalised abstract noun" but is silent on the other
+   "found [herself]" and "capitalized abstract noun" but is silent on the other
    two placeholder rows the Risk register itself flags:
    - "shivers down [her] spine" — the `[her]` possessive-pronoun placeholder is
      unpinned.
@@ -88,7 +88,7 @@ and the loader boundary", "Disambiguated exit codes"; scripting-standards
 
 - **`RuleBasis` JSON serialization (Telefono).** `render_machine` calls
   `json.dumps(ordered)` with no `default=` handler. `RuleBasis` is a `StrEnum`
-  (a `str` subclass), so a raw member serialises as its bare string value — the
+  (a `str` subclass), so a raw member serializes as its bare string value — the
   envelope example `"basis":"per_page"` holds. Make the body emit the string
   explicitly (`basis.value` or `str(basis)`) so a future change of `RuleBasis`
   to a non-`str` Enum cannot silently break the contract, and add a snapshot

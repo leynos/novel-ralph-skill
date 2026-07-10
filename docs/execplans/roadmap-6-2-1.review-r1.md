@@ -84,12 +84,12 @@ the pre-drafting cells documented as carried gaps.
 
 ## Advisory
 
-- A1 (Telefono): design §9 line 813 requires **slugs** normalised in snapshots,
+- A1 (Telefono): design §9 line 813 requires **slugs** normalized in snapshots,
   not only timestamps/paths. The plan's reused volatile guard checks paths,
   dates, and clock times but not slugs. `wordcount`/`desloppify` results carry
   per-chapter slugs (`chapter-NN`). The corpus uses fixed deterministic slugs
   so churn risk is low, but the plan should state explicitly why slug
-  normalisation is unnecessary here (deterministic corpus slugs) rather than
+  normalization is unnecessary here (deterministic corpus slugs) rather than
   omitting the design's named field silently.
 
 - A2 (Pandalump): Work item 4's `test_check_coherent_across_phases` is sound —
@@ -116,7 +116,7 @@ the pre-drafting cells documented as carried gaps.
   drive helper and registry are counted. Confirm the budget against a dry line
   count before committing, or the tolerance trips mid-task.
 
-- A5 (Dinolump): the plan claims "No external syrupy-parametrisation research is
+- A5 (Dinolump): the plan claims "No external syrupy-parametrization research is
   load-bearing; the repo itself pins the behaviour" — this is correctly
   verified against `tests/test_contract_envelope_snapshots.py`. No firecrawl
   needed for syrupy/xdist/timeout: the in-process matrix carries no `@timeout`

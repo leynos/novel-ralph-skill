@@ -43,7 +43,7 @@ actually guarantees; one small advisory tightens the test.
   in-scope and the Decision Log justification (module grain; 7.1.1 precedent)
   is sound.
 - Audit-2.3.2 Finding 2 (`audit-2.3.2.md:68-100`) matches the plan's reading
-  exactly: centralise *only* the `Reconciliation`-to-dict serialisation; the
+  exactly: centralize *only* the `Reconciliation`-to-dict serialization; the
   read/write *envelope code* and *exit codes* "genuinely differ" and stay at the
   call sites. The non-goals (Findings 3-6) are correctly excluded.
 - No external-library behaviour is load-bearing. This is a pure-Python refactor

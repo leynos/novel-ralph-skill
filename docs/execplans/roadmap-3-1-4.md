@@ -565,8 +565,8 @@ Load: `python-router` → `python-testing`.
    reports `no_unresolved_blockers` false. The existing `single_failer_tree`
    step (`tests/steps/novel_done_steps.py` lines 89–98) is keyed off
    `DONE_PREDICATE_FAILERS[clause]` and the incidental tree is **not** a member
-   of `DONE_PREDICATE_FAILERS`, so the failer step does **not** generalise. Add
-   a dedicated Given step in `tests/steps/novel_done_steps.py` that materialises
+   of `DONE_PREDICATE_FAILERS`, so the failer step does **not** generalize. Add
+   a dedicated Given step in `tests/steps/novel_done_steps.py` that materializes
    `DONE_PREDICATE_INCIDENTAL_RESOLVED_BLOCKER` via `wc.build_working_tree`
    (matching the existing tree-build step pattern in that file), wired to the
    new Scenario's Given phrase. Do not extend `DONE_PREDICATE_FAILERS`, which
@@ -731,7 +731,7 @@ the Tolerances; if the done-predicate or corpus suites cannot be made green in
 3 attempts, stop and escalate. To revert a work item, `git revert` its single
 commit — each work item is one atomic commit.
 
-## Artifacts and notes
+## Artefacts and notes
 
 The load-bearing change is one line in
 `novel_ralph_skill/state/done_predicate.py`'s `_contains_unresolved_blocker`:

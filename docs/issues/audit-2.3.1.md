@@ -69,8 +69,8 @@ helper into the `state` package (e.g. a small `state/_tomlkit.py` re-exported
 from `state/__init__.py`, beside `write_document_atomically`), have
 `_recount.py` and `initial.py` call it, and let the corpus builder import it too
 (or keep the test copy but pin it equal). This keeps the one round-trip-style
-rule — how an inline table is materialised so the schema parser reads it back —
-in one place, consistent with `wordcount.py` having centralised the one counting
+rule — how an inline table is materialized so the schema parser reads it back —
+in one place, consistent with `wordcount.py` having centralized the one counting
 rule.
 
 ## Finding 2 — Developers' guide subsection heading omits `recount`
@@ -187,4 +187,4 @@ hand-typed `by_chapter` carries a key not in the manifest (or a different key se
 to the drafts present) and asserts the recounted `by_chapter` equals exactly
 the manifest's key set, with no stale entries. This pins the fresh-table rebuild
 as a behaviour rather than an implementation incident, and guards against a future
-"optimise to in-place update" change silently reintroducing stale keys.
+"optimize to in-place update" change silently reintroducing stale keys.

@@ -31,13 +31,13 @@ and the only remaining `_drive` symbol in the tree is an unrelated *test*
 fixture in `tests/contract_drive_support.py` (the in-process command driver),
 which this task does not touch.
 
-The task statement offers two mechanisms — "generalise `_drive` to take a name
+The task statement offers two mechanisms — "generalize `_drive` to take a name
 resolver, or lift the shared body into a contract-level `drive()` helper". The
 first is moot (`_drive` is gone). This plan commits, without a fork, to the
 second: lift the entry-point drive plumbing out of `novel.main` into a single,
 tested, contract-level `drive()` seam, and repoint `novel.main` onto it. This
 discharges the constructive arm of the task — the shared body lives in one
-explicit home parametrised by the command-name resolver — and installs a
+explicit home parametrized by the command-name resolver — and installs a
 regression guard so the single-home invariant the task asserts is enforced going
 forward, rather than relying on the historical accident that only one entry
 point happens to remain.
@@ -305,7 +305,7 @@ escalation, not a workaround.
       Rationale: the second copy (stub._drive) was retired by ADR 007 (1.2.15),
       so there is no duplicate left to collapse. The task explicitly offers
       "lift the shared body into a contract-level drive() helper" as a valid
-      mechanism; the alternative ("generalise _drive to take a name resolver")
+      mechanism; the alternative ("generalize _drive to take a name resolver")
       is moot because _drive is gone. Picking one mechanism honours the standing
       rule against leaving a menu of unverified workarounds.
       Date/Author: 2026-06-27, planning agent.
@@ -555,7 +555,7 @@ Library facts pinned for this plan (LOCKED versions):
   claim is introduced, so no new Cyclopts-docs verification is needed beyond the
   already-cited locked behaviour. (The migrated 1.3.6 tripwire still asserts the
   four-flag contract via the existing `_assert_four_flag_contract`, so the
-  Cyclopts-4.18.0 normalised flag forms stay pinned.)
+  Cyclopts-4.18.0 normalized flag forms stay pinned.)
 
 ## Plan of work
 
@@ -798,7 +798,7 @@ Steps:
 1. Update `novel.py`'s module docstring and `main` docstring so they describe
    the *current* shape: `main` parses `--human`, resolves the name, and
    delegates to the contract-level `drive` seam (which owns the
-   `RunContext`-then-`run` plumbing). Rephrase the "Generalises the `_drive`
+   `RunContext`-then-`run` plumbing). Rephrase the "Generalizes the `_drive`
    shape the retired `stub.py` used" sentence (`main` docstring, line 180) and
    the "same envelope and exit codes the five legacy entry points already
    produce" sentence (module docstring, lines 9-10) so they no longer imply a
@@ -925,7 +925,7 @@ tripwire, the guard test, or the docs) — each work item is a separate commit, 
 reverting one does not disturb the others. The `make` cache is the only shared
 state and is rebuild-safe.
 
-## Artifacts and notes
+## Artefacts and notes
 
 Key evidence to capture at delivery:
 
@@ -1054,7 +1054,7 @@ surgical fix run as a no-plan, no-review pass; none changes the task's outcome.
   `_command_name_for`'s three documented fallbacks to bare `novel` (exercised
   only transitively) and for `make_contract_app`'s name round-trip (which
   `build_multiplexer` and envelope command-stamping depend on, asserted only
-  obliquely). Add two small parametrised assertions converting the docstring
+  obliquely). Add two small parametrized assertions converting the docstring
   promises into executable contracts so a future value-carrying global flag or a
   name regression fails loudly. Scope: the multiplexer/contract-app test modules.
   Mirrors roadmap sub-task 7.3.5.3.

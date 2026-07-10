@@ -42,7 +42,7 @@ Re-tracing the divergent tree against the real predicates confirms the core:
   entries `> 0` = 3 >= 3. Owned verdict empty. The disagreement is real.
 - `derive_by_chapter` writes the 3-entry override verbatim even though only two
   chapter directories exist on disk (`_specs.py` 256-257), so the table/draft
-  divergence survives materialisation. `derive_current` writes 90000 verbatim,
+  divergence survives materialization. `derive_current` writes 90000 verbatim,
   keeping `by-chapter-sum` silent.
 - The new `DIVERGENT_TABLE_VARIANTS` category is correctly invisible to every
   agreement loop: `test_live_draft_agreement_over_whole_corpus`,

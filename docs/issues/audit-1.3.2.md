@@ -36,7 +36,7 @@ and traced history with `git show 371784c` and `sem`. Source of truth consulted:
 
 The `_specs.py` module docstring claims the module "declares the specification
 dataclasses (`ChapterSpec`, `WorkingTreeSpec`), the `build_working_tree`
-factory that materialises a `working/` tree on disk, the `compiled.md`
+factory that materializes a `working/` tree on disk, the `compiled.md`
 concatenation helper, and the named specification library consumed by the slice
 suites in roadmap phases 2-6." That sentence describes the corpus *before* it
 was split into sub-modules: `build_working_tree` now lives in
@@ -147,7 +147,7 @@ cross-check. `make test` over the corpus self-tests verifies.
 
 `corpus_check` mixes two evidence sources: eight checks read the `spec` in
 memory, while `_check_by_chapter_sum` and `_check_compiled_matches_drafts` read
-the materialised `working/` tree from disk. The split is documented and
+the materialized `working/` tree from disk. The split is documented and
 deliberate (the disk checks deliberately verify the on-disk bytes task 2.1.2's
 validator will see), but `_check_by_chapter_sum` open-codes its own
 `tomllib.loads((working_dir / "state.toml").read_text(...))` while
@@ -214,7 +214,7 @@ consecutive-clean bound (4), manifest/disk bijection (5), cursor coherence (6),
 gate ratio (7). The `_check_manifest_disk_bijection` docstring correctly says
 "inv 5" and `_check_cursor_coherent` says "invariant 6" — these match. However
 the numbering is fragile: the design bullets are unnumbered prose, so any future
-re-ordering or insertion in §5.2 silently desynchronises every "invariant N"
+re-ordering or insertion in §5.2 silently desynchronizes every "invariant N"
 annotation in the oracle, and there is nothing pinning the mapping. This is a
 latent docs-drift hazard rather than a present error.
 

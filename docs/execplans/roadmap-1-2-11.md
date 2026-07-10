@@ -1,4 +1,4 @@
-# Migrate `test_contract_test_deps` onto shared conftest fixtures and centralise dependency-name normalisation
+# Migrate `test_contract_test_deps` onto shared conftest fixtures and centralize dependency-name normalization
 
 This ExecPlan (execution plan) is a living document. The sections
 `Constraints`, `Tolerances`, `Risks`, `Progress`, `Surprises & Discoveries`,
@@ -22,16 +22,16 @@ Findings 1 and 2 record the two resulting duplications:
    `pyproject.toml` itself (`_PYPROJECT` plus `_dev_dependencies`), re-creating
    exactly the parse-duplication the `pyproject` and `toml_table` fixtures were
    built to remove.
-2. A second, weaker copy of PEP 508 distribution-name normalisation lives in
+2. A second, weaker copy of PEP 508 distribution-name normalization lives in
    `test_contract_test_deps` as the inline expression
    `spec.split()[0].split(">")[0].split("=")[0]`. The canonical, documented
-   normaliser is `_dist_name` (backed by the `_DIST_NAME` regex) in
+   normalizer is `_dist_name` (backed by the `_DIST_NAME` regex) in
    [`tests/test_interrogate_gate.py`](../../tests/test_interrogate_gate.py). The
    two copies disagree: the `split`-chain leaks extras brackets, several version
    operators, and environment markers into the "name", so a legitimate future
    edit such as `hypothesis[cli]>=6.0` would make the assertion spuriously fail.
 
-After this change, the dependency-name normaliser lives once in
+After this change, the dependency-name normalizer lives once in
 `tests/conftest.py` as a `dist_name` fixture, both `test_interrogate_gate` and
 `test_contract_test_deps` consume it by fixture name, and
 `test_contract_test_deps` reads the dev-dependency group through the shared
@@ -65,16 +65,16 @@ escalation, not a workaround.
   Ruff `**/test_*.py` `per-file-ignores` glob (`pyproject.toml:96`). Any helper
   added there must therefore carry a full docstring and must NOT use a bare
   `assert`; failure paths raise `AssertionError` directly. The `dist_name`
-  normaliser returns `str | None` and raises nothing, so this is satisfied by
+  normalizer returns `str | None` and raises nothing, so this is satisfied by
   construction. (Developers' guide §"Shared test scaffolding".)
 - Keep the shared-scaffolding convention: consume helpers by fixture name; never
   import from `conftest` or another test module's private symbols (developers'
   guide §"Shared test scaffolding"; AGENTS.md "Python verification and
   testing").
 - Prose, comments, and commits use en-GB Oxford spelling ("-ize"/"-yse"/"-our")
-  per AGENTS.md and the `en-gb-oxendict` convention. Note: "normalise" stays
+  per AGENTS.md and the `en-gb-oxendict` convention. Note: "normalize" stays
   "-ise" (it is not an "-ize" word under Oxford rules — Oxford spelling applies
-  "-ize" only where the Greek `-izo` root warrants it; "normalise" follows the
+  "-ize" only where the Greek `-izo` root warrants it; "normalize" follows the
   French-derived stem and stays "-ise" in Oxford usage, matching the existing
   codebase spelling in `test_interrogate_gate.py` and the roadmap entry).
 
@@ -93,7 +93,7 @@ escalation, not a workaround.
 - Iterations: if `make all` still fails after 3 fix attempts on any single work
   item, stop and escalate with the failing output captured in `Decision Log`.
 - Ambiguity: if a reviewer or the audit text implies a behaviour for the
-  normaliser that the `_DIST_NAME` regex does not already provide, stop and
+  normalizer that the `_DIST_NAME` regex does not already provide, stop and
   present options rather than inventing semantics.
 
 ## Risks
@@ -134,7 +134,7 @@ escalation, not a workaround.
   `@given` signature. Work item 3 uses the wrapper pattern: a plain (non-`@given`)
   pytest test `test_dist_name_extracts_bare_name_property(dist_name)` resolves the
   function-scoped fixture once, then calls an inner `@given`-decorated body that
-  receives the normaliser callable as a plain (non-fixture) argument. The inner
+  receives the normalizer callable as a plain (non-fixture) argument. The inner
   body's only `@given` parameters are Hypothesis-strategy values, so no
   function-scoped fixture reaches `@given` and the health check cannot fire. No
   `suppress_health_check` is used (suppression would weaken the guard the existing
@@ -184,7 +184,7 @@ escalation, not a workaround.
   ~30s backoff).
 - [x] Work item 3: Migrate `test_interrogate_gate.py` onto the `dist_name`
   fixture, delete its private `_DIST_NAME`/`_dist_name`, and add a Hypothesis
-  property test for the normaliser invariant using the wrapper pattern (no
+  property test for the normalizer invariant using the wrapper pattern (no
   function-scoped fixture in the `@given` signature) with a true-delimiter-led
   suffix strategy. Done: deleted `import re`, `_DIST_NAME`, and `_dist_name`;
   `test_interrogate_is_a_dev_dependency` now consumes `dist_name`; added the
@@ -226,11 +226,11 @@ escalation, not a workaround.
 
 ## Decision log
 
-- Decision: Place the property test for the normaliser in
+- Decision: Place the property test for the normalizer in
   `tests/test_interrogate_gate.py` rather than `tests/test_conftest_helpers.py`.
   Rationale: `test_conftest_helpers.py` is the focused unit-test home for the
   conftest fixtures and keeps example-based happy/unhappy coverage; the
-  Hypothesis property over the normaliser's invariant is a verification
+  Hypothesis property over the normalizer's invariant is a verification
   adversary best colocated with a consumer, and `test_interrogate_gate.py`
   already documents the PEP 508 bare-name intent. Both placements satisfy
   AGENTS.md "Keep pytest tests in the top-level tests/ tree". This is
@@ -238,7 +238,7 @@ escalation, not a workaround.
   fixture, move it to `test_conftest_helpers.py` (same fixture, no behaviour
   change). Date/Author: 2026-06-22, planning agent.
 - Decision (resolves round-1 B1): the `@given` property test obtains the
-  normaliser via the wrapper pattern, NOT by taking the `dist_name` fixture in its
+  normalizer via the wrapper pattern, NOT by taking the `dist_name` fixture in its
   `@given` signature. A plain pytest test resolves the function-scoped `dist_name`
   fixture once and calls an inner `@given`-decorated body that receives the
   callable as a plain (non-fixture) argument. Alternatives weighed:
@@ -278,12 +278,12 @@ escalation, not a workaround.
 Task complete. Both duplications identified by audit-1.2.7 are removed:
 `test_contract_test_deps` no longer parses `pyproject.toml` itself (the
 `_PYPROJECT` parse and `_dev_dependencies` helper are gone) and the divergent
-inline `split`-chain normaliser is gone; the canonical `_DIST_NAME` regex now
+inline `split`-chain normalizer is gone; the canonical `_DIST_NAME` regex now
 lives once, in `tests/conftest.py`, behind the `dist_name` fixture, and both
 former owners (`test_interrogate_gate`, `test_contract_test_deps`) consume it by
 fixture name. Guard semantics are preserved: the migrated interrogate-gate
 assertion behaves identically, the two version-pin tests are untouched, and a
-Hypothesis property test pins the normaliser invariant (bare-name extraction,
+Hypothesis property test pins the normalizer invariant (bare-name extraction,
 well-formedness, idempotence). `make all` is green at HEAD (130 passed),
 markdownlint and nixie are clean.
 
@@ -297,7 +297,7 @@ Deviations from the plan, with rationale:
   Python formatting from `make fmt` was retained.
 - Work item 1's CodeRabbit pass surfaced two minor findings on this execplan
   itself (a duplicated Date/Author line and second-person prose); both were
-  fixed in the same commit. A round-1 review artifact
+  fixed in the same commit. A round-1 review artefact
   (`roadmap-1-2-11.review-r1.md`) carried a pre-existing MD013 over-long line;
   it was wrapped so `make markdownlint` stays green, then committed alongside
   work item 1.
@@ -328,7 +328,7 @@ path:
 - [`tests/test_contract_test_deps.py`](../../tests/test_contract_test_deps.py) —
   pins the two test-only dev dependencies (`hypothesis`, `syrupy`). It currently
   carries `_PYPROJECT` (line 30) and `_dev_dependencies` (lines 33-42), and the
-  inline normaliser `spec.split()[0].split(">")[0].split("=")[0]` (line 79).
+  inline normalizer `spec.split()[0].split(">")[0].split("=")[0]` (line 79).
 - [`tests/test_interrogate_gate.py`](../../tests/test_interrogate_gate.py) —
   guards the `interrogate` docstring-coverage gate. It already consumes the
   `pyproject`, `toml_table`, and `read_repo_text` fixtures, and owns the
@@ -350,7 +350,7 @@ Terms of art, defined:
   package requirement, e.g. `hypothesis[cli]>=6.0; python_version >= "3.10"`. The
   leading run before any extras bracket, version operator, marker, or whitespace
   is the "bare distribution name".
-- "Normaliser": a function reducing a specifier to its bare distribution name.
+- "Normalizer": a function reducing a specifier to its bare distribution name.
   The canonical one here is the `_DIST_NAME` regex
   `^[A-Za-z0-9](?:[A-Za-z0-9._-]*[A-Za-z0-9])?`, which matches a name that
   starts and ends with an alphanumeric and may contain `.`, `_`, or `-`
@@ -360,7 +360,7 @@ Terms of art, defined:
 
 Verified library facts the plan relies on (cited, not asserted from memory):
 
-- The locked normaliser semantics were verified empirically in the worktree
+- The locked normalizer semantics were verified empirically in the worktree
   against the weak `split`-chain. Inputs and outputs (regex vs. weak chain):
   `hypothesis[cli]>=6.0` -> `hypothesis` vs. `hypothesis[cli]`;
   `interrogate[toml]` -> `interrogate` vs. `interrogate[toml]`;
@@ -370,7 +370,7 @@ Verified library facts the plan relies on (cited, not asserted from memory):
   test cases. (Source: `tests/test_interrogate_gate.py:24` `_DIST_NAME`;
   `tests/test_contract_test_deps.py:79`.)
 - `cuprum` is locked at `0.1.0` (`uv.lock`, `name = "cuprum"`). This task adds NO
-  cuprum API surface: the migrated tests parse TOML and normalise strings; they
+  cuprum API surface: the migrated tests parse TOML and normalize strings; they
   do not construct a `ProgramCatalogue`, allowlist a `Program`, or run any
   command. The existing cuprum usage in `tests/conftest.py`
   (`ProgramCatalogue`, `ProjectSettings`) and `tests/test_conftest_helpers.py`
@@ -413,7 +413,7 @@ aggregate gate per AGENTS.md.
 
 ### Work item 1 — Add the `dist_name` fixture to `tests/conftest.py` with unit tests
 
-Implements: audit-1.2.7 Finding 2 (centralise the normaliser); developers' guide
+Implements: audit-1.2.7 Finding 2 (centralize the normalizer); developers' guide
 §"Shared test scaffolding" (new shared scaffolding belongs in `conftest` as a
 fixture); AGENTS.md "Python verification and testing" (consume by fixture name,
 cover happy and unhappy paths).
@@ -463,14 +463,14 @@ so this item is independently green.)
 ### Work item 2 — Migrate `test_contract_test_deps.py` onto the shared fixtures
 
 Implements: audit-1.2.7 Finding 1 (remove the seventh `pyproject` parse) and
-Finding 2 (drop the weaker inline normaliser); developers' guide §"Shared test
+Finding 2 (drop the weaker inline normalizer); developers' guide §"Shared test
 scaffolding" (consume by fixture name, no per-module parse).
 
 Docs to read first: `docs/issues/audit-1.2.7.md` Findings 1-2;
 `tests/test_interrogate_gate.py::test_interrogate_is_a_dev_dependency` (the
 target shape — read the dev group via
 `toml_table(pyproject, "dependency-groups")["dev"]` and filter with the
-normaliser).
+normalizer).
 
 Skills to load: `leta` (refs to `_PYPROJECT`/`_dev_dependencies` to confirm no
 other caller); `python-router` then `python-testing`; `en-gb-oxendict`.
@@ -488,7 +488,7 @@ Edits to `tests/test_contract_test_deps.py`:
    Read the dev group as `dev = toml_table(pyproject, "dependency-groups")["dev"]`,
    assert it is a `list`, then assert `hypothesis` and `syrupy` are each present
    by `any(isinstance(spec, str) and dist_name(spec) == "<name>" for spec in dev)`.
-   This replaces the `split`-chain with the regex normaliser and removes the
+   This replaces the `split`-chain with the regex normalizer and removes the
    per-module parse.
 3. Leave `test_hypothesis_import_and_version` and `test_syrupy_version`
    unchanged — they read installed distribution metadata, not `pyproject.toml`
@@ -506,7 +506,7 @@ Edits to `tests/test_contract_test_deps.py`:
 
 Tests this item updates: `test_new_test_deps_are_declared_in_dev_group` (same
 two guarantees — `hypothesis` and `syrupy` declared in `[dependency-groups].dev`
-— now expressed through the shared normaliser). No new behaviour; the assertion
+— now expressed through the shared normalizer). No new behaviour; the assertion
 strengthens to handle extras/markers without changing what passes today.
 
 Validation: `make all`. The three `test_contract_test_deps` tests pass.
@@ -515,7 +515,7 @@ tests/test_contract_test_deps.py` returns nothing.
 
 ### Work item 3 — Migrate `test_interrogate_gate.py` onto `dist_name` and add a property test
 
-Implements: audit-1.2.7 Finding 2 (single normaliser, both consumers on it);
+Implements: audit-1.2.7 Finding 2 (single normalizer, both consumers on it);
 AGENTS.md "Use property tests with hypothesis … when a change introduces an
 invariant over a range of inputs".
 
@@ -532,7 +532,7 @@ function-scoped fixtures run once per test and trigger
 
 Skills to load: `leta` (confirm `_dist_name` has no caller beyond this module);
 `python-router` then `python-verification` (confirm Hypothesis is the right
-adversary for a pure normaliser invariant) then `hypothesis` (strategy design,
+adversary for a pure normalizer invariant) then `hypothesis` (strategy design,
 the filtering trap, `@given` usage, and the function-scoped-fixture health check);
 `en-gb-oxendict`.
 
@@ -544,7 +544,7 @@ Edits to `tests/test_interrogate_gate.py`:
 2. Add `dist_name` as a parameter to `test_interrogate_is_a_dev_dependency` and
    replace the `_dist_name(spec)` call with `dist_name(spec)`. Behaviour is
    identical; the source moves to the shared fixture.
-3. Add a Hypothesis property test for the normaliser invariant, structured with
+3. Add a Hypothesis property test for the normalizer invariant, structured with
    the WRAPPER PATTERN so no function-scoped fixture reaches `@given` (resolves
    round-1 B1). Concretely:
 
@@ -554,7 +554,7 @@ Edits to `tests/test_interrogate_gate.py`:
      calls an inner `@given`-decorated body, passing the resolved callable in as
      a plain argument. The OUTER test is not decorated with `@given`; the INNER
      body IS, and its only `@given` parameters are Hypothesis-strategy values
-     (`name`, `suffix`). The normaliser arrives as a closure variable / plain
+     (`name`, `suffix`). The normalizer arrives as a closure variable / plain
      argument, never as a fixture in the `@given` signature, so
      `HealthCheck.function_scoped_fixture` cannot fire (verified empirically; see
      Risks B1 and the Hypothesis Compatibility citation). Do NOT use
@@ -622,7 +622,7 @@ Edits to `docs/developers-guide.md`:
 
 1. In the §"Shared test scaffolding" fixture inventory (the sentence beginning
    "It exposes …", lines 22-27), add the `dist_name` fixture: "and the PEP 508
-   dependency-name normaliser (`dist_name`)", describing it as returning a
+   dependency-name normalizer (`dist_name`)", describing it as returning a
    `(spec) -> str | None` callable that reduces a requirement string to its bare
    distribution name.
 2. Add `audit-1.2.7.md` to the list of audits this consolidation discharges
@@ -701,7 +701,7 @@ proves wrong, `git checkout -- <file>` restores it from the last commit and the
 item can be retried, since each item is committed independently. No state files,
 migrations, or external services are touched.
 
-## Artifacts and notes
+## Artefacts and notes
 
 The load-bearing divergence proof (verified in-worktree), seeding the
 parametrized and property cases:
@@ -744,7 +744,7 @@ def dist_name() -> cabc.Callable[[str], str | None]:
 - `tests/test_interrogate_gate.py` gains `from hypothesis import given`,
   `from hypothesis import strategies as st`, and the wrapper-pattern property
   test. The outer test takes `dist_name` (a function-scoped fixture); the inner
-  `@given` body takes ONLY strategy values and receives the normaliser as a plain
+  `@given` body takes ONLY strategy values and receives the normalizer as a plain
   argument. `test_interrogate_gate.py` IS matched by the `**/test_*.py`
   `per-file-ignores` glob (`pyproject.toml:96`), so bare `assert` (S101) and
   `PLR6301` are permitted here — unlike `conftest.py`. However, `interrogate`

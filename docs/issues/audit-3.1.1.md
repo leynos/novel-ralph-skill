@@ -157,7 +157,7 @@ undocumented.
 **Proposed fix:** As `audit-4.1.1` Finding 4 proposed, add a one-line comment at
 the first deferred import explaining the laziness intent (mirroring the existing
 "imported inside the builder … to avoid a circular import" note in
-`novel_state.build_app`), or normalise all five entry points to one style. The
+`novel_state.build_app`), or normalize all five entry points to one style. The
 four `novel_*`/`desloppify` entry-point bodies are now near-identical
 `parse_global_flags → run(build_app(), residual, RunContext(...))` skeletons (see
 Finding 5), so the comment should sit with whatever factoring lands there.

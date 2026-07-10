@@ -107,7 +107,7 @@ spec-derived for the other five — exactly the honesty B2-r2 demanded.
   `gates.knitting`, but step 5 also reads
   `state["drafting"]["critic"]["consecutive_clean"]`. The enumeration in step 1
   should include the `[drafting.critic]` read so the single-parse claim ("reads
-  the materialised `state.toml` with `tomllib` once") names every key it
+  the materialized `state.toml` with `tomllib` once") names every key it
   consumes. Purely an internal-consistency tidy; the implementer reads what
   step 5 requires regardless.
 

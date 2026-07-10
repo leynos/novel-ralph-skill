@@ -114,8 +114,8 @@ not notice has been told something subtly false (the bodies are NOT textually
 identical — one reads `str(action)`, the other `str(reconciliation.action)`).
 
 Required fix (prose only, no design change): in Work Item 3's `_write_outcome`
-step, state that `_write_outcome` currently serialises its `action`
-**parameter** (`str(action)`), whereas the projection serialises
+step, state that `_write_outcome` currently serializes its `action`
+**parameter** (`str(action)`), whereas the projection serializes
 `str(reconciliation.action)`; that this is byte-identical because both
 `_write_outcome` call sites (`:313`, `:322`) pass `action ==
 reconciliation.action` (the `:313` RECREATE_LOG case is the one where they are

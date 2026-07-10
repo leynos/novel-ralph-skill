@@ -84,7 +84,7 @@ None`. `_render_reconciliation` (the `check` read shape) and `_write_outcome`
 `NONE` branch inlines the same base dict with an empty discrepancy list; and
 `_refuse_outcome` repeats the three-key base. The slice is careful to keep the
 read shape and the write shape *vocabulary* distinct (audit-2.2.2 Finding 2), but
-the *serialisation* of a `Reconciliation` into the base dict is one concern
+the *serialization* of a `Reconciliation` into the base dict is one concern
 duplicated across two modules. A future field added to the reported
 reconciliation (or a rename of `discrepancies`) is shotgun surgery across four
 call sites, and a partial edit would silently let `check` and `reconcile` report
@@ -96,7 +96,7 @@ Proposed fix: give `Reconciliation` (or a small free function beside it in
 `{action, discrepancies, detail}` dict plus the optional recount pair, and route
 all four sites through it. The read/write *envelope code* and *exit codes* stay
 where they are (those genuinely differ); only the `Reconciliation`-to-dict
-serialisation is centralised, so `check` and `reconcile` cannot drift on payload
+serialization is centralized, so `check` and `reconcile` cannot drift on payload
 shape.
 
 ## Finding 3 — `reconcile`'s own `[pending_turn]` records bare paths, inconsistent with the `working/`-prefixed convention its recovery logic expects
@@ -232,7 +232,7 @@ The 2.3.2 reconciliation slice is correct, keeps `check` read-only and
 disagree, and is proven recoverable when interrupted. The actionable items are
 documentation and minor structure, not defects: the registered `check` command's
 help text must catch up with its new disk-awareness (Finding 1, highest value);
-the `Reconciliation`-to-payload serialisation should have one home rather than
+the `Reconciliation`-to-payload serialization should have one home rather than
 four (Finding 2); `reconcile`'s self-bracket should declare paths in the same
 `working/`-prefixed convention every other producer uses (Finding 3); the
 call-time `disk_word_counts` import should be hoisted (Finding 4); the

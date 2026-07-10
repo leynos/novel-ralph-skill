@@ -201,7 +201,7 @@ Hard invariants that must hold throughout implementation.
       Impact: confirms the formatter must build prose from the path, never the
       typed FileError message.
 
-    - Observation: WI4 chose a parametrised example test over Hypothesis
+    - Observation: WI4 chose a parametrized example test over Hypothesis
       (`python-verification` decision surface): the five formatters do no
       input-dependent branching beyond f-string interpolation, so the input
       space is small and enumerable (5 formatters × 2 representative caught
@@ -255,7 +255,7 @@ Hard invariants that must hold throughout implementation.
       exception is still chained via `from exc` for debuggers.
       Date/Author: 2026-06-26, planning agent.
 
-    - Decision: D3 — Three distinct formatters, not one parametrised
+    - Decision: D3 — Three distinct formatters, not one parametrized
       "file-fault" formatter.
       Rationale: the three faults name three different artefacts with three
       different remedies — a *write* target (re-create `manuscript/` / re-run
@@ -526,8 +526,8 @@ Docs to read first: `docs/execplans/roadmap-6-3-1.md` and
 Skills to load: `python-router`, `python-testing`, `hypothesis` *only if* a
 property formulation (a range of synthetic faulty paths/exceptions feeding each
 formatter, asserting the output never contains the raw repr) is warranted;
-otherwise a parametrised example test suffices. Consult `python-verification`
-first to decide whether Hypothesis or a plain parametrised test is the right
+otherwise a parametrized example test suffices. Consult `python-verification`
+first to decide whether Hypothesis or a plain parametrized test is the right
 adversary here — do not reach for property testing reflexively.
 
 Changes: no source changes. Add one test module (e.g.

@@ -43,7 +43,7 @@ Every cited source line was checked against the actual file in the worktree:
   firecrawl. The plan's three quotes match the live docs verbatim: "use the
   installed version by default"; "upgraded via `uv tool upgrade`, or re-created
   entirely via subsequent `uv tool install` operations"; "The `--force` flag can
-  be used to override this behavior." The plan does **not** claim a plain
+  be used to override this behaviour." The plan does **not** claim a plain
   re-install upgrades. Locked-library claim properly cited and accurate.
 
 ## Panel findings

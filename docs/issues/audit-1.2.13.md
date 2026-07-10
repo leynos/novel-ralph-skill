@@ -73,7 +73,7 @@ records that this exact duplication class was previously consolidated.
   `Program`, requests the one-program catalogue, and runs through cuprum with the
   `ExecutionContext(cwd=...)` already wired. Consume it by parameter name in each
   e2e (per the cross-module-import prohibition) so every site collapses to a
-  single call. This both removes the boilerplate and centralises the
+  single call. This both removes the boilerplate and centralizes the
   `capture=True` / `ExecutionContext` contract that the migration just touched in
   twelve places.
 

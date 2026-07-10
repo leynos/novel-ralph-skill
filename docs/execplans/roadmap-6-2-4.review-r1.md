@@ -36,35 +36,35 @@ that rest on it.
    they share one fixture invocation (mirroring `test_ai_isms_e2e.py`'s
    `installed_desloppify` session reuse)." A function-scoped fixture does the
    **opposite**: a fresh wheel build, venv, and install for every test
-   function, and — critically — a fresh build for **each parametrised case** of
+   function, and — critically — a fresh build for **each parametrized case** of
    WI3's exit-3 test (two cases → two full builds), where the cited
    `installed_desloppify` pattern shares one module-scoped install across all
-   its parametrised cases. The mitigation as written is not delivered by the
+   its parametrized cases. The mitigation as written is not delivered by the
    implementation as written. Fix: align the claim with the scope actually
    chosen under defect 1; if reuse across the two exit-3 cases is wanted, the
    fixture must be module/session scoped (see defect 1).
 
 ## Advisory (non-blocking, fix to avoid implementer traps)
 
-- **cwd-naming inconsistency between WI2, WI3, and the Artifacts snippet.** WI2
+- **cwd-naming inconsistency between WI2, WI3, and the Artefacts snippet.** WI2
   step 1 defines `dest = tmp_path / "run" / "working"` and runs with
   `cwd=dest.parent` (correct: cwd contains `working/`). WI3 defines `dest` such
-  that `cwd=dest` contains `working/`. The Artifacts template (lines 592-600)
+  that `cwd=dest` contains `working/`. The Artefacts template (lines 592-600)
   and the inline example (line 595) use `cwd=dest`. The two work items use the
   name `dest` for two different directory levels, and the shared snippet
   matches only WI3. An implementer copying the snippet into WI2 would point cwd
   at the `working/` dir itself and the run would not resolve
   `./working/state.toml`. Fix: use distinct names (e.g. `run_dir` vs
   `working_dir`) and make the snippet match each work item's own `dest` level,
-  or normalise both work items to the proven `check` template shape
-  (`dest = tmp_path / "run"`, materialise `dest/working/`, run with `cwd=dest`).
+  or normalize both work items to the proven `check` template shape
+  (`dest = tmp_path / "run"`, materialize `dest/working/`, run with `cwd=dest`).
 
 - **Net build-cost is flat, not improved.** The three rerouted tests already
   each
   build a wheel in-body today, so WI1 is net-neutral for them; the three new
   builds (WI2 + WI3 two cases) are inherent. With a function-scoped fixture the
   suite pays ~6 wheel builds under `-n auto`/180 s. This is acceptable but the
-  plan's framing implies a saving that is not realised. State the real cost.
+  plan's framing implies a saving that is not realized. State the real cost.
 
 ## What is sound (verified, no change needed)
 

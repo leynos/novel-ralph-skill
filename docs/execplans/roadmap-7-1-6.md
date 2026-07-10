@@ -10,7 +10,7 @@ both spellings in the tail-isolating fixture; see Decision Log "tail-isolating
 fixture co-locates both spellings (resolves B3-1)" and §"Source verification,
 round 4". Rounds 2-3 already resolved R2-B1 / R2-B2 / R2-A1 / R2-A2; see Decision
 Log "WI3 discriminator" / "registry coverage" / "compile_is_current
-normalisation" / "no-bare-re-export check restated" and §"Source verification,
+normalization" / "no-bare-re-export check restated" and §"Source verification,
 round 3")
 
 ## Purpose / big picture
@@ -46,9 +46,9 @@ themselves left un-single-sourced (audit-7.1.2 Findings 2, 3, 5):
    `compiled_matches_drafts` (line 106) rather than a dotted path,
    because it is intra-module. That bare relative ref names neither the canonical
    path nor the re-export path, so it satisfies neither the convention nor the
-   guard; round 3 normalises it to the canonical defining-module path so the
+   guard; round 3 normalizes it to the canonical defining-module path so the
    registry's consumer set is uniform (see Decision Log "compile_is_current
-   normalisation").
+   normalization").
 
 2. No drift-guard pins the single-authoritative-copy invariant. The behavioural
    suites test the verdict (the truth table, the payload shape), not the prose.
@@ -78,7 +78,7 @@ Log entry "WI3 discriminator".
 
 Observable success: `make all` stays green, and the new guard test
 `tests/test_projection_docstring_drift_guard.py` fails on a deliberately
-re-expanded or mis-spelled consumer docstring and passes on the normalised tree
+re-expanded or mis-spelled consumer docstring and passes on the normalized tree
 (red-before / green-after per work item).
 
 ## Constraints
@@ -111,7 +111,7 @@ escalation, not a workaround.
   authoritative table stays the only *cited* source, so the projection cannot
   silently re-fork (the §7.1 definition of done), and WI4's documented
   convention plus review catch bloat.
-- **The authoritative docstrings themselves must not be diluted.** Normalising
+- **The authoritative docstrings themselves must not be diluted.** Normalizing
   the consumers must not strip content from `compiled_matches_drafts` /
   `reconciliation_payload`; their tables remain the single home.
 - **en-GB Oxford spelling** ("-ize"/"-yse"/"-our") in all prose, comments, and
@@ -136,11 +136,11 @@ escalation, not a workaround.
 
 - **Scope:** if implementation needs to touch more than 8 production files or
   more than ~120 net lines of production prose, stop and escalate — this is a
-  small doc-and-test normalisation.
+  small doc-and-test normalization.
 - **Behaviour:** if any production change is not confined to a docstring/comment
   (i.e. a code line would change), stop and escalate; the constraint is
   violated.
-- **Suite drift:** if normalising a docstring reddens any *behavioural* suite
+- **Suite drift:** if normalizing a docstring reddens any *behavioural* suite
   (compile, done-predicate, disk-evidence, reconcile, desloppify), stop and
   escalate — it means a docstring was load-bearing in a way the plan did not
   anticipate.
@@ -186,7 +186,7 @@ escalation, not a workaround.
       convention (WI4) plus code review catch prose bloat. Recorded as the
       explicit trade-off in Decision Log "WI3 discriminator".
 
-    - Risk: normalising _compile.py's docstrings silently changes a doctest or
+    - Risk: normalizing _compile.py's docstrings silently changes a doctest or
       a behavioural assertion that greps the text.
       Severity: low
       Likelihood: low
@@ -220,7 +220,7 @@ escalation, not a workaround.
 
 ## Progress
 
-    - [x] Work item 1: normalise compile-projection cross-references to the
+    - [x] Work item 1: normalize compile-projection cross-references to the
       defining-module path in commands/_compile.py (eight refs) and in
       state/compile_model.py::compile_is_current (one intra-module relative ref).
       DONE 2026-06-27: all eight `_compile.py` refs (lines 12, 14, 34, 104, 106,
@@ -228,7 +228,7 @@ escalation, not a workaround.
       defining-module path; post-edit grep shows zero re-export spellings in
       `novel_ralph_skill/`; `compile_is_current.__doc__` now carries the canonical
       path; `make all` green (1396 passed, 1 skipped); diff is docstring-only.
-    - [x] Work item 2: normalise the reconciliation-payload cross-reference in
+    - [x] Work item 2: normalize the reconciliation-payload cross-reference in
       commands/novel_state.py to the defining-module path.
       DONE 2026-06-27: `_render_reconciliation` line 136 rewritten to
       `novel_ralph_skill.state.reconcile.reconciliation_payload`. Confirmed
@@ -251,7 +251,7 @@ escalation, not a workaround.
       authoritative (assertion 1). Positive fixtures: canonical-only consumer and
       a check_compiled-shaped three-member consumer (no false positive). 9 tests
       pass; `make all` green at 1405 passed. Red-before demonstrated (transcript in
-      Artifacts).
+      Artefacts).
     - [x] Work item 4: document the convention and guard in the developers'
       guide so 7.1.5 (and later §7.1 tasks) inherit it.
       DONE 2026-06-27: added the subsection "The authoritative-docstring +
@@ -287,12 +287,12 @@ escalation, not a workaround.
       production change resulted.
 
     - Observation: `make markdownlint` is RED in this worktree, but every failing
-      file is inherited churn or an untracked planning artifact — none is a file
+      file is inherited churn or an untracked planning artefact — none is a file
       this task commits.
       Evidence: `markdownlint-cli2 '**/*.md'` fails on ~74 files; every one is
       either dirty-vs-HEAD inherited churn (e.g. `docs/issues/audit-7.1.2.md`,
       whose COMMITTED HEAD version lints clean) or an untracked
-      `roadmap-7-1-6.logisphere-review-r{1,2}.md` planning artifact. The task's own
+      `roadmap-7-1-6.logisphere-review-r{1,2}.md` planning artefact. The task's own
       execplan `docs/execplans/roadmap-7-1-6.md` lints clean (0 errors), as does
       every file 7.1.6 commits. `make all` (build, check-fmt, lint, typecheck,
       test) — which does NOT include markdownlint — is green.
@@ -403,26 +403,26 @@ escalation, not a workaround.
       *authoritative projection symbol*, binding it to the consumer symbols that
       cross-reference it. Rows:
       (1) compile_model.compiled_matches_drafts → consumers
-          compile_model.compile_is_current (normalised by WI1 — see Decision Log
-          "compile_is_current normalisation"), done_predicate.compile_consistent,
+          compile_model.compile_is_current (normalized by WI1 — see Decision Log
+          "compile_is_current normalization"), done_predicate.compile_consistent,
           disk_evidence._check_compiled_matches_drafts,
           commands._compile.check_compiled;
       (2) reconcile.reconciliation_payload → consumer
           commands.novel_state._render_reconciliation.
-      The concatenate_drafts / present_draft_bodies references WI1 normalises in
-      _compile.py (lines 12, 14, 104, 106) are normalised-for-consistency but
+      The concatenate_drafts / present_draft_bodies references WI1 normalizes in
+      _compile.py (lines 12, 14, 104, 106) are normalized-for-consistency but
       are NOT guarded as their own registry rows in 7.1.6: their authoritative
       home is compile_model and their consumer graph is wider than this task's
       audit scope. This is the explicit coverage boundary the round-1
       Improvement asked for. A future task that consolidates those projections
-      adds their rows; 7.1.6 leaves them normalised-but-unguarded by design, not
+      adds their rows; 7.1.6 leaves them normalized-but-unguarded by design, not
       by oversight. compile_manuscript is NOT a registry consumer row (it
       cross-references concatenate_drafts/present_draft_bodies, not
       compiled_matches_drafts); its lines 104/106 are covered by WI1's
-      normalisation only.
+      normalization only.
       Date/Author: 2026-06-27, planning agent (round 2)
 
-    - Decision (compile_is_current normalisation — resolves R2-B1): NORMALISE,
+    - Decision (compile_is_current normalization — resolves R2-B1): NORMALIZE,
       do not drop. compile_model.compile_is_current is a registered consumer of
       the compiled_matches_drafts projection, but its docstring cross-references
       the authoritative table with the BARE RELATIVE spelling
@@ -547,17 +547,17 @@ escalation, not a workaround.
 
     - COMPLETE 2026-06-27. All four work items landed as atomic commits, each
       gated green with `make all`:
-      * WI1 (`Normalise compile-projection cross-refs to the defining-module
+      * WI1 (`Normalize compile-projection cross-refs to the defining-module
         path`): eight `_compile.py` refs + `compile_is_current` line 106
-        normalised; zero re-export spellings remain in production.
-      * WI2 (`Normalise reconciliation-payload cross-ref to its defining
-        module`): `novel_state._render_reconciliation` line 136 normalised;
+        normalized; zero re-export spellings remain in production.
+      * WI2 (`Normalize reconciliation-payload cross-ref to its defining
+        module`): `novel_state._render_reconciliation` line 136 normalized;
         `_reconcile.py` confirmed not a consumer row.
       * WI3 (`Add reusable projection-docstring drift-guard`):
         `tests/test_projection_docstring_drift_guard.py` added (9 tests), keyed by
         registry position, with the full negative/positive fixture set including
         the B3-1 co-located tail-isolation fixture. Red-before / green-after
-        demonstrated (Artifacts).
+        demonstrated (Artefacts).
       * WI4 (`Document the §7.1 authoritative-docstring + self-projection
         convention`): developers'-guide subsection added.
       No behavioural suite was touched: the compile, done-predicate, disk-evidence,
@@ -566,7 +566,7 @@ escalation, not a workaround.
       docstring-only; no control flow, signature, return value, or exit code
       changed.
       Open issue: `make markdownlint` is red on inherited churn / untracked
-      planning artifacts only (see Surprises); every file 7.1.6 commits lints
+      planning artefacts only (see Surprises); every file 7.1.6 commits lints
       clean, and `make all` (which excludes markdownlint) is green at HEAD.
       coderabbit: WI1 returned two minor findings, both in this execplan, both
       fixed. Two subsequent `coderabbit review --agent` runs (the WI2 review and a
@@ -586,7 +586,7 @@ menu. Round 3 adds the two facts the round-2 review flagged as wrong
 (R2-B1 / R2-B2) and pins them.
 
 - **R2-B1 — `compile_is_current` does NOT carry the canonical path; WI1 must
-  normalise it.** Importing the live symbol and testing substrings:
+  normalize it.** Importing the live symbol and testing substrings:
 
         python3 -c "from novel_ralph_skill.state.compile_model import \
           compile_is_current as f; \
@@ -732,9 +732,9 @@ Relevant files (full repository-relative paths):
   HOWEVER, is a registered consumer and cross-references the table via the
   **bare relative** ``:func:`compiled_matches_drafts``` at line 106, carrying
   neither the canonical path nor the re-export tail (R2-B1, verified §"Source
-  verification, round 3"); WI1 normalises that one ref to the canonical
+  verification, round 3"); WI1 normalizes that one ref to the canonical
   defining-module path so the consumer satisfies the guard (Decision Log
-  "compile_is_current normalisation").
+  "compile_is_current normalization").
 - `novel_ralph_skill/state/done_predicate.py` — `compile_consistent`
   (~213-261) and module docstring (~37) already use the defining-module path
   (`...state.compile_model.compiled_matches_drafts`). In scope only as a guard
@@ -748,14 +748,14 @@ Relevant files (full repository-relative paths):
   lines 175, 181, 186. They name the *re-export* path
   (`novel_ralph_skill.state.compiled_matches_drafts`,
   `...state.concatenate_drafts`, `...state.present_draft_bodies`,
-  `...state.CompiledComparison`). Normalise ALL EIGHT to the defining-module
+  `...state.CompiledComparison`). Normalize ALL EIGHT to the defining-module
   form. `check_compiled` and the `_compile` module are guard consumer rows for
   the `compiled_matches_drafts` projection; `compile_manuscript`'s lines
-  104/106 are normalised-for-consistency only (Decision Log "registry
+  104/106 are normalized-for-consistency only (Decision Log "registry
   coverage").
 - `novel_ralph_skill/commands/novel_state.py` — `_render_reconciliation`
   (~130-140) names the *re-export* path
-  `novel_ralph_skill.state.reconciliation_payload`; normalise to
+  `novel_ralph_skill.state.reconciliation_payload`; normalize to
   `novel_ralph_skill.state.reconcile.reconciliation_payload`.
 - `novel_ralph_skill/commands/_reconcile.py` — uses `derive_reconciliation`
   cross-references; confirm whether its docstrings name
@@ -790,10 +790,10 @@ the closed enumeration needs no adversary).
 
 Four ordered, independently committable, gate-passable work items. Each is
 red-then-green where it adds a test, and doc-only-and-green where it only
-normalises prose. Run `make all` (and `make markdownlint` + `make nixie` for
+normalizes prose. Run `make all` (and `make markdownlint` + `make nixie` for
 the markdown item) before each commit.
 
-### Work item 1 — Normalise compile-projection cross-references in `_compile.py` and `compile_is_current`
+### Work item 1 — Normalize compile-projection cross-references in `_compile.py` and `compile_is_current`
 
 Implements: roadmap 7.1.6 (audit-7.1.2 Finding 2); design §4.3, §5.4; ADR-003
 (shared interface contract). Skills: `python-router` → `en-gb-oxendict`; `leta`
@@ -801,7 +801,7 @@ for refs.
 
 This work item makes the compile-family consumer set uniform: all eight
 re-export-path references in `_compile.py`, AND the one bare relative reference
-in `compile_model.compile_is_current` (R2-B1), are normalised to the
+in `compile_model.compile_is_current` (R2-B1), are normalized to the
 defining-module path, so every consumer the WI3 guard binds carries the
 canonical cross-reference.
 
@@ -854,7 +854,7 @@ verdict from the bare relative `compiled_matches_drafts` role) as a relative
 ref: it is a parameter-type note, not the authoritative-table cross-reference,
 and the bare
 relative form never emits the re-export tail, so it satisfies the guard without
-change (Decision Log "compile_is_current normalisation"). Do not touch the
+change (Decision Log "compile_is_current normalization"). Do not touch the
 authoritative `compiled_matches_drafts` docstring (its table is the single home)
 or any other prose in the module.
 
@@ -887,7 +887,7 @@ existing compile suite (`tests/test_compile_check_agreement.py`,
 unchanged — they assert behaviour, not docstring spelling. Validation:
 `make all`.
 
-### Work item 2 — Normalise the reconciliation-payload cross-reference in `novel_state.py`
+### Work item 2 — Normalize the reconciliation-payload cross-reference in `novel_state.py`
 
 Implements: roadmap 7.1.6 (audit-7.1.2 Finding 2, extended to the 7.1.3
 reconciliation projection per Finding 5); design §5.4; ADR-003. Skills as above.
@@ -903,7 +903,7 @@ Check `novel_ralph_skill/commands/_reconcile.py`: grep confirms its docstrings
 cross-reference `~novel_ralph_skill.state.derive_reconciliation` (the
 classifier, out of scope here) and call `reconciliation_payload` directly
 without a `:func:` cross-reference to it. If a `:func:`…reconciliation_payload
-`` cross-reference is found on a closer read, normalise it to the
+`` cross-reference is found on a closer read, normalize it to the
 defining-module path too; otherwise no edit. Record the finding in
 `Surprises & Discoveries` either way.
 
@@ -936,9 +936,9 @@ member-enumeration check is DROPPED. The guard mirrors how
 imported `Envelope` dataclass — by symbol identity, not parsed prose.
 
 Round 3 corrects two specifics of the round-2 draft (see Decision Log
-"compile_is_current normalisation" and "no-bare-re-export check restated"):
+"compile_is_current normalization" and "no-bare-re-export check restated"):
 (a) `compile_model.compile_is_current` is a registered consumer whose
-pre-normalisation docstring carried only the bare relative
+pre-normalization docstring carried only the bare relative
 ``:func:`compiled_matches_drafts``` — WI1 normalises it to the canonical path so
 the "cross-reference present" assertion passes; and (b) the "no bare re-export"
 assertion is the simple "tail substring count is zero" invariant, NOT a
@@ -1198,18 +1198,18 @@ Run everything from the worktree root
 
    Commit (file-based message; imperative; en-GB):
 
-        Normalise compile-projection cross-refs to the defining-module path
+        Normalize compile-projection cross-refs to the defining-module path
 
 4. Apply work item 2 edit to `novel_ralph_skill/commands/novel_state.py`
    (and `_reconcile.py` if a cross-reference is present), then `make all`, then
    commit:
 
-        Normalise reconciliation-payload cross-ref to its defining module
+        Normalize reconciliation-payload cross-ref to its defining module
 
 5. Add work item 3's guard module (red-first via negative cases), then:
 
         make all
-        # expect: the new guard's positive cases pass on the normalised tree;
+        # expect: the new guard's positive cases pass on the normalized tree;
         # negative cases prove the helper rejects drift.
 
    Demonstrate catch-power: temporarily revert one `_compile.py` reference to
@@ -1281,12 +1281,12 @@ Quality method (how we check):
 Every work item is a docstring/test edit, re-runnable without side effects; no
 migrations, no destructive operations. If `make all` fails after an edit,
 `git diff` the offending file and revert the single hunk; the guard and the
-behavioural suites localise the failure. The temporary-revert demonstration in
+behavioural suites localize the failure. The temporary-revert demonstration in
 step 5 must be undone before committing (verify with `git status` / `git diff`
 that the reverted reference is restored). Commit only when the gate is green
 (AGENTS.md).
 
-## Artifacts and notes
+## Artefacts and notes
 
 Captured during implementation:
 

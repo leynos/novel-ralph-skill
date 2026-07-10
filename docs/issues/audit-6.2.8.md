@@ -55,7 +55,7 @@ all the contract and the snapshot is the redundant half.
 - **Proposed fix:** Either (a) drop the snapshot from
   `test_error_arm_machine_envelope` and keep the field-by-field assertions as the
   sole oracle (the skeleton is small and fully named, so a snapshot buys little),
-  or (b) replace the ten near-identical snapshots with a single parametrised
+  or (b) replace the ten near-identical snapshots with a single parametrized
   assertion against an in-code expected skeleton dict templated on `command.name`
   and `working_dir`, asserting the redacted envelope equals it. Both remove nine
   redundant `.ambr` blocks while preserving the exact contract.

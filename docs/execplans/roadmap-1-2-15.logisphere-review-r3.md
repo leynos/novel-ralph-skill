@@ -26,7 +26,7 @@ cuprum source at `/data/leynos/Projects/cuprum`; `uv.lock` pins.
   68-72, parametrized `driver.legacy` 135-136, comparison/command asserts 141/143-144,
   hardcoded site 156, `_strip_command` helper 77-96 and use at 161; the matrix
   `_ReadCommand` 127-131, `if name ==` 495/497, `_BY_NAME[…]` 581/610/632/678/716.
-- The three-serialisation `$SNAP_GATE` matches exactly the 12 `.ambr` files
+- The three-serialization `$SNAP_GATE` matches exactly the 12 `.ambr` files
   (5 syrupy-repr + 7 JSON, with `test_contract_envelope.ambr` carrying JSON and
   bare-YAML). Verified by running each form's `rg -l`.
 - `$REG_GATE` word-boundary anchoring excludes `SUBCOMMAND_NAMES`; the 32

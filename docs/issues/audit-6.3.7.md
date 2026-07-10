@@ -170,7 +170,7 @@ The 6.3.7 docstring explicitly notes the divergence — `slice_doc_region` "name
 `source` in its failure message, so a missing anchor in the design doc or
 ADR-003 does not misreport 'not found in SKILL.md'" — which is a genuine
 improvement over `_slice_between`'s hard-coded label. But the improvement was
-made by writing a third copy rather than by generalising the existing one, so
+made by writing a third copy rather than by generalizing the existing one, so
 the deflation guard still carries the inferior single-document variant, and a
 fourth prose-guard will face the same choose-or-copy fork. The slicers are
 small, so this is low severity; it is recorded because the count is now three
@@ -217,5 +217,5 @@ and 6.3.7 already demonstrated the strictly better signature.
   `tests/_doc_slice.py` and migrate `test_skill_deflation_guard.py`'s
   `_slice_between`/`_require_index` onto it. Rationale: 6.3.7 introduces a
   strictly better source-naming slicer as a third copy of the same idiom rather
-  than generalising the existing one, so the deflation guard keeps the inferior
+  than generalizing the existing one, so the deflation guard keeps the inferior
   single-document variant and the next prose-guard faces the same copy fork.

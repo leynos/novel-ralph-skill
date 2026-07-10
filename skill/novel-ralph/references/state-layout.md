@@ -216,7 +216,7 @@ gate against `sum(by_chapter) / target`).
 
 This binding couples `recount` to the gates. `novel state recount` re-derives
 `[word_counts]` from the drafts and never flips a gate — disk does not store the
-"pass integrated" fact, so the harness will not synthesise it. If a recount
+"pass integrated" fact, so the harness will not synthesize it. If a recount
 refuses on `gate-ratio-consistent`, it is telling you the re-derived ratio
 crossed a knitting threshold the recorded gates do not yet reflect: integrate
 and log the pending knitting pass, then run
@@ -239,7 +239,7 @@ directories, and its order mirrors the zero-padded directory index
 `novel compile` follows. It is written only by `novel state set-chapters` when
 chapter planning completes — never by a direct `state.toml` edit, per ADR-001
 and ADR-008 — because the manifest is the agent's non-recomputable judgement
-(design §5.1). A freshly initialised `state.toml` carries an empty
+(design §5.1). A freshly initialized `state.toml` carries an empty
 `chapters = []`; `set-chapters` populates it.
 
 ### Pending turn
@@ -251,7 +251,7 @@ whole. So a mutator opens `[pending_turn]` *before* it writes any other
 artefact, naming the `operation` in flight and the `paths` it will write, and
 clears the record once every artefact is written and verified. It is present
 **only** while a multi-file mutation is mid-write; a settled `state.toml`
-carries no `[pending_turn]` at all, and a freshly initialised one never writes
+carries no `[pending_turn]` at all, and a freshly initialized one never writes
 it. On the next turn, an uncleared `[pending_turn]` is the signature of a torn
 turn: `novel state check` reads it, compares the named paths against disk, and
 reports the reconciliation `novel state reconcile` carries out (design §5.1,
@@ -311,7 +311,7 @@ Discipline:
 4. Append to log.md last. The log entry is the receipt that the
    state transition happened.
 
-## Initialisation
+## Initialization
 
 First turn: working/ does not exist.
 

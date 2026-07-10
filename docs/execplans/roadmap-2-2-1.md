@@ -155,7 +155,7 @@ Stop and escalate when any of these is breached rather than working around it.
   which uses `uv.lock`'s 0.15.0; do not rely on the ambient `python3`. The
   round-trip property test is itself the guard ADR-002's "Known risks" names
   against a silent `tomlkit` major-version regression. The empirical probe in
-  "Artifacts and notes" was re-run under the `uv`-resolved 0.15.0 environment
+  "Artefacts and notes" was re-run under the `uv`-resolved 0.15.0 environment
   (not an ambient interpreter), so the mechanism is verified at the version
   that ships.
 - Risk: the byte-for-byte property guards nothing because its input has no
@@ -179,7 +179,7 @@ Stop and escalate when any of these is breached rather than working around it.
   on-disk state. Do not fork or signal a real process.
 - Risk: the atomic temp file leaks into the working directory on the error path.
   Severity: low. Likelihood: medium. Mitigation: write the temp file with a
-  recognisable prefix in the target directory and unlink it on any failure
+  recognizable prefix in the target directory and unlink it on any failure
   before `Path.replace`; assert no stray temp file survives a failed write.
 - Risk: re-serializing through the typed `State` (which is lossy) instead of the
   `tomlkit` document. Severity: high. Likelihood: low. Mitigation: the helper
@@ -907,7 +907,7 @@ task mutates state outside `tmp_path` during tests or the new module under
 `novel_ralph_skill/`. No destructive operation is involved; there is no
 rollback to script beyond `git restore` of the in-progress edit.
 
-## Artifacts and notes
+## Artefacts and notes
 
 Empirical round-trip probe, **re-run under the `uv`-resolved tomlkit 0.15.0**
 (`uv run python` against `uv.lock` lines 667-672; `tomlkit.__version__` reported
@@ -1000,7 +1000,7 @@ completed task and tracked by a nested sub-task on the roadmap.
   red even though the tests pass in isolation. Relax the deadline for these
   round-trip checks (e.g. `@settings(deadline=None)`) so the shared gate stays
   deterministic. Scope is the two `@given` tests in
-  `tests/test_state_document.py`; no production code changes. This is a localised
-  gate-stabilisation pass; the systemic shared-deadline-profile consolidation is
+  `tests/test_state_document.py`; no production code changes. This is a localized
+  gate-stabilization pass; the systemic shared-deadline-profile consolidation is
   the separate roadmap step 7.18. Lightweight addendum pass against this
   execplan: the change, the gates, and a merge.

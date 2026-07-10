@@ -5,7 +5,7 @@
 Accepted, 2026-06-25. The `[chapters]` manifest is populated by a single
 validated command, `novel-state set-chapters`, which writes the manifest, creates
 the on-disk chapter directories, and is recovered after a crash by
-`novel-state reconcile`. This realises roadmap task 2.2.3 under ADR 001 (scripts
+`novel-state reconcile`. This realizes roadmap task 2.2.3 under ADR 001 (scripts
 detect and report; the model adjudicates) and design §4.1, §5.1, and §5.4.
 
 ## Date
@@ -114,7 +114,7 @@ bijection is a firm immediate invariant: a manifest-only write would leave
 manifest `{1..n}` against on-disk `{}`, firing `manifest-disk-bijection` so
 `check` exits 4 the instant the command returns. Deferring directory creation is
 in no current task, and `reconcile`'s draft-without-manifest-entry path is a
-REFUSE, not a repair, so it would not materialise the directories.
+REFUSE, not a repair, so it would not materialize the directories.
 
 ### Write ordering: the manifest persists at the intent write
 

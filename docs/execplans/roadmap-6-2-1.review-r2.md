@@ -47,7 +47,7 @@ repo pins them): `timeout = 30` global (`pyproject.toml:326`),
 `pytest-timeout` and `pytest-xdist` locked, `**/test_*.py` per-file-ignores
 cover S101/PLR2004, all `make` targets exist
 (`all check-fmt lint typecheck test audit markdownlint nixie`), syrupy
-one-snapshot-per-parametrised-case proven by
+one-snapshot-per-parametrized-case proven by
 `test_contract_envelope_snapshots.py`, conftest re-exports spec types under
 `TYPE_CHECKING`. The B1 trap is real and correctly handled:
 `_compile.build_app` default writes `compiled.md`; only `["--check"]` reaches

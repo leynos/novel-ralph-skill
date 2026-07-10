@@ -16,7 +16,7 @@ slices each command's own suite already covers (`docs/roadmap.md` lines
 817-821).
 
 After this change a reviewer can run `make test` and see, for each of the five
-commands, a parametrised matrix that:
+commands, a parametrized matrix that:
 
 1. snapshots the machine-mode JSON envelope per command across the eleven
    coherent phase states,
@@ -427,7 +427,7 @@ escalation, not a workaround.
       snapshots it, and guards volatile fields; `tests/test_compile_check_
       snapshots.py` lines 27, 44-53 show the `import working_corpus as wc` and the
       `["--check"]` driver; `tests/test_contract_envelope_snapshots.py` proves
-      syrupy generates one snapshot per parametrised case keyed by the test id
+      syrupy generates one snapshot per parametrized case keyed by the test id
       under the locked syrupy version.
       Impact: No external syrupy/xdist/timeout research is load-bearing; the repo
       itself pins the behaviour (review advisory A5). The round-1 Constraint
@@ -451,10 +451,10 @@ escalation, not a workaround.
       `command x output-mode x phase` in ASCII. (2) Pylint enables
       `too-many-arguments`/`too-many-positional-arguments` globally (no test-path
       exemption, unlike Ruff's `per-file-ignores`), so the drive helper and the
-      parametrised test must stay within four arguments. Resolved structurally
+      parametrized test must stay within four arguments. Resolved structurally
       rather than with `# pylint: disable`: a `_ReadCommand` NamedTuple bundles
       `(name, build_app, argv)`, a `drive` fixture bundles `monkeypatch`/`capsys`,
-      and the parametrised test takes a single `cell` tuple. This mirrors the
+      and the parametrized test takes a single `cell` tuple. This mirrors the
       repo's fixture-bundling idiom (`test_wordcount_snapshots.py::build_at_ratio`).
 
     - Observation / hazard (Work item 1): `make fmt` runs `mdformat-all`, which
@@ -527,7 +527,7 @@ escalation, not a workaround.
       gate-passes" rule.
       Date/Author: 2026-06-25, planning agent.
 
-    - Decision (resolves review advisory A1): do not add slug normalisation to
+    - Decision (resolves review advisory A1): do not add slug normalization to
       the volatile guard. The corpus slugs are fixed deterministic
       `chapter-NN` strings built from the manifest index (`_library.py` lines
       45-57), so they do not churn; the snapshot pins them verbatim as part of
@@ -621,7 +621,7 @@ Existing test scaffolding the matrix builds on:
 - The volatile-field guard `_assert_no_volatile_fields` and its
   `_VOLATILE_PATTERN` regex, which catch absolute paths, ISO dates, and clock
   times (`tests/test_novel_done_snapshots.py` lines 47-84). Reuse this pattern.
-- syrupy generates one `.ambr` snapshot per parametrised case, keyed by test id,
+- syrupy generates one `.ambr` snapshot per parametrized case, keyed by test id,
   under the locked syrupy version — proven in-repo by
   `tests/test_contract_envelope_snapshots.py`.
 
@@ -664,7 +664,7 @@ Create `tests/test_command_surface_matrix.py` with:
 
 - A module docstring stating the surface (`command × output-mode × phase`), the
   in-process drive decision, the read-surface scoping (mutators excluded), the
-  slug-normalisation note (Decision A1), and the carried gaps, citing §2.3 and
+  slug-normalization note (Decision A1), and the carried gaps, citing §2.3 and
   §9.
 - A top-level `import working_corpus as wc` (the repo convention) and the
   command registry: an ordered tuple of
@@ -686,14 +686,14 @@ Create `tests/test_command_surface_matrix.py` with:
   inside `pytest.raises(SystemExit)`, captures stdout with the `capsys` fixture
   (`capsys.readouterr().out`, the exact mechanism `_run_capture` uses — review
   condition A2; not `redirect_stdout`), and returns `(exit_code, stdout_text)`.
-  Each parametrised test therefore declares `monkeypatch: pytest.MonkeyPatch`
+  Each parametrized test therefore declares `monkeypatch: pytest.MonkeyPatch`
   and `capsys: pytest.CaptureFixture[str]` parameters and threads them into
   `_drive`, mirroring every signature in `test_novel_done_snapshots.py`. For
   machine mode the caller `json.loads` the text; for human mode the caller
   keeps the raw text.
 - The reused `_assert_no_volatile_fields` guard (copy the pattern; promote to a
   `conftest` fixture only if a second module later needs it — Constraint).
-- `test_machine_envelope_matrix`, parametrised over `wc.PHASE_ORDER` × the
+- `test_machine_envelope_matrix`, parametrized over `wc.PHASE_ORDER` × the
   read-command registry with explicit `ids` so each `.ambr` entry is keyed by
   `command-phase`. For each cell: build the tree with
   `wc.build_working_tree(wc.PHASE_STATES[phase], tmp_path / phase)`, drive in
@@ -718,7 +718,7 @@ the first commit is green (Decision A3).
 
 ### Work item 2 — human-mode presence matrix
 
-`test_human_mode_presence_matrix`, parametrised over the same cells; drive with
+`test_human_mode_presence_matrix`, parametrized over the same cells; drive with
 `human=True`. Assert the rendered stdout is non-empty and the drive did not
 raise — the §2.3 "human mode asserted for presence" rule (lines 127-129). Do
 **not** snapshot human text (presence-only by design). Add one targeted
@@ -877,7 +877,7 @@ Progress and compare against the 600-line tolerance.
   comment and escalate the choice (Tolerances).
 
 Tests added: none (documentation + comment). The carried-gap list is implicit
-in the matrix's parametrisation (the excluded surfaces are not parametrised).
+in the matrix's parametrization (the excluded surfaces are not parametrized).
 
 Implements: §9 lines 819-821; `AGENTS.md` "Documentation maintenance"
 (developers-guide update for internal conventions).
@@ -995,14 +995,14 @@ parallel; `~/.claude/CLAUDE.md` "Commands").
   snapshot file, safe to delete and regenerate. The compile registry uses
   `["--check"]`, so no test cell writes `compiled.md` into a corpus tree (B1).
 
-## Artifacts and notes
+## Artefacts and notes
 
 Key reused patterns (cite, do not re-derive):
 
 - Drive + `["--check"]` + snapshot + guard:
   `tests/test_compile_check_snapshots.py` lines 27, 44-53, 13-16;
   `tests/test_novel_done_snapshots.py` lines 47-101.
-- Parametrised one-snapshot-per-case:
+- Parametrized one-snapshot-per-case:
   `tests/test_contract_envelope_snapshots.py`.
 - Phase-state corpus: `tests/corpus_fixtures.py` lines 163-203;
   `tests/working_corpus/_library.py` lines 23-118.
@@ -1061,13 +1061,13 @@ Docs to read before implementing (source of truth):
 
 Skills to load per work item:
 
-- All items: `python-router` → then `python-testing` (fixtures, parametrisation,
+- All items: `python-router` → then `python-testing` (fixtures, parametrization,
   marks, snapshot/syrupy discipline) as the primary follow-on.
 - Work item 1-2 (snapshots): `python-testing` "snapshot and approval tests"
   guidance; the syrupy update flow.
 - Work items 3-4 (semantic branches): `python-router`. Property testing
   (`hypothesis`/`crosshair`) is **not** required: the surface is a closed
-  eleven-member phase set already exhausted by parametrisation, and the design
+  eleven-member phase set already exhausted by parametrization, and the design
   pins snapshot + semantic assertions for these aggregations (§9), so a
   property suite would be over-engineering for a bounded enum. No `mutmut`
   either: this is a test-adding task, not a coverage-hardening task.
@@ -1186,7 +1186,7 @@ Also corrected: the round-1 Constraint forbidding a runtime
 `import working_corpus` (wrong against the repo convention — every corpus test
 imports `working_corpus as wc`); the round-1 red-scaffold placeholder (folded
 into Work item 1 so the first commit is green — advisory A3);
-slug-normalisation note added (advisory A1); the `novel-state check` cell's
+slug-normalization note added (advisory A1); the `novel-state check` cell's
 distinction from the oracle suite made explicit (advisory A2); and the verified
 fact that `novel-done` is exit 1/`ok=False` for all eleven phases (so Work item
 3 asserts the `phase_is_done` clause, not the aggregate `ok`). The work plan is

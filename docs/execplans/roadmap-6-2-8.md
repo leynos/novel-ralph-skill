@@ -266,7 +266,7 @@ voice/reflow observations are carried as cosmetic, non-blocking advisories.
   `ok: false`, `working_dir`, `result: {}`) plus the *code*; the message is
   pinned semantically by its command-body-owned prefix. This matches AGENTS.md
   ("Redact or normalize nondeterministic fields ... before snapshotting") and
-  design §9 (normalise volatile fields so a failure is a real contract change).
+  design §9 (normalize volatile fields so a failure is a real contract change).
   Date/Author: 2026-06-25, planning agent.
 
 - Decision: use the absent-`working/` tree for the exit-3 cell, not an
@@ -404,7 +404,7 @@ Read its module docstring (lines 1–58) and the `Carried gaps` section (lines
 
 The **snapshot** companion is
 [`tests/__snapshots__/test_command_surface_matrix.ambr`](../../tests/__snapshots__/test_command_surface_matrix.ambr)
-(syrupy `5.3.2`, `.ambr` AMBR format). syrupy serialises a `dict` with its
+(syrupy `5.3.2`, `.ambr` AMBR format). syrupy serializes a `dict` with its
 `dict()` notation; you regenerate snapshots with `pytest --snapshot-update`.
 
 The **developers' guide** section to update is
@@ -513,7 +513,7 @@ Concrete edits to `tests/test_command_surface_matrix.py`:
 2. Add a helper that drives an error *cell*. For `build_working=False` you need
    a cwd with no `working/`. The existing `drive` fixture chdirs to
    `working.parent`; the simplest reuse is to build a *bare* directory and pass
-   a synthetic `working` path under it that is **not** materialised, so
+   a synthetic `working` path under it that is **not** materialized, so
    `working.parent` is the empty cwd. **The helper takes the bundled cell, not
    `command` and `arm` separately, so its signature totals four parameters
    (three positional + one keyword-only `human`) and stays inside the Pylint
@@ -570,7 +570,7 @@ Concrete edits to `tests/test_command_surface_matrix.py`:
      through the redaction) and `messages[0].startswith(arm.message_prefix)`.
    - build a redacted copy (`{**envelope, "messages": ["<redacted>"]}`), run
      `_assert_no_volatile_fields` on it, and assert `redacted == snapshot`.
-     Redacting `messages` is the load-bearing normalisation (Decision Log).
+     Redacting `messages` is the load-bearing normalization (Decision Log).
 
 4. Add the human-mode error-arm presence test, parametrized over `_ERROR_CELLS`
    (the same 10 cells) with `ids=_ERROR_CELL_IDS`. **The signature totals three

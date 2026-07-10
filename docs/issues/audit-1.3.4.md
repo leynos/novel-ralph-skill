@@ -94,7 +94,7 @@ and the base would keep the source-of-truth chain intact.
   [`contract/envelope.py`](../../novel_ralph_skill/contract/envelope.py).
 
 Every other contract-layer `messages` field is frozen through the shared
-`freeze_sequence` normaliser (`CommandOutcome.__post_init__`,
+`freeze_sequence` normalizer (`CommandOutcome.__post_init__`,
 `Envelope.__post_init__`). The base instead relies on the incidental fact that
 `*messages` varargs already arrives as a `tuple`, assigning
 `self.messages: tuple[str, ...] = messages` directly. The module docstring even
@@ -108,8 +108,8 @@ immutability guarantee.
 Proposed fix: either (a) add a brief comment on the assignment noting that
 `*messages` is already an immutable tuple so no `freeze_sequence` call is needed,
 explicitly tying the line to the shared freeze convention; or (b) if the base is
-ever generalised to take a `Sequence[str]`, store
-`self.messages = freeze_sequence(messages)` so the one normaliser owns the
+ever generalized to take a `Sequence[str]`, store
+`self.messages = freeze_sequence(messages)` so the one normalizer owns the
 guarantee. Option (a) is the lighter-touch fix for the current varargs API.
 
 ## Finding 4 — No test pins the base's empty-messages and immutability guarantees

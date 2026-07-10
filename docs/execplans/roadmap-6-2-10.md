@@ -53,7 +53,7 @@ uv run pytest -v tests/test_console_scripts_error_arms_e2e.py -m slow
 ```
 
 Expect the new installed-binary exit-2 and exit-3 error-arm e2es to pass (each
-parametrised over machine and human mode), and:
+parametrized over machine and human mode), and:
 
 ```plaintext
 make all
@@ -123,7 +123,7 @@ escalation, not a workaround.
    requires a snapshot, the message field must be redacted exactly as 6.2.8's
    matrix snapshot does.
 9. Keep every code file at or under the 400-line module cap (AGENTS.md). The new
-   module is small (one helper plus two parametrised tests); it must not breach
+   module is small (one helper plus two parametrized tests); it must not breach
    the cap, and folding the new arms into `test_console_scripts_e2e.py` (181
    lines today) is rejected because that module owns the all-five-scripts
    install-and-run guard and re-paying a wheel build there is unnecessary when
@@ -191,7 +191,7 @@ Stop and escalate (document in `Decision Log`, then await direction) when:
   Severity: low
   Likelihood: low
   Mitigation: the wheel/venv/install is paid **once** by the module-scoped
-  `installed_novel_state` fixture and reused by every parametrised case in the
+  `installed_novel_state` fixture and reused by every parametrized case in the
   new module (Decision D-FIXTURE); each case is a single fast script run. Reuse
   the proven `@pytest.mark.timeout(180)` per-test override (Constraint 5).
 
@@ -211,7 +211,7 @@ Stop and escalate (document in `Decision Log`, then await direction) when:
 - [x] Work item 1: Add the installed-binary error-arm e2e module
   (`tests/test_console_scripts_error_arms_e2e.py`) — a module-local
   `run_installed` driver fixture plus a four-parameter helper and two
-  three-parameter parametrised tests — crossing the exit-2 usage arm and the
+  three-parameter parametrized tests — crossing the exit-2 usage arm and the
   exit-3 state arm over the installed `novel-state`, each in machine and human
   mode, asserting the envelope skeleton, the message prefix, and the `--human`
   stamp; `make all` green (including the four-parameter Pylint gate). DONE: the
@@ -228,7 +228,7 @@ Stop and escalate (document in `Decision Log`, then await direction) when:
   name the new boundary coverage; `make markdownlint`, `make nixie`, `make all`
   all pass. A pre-existing MD012 double-blank in `docs/developers-guide.md`
   (introduced by the 7.1.2 ledger merge) was fixed in passing since the file was
-  already being edited. The leftover planning artifact
+  already being edited. The leftover planning artefact
   `docs/execplans/roadmap-6-2-10.review-r1.md` (never tracked) was removed so the
   global `make markdownlint` gate passes.
 
@@ -349,7 +349,7 @@ Stop and escalate (document in `Decision Log`, then await direction) when:
   rather than building a wheel in the new module.
   Rationale: Constraint 7 (consume scaffolding by fixture name) and the
   module-scoped fixture pays the slow build once and shares it across all
-  parametrised cases, exactly as `test_recount_e2e.py` does.
+  parametrized cases, exactly as `test_recount_e2e.py` does.
   Date/Author: 2026-06-25, planning agent.
 
 - Decision (D-USAGE): trigger the exit-2 usage arm with an unknown option
@@ -409,7 +409,7 @@ Stop and escalate (document in `Decision Log`, then await direction) when:
   per design §9, not silently.
   Date/Author: 2026-06-25, planning agent (round 2, resolving advisory A1).
 
-- Decision (D-NOCLASS): keep the two parametrised tests as module-level
+- Decision (D-NOCLASS): keep the two parametrized tests as module-level
   functions rather than grouping them under a `TestInstalledErrorArms` class.
   Rationale: CodeRabbit raised a major "group related tests into a class"
   finding, but every sibling installed-e2e module the plan mirrors —
@@ -603,7 +603,7 @@ Concrete edits — create
    import `collections.abc as cabc`, `Path`, and `ProgramCatalogue` (mirroring
    `test_recount_e2e.py` lines 39-43). The `working_corpus as wc` import is
    load-bearing: steps 3 and 5 call `wc.build_working_tree(
-   wc.PHASE_STATES["drafting"], run_dir)` to materialise the usage arm's real
+   wc.PHASE_STATES["drafting"], run_dir)` to materialize the usage arm's real
    tree, so omitting it raises `NameError: name 'wc' is not defined` at import
    time and fails collection. Place it in the third-party/first-party group,
    after `pytest` and before the three cuprum imports, exactly as
@@ -644,7 +644,7 @@ Concrete edits — create
    _ARMS: tuple[_ErrorArm, ...] = (_USAGE_ARM, _STATE_ARM)
    ```
 
-   For the usage arm, `build_working=True` materialises a real `working/` tree.
+   For the usage arm, `build_working=True` materializes a real `working/` tree.
    This is for **parity, not necessity** (review A2): the usage error (exit 2)
    fires at Cyclopts parse time *before* any state load, so it would fire exit 2
    even with no tree — but building the tree isolates the fault to the argv and
@@ -738,7 +738,7 @@ Concrete edits — create
    `make lint` (the PyPy-backed Pylint pass over `tests/`), not merely Ruff,
    because the Ruff config does not silence the separate Pylint pass.
 
-6. The machine-mode test, parametrised over `_ARMS` with
+6. The machine-mode test, parametrized over `_ARMS` with
    `ids=[arm.label for arm in _ARMS]`. It consumes the `run_installed` driver
    fixture (and `tmp_path`), so it carries exactly three parameters — well within
    the four-parameter gate:
@@ -766,7 +766,7 @@ Concrete edits — create
    with `len(messages) == 1` (pin the count, mirroring 6.2.8 advisory A1) and
    `messages[0].startswith(arm.message_prefix)`.
 
-7. The human-mode presence test, parametrised over `_ARMS`, likewise consuming
+7. The human-mode presence test, parametrized over `_ARMS`, likewise consuming
    the `run_installed` driver fixture (three parameters):
 
    ```python
@@ -1056,7 +1056,7 @@ Round 2 (2026-06-25), resolving the design review (round 1):
   `single_program_catalogue` and `installed_novel_state`, plus a helper
   `_run_installed_arm(arm, tmp_path, run_installed, *, human)` (three
   positional + one keyword-only = four total) that derives `run_dir` from
-  `tmp_path` internally. Both parametrised tests now consume `run_installed`
+  `tmp_path` internally. Both parametrized tests now consume `run_installed`
   (three parameters each). New Decision D-RUNNER, a new Surprises entry pinning
   the verified `max-args = 4` / R0913 keyword-only-counting fact, and Interfaces
   signatures were added. The advisory points were also folded in: A2 (the usage

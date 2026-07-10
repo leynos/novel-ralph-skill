@@ -54,7 +54,7 @@ plan never mentions them. Two concrete consequences:
    roadmap's named scope. Both are bad outcomes the plan must pre-empt.
 
 2. The Purpose/Context "single home" prose is overstated. "the inline-table
-   materialisation rule lives in exactly one place" / "exactly one function
+   materialization rule lives in exactly one place" / "exactly one function
    owns the idiom" is untrue after this task while `_set_chapters.py`
    hand-rolls it twice. The step-7.2 DoD ("exactly one canonical implementation
    survives") would be visibly violated.
@@ -98,7 +98,7 @@ checkable rather than eyeballed.
 
 Work item 5 says to add a §5.3 sentence "mirroring the §5.3 single-writer
 discipline" at "the existing §5.3 prose density." §5.3 as written is solely
-about choosing `tomlkit` over an owned serialiser; it contains no
+about choosing `tomlkit` over an owned serializer; it contains no
 single-home/single- writer sentence to mirror. The instruction is harmless (a
 sentence can still be added) but the cited precedent is inaccurate; reword to
 "add a single-home sentence to §5.3 in the style of the developers-guide

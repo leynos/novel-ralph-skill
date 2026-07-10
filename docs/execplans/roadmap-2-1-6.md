@@ -983,7 +983,7 @@ variant addition (Work item 2). If the variant addition proves entangled, revert
 that commit alone — the iterate-rewrite handles a one-key fixture set harmlessly,
 and the corpus keeps only the over-counting member.
 
-## Artifacts and notes
+## Artefacts and notes
 
 The verified under-counting tree (pinned against the live `working_corpus` code
 during planning): three `draft_words=30000` / `target_words=30000` chapters

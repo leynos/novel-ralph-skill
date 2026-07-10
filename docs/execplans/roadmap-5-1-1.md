@@ -464,7 +464,7 @@ green at HEAD:
   `tests/test_rulepack_loader.py::test_bad_pattern_names_rule` loads
   `bad-pattern.toml` (rule `id = "broken"`, `pattern = "a("`) and asserts the
   raised `RulePackError` carries `rule_id == "broken"` and a message naming
-  `broken`. The property suite generalises this across patterns and positions.
+  `broken`. The property suite generalizes this across patterns and positions.
 - The loader is a validating boundary, not a structural-only mirror of
   `parse_state`: every field is runtime-checked, and `_require_int` rejects
   `bool` (the `isinstance(True, int)` trap). The eleven missing/wrong-typed
@@ -858,7 +858,7 @@ precedent this suite must follow — see "Hypothesis configuration" below):
 - Property: for any rule whose `pattern` is drawn from a small curated set of
   *known-uncompilable* patterns (`"a("`, `"["`, `"(?P<>x)"`), `parse_rulepack`
   raises `RulePackError` whose `rule_id` equals that rule's `id`. This is the
-  "names the offending rule" invariant, generalised across patterns and
+  "names the offending rule" invariant, generalized across patterns and
   positions.
 
 **Hypothesis configuration under the project harness (B3).** `make test` runs
@@ -970,7 +970,7 @@ Run everything from the worktree root
    Expect all green. Commit.
 
 Each `make all` runs `build check-fmt lint typecheck test` (Makefile line 28).
-Do not run the sub-targets in parallel; let Cargo/SlipCover caching serialise
+Do not run the sub-targets in parallel; let Cargo/SlipCover caching serialize
 (global instructions). Commit only when every gate for that work item is green.
 
 ## Validation and acceptance
@@ -1170,7 +1170,7 @@ small fixes, doc gaps, and coverage only.
   `tomllib`-shaped mapping (arrays `list`, tables `dict`), or loosen the guards
   to abstract shapes (`cabc.Sequence` not `str`/`bytes`; `cabc.Mapping`); then
   add the matching purity test — a `MappingProxyType` pack that loads, or a
-  recognisable error on a non-`list` `rule` value — so the contract is asserted
+  recognizable error on a non-`list` `rule` value — so the contract is asserted
   rather than implied. Gate with `pyright`/Ruff/`pytest` via `make all`.
 - [x] 5.1.1.5 — Drop the redundant `str(...)` wrappers in the `RuleBasis`
   diagnostic builders (from audit:5.1.1, low). `RuleBasis` is a `StrEnum`, so
@@ -1183,4 +1183,4 @@ small fixes, doc gaps, and coverage only.
   400-line file cap. Extract the scalar-coercion helpers into a
   `rulepack/_coerce.py` leaf module (no new public surface; `parse.py` re-imports
   what it needs) so the cap breach is recorded as actionable work and resolved
-  rather than normalised. Gate with `make all`.
+  rather than normalized. Gate with `make all`.

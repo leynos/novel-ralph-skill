@@ -65,7 +65,7 @@
   - New functionality or behaviour changes are fully validated by relevant unit
     and behavioural tests.
   - Bug fixes include a failing test before the fix and a passing test
-    afterward.
+    afterwards.
   - Code passes lint checks.
   - Formatting is correct and validated.
 - **For Python files:**
@@ -98,7 +98,7 @@
     - **Mermaid diagrams:** Passes validation using nixie (`make nixie`).
 - **Committing:**
   - Only changes that meet all quality gates should be committed.
-  - Write clear, descriptive commit messages that summarise the change,
+  - Write clear, descriptive commit messages that summarize the change,
     following:
     - **Imperative mood** in the subject line (for example, "Fix bug", "Add feature").
     - **Subject line length:** around 50 characters or fewer.
@@ -167,6 +167,10 @@
 ## Markdown guidance
 
 - Validate Markdown files using `make markdownlint`.
+- Run `make spelling` to refresh the shared en-GB-oxendict base, regenerate
+  `typos.toml`, and check maintained Markdown with the pinned `typos` release.
+  Put narrow repository-only exceptions in `typos.local.toml`; never edit the
+  generated configuration by hand.
 - Run `make fmt` after documentation changes to format Markdown and fix table
   markup.
 - Validate Mermaid diagrams in Markdown by running `make nixie`.

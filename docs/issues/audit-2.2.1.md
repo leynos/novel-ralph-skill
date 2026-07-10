@@ -92,11 +92,11 @@ but the in-directory temporary file is always prefixed `.state.toml.`
 write any file other than `state.toml` (the helper's signature invites that),
 the leaked-temp-file recognisability the prefix is meant to provide (Risk
 "atomic temp file leaks") names the wrong file, and a directory holding two such
-writes would collide on the same recognisable prefix. The prefix couples a
+writes would collide on the same recognizable prefix. The prefix couples a
 generic mechanism to one specific filename.
 
 **Proposed fix:** derive the prefix from the target, for example
-`prefix=f".{path.name}."`, so the recognisable temp name always tracks the file
+`prefix=f".{path.name}."`, so the recognizable temp name always tracks the file
 being written; keep the trailing `.tmp` suffix. Update the docstring note and
 the leaked-temp assertion in
 [`test_atomic_write_leaves_prior_file_and_no_temp_on_failure`](../../tests/test_state_document.py)
@@ -123,7 +123,7 @@ that raises) is tested thoroughly
 which makes the missing parent case the one untested edge of the writer.
 
 **Proposed fix:** add a small unit test asserting the behaviour when
-`path.parent` is absent (either that it raises a recognisable error, or — if the
+`path.parent` is absent (either that it raises a recognizable error, or — if the
 slice prefers — that the helper creates the parent), and align the docstring
 with whichever behaviour is chosen. This documents the precondition at the seam
 where the §5.2 validator and the CLI (tasks 2.1.2, 2.2.2) will rely on it.

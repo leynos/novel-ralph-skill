@@ -123,7 +123,7 @@ def _check_gate_ratio_consistent(spec: WorkingTreeSpec) -> bool:
   mid-property — a crash, not a verdict — and the property suite fails
   non-deterministically.
 - `validate_state` is pinned as a stable public surface that task 2.1.3
-  cross-checks against materialised on-disk states. A `target == 0` state would
+  cross-checks against materialized on-disk states. A `target == 0` state would
   crash the validator instead of yielding a verdict, whereas the oracle returns
   "gates consistent". The two then *disagree by exception*, which is exactly the
   silent validator-vs-oracle drift the round-1 pre-mortem warned against, one
@@ -182,7 +182,7 @@ breaking another invariant), and the Hypothesis suite flakes with a
 `ZeroDivisionError` from the gate predicate on roughly one shrink in N. Under
 pressure they `assume(target > 0)` inside the strategy (masking the gap) rather
 than guarding the validator, so `validate_state` still crashes on a `target == 0`
-state. Task 2.1.3 then runs the validator against a materialised tree whose
+state. Task 2.1.3 then runs the validator against a materialized tree whose
 `target` is zero and the crash resurfaces as an oracle-vs-validator divergence
 two tasks deep — the same drift class the round-1 pre-mortem flagged for B1.
 Prevention: resolve B7 by mirroring the oracle's `target <= 0` guard in the

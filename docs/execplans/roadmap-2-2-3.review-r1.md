@@ -140,7 +140,7 @@ documentation/gate inaccuracy remain. No structural rework is required.
 lazily by the first drafting turn.** Phase 8 step (a) already writes
 `chapter-NN/scenes.md`, which creates the directory. The manifest would then be
 populated at end of Phase 7, and `check` would exit 4 until drafting of chapter
-01 begins — which is *arguably the honest state* (no chapter is materialised
+01 begins — which is *arguably the honest state* (no chapter is materialized
 yet).
 
 Trade-off: this alternative makes `set-chapters` a pure state write (simpler,

@@ -17,7 +17,7 @@ chapter target by hand, repeatedly — and as a result the 80% knitting gate
 could be noticed late, at 85% (design §4.5).
 
 After this change a novelist (or the harness) can run `wordcount` against a
-materialised `working/` tree and observe, in the shared JSON envelope, a
+materialized `working/` tree and observe, in the shared JSON envelope, a
 read-only report: per chapter and cumulatively, the words drafted, the
 percentage of the novel target, the distance in words to the next knitting
 gate, the delta against the chapter target, and which of the 30%, 50%, and 80%
@@ -492,7 +492,7 @@ needs to know the following files and concepts.
   `target_words`, per-chapter `draft_words`, and the `done_30/50/80` gate
   booleans; the builder renders it to a `tmp_path`. The `baseline_tree` fixture
   (used by `tests/test_desloppify_snapshots.py:94` and
-  `tests/test_novel_state_check.py:74`) materialises a drafting-era tree. A
+  `tests/test_novel_state_check.py:74`) materializes a drafting-era tree. A
   "manuscript exactly on a gate" is built by choosing `target_words` and
   per-chapter `draft_words` so the drafted ratio is exactly `0.30`, `0.50`, or
   `0.80`.
@@ -564,7 +564,7 @@ Tests this work item adds:
 Validation: from the worktree root, `make all`. Expect `pytest` to report the
 new contract tests passing and the suite green. (No Markdown changed.)
 
-Acceptance: running the wired `wordcount` against a materialised tree exits `0`
+Acceptance: running the wired `wordcount` against a materialized tree exits `0`
 and emits a JSON envelope with `command: "wordcount"`; the four fault routes
 are each distinguishable by exit code alone.
 
@@ -741,7 +741,7 @@ Steps:
    install-and-run guard over the whole command surface — D-TRIPWIRE.)
 
 4. Add `tests/test_wordcount_e2e.py` modelled on `tests/test_desloppify_e2e.py`:
-   build a wheel, install into a throwaway venv, materialise a `working/` tree
+   build a wheel, install into a throwaway venv, materialize a `working/` tree
    drafted to a known ratio, and run the installed `wordcount` **by absolute
    path** through the `single_program_catalogue` fixture (cuprum 0.1.0
    allowlists the exact absolute-path `Program` and runs it via asyncio
@@ -845,10 +845,10 @@ Quality method (how we check): `make all` is the aggregate gate (it runs
 `build check-fmt lint typecheck test`); for the Markdown-touching work item
 also run `make markdownlint` and `make nixie`.
 
-Behavioural acceptance (a human can verify): materialise a `working/` tree
+Behavioural acceptance (a human can verify): materialize a `working/` tree
 drafted to exactly 80% of an 80 000-word target, run the installed `wordcount`,
 and observe `gate_triggered_80: true`, a non-negative `next_gate_distance`, the
-per-chapter table summing to `current`, and exit `0`. Materialise a tree
+per-chapter table summing to `current`, and exit `0`. Materialize a tree
 drafted to exactly 50% and observe `gate_triggered_50: true`,
 `gate_triggered_80: false`. Remove `working/` and observe exit `3`.
 

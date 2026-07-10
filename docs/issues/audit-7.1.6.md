@@ -6,7 +6,7 @@ pinned the §7.1 convention once: the authoritative module owns the canonical
 projection docstring, registered consumers self-project the defining-module path,
 and a reusable in-process drift-guard
 (`tests/test_projection_docstring_drift_guard.py`) reds when a consumer drops the
-canonical path or carries a bare re-export tail. It also normalised the
+canonical path or carries a bare re-export tail. It also normalized the
 compile-projection and reconciliation-payload cross-references in `_compile.py`,
 `novel_state.py`, and `compile_model.py`, and documented the convention in the
 developers' guide.
@@ -193,4 +193,4 @@ guide enumerates) and a test asserting every entry appears as a `_REGISTRY` row'
 `canonical_path`. This makes "forgot to register the new row" a red test rather
 than a silent gap, completing the single-source-of-truth invariant the convention
 claims. If a lighter touch is preferred, at minimum add a comment in `_REGISTRY`
-pointing at the developers'-guide list so the two stay manually synchronised.
+pointing at the developers'-guide list so the two stay manually synchronized.

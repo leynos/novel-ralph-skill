@@ -199,7 +199,7 @@ finding". This is the lighter, forward-looking cousin of audit-5.1.1 Finding 1's
 **Proposed fix:** consider giving `RuleFinding` (and `LineHit`) a small
 `as_payload()` / `to_mapping()` method, or a sibling pure projector in the
 `rulepack` package, so the "JSON shape of a finding" has one home next to the
-shape it serialises; the `commands` report module then composes those payloads
+shape it serializes; the `commands` report module then composes those payloads
 into the envelope and owns only the message prose and the success/finding split.
 This is a judgement call, not a defect — flag it for the §7.1 multi-pack work
 rather than refactoring pre-emptively. Gated by Ruff, `pyright`, and `pytest`.
