@@ -726,7 +726,7 @@ single-file commit; no state is shared between items. The conversion is a pure
 literal flip with a noun-form preserve list, so re-applying it to an
 already-swept file is a no-op (the surface grep returns empty).
 
-## Artifacts and notes
+## Artefacts and notes
 
 The authoritative convert/preserve enumeration (from the planning run, to be
 re-confirmed live in Work item 1):
@@ -763,7 +763,7 @@ written into the three references. No new dependency is introduced.
   line carrying BOTH `novel-state set-chapters` AND `novel-compile`. The fix was
   applied in all three places the enumeration appears — the Purpose paragraph,
   Work item 1's expected output (now with a live `grep -oE 'novel-state' … | wc
-  -l` → 15 check), and the Artifacts enumeration — and in Risk 3's "15
+  -l` → 15 check), and the Artefacts enumeration — and in Risk 3's "15
   occurrences" phrasing. This resolves design-review blocking points B1
   (off-by-two count) and B2 (line-239 under-count) so Work item 1's contract and
   Work item 5's count audit reconcile against the live file. No edit

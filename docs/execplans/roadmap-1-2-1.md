@@ -340,7 +340,7 @@ escalation, not a workaround.
     For the unknown-option path, either assert the same `SystemExit(1)` with
     Cyclopts' default `exit_on_error=True` (the e2e and PATH behaviour), or call
     with `exit_on_error=False` inside `pytest.raises(cyclopts.CycloptsError)` to
-    assert the parser rejects it. The plan standardises on the `SystemExit` form
+    assert the parser rejects it. The plan standardizes on the `SystemExit` form
     so the in-process assertions match the real PATH exit codes exactly.
   - Date/Author: 2026-06-21, planning agent.
 - Decision: command module path is `novel_ralph_skill/commands/stub.py` with a
@@ -939,7 +939,7 @@ nixie` when a diagram is touched) after the documentation work item.
 - No step is destructive to tracked files beyond the intended edits to
   `pyproject.toml`, the new modules, the new tests, and the two docs.
 
-## Artifacts and notes
+## Artefacts and notes
 
 - The five command names, verbatim, from ADR 005: `novel-state`, `novel-done`,
   `novel-compile`, `desloppify`, `wordcount`.

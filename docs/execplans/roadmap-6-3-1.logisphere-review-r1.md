@@ -50,7 +50,7 @@ items should be folded in by the planner before or during implementation.
 
 D2 specifies: if `path.parent` (working/) OR `state.toml` does not exist, emit
 `no novel working/ found in {cwd}`. But a present-but-empty `working/`
-(working/ exists, `state.toml` absent — a partially-initialised tree) satisfies
+(working/ exists, `state.toml` absent — a partially-initialized tree) satisfies
 the OR via the second disjunct, so the agent is told `working/` is absent when
 it is not. The remedy (`novel state init`) is still correct (`init` creates
 `state.toml` when only it is missing; it refuses only when `state.toml` already
@@ -108,7 +108,7 @@ the real fault may be "permission denied".
 
 It is six months on; a dogfooding agent silently mis-recovered. Working back:
 
-1. Most likely failure: a partially-initialised `working/` (state.toml deleted,
+1. Most likely failure: a partially-initialized `working/` (state.toml deleted,
    directory kept) printed "no novel working/ found", the agent ran from the
    right root, saw the message blame the directory, and concluded its cwd was
    wrong — chasing the wrong remedy. Mitigation: Advisory 1.

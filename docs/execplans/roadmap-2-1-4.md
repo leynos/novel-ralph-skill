@@ -424,7 +424,7 @@ path within the worktree.
     (lines 56-96) is the per-chapter on-disk shape; `WorkingTreeSpec`
     (lines 99-169) is the whole tree, with the cursor fields `current_chapter`,
     `current_scene`, `current_beat` (lines 165-167).
-  - `_builder.py` — `build_working_tree` (line 174) materialises a spec to disk.
+  - `_builder.py` — `build_working_tree` (line 174) materializes a spec to disk.
     `_write_chapter` (line 157) writes one chapter directory (currently
     `draft.md` and `done.flag`).
   - `_library.py` — `COHERENT_BASELINE` (line 118) is the canonical mid-drafting
@@ -443,7 +443,7 @@ path within the worktree.
     non-negativity). `_SPEC_CHECKS` (line 220) lists the spec-only predicates;
     the two disk-evidence predicates (`_check_by_chapter_sum`,
     `_check_compiled_matches_drafts`) are applied separately inside `corpus_check`
-    (lines 254-256) because they read the materialised tree.
+    (lines 254-256) because they read the materialized tree.
 
 - `tests/corpus_fixtures.py` exposes every corpus datum as a pytest fixture
   (imported into `tests/conftest.py`). `incoherent_variant_names`,
@@ -494,7 +494,7 @@ Terms of art, defined:
 - **Owned (pure-state) invariant**: one the §5.2 validator can decide from a
   parsed `State` alone, with no disk read. The eight in
   `PURE_STATE_INVARIANT_NAMES`.
-- **Disk-evidence invariant**: one that needs the materialised `working/` tree
+- **Disk-evidence invariant**: one that needs the materialized `working/` tree
   (e.g. which `draft.md` files exist). These are deferred to reconciliation task
   2.3.2 for the validator; the corpus oracle can model them because it has the
   built tree path.
@@ -689,7 +689,7 @@ Actions:
    unless: `spec.current_scene > 0` while the current chapter's `scenes.md` is
    absent, or `spec.current_beat > 0` while the current chapter's `beats.md` is
    absent. **Load-bearing path (condition C1):** the `working_dir` argument is the
-   materialised `working/` directory (the return value of `build_working_tree`,
+   materialized `working/` directory (the return value of `build_working_tree`,
    `_builder.py:190,204`), and the builder writes chapter directories under
    `working_dir / "manuscript" / chapter_dir_name(n)/` (`_builder.py:191,196-197`;
    the sibling disk-evidence predicate `_check_compiled_matches_drafts` likewise
@@ -1015,7 +1015,7 @@ doc changes) from the worktree root; compare against the transcripts above.
 ## Idempotence and recovery
 
 - Every step is re-runnable. The builder creates directories with
-  `exist_ok=True` and writes files by overwrite, so re-materialising a fixture is
+  `exist_ok=True` and writes files by overwrite, so re-materializing a fixture is
   safe.
 - If a focused suite fails after an edit, re-read the failing assertion and the
   variant it names; the variant-isolation discipline means a single name in the
@@ -1033,7 +1033,7 @@ doc changes) from the worktree root; compare against the transcripts above.
 - No step is destructive; no file in `working/` corpora is deleted (the corpus
   builds under `tmp_path`).
 
-## Artifacts and notes
+## Artefacts and notes
 
 Key load-bearing facts pinned during research:
 

@@ -42,7 +42,7 @@ without relaxing any design constraint.
   `/data/leynos/Projects/cuprum/cuprum/catalogue.py`: `ProgramCatalogue` is
   `projects=`-constructed (line 62) with an `allowlist` property (line 70),
   matching the plan's description. cuprum appears only in the e2e fixtures,
-  which are parametrised off `SUBCOMMAND_NAMES` and never touch
+  which are parametrized off `SUBCOMMAND_NAMES` and never touch
   `build_multiplexer` internals — not load-bearing for this refactor.
 - **Line references.** developers-guide line 420 ("The spaced subcommand names
   live once, as data, in a single registry"); the markdownlint/nixie gates

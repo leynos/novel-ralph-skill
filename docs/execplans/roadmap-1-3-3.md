@@ -57,7 +57,7 @@ escalation, not a workaround.
    `novel_ralph_skill.contract.exit_codes` — none of which touch `commands`. Do
    not introduce a `commands` import into `contract` to make this work.
 2. The splitter's *public behaviour* is frozen and must not change: it
-   recognises a `--human` boolean token in any position, removes *every*
+   recognizes a `--human` boolean token in any position, removes *every*
    occurrence, and returns `(human: bool, residual: list[str])` with the
    remaining tokens in original order, parsing no working-directory token
    (design line 151 fixes `working/` as a constant, not a flag; ADR-003 §3.1).
@@ -722,7 +722,7 @@ test lacks a docstring (add one). To roll back entirely, `git checkout -- \
 novel_ralph_skill/ tests/ docs/` from the worktree restores the pre-change tree;
 no external resource is touched.
 
-## Artifacts and notes
+## Artefacts and notes
 
 The seam decision rests on three verified facts from the current tree:
 

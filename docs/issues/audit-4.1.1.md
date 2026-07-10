@@ -144,7 +144,7 @@ unstated, so the file reads as two inconsistent styles for the same job.
 
 **Proposed fix:** Add a one-line comment at the first deferred import explaining
 the laziness intent (mirroring the existing "imported inside the builder … to
-avoid a circular import" comment in `novel_state.build_app`), or normalise all
+avoid a circular import" comment in `novel_state.build_app`), or normalize all
 five entry points to one import style. Either makes the choice deliberate rather
 than accidental.
 
@@ -165,7 +165,7 @@ predicate genuinely needs only the per-chapter token count, and it must remain
 total over a malformed tree, so this is a soft overlap rather than a clean
 extraction — but three sites now encode the same chapter-draft read boundary
 with subtly different fault handling (this one treats absent as `0` inline; the
-compile/recount rule centralises it).
+compile/recount rule centralizes it).
 
 **Proposed fix:** Consider routing the done-flag emptiness check through the same
 per-chapter draft reader the compile and recount paths use (e.g. a shared

@@ -149,7 +149,7 @@ fix.
 
 The two variant-key string literals (`by-chapter-override-over-counts-drafts`,
 `by-chapter-override-under-counts-drafts`) are restated as constants or dict keys
-in three modules. A rename of a key in `_variants.py` silently desynchronises the
+in three modules. A rename of a key in `_variants.py` silently desynchronizes the
 two test modules — the consumer test would skip the renamed variant (its
 `assert variant_name in _DIVERGENT_EXPECTATIONS` guard would now *catch* it, which
 is the saving grace), but the self-test's literals would simply stop matching.

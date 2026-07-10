@@ -141,7 +141,7 @@ bound here and the `range(3)` in the integration test must move in lockstep.
 - **Proposed fix:** Once Findings 1-3 land a shared driver, crash fixture, and
   corpus helpers, the residual difference between the two tests is just the
   crash entry path (command vs body). Add a cross-reference comment in each test
-  naming its twin and the one axis it varies, and consider parametrising the
+  naming its twin and the one axis it varies, and consider parametrizing the
   shared recovery assertions over the two entry paths so the convergence bound
   and target live in one place. No behavioural change.
 

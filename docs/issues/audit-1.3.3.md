@@ -20,7 +20,7 @@ splitter no longer lives in a command module, every consumer imports it from
 the contract front door, the package `__all__` advertises it, and a structural
 tripwire pins both the re-export identity and the absence of the symbol from the
 old command module. The move is clean and introduces no behavioural drift. The
-findings below are test-organisation, ergonomics, citation-consistency, and
+findings below are test-organization, ergonomics, citation-consistency, and
 documentation tidy-ups; none is a blocking defect and none weakens the contract.
 
 This audit checks the new surface against the design's authoritative artefacts
@@ -65,7 +65,7 @@ and contract-owned, yet the proof of its parsing behaviour lives in a file about
 one command. A future reader auditing the contract seam's behaviour will not find
 its tests beside the seam; a reader deleting or refactoring the `novel-state`
 test module risks orphaning the only argv-shape coverage the splitter has. This
-is the test-organisation mirror of the very mis-attribution the slice corrected
+is the test-organization mirror of the very mis-attribution the slice corrected
 in the production code.
 
 - **Proposed fix:** Move the `test_parse_global_flags` parametrized case (and its
@@ -94,7 +94,7 @@ input-parameter is conventionally typed at its widest tolerated abstraction
 (accept an interface, return a concrete type); `parse_global_flags` reads `argv`
 only by iteration and `len`, so it has no reason to require a `list`. The
 mismatch is a small ergonomic wart on a shared seam: a caller holding a
-`Sequence[str]` (or a tuple) can pass it to `run` but must first materialise a
+`Sequence[str]` (or a tuple) can pass it to `run` but must first materialize a
 `list` for `parse_global_flags`, even though both functions are part of the same
 pre-parse-then-run idiom the entry point follows.
 

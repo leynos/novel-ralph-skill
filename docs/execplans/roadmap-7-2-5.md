@@ -88,14 +88,14 @@ workaround.
   `TYPE_CHECKING` — exactly as the other `loaderkit` modules do (design §6,
   §6.3; `docs/adr-003-shared-interface-contract.md`). It may depend only on
   `novel_ralph_skill.contract.errors` and the standard library. The
-  parametrised `loaderkit` import-direction guard (added in roadmap 7.2.3.1)
+  parametrized `loaderkit` import-direction guard (added in roadmap 7.2.3.1)
   must continue to pass with the new module in scope.
 - **100% docstring coverage (`interrogate fail-under = 100`).** Every public
   module, class, function, `__init__`, magic method, nested function, and
   private symbol the factory introduces must carry a docstring. `interrogate`
   is AST-based: it reads source, it does not import. Therefore the four concrete
   error classes **must be defined with literal `class` statements carrying
-  literal docstrings** in `errors.py`; they must not be synthesised at runtime
+  literal docstrings** in `errors.py`; they must not be synthesized at runtime
   with `type(...)`, which `interrogate` cannot see and which would also break
   the Sphinx `:class:` cross-references the `__init__` and test docstrings rely
   on. (See Decision D-STATIC-CLASSES.)
@@ -135,7 +135,7 @@ workaround.
   Likelihood: high (it is the obvious naive reading of "factory").
   Mitigation: Decision D-STATIC-CLASSES mandates literal `class` statements
   with literal docstrings; the shared shape is a *base mixin* the four
-  classes subclass, not a synthesised product. Work item 1's test imports
+  classes subclass, not a synthesized product. Work item 1's test imports
   each concrete class by its real name and asserts `__name__`, base, and
   docstring presence.
 - Risk: the id keyword differs per package (`rule_id` vs `device_id`), so a
@@ -166,7 +166,7 @@ workaround.
   cycle.
   Severity: low.
   Likelihood: low.
-  Mitigation: the roadmap-7.2.3.1 parametrised import-direction guard walks
+  Mitigation: the roadmap-7.2.3.1 parametrized import-direction guard walks
   every `loaderkit` module; confirm it now covers `errors.py` (it globs the
   package, so it should pick the new module up automatically) and add an
   explicit assertion in the new test if it does not.
@@ -201,13 +201,13 @@ workaround.
 - Decision (D-STATIC-CLASSES): the four concrete error classes stay literal
   `class` statements with literal docstrings in their `errors.py` modules;
   the shared factory is a **base mixin** (plus a helper for the file-error
-  class) they subclass, not a runtime `type()` synthesiser.
+  class) they subclass, not a runtime `type()` synthesizer.
   Rationale: `interrogate fail-under = 100` is AST-based and cannot see a
-  runtime-synthesised class's docstrings; the Sphinx `:class:` cross-
+  runtime-synthesized class's docstrings; the Sphinx `:class:` cross-
   references in `tests/*` and the `__init__` docstrings target real,
   importable, named classes; and `isinstance`/`except`/`issubclass` readers
   need the names visible at definition sites. This mirrors how 7.2.2/7.2.3
-  realised "parameterised on an error factory" — the shared *body* moves to
+  realized "parameterized on an error factory" — the shared *body* moves to
   `loaderkit`, the per-package *binding* stays thin and named at the leaf.
   Date/Author: 2026-06-27, planning agent.
 - Decision (D-BASE-MIXIN): the shared shape is delivered as
@@ -236,7 +236,7 @@ workaround.
   typecheck — all already gated by `make all` and verified by running it.
   The `cuprum` source pinning and firecrawl library research the workflow
   asks for are therefore not applicable; the load-bearing claim
-  ("`interrogate` is AST-based, so synthesised classes fail the 100% gate")
+  ("`interrogate` is AST-based, so synthesized classes fail the 100% gate")
   is pinned by Work item 1's `make lint` run, not asserted from memory.
   Date/Author: 2026-06-27, planning agent.
 
@@ -340,7 +340,7 @@ established factory-binding style and the `file_error=` callable contract);
 `tests/test_loaderkit_coerce.py` (the sentinel-bundle test idiom to copy);
 `tests/test_rulepack_loader.py` and a ledger error test (the `.rule_id` /
 `.device_id` assertions you must not break). Confirm the import-direction guard
-file (search `tests/` for `test_loaderkit*import*` or the parametrised guard
+file (search `tests/` for `test_loaderkit*import*` or the parametrized guard
 from roadmap 7.2.3.1) globs the whole `loaderkit` package so it will include
 `errors.py` automatically. Go/no-go: if the base `EnvelopeMessagesError.__init__`
 signature differs from `(*messages)`, re-derive the base-mixin shape before
@@ -439,7 +439,7 @@ Cited: design §6.3; `docs/adr-003-shared-interface-contract.md`;
   `PackFileError` from `loaderkit.errors` and add them to `__all__`
   (alphabetically, matching the existing list style), so the shared shape is a
   first-class `loaderkit` primitive beside `CoercionErrors`.
-- Confirm the roadmap-7.2.3.1 parametrised import-direction guard now exercises
+- Confirm the roadmap-7.2.3.1 parametrized import-direction guard now exercises
   `loaderkit/errors.py`. If it discovers modules by walking the package it will
   already; if it enumerates a fixed list, add `errors` to it. Either way, add an
   explicit assertion in `tests/test_loaderkit_errors.py` that
@@ -549,7 +549,7 @@ formatter churn, name the stash `df12-stash v1 task=roadmap-7-2-5
 kind=discard reason="formatter churn"`. No destructive or irreversible step is
 involved.
 
-## Artifacts and notes
+## Artefacts and notes
 
 The two near-copy modules being consolidated:
 

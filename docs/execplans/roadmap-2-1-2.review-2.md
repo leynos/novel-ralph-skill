@@ -57,7 +57,7 @@ the task's standing rule, an uncited memory-based claim about a locked contract
 surface is a blocking defect: the plan must either cite the design/ADR text that
 sanctions a `--working-dir` CLI flag (none exists) or drop it.
 
-It is also **unnecessary**. The established corpus pattern materialises a tree
+It is also **unnecessary**. The established corpus pattern materializes a tree
 under `tmp_path` and returns the `working/` path (`build_tree`, `baseline_tree`,
 `incoherent_tree` all build `dest/working/`). The behavioural suite can point
 `check` at a fixture by `monkeypatch.chdir(dest)` and relying on the default
@@ -120,7 +120,7 @@ this is directionally right but materially incomplete:
   `@pytest.mark.timeout(180)` e2e governed by ADR-006. The plan's one-line
   "include at least one subprocess invocation through the installed
   console-script" does not specify that the new `novel-state` e2e needs an
-  on-disk `working/` tree materialised in the subprocess cwd, nor that the
+  on-disk `working/` tree materialized in the subprocess cwd, nor that the
   global `timeout = 30` (pyproject line 325) applies unless overridden, nor how
   the cuprum `single_program_catalogue` invocation sets the subprocess cwd to a
   directory containing `working/`.
@@ -128,7 +128,7 @@ this is directionally right but materially incomplete:
 Resolution required: enumerate the exact assertions that break and their new
 exit codes (`test_entry_point_callable_exits_two` and the e2e both move to `3`
 for `novel-state` unless a `working/` tree is present), and specify how the new
-`novel-state` e2e materialises a coherent `working/` tree in the subprocess cwd
+`novel-state` e2e materializes a coherent `working/` tree in the subprocess cwd
 and which timeout marker it carries. Otherwise WI2 cannot be implemented to
 green without on-the-fly redesign.
 
@@ -205,7 +205,7 @@ Drop `--working-dir` entirely and let `novel-state check` operate on
 `working_dir="working"` field implies. The entry point pre-parses only the
 ADR-mandated `--human` boolean; the `check` body forms `Path("working") /
 "state.toml"`. Behavioural and e2e tests select a fixture by `chdir`-ing into
-the materialised parent directory (the corpus fixtures already return
+the materialized parent directory (the corpus fixtures already return
 `dest/working/`). This trades the plan's "explicit working-dir override" for
 strict design conformance, a one-flag pre-parse, zero new cross-command CLI
 surface, and a single source of truth for the working directory — and it removes

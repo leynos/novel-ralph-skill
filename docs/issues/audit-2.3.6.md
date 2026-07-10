@@ -101,7 +101,7 @@ the two never double-fire". But the deferral is enforced by a hand-copied
 `manifest != _on_disk_chapter_numbers(...)` expression rather than by reusing the
 bijection predicate, so a future change to what "bijection" means (for example
 the contiguity clause `_check_manifest_disk_bijection` adds at line 121, which
-the cover guard does **not** replicate) silently desynchronises the two: the
+the cover guard does **not** replicate) silently desynchronizes the two: the
 cover guard tests only set-equality, not contiguity, so a non-contiguous manifest
 that is nonetheless set-equal to disk would pass the cover guard while
 `manifest-disk-bijection` fires — re-opening the double-fire the deferral exists
@@ -134,7 +134,7 @@ tests `suffix.isdigit()`; the oracle computes `suffix` first and tests
 `entry.is_dir() and suffix.isdigit()` in one boolean. The two are equivalent for
 the inputs the corpus builds, but a deliberate twin pair is supposed to be
 trivially diffable so a reviewer can confirm by eye they encode the same rule;
-the reordered guards force a reviewer to mentally normalise the control flow
+the reordered guards force a reviewer to mentally normalize the control flow
 before trusting the equivalence, and there is no twin-equality test for this
 helper pair the way there is for the word-count predicates (the helper is
 exercised only transitively through the predicates that call it).

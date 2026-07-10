@@ -24,8 +24,8 @@ against the real source is accurate. No new blocking defect was found.
   signature change ripples exactly where the plan says and nowhere else. The
   function is not in `state/__init__.__all__` (confirmed `done_predicate` is not
   re-exported), so there is no public-surface ripple.
-- **`__all__` alphabetisation is achievable.** `state/__init__.py` orders
-  `__all__` as UPPER_CASE constants, then capitalised classes, then lowercase
+- **`__all__` alphabetization is achievable.** `state/__init__.py` orders
+  `__all__` as UPPER_CASE constants, then capitalized classes, then lowercase
   functions (`:90-146`). `CompiledComparison` inserts among the classes (after
   `ChapterEntry`, before `CriticState`); `compiled_matches_drafts` inserts among
   the functions (after `clear_pending_turn`, before `concatenate_drafts`). The
@@ -45,7 +45,7 @@ against the real source is accurate. No new blocking defect was found.
   behaviour-preservation cross-check, as claimed.
 - **Dev-guide edit targets exist.** The compile-model description (`:316-326`)
   and the existence-only paragraph (`:572-579`) are real and accurately
-  summarised by WI4.
+  summarized by WI4.
 - **D-NO-CUPRUM is sound.** The diff touches only internal pure-Python modules
   (`compile_model.py`, `disk_evidence.py`, `done_predicate.py`,
   `state/__init__.py`) and pytest suites. There is no subprocess, allowlist,
@@ -109,7 +109,7 @@ against the real source is accurate. No new blocking defect was found.
   stale.
 - A4 — When WI3 keeps the name `compile_consistent_exists` but the function now
   reads the comparison rather than testing existence, the name is mildly
-  misleading. The plan's default (keep the name to minimise the diff and keep
+  misleading. The plan's default (keep the name to minimize the diff and keep
   the residual-window docstring honest) is defensible and explicitly recorded as
   a Decision-Log choice; calling it out so the 3.1.2 implementer, who will flip
   the projection, is not surprised by an `_exists`-suffixed function that no

@@ -60,7 +60,7 @@ Hard invariants that must hold throughout implementation.
 - **Disk is authoritative; never the reverse** (design §5.4). The repair may
   recreate only artefacts that are deterministically recomputable from disk
   without an agent judgement. An empty `log.md` qualifies; nothing else is
-  synthesised.
+  synthesized.
 - **Single sanctioned writers.** `state.toml` is written only through
   `write_document_atomically` (ADR-002; design §5.3). `log.md` is written by the
   existing append/create helpers in `_reconcile.py` and `novel_state.py`; the
@@ -87,7 +87,7 @@ Hard invariants that must hold throughout implementation.
   (`tests/test_working_corpus.py` line 471) asserts
   `{incoherent_tree(name)[2] for name in incoherent_variant_names} ==
   set(corpus_invariant_names)`: every name added to `CORPUS_INVARIANT_NAMES` must
-  be the *target* of at least one materialisable incoherent variant. Adding
+  be the *target* of at least one materializable incoherent variant. Adding
   `log-present` to the oracle vocabulary therefore *requires* a registered
   partial-init variant whose built tree has `log.md` absent (see Work item 2,
   the post-build mutation mechanism). A documented carve-out is the escalation
@@ -110,7 +110,7 @@ Hard invariants that must hold throughout implementation.
 - **"Disk-reading" vs "disk-evidence" are two different sets — do not conflate
   them.** This plan distinguishes (a) the *physically-disk-reading* oracle
   predicates — the six predicates that take a `working_dir` parameter and read
-  the materialised tree, wired into `corpus_check` at
+  the materialized tree, wired into `corpus_check` at
   `tests/working_corpus/_oracle.py` lines 393-398:
   `_check_by_chapter_sum` (line 111, reads `state.toml`),
   `_check_manifest_disk_bijection` (line 170),
@@ -172,11 +172,11 @@ Hard invariants that must hold throughout implementation.
   (REFUSE class) or a pending-turn still dominates in `derive_reconciliation`.
   Add a property/parametrised test asserting it never co-fires with a REFUSE
   member on the same tree.
-- Risk: the corpus builder always materialises `log.md`
+- Risk: the corpus builder always materializes `log.md`
   (`tests/working_corpus/_builder.py` line 201), so a partial-init tree cannot be
   a pure spec variant, *and* `test_every_invariant_name_is_exercised`
   (`tests/test_working_corpus.py` line 471) forces every
-  `CORPUS_INVARIANT_NAMES` member to be the target of a materialisable variant —
+  `CORPUS_INVARIANT_NAMES` member to be the target of a materializable variant —
   so `log-present` cannot simply be added to the oracle vocabulary. Severity:
   high (a verbatim Work item 2 would fail `make all` with
   `missing: {'log-present'}`). Likelihood: high (confirmed by reading the test
@@ -309,12 +309,12 @@ Hard invariants that must hold throughout implementation.
 - [x] Work item 4: behavioural (`pytest-bdd`) + e2e coverage of the partial-init
   check/reconcile round-trip, plus a targeted `log-present` twin-agreement
   assertion over the log-absent tree. Done: added the `partial-init` case to the
-  parametrised `test_disk_evidence_tree_exits_four_with_reconciliation` (check
+  parametrized `test_disk_evidence_tree_exits_four_with_reconciliation` (check
   exit 4, `log-present`, `recreate-log` payload);
   `test_log_present_twin_agreement_over_partial_init_tree` (production vs oracle
   agreement on the log-absent tree the spec-built loop cannot reach); a new
   `reconcile.feature` partial-init scenario plus its steps; an entry-point and a
-  slow installed e2e in `test_reconcile_e2e.py`; and a parametrised precedence
+  slow installed e2e in `test_reconcile_e2e.py`; and a parametrized precedence
   property (`test_log_present_never_overrides_higher_precedence`) asserting
   `log-present` never overrides a higher-precedence action — the finite corpus is
   the right adversary (`python-verification`), so no Hypothesis run was needed.
@@ -336,9 +336,9 @@ Hard invariants that must hold throughout implementation.
 
 ## Surprises & discoveries
 
-- Observation: roadmap-2-2-2 D3 prose says the realisable partial-init is "log
+- Observation: roadmap-2-2-2 D3 prose says the realizable partial-init is "log
   present, state absent", but `_init` writes state.toml first then log.md, so the
-  realisable case is the inverse — state present, log absent — exactly what
+  realizable case is the inverse — state present, log absent — exactly what
   roadmap 2.3.4 targets. Evidence:
   `novel_ralph_skill/commands/novel_state.py` lines 288 and 291; roadmap.md lines
   700-704. Impact: confirms the detection condition is "state.toml present and
@@ -367,7 +367,7 @@ Hard invariants that must hold throughout implementation.
   mutation registry**, not a carve-out. Rationale:
   `test_every_invariant_name_is_exercised` (`tests/test_working_corpus.py` line
   471) requires every `CORPUS_INVARIANT_NAMES` member to be the target of a
-  materialisable variant; `log-present` cannot be a pure spec variant because
+  materializable variant; `log-present` cannot be a pure spec variant because
   `build_working_tree` always writes `log.md` (`_builder.py` line 201) and the
   `INCOHERENT_VARIANTS` map is a pure `spec -> (spec, name)` map with no
   post-build hook. Option (a) — add a small `_POST_BUILD_MUTATIONS` registry
@@ -379,7 +379,7 @@ Hard invariants that must hold throughout implementation.
   additive: it leaves the `INCOHERENT_VARIANTS` `(spec, name)` tuple shape intact
   for the ~15 existing subscript consumers, so no other test is disturbed.
   Date/Author: 2026-06-24, planning agent.
-- Decision: Pre-authorise extracting the disk-evidence twin block from
+- Decision: Pre-authorize extracting the disk-evidence twin block from
   `tests/working_corpus/_oracle.py` into a new `tests/working_corpus/_oracle_disk.py`
   sibling as a dedicated, behaviour-preserving Work item 2a, sequenced before the
   `log-present` predicate is added. Rationale: `_oracle.py` is 399 lines (`wc -l`),
@@ -389,7 +389,7 @@ Hard invariants that must hold throughout implementation.
   `passed[LOG_PRESENT] = ...` wiring), which crosses the cap. A terse docstring
   alone cannot avoid this (399 + the minimum constant/entry/predicate/wiring is
   already ≥ 408). Reviewer offered (a) keep the addition under cap or (b) note the
-  crossing and pre-authorise the extraction; (a) is arithmetically impossible, so
+  crossing and pre-authorize the extraction; (a) is arithmetically impossible, so
   (b) is taken. Moving the ~145-line physically-disk-reading block (the six
   predicates that take `working_dir` and are wired into `corpus_check` at lines
   393-398 — `_check_by_chapter_sum`, `_check_manifest_disk_bijection`,
@@ -452,7 +452,7 @@ Deviations and lessons:
 ### Fix round 1 (2026-06-24)
 
 Resolved two blocking dual-review findings. Both stemmed from Work item 5
-having reached past its authorised additive edit (developers-guide lines
+having reached past its authorized additive edit (developers-guide lines
 336-348) and disturbed adjacent source-of-truth prose, breaching the
 Risks line 252-257 constraint that the docs must not contradict the code.
 
@@ -546,7 +546,7 @@ Cyclopts apps wired through a shared envelope runner. The pieces this plan touch
   `(spec, name)` tuples are unpacked by subscript across ~15 sites
   (`tests/test_reconcile*.py`, `tests/steps/*`); the shape must stay intact.
 - `tests/working_corpus/_builder.py` — `build_working_tree(spec, dest)`
-  materialises a `working/` tree and **always** writes an empty `log.md`
+  materializes a `working/` tree and **always** writes an empty `log.md`
   (line 201). A partial-init tree must therefore have its `log.md` removed by a
   test-only post-build mutation, not by a spec flag.
 - `tests/corpus_fixtures.py` — the `incoherent_tree` fixture (line 275) calls
@@ -583,13 +583,13 @@ each independently committable and gate-passable.
 ### Work item 1 (Stage B, red): failing unit tests for `log-present`
 
 Docs to read: design §3.4 (atomic writes, init's two writes), §5.4 (v1 reconcile
-scope); `skill/novel-ralph/references/state-layout.md` §"Initialisation" (step 3
+scope); `skill/novel-ralph/references/state-layout.md` §"Initialization" (step 3
 creates empty log.md) and §"log.md" (append-only receipt); roadmap.md task 2.3.4.
 Skills: `python-router` → `python-testing`; `leta` for navigation.
 
 Add failing tests, no production change yet:
 
-- In `tests/test_disk_evidence.py`: a test materialising a coherent baseline tree,
+- In `tests/test_disk_evidence.py`: a test materializing a coherent baseline tree,
   deleting `working/log.md`, and asserting `check_disk_evidence(state, working)`
   returns exactly one `Violation` whose `invariant == "log-present"`; and a test
   asserting a tree *with* `log.md` does not emit `log-present`.
@@ -818,7 +818,7 @@ property test is warranted (see below).
   `tests/features/` or the check BDD if one exists; otherwise a direct `pytest`
   test in `tests/test_novel_state_check_disk.py`).
 - e2e: add a case to `tests/test_reconcile_e2e.py` reusing
-  `_build_and_install_novel_state` (locked cuprum 0.1.0) — materialise a baseline
+  `_build_and_install_novel_state` (locked cuprum 0.1.0) — materialize a baseline
   tree under the subprocess cwd, delete `working/log.md`, run the installed
   `novel-state reconcile` (exit 0), then a follow-up `check` (exit 0). This is the
   partial-init recovery running as a real installed command.
@@ -826,8 +826,8 @@ property test is warranted (see below).
   corpus variants asserting `log-present` never co-fires with a refuse-class
   member on the same tree and that `derive_reconciliation` yields `RECREATE_LOG`
   only when no higher-precedence violation fired. Use `hypothesis` only if the
-  parametrised form over the fixed corpus is insufficient; the corpus is finite,
-  so a parametrised test is likely the right adversary (see `python-verification`).
+  parametrized form over the fixed corpus is insufficient; the corpus is finite,
+  so a parametrized test is likely the right adversary (see `python-verification`).
 
 Tests: behavioural, e2e, optional property. Validation: `make all` (the e2e is
 `@pytest.mark.slow`, POSIX-only per ADR-006).
@@ -1099,7 +1099,7 @@ verbatim.
   `test_owned_disk_evidence_names_equal_corpus_subset`) is corrected. A new
   Validation "Docs lockstep" acceptance criterion pins the post-edit state so the
   source-of-truth narrative no longer self-contradicts.
-  (2) **`_oracle.py` cap crossing pre-authorised, not a surprise.**
+  (2) **`_oracle.py` cap crossing pre-authorized, not a surprise.**
   `tests/working_corpus/_oracle.py` is 399 lines (`wc -l` confirmed) and Work
   item 2's additions (the `LOG_PRESENT` constant, a `CORPUS_INVARIANT_NAMES` entry,
   the `_check_log_present` predicate, and the `passed[...]` wiring — ~9 lines)
@@ -1113,7 +1113,7 @@ verbatim.
   twin then lands in the sibling and
   only its name plus one wiring line re-enter `_oracle.py`. Progress (new 2a item),
   Concrete steps (renumbered with the 2a step and a `wc -l` check), Risks (two new
-  extraction risks), Decision Log (the pre-authorised-extraction decision), Context
+  extraction risks), Decision Log (the pre-authorized-extraction decision), Context
   (the new sibling and the `_oracle.py` line count), Interfaces (the sibling),
   Tolerances scope budget (8→10 files for the added module), and Validation
   (file-size acceptance) are updated accordingly. The extraction is the only

@@ -698,7 +698,7 @@ The snapshots:
   envelope (exit `4`, `diverged: true`), each paired with a semantic assertion on
   the exit code, `ok`, and `result` (per AGENTS.md: snapshots paired with
   semantic assertions, no nondeterministic fields — the `checked` token is the
-  working-relative constant and needs no normalisation, exactly like the write
+  working-relative constant and needs no normalization, exactly like the write
   snapshot's `compiled` token).
 
 Acceptance: the agreement test passes over every chosen corpus spec; the
@@ -732,7 +732,7 @@ named), each driving the real console-script body — **not** `run(build_app(),
 …)`:
 
 - `test_entry_point_compile_check_current_exits_zero`: build a coherent tree
-  with `compiled.md` materialised to the expected concatenation (extend or
+  with `compiled.md` materialized to the expected concatenation (extend or
   reuse `_drafting_tree`, then write the coherent `compiled.md`, or build the
   corpus coherent spec with `compiled=COMPILED_AUTO`). Set `sys.argv =
   [_COMMAND, "--check"]`, call `stub.novel_compile()`, assert

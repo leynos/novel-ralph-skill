@@ -1160,7 +1160,7 @@ returning `pass_number == 2`. The explicit `Parameter(name="--pass")` is used
 rather than a trailing-underscore convention (the plan does not assume that for
 locked Cyclopts 4.18.0); the flag is `--pass` (do not invent `--pass-number`).
 
-The no-flag `set-gate` guard is realised by a domain exception **and a thin
+The no-flag `set-gate` guard is realized by a domain exception **and a thin
 adapter**, NOT by `cyclopts.ValidationError(msg=...)` (Decision D9 round-4
 rewrite; B5). `_gate_drafting_mutators.py` gains a small domain exception and
 adapter, copied verbatim in shape from `_desloppify.py:DesloppifyUsageError`
@@ -1284,7 +1284,7 @@ en-GB convention.
 - **ADR 010** `docs/adr-010-gate-drafting-mutators.md` (next free ADR number
   after
   009): record the four command names and input shapes, the exit-2
-  (shape/usage, incl. no-flag `set-gate`, realised by the
+  (shape/usage, incl. no-flag `set-gate`, realized by the
   `GateDraftingUsageError` + `_set_gate_or_usage` adapter that returns the
   exit-2 `CommandOutcome` directly — NOT `cyclopts.ValidationError(msg=...)`,
   which crashes the runner's `str(CycloptsError)` arm; B5/Decision D9) / exit-3
@@ -1435,11 +1435,11 @@ Quality method: `make all` per commit (the AGENTS.md commit gate), plus
   re-writes the same bytes and exits 0 (`complete-final-pass` is explicitly
   idempotent).
 - A refused mutator writes nothing, so a retry after fixing the input is safe.
-- `make all` is deterministic; the shared Cargo/uv caches serialise naturally.
+- `make all` is deterministic; the shared Cargo/uv caches serialize naturally.
 - No destructive step. The atomic `Path.replace` writer leaves either the old or
   the new `state.toml`, never a torn file (task 2.2.1).
 
-## Artifacts and notes
+## Artefacts and notes
 
 Pinned API evidence (locked versions; reproduce from the worktree with
 `uv run`):

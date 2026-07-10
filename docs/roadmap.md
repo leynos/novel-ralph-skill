@@ -23,7 +23,7 @@ later slice reuses.
 Idea: if the rebuild settles its packaging boundary, its TOML round-trip
 mechanism, and its shared command contract before any command is built, the
 five slices can converge on one coherent v1 spine instead of each reworking the
-envelope, the exit-code policy, and the serialisation strategy.
+envelope, the exit-code policy, and the serialization strategy.
 
 This phase produces no narrative-facing capability. It ratifies the
 hard-to-reverse decisions the design names, stands up the console-script
@@ -33,7 +33,7 @@ and test corpus that the slices depend on.
 ### 1.1. Ratify the decisions that would otherwise force rework
 
 This step answers which architectural choices are fixed before code lands. Its
-outcome informs every command's interface and the serialisation all mutators
+outcome informs every command's interface and the serialization all mutators
 share. See novel-ralph-harness-design.md §1, §3, and §5.3.
 
 - [x] 1.1.1. Record the deterministic-and-judgemental boundary as an ADR.
@@ -44,7 +44,7 @@ share. See novel-ralph-harness-design.md §1, §3, and §5.3.
     and is cited by every later slice.
 - [x] 1.1.2. Record the TOML round-trip decision as an ADR.
   - Requires 1.1.1.
-  - Select `tomlkit` over an owned comment-preserving serialiser, with the
+  - Select `tomlkit` over an owned comment-preserving serializer, with the
     reasoning from the design.
   - See novel-ralph-harness-design.md §5.3.
   - Success: the ADR resolves open question Q1 and fixes the dependency every
@@ -202,10 +202,10 @@ docs/scripting-standards.md.
     linter; making the "does not raise" intent explicit keeps the test's
     guarantee self-evident to maintainers.
 - [x] 1.2.11. Migrate `test_contract_test_deps` onto the shared conftest
-  fixtures and centralise dependency-name normalisation.
+  fixtures and centralize dependency-name normalization.
   - Remediation (source: audit:1.2.7; severity: medium). The 1.2.7 consolidation
     left `test_contract_test_deps.py` re-parsing `pyproject` itself and carrying
-    a second, weaker copy of the PEP 508 distribution-name normaliser; lifting a
+    a second, weaker copy of the PEP 508 distribution-name normalizer; lifting a
     `dist_name` fixture into `conftest` and migrating the module onto the
     `pyproject`/`toml_table` fixtures removes both duplications in one move.
 - [x] 1.2.12. Stand up the `novel` multiplexer dispatcher and entry point
@@ -548,7 +548,7 @@ drift and seeds the snapshot suite. See novel-ralph-harness-design.md §3 and §
     `parse_global_flags`/`run` plumbing, and the contract-runner and command
     suites stay green.
   - [x] 1.3.6.1. Add a structural tripwire pinning that the four `build_app()`
-    constructors and the four real entry points consume the centralisation.
+    constructors and the four real entry points consume the centralization.
     - Addendum (from review:1.3.6 and audit:1.3.6 Finding 3; severity: medium).
       The proof that `make_contract_app`/`_drive` are on the path is only
       indirect today (console-scripts e2e plus per-command suites), so a future
@@ -676,7 +676,7 @@ novel-ralph-harness-design.md §5.1 and §5.2.
     canonical validator can be cross-checked against it; making this an explicit
     acceptance clause closes the documented oracle-drift risk (1.3.2 execplan
     Risks; advisory A5). Cross-check the verdict computed from each fixture's
-    materialised on-disk `state.toml` (not from the spec), so a spec-versus-disk
+    materialized on-disk `state.toml` (not from the spec), so a spec-versus-disk
     mislabel — the kind the by-chapter-sum fix-round-1 surfaced — is caught and
     the validator and oracle cannot drift on the disk-derived quantities
     (invariants 3 and 7).
@@ -685,7 +685,7 @@ novel-ralph-harness-design.md §5.1 and §5.2.
     docs/execplans/roadmap-1-3-2.md (advisory A5, the fix-round-1 on-disk
     decision).
   - Success: for every §1.3.2 corpus fixture the §5.2 validator's verdict, run
-    against the materialised `state.toml`, matches the oracle's
+    against the materialized `state.toml`, matches the oracle's
     `CORPUS_INVARIANT_NAMES` labels exactly — coherent trees pass and each
     incoherent variant is rejected on its one named invariant.
   - [x] 2.1.3.1. Consolidate the live-draft oracle's repeated `state.toml`
@@ -798,7 +798,7 @@ novel-ralph-harness-design.md §5.1 and §5.2.
     - Addendum (from review:2.1.5; low). `test_validate_state_live_draft.py`
       hard-codes `(variant_name,) = divergent_table_variant_names`, so the second
       variant will break it with an opaque unpacking error; iterate the variant
-      set (or pin an explicit single variant) to localise that future failure.
+      set (or pin an explicit single variant) to localize that future failure.
       Lightweight addendum pass.
 - [x] 2.1.6. Add a symmetric under-counting divergent-table corpus variant so the
   discrimination loop catches a mutant that mishandles only over-counts.
@@ -908,7 +908,7 @@ novel-ralph-harness-design.md §3.4, §4.1, and §5.3.
 
 - [x] 2.2.1. Implement the `tomlkit` round-trip and atomic write helper.
   - Requires 1.1.2 and 2.1.1.
-  - Read, mutate, and re-serialise `state.toml` through `tomlkit`, writing via
+  - Read, mutate, and re-serialize `state.toml` through `tomlkit`, writing via
     a temporary file in the target directory followed by `Path.replace`. Open a
     `[pending_turn]` intent record naming the operation and the paths it will
     write before touching any other file, and clear it only once every artefact
@@ -953,9 +953,9 @@ novel-ralph-harness-design.md §3.4, §4.1, and §5.3.
       addendum pass.
   - [x] 2.2.2.3. Correct the partial-init direction in roadmap-2-2-2 Decision
     Log D3.
-    - Addendum (from review:2.3.4; low). D3 describes the realisable partial-init
+    - Addendum (from review:2.3.4; low). D3 describes the realizable partial-init
       as `log present, state absent`, but `init` writes `state.toml` first, so
-      the realisable case is the inverse (`state present, log absent`) that task
+      the realizable case is the inverse (`state present, log absent`) that task
       2.3.4 targets; correct the stale D3 prose in
       `docs/execplans/roadmap-2-2-2.md` so it agrees with the implemented
       direction. Lightweight addendum pass.
@@ -1094,12 +1094,12 @@ agent-improvised recovery routine. See novel-ralph-harness-design.md §4.1 and
     the manifest/disk bijection, the `done.flag`/`draft.md` contradiction, and
     the `compiled.md` content-hash — so the corpus mirrors what the real `check`
     exercises (the by-chapter-sum check already reads disk after fix-round-1;
-    this generalises that move). Test/corpus-only; no design change.
+    this generalizes that move). Test/corpus-only; no design change.
   - Requires 2.3.2.
   - See novel-ralph-harness-design.md §5.4; docs/execplans/roadmap-1-3-2.md
     (the fix-round-1 on-disk decision).
   - Success: the corpus oracle's manifest-bijection, done-flag/draft, and
-    compiled checks read the materialised `working_dir`, and a tree whose
+    compiled checks read the materialized `working_dir`, and a tree whose
     `state.toml` claims agree with disk but whose disk evidence diverges is
     flagged by the oracle from disk alone.
   - [x] 2.3.3.1. Consolidate the repeated per-predicate `state.toml` parse in
@@ -1108,7 +1108,7 @@ agent-improvised recovery routine. See novel-ralph-harness-design.md §4.1 and
       `tests/working_corpus/_oracle.py` (`by-chapter-sum`, `manifest-disk-
       bijection`, `done-flag-without-draft`, `pending-turn-cleared`,
       `compiled-matches-drafts`, `word-counts-match-drafts`) each re-read and
-      re-parse the materialised `state.toml`; parse it once per `corpus_check`
+      re-parse the materialized `state.toml`; parse it once per `corpus_check`
       and pass the decoded tables into the helpers. The production
       `disk_evidence.py` twin already takes a parsed `State` and needs no
       mirror. Lightweight addendum pass.
@@ -1450,7 +1450,7 @@ novel-ralph-harness-design.md §4.2 and §2.3.
     reported as unresolved (the clause stays false), a genuinely resolved blocker
     still clears, the false-clean direction is pinned by a new §1.3.2 corpus
     near-miss, and the done-predicate suite stays green.
-- [x] 3.1.5. Align the `no_unresolved_blockers` recogniser to the real
+- [x] 3.1.5. Align the `no_unresolved_blockers` recognizer to the real
   `critic-personas.md` output format and define the resolution producer contract.
   - Step-task (source: audit:3.1.4 / review:3.1.4; severity: high). Three
     near-identical proposals merged: the predicate's `no_unresolved_blockers`
@@ -1466,7 +1466,7 @@ novel-ralph-harness-design.md §4.2 and §2.3.
     against disk — by making the BLOCKER clause sound against the format the
     critic actually produces rather than conservative-but-decorative against live
     input. Define the resolution convention in `critic-personas.md` (and
-    `done-conditions.md`), realign the recogniser to the heading-based
+    `done-conditions.md`), realign the recognizer to the heading-based
     `## BLOCKER`/`### Bn` structure plus that documented resolution token, fold
     in the deferred case-insensitive / alternative-spelling resolution-variant
     decision (D-BLOCKER-SCOPE leaves `RESOLVED`/`(resolved)` out of scope in both
@@ -1478,7 +1478,7 @@ novel-ralph-harness-design.md §4.2 and §2.3.
     format); skill/novel-ralph/references/done-conditions.md (the BLOCKER
     substring rule); docs/issues/audit-3.1.4.md.
   - Success: the resolution convention is defined once in `critic-personas.md`
-    and `done-conditions.md`; the `no_unresolved_blockers` recogniser parses the
+    and `done-conditions.md`; the `no_unresolved_blockers` recognizer parses the
     real `## BLOCKER`/`### Bn` section structure and that documented resolution
     token (with the case/alternative-spelling-variant decision recorded); a
     §1.3.2 corpus tree built from critic-personas-shaped output drives the clause
@@ -1486,7 +1486,7 @@ novel-ralph-harness-design.md §4.2 and §2.3.
     reported (the clause stays false); and the done-predicate suite stays green.
   - [x] 3.1.5.1. Pin the decorated `## BLOCKER` heading false-clean direction with
     an asserting-current-behaviour test.
-    - Addendum (from review:3.1.5; low). The recogniser enters the section only
+    - Addendum (from review:3.1.5; low). The recognizer enters the section only
       on an exact `## BLOCKER` match, so a decorated heading
       (`## BLOCKER (chapter 3)`) reads clean by design and matches the producer
       contract, but no test pins this single-sided behaviour; add an
@@ -1669,7 +1669,7 @@ novel-ralph-harness-design.md §4.4, §6.1, and §1.
       per-page density over one chapter, not the manuscript total; reword them to
       name the actual scope, and add a focused test for the untested
       `_finding_message` per-page density branch
-      (`commands/_desloppify_report.py`). Both are localised to the 5.1.2
+      (`commands/_desloppify_report.py`). Both are localized to the 5.1.2
       surface. Lightweight addendum pass.
 
 ## 6. Vertical slice 5: derived word counts and gate triggers
@@ -1883,7 +1883,7 @@ novel-ralph-harness-design.md §2.3 and §9.
     isolation — by proving the symmetric half of the torn-turn recovery story at
     the same command boundary 6.2.5 covered for `COMPLETE`. Add a sibling
     scenario that crashes `reconcile` after declaring a path that does not
-    materialise, driven through the command entry points, and proves `check`
+    materialize, driven through the command entry points, and proves `check`
     reports the torn turn and `reconcile` rolls it back per what landed.
   - Requires 6.2.5.
   - See novel-ralph-harness-design.md §3.4 and §5.4.
@@ -1975,7 +1975,7 @@ novel-ralph-harness-design.md §2.3 and §9.
       double-write silently. Add a small assertion that the `capture_key` is not
       already written this run so the contract is enforced rather than only
       documented. Lightweight addendum pass.
-  - [x] 6.2.9.4. Parametrise the two duplicated installed-scenario mark-guard
+  - [x] 6.2.9.4. Parametrize the two duplicated installed-scenario mark-guard
     tests.
     - Addendum (from audit:6.2.9 Finding 3; low). The two `*_carries_marks` tests
       in `tests/test_per_chapter_loop_installed_bdd.py` are near-identical clones
@@ -2063,7 +2063,7 @@ novel-ralph-harness-design.md §2.3 and §9.
 - [x] 6.2.12. Add a command-boundary ROLLBACK scenario where the unrecoverable
   artefact partially landed.
   - Step-task (source: review:6.2.7; severity: low). Task 6.2.7 proves the
-    `ROLLBACK` disposition only where the declared `draft.md` never materialises;
+    `ROLLBACK` disposition only where the declared `draft.md` never materializes;
     design §5.4's clause that rollback "leaves the partial artefacts in place" is
     unexercised at the command boundary. This advances the step-6.2 hypothesis —
     that the five commands behave correctly across the full
@@ -2071,7 +2071,7 @@ novel-ralph-harness-design.md §2.3 and §9.
     the second half of the rollback operational surface: a torn turn whose partial
     `draft.md` did land must be preserved on disk, unreferenced by state, once the
     record is cleared. Add a sibling scenario, driven through the command entry
-    points, where a partial `draft.md` materialised before the crash and assert
+    points, where a partial `draft.md` materialized before the crash and assert
     `reconcile` rolls back the record while leaving the partial artefact in place.
   - Requires 6.2.7.
   - See novel-ralph-harness-design.md §3.4 and §5.4.
@@ -2090,13 +2090,13 @@ novel-ralph-harness-design.md §2.3 and §9.
     `command × output-mode × phase` surface, not just in isolation — by closing
     the command-boundary half of the `ROLLBACK` disposition for the second
     trigger, the same narrowing 6.2.7 was created to close for `draft.md`. A
-    parametrisation over `(declared_path, expected_basename)` covers both
+    parametrization over `(declared_path, expected_basename)` covers both
     triggers with one step module.
   - Requires 6.2.7.
   - See novel-ralph-harness-design.md §3.4 and §5.4;
     docs/issues/audit-6.2.7.md.
   - Success: an unrecoverable `done.flag` torn turn is detected by `check` and
-    rolled back by `reconcile` at the command boundary, parametrised alongside the
+    rolled back by `reconcile` at the command boundary, parametrized alongside the
     `draft.md` trigger so both `ROLLBACK` triggers are proven end-to-end through
     the runner rather than only in-process.
   - [x] 6.2.13.1. Refresh the developers' guide torn-turn behavioural-scenario
@@ -2119,7 +2119,7 @@ novel-ralph-harness-design.md §2.3 and §9.
     command boundary, the sibling of the partial-landed `draft.md` proof 6.2.12
     added. Add
     a scenario, driven through the command entry points, where a partial
-    `done.flag` materialised before the crash and assert `check` reports the torn
+    `done.flag` materialized before the crash and assert `check` reports the torn
     turn and `reconcile` rolls back the record while leaving the partial artefact
     in place, unreferenced by state.
   - Requires 6.2.12 and 6.2.13.
@@ -2178,7 +2178,7 @@ and adr-003-shared-interface-contract.md.
 - [x] 6.3.2. Pin cross-command exit-code and envelope-schema consistency with a
   shared behavioural suite and snapshots.
   - Requires phase 5, 6.1.1, and 1.2.12.
-  - Assert, across all five commands as one parametrised pytest-bdd suite plus
+  - Assert, across all five commands as one parametrized pytest-bdd suite plus
     syrupy snapshots, that the contract is identical between commands: the
     exit-code-to-`ok` mapping (exit 0 → `ok:true`; exits 1/2/3/4 → `ok:false`),
     the envelope field set and order (`command`, `schema_version`, `ok`,
@@ -2245,7 +2245,7 @@ and adr-003-shared-interface-contract.md.
     resolved path; running from inside `working/` no longer silently looks for
     `working/working`.
   - [x] 6.3.4.1.
-    - Addendum (from review:6.3.4; low). Normalise the ungated POSIX-separator
+    - Addendum (from review:6.3.4; low). Normalize the ungated POSIX-separator
       suffix assertion `result["working_dir"].endswith("/working")` in
       `tests/test_novel_state_mutators.py` (line 100) to a pathlib-based
       `.name`/`.parts` check, matching the portability convention already
@@ -2253,7 +2253,7 @@ and adr-003-shared-interface-contract.md.
       and consistent. Lightweight addendum pass.
   - [x] 6.3.4.2.
     - Addendum (from review:6.3.4; low). Extract one shared JSON-aware
-      `working_dir` snapshot-normaliser and route both snapshot modules through
+      `working_dir` snapshot-normalizer and route both snapshot modules through
       it, replacing the brittle regex redaction in
       `tests/test_novel_state_mutator_snapshots.py` with the robust JSON-parse
       strategy so the two strategies no longer diverge and per-machine snapshot
@@ -2320,11 +2320,11 @@ and adr-003-shared-interface-contract.md.
       `envelope["ok"] is (result.exit_code == ExitCode.SUCCESS)` assertion in
       `test_installed_novel_state_check_exits_zero` load-bearing or document it
       as intent-only — either add a clarifying comment that it is a redundant
-      mapping guard, or cross-arm parameterise it so the mapping check can fail
+      mapping guard, or cross-arm parameterize it so the mapping check can fail
       independently of the already-asserted `exit_code == 0` and `ok is True`.
       Lightweight addendum pass.
   - [x] 6.3.6.2.
-    - Addendum (from audit:6.3.6; medium). Parameterise the canonical
+    - Addendum (from audit:6.3.6; medium). Parameterize the canonical
       `assert_envelope_skeleton` helper with an optional `working_dir` override
       (default `WORKING_DIR_CONSTANT`) and collapse the inline envelope-skeleton
       block re-spelled at `tests/test_novel_state_check.py` lines 363-380 onto a
@@ -2531,7 +2531,7 @@ of truth, and a test pins it so it cannot silently re-fork.
 - [x] 7.1.3. Extract a single `Reconciliation` payload projection and route the
   four arms through it.
   - Reroute (source: audit:6.2.13; severity: low). audit-2.3.2 Finding 2 recorded
-    the four-site duplication of the `Reconciliation`-to-dict serialisation
+    the four-site duplication of the `Reconciliation`-to-dict serialization
     (`_render_reconciliation`, `_write_outcome`, `_refuse_outcome`, and the NONE
     arm) but, unlike the sibling `[word_counts]` theme (task 7.4.7) and the
     compile-projection theme (task 7.1), it was never promoted to a roadmap task;
@@ -2665,7 +2665,7 @@ of truth, and a test pins it so it cannot silently re-fork.
     the mixed spelling weakens the single-canonical-target intent and would
     dangle if the re-export were pruned. Fix the canonical cross-reference style
     to the defining-module form across the §7.1 consumers (compile-currency and
-    reconciliation-payload projections), normalising the sibling
+    reconciliation-payload projections), normalizing the sibling
     `CompiledComparison`/`compile_is_current` mentions in `_compile.py` to match,
     and add a reusable docstring drift-guard helper that asserts the authoritative
     docstring is the single full copy and each consumer carries a resolving
@@ -2704,8 +2704,8 @@ test pins it so it cannot silently re-fork.
     inline-table idiom, alongside `_inline` in `state/initial.py` — whose
     docstring already admits the drift — and `_inline` in the corpus builder
     (`tests/working_corpus/_builder.py`). A single state-package helper consumed
-    by all three keeps the inline-table materialisation rule in one place,
-    mirroring how `wordcount` centralised the counting rule. This is
+    by all three keeps the inline-table materialization rule in one place,
+    mirroring how `wordcount` centralized the counting rule. This is
     cross-cutting code hygiene, not the step-2.3 disk-re-derivation hypothesis
     where it was raised, so it is deferred here.
   - Requires 2.3.1.
@@ -2731,7 +2731,7 @@ test pins it so it cannot silently re-fork.
       this sub-task. Lightweight addendum pass.
 
 - [x] 7.2.2. Consolidate the rule-pack and device-ledger TOML-loading and scan
-  primitives onto shared, error-factory-parameterised helpers.
+  primitives onto shared, error-factory-parameterized helpers.
   - Reroute (source: audit:8.1.2; severity: medium). `_coerce` (an explicit
     "deliberate near-copy"), `_entries`, `_compile_pattern`,
     `_reject_duplicate_ids`, the `load_*` file-fault body, and the per-line
@@ -2739,7 +2739,7 @@ test pins it so it cannot silently re-fork.
     packages, differing only in error type and noun. This does not serve the
     step-8.1 hypothesis — it is cross-cutting code-quality consolidation, not the
     per-novel-pack extension — so it is rerouted here. Extract shared coercion
-    primitives parameterised on an error factory plus a shared `scan_pattern`,
+    primitives parameterized on an error factory plus a shared `scan_pattern`,
     routing both packages through them while keeping each package's typed error
     channel (`RulePackError`/`RulePackFileError` versus
     `LedgerError`/`LedgerFileError`) and its device/rule-specific messages
@@ -2803,13 +2803,13 @@ test pins it so it cannot silently re-fork.
     `rulepack._coerce._require` are removed, the scan docstring is single-stated,
     and a `line_hit`-callback contract test pins `scan_pattern`; and the rule-pack,
     ledger, and `loaderkit` suites stay green.
-  - [x] 7.2.3.1. Generalise the `loaderkit` import-direction guard beyond
+  - [x] 7.2.3.1. Generalize the `loaderkit` import-direction guard beyond
     `loaderkit.scan`.
     - Addendum (from review:7.2.3; low). The D-GUARD test
       `test_loaderkit_scan_imports_no_pack_domain` pins only `scan.py` against
       pack-domain imports, yet the neutral-leaf invariant (design §6/§6.3,
       ADR-003) holds for every `loaderkit` module (`coerce.py`, `load.py`,
-      `__init__.py`); parametrise the guard to walk all of them so a future
+      `__init__.py`); parametrize the guard to walk all of them so a future
       regression in any module is caught, not just one in `scan.py`. Lightweight
       addendum pass.
   - [x] 7.2.3.2. Align `loaderkit/scan.py` docstrings with the post-7.2.3
@@ -2888,7 +2888,7 @@ test pins it so it cannot silently re-fork.
     novel_ralph_skill/rulepack/errors.py;
     novel_ralph_skill/ledger/errors.py.
   - Success: one `loaderkit.errors` factory owns the two-class
-    `Error`/`FileError` hierarchy shape, parameterised on the id-attribute name
+    `Error`/`FileError` hierarchy shape, parameterized on the id-attribute name
     and nouns; the rule-pack and ledger packages bind it rather than carrying
     near-identical copies; the public `rule_id`/`device_id` names, each typed
     error channel, the exit-code mapping, and the operator messages are
@@ -2930,7 +2930,7 @@ test pins it so it cannot silently re-fork.
     that single home rather than leaving it as the last un-consolidated loader
     primitive, completing the single-home discipline 7.2.2/7.2.5 began for the
     coercion, scan, and error layers. Extract a shared parse skeleton
-    parameterised on each pack's schema-version constant, key set, entry-array
+    parameterized on each pack's schema-version constant, key set, entry-array
     name, and per-entry projection, routing both packages through it while
     keeping each typed error channel, the `rule_id`/`device_id` keywords, the
     exit-code mapping, and the operator messages unchanged, so a third pack
@@ -3205,7 +3205,7 @@ of truth, and a test pins it so it cannot silently re-fork.
   - Reroute (source: audit:1.2.12; severity: medium). `novel.main` and
     `stub._drive` share a byte-identical parse-`--human`, resolve-command-name,
     drive-via-`run` body; the duplication survives task 1.2.13, which removes
-    the legacy `novel-x` entry points but not `_drive`. Generalise `_drive` to
+    the legacy `novel-x` entry points but not `_drive`. Generalize `_drive` to
     take a name resolver, or lift the shared body into a contract-level `drive()`
     helper, so the multiplexer entry point and the (1.2.13-residual) stub body
     consume one seam. This serves the step-7.3 command-facade single-home
@@ -3221,7 +3221,7 @@ of truth, and a test pins it so it cannot silently re-fork.
     novel_ralph_skill/commands/novel.py (`main`);
     novel_ralph_skill/commands/stub.py (`_drive`).
   - Success: the parse-`--human`/resolve-name/drive-via-`run` body lives in one
-    shared drive seam parametrised by the command-name resolver; `novel.main`
+    shared drive seam parametrized by the command-name resolver; `novel.main`
     and the residual `stub` entry-point body both delegate to it rather than
     re-spelling the plumbing; the import-laziness profile is preserved (or its
     change is decided and recorded); and the multiplexer, stub, and
@@ -3269,7 +3269,7 @@ of truth, and a test pins it so it cannot silently re-fork.
       three documented fallbacks to bare `novel` are exercised only transitively,
       and `make_contract_app`'s name round-trip (which `build_multiplexer` and
       envelope command-stamping depend on) is asserted only obliquely. Add two
-      small parametrised assertions that convert the docstring promises into
+      small parametrized assertions that convert the docstring promises into
       executable contracts so a future value-carrying global flag or a name
       regression fails loudly. Lightweight addendum pass against the 7.3.5
       execplan.
@@ -3327,7 +3327,7 @@ of truth, and a test pins it so it cannot silently re-fork.
       relocation were still pending. Re-word the clause to the settled present
       tense so the module docstring describes the delivered state. Doc-only; no
       behaviour change. Lightweight addendum pass against the 7.3.6 execplan.
-- [x] 7.3.7. Centralise the body-detected usage-error (exit-2) envelope in the
+- [x] 7.3.7. Centralize the body-detected usage-error (exit-2) envelope in the
   contract layer.
   - Reroute (source: audit:2.2.4 Finding 1; severity: medium).
     `GateDraftingUsageError(EnvelopeMessagesError)` plus its `_set_gate_or_usage`
@@ -3339,7 +3339,7 @@ of truth, and a test pins it so it cannot silently re-fork.
     `_gate_drafting_mutators.py:204-206`). Lift the shared shape into the
     `contract` layer — a `BodyUsageError(EnvelopeMessagesError)` base (or marker)
     plus one `usage_error_outcome(exc)` helper both command modules call — so the
-    exit-2 envelope has a single tested home alongside the centralised
+    exit-2 envelope has a single tested home alongside the centralized
     load/refuse helpers, while each module keeps a thin domain subclass for its
     docstring-level trigger. This serves the step-7.3 command-facade single-home
     hypothesis — the shared exit-2 envelope seam lifted into an explicit,
@@ -3421,7 +3421,7 @@ of truth, and a test pins it so it cannot silently re-fork.
     source-chapters → detect → report pipeline with verbatim-copied comment
     blocks, differing only in three substitutions, so a future load-error-contract
     change must touch both with no guard they stay in step. Lift the shared
-    pipeline into one seam parametrised by the three differing substitutions, with
+    pipeline into one seam parametrized by the three differing substitutions, with
     each command supplying only those. This serves the step-7.3 command-facade
     single-home hypothesis — shared command-body seams lifted into one explicit
     home so a refactor of one cannot silently break the other — not the settled
@@ -3613,7 +3613,7 @@ of truth, and a test pins it so it cannot silently re-fork.
     seam must exist exactly once, with the single-home property mechanically
     pinned rather than policed phrase-by-phrase across four token-scoped prose
     gates. Repoint `_recount` and `_reconcile` at `state_sourcing`, drop the
-    `_state_path`/`_working_dir` re-export from `_state_mutators`, and generalise
+    `_state_path`/`_working_dir` re-export from `_state_mutators`, and generalize
     `test_state_sourcing_home` to resolve relative and absolute imports and walk
     the `_state_mutators` re-export tail so it flags any command module importing
     a seam accessor from anywhere but `state_sourcing`. This is the structural
@@ -3869,7 +3869,7 @@ silently re-fork.
     groups the disk-vs-disk checks (`by-chapter-sum`, `manifest-disk-bijection`,
     `done-flag-without-draft`, `pending-turn-cleared`, `compiled-matches-drafts`,
     `word-counts-match-drafts`). Fold the review:2.3.3 read-consolidation into the
-    same move: each of these predicates currently re-parses the materialised
+    same move: each of these predicates currently re-parses the materialized
     `state.toml`, so as they move, parse it once per `corpus_check` and pass the
     decoded tables into the carved helpers (the production `disk_evidence.py`
     twin already takes a parsed `State` and needs no mirror). This is
@@ -3931,12 +3931,12 @@ silently re-fork.
 - [ ] 7.4.9. Introduce one `gate_triggers(ratio)` helper and reconcile
   `GATE_THRESHOLDS` with `KNITTING_PERCENTAGES`.
   - Reroute (source: audit:6.1.1; severity: medium; two near-identical findings
-    merged — the re-spelled trigger derivation and the two unsynchronised gate
+    merged — the re-spelled trigger derivation and the two unsynchronized gate
     encodings). The `tuple(ratio >= threshold for threshold in GATE_THRESHOLDS)`
     trigger derivation is now spelled at three sites (audit-6.1.1 Finding 2 —
     `_wordcount_report._gate_geometry`, `validate._check_gate_ratio_consistent`,
     and the corpus oracle), and the same three gates are encoded twice in
-    unsynchronised forms (Finding 3 — `GATE_THRESHOLDS` ratios versus
+    unsynchronized forms (Finding 3 — `GATE_THRESHOLDS` ratios versus
     `done_predicate.KNITTING_PERCENTAGES` integers) with nothing pinning
     `GATE_THRESHOLDS[i] == KNITTING_PERCENTAGES[i] / 100`. The validator and the
     new `wordcount` report must agree on the triggers but are tied only by a
@@ -4136,7 +4136,7 @@ single source of truth, and a test pins it so it cannot silently re-fork.
     stays green.
 
 - [ ] 7.5.2. Consolidate the installed-binary e2e build/install scaffolding into
-  one binary-parametrised fixture and shared pure builders.
+  one binary-parametrized fixture and shared pure builders.
   - Reroute (source: audit:6.2.4 Findings 1, 2, 5 / review:6.2.4; severity:
     high). The wheel-build/venv-install body is duplicated across six sites and
     the `installed_binary_fixtures` plugin re-inlines two conftest fixtures, so
@@ -4146,7 +4146,7 @@ single source of truth, and a test pins it so it cannot silently re-fork.
     `test_ai_isms_e2e._one_program_catalogue`) and two copies of the
     venv-scripts-dir resolver, a divergence risk the post-merge audits repeatedly
     flag (WI1 step 2 deferred the fold-out to keep the blast radius small). A
-    single binary-parametrised module-scoped fixture factory in
+    single binary-parametrized module-scoped fixture factory in
     `tests/installed_binary_fixtures.py`, plus shared pure builders for the
     catalogue and the scripts-dir resolver that both the function-scoped conftest
     fixtures and the module-scoped plugin delegate to, would collapse five
@@ -4157,7 +4157,7 @@ single source of truth, and a test pins it so it cannot silently re-fork.
   - Requires 6.2.4.
   - See novel-ralph-harness-design.md §9; docs/developers-guide.md
     ("Shared test scaffolding"); docs/issues/audit-6.2.4.md (Findings 1, 2, 5).
-  - Success: a single binary-parametrised module-scoped fixture factory owns the
+  - Success: a single binary-parametrized module-scoped fixture factory owns the
     wheel-build/venv-install scaffolding; shared pure builders own the
     one-program catalogue and the venv-scripts-dir resolver, consumed by both the
     function-scoped conftest fixtures and the module-scoped plugin; the
@@ -4169,7 +4169,7 @@ single source of truth, and a test pins it so it cannot silently re-fork.
     run-installed-script incantation recurs about a dozen times across the e2e
     modules, and three e2e modules rebuild the wheel per test where module scope
     would build once. This serves the step-7.5 hypothesis — collapsing the e2e
-    scaffolding onto shared homes — by centralising the run convention in one
+    scaffolding onto shared homes — by centralizing the run convention in one
     `run_installed` helper and removing redundant slow per-test wheel rebuilds;
     it does not serve the step-6.2 surface hypothesis where it was raised.
     Coordinate with 7.5.2 so the helper consumes the shared fixture factory.
@@ -4496,7 +4496,7 @@ single source of truth, and a test pins it so it cannot silently re-fork.
   - Reroute (source: audit:6.3.7; severity: low). Task 6.3.7 introduces
     `slice_doc_region` (in `tests/_skill_contract_scanner.py`) as a strictly
     better, source-naming third copy of the find-or-fail slice idiom rather than
-    generalising the existing `_slice_between`/`_require_index` in
+    generalizing the existing `_slice_between`/`_require_index` in
     `tests/test_skill_deflation_guard.py`. Promote `slice_doc_region` (plus a
     `require_index` companion) into a shared `tests/_doc_slice.py` and migrate the
     deflation guard onto it, collapsing three slicers to one. This serves the
@@ -4623,7 +4623,7 @@ copies that would re-diverge.
     `_KNOWN_SKILL_MARKDOWN` edit line.
     - Addendum (from audit:7.6.3; low). Add a comment above the constant stating
       it is hand-maintained and must not be derived from the glob, so a refactor
-      cannot silently optimise the tripwire away. Lightweight addendum pass.
+      cannot silently optimize the tripwire away. Lightweight addendum pass.
   - [x] 7.6.3.5. Name the `console`-fence bare-`.write(` Python-in-shell gap as
     a deferred 7.6.4 item.
     - Addendum (from audit:7.6.3; low). `console` is executable but not in the
@@ -4804,7 +4804,7 @@ copies that would re-diverge.
     hypothesis — it is a detection-engine robustness improvement cross-cutting
     every pack — so it is rerouted here rather than parked in 8.1. Add
     line-wrap-tolerant matching for multi-token tells (a bounded join or
-    soft-wrap normalisation) without breaking the per-line line-number reporting
+    soft-wrap normalization) without breaking the per-line line-number reporting
     or the no-`re.DOTALL` discipline.
   - Requires 5.1.2.
   - See novel-ralph-harness-design.md §4.4 and §6.1;
@@ -4941,14 +4941,14 @@ copies that would re-diverge.
     the verdicts unchanged.
 
 - [ ] 7.6.18. Decide and apply the multi-producer hardening for the BLOCKER
-  recogniser grammar.
-  - Reroute (source: review:3.1.5; severity: low). The recogniser enters a
+  recognizer grammar.
+  - Reroute (source: review:3.1.5; severity: low). The recognizer enters a
     `## BLOCKER` section and matches `### Bn` findings on an exact, case-sensitive
     grammar (D-BLOCKER-FORMAT, D-BLOCKER-CASE), which is sound while the spiteful
     critic is the only writer of `critic-notes.md`. If a second producer appears,
     a benign whitespace variant (`##  BLOCKER`, trailing spaces, a tab before the
     token) would read clean and re-open the exit-0 lie task 3.1.5 closed. Decide
-    once between normalising benign whitespace defensively in the recogniser and
+    once between normalizing benign whitespace defensively in the recognizer and
     adding a producer-side lint that rejects malformed `## BLOCKER` / `### Bn`
     headings, and apply the chosen approach with tests over the whitespace
     variants. This is cross-cutting robustness hygiene against a hypothetical
@@ -4959,8 +4959,8 @@ copies that would re-diverge.
     skill/novel-ralph/references/critic-personas.md (the `## BLOCKER` / `### Bn`
     format); skill/novel-ralph/references/done-conditions.md;
     docs/execplans/roadmap-3-1-5.md (D-BLOCKER-FORMAT, D-BLOCKER-CASE).
-  - Success: one decision records whether benign whitespace is normalised in the
-    recogniser or rejected by a producer-side lint; the chosen approach is applied
+  - Success: one decision records whether benign whitespace is normalized in the
+    recognizer or rejected by a producer-side lint; the chosen approach is applied
     and pinned by tests over the `##  BLOCKER`, trailing-space, and
     tab-before-token variants so none silently reads clean; the documented
     case/variant out-of-scope decision (D-BLOCKER-CASE) is preserved or revisited
@@ -5095,7 +5095,7 @@ copies that would re-diverge.
     reference re-introduced in any swept document fails the guard; and the test
     suite stays green.
 
-- [ ] 7.6.25. Stabilise the flaky reconcile-derivation totality property.
+- [ ] 7.6.25. Stabilize the flaky reconcile-derivation totality property.
   - Reroute (source: review:6.3.2; severity: high). The Hypothesis property
     `test_reconcile_derivation::test_derivation_is_total_and_never_yields_none_on_a_violation`
     reproduces failing roughly 1 in 8 full-suite runs under `pytest -n auto`
@@ -5280,7 +5280,7 @@ copies that would re-diverge.
   - Reroute (source: review:6.3.9; severity: low). The 6.3.7 and 6.3.9 guards pin
     Meaning cells by lenient single keywords and pin regions by exact H3 heading
     text, so a benign future re-heading or re-wording could red a guard on a
-    non-divergence. Review the two guards together to decide whether to centralise
+    non-divergence. Review the two guards together to decide whether to centralize
     the keyword and anchor tables and document the re-wording contract — so an
     editor knows the keyword and heading text are load-bearing — closing the gap
     where a routine docs edit reddens a guard without a real contract drift. This
@@ -5294,8 +5294,8 @@ copies that would re-diverge.
     tests/test_developers_guide_contract_drift_guard.py;
     tests/_skill_contract_scanner.py.
   - Success: one recorded decision states whether the keyword and anchor tables
-    are centralised and documents the re-wording contract naming the load-bearing
-    keywords and heading text; if centralised, both guards consume the shared
+    are centralized and documents the re-wording contract naming the load-bearing
+    keywords and heading text; if centralized, both guards consume the shared
     tables; a benign re-heading or re-wording that preserves the contract no
     longer reds a guard (or the load-bearing text is explicitly documented as such);
     and the docs and contract suites stay green.
@@ -5305,7 +5305,7 @@ copies that would re-diverge.
   - Reroute (source: audit:7.1.3 / audit:7.1.4; severity: low; two consecutive
     §7.1 audits naming the same gap, merged). The codebase's functional style —
     many small projections and mutators threaded through call sites, and (since
-    7.1.4) a `build_finding_outcome` builder parameterised over four injected
+    7.1.4) a `build_finding_outcome` builder parameterized over four injected
     callables — makes refactor-orphaned parameters a recurring risk that a gate
     should catch rather than an audit; 7.1.3's refactor left `_write_outcome`'s
     `action` parameter dead and ruff did not flag it because `ARG` is absent from
@@ -5457,12 +5457,12 @@ copies that would re-diverge.
     a deliberate, named seam; no behaviour changes; and `make all` stays green.
 
 - [ ] 7.6.39. Widen the §7.1 projection drift-guard registry to the
-  normalised-but-unguarded compile-family siblings.
-  - Reroute (source: review:7.1.6; severity: low). 7.1.6 (Work item 1) normalised
+  normalized-but-unguarded compile-family siblings.
+  - Reroute (source: review:7.1.6; severity: low). 7.1.6 (Work item 1) normalized
     the `concatenate_drafts` / `present_draft_bodies` / `compile_manuscript`
     cross-references for consistency but, by its recorded coverage boundary, did
     not add them as guarded rows in `test_projection_docstring_drift_guard.py`,
-    so those projections are normalised-but-unguarded and could silently re-fork
+    so those projections are normalized-but-unguarded and could silently re-fork
     without reddening the guard. Once their wider consumer graph is audited, add
     a `(authoritative, consumers, canonical_path, reexport_tail, table_markers)`
     row per sibling so the convention 7.1.6 applied to them is enforced. This
@@ -5474,7 +5474,7 @@ copies that would re-diverge.
   - See novel-ralph-harness-design.md §4.3 and §5.4;
     docs/execplans/roadmap-7-1-6.md (Work item 1);
     tests/test_projection_docstring_drift_guard.py.
-  - Success: each normalised compile-family sibling
+  - Success: each normalized compile-family sibling
     (`concatenate_drafts`, `present_draft_bodies`, `compile_manuscript`) carries
     a guarded registry row binding its authoritative docstring to its audited
     consumers; re-forking any of them reddens the guard; and the compile and
@@ -5762,7 +5762,7 @@ conventions are settled once.
   percentages across the envelope contract.
   - Reroute (source: review:6.1.1; severity: low). `wordcount` (and potentially
     other commands) emit raw, unrounded float percentages in the machine
-    `result`; for ratios that do not terminate this serialises long floats and
+    `result`; for ratios that do not terminate this serializes long floats and
     risks snapshot churn and awkward downstream parsing. Decide one house
     convention for the precision of derived numeric envelope fields (e.g. round
     percentages to two decimal places, or emit basis-point integers), record it
@@ -5778,7 +5778,7 @@ conventions are settled once.
   - Success: one fixed-precision (or basis-point) convention for derived
     machine-payload percentages and ratios is recorded once in the envelope
     contract documentation; every command emitting a derived percentage or ratio
-    applies it so a non-terminating quotient cannot serialise as a long churning
+    applies it so a non-terminating quotient cannot serialize as a long churning
     float; the wordcount snapshots are regenerated to the stable form; and
     `make markdownlint` and `make nixie` stay green.
 
@@ -5825,7 +5825,7 @@ conventions are settled once.
     AGENTS.md and the corpus agree with it, a lint or spell-check rule enforces
     the chosen convention, and a deliberately misspelt sample fails that rule.
 
-- [ ] 7.7.8. Instrument and measure the realised per-chapter deflation, then
+- [ ] 7.7.8. Instrument and measure the realized per-chapter deflation, then
   confirm or retune the acceptance bands.
   - Reroute (source: review:6.1.2; severity: medium; three near-identical
     proposals merged — a calibration probe, an end-to-end convergence fixture,
@@ -5834,7 +5834,7 @@ conventions are settled once.
     `tests/test_skill_deflation_guard.py` substring guard pins only the mechanism's
     *presence*, never whether a full draft-plus-desloppify-plus-critic run lands
     in band. Add instrumentation (a `wordcount`/recount reporting hook, or a
-    measured shrinkage report) so the realised pre-cut-to-post-cut shrinkage is
+    measured shrinkage report) so the realized pre-cut-to-post-cut shrinkage is
     recorded per chapter, plus a corpus-level or beta-replay convergence check
     that a representative manuscript lands within the Phase 9 band; then confirm
     the bands converge chapters within target rather than firing the
@@ -5950,7 +5950,7 @@ conventions are settled once.
     `.review-r2.md`, and the equivalent snapshots on prior branches) carry
     first-person voice that repeatedly trips CodeRabbit, producing recurring
     skipped-finding noise on every later task that touches the tree. Settle the
-    convention once — normalise the artefacts to the impersonal docs voice in a
+    convention once — normalize the artefacts to the impersonal docs voice in a
     one-off sweep, or record an explicit lint-exclusion for frozen review
     snapshots — and capture the decision in the developers' guide so future review
     artefacts inherit it rather than re-accreting the noise. This serves the
@@ -5965,7 +5965,7 @@ conventions are settled once.
     docs/execplans/roadmap-7-2-2.review-r1.md;
     docs/execplans/roadmap-7-2-2.review-r2.md.
   - Success: the developers' guide records the convention for frozen execplan
-    review artefacts (either an impersonal-voice normalisation or an explicit
+    review artefacts (either an impersonal-voice normalization or an explicit
     lint-exclusion, with its rationale); the existing review snapshots conform to
     whatever the convention decides; CodeRabbit no longer reports recurring
     skipped findings against those artefacts; and `make markdownlint`, `make
@@ -6069,7 +6069,7 @@ loops.
     near-identical scan-aggregate loop, and `scan_pattern` returns a count that
     is always `len(lines)`, a redundant value that invites a CQS read/derive
     split. Extract the shared scan-aggregate skeleton into a `loaderkit` helper
-    (parameterised on each pack's per-rule/per-device projection) and drop the
+    (parameterized on each pack's per-rule/per-device projection) and drop the
     vacuous count return, deriving the total from the hit tuple at the seam.
     These are ergonomics/CQS cleanups, not single-home consolidation, so they do
     not serve the step-7.2 hypothesis; they are sequenced after 7.8.1 because
@@ -6133,7 +6133,7 @@ loops.
     novel_ralph_skill/loaderkit/coerce.py;
     novel_ralph_skill/ledger/_fields.py.
   - Success: `loaderkit.coerce` exposes a shared list-coercion primitive
-    (`require_int_array`/`require_sequence_of`) parameterised on the error factory;
+    (`require_int_array`/`require_sequence_of`) parameterized on the error factory;
     `ledger/_fields.py` routes `allowed_chapters` through it rather than
     re-narrowing the array and its elements by hand; a test pins the primitive so
     a future list-typed family inherits it; the typed error channel and operator
@@ -6198,7 +6198,7 @@ Make the desloppify detection packs configurable and extend the shipped set.
 - [x] 8.1.3. Decide whether the desloppify clean-pass output is slimmed to
   non-zero findings before the multi-pack surface grows.
   - Reroute (source: review:5.1.2; severity: low). Every clean scan currently
-    serialises all rules at `count: 0`, harmless for the single §6 pack but
+    serializes all rules at `count: 0`, harmless for the single §6 pack but
     growing linearly as the ai-isms and device-ledger packs ship; make the
     deliberate full-audit-trail-versus-violations-only decision once, before the
     multi-pack surface lands, so the per-hit payload contract is not changed
@@ -6355,7 +6355,7 @@ Make the desloppify detection packs configurable and extend the shipped set.
     third consumer validates that the 7.2.6 consolidation paid off in practice
     rather than only against the test-local `_Thing`, and confirms the `_HasId`
     bound is not over-constraining; it exercises the error-factory and parse
-    seams against a third consumer and hardens their parameterisation against
+    seams against a third consumer and hardens their parameterization against
     regression.
   - See novel-ralph-harness-design.md §6.1, §6.3 and adr-001-deterministic-judgemental-boundary.md.
   - Success: `novel desloppify --pack filter-words.toml` flags a `was`-heavy or

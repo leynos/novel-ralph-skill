@@ -68,7 +68,7 @@ formatters whose body is path-only (`_draft_read_error`, `_compile_write_error`,
 `raise _draft_read_error(root, exc) from exc` to
 `raise _draft_read_error(root) from exc` — the `from exc` chaining is unchanged
 and stays the single source of the debugging link. Update the parity test to
-build the formatter args by `label` (it already parametrises by label) rather
+build the formatter args by `label` (it already parametrizes by label) rather
 than assuming a uniform two-arg signature, or keep `exc` only where a future arm
 genuinely needs to branch on the exception. `_state_input_error` may keep `exc`
 if a future arm is expected to branch on exception type, but should then say so;

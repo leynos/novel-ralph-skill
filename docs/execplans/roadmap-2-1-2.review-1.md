@@ -99,7 +99,7 @@ sets the convention all four later commands inherit.
   "chapters drafted" (a disk quantity). Record the proxy explicitly as a
   deliberate pure-state approximation and note where it could diverge from the
   design intent, so task 2.1.3's on-disk cross-check (which runs the validator
-  against the materialised tree) does not later surface a silent disagreement.
+  against the materialized tree) does not later surface a silent disagreement.
 
 - A2 (Pandalump) — `cursor-coherent` boundary. The oracle uses `0 <=
   current_chapter <= len(spec.chapters)`; the plan mirrors this with
@@ -150,7 +150,7 @@ Six months on, the most likely incident: WI4 lands "green" because a later edito
 "fixed" the failing `by-chapter-sum-mismatch` agreement assertion (B1) by
 loosening the restricted-set comparison — exactly the Tolerance the plan warns
 against — so the validator silently over-reports `gate-ratio-consistent` whenever
-`current` drifts. Task 2.1.3 then cross-checks against the materialised
+`current` drifts. Task 2.1.3 then cross-checks against the materialized
 `state.toml` and the divergence resurfaces as a "validator vs oracle" drift bug
 that is now two tasks deep. Prevention: resolve B1 in the plan by pinning the gate
 quantity to agree with the oracle, and keep WI4's equality strict.

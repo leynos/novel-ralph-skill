@@ -54,7 +54,7 @@ and a severity.
   reads, and `tomllib.loads`-parses `working_dir / "state.toml"`. A single call
   to `live_draft_owned` therefore decodes the same `state.toml` three times,
   and a fourth time indirectly through the `corpus_check` reuse on line 184
-  (which reads the materialised tree again for its own disk-evidence
+  (which reads the materialized tree again for its own disk-evidence
   predicates). The repeated
   `state = tomllib.loads((working_dir / "state.toml").read_text(...))` line is
   a verbatim data clump copied across the three predicates. This is test-side

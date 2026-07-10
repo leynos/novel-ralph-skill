@@ -23,7 +23,7 @@ guaranteed to mirror the envelope's `ok` flag and the contract's code meanings.
 Concretely, after this task lands:
 
 - A new module `novel_ralph_skill/contract/` exposes the envelope data type,
-  the exit-code enum, a machine-mode serialiser (`json.dumps`-based), a
+  the exit-code enum, a machine-mode serializer (`json.dumps`-based), a
   `--human` renderer, and a thin `run` wrapper that drives a Cyclopts
   application so that a usage error exits `2` (not Cyclopts's native `1`), a
   state/input error exits `3`, and a benign-negative / actionable-finding
@@ -35,7 +35,7 @@ Concretely, after this task lands:
   → `3`; codes `1` and `4` are non-interchangeable).
 - Snapshot tests (syrupy) pin the rendered envelope shape — one machine-mode
   snapshot per exit code, plus a human-mode snapshot — with non-deterministic
-  fields normalised, so a snapshot failure flags a real contract change.
+  fields normalized, so a snapshot failure flags a real contract change.
 
 This module is the load-bearing seam the slices in roadmap phases 2-6 reuse;
 it is built once here (ADR-003 "Migration plan": "built once in roadmap task
@@ -232,12 +232,12 @@ Hard invariants; violation requires escalation, not a workaround.
   exception, not a real file, so no fixture is needed.
 - Risk: syrupy snapshots churn on harmless formatting or path changes.
   Severity: medium. Likelihood: medium. Mitigation: snapshot only the rendered
-  envelope text with `working_dir` normalised to the fixed token `"working"`
+  envelope text with `working_dir` normalized to the fixed token `"working"`
   before snapshotting (AGENTS.md lines 148-158); pair each snapshot with a
   semantic assertion (assert the parsed JSON's `ok` matches the code). Note
   (round-1 A1): the §3.1 envelope has **no** timestamp field and only one
   path-like field, `working_dir`; the design's own example already uses the
-  literal `"working"`. There is therefore nothing else to redact — normalise
+  literal `"working"`. There is therefore nothing else to redact — normalize
   `working_dir` and do not invent timestamp/absolute-path fields the envelope
   does not carry.
 - Risk: new dev deps fail to resolve under uv / Python 3.14. Severity: low.
@@ -310,7 +310,7 @@ Hard invariants; violation requires escalation, not a workaround.
   (`pyproject.toml` lines 106, 120) but is NOT a locked dependency (`uv.lock`
   has zero `msgspec` entries). Evidence: `grep -c msgspec uv.lock` returns 0;
   `pyproject.toml` lists only `cyclopts` and `tomlkit` as runtime deps. Impact:
-  the envelope must be serialised with the standard library (`dataclasses` +
+  the envelope must be serialized with the standard library (`dataclasses` +
   `json`), NOT msgspec. Adding msgspec would be a new runtime dependency and
   breach the Tolerances. Decision recorded below.
 - Observation (round-2): Cyclopts's default `result_action`
@@ -348,7 +348,7 @@ Hard invariants; violation requires escalation, not a workaround.
 
 ## Decision log
 
-- Decision: serialise the envelope with a frozen `@dataclass` plus
+- Decision: serialize the envelope with a frozen `@dataclass` plus
   `json.dumps`, not msgspec/attrs/pydantic. Rationale: msgspec is unlocked (see
   Surprises); the stdlib needs no new runtime dependency, produces deterministic
   key order matching the fixed field order, and keeps the module trivially
@@ -364,7 +364,7 @@ Hard invariants; violation requires escalation, not a workaround.
   avoids a later refactor commit. Date/Author: 2026-06-22, planning agent.
 - Decision: the `run` wrapper owns the Cyclopts-to-contract exit-code
   translation rather than each command. Rationale: Cyclopts exits 1 on usage
-  errors but the contract demands 2; centralising the translation is the only
+  errors but the contract demands 2; centralizing the translation is the only
   way five commands share it "without renegotiating it" (roadmap 1.1.3 success
   criterion). Date/Author: 2026-06-22, planning agent.
 - Decision (round-2, B1): construct the app with
@@ -621,7 +621,7 @@ New package `novel_ralph_skill/contract/`:
   and validates `command in COMMAND_NAMES` (import from
   `novel_ralph_skill.commands.names`), raising a `ValueError` otherwise.
   Provide `render_machine(env) -> str` returning `json.dumps(...)` with the
-  fields serialised in contract order (build an explicit ordered dict; do not
+  fields serialized in contract order (build an explicit ordered dict; do not
   rely on dataclass field order leaking through), and
   `render_human(env) -> str` returning a readable multi-line rendering that
   shows `ok`, the working dir, and each message on its own line, omitting raw
@@ -639,7 +639,7 @@ Tests to add (`tests/test_contract_envelope.py`):
   the JSON `result` payload.
 - Snapshot (syrupy): one `render_machine` snapshot for a representative
   success envelope and one `render_human` snapshot, with `working_dir`
-  normalised to the literal token `"working"` (no absolute paths) so the
+  normalized to the literal token `"working"` (no absolute paths) so the
   snapshot is stable (AGENTS.md lines 148-158). Pair each with a semantic
   assertion as above. (The full per-code snapshot matrix lands in Work item 5,
   alongside the property test, to keep this item focused on rendering.)
@@ -652,7 +652,7 @@ COMMAND_NAMES` to confirm the import path.
 
 ### Work item 4: the `run` wrapper and exit-code mapping
 
-Purpose: centralise the Cyclopts-to-contract translation so usage errors exit
+Purpose: centralize the Cyclopts-to-contract translation so usage errors exit
 `2`, state/input errors exit `3`, and the command body's own result decides
 `0`/`1`/`4` — the single shared plumbing the five commands reuse.
 
@@ -761,7 +761,7 @@ Tests to add (`tests/test_contract_properties.py`):
 Snapshots to add (`tests/test_contract_envelope_snapshots.py`, syrupy):
 
 - One `render_machine` snapshot per `ExitCode` (five snapshots), parametrized
-  over the codes, with `working_dir` normalised to the fixed token `"working"`.
+  over the codes, with `working_dir` normalized to the fixed token `"working"`.
   (The envelope has no timestamp and no other path field, so there is nothing
   else to redact — round-1 A1.) "A snapshot pins the envelope shape for each
   code" (roadmap 1.3.1
@@ -962,7 +962,7 @@ What changed and why, in response to the round-1 Logisphere review
   are updated accordingly.
 - Non-blocking A1 (snapshot redaction named non-existent fields) and A2
   (`--help`/`--version` exemption unpinned) are also resolved: redaction is
-  limited to normalising `working_dir`, and a `--help`/`--version`→0-with-no-
+  limited to normalizing `working_dir`, and a `--help`/`--version`→0-with-no-
   envelope test is added to Work item 4. A3 (mutator-refusal→3 note) is folded
   into the Work item 6 developers-guide update.
 

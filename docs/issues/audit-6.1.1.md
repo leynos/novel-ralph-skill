@@ -31,7 +31,7 @@ None of the findings below is a blocking defect; all are low-severity hygiene
 items. The dominant themes are (1) a small triplication of the
 `STATE_INPUT_ERRORS` → `StateInputError` draft-read wrapper now that `wordcount`
 adds a third copy; (2) the `ratio >= threshold` gate-trigger derivation now
-re-spelled in a third site with no shared pure helper; (3) two unsynchronised
+re-spelled in a third site with no shared pure helper; (3) two unsynchronized
 encodings of the same three gates (`GATE_THRESHOLDS` ratios versus
 `KNITTING_PERCENTAGES` integers); (4) a stale developers'-guide paragraph that
 still calls `wordcount` (and two others) a stub; and (5) two untested
@@ -76,7 +76,7 @@ manager) into a shared module — `commands/novel_state.py` already exports
 `STATE_INPUT_ERRORS` and `_load_or_state_error`, so it is the natural home — and
 have all three call sites delegate to it. This keeps the one fault-routing rule
 (which read faults are exit `3`) in a single place, consistent with `wordcount.py`
-having already centralised the one counting rule.
+having already centralized the one counting rule.
 
 ## Finding 2 — Gate-trigger derivation `ratio >= threshold` re-spelled in a third site
 
@@ -109,7 +109,7 @@ into the `state` package beside `GATE_THRESHOLDS`, re-export it from
 both call it. The oracle can stay an independent re-derivation (its job is to be
 a second opinion), but production should compute the triggers once.
 
-## Finding 3 — Two unsynchronised encodings of the same three knitting gates
+## Finding 3 — Two unsynchronized encodings of the same three knitting gates
 
 - Category: inconsistency
 - Severity: low
@@ -129,7 +129,7 @@ nothing asserts `GATE_THRESHOLDS[i] == KNITTING_PERCENTAGES[i] / 100`. `wordcoun
 makes the straddle visible: it imports `GATE_THRESHOLDS` (ratios) for the geometry
 then converts back to the percentage form inline (`* 100`) in `_cumulative_message`
 to render the human "next knitting gate at 50%" line. A future edit that, say,
-inserts a 65% gate into one tuple but not the other would silently desynchronise
+inserts a 65% gate into one tuple but not the other would silently desynchronize
 the validator/report geometry from the review-file naming.
 
 Proposed fix: derive one tuple from the other (e.g. define `GATE_THRESHOLDS =

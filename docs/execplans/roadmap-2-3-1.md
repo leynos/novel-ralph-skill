@@ -75,7 +75,7 @@ escalation, not a workaround.
   loads through `load_document` (`tomlkit`, not `tomllib`), edits the live
   `TOMLDocument` in place, and writes through `write_document_atomically`
   (temp-file-plus-`Path.replace`), preserving hand-authored comments and layout
-  (ADR-002; design §5.3, §3.4). It must not re-serialise from the typed `State`
+  (ADR-002; design §5.3, §3.4). It must not re-serialize from the typed `State`
   read view.
 - **Success `result` is write-shaped, never `check`'s read shape.** `recount`'s
   success `result` names what it changed (the counts it wrote), and never
@@ -499,7 +499,7 @@ range of inputs"):
   Build trees with the corpus helpers (`chapter_dir_name`, `draft_body`) so the
   expected counts are exact.
 - `tests/test_state_wordcount.py` (property, Hypothesis): over a manifest of
-  generated chapter numbers and per-chapter word counts materialised with
+  generated chapter numbers and per-chapter word counts materialized with
   `draft_body`, `recount_words(working_dir, manifest)` agrees with
   `live_draft_counts(working_dir)` on the total, and
   `sum(by_chapter.values()) == current`. This pins the production helper equal
@@ -660,7 +660,7 @@ Edits:
    prepared tree's parent first (the cwd-relative `_state_path()`; Decision Log
    D-CWD), as the advance-phase steps do.
 3. `tests/test_novel_state_mutator_snapshots.py` (extend): a `recount` success
-   envelope snapshot, with nondeterministic fields normalised (no absolute path;
+   envelope snapshot, with nondeterministic fields normalized (no absolute path;
    `working_dir` is the `"working"` token), paired with a semantic assertion
    on the exit code and `ok` (AGENTS.md "pair them with semantic assertions").
 4. `tests/test_console_scripts_e2e.py` (extend if it exercises subcommands):
@@ -682,7 +682,7 @@ Edits:
        genuinely multi-file mutators (`recount`, `reconcile`)"; `recount` does
        not belong there. Rewrite so the `[pending_turn]` bracket "belongs to the
        genuinely multi-file mutators (`reconcile`, `novel-compile`)" — or
-       whichever multi-file writers the guide already recognises — and explicitly
+       whichever multi-file writers the guide already recognizes — and explicitly
        note that `recount`, like `set-cursor` and `advance-phase`, writes only
        `state.toml` and so opens no bracket.
      - **Edit (b) — lines 202-206, the "Checker/mutator segregation"
@@ -801,7 +801,7 @@ atomic `write_document_atomically` leaves either the prior or the new
 `tmp_path`-scoped working trees, so reruns do not accumulate state. No
 destructive operation is introduced; `recount` never deletes a `working/` file.
 
-## Artifacts and notes
+## Artefacts and notes
 
 The load-bearing oracle the production count is pinned against:
 

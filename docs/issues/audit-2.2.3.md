@@ -6,7 +6,7 @@ The slice adds `novel-state set-chapters`, the one sanctioned, validated path
 for populating `[chapters]` from the agent's plan (design §5.1; ADR 001;
 ADR 008). It is the project's *second* genuinely multi-file mutator: in one turn
 it persists the populated manifest plus a `[pending_turn]` intent in a single
-atomic write, materialises the `working/manuscript/chapter-NN/` directories, and
+atomic write, materializes the `working/manuscript/chapter-NN/` directories, and
 appends a `log.md` receipt, leaving `novel-state check` exiting `0`. The slice
 also adds the scoped `derive_reconciliation` precedence branch that lets
 `reconcile` COMPLETE a torn `set-chapters` turn by creating the missing,
@@ -93,7 +93,7 @@ where the payload edit sits (reconcile edits inside the bracket via an `edit`
 callable; `set-chapters` edits the manifest *before* the bracket so it persists
 with the intent in the first write, then creates directories inside). The shared
 "intent-write → … → receipt → clear-write" envelope is nonetheless duplicated,
-and `_run_reconcile_bracket` already generalises most of it (an `edit` callable
+and `_run_reconcile_bracket` already generalizes most of it (an `edit` callable
 plus a `log_line`).
 
 **Proposed fix:** this is lower priority than Finding 1 because the two orderings

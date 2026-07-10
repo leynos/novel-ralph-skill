@@ -341,8 +341,8 @@ Risks differ from Surprises: risks are anticipated; surprises are not.
       constant, the ~18-25-line docstringed twin (the existing disk-evidence
       twins run ~18-25 lines each), and the `corpus_check` wiring line pushes it
       to ~424+ lines, breaching the cap mid-work-item and forcing the implementer
-      to improvise an unauthorised split — exactly the structural change the
-      Tolerances section says to escalate on. Pre-authorising the split as a
+      to improvise an unauthorized split — exactly the structural change the
+      Tolerances section says to escalate on. Pre-authorizing the split as a
       no-behaviour-change commit keeps `_oracle.py` under the cap, gives the new
       twin a home with headroom, and colocates the word-count twins (the design's
       "break up dispatch tables by feature, colocate constituents", AGENTS.md
@@ -454,7 +454,7 @@ Define the terms used below.
   `tests/working_corpus/_oracle.py:corpus_check(spec, working_dir)`. An
   independent re-implementation of the same invariants used to
   cross-check the production detector. Its disk-evidence predicates read the
-  materialised `working/` tree (disk-vs-disk twins of the production
+  materialized `working/` tree (disk-vs-disk twins of the production
   predicates).
 - **`INCOHERENT_VARIANTS`** — `tests/working_corpus/_variants.py`: a mapping
   from
@@ -787,7 +787,7 @@ Tests this work item adds/updates:
 
 - Derivation: add both new variants to the `_VARIANT_ACTIONS` mapping in
   `test_reconcile_derivation.py` with `ReconcileAction.RECOUNT`. Advisory A2:
-  `_VARIANT_ACTIONS` is an explicit variant→action map parametrised over its
+  `_VARIANT_ACTIONS` is an explicit variant→action map parametrized over its
   own items; it is **not** auto-derived from `INCOHERENT_VARIANTS`, so a new
   variant omitted here is silently un-exercised rather than a hard failure.
   Treat adding both names here as **mandatory**, not optional. Then assert the
@@ -946,7 +946,7 @@ recount over unchanged drafts is byte-for-byte identical (developers' guide
 commit gate fails, fix forward within the work item; no destructive rollback is
 needed because nothing outside the worktree is modified.
 
-## Artifacts and notes
+## Artefacts and notes
 
 Load-bearing facts verified during research:
 
@@ -1071,7 +1071,7 @@ unaddressed 400-line file-size cap breach in `tests/working_corpus/_oracle.py`.
   at 400 lines. Work item 1 as written added a name constant, a ~18-25-line
   docstringed twin (`_check_word_counts_cover_drafts`), and a `corpus_check`
   wiring line — ~424+ lines total, breaching the cap mid-work-item and forcing
-  an unauthorised split (a Tolerances-escalation situation).
+  an unauthorized split (a Tolerances-escalation situation).
 - Added **Work item 0**: a no-behaviour-change refactor that extracts the
   word-count disk-evidence twins (`_disk_drafts`, `_disk_present_draft_bodies`,
   `_disk_by_chapter`, `_check_compiled_matches_drafts`,

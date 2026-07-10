@@ -228,7 +228,7 @@ properties also build only `dict`/`list` packs, so they do not close this gap.
 matching test. If the boundary is to accept any `cabc.Mapping` (option (b)),
 add a parse test that passes a `types.MappingProxyType` pack and asserts it
 loads. If the contract is tightened to `tomllib` shapes (option (a)), add a test
-asserting a documented, recognisable error when a non-`list` `rule` value (for
+asserting a documented, recognizable error when a non-`list` `rule` value (for
 example a `tuple`) is passed, so the precondition is enforced rather than
 implied. Gated by `pytest`.
 

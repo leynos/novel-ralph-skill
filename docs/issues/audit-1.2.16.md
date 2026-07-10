@@ -167,8 +167,8 @@ harness), so it deserves the same regression discipline as the code surface.
 
 The harness build instructions stipulate en-GB Oxford spelling — `-ize`/`-yse`/
 `-our`. The documentation and skill corpus instead uses the `-ise`/`-isation`
-British variant uniformly (serialiser, materialise, initialise, summarise,
-recognise, realisation, maximise, minimise, capitalisation, and so on). The
+British variant uniformly (serializer, materialize, initialize, summarize,
+recognize, realization, maximize, minimize, capitalization, and so on). The
 corpus is internally consistent in the `-ise` form, so this is a single
 convention mismatch rather than scattered typos, and it predates 1.2.16 — the
 1.2.16 sweep correctly matched the surrounding `-ise` house style rather than

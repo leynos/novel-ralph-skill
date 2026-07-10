@@ -75,7 +75,7 @@ read-only op, ADR-001-safe, `root` is in scope at `_novel_done.py:63`), but **no
 work item, no Interfaces clause, and no decision specifies this extra
 filesystem read**. As written, Work item 3's implementation steps (replace the
 two-way branch with a three-way branch keyed on `failed_clause_names`) cannot
-realise the conservative predicate the same work item mandates.
+realize the conservative predicate the same work item mandates.
 
 Required fix: pick one predicate (the conservative reading is the design-correct
 one — design §4.2 lines 321-328 keys the carve-out on "the only obstacle is a

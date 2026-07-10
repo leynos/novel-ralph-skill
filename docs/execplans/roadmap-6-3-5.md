@@ -348,12 +348,12 @@ escalation, not a workaround.
   earlier draft of Work item 4 (which routed this boundary through the
   draft-read formatter and mislabelled it). Date/Author: 2026-06-26, planner.
 - Decision (D9): no Hypothesis property test was added for `_draft_read_error`.
-  Rationale: the formatter is a fixed-string builder parameterised only by
+  Rationale: the formatter is a fixed-string builder parameterized only by
   `reported_dir` (interpolated) and an *unused* `exc` (kept for signature
   symmetry with `_state_input_error` and `from exc` chaining). Its input domain
   is too narrow to earn a property test (`AGENTS.md` gates property tests to
   broad input domains), exactly as 6.3.1 found for the sibling formatter. The
-  example-based unit test instead parametrises two representative
+  example-based unit test instead parametrizes two representative
   `STATE_INPUT_ERRORS` members (`UnicodeDecodeError`, `PermissionError`) and
   forbids *each fault's own* distinctive repr fragment, so a leak of either is
   caught independently (coderabbit round-1 finding, addressed). Date/Author:
@@ -388,7 +388,7 @@ Deviations and notes:
   `compiled.md` is present; against the baseline they short-circuit benignly.
   Recorded so a future maintainer understands the phase choice.
 - Coderabbit: the first `coderabbit review --agent` pass returned one minor
-  finding (parametrise the unit test to forbid each fault's own repr fragment),
+  finding (parametrize the unit test to forbid each fault's own repr fragment),
   which was addressed. A second confirmation pass stalled with no output for
   >20 minutes (the CLI buffers output until exit; the process stayed blocked on
   the review service with negligible CPU — a transient backend/rate-limit stall).
@@ -940,7 +940,7 @@ Snapshot updates (if any unexpectedly arise) are recoverable via
 `--snapshot-update`. If a commit fails the gate, fix forward and re-run
 `make all`; do not commit a failing gate (`AGENTS.md` line 108).
 
-## Artifacts and notes
+## Artefacts and notes
 
 The load-bearing facts pinned during research:
 

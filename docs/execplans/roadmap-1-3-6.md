@@ -38,11 +38,11 @@ and a future command inherits it rather than re-deriving it.
 Success is observable four ways. First, a new unit test asserts the factory
 returns a `cyclopts.App` whose `result_action`, `exit_on_error`, `print_error`,
 and `help_on_error` attributes carry the four required values and whose `name`
-carries the argument passed. Note that cyclopts 4.18.0 tuple-normalises two of
+carries the argument passed. Note that cyclopts 4.18.0 tuple-normalizes two of
 these on construction — `name="novel-state"` is stored as `("novel-state",)` and
 `result_action="return_value"` as `("return_value",)` — while the three booleans
 are stored plain (`exit_on_error == False`, `print_error == False`,
-`help_on_error == False`); the test asserts the normalised forms, not the raw
+`help_on_error == False`); the test asserts the normalized forms, not the raw
 arguments (see Work item 1). Second, the existing contract-runner suite
 (`tests/test_contract_runner.py`), the cyclopts tripwire
 (`tests/test_cyclopts_contract.py`), and every per-command suite (`novel-state`
@@ -81,7 +81,7 @@ Hard invariants that must hold throughout implementation.
   Table 2, but neither documents the four constructor flags — do not cite §3.2 /
   Table 2 as the flag specification. These are the four behaviours pinned by
   `tests/test_cyclopts_contract.py` (the version-and-behaviour tripwire). The
-  refactor centralises the spelling; it must not change a single flag value.
+  refactor centralizes the spelling; it must not change a single flag value.
 - **No behavioural drift in any command.** Every `build_app()` must still return
   an app exposing the same subcommands/default body it does today, so every
   per-command suite passes unchanged. `novel-state` exposes `check`, `init`,
@@ -125,7 +125,7 @@ Thresholds that trigger escalation when breached.
 - **Interface.** If any `build_app`, entry-point, or `make_stub_app` name,
   import path, or `[project.scripts]` target must change to make the refactor
   work, stop and escalate — that contradicts a Constraint.
-- **Flags.** If centralising the four flags appears to require changing any flag
+- **Flags.** If centralizing the four flags appears to require changing any flag
   value, or if `cyclopts.App` rejects passing them via the factory, stop and
   escalate — that contradicts a Constraint and the verified cyclopts API.
 - **Dependencies.** If a new external dependency seems required, stop and
@@ -141,7 +141,7 @@ Thresholds that trigger escalation when breached.
 
 - Risk: the four `build_app` functions register their bodies on the app
   returned by the factory; if the factory returned a frozen or
-  already-finalised app, decorator registration could fail. Severity: medium.
+  already-finalized app, decorator registration could fail. Severity: medium.
   Likelihood: low. Mitigation: the factory returns a freshly constructed,
   empty `cyclopts.App`; `@app.command`/`@app.default` registration after
   construction is exactly how every command already works today (verified
@@ -176,7 +176,7 @@ Thresholds that trigger escalation when breached.
 - [x] Work item 1: add `make_contract_app(name)` to
   `novel_ralph_skill/contract/runner.py`, re-export it from
   `novel_ralph_skill/contract/__init__.py`, and add a failing-first unit test in
-  a new `tests/test_contract_app_factory.py` asserting the cyclopts-normalised
+  a new `tests/test_contract_app_factory.py` asserting the cyclopts-normalized
   attribute forms (`name == ("novel-state",)`,
   `result_action == ("return_value",)`, the three booleans `is False`). Done:
   `cyclopts` is now imported at module top in `runner.py` (the redundant
@@ -277,7 +277,7 @@ Thresholds that trigger escalation when breached.
   circular-import avoidance and the lazy-import-cost intent (`audit-3.1.1.md`
   Finding 4) both hold. Date/Author: 2026-06-24, planning agent.
 - Decision (round 2): the Work item 1 factory test asserts the cyclopts 4.18.0
-  *normalised* attribute forms, not the raw constructor arguments. Rationale: a
+  *normalized* attribute forms, not the raw constructor arguments. Rationale: a
   live probe in this worktree's venv shows `cyclopts.App(name="novel-state")`
   stores `name == ("novel-state",)` and `result_action="return_value"` stores
   `("return_value",)`, while the three booleans stay plain `False`. A literal
@@ -313,7 +313,7 @@ tripwire (`test_cyclopts_contract.py::_make_app`) stays a raw four-flag app, as
 a Constraint required.
 
 Result versus Purpose: the success criteria hold. The new
-`tests/test_contract_app_factory.py` pins the factory's normalised attribute
+`tests/test_contract_app_factory.py` pins the factory's normalized attribute
 forms; the existing contract-runner, cyclopts-tripwire, per-command, and
 console-scripts e2e suites pass unchanged in behaviour; and `make all` is green.
 
@@ -325,7 +325,7 @@ Lessons and small deviations:
   the factory was added to that same import for local consistency (the symbol
   lives in `runner`; the package re-export exists and is exercised by the factory
   test). No layering or public-surface impact.
-- Centralising the construction turned `cyclopts` into a typing-only import in
+- Centralizing the construction turned `cyclopts` into a typing-only import in
   all four command modules and in `tests/conftest.py`, tripping Ruff TC003. The
   fix was mechanical (move `import cyclopts` into each `TYPE_CHECKING` block,
   adding the block to the two command modules that lacked one). Recorded under
@@ -497,7 +497,7 @@ Add a failing-first unit test. Prefer a new module
 obvious place) asserting:
 
 - `make_contract_app("novel-state")` returns a `cyclopts.App`.
-- The returned app's five attributes carry the cyclopts-normalised forms,
+- The returned app's five attributes carry the cyclopts-normalized forms,
   **verified live against cyclopts 4.18.0 in this worktree's venv**
   (`.venv/bin/python -c "import cyclopts; …"`):
 
@@ -505,23 +505,23 @@ obvious place) asserting:
     argument; a literal `app.name == "novel-state"` assertion **fails**. Assert
     the tuple form. (Equivalently, `app.name[0] == "novel-state"` or
     `"novel-state" in app.name`; prefer the full-tuple equality so the test
-    pins the exact normalised representation.)
+    pins the exact normalized representation.)
   - `app.result_action == ("return_value",)` — cyclopts tuple-wraps
     `result_action` the same way; assert the tuple, not the raw string.
   - `app.exit_on_error is False`, `app.print_error is False`,
     `app.help_on_error is False` — the three booleans are stored plain (no
-    normalisation); assert with `is False`.
+    normalization); assert with `is False`.
 
   Do **not** hedge these forms: they are confirmed by live probe (cyclopts
   4.18.0, version-pinned by `tests/test_cyclopts_contract.py`). No existing test
   reads `App.name`/`App.result_action` back, so there is no in-repo convention
-  to crib — the normalised forms above are the convention this test establishes.
+  to crib — the normalized forms above are the convention this test establishes.
 - `make_contract_app` is importable from both
   `novel_ralph_skill.contract.runner` and `novel_ralph_skill.contract`.
 
 Run the new test first to confirm it fails (factory absent → AttributeError /
 ImportError), then add the factory to make it pass. Because the asserted forms
-are the verified normalised values, the test is genuinely red→green: it cannot
+are the verified normalized values, the test is genuinely red→green: it cannot
 be silently weakened to pass against a wrong literal.
 
 **Docs to read:** design §3.1 (output modes / envelope) and §3.2 (exit-code
@@ -779,12 +779,12 @@ make test 2>&1 | grep -E "test_cyclopts_contract|test_console_scripts_e2e"
 
 Every step is re-runnable. Adding the factory and the test is additive; routing
 each `build_app()` and the entry points through the factory/`_drive` is a
-localised edit. If a `make all` run fails, fix forward (do not delete the
+localized edit. If a `make all` run fails, fix forward (do not delete the
 factory) and re-run `make all`; the build cache makes re-runs cheap. To abandon
 a half-finished work item, `git restore` the touched source files and re-apply
 from this plan. No step is destructive; no backups are required.
 
-## Artifacts and notes
+## Artefacts and notes
 
 The load-bearing current code, for reference during implementation.
 
@@ -857,11 +857,11 @@ prior design-review blocking points to address.
 
 Revision (2026-06-24, round 2): resolved both design-review round-1 blocking
 points and the round-1 advisory. (1) Blocking point 1 — the Work item 1 factory
-test now asserts the cyclopts 4.18.0 *normalised* attribute forms, verified live
+test now asserts the cyclopts 4.18.0 *normalized* attribute forms, verified live
 in this worktree's venv: `name == ("novel-state",)`,
 `result_action == ("return_value",)`, and the three booleans `is False`. The
 Purpose, the Work item 1 test bullets, the Progress entry, and a new Decision
-Log entry all state the normalised forms explicitly, so the failing-first test
+Log entry all state the normalized forms explicitly, so the failing-first test
 is genuinely red→green and cannot be silently weakened against a wrong literal.
 (2) Blocking point 2 — the four-flag contract's documented home is now correctly
 attributed to the `run` docstring (`runner.py:166-170`) throughout: the
@@ -884,13 +884,13 @@ run `make all`, `coderabbit review --agent`, commit, and tick the roadmap
 sub-task on merge.
 
 - [x] 1.3.6.1 — Add a structural tripwire pinning that the four `build_app()`
-  constructors and the four real entry points consume the centralisation (merges
+  constructors and the four real entry points consume the centralization (merges
   review:1.3.6 and audit:1.3.6 Finding 3, low and medium). The behavioural proof
   that `make_contract_app`/`_drive` are on the path is currently indirect
   (console-scripts e2e plus per-command suites), so a future edit re-inlining a
   bare `cyclopts.App` in one `build_app()`, or re-inlining the
   `parse_global_flags`/`run` plumbing in one entry point, would still pass every
-  existing suite. Add a lightweight in-process test that (a) parametrises over
+  existing suite. Add a lightweight in-process test that (a) parametrizes over
   the four production `build_app` callables and asserts each returned app carries
   the four-flag contract (`result_action`, `exit_on_error`, `print_error`,
   `help_on_error`), and (b) asserts each of the four real entry points routes

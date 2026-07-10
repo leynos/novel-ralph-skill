@@ -122,7 +122,7 @@ cannot see.
   [`pyproject.toml` `[project.scripts]`](../../pyproject.toml) (five
   `novel_ralph_skill.commands.stub:...` targets)
 
-The registry centralises the module path as `STUB_MODULE =
+The registry centralizes the module path as `STUB_MODULE =
 "novel_ralph_skill.commands.stub"` and `project_scripts_table()` builds every
 target as `f"{STUB_MODULE}:{func}"`. `pyproject.toml` necessarily repeats the same
 module string five times because the build backend reads it verbatim — this is

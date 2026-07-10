@@ -106,7 +106,7 @@ over-counting factory's docstring is ~18 lines; match that).
 
 A4. Work item 5 / Outcomes should pin the exact before/after mutant verdict on
 BOTH trees (under: `{gate-ratio}` -> `set()` killed; over: unchanged, survives),
-matching the Artifacts transcript, so a later reader sees why the second tree was
+matching the Artefacts transcript, so a later reader sees why the second tree was
 necessary.
 
 ## Pre-mortem (Doggylump)

@@ -9,7 +9,7 @@ Status: DELIVERED
 
 ## Purpose / big picture
 
-Today the serialisation of a `Reconciliation` into its `{action,
+Today the serialization of a `Reconciliation` into its `{action,
 discrepancies, detail}` payload dict — plus the optional `current`/`by_chapter`
 recount pair — is hand-written at four sites across two command modules, even
 though `Reconciliation` already has a natural owner in
@@ -26,7 +26,7 @@ The four sites that independently spell the same dict shape are:
 2. `_write_outcome` (`novel_ralph_skill/commands/_reconcile.py:215`) — the
    write-shaped `reconcile` success `result`: the same base three keys plus the
    same guarded recount pair as `_render_reconciliation`, with one textual
-   difference that is value-identical today — `_write_outcome` serialises its
+   difference that is value-identical today — `_write_outcome` serializes its
    `action` *parameter* (`str(action)`, line 225), not the attribute
    `str(reconciliation.action)`. Both `_write_outcome` callers pass
    `action == reconciliation.action` (line 322 passes `action`, bound to
@@ -47,7 +47,7 @@ The four sites that independently spell the same dict shape are:
 Because `derive_reconciliation` already guarantees that `check` and `reconcile`
 re-derive an *identical* `Reconciliation` for the same tree (Decision Log
 D-SHARED, pinned by the cross-check test), the only remaining way the two
-commands can drift is by serialising that identical object into *different*
+commands can drift is by serializing that identical object into *different*
 dict shapes. A field added to the reported reconciliation, or a rename of
 `discrepancies`, is shotgun surgery across four call sites in two modules, and a
 partial edit would silently let `check` and `reconcile` report different shapes
@@ -59,22 +59,22 @@ After this change `reconcile.py` owns one canonical projection —
 mirroring the module's existing free-function vocabulary `derive_reconciliation`
 rather than introducing a method) — that returns the base `{action,
 discrepancies, detail}` dict plus the optional recount pair, and all four arms
-route through it. The "the read shape and the write shape serialise an identical
+route through it. The "the read shape and the write shape serialize an identical
 `Reconciliation` identically" invariant becomes structurally enforced (one
 projection) rather than only test-pinned.
 
-This is deliberately the *serialisation* only. The audit (audit-2.3.2 Finding 2;
+This is deliberately the *serialization* only. The audit (audit-2.3.2 Finding 2;
 carried from audit-2.2.2 Finding 2) is explicit that `check`'s read shape and
 `reconcile`'s write shape keep distinct *vocabulary* and *envelope code*: the
 exit codes (`check` exits `0`/`4`; `reconcile` success exits `0` and refusal
 exits `4`), the `messages` lists, the `CommandOutcome` construction, and the
 read-versus-write framing all stay exactly where they are. Only the
-`Reconciliation`-to-dict serialisation is centralised.
+`Reconciliation`-to-dict serialization is centralized.
 
 You can observe success three ways. The observables below are scoped to the
 *executable* dict-construction form `"action": str(` — the literal key string
 each arm uses to begin the base dict — because that is the duplicated
-serialisation this task removes. They deliberately exclude docstring prose that
+serialization this task removes. They deliberately exclude docstring prose that
 mentions `action`/`discrepancies`/`detail` (those describe the shape and are
 correct to keep).
 
@@ -100,7 +100,7 @@ correct to keep).
 ## Scope and explicit non-goals
 
 This task is an internal **DRY refactor** of pure Python: it consolidates one
-serialisation into `novel_ralph_skill/state/reconcile.py` and routes four arms
+serialization into `novel_ralph_skill/state/reconcile.py` and routes four arms
 in `novel_ralph_skill/commands/` through it. It changes no exit code, no
 envelope shape, no message text, no on-disk path, and no public console-script
 behaviour.
@@ -128,7 +128,7 @@ touch them):
   shape and `reconcile`'s write-shaped `result`. The audit is explicit
   (audit-2.3.2 Finding 2; audit-2.2.2 Finding 2): the *envelope code* and *exit
   codes* "genuinely differ" and stay where they are. Only the
-  `Reconciliation`-to-dict serialisation is centralised. The read and write
+  `Reconciliation`-to-dict serialization is centralized. The read and write
   *framing* docstrings stay (trim only the redundant inline-dict comment, not
   the read/write distinction).
 - The **exit-code policy.** `check` exits `0`/`4`; `reconcile` success exits
@@ -187,7 +187,7 @@ escalation, not a workaround.
     **alphabetically sorted** (`{action, detail, discrepancies}` —
     `detail` before `discrepancies`, the opposite of the code's insertion
     order). It pins the *field set* of the write-side `REFUSE` envelope, not
-    its order. A reordered projection would still serialise to the same sorted
+    its order. A reordered projection would still serialize to the same sorted
     bytes and pass this snapshot.
   - The **named primary order pin** for the write-side `REFUSE`/`NONE`
     `result` envelope is therefore the Work Item 2 unit test's
@@ -425,7 +425,7 @@ escalation, not a workaround.
       ``CommandOutcome``, no exit code, no ``messages``.
       Rationale: audit-2.3.2 Finding 2 is explicit that the read/write
       *envelope code* and *exit codes* "genuinely differ" and stay at the call
-      sites; only the ``Reconciliation``-to-dict serialisation is centralised.
+      sites; only the ``Reconciliation``-to-dict serialization is centralized.
       Folding the envelope in would collapse the CQS read/write split the slice
       deliberately maintains (audit-2.2.2 Finding 2).
       Date/Author: 2026-06-27, planning agent.
@@ -467,7 +467,7 @@ escalation, not a workaround.
       ``from __future__ import annotations`` and would raise a runtime
       ``NameError``. B3 — the ``_write_outcome`` "byte-identical" claim was
       textually false: ``_write_outcome`` serialises its ``action`` *parameter*
-      (``str(action)``, ``_reconcile.py:225``) while the projection serialises
+      (``str(action)``, ``_reconcile.py:225``) while the projection serializes
       ``str(reconciliation.action)``; they are value-identical only because both
       callers pass ``action == reconciliation.action``, and that caller
       invariant (with its pin ``test_reconcile.py:262``) is now stated.
@@ -475,7 +475,7 @@ escalation, not a workaround.
       ``from __future__ import annotations``; ``:80`` is the runtime ``state``
       import (``derive_reconciliation``, not ``Reconciliation``); ``:108`` is the
       ``TYPE_CHECKING`` ``Reconciliation`` import. ``_reconcile.py:225``
-      serialises ``str(action)``; callers at ``:313``/``:322`` pass
+      serializes ``str(action)``; callers at ``:313``/``:322`` pass
       ``action == reconciliation.action`` (``:291`` binds
       ``action = reconciliation.action``; ``derive_reconciliation`` builds the
       RECREATE_LOG ``Reconciliation`` with ``action=RECREATE_LOG`` at
@@ -557,7 +557,7 @@ Key code, by full path:
   Route it through `reconciliation_payload`.
 - `novel_ralph_skill/commands/_reconcile.py` — three write-side arms:
   `_write_outcome` (line 215, base three keys + recount pair, same shape as
-  `_render_reconciliation` but serialising its `action` *parameter*
+  `_render_reconciliation` but serializing its `action` *parameter*
   `str(action)` rather than `str(reconciliation.action)` — value-identical
   because every caller passes `action == reconciliation.action`; see "Verified
   external facts"),
@@ -574,14 +574,14 @@ Key code, by full path:
 
 Terms defined:
 
-- *Reconciliation payload*: the JSON-serialisable dict the `check` `result`
+- *Reconciliation payload*: the JSON-serializable dict the `check` `result`
   reports under `reconciliation` and the `reconcile` `result` returns directly —
   the base `{action, discrepancies, detail}` plus a `current`/`by_chapter` pair
   for a `RECOUNT`.
 - *Read shape / write shape*: `check`'s read-only payload reports a *finding*
   (what `reconcile` *would* do); `reconcile`'s write-shaped `result` reports the
   *action taken*. The audit keeps their *vocabulary* and *exit codes* distinct;
-  this task shares only the dict serialisation, which is identical.
+  this task shares only the dict serialization, which is identical.
 - *CQS*: command/query segregation (§3.3) — checkers (`check`) read and report;
   mutators (`reconcile`) write. The split this task must not blur.
 
@@ -655,7 +655,7 @@ Terms defined:
   `RECREATE_LOG` path, pinned by `tests/test_reconcile.py:262`
   (`result["action"] == "recreate-log"`), which stays green unedited.
   `_refuse_outcome` and the `NONE` arm build only the base three keys (no
-  recount pair), and both already serialise `str(reconciliation.action)` /
+  recount pair), and both already serialize `str(reconciliation.action)` /
   `str(action)` where `action == reconciliation.action` on those arms too.
   (Verified by reading `novel_state.py:129-146`, `_reconcile.py:215-256`,
   `_reconcile.py:286-322`, `reconcile.py:331-336`, and
@@ -684,7 +684,7 @@ dataclass, before the private builders):
             shape both ``check`` reports (read shape) and ``reconcile`` returns
             (write shape), plus the ``current``/``by_chapter`` recount pair for a
             ``RECOUNT`` (added iff ``recounted_by_chapter`` is present). It
-            serialises only; the exit code, the ``messages``, and the
+            serializes only; the exit code, the ``messages``, and the
             read-versus-write framing stay at each call site, so the CQS
             read/write split (design §3.3) is preserved (audit-2.3.2 Finding 2).
             Key order is fixed — ``action``, ``discrepancies``, ``detail``, then
@@ -701,9 +701,9 @@ dataclass, before the private builders):
             return payload
 
 This is byte-for-byte the body already in `_render_reconciliation` (which
-serialises `str(reconciliation.action)`), lifted to its owner module. It is
-*value*-identical to `_write_outcome`'s body, which serialises its `action`
-*parameter* (`str(action)`); the projection canonicalises on the attribute
+serializes `str(reconciliation.action)`), lifted to its owner module. It is
+*value*-identical to `_write_outcome`'s body, which serializes its `action`
+*parameter* (`str(action)`); the projection canonicalizes on the attribute
 `reconciliation.action`, and Work Item 3 records why that substitution is
 behaviour-preserving (both `_write_outcome` callers pass
 `action == reconciliation.action`). Export it from
@@ -827,9 +827,9 @@ Behaviour-preserving substitution. After this, no hand-built `{"action": str(…
      keep the `CommandOutcome(code=ExitCode.SUCCESS, result=result,
      messages=[reconciliation.detail])` construction and the write-shape framing
      docstring unchanged. **Note the one non-byte-identical detail and why the
-     substitution is still safe.** `_write_outcome` currently serialises its
+     substitution is still safe.** `_write_outcome` currently serializes its
      `action` *parameter* (`str(action)`, `_reconcile.py:225`), whereas
-     `reconciliation_payload` serialises the *attribute*
+     `reconciliation_payload` serializes the *attribute*
      `str(reconciliation.action)`. These differ textually but are
      value-identical at both call sites, because both callers pass
      `action == reconciliation.action`:
@@ -957,7 +957,7 @@ Quality criteria (what "done" means):
   (`reconcile.py` under the 400-line cap after the addition), `pyright`/`ty`
   (the new signature and the new export resolve).
 - Structural: the two `git grep` checks in Work Item 3 confirm the
-  serialisation has exactly one home (`reconciliation_payload` in
+  serialization has exactly one home (`reconciliation_payload` in
   `reconcile.py`) and four routed consumers.
 - en-GB Oxford spelling throughout the new docstring and comments.
 
@@ -1001,7 +1001,7 @@ Quality method (how we check):
         def reconciliation_payload(
             reconciliation: Reconciliation,
         ) -> dict[str, object]:
-            """Project a ``Reconciliation`` into its JSON-serialisable payload …"""
+            """Project a ``Reconciliation`` into its JSON-serializable payload …"""
 
 - Reused, unchanged: `Reconciliation`, `ReconcileAction`,
   `derive_reconciliation`; the `_render_reconciliation` read-shape framing and
@@ -1077,8 +1077,8 @@ Quality method (how we check):
   `state` import, no `Reconciliation`), `:108` (`TYPE_CHECKING` `Reconciliation`
   import); `_reconcile.py:55-63` (runtime block with `Reconciliation`).
   B3 — the "byte-identical" claim for `_write_outcome` rested on an unstated,
-  unpinned invariant: `_write_outcome` serialises its `action` *parameter*
-  (`str(action)`, `_reconcile.py:225`), while the projection serialises
+  unpinned invariant: `_write_outcome` serializes its `action` *parameter*
+  (`str(action)`, `_reconcile.py:225`), while the projection serializes
   `str(reconciliation.action)`; they are value-identical only because both
   `_write_outcome` callers pass `action == reconciliation.action`
   (`_reconcile.py:322` passes `action`, bound to `reconciliation.action` at

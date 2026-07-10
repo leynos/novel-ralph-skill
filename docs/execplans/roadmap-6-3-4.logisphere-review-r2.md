@@ -111,7 +111,7 @@ tolerance contradicts the specified work.
 invariant: *"the envelope carries no absolute path (`working_dir` is the fixed
 `"working"` token)."* After D6 the `result.working_dir` body field DOES carry an
 absolute path. That docstring becomes false, and it is a load-bearing statement
-about the snapshot's normalisation contract, not idle prose. The plan's Work
+about the snapshot's normalization contract, not idle prose. The plan's Work
 item 3 updates the design doc, ADR-003, and developers' guide but says nothing
 about this test-module docstring. Leaving it contradicts the new contract and the
 plan's own en-GB/docstring discipline. Fix: fold the docstring correction into

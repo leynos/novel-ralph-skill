@@ -66,7 +66,7 @@ escalation, not a workaround.
   persist"). Reuse the existing `_refuse_if_incoherent` discipline in
   `novel_ralph_skill/commands/_state_mutators.py`.
 - **Lossless round-trip.** Writes go through the `tomlkit` document seam
-  (`load_document` → edit → `write_document_atomically`), never a re-serialised
+  (`load_document` → edit → `write_document_atomically`), never a re-serialized
   typed model (ADR 002; design §5.3; `novel_ralph_skill/state/document.py`).
 - **Atomic, multi-file discipline.** `set-chapters` writes `state.toml`, creates
   `chapter-NN/` directories, and appends a `log.md` receipt — a genuinely
@@ -525,7 +525,7 @@ escalation, not a workaround.
       when `novel_state` is the entry import; when `_set_chapters` is imported
       *first* (as the property suite does via
       `from novel_ralph_skill.commands._set_chapters import ...`), the chain
-      re-enters `_set_chapters` while it is partially initialised and raises
+      re-enters `_set_chapters` while it is partially initialized and raises
       `ImportError: cannot import name 'ChapterPlanEntry'`.
       Evidence: `pytest tests/test_set_chapters_properties.py` failed at collection
       with exactly that ImportError.
@@ -533,7 +533,7 @@ escalation, not a workaround.
       dependency-free leaf module `commands/_chapter_plan_entry.py` that imports
       nothing from `commands`/`state`; both `novel_state.py` (top-level runtime
       import) and `_set_chapters.py` (top-level, re-exported) import it from there,
-      so no import order can re-enter a partially-initialised module. The
+      so no import order can re-enter a partially-initialized module. The
       `# noqa: E402` is gone; only a `# noqa: TC001` (a permanent, runtime-required
       suppression) remains.
 ```
@@ -627,7 +627,7 @@ escalation, not a workaround.
       done-flag/compiled contradiction — still REFUSEs exactly as today. This
       preserves the §5.4 invariant that disk contradictions reconcile cannot
       resolve are refused, while letting reconcile finish a turn whose ONLY
-      outstanding work is materialising deterministic, manifest-derived empty
+      outstanding work is materializing deterministic, manifest-derived empty
       directories. Why an empty chapter-NN/ directory counts as recomputable: it
       carries no agent judgement and is wholly derivable from the PERSISTED
       manifest (D10 guarantees the manifest is on disk before any directory is
@@ -655,7 +655,7 @@ escalation, not a workaround.
       (round-2 advisory A1) is rejected.
       Rationale: A1 proposes writing only [chapters] (single atomic file, no
       bracket, no Work item 3a) and letting a later loop step or reconcile's
-      draft-without-manifest-entry path materialise directories. Three facts make
+      draft-without-manifest-entry path materialize directories. Three facts make
       this worse, not simpler. (1) The roadmap MANDATES the bracket: task 2.2.3
       (lines 715-719) requires "writes [chapters] atomically … with the log
       receipt and [pending_turn] discipline" — manifest-only contradicts the
@@ -667,7 +667,7 @@ escalation, not a workaround.
       exits 4 the instant the command returns, FAILING the success criterion
       ("check … then operate correctly on the real chapter directories"). (3)
       reconcile's draft-without-manifest-entry path is a REFUSE, not a repair (it
-      is the bijection invariant itself), so it would NOT materialise directories
+      is the bijection invariant itself), so it would NOT materialize directories
       — it would stick exit 4. Deferring directory creation to "the per-chapter
       drafting step" is not in any current task and would leave the tree
       non-bijective for the whole gap. The reviewer's own A1 concedes: "If the
@@ -719,14 +719,14 @@ escalation, not a workaround.
       Date/Author: 2026-06-25, implementer.
 
     - Decision (D12, Work item 3): implement a LOCAL D10 bracket
-      (`_write_manifest_turn` in `_set_chapters.py`) rather than generalising
+      (`_write_manifest_turn` in `_set_chapters.py`) rather than generalizing
       `_reconcile.py::_run_reconcile_bracket`.
-      Rationale: the plan offered either generalising the shared bracket or a
+      Rationale: the plan offered either generalizing the shared bracket or a
       local one. The orderings are fundamentally different — reconcile's fixed
       order is intent-of-PRIOR-state → edit → receipt → clear (its recomputable
       recount persists last), while set-chapters edits `[chapters]` into the
       document FIRST and lands it together with the intent record in the single
-      first write (D10). Generalising `_run_reconcile_bracket` to accept a
+      first write (D10). Generalizing `_run_reconcile_bracket` to accept a
       pre-write edit would complicate the reconcile seam for one caller with the
       opposite ordering; a small local bracket keeps each mutator's ordering
       legible at its own call site (AGENTS.md "clear file boundaries"). The
@@ -1362,7 +1362,7 @@ git branch --show-current
 
 # 2. Make the change for the current work item (see Plan of work).
 
-# 3. Gate the change (sequential — do not parallelise; build caching favours it).
+# 3. Gate the change (sequential — do not parallelize; build caching favours it).
 #    make all = build check-fmt lint typecheck test (lint includes interrogate
 #    docstring coverage + Pylint). It does NOT include audit.
 make all

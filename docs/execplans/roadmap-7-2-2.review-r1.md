@@ -12,7 +12,7 @@ I confirmed via grep that neither package touches cuprum).
 
 ## BLOCKING
 
-### B1 — `entries` cannot reproduce the empty-array message verbatim (insufficient parameterisation)
+### B1 — `entries` cannot reproduce the empty-array message verbatim (insufficient parameterization)
 
 The plan's `entries(mapping, *, array_key, errors, offending_id)` carries only
 `array_key` plus the `CoercionErrors` bundle (`per_id_noun`, `per_level_noun`).
@@ -45,7 +45,7 @@ index N must be a table" message uses the bare per-id noun (`rule`/`device`),
 the "must be an array of tables" and "array is empty" messages use the quoted
 array key. Following the WI2 instruction literally would inject the wrong noun
 and drift every entries message. Rewrite WI2 to copy each of the three format
-strings verbatim (parameterised per B1), not to route them through `where`.
+strings verbatim (parameterized per B1), not to route them through `where`.
 
 ### B3 — The plan's own safety net does not catch B1/B2 (silent-drift hazard)
 
@@ -85,7 +85,7 @@ and demonstrate it, rather than carrying a branch.
 ### A1 — `reject_duplicate_ids` ordering/first-duplicate semantics not pinned
 
 Both current bodies iterate the sequence and raise on the FIRST repeated id in
-authoring order. The plan generalises to `Iterable[str]` and the callers pass a
+authoring order. The plan generalizes to `Iterable[str]` and the callers pass a
 generator (`rule.id for rule in rules`). The WI2 test says "raises … naming
 the first repeat" — good — but the plan should state explicitly that the shared
 primitive preserves authoring-order first-duplicate detection, since a
@@ -125,10 +125,10 @@ scramble.
   `LedgerError(*messages, device_id=...)`; the `content_error` lambda bridge is
   correct, and `EnvelopeMessagesError(*messages)` is the shared base.
 - File-fault message `f"cannot read {noun} at {path}: {exc}"` is byte-identical
-  bar the noun across both packages — D-FILELOAD parameterisation is sound.
+  bar the noun across both packages — D-FILELOAD parameterization is sound.
 - `_where`, `_require*`, `_reject_unknown_keys`, `_compile_pattern`,
   `_reject_duplicate_ids` (the per-id branches), and both `_scan_*` are
-  correctly parameterisable on the bundle/noun pair; scan bodies are
+  correctly parameterizable on the bundle/noun pair; scan bodies are
   byte-identical.
 - D-HOME (`loaderkit` neutral leaf depending only on `contract` + stdlib) keeps
   the dependency direction acyclic and matches design §3.1 / ADR-003.
@@ -162,6 +162,6 @@ FOUR genuinely noun-clean primitives (the `_coerce` family + `compile_pattern` +
 three bespoke messages in each package as a thin per-package function calling a
 shared *structural* guard (Sequence/Mapping check) that takes the full message
 strings. Trades: keeps two ~6-line `_entries` shells (less "one home" purity)
-but sidesteps B1/B2 entirely and removes the riskiest noun-parameterisation.
+but sidesteps B1/B2 entirely and removes the riskiest noun-parameterization.
 Gains a simpler, provably-verbatim contract. Worth weighing against forcing a
 three-noun `entries` signature.

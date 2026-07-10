@@ -142,7 +142,7 @@ decode each corpus `state.toml` with `tomllib` independently in the test, then
 assert `parse_state(decoded) == State(**hand_built)` field-by-field — but the
 "hand_built" expected still needs the derived word counts, so it collapses into
 B1. The genuinely different alternative is **round-trip-by-decode**: assert that
-`dataclasses.asdict(parse_state(decoded))` re-serialises to the same mapping
+`dataclasses.asdict(parse_state(decoded))` re-serializes to the same mapping
 `tomllib` produced (modulo tuple/list and `Phase`/str), proving without-loss
 without ever naming a corpus-internal expected value. That trades exact-value
 readability for a self-contained oracle that needs no unexposed helper — and it

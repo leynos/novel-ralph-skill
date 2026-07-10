@@ -10,7 +10,7 @@ Status: DRAFT (round 2)
 
 Roadmap task 7.2.1 removes a five-way duplication of the same one-line
 `tomlkit` idiom — "build a fresh inline table from a mapping" — so the
-inline-table materialisation rule lives in genuinely one place. The roadmap's
+inline-table materialization rule lives in genuinely one place. The roadmap's
 `Success` line names *three* consumers (`recount`, `state/initial.py`, the
 corpus builder), but step-7.2's Definition of Done is stricter than that list:
 it demands "exactly one canonical implementation survives under one name … and
@@ -33,7 +33,7 @@ sites today (verified — see Decision Log D-INVENTORY):
    document builder, whose docstring already *admits* it is a hand-copied twin:
    "Mirrors `_inline` in the corpus builder …");
 3. `_inline` in `tests/working_corpus/_builder.py` (line 37; the
-   working-corpus reference materialiser);
+   working-corpus reference materializer);
 4. `_zero_word_counts` in `novel_ralph_skill/commands/_set_chapters.py` (line
    183; seeds `[word_counts].by_chapter` with a zero count per freshly-planned
    chapter — passes a `dict[str, int]`); and
@@ -48,9 +48,9 @@ All five are the identical two statements: create `tomlkit.inline_table()`,
 (`_zero_word_counts`) passes a `dict` comprehension; copies 2 and 3 (the two
 `_inline` twins) pass the incoming mapping straight through. The shared helper
 subsumes every form — see Risk "subtle argument-type differences".) This mirrors
-how roadmap task 2.3.1 centralised the *counting*
+how roadmap task 2.3.1 centralized the *counting*
 rule into one `state/wordcount.py:recount_words` consumed everywhere, and how
-task 2.2.1 centralised the *atomic write* into one
+task 2.2.1 centralized the *atomic write* into one
 `state/document.py:write_text_atomically`. The inline-table builder is the same
 single-home discipline applied to one more shared mechanism.
 
@@ -67,7 +67,7 @@ outputs are byte-for-byte unchanged on every input: every existing snapshot
 round-trip property test
 (`tests/test_state_document.py::test_noop_round_trip_over_corpus_trees`) stays
 green without regeneration. Third, a new unit test pins the shared helper's
-contract directly — it returns a `tomlkit.items.InlineTable`, serialises in the
+contract directly — it returns a `tomlkit.items.InlineTable`, serializes in the
 mapping's insertion order, accepts mixed-type values, and does not alias the
 caller's mapping — and the `initial.py` docstring no longer flags a hand-copied
 twin.
@@ -92,8 +92,8 @@ escalation, not a workaround.
 
 - `state.toml` round-trips losslessly through `tomlkit`; the single sanctioned
   writer remains `state/document.py:write_document_atomically` and no module
-  serialises TOML by any other route (ADR-002; design §5.3). The shared helper
-  builds *structure only* (an `InlineTable`); it never serialises or writes.
+  serializes TOML by any other route (ADR-002; design §5.3). The shared helper
+  builds *structure only* (an `InlineTable`); it never serializes or writes.
 - The locked `tomlkit` version is `0.15.0` (`uv.lock` line 770). The helper
   relies only on `tomlkit.inline_table()`, `tomlkit.items.InlineTable`, and the
   insertion-order-preserving `update` inherited from `tomlkit`'s container; no
@@ -273,7 +273,7 @@ escalation, not a workaround.
       dicts and so cannot see the inline-vs-block distinction. The existing
       corpus-tree round-trip property
       (`test_noop_round_trip_over_corpus_trees`) already pins byte-stability (a
-      block table would serialise differently), which the plan explicitly allows
+      block table would serialize differently), which the plan explicitly allows
       as sufficient ("No new test is strictly required"). Acceptance greps now
       pass: zero `tomlkit.inline_table(` under `tests`, exactly one under
       `novel_ralph_skill` (the helper). `make all` green.
@@ -505,7 +505,7 @@ two-line builder:
   11-19) says the whole module mirrors the corpus builder "field for field but
   … re-derived from `state/parse.py` rather than importing test code".
 - `tests/working_corpus/_builder.py` — `_inline` (lines 35-39). The
-  working-corpus reference builder materialises a `WorkingTreeSpec` as an
+  working-corpus reference builder materializes a `WorkingTreeSpec` as an
   on-disk `working/` tree, using `_inline` for `last_finding_counts` (line 70)
   and `by_chapter` (line 103) and the chapter-array entries (line 124).
 - `novel_ralph_skill/commands/_set_chapters.py` — `_zero_word_counts` (lines
@@ -582,7 +582,7 @@ Add to `novel_ralph_skill/state/document.py`, beside `open_pending_turn`, a
 function
 `build_inline_table(pairs: cabc.Mapping[str, object]) -> tomlkit.items.InlineTable`.
 Its docstring records that this is the single home of the inline-table
-materialisation idiom the state slice re-derives `[word_counts].by_chapter`,
+materialization idiom the state slice re-derives `[word_counts].by_chapter`,
 `[drafting.critic].last_finding_counts`, and the `[[chapters]]` entries from
 (design §5.3; ADR-002); that it builds an empty inline table and `update`s
 `pairs` into it **in the mapping's iteration order**, so a caller that hands an
@@ -622,7 +622,7 @@ class for `build_inline_table`, asserting:
    case, the widest value-type call site);
 4. no-aliasing — building from a `dict`, then mutating that `dict` after the
    call, leaves the returned table unchanged;
-5. the empty case — `build_inline_table({})` serialises to an empty inline
+5. the empty case — `build_inline_table({})` serializes to an empty inline
    table `{}` (the `init` empty-`by_chapter` case).
 
 These are example-based unit tests. Consider a `hypothesis` property for
@@ -815,16 +815,16 @@ Edits in `tests/working_corpus/_builder.py`:
    Confirm with `grep -n 'tomlkit' tests/working_corpus/_builder.py`.
 
 Tests to add/update: the corpus round-trip and coherence suites must stay green
-unchanged — they *are* the test that the corpus trees still materialise
+unchanged — they *are* the test that the corpus trees still materialize
 identically:
 `tests/test_state_document.py::test_noop_round_trip_over_corpus_trees`,
-`tests/test_working_corpus.py`, and any suite that materialises a corpus tree
+`tests/test_working_corpus.py`, and any suite that materializes a corpus tree
 (`tests/test_drafting_bijection_corpus.py`,
 `tests/test_working_corpus_disk_divergence.py`). No new test is strictly
 required — the existing corpus-tree round-trip property already pins that the
-materialised bytes are unchanged — but add a one-line assertion in
+materialized bytes are unchanged — but add a one-line assertion in
 `tests/test_working_corpus.py` (or wherever a built tree is parsed) that a
-materialised tree's `[word_counts].by_chapter` is an inline table, so a future
+materialized tree's `[word_counts].by_chapter` is an inline table, so a future
 regression from inline to block table form is caught directly rather than only
 via the round-trip bytes.
 
@@ -847,11 +847,11 @@ AGENTS.md markdown guidance (80-col prose wrap, dashes for bullets). Skills:
 Edits:
 
 1. In `docs/novel-ralph-harness-design.md` §5.3, add a single-home sentence
-   recording that the inline-table materialisation idiom has one home
+   recording that the inline-table materialization idiom has one home
    (`state/document.py:build_inline_table`) consumed by `init`, `recount`,
    `set-chapters`, and the corpus builder. Phrase it in the style of the
    developers-guide `recount_words` note (round-1 review IMPROVEMENT-1: §5.3 as
-   written is only about choosing `tomlkit` over an owned serialiser and has no
+   written is only about choosing `tomlkit` over an owned serializer and has no
    pre-existing single-writer sentence to "mirror", so model the new sentence
    on the developers-guide note rather than claiming to mirror §5.3 prose).
    Keep it to the existing §5.3 prose density.
@@ -867,7 +867,7 @@ Edits:
 Tests: none (documentation only). Validation: `make markdownlint` and
 `make nixie` (no Mermaid changes expected, but `make nixie` is required for any
 markdown touch per the standing rules), plus `make all` to confirm nothing else
-regressed. Run `make fmt` first to normalise table/markdown formatting
+regressed. Run `make fmt` first to normalize table/markdown formatting
 (AGENTS.md).
 
 ## Concrete steps
@@ -986,7 +986,7 @@ regenerating the snapshot. Because items 2-5 are independent reroutes of
 distinct files, a failure in one does not block committing the others; land
 work item 1 first so each reroute has a verified target.
 
-## Artifacts and notes
+## Artefacts and notes
 
 The single load-bearing snippet is the helper's signature and body shape (the
 two statements every copy reduces to):

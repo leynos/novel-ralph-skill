@@ -30,14 +30,14 @@ Verdict: PROCEED (no blocking defects). Adversarial review against real source.
   EnvelopeMessagesError)` and the non-subclassing of `RulePackError`/
   `RulePackFileError`; both still hold after the refactor and run unchanged.
 - `interrogate fail-under = 100` (pyproject.toml:309) confirmed — D-STATIC-CLASSES
-  is correctly motivated: a runtime `type()` synthesiser would fail the gate.
+  is correctly motivated: a runtime `type()` synthesizer would fail the gate.
 - Pylint runs `disable=["all"]` with an enable allowlist; `R0903`
   (too-few-public-methods) and `R0801` (duplicate-code) are NOT enabled, so the
   empty `PackFileError` and thin `PackError` will not trip lint.
 - Ruff selects `D` and `ANN`; the empty-bodied file-error subclass with a literal
   docstring and the annotated thin `__init__` satisfy both.
 - Citations checked: design §6/§6.3, ADR-001/003, developers-guide ~line 1779
-  ("parameterised on an error factory"), roadmap 7.2.5 entry, and the 8.1.9 seam
+  ("parameterized on an error factory"), roadmap 7.2.5 entry, and the 8.1.9 seam
   all say what the plan claims.
 - D-NO-EXTERNAL-RESEARCH is correct: this task touches only stdlib + the
   `contract` layer. No cuprum shell execution, no Cyclopts/pytest-timeout/uv

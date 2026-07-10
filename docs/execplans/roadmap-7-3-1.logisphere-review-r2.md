@@ -175,7 +175,7 @@ from `state_sourcing`.)
   (`test_state_load_actionable_parity.py`). There are in fact **three**
   private-formatter importers
   (`+ test_state_input_message_unit.py:22 _state_input_error`,
-  `+ test_draft_read_message_unit.py:25 _draft_read_error`). Generalise the
+  `+ test_draft_read_message_unit.py:25 _draft_read_error`). Generalize the
   exception from "the parity test" to "every test that imports a private
   `_…_error` formatter" so the rule scales.
 
@@ -224,7 +224,7 @@ single-home property cleanly. Recording for calibration.
    `test_validate_state_corpus.py:30`,
    `test_draft_read_message_unit.py:25` in WI4 so its stated validation can
    pass.
-4. **A1/A2** — fold the cohort into one WI4 table and generalise the
+4. **A1/A2** — fold the cohort into one WI4 table and generalize the
    private-formatter exception to all three such files.
 
 — end round 2

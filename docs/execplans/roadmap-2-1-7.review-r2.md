@@ -84,7 +84,7 @@ plan but do not block implementation.
   on the drafting `_BASE` (`_variants.py` line 144-145; `COHERENT_BASELINE ==
   PHASE_STATES["drafting"]`, `_library.py` line 118).
 - Oracle twin `_check_manifest_disk_bijection(working_dir)` reads `state.toml`
-  from disk itself (`_oracle_disk.py` lines 73-85), so WI3's "read the materialised
+  from disk itself (`_oracle_disk.py` lines 73-85), so WI3's "read the materialized
   `[phase].current`" mirror is consistent with the twin's disk-reading style.
 - Scope: matches roadmap 2.1.7 (`docs/roadmap.md` lines 672-685) exactly — ADR
   required, relax to disk-subset-of-manifest during drafting, re-tighten at
@@ -98,7 +98,7 @@ plan but do not block implementation.
   "build the corresponding `(manifest, on_disk)` sets", but
   `_check_manifest_disk_bijection` does not accept raw sets — it derives `manifest`
   from `state.chapters` and `on_disk` by globbing `working_dir`
-  (`disk_evidence.py` lines 122-123). The property test must therefore materialise
+  (`disk_evidence.py` lines 122-123). The property test must therefore materialize
   a real tree on disk (via `build_working_tree`) and a `State` per generated
   shape, then call the predicate. This is achievable with the corpus builder and
   the repo's existing Hypothesis usage, but the implementer should read the
@@ -110,9 +110,9 @@ plan but do not block implementation.
   takes `state`; the oracle twin takes only `working_dir` and re-parses
   `state.toml`. WI3
   step 1 must add the relax path by re-reading `[phase].current` from the
-  materialised `state.toml` (the twin's existing idiom), not by widening the twin
+  materialized `state.toml` (the twin's existing idiom), not by widening the twin
   to take `state` — otherwise the twin stops being an independent re-implementation.
-  The plan's wording ("reading the materialised `state.toml` `[phase].current`")
+  The plan's wording ("reading the materialized `state.toml` `[phase].current`")
   already points this way; the implementer should hold that line.
 
 ## Pre-mortem (Doggylump) — re-run

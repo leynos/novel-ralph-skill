@@ -88,7 +88,7 @@ maintained in multiple docstrings. 4.1.2 adds a fourth copy: `check_compiled`'s
 docstring restates the same table, including the "opposite polarity to the §5.4
 detector" contrast. The prose is accurate, but a future change to either
 polarity must now be reflected in four docstrings to stay truthful, and the cost
-of that synchronisation grows with each consumer.
+of that synchronization grows with each consumer.
 
 - **Proposed fix:** Adopt the remediation proposed in audit-3.1.3 Finding 3,
   extended to this new site: make the `compiled_matches_drafts` docstring in

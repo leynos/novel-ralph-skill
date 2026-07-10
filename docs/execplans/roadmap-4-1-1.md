@@ -727,7 +727,7 @@ Edits:
    `monkeypatch.chdir`s into the prepared tree's parent (D-CWD).
 5. `tests/test_compile_snapshots.py` (new) or extend an existing snapshot module:
    a `novel-compile` success-envelope snapshot with nondeterministic fields
-   normalised (the `compiled` path is the working-relative token, not an absolute
+   normalized (the `compiled` path is the working-relative token, not an absolute
    path; `working_dir` is `"working"`), paired with a semantic assertion on the
    exit code, `ok`, and the `chapters`/`bytes` values (AGENTS.md "pair them with
    semantic assertions"). Keep the snapshot to the stable envelope boundary, not
@@ -838,7 +838,7 @@ temp file. Tests use `tmp_path`-scoped working trees, so reruns do not accumulat
 state. No destructive operation is introduced; `novel-compile` never deletes a
 `working/` file.
 
-## Artifacts and notes
+## Artefacts and notes
 
 The load-bearing production join rule the compile output is pinned against:
 

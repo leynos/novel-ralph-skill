@@ -79,7 +79,7 @@ path has a defined way out; A1 asks only that W1 say so explicitly.
 ## Conclusion
 
 The plan is implementable and design-conformant as written. Work items are
-atomic, correctly ordered (contract → recogniser+unit → corpus/oracle/BDD →
+atomic, correctly ordered (contract → recognizer+unit → corpus/oracle/BDD →
 docs), each independently committable and gated by `make all` (plus
 `markdownlint`/`nixie` for prose). Validation is specified per item with
 red-before-green evidence. Nothing contradicts ADR-001 (read-only), the D-FAULT

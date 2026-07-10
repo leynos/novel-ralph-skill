@@ -110,7 +110,7 @@ escalation, not a workaround.
 
 - **"Hash" here means content equality, satisfied by a byte comparison
   (D-BYTE-COMPARE).** Design §2.3/§4.2/§4.3 phrase the routine as
-  "compile-and-hash" and "compare its hash". The §5.4 detector already realises
+  "compile-and-hash" and "compare its hash". The §5.4 detector already realizes
   that comparison as a direct byte equality
   (`compiled.read_text(...) == expected`, `disk_evidence.py:183`) — no digest is
   computed. Because the clause needs only a *boolean* verdict over the same two
@@ -310,11 +310,11 @@ Known uncertainties, with mitigations.
   cases plus a Hypothesis byte-perturbation property. `make all` green;
   coderabbit raised only markdown-prose findings in the plan/review docs (no
   code findings), deferred to Work item 5.
-- [x] Work item 1 fix round 1 (2026-06-24): stabilised the gate. The
+- [x] Work item 1 fix round 1 (2026-06-24): stabilized the gate. The
   byte-perturbation property
   (`test_compile_consistent_byte_perturbation_property`) intermittently failed
   `make all` with `DeadlineExceeded` (e.g. 339.18ms vs the default 200ms
-  deadline): each example calls `_all_hold_tree`, which materialises a full
+  deadline): each example calls `_all_hold_tree`, which materializes a full
   corpus working tree and parses `state.toml`, so per-example runtime exceeds
   the deadline under xdist contention. Added
   `@settings(deadline=None, max_examples=50,
@@ -377,7 +377,7 @@ commit. Update this section with a timestamp at every stopping point.
 - The Work-item-1 Hypothesis property cannot take the function-scoped `tmp_path`
   fixture (a property body receives only Hypothesis-drawn arguments), so it
   rebuilds the tree under a `tempfile.TemporaryDirectory()` per example. That
-  same per-example tree materialisation (plus a `state.toml` parse) is what blew
+  same per-example tree materialization (plus a `state.toml` parse) is what blew
   Hypothesis's default 200ms deadline under xdist contention, so the property was
   intermittently red on `make all`; the round-1 fix adds the established
   `@settings(deadline=None, max_examples=50, …)` convention. The lesson: any
@@ -388,12 +388,12 @@ commit. Update this section with a timestamp at every stopping point.
   paths); none touched the implementation. The load-bearing worktree paths are
   retained deliberately as the plan's navigation aids (the plan states they are
   worktree-relative); the one clearly-actionable second-person sentence was
-  neutralised. The "behavioral" spelling finding was a false positive (the prose
+  neutralized. The "behavioural" spelling finding was a false positive (the prose
   already reads "behavioural").
 
 ## Decision log
 
-- Decision (D-BYTE-COMPARE): the clause realises the design's "compile-and-hash"
+- Decision (D-BYTE-COMPARE): the clause realizes the design's "compile-and-hash"
   / "compare its hash" as a **direct byte comparison** of the recomputed
   concatenation against `compiled.md`'s bytes, computing no digest. Rationale:
   the §5.4 detector already does exactly this
@@ -419,7 +419,7 @@ commit. Update this section with a timestamp at every stopping point.
   `compiled_matches_drafts(state, working_dir)` helper is a one-edit drop-in the
   clause will call (passing its "absent → not consistent" polarity). Placing it
   as a standalone function (not inlined into `evaluate_done`) keeps the 3.1.3
-  unification a localised edit (R-CLAUSE-FN-LOC). Rationale: the roadmap text
+  unification a localized edit (R-CLAUSE-FN-LOC). Rationale: the roadmap text
   "Build one compile-and-hash function ... and call it from the
   `compile_consistent` clause" (`roadmap.md:895-898`) is satisfied by reusing the
   *existing* shared `compile_model` routine inside this single clause function;
@@ -521,7 +521,7 @@ carve-out without an undecided fork (the conservative reading held). The
 absent-vs-stale distinction proved the load-bearing subtlety: gating the carve-out
 on `compiled.md` existing keeps the 3.1.1 B1 soundness fix intact while still
 surfacing a regenerable stale compile as exit `4`. The clause and the §5.4
-detector now share one routine, so 3.1.3's unification is a localised drop-in.
+detector now share one routine, so 3.1.3's unification is a localized drop-in.
 
 ## Context and orientation
 
@@ -568,7 +568,7 @@ on are all in place and stable:
 - `tests/working_corpus/` — the §1.3.2 fixture corpus. `_specs.py` declares
   `ChapterSpec`/`WorkingTreeSpec` (the `compiled: str | None` field models
   `None` = no file, `COMPILED_AUTO` = hash-equal concatenation, any other string
-  = verbatim/stale bytes, `:198, 261-264`); `_builder.py` materialises a tree;
+  = verbatim/stale bytes, `:198, 261-264`); `_builder.py` materializes a tree;
   `_done_predicate_specs.py` (3.1.1) holds the all-hold spec and the per-clause
   failers; `_done_predicate_oracle.py` holds the disk-reading twins;
   `corpus_done_predicate_fixtures.py` is the pytest plugin.
@@ -735,10 +735,10 @@ of them (preferring the first):
 
 Tests (this commit): a focused corpus test module (extend
 `tests/test_working_corpus_done_predicate.py`) asserting: the sole-stale-compile
-tree materialises a `compiled.md` that is *not* the concatenation yet has the
+tree materializes a `compiled.md` that is *not* the concatenation yet has the
 same token count and header count as the drafts (the R-STALE-MISS precondition);
 the mid-draft-stale tree has at least one drafting clause unmet *and* a stale
-compile; and the existing all-hold / failer specs materialise byte-identically
+compile; and the existing all-hold / failer specs materialize byte-identically
 to before (no churn). Pin the new specs against the corpus oracle's compiled
 twin where one exists, mirroring the D-TWIN discipline.
 
@@ -847,7 +847,7 @@ Add/extend:
 - An e2e proof (extend `tests/test_novel_done_e2e.py`, POSIX-only per ADR-006,
   marked `slow`): the installed `novel-done` console-script over a real
   `working/` tree with a sole stale `compiled.md` exits `4`; over a mid-draft
-  stale tree exits `1`. (Materialise the stale compile by writing the
+  stale tree exits `1`. (Materialize the stale compile by writing the
   count-coincident body the corpus uses.)
 
 ### Work item 5 — documentation and the plan's outcomes
@@ -985,7 +985,7 @@ step is destructive and no backup is required. The corpus extensions (Work item
 2) add only **new** named specs, so a half-applied change leaves every existing
 fixture and snapshot byte-identical.
 
-## Artifacts and notes
+## Artefacts and notes
 
 Key reuse points the implementer must not reinvent:
 
@@ -1069,7 +1069,7 @@ this round:
   `compile_model.py:38-101`), already used by the §5.4 detector
   (`disk_evidence.py:167-188`) — so 3.1.2 reuses, not reinvents (D-BYTE-COMPARE,
   D-CLAUSE-FN);
-- the design's "hash" is realised as the detector's existing **byte comparison**;
+- the design's "hash" is realized as the detector's existing **byte comparison**;
   no `hashlib` digest is introduced (D-BYTE-COMPARE);
 - the **3.1.2 / 3.1.3 boundary**: 3.1.2 swaps the clause and adds the carve-out;
   3.1.3 (separate task) unifies the two comparisons into one helper. 3.1.2 does
@@ -1131,14 +1131,14 @@ merge. The substantial, cross-cutting follow-ups raised against this task were
 re-routed off it rather than folded here: the "compile-and-hash"→byte-comparison
 documentation reconciliation (`audit:3.1.2`, merged with `audit:3.1.3`) to a new
 roadmap step 7.17 (deferred documentation-truthfulness hardening); the
-`manuscript/compiled.md` path centralisation in `_disk_paths` (`audit:3.1.2`, and
+`manuscript/compiled.md` path centralization in `_disk_paths` (`audit:3.1.2`, and
 the related `review:3.1.2` fold-the-path-constant proposal) is already owned by
 the open roadmap task 7.10.3, whose Success clause requires that no site
 open-codes the `compiled.md` leaf, so it is not re-filed; the compile-present
 companion that avoids triple-statting `compiled.md` (`audit:3.1.2`) to roadmap
 task 7.10.5; and the disk-bound Hypothesis deadline-profile work (`review:3.1.2`,
 two near-identical proposals merged) to a new roadmap step 7.18. The one below is
-the small, localised fix tied to this task's corpus.
+the small, localized fix tied to this task's corpus.
 
 - [x] 3.1.2.1 — Pin or drop the unused `DONE_PREDICATE_OBVIOUS_STALE_COMPILE`
   corpus spec (from review:3.1.2, low; two near-identical proposals merged). The

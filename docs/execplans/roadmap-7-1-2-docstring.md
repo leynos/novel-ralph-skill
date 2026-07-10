@@ -388,7 +388,7 @@ escalation, not a workaround.
   table could instead live in the `CompiledComparison` class docstring (the type
   every consumer imports). Rejected: audit-3.1.3 proposed `compiled_matches_drafts`
   and the existing both-polarity prose already lives there, so the chosen location
-  minimises churn; the class-docstring alternative would require *moving* prose
+  minimizes churn; the class-docstring alternative would require *moving* prose
   into the type *and* trimming the helper, a larger edit for no behavioural gain.
   The
   class docstring keeps its type-rationale role (B3) rather than becoming the table.
@@ -856,7 +856,7 @@ one docstring just changed: re-read it with `leta show`, compare against the
 "keep" / "move" split in this plan's Context section, and fix the prose. No step
 is destructive; `git restore <file>` reverts any single docstring edit cleanly.
 
-## Artifacts and notes
+## Artefacts and notes
 
 The chosen authoritative location already carries most of the table
 (`compile_model.py` lines 132-135):

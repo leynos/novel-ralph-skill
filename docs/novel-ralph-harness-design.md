@@ -195,8 +195,8 @@ echoed scalars equal the persisted `[drafting]` cursor whenever the write
 succeeds, and a write that would diverge is refused at exit 3 before it lands.
 Re-reading the document to make the envelope structurally independent of the
 input path would buy no extra guarantee here, because the cursor is a set of
-plain scalars the mutator neither derives nor normalises on write. Should a
-future mutator compute or normalise a value it persists — so the written form
+plain scalars the mutator neither derives nor normalizes on write. Should a
+future mutator compute or normalize a value it persists — so the written form
 could differ from the input — that mutator must report the *written* value, not
 its input echo.
 
@@ -319,7 +319,7 @@ advance cannot be mistaken for progress. Advancing into `drafting` requires the
 chapter manifest (§5.1) to be populated, so compilation always has an
 authoritative ordering to follow.
 
-State serialisation round-trips losslessly, preserving the on-disk formatting
+State serialization round-trips losslessly, preserving the on-disk formatting
 and comments. The mechanism is open question Q1, resolved in §5.3.
 
 ### 4.2 `novel done`
@@ -543,7 +543,7 @@ validation makes that impossible:
 State mutation must preserve the on-disk formatting and comments of
 `state.toml`. The standard-library `tomllib` reads TOML but cannot write it.
 The design selects `tomlkit`, which round-trips formatting and comments, over
-an owned serialiser, because owning a comment-preserving TOML writer is
+an owned serializer, because owning a comment-preserving TOML writer is
 avoidable complexity for no benefit. This choice is hard to reverse once
 mutators depend on it and is recorded in
 `docs/adr-002-toml-round-trip-tomlkit.md`. The failed `tomli_w` snippet in the
@@ -554,7 +554,7 @@ from a mapping (`tomlkit.inline_table()` then `update`) — has a single home in
 `state/document.py:build_inline_table`, consumed by `init`, `recount`,
 `reconcile`, `set-chapters`, and the working-corpus reference builder rather
 than re-copied per mutator (roadmap task 7.2.1). It builds structure only — it
-never serialises or writes — and preserves the caller's mapping order, the
+never serializes or writes — and preserves the caller's mapping order, the
 property `recount`'s byte-for-byte deterministic write relies on.
 
 ### 5.4 Disk-authoritative reconciliation
@@ -626,7 +626,7 @@ agent judgement:
    `[word_counts]` **only** and
    never `[gates]`: a knitting gate flag records "threshold crossed **and** the
    pass integrated and logged", an agent action disk does not store, so
-   synthesising it would violate "disk is authoritative, never the reverse".
+   synthesizing it would violate "disk is authoritative, never the reverse".
    Word-count reconciliation is therefore in scope **only for sub-threshold
    divergences** — where the recounted ratio crosses exactly the 30/50/80%
    thresholds the recorded gates already reflect — so the reconciled tree stays
@@ -676,7 +676,7 @@ The broader `done.flag`/`compiled.md`-driven reconstruction §5.4 describes — 
 per-chapter done projection, or re-projecting gates from a recount — is
 **deferred** to a later task. The `cursor-plan-present` break (the §5.2
 invariant-6 "scene/beat zero until plans exist" sub-clause) is given §5.4
-*refuse* semantics here: `reconcile` cannot synthesise a missing plan from disk
+*refuse* semantics here: `reconcile` cannot synthesize a missing plan from disk
 without fabricating planning prose, so it reports, logs, and exits 4 rather
 than repairing — the same disposition as a contradiction.
 
@@ -812,7 +812,7 @@ The boundary between the line editor and the critic is a single test:
 
 Sentence-level fixes belong to the line editor. Scene-level fixes — macro
 show-don't-tell, a chapter that asserts a character is grieving instead of
-dramatising it — belong to the critic and knitting circle. Folding "fix the
+dramatizing it — belong to the critic and knitting circle. Folding "fix the
 passive voice" into the spiteful critic dilutes both jobs, so they stay
 separate prompts with separate outputs.
 
@@ -878,7 +878,7 @@ would buy confidence the simpler commands do not need.
   satisfying §5.2 and rejects the rest, and that a no-op `recount` preserves
   formatting and comments (the §5.3 round-trip property).
 - **Snapshot tests** pin the machine-mode JSON envelope per command,
-  with timestamps, absolute paths, and slugs normalised, so a snapshot failure
+  with timestamps, absolute paths, and slugs normalized, so a snapshot failure
   identifies a real contract change rather than churn.
 - **Behavioural tests (`pytest-bdd`)** cover the harness-facing flows:
   a stale `compiled.md` is caught by `novel done`; an out-of-order

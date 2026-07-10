@@ -9,7 +9,7 @@ the line-239 double-hit, then this proceeds.
 
 - B1 (Pandalump / Telefono): The convert-bucket count is wrong. The plan asserts
   "17 `novel-state` invocations" (Purpose line 26; Work item 1 expected output
-  line 416 "novel-state ×17"; Artifacts line 612 "novel-state ×17"). The live
+  line 416 "novel-state ×17"; Artefacts line 612 "novel-state ×17"). The live
   count is **15** `novel-state` occurrences across 14 lines, plus **1**
   `novel-compile`. Evidence: `grep -oE 'novel-state' state-layout.md | wc -l` →
   15. Work item 1 is explicitly "the contract the three sweep items execute
@@ -18,7 +18,7 @@ the line-239 double-hit, then this proceeds.
   and stall the implementer hunting for two nonexistent occurrences.
 
 - B2 (Pandalump): Line 239 is a double-hit, not a single `novel-compile`. The
-  plan's Work item 1 expected output (line 416-418) and Artifacts block
+  plan's Work item 1 expected output (line 416-418) and Artefacts block
   (line 612-615) mark only `230 (×2)` as a two-token line and present line 239
   as a lone `novel-compile`. In fact line 239 carries BOTH `novel-compile` and
   `novel-state set-chapters`, reading (pre-sweep):
@@ -83,5 +83,5 @@ Preserve (desloppify noun): state-layout 167, 168; done-conditions 110, 191;
   rationale comment should note it is asserting "no noun form was converted",
   not "the string novel desloppify is forbidden".
 - A2 (Dinolump): The plan twice re-derives the same enumeration (Work item 1
-  expected output and the Artifacts block). Keep one canonical copy to avoid the
+  expected output and the Artefacts block). Keep one canonical copy to avoid the
   two drifting — the present B1/B2 defect exists in both.

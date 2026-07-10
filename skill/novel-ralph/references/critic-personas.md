@@ -1,12 +1,12 @@
 # Critic personas
 
 Three personas, three different attentional regimes, three different outputs.
-They share an aversion to mealy-mouthed critique. They never summarise the work
+They share an aversion to mealy-mouthed critique. They never summarize the work
 back at the writer; the writer wrote it.
 
 The agent invokes each persona by loading the persona's system prompt and
 submitting the relevant manuscript context. The persona prompts are written to
-maximise specificity of feedback and minimise the LLM's default drift toward
+maximize specificity of feedback and minimize the LLM's default drift toward
 polite encouragement.
 
 ______________________________________________________________________
@@ -149,8 +149,8 @@ for what "resolved" looks like on disk (roadmap 3.1.5; design §4.2):
   construction. The in-place `[resolved]` token is for the cap-reached path,
   where unresolved findings are logged rather than fixed (the pass cap of 4) and
   a since-fixed finding must be marked closed without deleting it.
-- The token is case-sensitive and the only recognised spelling. Variants such as
-  `[RESOLVED]` or `(resolved)` are **not** recognised and leave the finding
+- The token is case-sensitive and the only recognized spelling. Variants such as
+  `[RESOLVED]` or `(resolved)` are **not** recognized and leave the finding
   unresolved.
 
 ### How the loop uses the output: spiteful critic
@@ -420,7 +420,7 @@ The agent reads the knitting circle output and:
 
 - **HIGH severity structural actions targeting already-drafted
   chapters:** implement. This is a back-edit, and the cost is real, but the
-  knitting circle is the only voice authorised to demand them at scale. Update
+  knitting circle is the only voice authorized to demand them at scale. Update
   chapter drafts and regenerate `compiled.md` afterwards.
 - **HIGH severity actions targeting future chapters:** record in
   chapter-outline.md and apply during planning.

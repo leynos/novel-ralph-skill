@@ -25,7 +25,7 @@ commands*. If a sixth command — or a future edit to one of the existing
 commands or to a mutator — drifted from the shared envelope or exit-code table,
 no single test would fail on the divergence. This task closes that gap.
 
-You can observe success by running the new suite: a single parametrised
+You can observe success by running the new suite: a single parametrized
 pytest-bdd scenario set plus syrupy snapshots that, for every command and every
 contract channel, asserts the shared envelope skeleton and exit-code mapping.
 The suite must fail if any command drifts. Concretely, after this change
@@ -138,7 +138,7 @@ Hard invariants that must hold throughout implementation.
       `tests/test_command_surface_matrix.py` (lines 147-159, 310-330) and
       `tests/test_novel_state_mutator_snapshots.py` (lines 35-59).
 
-    - Risk: Driving a mutator changes state on disk, so a parametrised body that
+    - Risk: Driving a mutator changes state on disk, so a parametrized body that
       reuses one tree across commands corrupts later cells.
       Severity: medium
       Likelihood: medium
@@ -157,7 +157,7 @@ Hard invariants that must hold throughout implementation.
       and its regression run stayed green (135 passed).
     - [x] Work item 2: Cross-command exit-code to ok mapping pin — a Hypothesis
       property over the **pure** synthetic-outcome → `run` → envelope surface,
-      plus parametrised example tests over the named constructible (command,
+      plus parametrized example tests over the named constructible (command,
       channel) cells. Committed `04838b1`. Cell table in
       `tests/cross_command_contract/_cells.py`.
     - [x] Work item 3: pytest-bdd cross-command contract scenario suite.
@@ -198,7 +198,7 @@ Hard invariants that must hold throughout implementation.
       lines 84-106 construction), 2 on `--nope`, 3 with no `working/` (**no**
       code-1 cell).
       Impact: Work item 2's Hypothesis property runs only on the *pure* surface
-      (no disk); the driven channels are asserted as parametrised example tests
+      (no disk); the driven channels are asserted as parametrized example tests
       over exactly these named cells, and the unconstructible (command, channel)
       pairs are carried as documented gaps (see the constructible-cell table in
       Context and orientation). This removes the B1/B2 defects the Round 1 review
@@ -266,11 +266,11 @@ Hard invariants that must hold throughout implementation.
       (`tests/test_command_surface_matrix.py` lines 39-44).
       Date/Author: 2026-06-26, planning agent.
 
-    - Decision: Express the cross-command suite as one parametrised pytest-bdd
+    - Decision: Express the cross-command suite as one parametrized pytest-bdd
       scenario set plus syrupy snapshots, as the roadmap text requires.
-      Rationale: The roadmap names "one parametrised pytest-bdd suite plus syrupy
+      Rationale: The roadmap names "one parametrized pytest-bdd suite plus syrupy
       snapshots". pytest-bdd 8.1.0 supports a single feature whose scenarios are
-      driven over a parametrised command fixture; the repo already uses
+      driven over a parametrized command fixture; the repo already uses
       `pytest-bdd` scenarios extensively (`tests/features/`, `tests/steps/`). The
       snapshots pin the redacted per-command envelope skeletons; the scenarios
       assert the identity invariants in steps. The in-code Hypothesis property
@@ -282,7 +282,7 @@ Hard invariants that must hold throughout implementation.
       *pure* outcome → `run` → envelope path (a synthetic `CommandOutcome` driven
       through `run` over the shared `wrapper_app` builder, no `tmp_path`, no
       `chdir`); the *driven* (command, channel) cells are asserted as plain,
-      table-driven parametrised pytest cases, not under `@given`.
+      table-driven parametrized pytest cases, not under `@given`.
       Rationale: Driving a real command into a real channel needs an on-disk
       `working/` tree (`tmp_path`) and `monkeypatch.chdir`, both function-scoped
       fixtures, which `@given` forbids via `HealthCheck.function_scoped_fixture`.
@@ -424,7 +424,7 @@ source touched, preserving the verification-only constraint).
 
 Finding 1 — flaky Hypothesis property
 `test_derivation_is_total_and_never_yields_none_on_a_violation` (~1 in 8 under
-`pytest -n auto`). Root cause: the property materialises a full corpus working
+`pytest -n auto`). Root cause: the property materializes a full corpus working
 tree via `build_working_tree` and parses `state.toml` per generated example, so
 under xdist I/O contention an example sporadically breaches Hypothesis's default
 200ms deadline and raises `DeadlineExceeded`. It carried no `@settings`, unlike
@@ -707,7 +707,7 @@ which used `build_envelope` directly rather than driving `run`).
 > not "correct" the suite to make code 1 `ok: true` (review A6).
 
 **Part B — the driven example cells (plain pytest, disk allowed).** Add
-table-driven parametrised tests (plain `@pytest.mark.parametrize`, **not**
+table-driven parametrized tests (plain `@pytest.mark.parametrize`, **not**
 `@given`, so function-scoped `tmp_path` and the `drive` fixture are permitted)
 that drive each *real* command into each of its **constructible** channels from
 the cell table in Context and orientation, and assert the (code, ok) pair: for
@@ -735,17 +735,17 @@ Hypothesis is the right adversary for Part A (an invariant over a range of
 codes/commands on the pure surface), then `hypothesis` for the strategy design
 and the function-scoped-fixture trap.
 
-Tests added: the pure ok/exit `@given` property (Part A); the parametrised
+Tests added: the pure ok/exit `@given` property (Part A); the parametrized
 driven (command, channel) cell tests over the constructible cells (Part B).
 Validation: `make all`.
 
 ### Work item 3: pytest-bdd cross-command contract scenario suite
 
-Implements the roadmap's literal requirement ("one parametrised pytest-bdd
+Implements the roadmap's literal requirement ("one parametrized pytest-bdd
 suite") and design §9. Add a feature file
 `tests/features/cross_command_contract.feature` and a step module
 `tests/steps/cross_command_contract_steps.py`. Write a small set of scenarios,
-each parametrised over the command surface via a `Scenario Outline` with an
+each parametrized over the command surface via a `Scenario Outline` with an
 `Examples` table of the five spaced command names (and, where a scenario covers
 a channel, the channel):
 
@@ -781,7 +781,7 @@ Docs to read: design §9; `docs/developers-guide.md` (pytest-bdd usage, lines
 the `scenarios(...)`/`@given`/`@when`/`@then` layout. Skills to load:
 `python-router` then `python-testing` (the pytest-bdd plugin section).
 
-Tests added: the parametrised scenario suite (one feature, several outlines).
+Tests added: the parametrized scenario suite (one feature, several outlines).
 Validation: `make all`.
 
 ### Work item 4: Cross-command error-channel shape pin
@@ -994,7 +994,7 @@ Acceptance is behaviour a reviewer can verify:
   documented gaps in the cell table — not silently skipped.
 - The exit-code property runs `@given` only on the pure synthetic-outcome →
   `run` → envelope surface (no disk, no `chdir`), and the *driven* (command,
-  channel) cells are asserted as plain parametrised pytest over the named
+  channel) cells are asserted as plain parametrized pytest over the named
   constructible cells; a reviewer can confirm no `@given` test takes a
   function-scoped fixture.
 - The new suite asserts the `novel state` mutators' success and refusal
@@ -1031,7 +1031,7 @@ tolerance), not a snapshot to bless. To recover from a half-written work item,
 discard the uncommitted test file and re-run `make all` to confirm the tree is
 green before retrying.
 
-## Artifacts and notes
+## Artefacts and notes
 
 The shared contract under test, for reference (design §3.1; ADR-003):
 
@@ -1079,7 +1079,7 @@ above: `cuprum.ProgramCatalogue`,
 
 Initial draft (2026-06-26). Decomposes roadmap task 6.3.2 into six atomic,
 gate-passable work items: a cross-command envelope-skeleton pin, an ok/exit
-mapping property pin, a parametrised pytest-bdd scenario suite, an
+mapping property pin, a parametrized pytest-bdd scenario suite, an
 error-channel-shape identity pin, a mutator success/refusal identity pin with
 snapshots, and a developers-guide scope note. Pins the suite's mechanism to the
 in-process `run` seam and the §6.2.1 matrix precedents, scoping it as the
@@ -1095,7 +1095,7 @@ Round 2 revision (2026-06-26), resolving the Logisphere Round 1 review
   one `@given` property on the *pure* synthetic-outcome → `run` → envelope
   surface (no `tmp_path`, no `monkeypatch.chdir`, reusing the `wrapper_app`
   builder, so no function-scoped fixture is taken under `@given`) — and Part B
-  — plain parametrised pytest over the driven cells, where function-scoped
+  — plain parametrized pytest over the driven cells, where function-scoped
   `tmp_path`/`drive` are permitted. This mirrors
   `tests/test_contract_properties.py` (pure `@given` at lines 49-110; driven
   plain-pytest cases at 130-202). The property no longer attempts to drive real

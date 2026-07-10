@@ -106,7 +106,7 @@ against the worktree source and matches exactly. No new blocking defect found.
   additive exports with stable signatures pinned by WI2. 🟢
 - 🐶 **Doggylump (failure modes).** The r1 pre-mortem hazard — an auditor runs a
   loose grep, sees docstring hits, and "fixes" them into 7.1.2 territory — is
-  now neutralised at the source: the plan's stated observables match the actual
+  now neutralized at the source: the plan's stated observables match the actual
   end state, and the Purpose section and Decision Log explicitly name the
   surviving prose hits as the *correct* state with a do-not-touch instruction
   (plan lines 62-66, 297-310). 🟢

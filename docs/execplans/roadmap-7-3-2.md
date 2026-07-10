@@ -175,7 +175,7 @@ Thresholds that trigger escalation when breached. These bound autonomous action;
 they are not quality criteria.
 
 - Scope: if the implementation touches more than 4 source/test files or more than
-  ~140 net lines, stop and escalate — this is a localised refactor of one
+  ~140 net lines, stop and escalate — this is a localized refactor of one
   function plus one new test module.
 - Interface: if any public signature must change (`novel.main`,
   `build_multiplexer`'s return type, `make_contract_app`, or any leaf
@@ -246,7 +246,7 @@ they are not quality criteria.
   (1464 passed). The leaf modules are imported at module scope (needed for the
   identity tests and Work item 3's guard), so the missing symbol surfaces as
   test failures rather than a collection error. Used `ModuleType` for the
-  parametrised `module` annotation so the only typecheck error is the intended
+  parametrized `module` annotation so the only typecheck error is the intended
   missing-symbol one.
 - [x] Work item 2: Collapse `build_multiplexer()` onto the registry-driven table
   (green) and document it. Committed `0e26a80`. Added `_build_mount_table()`
@@ -260,7 +260,7 @@ they are not quality criteria.
   markdownlint errors (line-length, blanks-around-headings, fenced-language) —
   all fixed so `make markdownlint` and `make nixie` pass.
 - [x] Work item 3: Add the in-process textual import-laziness guard test and
-  update the developers guide. Added the parametrised `inspect.getsource` guard
+  update the developers guide. Added the parametrized `inspect.getsource` guard
   to `tests/test_multiplexer_mount_table.py` (each leaf name must appear in the
   helper source and must be absent from the module source with the helper slice
   removed). Self-proof done: temporarily hoisting `novel_state` to module scope
@@ -401,7 +401,7 @@ The files this plan touches or reads:
   pytest plugin) the two suites above consume by name.
 
 - `tests/test_console_scripts_e2e.py` — the build-install-run e2e proof,
-  parametrised off `SUBCOMMAND_NAMES`. Unchanged and unaffected (it never
+  parametrized off `SUBCOMMAND_NAMES`. Unchanged and unaffected (it never
   references `build_multiplexer`'s internals).
 
 - `tests/test_legacy_surface_retired.py` — asserts the retired registry symbols
@@ -470,7 +470,7 @@ What to add: a module `tests/test_multiplexer_mount_table.py` with:
    `build_app` (object identity), so a swapped or wrapped builder fails:
    `novel._build_mount_table()["state"] is novel_state.build_app`, and likewise
    for `done`/`_novel_done`, `compile`/`_compile`, `desloppify`/`_desloppify`,
-   `wordcount`/`_wordcount`. Parametrise over the five `(verb, module)` pairs.
+   `wordcount`/`_wordcount`. Parametrize over the five `(verb, module)` pairs.
 
 3. A test asserting `build_multiplexer()` still registers exactly the five mount
    names (mirroring the existing shape test) **and** that the registered names
@@ -651,7 +651,7 @@ What to add:
      import (... leaf ...)` line — i.e. the leaves are not imported at module
      scope. Drive this from `inspect.getsource(novel)` (the whole module) by
      checking the leaf-import statement text occurs only within the helper's
-     `getsource` slice, not at column 0. Parametrise over the five leaf names so
+     `getsource` slice, not at column 0. Parametrize over the five leaf names so
      a single leaf hoisted to module scope fails its own case.
 
    This guard *proves itself*: during authoring, the implementer must confirm it
@@ -677,7 +677,7 @@ What to add:
    registry" (`docs/developers-guide.md` line 420); do not paraphrase it into a
    near-quote.
 
-Tests this item adds: the in-process textual laziness guard (parametrised over
+Tests this item adds: the in-process textual laziness guard (parametrized over
 the five leaf names, in the existing new module). No property, snapshot, or e2e
 additions — the behaviour surface is unchanged and already covered, and a
 clean-interpreter subprocess probe is deliberately avoided (see the rationale
@@ -830,7 +830,7 @@ External library facts this plan relies on, pinned to the locked versions:
   allowlist (verified against the locked cuprum's
   `cuprum/catalogue.py::ProgramCatalogue` — `projects=`-constructed,
   `is_allowed`/`allowlist` of `Program` strings including absolute paths). Those
-  fixtures are parametrised off `SUBCOMMAND_NAMES` and never reference
+  fixtures are parametrized off `SUBCOMMAND_NAMES` and never reference
   `build_multiplexer`'s internals, so the construction-table refactor leaves them
   untouched; they serve only as the green-throughout installed-binary proof.
 - **pytest-timeout / pytest-xdist** (`pyproject.toml` lines 21–22, 322–324):

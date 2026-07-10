@@ -1184,13 +1184,13 @@ mentions a `loaderkit → rulepack` `TYPE_CHECKING` import.
 
 ## Addenda
 
-- [x] **7.2.3.1 — Generalise the loaderkit import-direction guard beyond
+- [x] **7.2.3.1 — Generalize the loaderkit import-direction guard beyond
   `loaderkit.scan`** (from review:7.2.3; low). The D-GUARD test
   `test_loaderkit_scan_imports_no_pack_domain` pins only `scan.py` against
   pack-domain imports, but the neutral-leaf invariant (design §6/§6.3, ADR-003)
   applies to every `loaderkit` module — `coerce.py`, `load.py`, and
   `__init__.py` — each of which must import neither `rulepack` nor `ledger`.
-  Parametrise the guard to walk every module in the `loaderkit` package (or its
+  Parametrize the guard to walk every module in the `loaderkit` package (or its
   `__init__` re-export surface) so a future regression in any of them is caught,
   not just one in `scan.py`. Test-only; no production change. Lightweight
   addendum pass.

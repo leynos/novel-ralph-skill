@@ -12,7 +12,7 @@ pure-state sub-clause to both
 disk-evidence invariant name `cursor-plan-present`
 ([`_oracle.py`](../../tests/working_corpus/_oracle.py)
 `_check_cursor_plan_present`) for the "zero until plans exist" clause, deferred
-to reconciliation task 2.3.2; materialises `scenes.md` / `beats.md` plan files in
+to reconciliation task 2.3.2; materializes `scenes.md` / `beats.md` plan files in
 the corpus builder ([`_builder.py`](../../tests/working_corpus/_builder.py));
 and adds negative fixtures and a property perturbation
 ([`_variants.py`](../../tests/working_corpus/_variants.py),

@@ -68,7 +68,7 @@ is correctly placed and justified.
 
 Two alternatives surfaced and dispositioned: (a) `tests/_helpers.py` importable
 module — rejected (more surface than the audits asked, reintroduces imports);
-(b) legitimising the cross-module import via `tests/__init__.py` — rejected
+(b) legitimizing the cross-module import via `tests/__init__.py` — rejected
 (changes collection semantics for the whole suite; in Tolerances as an escalate
 trigger). No stronger alternative exists for a behaviour-preserving test
 refactor. 🟢 Improvement: the plan could note that `read_repo_text` as a

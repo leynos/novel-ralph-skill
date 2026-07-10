@@ -4,7 +4,7 @@
 
 Accepted, 2026-06-21. State mutation reads, edits, and re-writes `state.toml`
 through `tomlkit`, which preserves on-disk formatting and comments, rather than
-through an owned serialiser over `tomllib`.
+through an owned serializer over `tomllib`.
 
 ## Date
 
@@ -52,16 +52,16 @@ reference.
 
 `tomlkit` is a style-preserving TOML library that round-trips comments and
 formatting. Mutators read into its document model, edit values, and
-re-serialise with formatting intact. The cost is a third-party dependency.
+re-serialize with formatting intact. The cost is a third-party dependency.
 
-### Option B: an owned serialiser over tomllib
+### Option B: an owned serializer over tomllib
 
 Read with `tomllib`, hold formatting and comments in a side structure, and
-write with a hand-built serialiser that reapplies them. This owns the full
+write with a hand-built serializer that reapplies them. This owns the full
 problem and adds a comment-preserving TOML writer to the project's maintenance
 surface for no capability `tomlkit` does not already provide.
 
-| Topic                   | Option A: tomlkit             | Option B: owned serialiser   |
+| Topic                   | Option A: tomlkit             | Option B: owned serializer   |
 | ----------------------- | ----------------------------- | ---------------------------- |
 | Comment preservation    | Built in                      | Must be built and maintained |
 | Maintenance surface     | One dependency                | A bespoke TOML writer        |

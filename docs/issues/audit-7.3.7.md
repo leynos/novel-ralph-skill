@@ -1,6 +1,6 @@
 # Post-merge audit — roadmap task 7.3.7
 
-Audit of the codebase after roadmap task 7.3.7 ("Centralise the body-detected
+Audit of the codebase after roadmap task 7.3.7 ("Centralize the body-detected
 usage-error (exit-2) envelope") merged to `main` at commit `7b3ed2f`. The slice
 lifts the duplicated exit-`2` usage-error envelope into a single contract-layer
 home. It adds a
@@ -171,7 +171,7 @@ fallback. The cross-command contract scenario asserts "the envelope carries a
 non-blank message" (`cross_command_contract.feature` line 42), so a body fault
 raised with a blank message would violate that contract while passing the unit
 test, which only
-parametrises non-blank prose and the no-message fallback
+parametrizes non-blank prose and the no-message fallback
 (`test_contract_usage_error.py` lines 32-34).
 
 Proposed fix: state the intended contract in the docstring — either that callers
@@ -179,7 +179,7 @@ must supply non-blank prose (and lean on the cross-command scenario as the
 enforcement), or that the helper should treat a blank/whitespace-only message as
 "none supplied". If the latter is intended, change the guard to
 `[m for m in exc.messages if m.strip()] or [str(exc)]` and add a
-`BodyUsageError("")` parametrisation to `test_contract_usage_error.py` proving the
+`BodyUsageError("")` parametrization to `test_contract_usage_error.py` proving the
 blank message is replaced by the `str` fallback. If blank prose is genuinely
 unreachable (every raise site supplies a fixed sentence), record that invariant
 in the docstring so the omission reads as deliberate.

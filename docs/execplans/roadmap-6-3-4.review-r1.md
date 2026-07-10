@@ -14,7 +14,7 @@ planner.
   `CommandResult.exit_code` all present. The plan correctly pins to the
   installed wheel, not the drifted git HEAD.
 - `pathlib.Path("working").resolve()` non-strict success on a missing path
-  confirmed in this environment; the symlink-normalisation risk (D2) is real
+  confirmed in this environment; the symlink-normalization risk (D2) is real
   and the same-construction mitigation is the right one.
 - The synthetic-`RunContext` suites (`contract_drive_support.py:190`, the
   in-process matrix, the cross-command package) genuinely inject `"working"`

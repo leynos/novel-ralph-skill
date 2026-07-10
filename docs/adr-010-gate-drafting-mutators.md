@@ -8,7 +8,7 @@ had no validated mutator — the three knitting-circle gates
 (`gates.final.final_pass_complete`), the critic sub-state (`drafting.critic.pass`),
 and the fangirl sub-state (`drafting.fangirl.last_chapter_passed`) — are each set
 through a validated `novel-state` subcommand: `set-gate`, `complete-final-pass`,
-`set-critic-pass`, and `set-fangirl`. This realises roadmap task 2.2.4 under
+`set-critic-pass`, and `set-fangirl`. This realizes roadmap task 2.2.4 under
 ADR 001 (scripts detect and report; the model adjudicates) and design §4.1, §5.1,
 and §5.2.
 

@@ -62,7 +62,7 @@ name.
 ### Option B: One `novel` multiplexer
 
 A single entry point dispatches to subcommands. One process emits one envelope
-by construction. `novel --help` lists everything. The trade-aways are
+by construction. `novel --help` lists everything. The trade-offs are
 independent per-command versioning and subset installation — neither of which
 the project wants — and a slightly heavier single entry point.
 

@@ -52,7 +52,7 @@ escalation, not a workaround.
   `/data/leynos/Projects/novel-ralph-skill.worktrees/roadmap-6-2-13`.
 - **Module-size cap.** No code file may exceed 400 lines (AGENTS.md, "Keep file
   size manageable"). The step module `tests/steps/torn_turn_rollback_steps.py`
-  is currently 291 lines; the parametrisation must keep it under 400.
+  is currently 291 lines; the parametrization must keep it under 400.
 - **Drive every command through the command entry path.** Both `check` and
   `reconcile` must be driven through
   `novel_ralph_skill.contract.runner.run` with a real `build_app()`, never by
@@ -68,14 +68,14 @@ escalation, not a workaround.
   directly).
 - **en-GB Oxford spelling** (`-ize`/`-yse`/`-our`) in all prose, docstrings,
   comments, feature narrative, and the commit message (AGENTS.md).
-- **Keep the existing `draft.md` proof passing.** The parametrisation must not
+- **Keep the existing `draft.md` proof passing.** The parametrization must not
   weaken or remove the `draft.md` trigger coverage; it runs as the first example
   row.
 
 ## Tolerances (exception triggers)
 
 - **Scope:** if the change touches more than 3 files or adds more than ~120 net
-  lines of test code, stop and escalate — this is a tight parametrisation, not a
+  lines of test code, stop and escalate — this is a tight parametrization, not a
   rewrite.
 - **Production drift:** if any file under `novel_ralph_skill/` must change, stop
   and escalate (violates the no-production-code constraint).
@@ -84,7 +84,7 @@ escalation, not a workaround.
   refuse-class `done-flag-without-draft` contradiction, exit 4 with `REFUSE`, or
   any other disposition), stop and escalate with the observed envelope — the
   analysis in Decision D-DONEFLAG-CLEAN would be wrong.
-- **Module-size:** if the parametrised step module would exceed ~380 lines, stop
+- **Module-size:** if the parametrized step module would exceed ~380 lines, stop
   and escalate (the 400-line cap is near; an extraction may be warranted, but
   that is out of this task's scope and is tracked separately under step 7.23).
 - **Iterations:** if `make all` still fails after 3 fix attempts, stop and
@@ -121,10 +121,10 @@ escalation, not a workaround.
       proves awkward, fall back to `pytest.mark.parametrize` on the scenario
       binder (Decision D-SHAPE records the fallback).
 
-    - Risk: the parametrised step module breaches the 400-line cap.
+    - Risk: the parametrized step module breaches the 400-line cap.
       Severity: low
       Likelihood: low
-      Mitigation: current size is 291 lines; the parametrisation replaces hard-coded
+      Mitigation: current size is 291 lines; the parametrization replaces hard-coded
       `_UNRECOVERABLE_DRAFT` references with a per-row value threaded through the
       `_Outcome` dataclass and the feature `Examples` table, adding well under 90
       lines. Measured in Stage D against `make all`.
@@ -143,7 +143,7 @@ escalation, not a workaround.
       captured: with the leftover-record assertion temporarily hard-coded to the
       draft path, the `done.flag` row failed at `torn_leaves_record`; restoring the
       per-row assertion turned both rows green.
-    - [x] Stage C: generalise the step module to thread the declared path and
+    - [x] Stage C: generalize the step module to thread the declared path and
       operation per row (green). Both rows pass with distinct, readable test ids.
     - [x] Stage D: harden — module-size check (322 lines, under the 380/400 caps),
       docstring/narrative en-GB pass, `make all` green (981 passed, 1 skipped),
@@ -154,7 +154,7 @@ escalation, not a workaround.
     - The `done.flag` row classified `rollback-pending-turn` at the command
       boundary exactly like the `draft.md` row, confirming D-DONEFLAG-CLEAN with no
       refuse-class pre-emption — no mechanism surprise, no escalation needed.
-    - The parametrised step phrasings (placeholders now in the producer Given and
+    - The parametrized step phrasings (placeholders now in the producer Given and
       the leftover-record Then) push the step text past the line-length limit; Ruff
       reformatted `torn_leaves_record`'s signature onto one line. The format pass is
       part of `make all` and dropped the module from 324 to 322 lines, still well
@@ -292,12 +292,12 @@ three files:
 The **gap this task closes** is `docs/issues/audit-6.2.7.md` Finding 3: the
 command-boundary ROLLBACK proof exercises only the `draft.md` trigger; the
 `done.flag` trigger remains in-process-only. The audit's proposed fix (lines
-125-131) is a parametrisation over `(declared_path, expected_basename)` covering
+125-131) is a parametrization over `(declared_path, expected_basename)` covering
 both triggers with one step module.
 
 The **corpus** (`tests/working_corpus/`) provides `COHERENT_BASELINE` (a
 canonical mid-drafting coherent tree) and `build_working_tree(spec, dest)`.
-`COHERENT_BASELINE` materialises chapters 1..N; chapter-99 is deliberately
+`COHERENT_BASELINE` materializes chapters 1..N; chapter-99 is deliberately
 outside its manifest so the declared artefact never lands and carries no manifest
 entry — the precondition that keeps the disposition a clean ROLLBACK
 (Decision D-DONEFLAG-CLEAN).
@@ -330,8 +330,8 @@ escalate before writing tests.
 
 1. Convert the single `Scenario` in
    `tests/features/torn_turn_rollback.feature` into a
-   `Scenario Outline`. Generalise the narrative to "an unrecoverable artefact (a
-   `draft.md` or a `done.flag`) that never lands", parametrise the producer Given
+   `Scenario Outline`. Generalize the narrative to "an unrecoverable artefact (a
+   `draft.md` or a `done.flag`) that never lands", parametrize the producer Given
    and the leftover-record Then on a `<declared_path>` placeholder and the
    leftover-operation step on an `<operation>` placeholder, and add an `Examples:`
    table with two rows: the existing `draft.md`/`write-draft` row first, then the
@@ -340,7 +340,7 @@ escalate before writing tests.
    does not branch on, so any honest verb is fine, but keep it faithful to a
    real flag-writing turn). Keep one column for a human-readable `<trigger>`
    label used only in the scenario title for a readable test id.
-2. Run only the new row and confirm it **fails** before the step generalisation
+2. Run only the new row and confirm it **fails** before the step generalization
    lands (the steps still hard-code `_UNRECOVERABLE_DRAFT`, so the `done.flag`
    row's leftover-path assertion at `torn_leaves_record` will mismatch). This is
    the red proof that the new row exercises new ground, per the execplans
@@ -353,7 +353,7 @@ Command (run from the worktree root):
 Expect: a failure in `torn_leaves_record` (declared-path assertion) for the
 `done.flag` row, while the `draft.md` row still passes.
 
-### Stage C: generalise the step module (green)
+### Stage C: generalize the step module (green)
 
 In `tests/steps/torn_turn_rollback_steps.py`:
 
@@ -364,7 +364,7 @@ In `tests/steps/torn_turn_rollback_steps.py`:
    the step's parsed argument, mirroring `novel_done` steps). Store the declared
    path (and its expected basename) on the `_Outcome` dataclass so later Then
    steps assert against the per-row value, not a constant.
-2. Generalise `torn_leaves_record` (currently asserts `== (_UNRECOVERABLE_DRAFT,)`
+2. Generalize `torn_leaves_record` (currently asserts `== (_UNRECOVERABLE_DRAFT,)`
    at line 196) to assert the leftover record's `paths` equals the per-row
    declared path, and assert the leftover record's `operation` equals the per-row
    `<operation>`.
@@ -437,7 +437,7 @@ Acceptance is behavioural:
   0), the author-owned drafts byte-for-byte identical, and no `working/` file
   removed.
 - **Red-before-green evidence:** the `done.flag` row fails at the leftover-record
-  step before the step generalisation lands (Stage B) and passes after (Stage C).
+  step before the step generalization lands (Stage B) and passes after (Stage C).
 
 Quality criteria (what "done" means):
 
@@ -462,7 +462,7 @@ is safe and side-effect-free. If a step fails, the worktree is unchanged outside
 `tests/` and `docs/execplans/`; revert the working tree with `git restore` and
 retry. No destructive operations are involved.
 
-## Artifacts and notes
+## Artefacts and notes
 
 The load-bearing production behaviour, pinned by reading source (not from
 memory):
@@ -488,7 +488,7 @@ relied upon beyond the already-locked test stack:
 - `pytest-bdd>=8.1.0` (pyproject.toml) — `Scenario Outline` with an `Examples`
   table and `<placeholder>` substitution into step arguments, already used in
   `tests/features/novel_done.feature:14-29`.
-- `pytest` parametrisation — the binder-level fallback if Outline substitution
+- `pytest` parametrization — the binder-level fallback if Outline substitution
   into the producer Given proves awkward (Decision D-SHAPE).
 
 No `cuprum` API is used anywhere in this task: the commands are driven through
@@ -503,7 +503,7 @@ At the end of this task the following test artefacts exist:
 - `tests/features/torn_turn_rollback.feature` — one `Scenario Outline` with two
   `Examples` rows (`draft.md`, `done.flag`).
 - `tests/steps/torn_turn_rollback_steps.py` — the producer Given and
-  leftover-record Then parametrised on the per-row declared path and operation;
+  leftover-record Then parametrized on the per-row declared path and operation;
   the disposition/integrity Then steps unchanged.
 - `tests/test_torn_turn_rollback_bdd.py` — binder docstring updated to name both
   triggers.
@@ -553,7 +553,7 @@ Verification adversaries (Hypothesis / CrossHair / mutmut):
   behavioural proof, not a unit test, because it drives real commands end-to-end
   through the runner.
 - **Updated:** the existing `draft.md` scenario becomes the first row of the
-  Outline (behaviour preserved, now parametrised).
+  Outline (behaviour preserved, now parametrized).
 - **Unit / property / snapshot / e2e:** none added. The pure classifier already
   has its in-process test (the coverage this task lifts to the command boundary);
   no snapshot is introduced (semantic assertions only); no installed-binary e2e

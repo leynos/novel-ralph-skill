@@ -713,7 +713,7 @@ Steps:
 
 1. Mirror the production split in the oracle twin
    `tests/working_corpus/_oracle_disk.py::_check_manifest_disk_bijection`: add an
-   optional `relax_drafting_bijection`-style path (reading the materialised
+   optional `relax_drafting_bijection`-style path (reading the materialized
    `state.toml` `[phase].current`) that relaxes the missing-directory direction
    during drafting, exactly mirroring the production predicate. The **strict** twin
    path remains the default the agreement suite calls, so
@@ -939,7 +939,7 @@ idempotent. No data migration, no destructive operation. If a work item's gate
 fails, revert the work item's edits (it is a single atomic commit) and retry;
 nothing persists outside the worktree.
 
-## Artifacts and notes
+## Artefacts and notes
 
 Key verified facts pinned for the implementer:
 
@@ -1051,7 +1051,7 @@ proposals merged), which ADR 009 explicitly defers, went to roadmap step 2.3
 (task 2.3.8), because it re-keys a disk-evidence coverage detector off the
 on-disk drafted subset and so serves the step-2.3 "state re-derivable from disk"
 hypothesis, not the step-2.1 schema hypothesis it was raised under. The two
-below are the small, localised follow-ups owned by this task.
+below are the small, localized follow-ups owned by this task.
 
 - [x] 2.1.7.1 — Extract a shared manifest-disk bijection classifier and name the
   broken direction in the violation detail (from audit:2.1.7 Findings 1 and 2,

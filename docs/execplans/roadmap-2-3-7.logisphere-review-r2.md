@@ -155,7 +155,7 @@ sidestepping command-layer branching) remains the safer fallback if the message
 matrix proves fiddly. Now that B1/B2 are pinned with a finite, tested matrix
 (three thresholds × two directions, single- and multi-gate fan-out), the
 proposed design's extra actionability (the named percentage in the
-recount-specific line) is earned. The Tolerances already authorise falling back
+recount-specific line) is earned. The Tolerances already authorize falling back
 to shape 1 if shape 2 forces a caller change, and the command-layer branching is
 bounded and fully tested, so the proposed design is the right call. No stronger
 alternative exists; that is a positive signal.

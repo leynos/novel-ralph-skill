@@ -36,7 +36,7 @@ clause: the two packages must keep raising **their own** `RulePackError`/
 route on the exception *type*), and must keep their own per-noun message prose,
 **while** the body of each primitive lives in exactly one place.
 
-The mechanism this plan commits to is **error-factory parameterisation**, the
+The mechanism this plan commits to is **error-factory parameterization**, the
 exact phrasing the roadmap and the existing `ledger/_coerce.py` docstring use:
 each shared primitive takes a small bundle of callables and nouns that decide
 *how* to raise and *what to call the offending thing*, and is otherwise sole. A
@@ -56,7 +56,7 @@ and no snapshot regeneration** — the loaders raise the same typed errors with
 the same `rule_id`/`device_id` payloads and the same message strings, and the
 detectors produce identical reports. Third, a new unit test pins the shared
 primitives' contract directly — that each one raises *whatever error the bundle
-supplies* with the bundle's noun, proving the parameterisation is the single
+supplies* with the bundle's noun, proving the parameterization is the single
 seam a third pack family would bind — so the primitives cannot silently re-fork.
 
 This is a pure refactor. No new command, flag, library, dependency, schema
@@ -98,7 +98,7 @@ escalation, not a workaround.
   carries three independent lexical axes — the quoted array key (`'rule'`/
   `'device'`), a **container noun** (`pack`/`ledger`), and an **item noun**
   (`rule`/`device`) — none of which routes through the `_where` prefix, so
-  `entries` is parameterised on the *full* message strings (Decision
+  `entries` is parameterized on the *full* message strings (Decision
   D-ENTRIES), not on the `CoercionErrors` noun pair. A drift here is the
   escalation signal.
 - The loaders stay read-only and detect-only (ADR-001): they compile patterns
@@ -191,7 +191,7 @@ escalation, not a workaround.
       reroute. Each reroute work item ends with the package's full suite green.
 
     - Risk: message prose drifts when the `_where`-equivalent prefix moves into a
-      shared helper parameterised on a noun pair, because a mis-ordered or
+      shared helper parameterized on a noun pair, because a mis-ordered or
       mis-quoted noun changes `rule '<id>'` to `rule "<id>"` or `rule pack` to
       `rulepack`.
       Severity: high
@@ -218,7 +218,7 @@ escalation, not a workaround.
       catch it.
       Severity: high
       Likelihood: high (if left bundle-only)
-      Mitigation: `entries` is parameterised on the FULL verbatim message strings,
+      Mitigation: `entries` is parameterized on the FULL verbatim message strings,
       not the noun pair (Decision D-ENTRIES): each caller passes its own three
       format strings (or a tiny `EntriesMessages` bundle carrying them), copied
       byte-for-byte from the existing `_entries`. None of the three routes through
@@ -305,7 +305,7 @@ escalation, not a workaround.
       `load_toml` noun + `__cause__` chaining for both nouns. `make all` green.
       CodeRabbit run 2: tightened the missing-array test with a `match=` on the
       require-fault prose; skipped two findings against the frozen review-r1/r2
-      artifacts.)
+      artefacts.)
     - [x] Work item 3: add the shared `loaderkit` per-line `scan_pattern`
       primitive (TYPE_CHECKING-only shape import + `line_hit` callable, the single
       D-SCANTYPES mechanism proven against `ty 0.0.51`; closes review B4); pin it
@@ -323,7 +323,7 @@ escalation, not a workaround.
       detectors and ledger snapshot stay green precisely because the scan stays
       `splitlines()`-based); the test oracle deliberately mirrors `splitlines()` for
       the same reason. Skipped two findings against the frozen review-r1/r2
-      artifacts.)
+      artefacts.)
     - [x] Work item 4: reroute the `rulepack` package onto the shared primitives
       (delete `rulepack/_coerce.py`'s bodies, repoint `parse.py`/`detect.py`),
       package suite green. (done 2026-06-27: `rulepack/_coerce.py` is now a thin
@@ -336,7 +336,7 @@ escalation, not a workaround.
       `.splitlines()` survive in rulepack code. Every rule-pack suite stayed green
       with **no** assertion edit and **no** snapshot regeneration (1460 passed).
       `make all` green. CodeRabbit run 4: no code findings; skipped two frozen
-      review-r1/r2 artifact findings.)
+      review-r1/r2 artefact findings.)
     - [x] Work item 5: reroute the `ledger` package onto the shared primitives
       (delete `ledger/_coerce.py`'s bodies, repoint `parse.py`/`_fields.py`/
       `detect.py`, rewrite the stale "deliberate near-copy" docstring), package
@@ -352,7 +352,7 @@ escalation, not a workaround.
       pass: no `re.compile(`/`tomllib.load(`/`.splitlines()` survive in ledger code.
       Every ledger suite stayed green including `test_ledger_snapshots.ambr` with
       **no** `--snapshot-update` (1460 passed). `make all` green. CodeRabbit run 5:
-      no code findings; skipped three frozen review-r1/r2 artifact findings.)
+      no code findings; skipped three frozen review-r1/r2 artefact findings.)
     - [x] Work item 6: documentation single-home note (design §6 and the
       developers-guide loader/ledger sections) and markdown gates. (done
       2026-06-27: design §6.3 gains a single-home sentence naming
@@ -365,7 +365,7 @@ escalation, not a workaround.
       per the churn trap); wrapped the two pre-existing over-length execplan code
       snippets so `make markdownlint` passes. `make markdownlint`, `make nixie`,
       and `make all` all green. CodeRabbit run 6: no findings on the touched docs;
-      skipped three frozen review-r1/r2 artifact findings.)
+      skipped three frozen review-r1/r2 artefact findings.)
 
 ## Surprises & discoveries
 
@@ -412,8 +412,8 @@ escalation, not a workaround.
       untouched and orthogonal to this decision (D-SCANTYPES).
       Date/Author: 2026-06-27, planning agent (round 1).
 
-    - Decision (D-FACTORY): each shared primitive is parameterised on an
-      **error factory**, realised as a small frozen dataclass bundle, not on a
+    - Decision (D-FACTORY): each shared primitive is parameterized on an
+      **error factory**, realized as a small frozen dataclass bundle, not on a
       bare exception class. The bundle carries (1) a `content_error` callable
       `(message: str, offending_id: str | None) -> EnvelopeMessagesError` that
       constructs the package's content error with its id kwarg already bound, and
@@ -424,12 +424,12 @@ escalation, not a workaround.
       kwarg-name difference; a callable that closes over the kwarg can. The noun
       pair drives the `_where`-equivalent prefix so the message prose is
       parameter-driven, not branched. The roadmap's literal phrase is
-      "error-factory-parameterised helpers", which this realises directly. The
+      "error-factory-parameterized helpers", which this realizes directly. The
       file-load primitive takes the package's *file* error factory separately
       (the `*FileError` has no id kwarg; D-FILELOAD).
       Date/Author: 2026-06-27, planning agent (round 1).
 
-    - Decision (D-ENTRIES): the `entries` primitive is parameterised on the
+    - Decision (D-ENTRIES): the `entries` primitive is parameterized on the
       **full verbatim message strings**, not on the `CoercionErrors` noun pair.
       The shared body owns only the *structural* logic — `require` the array,
       reject a non-`Sequence` (or `str`/`bytes`), reject an empty array, reject a
@@ -577,7 +577,7 @@ Completed 2026-06-27. Outcome against Purpose:
   (`test_ledger_snapshots.ambr` stayed byte-identical); their staying green is the
   contract-preservation proof. The `RulePackError`/`LedgerError` types,
   `rule_id`/`device_id` payloads, and message prose are reproduced verbatim.
-- **New tests pin the parameterisation seam.** `tests/test_loaderkit_coerce.py`,
+- **New tests pin the parameterization seam.** `tests/test_loaderkit_coerce.py`,
   `tests/test_loaderkit_load.py`, and `tests/test_loaderkit_scan.py` (1460 passed
   overall) pin the sentinel-bundle contract, both `where` noun pairs, the full
   verbatim entries/duplicate-id messages for both noun sets, first-duplicate-wins,
@@ -592,7 +592,7 @@ churn was parked to a stash rather than committed, and the two markdown docs wer
 edited directly per the standing churn-trap guidance.
 
 Surprise: CodeRabbit repeatedly flagged first-person voice in the frozen
-`roadmap-7-2-2.review-r1/r2.md` planning artifacts. Those are historical review
+`roadmap-7-2-2.review-r1/r2.md` planning artefacts. Those are historical review
 snapshots, not part of the 7.2.2 deliverable, so the findings were skipped each
 run (recorded in Open issues for a future docs-voice sweep if desired).
 
@@ -722,7 +722,7 @@ primitive's line-attribution invariant.
 ### Work item 1: add the `loaderkit` coercion primitives and the factory seam
 
 Implements: roadmap 7.2.2 ("one shared module owns the coercion … primitives …
-parameterised on an error factory"); design §6.1 (the validating boundary);
+parameterized on an error factory"); design §6.1 (the validating boundary);
 ADR-001 (detect-only); AGENTS.md "Use functions and composition / Abstraction
 policy".
 
@@ -863,7 +863,7 @@ needs a module docstring (advisory A3) so `interrogate` stays at 100%.
    `where(errors, offending_id)`. (This one DID use `_where` today — the
    per-id "has an invalid pattern" branch — so the noun pair is correct here.)
 3. `reject_duplicate_ids(ids, *, errors) -> None` — the `_reject_duplicate_ids`
-   body generalised to take an *iterable of ids* (the two callers pass
+   body generalized to take an *iterable of ids* (the two callers pass
    `rule.id for rule in rules` / `device.id for device in devices`), so the
    primitive carries no `Rule`/`Device` knowledge. It **preserves
    authoring-order first-duplicate detection** (advisory A1): it iterates the
@@ -1296,7 +1296,7 @@ commit (`git revert`) and escalate rather than editing the test or regenerating
 the snapshot. Because items 4 and 5 reroute distinct packages, a failure in one
 does not block committing the other.
 
-## Artifacts and notes
+## Artefacts and notes
 
 The single load-bearing snippet is the factory bundle and one representative
 primitive (the rest follow the same shape — body once, noun/error via the
@@ -1438,7 +1438,7 @@ live at the `rulepack`/`ledger` call sites, NOT in `loaderkit`, so
 ## Revision note
 
 Round 1 (2026-06-27): initial draft. Pinned the mechanism to error-factory
-parameterisation via a frozen `CoercionErrors` bundle (D-FACTORY) with
+parameterization via a frozen `CoercionErrors` bundle (D-FACTORY) with
 per-package thin bindings (D-BINDING), a neutral `loaderkit` home (D-HOME), a
 noun-parameter file-load primitive (D-FILELOAD), and a schema-agnostic
 `scan_pattern` taking a precompiled pattern and a `line_hit` constructor
@@ -1456,7 +1456,7 @@ live.
 Round 2 (2026-06-27): resolved all four blocking points from the round-1
 Logisphere review (`docs/execplans/roadmap-7-2-2.review-r1.md`).
 
-- B1 (`entries` under-parameterised, cannot reproduce the empty-array message):
+- B1 (`entries` under-parameterized, cannot reproduce the empty-array message):
   added Decision D-ENTRIES and a new `EntriesMessages` bundle so `entries`
   takes the THREE full verbatim message strings, not the `CoercionErrors` noun
   pair. The empty-array message's container noun (`pack`/`ledger`) is carried

@@ -1143,7 +1143,7 @@ re-apply; no other module depends on it beyond the WI1 mapping and the WI2
 fixture, both landed first. No destructive operations; no schema or data
 migration.
 
-## Artifacts and notes
+## Artefacts and notes
 
 Verified facts captured during planning (pin these; do not re-derive from the
 local cuprum checkout):

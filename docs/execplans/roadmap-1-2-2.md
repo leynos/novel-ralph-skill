@@ -76,7 +76,7 @@ docs/ free of manufactured references.
 
 To verify the implementation: `tomlkit` imports in the synced environment and
 reports version `0.15.0`; a no-op `tomlkit.parse` → `tomlkit.dumps` round-trips
-a comment-bearing TOML string byte-for-byte; a targeted value edit re-serialises
+a comment-bearing TOML string byte-for-byte; a targeted value edit re-serializes
 with the comment intact and the value changed; and `make all` is green.
 
 Success is observable as: a `pytest` test that imports `tomlkit`, asserts its
@@ -95,7 +95,7 @@ escalation, not a workaround.
   files in the root/control worktree.
 - `tomlkit` is the only TOML write mechanism (ADR 002, design §5.3). Do not add
   `tomli_w`, `tomli`, `toml`, or any other TOML library; do not build an owned
-  serialiser. Reading may use the standard-library `tomllib` (the confirmation
+  serializer. Reading may use the standard-library `tomllib` (the confirmation
   test does not need it).
 - This task does **not** implement the state round-trip helper, the
   `[pending_turn]` intent record, the atomic temp-file-and-`Path.replace` write,
@@ -365,7 +365,7 @@ worktree root `/data/leynos/Projects/novel-ralph-skill.worktrees/roadmap-1-2-2`:
 
 Terms of art, defined so the plan is self-contained:
 
-- **Round-trip.** Reading a TOML document into a model and re-serialising it.
+- **Round-trip.** Reading a TOML document into a model and re-serializing it.
   A *lossless* round-trip reproduces the input byte-for-byte, including comments
   and whitespace. `tomlkit` provides this; `tomllib` (read-only) and `tomli_w`
   (no comment preservation) do not. This is the property ADR 002 buys.
@@ -604,7 +604,7 @@ run `make audit` after it. There is no documentation work item to gate with
 - No step is destructive to tracked files beyond the intended new test
   (`tests/test_tomlkit_dependency.py`) and updates to this execplan.
 
-## Artifacts and notes
+## Artefacts and notes
 
 - The locked `tomlkit` version, verified: `0.15.0` (`uv.lock`; `import tomlkit;
   tomlkit.__version__`).
@@ -703,7 +703,7 @@ command behaviour (design §4.1–§4.5).
   Resolution (review path (a)): **dropped** the documentation work item
   entirely; removed every claim that 6.2.3 (or any task) owns the removal from
   Purpose, Constraints, Tolerances, Risks, Progress, Surprises, Decision Log,
-  Plan of work, Validation, Idempotence, Artifacts, and Interfaces; replaced
+  Plan of work, Validation, Idempotence, Artefacts, and Interfaces; replaced
   Work Item 2 with a record-only escalation that hands the unassigned-ownership
   gap (and ADR 002's internal line-22-vs-line-77 inconsistency, advisory A2) to
   the roadmap owner with exact locations. The plan now has one work item (the

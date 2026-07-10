@@ -3,7 +3,7 @@
 Audit of the codebase after roadmap task 1.2.6 ("Remove the dead `tomli_w`
 snippet from `state-layout.md` and reconcile the premature 'is removed' claims")
 merged to `main` at commit `2c19768`. Primary scope is the documentation and
-code touched by that task: the rewritten initialisation block in
+code touched by that task: the rewritten initialization block in
 [`skill/novel-ralph/references/state-layout.md`](../../skill/novel-ralph/references/state-layout.md),
 the reconciled wording in
 [`docs/adr-002-toml-round-trip-tomlkit.md`](../../docs/adr-002-toml-round-trip-tomlkit.md)
@@ -15,7 +15,7 @@ The audit also re-checks whether the open items carried in
 actioned.
 
 The merged slice does what the roadmap asked. The dead `tomli_w` heredoc is gone
-from the reference (the initialisation step is now a `mkdir`/text block that
+from the reference (the initialization step is now a `mkdir`/text block that
 imports nothing), ADR-002 line 22 ("even carried a failed `tomli_w` snippet")
 and line 77 ("is removed") now agree in tense and fact, and the design §5.3
 wording matches. A new static guard pins the snippet's continued absence. Task
@@ -146,7 +146,7 @@ pinned once the prose no longer needs the manual sequence.
 ## Notes on what was checked and found sound
 
 - **The roadmap objective is met.** The dead `tomli_w` heredoc is gone from
-  `state-layout.md`; the initialisation step is now a `mkdir`/text block that
+  `state-layout.md`; the initialization step is now a `mkdir`/text block that
   imports nothing. ADR-002 line 22 ("even carried a failed `tomli_w` snippet",
   past tense) and line 77 ("the failed `tomli_w` snippet is removed", present
   tense) are now consistent rather than contradictory, and design §5.3 line 466

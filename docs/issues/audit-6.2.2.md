@@ -52,7 +52,7 @@ pytest.raises(SystemExit) as excinfo:` wrapping a `run(build_app(), argv,
 RunContext(command=..., working_dir="working", human=False))` call, with the body
 either returning `excinfo.value.code` alone or alongside `json.loads(stream.
 getvalue() or "{}")`. The 6.2.2 module (`per_chapter_loop_steps._run_capturing`)
-produced the most general form of this helper — it parameterises the `build_app`
+produced the most general form of this helper — it parameterizes the `build_app`
 factory by `command_name` via `_BUILD_APPS` so a single driver spans all five
 read surfaces — yet it remains module-private, so the codebase now carries six
 near-identical copies of the SystemExit-capturing seam. `torn_turn_recovery_

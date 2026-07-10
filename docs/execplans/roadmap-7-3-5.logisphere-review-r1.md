@@ -67,7 +67,7 @@ not silently leave two guards asserting opposite structural facts about `main`.
 WI2 says to "confirm every `novel.main` caller (only the console-script
 declaration and the two behaviour tests)". `grep -rln "novel\.main()" tests/`
 returns **12** files (test_compile_e2e, test_compile_check_integration,
-test_contract_app_centralisation, test_novel_main_working_dir,
+test_contract_app_centralization, test_novel_main_working_dir,
 test_gate_drafting_mutators_e2e, test_reconcile_e2e, test_multiplexer_behaviour,
 test_set_chapters_e2e, test_recount_e2e, test_legacy_surface_retired,
 test_novel_state_check, test_relaxed_subset_e2e). The plan must re-run the

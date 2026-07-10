@@ -30,10 +30,10 @@ the documented fence, so a future undocumented field under `[gates.final]`,
 reference again"; review round 1 blocking point B1). The drift that beta
 testing found by hand becomes a test that cannot silently re-open.
 
-The guard derives its required leaf and header sets from the **serialised
+The guard derives its required leaf and header sets from the **serialized
 shape** of the `init` document — `tomlkit.dumps(build_initial_document(...))` —
 not from a type-based walk of the in-memory document. This matters because
-tomlkit's serialised form, not its in-memory object graph, is what the
+tomlkit's serialized form, not its in-memory object graph, is what the
 documented fence must mirror, and the two diverge in two load-bearing ways
 (both verified empirically in the worktree, round 4):
 
@@ -45,7 +45,7 @@ documented fence must mirror, and the two diverge in two load-bearing ways
    `[gates.final]`, **never** `[gates]`. A type-based `isinstance(v, Table)`
    walk would wrongly demand a documented `[gates]` header, leaving that row
    RED-green-after.
-2. The empty `chapters` array serialises as the bare leaf line `chapters = []`
+2. The empty `chapters` array serializes as the bare leaf line `chapters = []`
    (identical in shape to `phase.completed`'s `completed = []`), **not** as a
    `[[chapters]]` table-array header. But the reference documents the
    *populated* manifest as a `[[chapters]]` block
@@ -55,7 +55,7 @@ documented fence must mirror, and the two diverge in two load-bearing ways
    is documented as a table-array header block and its sub-fields are checked
    separately against `ChapterEntry`.
 
-Deriving from the serialised dump makes both exceptions fall out automatically
+Deriving from the serialized dump makes both exceptions fall out automatically
 and correctly for any future parent-only table, and removes the fragile,
 empirically-wrong positional special-case the round-3 plan carried.
 
@@ -513,7 +513,7 @@ a type walk — see Revision note.)
 Both work items landed as planned, in order, each as one atomic commit gated by
 `make all` (plus `make markdownlint`/`make nixie` for the Markdown edit).
 
-- The round-4 serialised-dump model held exactly: the dump emits eight header
+- The round-4 serialized-dump model held exactly: the dump emits eight header
   lines (no `[gates]`, no `[chapters]`) and the leaf net (with the inline
   `last_finding_counts` inner keys folded in and `chapters` excluded) matched
   the documented fence save `convergence_target` before item 1, greening
@@ -858,7 +858,7 @@ New file `tests/test_state_layout_schema_guard.py`:
      occurrences.
   3. `test_every_emitted_table_header_is_documented` — parametrized over
      `emitted_table_headers` (every distinct `[header]`/`[[header]]` line the
-     serialised dump emits); each must appear as a `[header]`/`[[header]]`
+     serialized dump emits); each must appear as a `[header]`/`[[header]]`
      line in the fence. Row ids are the dotted headers `novel`, `phase`,
      `drafting`, `drafting.critic`, `drafting.fangirl`, `gates.knitting`,
      `gates.final`, `word_counts`. There is **no** `[gates]` row (parent-only
@@ -910,8 +910,8 @@ Validation for item 2 (the red/green demonstration):
    `…[word_counts]`) stays GREEN, because reverting item 1 touches no table
    header and all eight emitted headers are documented in the shipped fence.
    There is no `…[gates]` row and no `…[chapters]` row at all (D5/D6), so neither
-   appears in the RED or the GREEN list — if either id materialises, the header
-   net was derived from a type walk instead of the serialised dump; stop and fix
+   appears in the RED or the GREEN list — if either id materializes, the header
+   net was derived from a type walk instead of the serialized dump; stop and fix
    the derivation (review round 3 B-R3.1). Likewise every other leaf row
    (`…[schema_version]`, `…[done_30]`, `…[completed]`, `…[by_chapter]`, …) and
    the `…[chapters]` leaf row's **absence** (it is excluded by D6) must hold. If
@@ -1002,7 +1002,7 @@ Acceptance is behaviour a human can verify:
   are not documented (demonstrated by stashing the item-1 edit; the three
   specific RED rows named in work item 2 step 1 must fail and no others) and
   passes when they are. The guard is comprehensive: it asserts **every**
-  emitted leaf name and table header (as the serialised dump renders them) is
+  emitted leaf name and table header (as the serialized dump renders them) is
   documented, so any future undocumented field under any table also fails it.
 - `make all` passes (Python build, format check, lint, typecheck, test —
   `make all` is `build check-fmt lint typecheck test`; it does **not** run
@@ -1039,7 +1039,7 @@ Quality method: run `make all`, then `make markdownlint` and `make nixie`
   state
   after each commit.
 
-## Artifacts and notes
+## Artefacts and notes
 
 RED demonstration (2026-06-25). The committed item-1 edit makes the reference
 unmodified at HEAD, so the RED check exercised the guard's predicates against
@@ -1059,8 +1059,8 @@ chapters in leaf net: False            # excluded (D6)
 chapters in header net: False          # empty array emits a leaf, not a header
 ```
 
-No `[gates]` or `[chapters]` id materialised in either net, confirming the
-serialised-dump derivation (D5/D6) rather than a type walk.
+No `[gates]` or `[chapters]` id materialized in either net, confirming the
+serialized-dump derivation (D5/D6) rather than a type walk.
 
 GREEN demonstration (2026-06-25). `pytest tests/test_state_layout_schema_guard.py
 -v` on the documented (committed) reference reports `35 passed`, including the
@@ -1093,7 +1093,7 @@ def build_initial_document(
   pins, two parametrized nets over `emitted_table_headers` and
   `emitted_leaf_names`, and the optional `schema_version` pin). If a support
   helper is extracted to keep the module under 400 lines, place it at
-  `tests/_state_schema_keys.py` as pure functions over the serialised dump text
+  `tests/_state_schema_keys.py` as pure functions over the serialized dump text
   and the reference text (mirroring how `tests/_state_layout_scanner.py`
   carries pure helpers for the sibling guard). The helper exposes the
   dump-derived sets (`emitted_leaf_names` with `chapters` excluded per D6,
@@ -1204,10 +1204,10 @@ B-R3.1 (empirically reproduced):
   `[gates.knitting]`/`[gates.final]` (verified in the worktree; design line 604
   fixes that form, never `[gates]`). So
   `test_every_emitted_table_header_is_documented[gates]` would have stayed
-  RED-green-after, exactly the serialisation-shape hazard B-R2.1 fixed for
+  RED-green-after, exactly the serialization-shape hazard B-R2.1 fixed for
   `chapters` but left for `gates`. Verifying the dump also exposed that the
   round-3 premise "`chapters` emits a `[[chapters]]` header" was wrong: the empty
-  array serialises as the bare leaf line `chapters = []`, not a header. The plan
+  array serializes as the bare leaf line `chapters = []`, not a header. The plan
   now adopts the PREFERRED fix: derive **both** the header net and the leaf net
   from `tomlkit.dumps(build_initial_document(...))`. The header net is the set of
   emitted `[header]`/`[[header]]` lines, so `gates` — and any future parent-only
@@ -1227,7 +1227,7 @@ B-R3.1 (empirically reproduced):
   `test_every_emitted_table_header_is_documented[chapters]` row is removed
   because that id never exists. Updated in Purpose, Risks (the type-walk risk
   replaces the round-3 positional-special-case risk; the first risk now cites
-  the serialised dump), Surprises (corrected `gates` and `chapters` observations,
+  the serialized dump), Surprises (corrected `gates` and `chapters` observations,
   both with round-4 worktree evidence), Decision Log (D5 corrected, D6 added),
   work item 2 helper point 2 and test 3, the B3 demonstration, the Concrete-steps
   transcript, and the acceptance bullets.
@@ -1249,7 +1249,7 @@ table-aware `(table, name)`-keyed leaf net and generic inline-table walk for the
 schema-drift guard (`review:2.1.8`, two near-identical proposals merged) went to
 a new roadmap step 7.30 (deferred schema-drift-guard hardening), because it
 hardens a documentation-drift tripwire rather than advancing the step-2.1
-schema-validator hypothesis. The three below are the small, localised fixes tied
+schema-validator hypothesis. The three below are the small, localized fixes tied
 to this completed task.
 
 - [x] 2.1.8.1 — Document `[pending_turn]` in `state-layout.md` to fully
@@ -1289,7 +1289,7 @@ to this completed task.
   (`tests/test_state_layout_schema_guard.py`), the only tripwire preventing the
   `## state.toml schema` fence drifting from what `init` emits. Add a short "The
   state-layout schema-drift guard" subsection stating that the guard derives the
-  required leaf and header nets from the serialised `build_initial_document(...)`
+  required leaf and header nets from the serialized `build_initial_document(...)`
   dump, that adding an emitted field obliges a matching line in the fence, and
   that the two documented exclusions (`gates` parent-only header, `chapters`
   empty-array leaf) are deliberate; cross-reference design §5.1 and roadmap

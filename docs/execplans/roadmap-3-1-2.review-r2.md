@@ -49,7 +49,7 @@ against real source; no new blocking defect survives.
     satisfied … the only obstacle is a **stale** `compiled.md`"; "compares
     content hashes". Confirmed: the conservative (absent ≠ stale) reading is the
     design-correct one, and the "hash" wording is a fidelity concept the
-    detector already realises as a byte compare.
+    detector already realizes as a byte compare.
   - `docs/roadmap.md:892-934` — 3.1.2 success criteria and the 3.1.3 boundary.
     Confirmed: 3.1.3 owns the cross-detector unification; 3.1.2 must not touch
     the §5.4 detector.

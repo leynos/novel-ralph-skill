@@ -114,7 +114,7 @@ on the correct code in every case.
   message string — is correctly rejected (Decision Log) because the contract
   fixes the envelope/exit, not the wording. This is the minimal faithful closure
   of audit Finding 6.
-- Buzzy Bee (scaling): reconcile amortises its one wheel build via the
+- Buzzy Bee (scaling): reconcile amortizes its one wheel build via the
   module-scoped fixture; wordcount's per-test rebuild is pre-existing convention,
   deliberately not widened (Findings 1/4 work). 180s timeout covers it.
 - Telefono (contracts): the asserted triple (exit 3 / `ok: false` / no

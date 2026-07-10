@@ -179,7 +179,7 @@ round-1 review condition 1).
 **Proposed fix:** none for 2.1.7 — this predates the slice and the documented
 constraint stands. Recorded only so the structural duplication is visible to a
 future consolidation pass: should the frozen-loader Tolerance ever lift, the cleanest
-seam is a generic `_coerce` parametrised by an error factory
+seam is a generic `_coerce` parametrized by an error factory
 (`Callable[[str, str | None], Exception]`) and a `where`-prefix builder, with the
 two packages supplying their own factory and noun. Until then the near-copy is the
 correct trade-off and should not be "fixed" by importing across the boundary.

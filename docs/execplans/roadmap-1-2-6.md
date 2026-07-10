@@ -688,7 +688,7 @@ without disturbing the others. The guard test's red evidence is captured
 against a stashed or fixture copy of the snippet, so the working tree is never
 left in a broken state.
 
-## Artifacts and notes
+## Artefacts and notes
 
 WI1: the fenced `bash`/`python3` heredoc at the old lines 226-238 (importing
 `tomllib, tomli_w, os`, mutating two values, writing `working/state.toml.new`

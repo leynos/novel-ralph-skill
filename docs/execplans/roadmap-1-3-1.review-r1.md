@@ -89,7 +89,7 @@ Tolerances' own "fourth dependency / unjustified scope" tripwire.
 Risks/Work-item-5 call for redacting "timestamp" and "absolute path" fields.
 The envelope (§3.1) has no timestamp field, and `working_dir` is already the
 literal token `"working"` in the design's own example. Harmless, but the
-redaction guidance should match the actual envelope shape (normalise
+redaction guidance should match the actual envelope shape (normalize
 `working_dir`; there is no timestamp to redact) so the implementer does not
 invent fields.
 

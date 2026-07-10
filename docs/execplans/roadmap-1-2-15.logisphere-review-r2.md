@@ -1,7 +1,7 @@
 # Logisphere design review — roadmap 1.2.15 (round 2)
 
 Verdict: **Revise**. The five round-1 blocking defects (B1-B5) are genuinely
-fixed and verified against the live worktree: the three-serialisation
+fixed and verified against the live worktree: the three-serialization
 `$SNAP_GATE` finds all 12 snapshot files, the word-anchored `$REG_GATE` correctly
 excludes the kept `SUBCOMMAND_NAMES`, the matrix idioms and symbol names
 (`_ReadCommand`/`_ErrorArm`) are accurate, and the load-bearing docstring sweep
@@ -10,7 +10,7 @@ also check out.
 
 But round 2 fixed B3 (the dict-key/lookup stamping idiom that no `command="…"`
 gate can see) **only for the single named file** `test_command_surface_matrix.py`,
-rather than generalising the lesson. Two *other* modules use the same indirect
+rather than generalizing the lesson. Two *other* modules use the same indirect
 `RunContext(command=<var>)` stamping idiom, and the consumer enumeration misses
 one of them entirely. That reopens the very failure mode the gate apparatus
 exists to prevent: a late `build_envelope` `ValueError` after the guard narrows,
@@ -55,7 +55,7 @@ move to the spaced names); and extend the D3/closing source gate so it scans the
 indirect-stamping modules, not just the matrix — e.g. a plain `$LEGACY` scan over
 `tests/steps/per_chapter_loop_steps.py` (and `tests/multiplexer_support.py`,
 `tests/test_multiplexer_behaviour.py`; see B7) asserted empty. The robust
-generalisation is to make the matrix-aware scan a scan over **every** module that
+generalization is to make the matrix-aware scan a scan over **every** module that
 stamps `RunContext(command=<non-`_COMMAND`-variable>)`, not a single hand-named
 file.
 
@@ -123,7 +123,7 @@ construction rather than discovered by a failing `make all`.
 
 ## What checks out (verified this round; the next round need not re-verify)
 
-- B1 fixed: `$SNAP_GATE` (three serialisations) matches exactly the 12 snapshot
+- B1 fixed: `$SNAP_GATE` (three serializations) matches exactly the 12 snapshot
   files, and the set of files carrying *any* legacy literal equals the set
   carrying a `command:`-position legacy value (no legacy name hides in args/
   messages/help). The gate is complete for snapshots.

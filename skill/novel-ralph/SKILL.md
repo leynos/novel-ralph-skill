@@ -204,7 +204,7 @@ each command it runs.
    quality loop. Skipping them produces competent slop.
 
 5. **Desloppification is not stylistic preference.** AI prose has a tell
-   set as recognisable as a perfume. Every chapter goes through the checklist in
+   set as recognizable as a perfume. Every chapter goes through the checklist in
    `references/desloppify-checklist.md` before the critic sees it.
 
 6. **External artefacts are authoritative.** When prose contradicts the
@@ -379,7 +379,7 @@ Read `references/jtbd-novel.md` before starting. The output answers, without
 flinching:
 
 - **Who is the reader?** Specific enough that the agent could
-  recognise one. Age range, reading habits, what shelf they pull from.
+  recognize one. Age range, reading habits, what shelf they pull from.
 - **What job are they hiring this novel to do?** Escape, catharsis,
   social signalling, intellectual challenge, comfort, dread, vicarious
   competence — name it.

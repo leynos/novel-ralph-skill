@@ -14,7 +14,7 @@ This is roadmap task 2.3.3 (`docs/roadmap.md` lines 660-677, step 2.3). Design
 disk-aware `novel-state check` / `novel-state reconcile` (task 2.3.2) detect
 where state has drifted from disk. The production §5.4 detector
 `novel_ralph_skill.state.check_disk_evidence`
-(`novel_ralph_skill/state/disk_evidence.py`) already reads the materialised
+(`novel_ralph_skill/state/disk_evidence.py`) already reads the materialized
 `working/` directory for all six disk-evidence invariants.
 
 The corpus oracle `corpus_check` (`tests/working_corpus/_oracle.py`) is the
@@ -23,7 +23,7 @@ proves the corpus's coherent/incoherent split and is pinned to agree with
 production on every corpus tree (developers' guide §"Invariant validation",
 `docs/developers-guide.md` lines 426-434). But three of the oracle's
 disk-evidence predicates still read the `WorkingTreeSpec` rather than the
-materialised tree, an asymmetry already flagged in
+materialized tree, an asymmetry already flagged in
 `novel_ralph_skill/state/disk_evidence.py` lines 29-33 ("Twin asymmetry
 (ExecPlan advisory A1)"):
 
@@ -38,7 +38,7 @@ materialised tree, an asymmetry already flagged in
    `draft_words` (`draft_body(chapter.draft_words)`) — the production twin reads
    the present `draft.md` bodies from disk.
 
-Because the builder materialises the spec faithfully, the existing
+Because the builder materializes the spec faithfully, the existing
 spec-versus-disk asymmetry is invisible on the corpus today: the agreement
 suites still hold. The roadmap's point is that this masks a real gap. The §5.4
 consumers (`check` / `reconcile`) must catch a tree whose `state.toml` (and the
@@ -46,19 +46,19 @@ spec that built it) **agrees with itself** but whose disk evidence **diverges**:
 a chapter directory removed or added on disk after the manifest was written, a
 `done.flag` planted beside a draft someone emptied on disk, a `compiled.md` left
 stale against a draft edited on disk. A spec-reading oracle is blind to all
-three because it never looks at disk. Generalising the move already made for the
+three because it never looks at disk. Generalizing the move already made for the
 by-chapter-sum check after fix-round-1 (`docs/execplans/roadmap-1-3-2.md`
 Decision Log "fix round 1", lines 630-654; the oracle's `_check_by_chapter_sum`
-now reads the materialised `state.toml`), this task reroutes the three
+now reads the materialized `state.toml`), this task reroutes the three
 predicates above to read `working_dir`.
 
 After this change a contributor can observe:
 
 - The oracle's manifest-bijection, done-flag/draft, and compiled checks read the
-  materialised `working_dir` (they take `working_dir` and glob/read disk, never
+  materialized `working_dir` (they take `working_dir` and glob/read disk, never
   `spec.chapters` for the disk facts).
 - A new corpus self-test builds a tree whose spec is internally coherent and
-  whose `state.toml` claims agree with the spec, then mutates the materialised
+  whose `state.toml` claims agree with the spec, then mutates the materialized
   disk so that disk diverges, and asserts `corpus_check` flags the matching
   disk-evidence invariant **from disk alone** — while the unmutated tree stays
   coherent. Two mutation styles are used and **each asserts the exact, verified
@@ -103,7 +103,7 @@ After this change a contributor can observe:
 - It does not touch any of the other eleven oracle predicates, the
   `_specs.py` dataclasses, the builder, the variant library, or any fixture.
   The three rerouted predicates keep their exact signatures' **verdict** on
-  every existing corpus tree (the builder materialises the spec faithfully, so
+  every existing corpus tree (the builder materializes the spec faithfully, so
   reading disk yields the same boolean); the new self-test is the only place a
   spec/disk divergence is constructed.
 - It invokes **no external process**, so it depends on **no `cuprum` API**.
@@ -218,7 +218,7 @@ Hard invariants; violation requires escalation, not a workaround.
 - Add, remove, or rename no invariant name. `CORPUS_INVARIANT_NAMES`,
   `DISK_EVIDENCE_INVARIANT_NAMES`, and the per-name constants stay byte-for-byte.
 - The three rerouted oracle predicates must return the **same verdict** on every
-  existing corpus tree as they do today (the builder materialises the spec
+  existing corpus tree as they do today (the builder materializes the spec
   faithfully, so a disk read of a faithfully-built tree yields the same boolean).
   The agreement suites
   (`test_union_detector_agrees_with_corpus_oracle`,
@@ -228,7 +228,7 @@ Hard invariants; violation requires escalation, not a workaround.
 - The reroute must read disk via the same on-disk conventions the production
   twin uses: glob `manuscript/chapter-*` and parse the two-digit suffix (the
   production `_on_disk_chapter_numbers`, `disk_evidence.py` lines 84-98); read
-  the manifest from the materialised `state.toml` `[chapters]` array (as the
+  the manifest from the materialized `state.toml` `[chapters]` array (as the
   oracle's `_disk_by_chapter` already does, `_oracle.py` lines 251-270); read
   `draft.md` as UTF-8 and take the whitespace-split token count
   (`len(text.split())`), an absent draft counting zero. Do not invent a second
@@ -319,7 +319,7 @@ Hard invariants; violation requires escalation, not a workaround.
   indirectly trusts the spec. Severity: low. Likelihood: medium. Mitigation:
   this mirrors the production twin, which reads `state.chapters` (parsed from
   `state.toml`) and globs the directories. "Disk-authoritative" here means the
-  oracle reads both sides from the materialised tree (`state.toml` for the
+  oracle reads both sides from the materialized tree (`state.toml` for the
   manifest, the directory glob for the on-disk side) and compares them — exactly
   what the production `check` does. The divergence-proof self-test confirms a
   post-build directory removal (disk diverging from the written manifest) is
@@ -496,11 +496,11 @@ Hard invariants; violation requires escalation, not a workaround.
   (developers' guide lines 426-434) requires each side to carry its own copy of
   the rule so the cross-check is genuine; importing production would collapse the
   twins and defeat the agreement suites. Date/Author: 2026-06-24, planning agent.
-- Decision: read the manifest for the bijection check from the materialised
+- Decision: read the manifest for the bijection check from the materialized
   `state.toml` `[chapters]` array (as `_disk_by_chapter` already does), and the
   on-disk side from a `manuscript/chapter-*` glob, mirroring the production twin.
   Rationale: "disk-authoritative" means the oracle compares the written manifest
-  against the actual directories from the materialised tree, exactly as
+  against the actual directories from the materialized tree, exactly as
   production `check` does; this is what catches a post-build directory removal.
   Date/Author: 2026-06-24, planning agent.
 - Decision: place the divergence-proof self-test in a new
@@ -659,7 +659,7 @@ Read first (source of truth):
   task realigns the oracle to).
 - `docs/execplans/roadmap-1-3-2.md` Decision Log "fix round 1" (lines 630-654):
   the precedent — the by-chapter-sum check was moved from a spec-internal
-  comparison to reading the materialised `state.toml`; this task generalises that
+  comparison to reading the materialized `state.toml`; this task generalizes that
   move to three more invariants.
 - `docs/developers-guide.md` §"Invariant validation" (lines 321-450), especially
   the deliberate-twin policy (lines 426-434) and the disk-evidence detector
@@ -711,14 +711,14 @@ self-test before the behaviour it pins where practical (red, then green).
 ### Work item 1: reroute the three oracle predicates to read disk
 
 Purpose: make `corpus_check`'s manifest-bijection, done-flag/draft, and
-compiled checks read the materialised `working_dir`, so the corpus mirrors what
+compiled checks read the materialized `working_dir`, so the corpus mirrors what
 the real `check` exercises, keeping every existing verdict and all three
 agreement suites green.
 
 In `tests/working_corpus/_oracle.py`:
 
 - Replace `_check_manifest_disk_bijection(spec)` (lines 158-171) with a
-  disk-reading predicate that reads the manifest from the materialised
+  disk-reading predicate that reads the manifest from the materialized
   `state.toml` `[chapters]` array and the on-disk side from a
   `working_dir / "manuscript"` glob of `chapter-*` directories (parsing the
   two-digit suffix, ignoring non-`chapter-NN` entries), then asserts the two
@@ -735,7 +735,7 @@ In `tests/working_corpus/_oracle.py`:
   (`disk_evidence.py` lines 125-153). The signature becomes
   `(working_dir: Path) -> bool`.
 - Add a disk-reading draft-body helper `_disk_present_draft_bodies(working_dir)`
-  (D-COMPILED-HELPER) that reads the manifest from the materialised `state.toml`
+  (D-COMPILED-HELPER) that reads the manifest from the materialized `state.toml`
   `[chapters]` array (the same read `_disk_by_chapter` uses, `_oracle.py` lines
   263-264), then reads each chapter's `manuscript/chapter-NN/draft.md` as UTF-8
   (an absent draft contributing the empty string) and returns the bodies in
@@ -789,7 +789,7 @@ Docs/skills: `python-types-and-apis` (the signature change),
 
 Purpose: prove the rerouted predicates read disk, not spec, by constructing a
 tree whose spec is coherent and whose `state.toml` claims agree with the spec,
-mutating the materialised disk so disk diverges, and asserting `corpus_check`
+mutating the materialized disk so disk diverges, and asserting `corpus_check`
 flags exactly the matching disk-evidence invariant **from disk alone** — the
 roadmap success criterion ("a tree whose `state.toml` claims agree with disk but
 whose disk evidence diverges is flagged by the oracle from disk alone").
@@ -1094,7 +1094,7 @@ Quality method (verification approach): run `make all` (then `make markdownlint`
 and `make nixie` for the markdown work item) sequentially after each work item,
 as described in Concrete steps. The roadmap success criterion is met when the
 oracle's manifest-bijection, done-flag/draft, and compiled checks read the
-materialised `working_dir` and a tree whose `state.toml` claims agree with the
+materialized `working_dir` and a tree whose `state.toml` claims agree with the
 spec but whose disk evidence diverges is flagged by the oracle from disk alone —
 pinned by the four divergence-proof tests, every one a post-build disk-only
 mutation the spec-reading oracle misses.
@@ -1155,7 +1155,7 @@ idiom of `tests/test_reconcile_derivation.py` line 93, with
 `tests/working_corpus/__init__.py` `__all__` (lines 55, 68) — and the
 `baseline_tree` prescription is dropped for them (recorded as Decision
 D-BASELINE-SPEC; the orientation fixture list now flags that `baseline_tree`
-returns only a `Path`). Test 1 (compiled) is harmonised to the same `wc` import,
+returns only a `Path`). Test 1 (compiled) is harmonized to the same `wc` import,
 deriving its `AUTO`-compiled spec with `dc.replace(wc.COHERENT_BASELINE,
 compiled=wc.COMPILED_AUTO)` rather than the `make_working_tree_spec` fixture, so
 the whole module shares one construction idiom. A2: the module's test form is
@@ -1224,7 +1224,7 @@ probe to keep all 22 existing variants singletons and the agreement suites green
 Initial draft (2026-06-24). Decomposes roadmap task 2.3.3 into three work items:
 reroute the three spec-reading oracle predicates
 (`_check_manifest_disk_bijection`, `_check_done_flag_without_draft`,
-`_check_compiled_matches_drafts`) to read the materialised `working_dir`; prove
+`_check_compiled_matches_drafts`) to read the materialized `working_dir`; prove
 the reroute with a constructed spec-agrees-disk-diverges self-test; and align the
 twin-relationship documentation plus reify the roadmap checkbox. Anchored to
 design §5.4 / §5.2 / §4.3 / §9, the developers' guide deliberate-twin policy, the
@@ -1248,7 +1248,7 @@ medium — a cap-driven test-maintainability split, which subsumes the
 read-consolidation below as the predicates move) to new roadmap step 7.12, and
 the open-coded `chapter-NN` directory-name production helper (audit:2.3.3, low)
 to roadmap step 7.10 (task 7.10.2, the chapter-draft-sourcing hypothesis); the two
-below are the small, localised follow-ups.
+below are the small, localized follow-ups.
 
 - [x] 2.3.3.1 — Consolidate the repeated per-predicate `state.toml` parse in the
   corpus oracle's disk-evidence checks into a single per-invocation read (from

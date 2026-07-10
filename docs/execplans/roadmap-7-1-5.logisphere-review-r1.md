@@ -106,7 +106,7 @@ strong signal the design is on solid ground.
    which is the task that *settles* that convention and its drift-guard. 7.1.5
    "Requires 6.3.7" only, and 7.1.6 "Requires 7.1.2, 7.1.3, 7.1.4" (not 7.1.5),
    so there is no hard ordering conflict — but the plan is pre-committing to a
-   convention 7.1.6 may finalise differently, and 7.1.6 explicitly says it will
+   convention 7.1.6 may finalize differently, and 7.1.6 explicitly says it will
    "apply the convention and guard to 7.1.5". Recommend the planner either (a)
    note in the Decision Log that any 7.1.6 convention delta will be reconciled
    when 7.1.6 lands, or (b) keep the Work-item-2 cross-reference minimal so 7.1.6

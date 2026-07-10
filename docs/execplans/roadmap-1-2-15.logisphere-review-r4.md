@@ -51,7 +51,7 @@ source at `/data/leynos/Projects/cuprum`; the roadmap entry for 1.2.15.
   `test_contract_envelope.py:159/182`) are in WI4 step 3; `conftest.py:339` is
   D5/WI4 step 2; the three legacy-only modules are deleted/folded in WI5. None
   unhandled.
-- **Snapshot count is exactly 12** across all three serialisations (re-ran the
+- **Snapshot count is exactly 12** across all three serializations (re-ran the
   `$SNAP_GATE` alternation; the file list matches the WI2 regeneration list,
   `test_contract_envelope.ambr` included).
 - **Parity-suite (B7) line claims hold to the line:** `_OPERATIONS.legacy_name`

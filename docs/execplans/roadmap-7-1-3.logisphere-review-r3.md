@@ -67,7 +67,7 @@ the planner's summary or the prior reviews. Nothing new rose to blocking.
 ## Crew lenses
 
 - **Pandalump (structure):** Boundaries are right. The projection owns
-  serialisation only; the four arms keep their `CommandOutcome`, exit code, and
+  serialization only; the four arms keep their `CommandOutcome`, exit code, and
   `messages`. The CQS read/write split survives. One owner module
   (`state/reconcile.py`), matching its free-function grain.
 - **Wafflecat (alternatives):** The only alternative is method vs free function;

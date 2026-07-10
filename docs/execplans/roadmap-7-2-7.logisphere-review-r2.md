@@ -63,7 +63,7 @@ _reject_unknown_keys` call sites confirms the 21-site total (10 + 2 + 9) is
   is `frozen, kw_only, slots`; `_rule`/`_device` are `*, index`. After the
   convention fix, `line_hit=LineHit` / `build_entry=_rule` bind with no wrapper.
 - **No import-cycle / boundary breach.** `bind_coercion`/`BoundCoercion` land in
-  `loaderkit/coerce.py`, parameterised on `content_error` + the noun pair; the
+  `loaderkit/coerce.py`, parameterized on `content_error` + the noun pair; the
   module imports `EnvelopeMessagesError` only under `TYPE_CHECKING` and names no
   pack type (ADR-003 preserved). The public `rule_id=`/`device_id=` keyword
   stays inside each family's `content_error` lambda and never reaches the bundle

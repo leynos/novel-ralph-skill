@@ -253,7 +253,7 @@ workaround.
       "No such file or directory".
       Impact: This is dead, false prose, not a literal swap. Work item 4
       reconciles it (the three commands are no longer stubs; the dispatcher's
-      `main` no longer "generalises the `stub.py` `_drive` shape").
+      `main` no longer "generalizes the `stub.py` `_drive` shape").
 
     - Observation: (work item 1, implementation run 2026-06-26) The enumerating
       greps were re-run live in the worktree and the per-file classification is
@@ -690,7 +690,7 @@ enumerated preserve identifiers), and (b) the **literal-free legacy-framing
 lines** the two stale-prose class patterns flag — every line returned by the
 "five"-adjacency and "legacy"-framing greps in work item 1. The class-gate hits
 are NOT optional clean-up left to care: each is a required reconcile listed
-explicitly below. Several surface hits also fall *outside* the emphasised
+explicitly below. Several surface hits also fall *outside* the emphasized
 subsections (for example lines 311, 837, 925, 1354); convert every one. Five
 kinds of change, in order:
 
@@ -733,9 +733,9 @@ kinds of change, in order:
    `novel_ralph_skill/contract/runner.py` and the five
    `app.command(<leaf>.build_app(), name=…)` mounts at
    `novel_ralph_skill/commands/novel.py` lines 84-89). Remove the sentence that
-   says `main` "generalises the `stub.py` `_drive` shape" (stub.py is gone).
+   says `main` "generalizes the `stub.py` `_drive` shape" (stub.py is gone).
    **Advisory A1 — do NOT replace it by quoting the live dispatcher docstring**:
-   `novel.py` line 139 itself still says "Generalises the `_drive` shape
+   `novel.py` line 139 itself still says "Generalizes the `_drive` shape
    `stub.py` uses" (that code-docstring fix is owned by roadmap task 1.2.15.1,
    out of scope here), so quoting it would re-introduce a `stub.py` reference.
    The truthful current wiring to describe is `make_contract_app("novel")` plus
@@ -964,7 +964,7 @@ All commands run from the worktree root
    (including change-kind 4's enumerated literal-free legacy-framing lines),
    preserving the bucket-2 code identifiers.
 5. Work item 5: `make markdownlint && make nixie` (no `make fmt`), the surface
-   grep and the three stale-prose class greps, then `make all`; commit; finalise
+   grep and the three stale-prose class greps, then `make all`; commit; finalize
    the plan.
 
 ## Validation and acceptance
@@ -1013,7 +1013,7 @@ identifier (Risk 1), revert that single hunk and re-classify before re-editing
 — no global state is involved. Re-running `make markdownlint` is idempotent and
 side-effect-free.
 
-## Artifacts and notes
+## Artefacts and notes
 
 Key transcripts to capture as evidence in `Outcomes & retrospective`:
 

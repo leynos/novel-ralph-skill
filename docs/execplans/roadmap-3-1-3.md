@@ -214,7 +214,7 @@ escalation, not a workaround.
   with no `match`). Tightened to `match="utf-8"` to pin the codec failure mode.
   The two other findings were second-person prose in `docs/execplans/` files;
   the active execplan was rewritten to impersonal voice, the historical
-  `*.review-r2.md` review artifact was left untouched (a record, not a live doc).
+  `*.review-r2.md` review artefact was left untouched (a record, not a live doc).
 - Observation (Work Item 3, coderabbit): the first `coderabbit review --agent`
   invocation returned a recoverable `rate_limit` (advertised wait ~8m38s). Waited
   out the window (~9 min) per the workflow backoff policy and retried once
@@ -430,7 +430,7 @@ In `novel_ralph_skill/state/compile_model.py`:
 3. Export `CompiledComparison` and `compiled_matches_drafts` from
    `novel_ralph_skill/state/__init__.py` beside the existing `compile_model`
    re-exports (`__init__.py:27-31` import block and the `__all__` list), keeping
-   `__all__` alphabetised as the file already is.
+   `__all__` alphabetized as the file already is.
 
 Docs to read first: design §4.3 (`docs/novel-ralph-harness-design.md:362-387`)
 and §5.4 (`:513-590`); `docs/issues/audit-3.1.1.md` Finding 2; the existing
@@ -809,7 +809,7 @@ commit, and tick the matching roadmap sub-task on merge. The
 shipped clause is named `compile_consistent` in
 `novel_ralph_skill/state/done_predicate.py` with no surviving `_exists` suffix in
 the code (only historical audit notes reference the old name), so it is dropped
-rather than re-filed. The one below is the small, localised fault-test addition.
+rather than re-filed. The one below is the small, localized fault-test addition.
 
 - [x] 3.1.3.1 — Add a clause-boundary fault-propagation test for
   `compile_consistent` with a present compile beside an unreadable draft (from

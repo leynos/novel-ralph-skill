@@ -43,14 +43,14 @@ and `advance-phase` against a `state.toml` that is valid TOML but missing a
 required table (e.g. `working/state.toml` = `"schema_version = 1\n"`),
 asserting exit 3, not 1.
 
-### BR2-2 (Pandalump/Dinolump) — `init` drops the Initialisation directory skeleton
+### BR2-2 (Pandalump/Dinolump) — `init` drops the Initialization directory skeleton
 
-state-layout.md "Initialisation" step 1 is
+state-layout.md "Initialization" step 1 is
 `mkdir -p working/{characters,world,reader,plan,manuscript,reviews}`. The plan's
 `init` body (work item 2) does only
 `working.mkdir(parents=True, exist_ok=True)` plus the `state.toml` and `log.md`
 writes, while the Context and "Docs to read" sections claim fidelity to
-"state-layout.md Initialisation". The plan neither creates the subdirectory
+"state-layout.md Initialization". The plan neither creates the subdirectory
 skeleton nor records a decision to defer it.
 
 No current invariant or test depends on those directories, so this does not
@@ -66,7 +66,7 @@ the omission as a gap.
   the zero-argument `advance_phase()` — a skip cannot be *requested*, so the
   only refusal is an already-incoherent prior. This is internally consistent
   and recorded (D7), but the developers-guide subsection (work item 5) should
-  state plainly that "out-of-order completion" is realised solely as the
+  state plainly that "out-of-order completion" is realized solely as the
   prior-state coherence guard, so a future reader does not look for
   skip-rejection logic that cannot exist.
 - AR2-2 (Telefono): the `set-cursor` success test sets a cursor "within range"

@@ -112,7 +112,7 @@ authoritative table instead of `compiled_matches_drafts`. The class is the type
 every consumer imports and the most natural home for "what the three states mean
 and how callers project them". Trade-off: the helper docstring is where audit-3.1.3
 proposed putting it and where the existing prose already lives, so the chosen
-location minimises churn; the class-docstring alternative would require moving
+location minimizes churn; the class-docstring alternative would require moving
 prose into the type and trimming the helper too. Not better, but it would resolve
 B3 by construction (the class becomes the seam rather than an awkward exemption).
 The plan should at least acknowledge this option in its Decision Log given B3.

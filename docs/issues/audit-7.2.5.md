@@ -64,7 +64,7 @@ guide even describes the test as pinning the bases "against a test-local
 third-family id keyword", confirming the real bindings are documented but
 untested.
 
-- **Proposed fix:** Add a small parametrised test (in
+- **Proposed fix:** Add a small parametrized test (in
   `tests/test_loaderkit_errors.py`, or a new
   `tests/test_pack_errors_bind_loaderkit_bases.py`) that imports the four real
   classes and asserts `issubclass(RulePackError, PackError)`,
@@ -115,7 +115,7 @@ roadmap task (7.2.x consolidated only the primitives; 7.3.9 targets the
 *command-body* desloppify/ledger pipeline, not the loader `parse.py`).
 
 - **Proposed fix:** Lift the shared boundary skeleton into a `loaderkit` helper
-  parameterised on the per-pack substitutions — the `entries` messages, the
+  parameterized on the per-pack substitutions — the `entries` messages, the
   `CoercionErrors` bundle, the expected `schema_version` constant and its key
   vocabularies, the id-missing message template, and an entry-builder callback —
   so each pack supplies only those. At minimum, extract the identical

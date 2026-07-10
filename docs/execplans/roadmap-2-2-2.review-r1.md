@@ -12,7 +12,7 @@ source — but it carries blocking gaps that would derail a novice implementer.
   §4.1 (lines 246-267), §5.1 (lines 372-428), §5.2 (lines 430-456).
 - ADRs referenced transitively via design and developers-guide.
 - `skill/novel-ralph/references/state-layout.md` schema (lines 58-138) and
-  "Initialisation" (lines 230-241).
+  "Initialization" (lines 230-241).
 - Source verified: `novel_ralph_skill/commands/novel_state.py`,
   `state/document.py`, `state/parse.py`, `state/schema.py`, `state/validate.py`,
   `state/__init__.py`; `tests/working_corpus/_builder.py`, `_library.py`;
@@ -85,7 +85,7 @@ tomlkit path never raises. This is a real exit-code-contract gap, not a nicety.
 
 Work item 4 asserts that appending the current phase to `completed` and
 advancing `current` makes a *skip or out-of-order* prior state fail
-`_check_completed_prefix`. But scrutinise the mechanism against validate.py:
+`_check_completed_prefix`. But scrutinize the mechanism against validate.py:
 
 - If the *prior* state is already coherent (the normal harness case),
   `completed`
@@ -139,7 +139,7 @@ Work item 4 says "advance-phase into drafting … with a populated manifest exit
 - A1 — **`init` overwrite reading is defensible but the design is genuinely
   silent.** Decision Log D1 (refuse, exit 3) is the safer reading and is
   correctly flagged as the Tolerance escalation point. No change required, but
-  flag to the reviewer that state-layout.md "Initialisation" frames init as the
+  flag to the reviewer that state-layout.md "Initialization" frames init as the
   first turn ("working/ does not exist"), so the *existing-state* case is
   undocumented — the refuse reading is a design *decision*, not a derivation.
   Keep it, but surface it to the human reviewer rather than burying it as
@@ -147,7 +147,7 @@ Work item 4 says "advance-phase into drafting … with a populated manifest exit
 
 - A2 — **`init` argument source for `created_at` is generated, not supplied.**
   The plan generates `created_at` via `datetime.now(datetime.UTC)`. Confirm the
-  snapshot normalisation (work item 5) and the unit test both exclude it; the
+  snapshot normalization (work item 5) and the unit test both exclude it; the
   plan says so, but the work-item-2 unit test enumerates fields to assert and
   should *explicitly exclude* `created_at` to avoid a flaky equality.
 
@@ -199,7 +199,7 @@ Prevention: pin the tomlkit fault set (B2).
 ## Alternatives checkpoint (Wafflecat)
 
 The strongest alternative to the document-mutate-then-validate flow is a
-**typed-edit-then-reserialise** flow: parse to `State`, build a new `State`
+**typed-edit-then-reserialize** flow: parse to `State`, build a new `State`
 with the cursor/phase changed, re-emit. This is rejected — correctly — by
 ADR-002 and Decision Log D2 because it discards comments/layout. The plan picks
 the right structural approach; no viable alternative exists that preserves the

@@ -3,13 +3,13 @@
 Audit of the codebase after roadmap task 1.2.11 ("Migrate `test_contract_test_deps`
 onto the shared conftest fixtures") merged to `main` at commit `4757526`. The
 slice itself is correct and discharges the duplication it targeted: the weaker
-`split()`-chain distribution-name normaliser and the per-module `pyproject`
+`split()`-chain distribution-name normalizer and the per-module `pyproject`
 re-parse in
 [`tests/test_contract_test_deps.py`](../../tests/test_contract_test_deps.py) are
 gone, a single `dist_name` fixture now lives in
 [`tests/conftest.py`](../../tests/conftest.py), and the
 [`tests/test_interrogate_gate.py`](../../tests/test_interrogate_gate.py) consumer
-was migrated onto it too. The new fixture carries a parametrised table test
+was migrated onto it too. The new fixture carries a parametrized table test
 ([`tests/test_conftest_helpers.py`](../../tests/test_conftest_helpers.py)) and a
 Hypothesis property test, and the developers' guide records the fixture. That
 work needs nothing further.
@@ -39,7 +39,7 @@ and traced history with `sem`/`git show --commit`. Source of truth consulted:
   [`tests/test_interrogate_gate.py:63-70`](../../tests/test_interrogate_gate.py)
   (`test_interrogate_is_a_dev_dependency`)
 
-The 1.2.11 migration centralised the `dist_name` *normaliser* but left the
+The 1.2.11 migration centralized the `dist_name` *normalizer* but left the
 surrounding "is this distribution declared in the dev group" idiom copied
 verbatim in both consumers. Each module now runs the identical three-line dance:
 
@@ -55,7 +55,7 @@ predicate, the `isinstance(dev, list)` guard, and the `isinstance(spec, str) and
 dist_name(spec) == name` membership test are otherwise identical. This is the
 same single-source-of-truth principle 1.2.11 itself applied to `dist_name`,
 stopped one layer short: a future change to how the dev group is located (for
-example a move to `[project.optional-dependencies]` or a normalisation rule that
+example a move to `[project.optional-dependencies]` or a normalization rule that
 should also lower-case names per PEP 503) must be re-discovered and re-applied in
 two places, and a copy that drifts would weaken its module's guarantee silently.
 
@@ -80,12 +80,12 @@ two migrated modules suffices.
 `dist_name` is a shared `conftest` fixture, and
 `tests/test_conftest_helpers.py` is described in its own module docstring as the
 home for "focused unit tests for the shared `tests/conftest.py` fixtures". The
-parametrised table test and the `None`-for-non-name test for `dist_name` correctly
+parametrized table test and the `None`-for-non-name test for `dist_name` correctly
 live there. The Hypothesis *property* test for the same fixture, however, was
 placed in `test_interrogate_gate.py` — a module whose stated remit is pinning the
 "docstring-coverage gate's configuration, invocation, and dependencies". The
 property test has nothing to do with the interrogate gate; it landed there only
-because that module previously owned the normaliser before 1.2.11 moved it to
+because that module previously owned the normalizer before 1.2.11 moved it to
 `conftest`. A reader looking for the `dist_name` contract finds two thirds of it
 in `test_conftest_helpers.py` and the load-bearing third in an unrelated gate
 module.
@@ -228,7 +228,7 @@ call. Not yet a roadmap item; offered for the root agent to track.
 ## Notes on what was checked and found sound
 
 - The 1.2.11 `dist_name` fixture is well-formed: the regex is anchored, the
-  normalisation is the single home for the concept, and the property test
+  normalization is the single home for the concept, and the property test
   correctly resolves the function-scoped fixture outside the `@given` body so
   `HealthCheck.function_scoped_fixture` cannot fire (Finding 2 concerns only its
   *location*, not its correctness).

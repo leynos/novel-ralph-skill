@@ -90,7 +90,7 @@ the `DoneClauses` field order, and the order operators see in `messages`.
   [`compile_model.py`](../../novel_ralph_skill/state/compile_model.py) line 105.
 
 The literal join `root / "manuscript" / "compiled.md"` is open-coded at four
-call sites across three modules. The codebase already centralises the sibling
+call sites across three modules. The codebase already centralizes the sibling
 `chapter-NN` path idiom in
 [`_disk_paths.py`](../../novel_ralph_skill/state/_disk_paths.py)
 (`_chapter_dir_name`) precisely so the `manuscript/chapter-NN/` layout has one

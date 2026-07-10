@@ -21,7 +21,7 @@ and refreshes the developers' guide.
 
 The slice is sound and discharges its success criterion: the
 parse-`--human`/resolve-name/drive-via-`run` plumbing lives in one
-contract-level seam parametrised by already-resolved scalars, `novel.main`
+contract-level seam parametrized by already-resolved scalars, `novel.main`
 delegates rather than re-spelling it, the contract -> commands layering is held
 statically, and the import-laziness profile is preserved. The docstrings on the
 new seam are exemplary, and the layering and single-home guards are unusually
@@ -128,7 +128,7 @@ multiplexer behaviour/dispatch suites and the migrated 1.3.6 routing tripwire,
 which assert end-to-end envelope command names rather than the resolver's
 branches in isolation.
 
-Proposed fix: add a small parametrised unit test (alongside the existing
+Proposed fix: add a small parametrized unit test (alongside the existing
 multiplexer support in `tests/`) that drives `_command_name_for` directly over:
 a registered verb (`["state", "check"]` -> `"novel state"`); a bare invocation
 (`[]` -> `"novel"`); a leading flag (`["--help"]` -> `"novel"`); an unknown verb

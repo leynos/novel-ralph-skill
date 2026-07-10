@@ -23,7 +23,7 @@ makes exactly one of them possible at exact-value resolution and the other
 possible only coarsely (see the Decision Log entry "without-loss test is split
 in two", and the corpus-surface constraint below):
 
-1. A **coverage pass** over every coherent tree the §1.3.2 corpus materialises —
+1. A **coverage pass** over every coherent tree the §1.3.2 corpus materializes —
    all eleven phase states plus the mid-drafting baseline, delivered by the
    `coherent_oracle_cases` fixture — asserting each `state.toml` parses into a
    `State` *without raising*, that `phase.current` and every `phase.completed`
@@ -133,7 +133,7 @@ Definitions of terms used below:
   standard-library `tomllib`, then construct the typed objects from that mapping
   in one place, so no raw `dict[str, object]` leaks inward (python-data-shapes
   "parse to a schema type at the boundary").
-- **Without loss**: every value present in the materialised `state.toml`
+- **Without loss**: every value present in the materialized `state.toml`
   reappears, equal, on the typed object.
 
 ### The schema, field by field (from §5.1 and `state-layout.md`)
@@ -173,7 +173,7 @@ The exact on-disk key names and table nesting the corpus emits are the ground
 truth: Work item 2 reads `tests/working_corpus/_builder.py` and pins the schema's
 keys to exactly what the builder writes, so the parser and the fixtures cannot
 drift. Where the design prose and the builder disagree on a key name, the builder
-wins for this task (it is what the fixtures actually materialise) and the
+wins for this task (it is what the fixtures actually materialize) and the
 discrepancy is recorded in `Surprises & Discoveries` and raised — the design is
 the longer-term source of truth and a mismatch is a real finding, not something
 to paper over.
@@ -973,7 +973,7 @@ against `skill/novel-ralph/references/state-layout.md` and design §5.1:
   dependency added, and no file approaches the 400-line cap (`schema.py` is the
   largest at 297 lines).
 - Design and corpus agreed throughout (no schema/builder-mismatch escalation),
-  so the parser is pinned to exactly what the fixtures materialise. The only
+  so the parser is pinned to exactly what the fixtures materialize. The only
   permanent suppression is the documented `# noqa: S105` false positive on
   `FINAL_PASS`; the TC001 and `itertools.pairwise` findings were resolved by
   adopting the idiomatic form rather than suppressing.

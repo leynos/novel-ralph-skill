@@ -108,7 +108,7 @@ alignment cannot silently rot.
   - `docs/adr-002-toml-round-trip-tomlkit.md` — no edit to a code path that writes
     `state.toml` is introduced here, but any test that constructs a `state.toml`
     must round-trip through `tomlkit` (via the corpus builder), never a
-    hand-written serialiser.
+    hand-written serializer.
   - `docs/adr-003-shared-interface-contract.md` — exit-code table (0 success, 4
     actionable finding). The `compiled-matches-drafts` finding already exits 4
     through `check`; this plan must not perturb that.
@@ -177,7 +177,7 @@ and `leta refs <symbol>` are the navigation tools, not raw `grep`.
     (`_specs.py:157-160`, `:182`): `None` writes no `compiled.md`,
     `COMPILED_AUTO` writes the byte-exact concatenation of the present drafts,
     and any other string writes those exact bytes (the stale/divergent compile).
-    The spec is serialised to `state.toml` through `tomlkit` by
+    The spec is serialized to `state.toml` through `tomlkit` by
     `tests/working_corpus/_builder.py` (ADR-002 honoured by reuse).
   - `tests/working_corpus/_variants.py:189-192` already defines the
     `compiled-not-concatenation-of-drafts` variant
@@ -258,7 +258,7 @@ the two contradictions are corrected to match it, not to offer a choice.
   line 24); the `interrogate` docstring gate must stay green (AGENTS.md lines
   86-90). New test modules carry module and function docstrings.
 - **TOML is written through `tomlkit` only** (ADR-002); test fixtures must use
-  the existing corpus/`WorkingTreeSpec` builder, which serialises through
+  the existing corpus/`WorkingTreeSpec` builder, which serializes through
   `tomlkit`, never a hand-assembled `state.toml` string.
 
 ## Tolerances (exception triggers)
@@ -307,7 +307,7 @@ the two contradictions are corrected to match it, not to offer a choice.
   whitespace, and the arrange-time precondition assertion fails because the
   counts are in fact equal (the round-1 B1/B3 defect). Severity: high (would
   error the test on arrange). Likelihood: n/a — eliminated by design.
-  Mitigation: divergence is realised the *only* way it genuinely can be — with a
+  Mitigation: divergence is realized the *only* way it genuinely can be — with a
   bytes-divergent `compiled.md` carrying injected **non-whitespace** content (the
   existing `compiled-not-concatenation-of-drafts` variant, whose
   `compiled="not the real concatenation"` adds four non-draft tokens). That tree
@@ -768,7 +768,7 @@ Quality criteria (what "done" means):
 - Docs: `make markdownlint` and `make nixie` clean.
 
 Quality method: run the gates sequentially (never in parallel — the build cache
-serialises best that way, AGENTS.md), once per work item, before each commit.
+serializes best that way, AGENTS.md), once per work item, before each commit.
 
 ## Idempotence and recovery
 
@@ -820,7 +820,7 @@ used by any module in scope (no `cuprum`/`sh`/`subprocess` import), matching the
   Purpose, Constraints, Risks, and the Decision Log accordingly. (B2) Removed the
   impossible "coherent compile with divergent token count" requirement from the
   RECOUNT-path tree (case 2 now asserts recount==reconcile agreement only).
-  (B3) Work item 3 case 1 now realises the divergence with a bytes-divergent
+  (B3) Work item 3 case 1 now realizes the divergence with a bytes-divergent
   `compiled.md` carrying injected non-whitespace content (not the separator), and
   is scoped to `recount`, which ignores `compiled.md`. (B4) Rebuilt the fixture
   matrix (D-FIXTURE-MATRIX) so the "not the compiled token count" assertion lives

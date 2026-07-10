@@ -52,7 +52,7 @@ phase-7.2/7.3 single-source steps).
   the assertions in `tests/test_rulepack_loader.py:79-82,121,172-175`.
 
 After 7.2.6 both families route their top-level orchestration through the same
-`resolve_schema_version`/`build_entries` skeleton, parameterised only by their
+`resolve_schema_version`/`build_entries` skeleton, parameterized only by their
 constant, key set, array key, and the per-family `unsupported_noun`
 (`"rule-pack"`/`"device-ledger"`). The rule pack exercises every head/tail fault
 end-to-end against real fixtures — an unsupported `schema_version`, a non-integer
@@ -126,7 +126,7 @@ bodies are otherwise the shared `loaderkit.coerce` functions called with the sam
 arguments.
 
 - **Proposed fix:** Eliminate the per-family keyword rename so the shim collapses
-  to data, not code. Either (a) standardise `parse.py`/`_fields.py` call sites on
+  to data, not code. Either (a) standardize `parse.py`/`_fields.py` call sites on
   the shared `offending_id=` keyword and import the `loaderkit.coerce` helpers
   directly with the family's `_ERRORS` bundle bound via `functools.partial`,
   reducing each `_coerce.py` to the single `CoercionErrors` construction plus the

@@ -97,7 +97,7 @@ corpus category. Each new corpus category re-pays this boilerplate. This is the
 fixture-name counterpart to finding 1.
 
 - **Proposed fix:** when consolidating finding 1, also fold the key-tuple
-  fixtures behind one small factory or parametrised fixture keyed on the mapping,
+  fixtures behind one small factory or parametrized fixture keyed on the mapping,
   or accept the triplication explicitly. At least cross-reference the sibling
   fixtures in the docstrings so a future reader knows the pattern is intentional
   and where its peers live, rather than discovering three independent copies.
@@ -127,13 +127,13 @@ of hand-set table the round-trip guard exists to protect, and it is currently
 unexercised by that guard.
 
 - **Proposed fix:** add a small case to `TestCorpusDivergentTable` (or
-  parametrise `test_round_trip_idempotent` over the divergent variant via the
+  parametrize `test_round_trip_idempotent` over the divergent variant via the
   `divergent_table_tree` fixture) asserting
   `tomlkit.dumps(tomlkit.parse(text)) == text` for the divergent tree's
   `state.toml`, so the override-bearing table is covered by the same idempotency
   contract the coherent corpus enjoys.
 
-## 4. Single-element variant set behind a parametrised factory (ergonomics)
+## 4. Single-element variant set behind a parametrized factory (ergonomics)
 
 - **Category:** ergonomics
 - **Severity:** low

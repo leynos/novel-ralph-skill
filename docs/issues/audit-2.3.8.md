@@ -118,7 +118,7 @@ fourth, deliberately independent, copy).
 **Description:** The notion "the on-disk set is a strict, coherent subset of the
 manifest" is spelled as `on_disk < manifest and _classify_bijection(manifest,
 on_disk).coherent_subset` in `_check_word_counts_cover_drafts` and again in
-`_drafting_subset_cover_gap`. `_BijectionBreak.coherent_subset` already centralises
+`_drafting_subset_cover_gap`. `_BijectionBreak.coherent_subset` already centralizes
 the "no orphan, contiguous" half (audit:2.1.7 Findings 1 and 2), but the strict
 `on_disk < manifest` half is left dangling beside it at each site, so the full
 "strict coherent subset" predicate is not single-homed. `coherent_subset` is

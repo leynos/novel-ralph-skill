@@ -191,7 +191,7 @@ escalation, not a workaround.
   `_run_installed_argv` helper, and all three step definitions in one gated
   commit (the scenario passes green; no intermediate red commit). Done in commit
   "Re-drive refused advance-phase at installed boundary". The behaviour pin was
-  demonstrated transiently (see Artifacts); `make all` green (941 passed, 1
+  demonstrated transiently (see Artefacts); `make all` green (941 passed, 1
   skipped); coderabbit `--agent` returned 0 findings.
 - [x] WI-2: Add the mark-retention guard for the new scenario. Done:
   `test_installed_advance_refused_carries_marks` mirrors the existing guard,
@@ -288,7 +288,7 @@ escalation, not a workaround.
   `_run_installed_argv(installed, command_name, _LOOP_ARGV[command_name],
   capture_key=command_name)` that returns the same tuple, so the clean-pass and
   stale-compile loops are byte-identical in behaviour. The capture write is
-  centralised in the helper so the `When` steps no longer assign
+  centralized in the helper so the `When` steps no longer assign
   `installed.captures[...]` by hand (see signature below).
   Date/Author: 2026-06-25, planning agent.
 
@@ -326,7 +326,7 @@ Both halves of the success clause are therefore proven at the real
 wheel/venv console-script boundary; no Carried-gaps entry is required.
 
 Deviations: none of substance. A `ruff format` reflow of the `state_before`
-assignment was applied during WI-1's gate (recorded in Artifacts). Pre-existing
+assignment was applied during WI-1's gate (recorded in Artefacts). Pre-existing
 markdownlint MD013 violations in the untracked planning artefact
 `roadmap-6-2-9.logisphere-review-r2.md` were wrapped during WI-3 so the
 whole-tree markdownlint gate passed. No production code under
@@ -401,10 +401,10 @@ Key reusable machinery (all already present, all to be reused):
   ([`tests/steps/per_chapter_loop_installed_steps.py`](../../tests/steps/per_chapter_loop_installed_steps.py)
   lines 81-102) runs an installed script by absolute path through a
   single-program cuprum catalogue with `ExecutionContext(cwd=run_dir)` and
-  returns `(exit_code, envelope, stderr)`. It is the helper WI-1 generalises.
+  returns `(exit_code, envelope, stderr)`. It is the helper WI-1 generalizes.
   `_assert_no_traceback(installed, command_name)` (lines 111-118) asserts no
   `Traceback` on stderr (design §10). `_build_installed(...)` (lines 121-139)
-  materialises a `working/` tree under a per-test `run_dir` and returns an
+  materializes a `working/` tree under a per-test `run_dir` and returns an
   `_Installed`.
 - The corpus spec `INCOHERENT_VARIANTS["completed-prefix-gap"]`
   ([`tests/working_corpus/__init__.py`](../../tests/working_corpus/__init__.py),
@@ -474,7 +474,7 @@ Edits:
    make these changes (all under the `tests/steps/` exemption; keep the module
    under 400 lines — it is 262 today and these edits add roughly 45 lines):
 
-   - **Generalise the run helper.** Replace the body of `_run_installed` with a
+   - **Generalize the run helper.** Replace the body of `_run_installed` with a
      delegation to a new `_run_installed_argv`. The new helper has the exact
      signature
 
@@ -508,7 +508,7 @@ Edits:
      ```
 
      This keeps the clean-pass and stale-compile loops byte-identical (same
-     script filename, same argv, same capture key) while centralising the
+     script filename, same argv, same capture key) while centralizing the
      capture write. (The two existing `When` steps `run_installed_clean_spine`
      and `run_installed_stale` already assign `installed.captures[...] =
      _run_installed(...)`; since `_run_installed_argv` now writes the capture
@@ -568,7 +568,7 @@ Edits:
    ```
 
 Tests added/updated by WI-1: the new Gherkin scenario, its three step
-definitions, the generalised `_run_installed_argv` helper (with `_run_installed`
+definitions, the generalized `_run_installed_argv` helper (with `_run_installed`
 delegating), the `_Installed.state_before` field, and the binder function. **No
 production code.** The whole installed suite (clean pass + stale compile +
 refused advance) passes under one module-scoped wheel build.
@@ -768,7 +768,7 @@ fails, fix forward or `git restore` the edited test/doc files and retry; nothing
 is destructive. The installed scenario itself builds each `working/` tree under
 a per-test `run_dir`, so cases stay independent and re-runs do not leak state.
 
-## Artifacts and notes
+## Artefacts and notes
 
 Transcripts captured during implementation:
 
@@ -808,7 +808,7 @@ cuprum (locked **0.1.0**, `uv.lock` lines 113-118). Verified against
   `stderr: str | None`. These are exactly the surfaces `_run_installed` already
   uses; `_run_installed_argv` calls the **same** `sh.make(prog,
   catalogue=catalogue)(*argv).run_sync(context=ExecutionContext(cwd=run_dir),
-  capture=True)` chain with `argv` parameterised, so **no new cuprum API is
+  capture=True)` chain with `argv` parameterized, so **no new cuprum API is
   introduced**.
 
 If a work item appears to need a cuprum capability beyond the above (it should
@@ -827,7 +827,7 @@ def _run_installed_argv(
     """Run ``script_name`` with ``argv`` and store the capture under ``capture_key``."""
 ```
 
-It centralises the capture write (`installed.captures[capture_key] = …`), so the
+It centralizes the capture write (`installed.captures[capture_key] = …`), so the
 `When` steps call it for its side effect; `_run_installed` delegates to it
 preserving the existing `(exit_code, envelope, stderr)` return.
 
@@ -869,7 +869,7 @@ Corpus and fixtures (in-repo, reused as-is):
   (`tests/working_corpus/__init__.py`). Returns `(WorkingTreeSpec,
   invariant_name)`; the spec is a `drafting` tree with `phase.completed =
   ("premise", "characters")`. WI-1 passes the spec (`[0]`) to `_build_installed`.
-- `working_corpus.build_working_tree(spec, dest)` — materialises the tree (called
+- `working_corpus.build_working_tree(spec, dest)` — materializes the tree (called
   inside `_build_installed`).
 - `installed_novel_state` (module-scoped) and `single_program_catalogue`
   fixtures — reused unchanged.
@@ -955,7 +955,7 @@ gates, and a merge. The roadmap carries the matching nested sub-task.
   small assertion that `capture_key` is not already present in
   `installed.captures` for this run, so the contract is enforced rather than only
   documented.
-- [x] **6.2.9.4 — Parametrise the two duplicated installed-scenario mark-guard
+- [x] **6.2.9.4 — Parametrize the two duplicated installed-scenario mark-guard
   tests** (from audit:6.2.9 Finding 3; severity: low). The two `*_carries_marks`
   tests in `tests/test_per_chapter_loop_installed_bdd.py` are near-identical
   clones differing only in the bound function and message noun, and the

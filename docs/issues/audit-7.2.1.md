@@ -28,7 +28,7 @@ here as the one genuine untracked gap.
 The exploration used `leta` for code navigation (`leta show`, `leta refs`,
 `leta grep`, `leta calls`) and `sem`/`git show` for history tracing. The sources
 of truth consulted were `docs/novel-ralph-harness-design.md` (§5.3 inline-table
-materialisation), `docs/adr-002-toml-round-trip-tomlkit.md`, `docs/roadmap.md`
+materialization), `docs/adr-002-toml-round-trip-tomlkit.md`, `docs/roadmap.md`
 (steps 7.2 and 7.3), `docs/developers-guide.md`, `AGENTS.md`, and the existing
 audit issues under `docs/issues/`. Prose follows the en-GB Oxford spelling
 convention (`AGENTS.md`).
@@ -45,12 +45,12 @@ Task 7.2.1 folded the *inner* inline-table idiom into `build_inline_table`, but
 the *outer* skeleton that wraps it remains duplicated. Both `_chapter_array` and
 `_chapters_array` open with the identical three-line pattern —
 `tomlkit.array()`, `array.multiline(multiline=True)`, then a loop that appends
-`build_inline_table({…})` — and both materialise the same four-key
+`build_inline_table({…})` — and both materialize the same four-key
 `[[chapters]]` entry (`number`, `slug`, `title`, `target_words`) in the same
 on-disk schema order. The only divergence is how each derives the ordered
 chapter sequence: `_set_chapters` receives an already-ordered
 `Sequence[ChapterPlanEntry]`, while the corpus builder computes the ordered
-number set from a `WorkingTreeSpec` and fills gaps with synthesised slugs and
+number set from a `WorkingTreeSpec` and fills gaps with synthesized slugs and
 titles.
 
 The 7.2.1 developers'-guide note (line 1276) explicitly names this skeleton as
@@ -93,14 +93,14 @@ that produced it (the command routes on the typed error, and the rule-pack path
 was a frozen-byte Tolerance at the time it was written).
 
 This duplication is already owned by roadmap task 7.2.2 (`[ ]`, medium), whose
-success criterion is exactly "shared coercion primitives parameterised on an
+success criterion is exactly "shared coercion primitives parameterized on an
 error factory … each package's typed error type … unchanged". No new action is
 needed; this finding records that the audit re-verified the duplication still
 exists and that 7.2.2's scope still describes it accurately, so the task should
 not be retired or narrowed without addressing it.
 
 - **Proposed fix:** None beyond keeping 7.2.2 open. When 7.2.2 is implemented,
-  the error-factory parameterisation the task already prescribes will retire the
+  the error-factory parameterization the task already prescribes will retire the
   duplication; the audit confirms the "frozen rule-pack path" rationale in the
   ledger docstring is the constraint 7.2.2's error-factory approach is designed
   to dissolve, so that rationale can be retired together with the duplication.

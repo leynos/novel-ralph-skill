@@ -117,7 +117,7 @@ clarifications are advisable.
    reuse the `range(3)` loop shape from the integration test.
 3. Implementer wraps the crashing `reconcile` in `pytest.raises(SystemExit)`.
    The crash propagates as `_CrashError`, never reaching `sys.exit`. Mitigation:
-   the plan's Artifacts note already specifies `pytest.raises(_CrashError)`;
+   the plan's Artefacts note already specifies `pytest.raises(_CrashError)`;
    keep it prominent in the step skeleton.
 
 ## Strongest alternative (Wafflecat)

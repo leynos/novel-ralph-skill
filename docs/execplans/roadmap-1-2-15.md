@@ -37,7 +37,7 @@ them. Two pitfalls were found in review and are fixed throughout:
   `SUBCOMMAND_NAMES` references survive the task). Every registry gate is
   therefore anchored with word boundaries: `\b(COMMAND_NAMES|…)\b`, verified to
   exclude `SUBCOMMAND_NAMES` (it shares no word boundary at the leading `SUB`).
-- The 12 legacy snapshots store the command name in **three** serialisations
+- The 12 legacy snapshots store the command name in **three** serializations
   (syrupy repr `'command': 'novel-state'`, JSON envelope `"command":
   "novel-state"`, and bare YAML `command: novel-state`), so a snapshot gate that
   matches only the syrupy-repr form misses 7 of the 12. The canonical snapshot
@@ -105,7 +105,7 @@ escalation, not a workaround.
   test module not derivable from the WI-scoped greps below, stop and escalate —
   it means the consumer enumeration missed a caller.
 - Snapshots: snapshot regeneration is expected for the **12** `.ambr` files
-  whose `command` field carries a legacy name in any of the three serialisations
+  whose `command` field carries a legacy name in any of the three serializations
   (verified, Decision Log D6). If `--snapshot-update` rewrites any field *other
   than* `command` (i.e. a behavioural change leaked in), stop and escalate. If
   fewer than 12 files change, a stamp was missed upstream — stop and escalate.
@@ -485,7 +485,7 @@ escalation, not a workaround.
 - Decision: D6 — the grep gates are made sound after round-1 review found them
   both false-negative and false-positive. Five facts were verified directly
   against the live worktree and now anchor every gate in this plan:
-  1. Snapshots store the legacy command in **three** serialisations — syrupy
+  1. Snapshots store the legacy command in **three** serializations — syrupy
      repr (`'command': 'novel-state'`, 5 files), JSON envelope (`"command":
      "novel-state"`, 7 files: `test_compile_check_snapshots`,
      `test_compile_snapshots`, `test_contract_envelope`,
@@ -625,7 +625,7 @@ single line `novel`). The production tree (`novel_ralph_skill/`) carries no
 `commands.stub` reference (word-anchored gate empty); the only `tests/`
 occurrences are the durable manifest `test_legacy_surface_retired.py`'s
 absence-assertions, which must name the symbols to assert they are gone. No
-legacy command value survives in any snapshot across all three serialisations
+legacy command value survives in any snapshot across all three serializations
 (`$SNAP_GATE` empty over `tests/__snapshots__`). No human-rendered
 `command: <legacy>` header survives in any `tests/` source (the B8 repo-wide
 invariant empty). The parity coverage is preserved and strengthened (D1): both
@@ -660,7 +660,7 @@ no legacy entry point or `COMMAND_NAMES`/`COMMAND_ENTRY_POINTS`/`STUB_MODULE`
 symbol anywhere in `novel_ralph_skill/` or `tests/` (verified by the
 word-anchored `\b(COMMAND_NAMES|COMMAND_ENTRY_POINTS|STUB_MODULE)\b` gate, which
 excludes the kept `SUBCOMMAND_NAMES`); no legacy command value in any snapshot
-across all three serialisations (the `$SNAP_GATE` gate); no legacy command
+across all three serializations (the `$SNAP_GATE` gate); no legacy command
 literal in any of the four idiom-bearing source modules (`$IDIOM_SOURCES` — the
 matrix, the per-chapter-loop steps, and the parity pair, B3/B6/B7); no
 human-rendered `command: <legacy>` header in any source module — proven by the
@@ -769,7 +769,7 @@ Test consumers, classified by how they break when the guard narrows:
   `test_recount_e2e.py`, `test_set_chapters_e2e.py`, `test_reconcile_e2e.py`,
   `test_novel_state_check.py` (also RUN-GUARD), `test_compile_check_integration.py`.
 - Snapshot files carrying a legacy command value (all **12**, regenerated in
-  WI2; the serialisation form per file is recorded because the gate must match
+  WI2; the serialization form per file is recorded because the gate must match
   all three — Decision Log D6). Syrupy-repr form (`'command': 'novel-state'`):
   `test_command_surface_matrix.ambr` (65 hunks),
   `test_novel_done_snapshots.ambr` (3), `test_desloppify_snapshots.ambr` (2),
@@ -1079,7 +1079,7 @@ stamped command name from its legacy form to the spaced form, per this fixed map
    permitted change is the `command:` value (and, for the matrix, the snapshot
    *key* name following the parametrize-id rename). The 12 modules are the
    complete set whose `.ambr` carries a legacy command value in any of the three
-   serialisations (verified, Decision Log D6); `test_contract_envelope` is
+   serializations (verified, Decision Log D6); `test_contract_envelope` is
    included here because its `.ambr` carries the bare-YAML `command:
    novel-state` and the JSON form, and its stamp moves once `COMMAND_NAMES[0]`
    becomes `SUBCOMMAND_NAMES[0]` (that source swap happens in WI4 step 3; running
@@ -1309,7 +1309,7 @@ B7 fault). The single D3 gate then runs over **all four** idiom-bearing modules
      tests/__snapshots__/test_contract_envelope_snapshots.ambr
    ```
 
-   Then prove the snapshots are clean across all three serialisations:
+   Then prove the snapshots are clean across all three serializations:
 
    ```bash
    rg -nP "$SNAP_GATE" tests/__snapshots__   # must return no match
@@ -1319,7 +1319,7 @@ B7 fault). The single D3 gate then runs over **all four** idiom-bearing modules
 
 Tests updated: the parity pair (`tests/multiplexer_support.py`,
 `tests/test_multiplexer_behaviour.py` — B7), the conftest fixture, the four
-contract modules, and the re-homed centralisation module. Validation: `make all`
+contract modules, and the re-homed centralization module. Validation: `make all`
 — the guard now rejects legacy names; any missed stamp surfaces here, but the D3
 greps (step 5, over all four idiom sources including the parity pair) should have
 caught it first. Note the ordering: the parity rework (step 1) precedes the guard
@@ -1407,7 +1407,7 @@ script.
    `project_scripts` conftest fixture). Because this test asserts on the
    *imported symbols* and the *parsed table* rather than on grep output, it is
    immune to both gate pitfalls (the `SUBCOMMAND_NAMES` substring and the
-   three-serialisation snapshot forms): it is the durable regression guard that
+   three-serialization snapshot forms): it is the durable regression guard that
    outlives the one-shot grep gates. It additionally carries a **source-scan**
    case `test_no_legacy_command_literals_in_idiom_sources` that reads each of the
    four `$IDIOM_SOURCES` files (`tests/test_command_surface_matrix.py`,
@@ -1468,7 +1468,7 @@ Acceptance is behaviour a human can verify:
   load-bearing: an unanchored `COMMAND_NAMES` would match the ≈25 surviving
   `SUBCOMMAND_NAMES` references and could never return empty — see Decision Log
   D6.)
-- The three-serialisation snapshot gate
+- The three-serialization snapshot gate
   `rg -nP "[\"']command[\"']:\s*[\"'](novel-state|novel-done|novel-compile|desloppify|wordcount)[\"']|^\s*command:\s+(novel-state|novel-done|novel-compile|desloppify|wordcount)\s*$"
   tests/__snapshots__` returns no match (it catches the syrupy-repr, JSON, and
   bare-YAML forms; the syrupy-repr-only form alone would miss 7 of the 12 legacy
@@ -1514,7 +1514,7 @@ WI5 is found premature (a consumer surfaces), `git checkout -- <file>` restores
 it; re-point the consumer, then re-delete. No destructive or irreversible step
 exists; the worktree is disposable.
 
-## Artifacts and notes
+## Artefacts and notes
 
 The load-bearing guard is `novel_ralph_skill/contract/envelope.py`:
 
@@ -1577,7 +1577,7 @@ sole console-script entry point is
   step 5, narrows the guard at step 6, and regenerates snapshots at step 8.)
   - B1 (snapshot gate false-negative): the snapshot gate matched only the
     syrupy-repr form and missed 7 of 12 legacy snapshots stored as JSON-envelope
-    or bare-YAML. Replaced with the canonical `$SNAP_GATE` (three serialisations)
+    or bare-YAML. Replaced with the canonical `$SNAP_GATE` (three serializations)
     in WI1, WI4-D3, WI4 step 8, WI6, and Acceptance.
   - B2 (regeneration completeness): added `test_contract_envelope` to the WI2
     step-5 regeneration list and made WI4 step 8 regenerate it **unconditionally**
@@ -1596,7 +1596,7 @@ sole console-script entry point is
     Constraints docstring carve-out, so the `command="…"` D3 gate is genuinely
     empty without special-casing comments/docstrings.
   - Advisories: A1 (`_ErrorCommand` → `_ErrorArm`) corrected in WI2 step 3; A2
-    (snapshot count 9 → 12) standardised in Tolerances, Surprises, WI2, and the
+    (snapshot count 9 → 12) standardized in Tolerances, Surprises, WI2, and the
     Context inventory; A3 (the WI2↔WI5 pairing dependency) recorded in
     Surprises & discoveries.
   - Added a "Canonical gate patterns" subsection to Concrete steps defining

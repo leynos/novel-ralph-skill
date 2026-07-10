@@ -163,7 +163,7 @@ a clean duplication, but as the spine grows more pinned dependencies the shape i
 worth consolidating.
 
 **Proposed fix:** introduce a shared `assert_locked_version(dist, expected)`
-helper (or a parametrised fixture) in `tests/conftest.py` that resolves a version
+helper (or a parametrized fixture) in `tests/conftest.py` that resolves a version
 through `importlib.metadata.version` and asserts it, letting each module keep only
 its `(distribution, pin)` pair. Not yet a roadmap item; flagged for tracking.
 

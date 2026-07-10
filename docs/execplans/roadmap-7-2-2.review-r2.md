@@ -17,7 +17,7 @@ I re-verified independently rather than on the planner's word.
 
 ## Round-1 blockers — independently re-verified as closed
 
-- B1/B2 (entries parameterisation + wrong prefix source). Verified against
+- B1/B2 (entries parameterization + wrong prefix source). Verified against
   `rulepack/parse.py:96-106` and `ledger/parse.py:98-105`: the three entries
   faults (`not_array`, `empty`, `non_mapping`) embed the *quoted array key* and
   a *container/item noun* and **never** call `_where`. The empty-array

@@ -95,7 +95,7 @@ comment at lines 64-67 confirms the re-export exists only to silence the
 unused-import lint). This swaps the old `novel_state` facade for a new
 `_state_mutators` facade: the accessors still reach two consumers through an
 intermediary command module, so the "single canonical home" property the task
-sells is only partially realised.
+sells is only partially realized.
 
 **Proposed fix:** repoint `_recount` and `_reconcile` to import `state_path`
 and `working_dir` directly from `state_sourcing` (the document loader
@@ -121,7 +121,7 @@ even though it is the same class of indirection the test exists to prevent. The
 invariant the test claims to protect ("the seam has a single home") is wider
 than the property it actually checks.
 
-**Proposed fix:** generalise the guard to assert that the migrated *accessor*
+**Proposed fix:** generalize the guard to assert that the migrated *accessor*
 seam symbols (`working_dir`, `state_path`, `resolved_working_dir`,
 `STATE_INPUT_ERRORS`, `WORKING_DIR_NAME`, `load_or_state_error`) are imported
 only from `state_sourcing` by any command module — i.e. flag an `ImportFrom`
@@ -169,7 +169,7 @@ signature.)
 tail across four formatters that each build their own prose. The deduplicated
 body is a single constructor call, so the wrapper adds a layer of indirection
 and a 25-line docstring to save four characters of typing per call site; it does
-not centralise any behaviour the four formatters could otherwise diverge on
+not centralize any behaviour the four formatters could otherwise diverge on
 (they already build the message themselves). The abstraction is documented as an
 intentional `audit:6.3.8` dedup, so this is a judgement call rather than a
 defect.

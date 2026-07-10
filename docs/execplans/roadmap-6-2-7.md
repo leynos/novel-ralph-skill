@@ -21,7 +21,7 @@ command boundary (`tests/test_torn_turn_recovery_bdd.py`): a real `reconcile`
 crash leaves an `operation="reconcile"` record naming the present `state.toml`/
 `log.md`, which recovers by completing. But the **ROLLBACK** disposition — an
 uncleared `[pending_turn]` whose declared unrecoverable artefact never
-materialised — has *no reconcile-command-boundary coverage*. Today ROLLBACK is
+materialized — has *no reconcile-command-boundary coverage*. Today ROLLBACK is
 proven only two ways, neither of which drives `reconcile` over the rollback
 case through the command entry path:
 
@@ -89,7 +89,7 @@ escalation, not a workaround.
   `novel_ralph_skill.state.document.pending_turn(path, operation=..., paths=...)`
   context manager raising before clean exit, leaving the record populated on
   disk exactly as `tests/steps/torn_turn_steps.py` already does — declaring an
-  unrecoverable `draft.md`/`done.flag` path that never materialises. It must
+  unrecoverable `draft.md`/`done.flag` path that never materializes. It must
   **not** be the `pending-turn-rollback-unrecoverable` corpus fixture's planted
   `pending_turn={...}` dict (that variant has body-call coverage only, in
   `tests/test_reconcile.py`). This is the rollback analogue of 6.2.5's "real
@@ -152,7 +152,7 @@ escalation, not a workaround.
 - **Iterations.** If `make all` still fails after 3 fix attempts on any work
   item, stop and escalate.
 - **Interpretation.** The roadmap clause reads "crashes `reconcile` after
-  declaring a path that does not materialise". Taken literally this is
+  declaring a path that does not materialize". Taken literally this is
   mechanically impossible in v1: `reconcile`'s own bracket only ever declares
   the recomputable `state.toml`/`log.md` (`_RECONCILE_PATHS` in
   `novel_ralph_skill/commands/_reconcile.py:74`), so a crashed `reconcile`
@@ -169,7 +169,7 @@ escalation, not a workaround.
 ## Risks
 
 - Risk: The roadmap clause literally says "crashes `reconcile` after declaring a
-  path that does not materialise", but `reconcile`'s bracket only declares the
+  path that does not materialize", but `reconcile`'s bracket only declares the
   recomputable `state.toml`/`log.md`, so a crashed `reconcile` can never
   produce a ROLLBACK torn turn. A plan that tries to crash `reconcile` for
   ROLLBACK would find no unrecoverable declared path. Severity: high
@@ -273,7 +273,7 @@ escalation, not a workaround.
   6.2.7 and 6.2.5, recorded in `Decision Log D-MECH`/`D-PRODUCER`.
 
 - Observation: The §3.4 `pending_turn` bracket and the `wc.build_working_tree`
-  baseline compose cleanly. Building `wc.COHERENT_BASELINE` materialises a
+  baseline compose cleanly. Building `wc.COHERENT_BASELINE` materializes a
   coherent `working/` tree; entering
   `pending_turn(working / "state.toml", operation="write-draft", paths=["working/manuscript/chapter-99/draft.md"])`
   and raising leaves the populated `operation="write-draft"` record over that
@@ -454,7 +454,7 @@ Key terms (defined for a first-time reader):
   the production producer of torn records; the scenario raises inside it to
   manufacture a genuine torn ROLLBACK turn.
 - **`working_corpus`** — `tests/working_corpus/`, the test-only package that
-  materialises `working/` trees from declarative specs.
+  materializes `working/` trees from declarative specs.
   `build_working_tree(spec, tmp_path)` returns the built `working/` path;
   `INCOHERENT_VARIANTS` maps named variants to `(spec, expected)` pairs;
   `COHERENT_BASELINE` is the settled baseline spec. Consume it by the sanctioned
@@ -695,7 +695,7 @@ build cache rewards sequential runs).
 
 ## Idempotence and recovery
 
-Every step is re-runnable. The tests materialise throwaway `working/` trees
+Every step is re-runnable. The tests materialize throwaway `working/` trees
 under pytest `tmp_path`, so re-running leaves no residue. The `pending_turn`
 bracket writes only into the throwaway tree, and `monkeypatch.chdir` is
 restored at the end of each test, so nothing leaks across tests. Editing the
@@ -703,7 +703,7 @@ roadmap checkbox and this plan is a plain text edit; re-running the markdown
 gates is safe. If a gate fails mid-way, fix and re-run the same command;
 nothing is destructive.
 
-## Artifacts and notes
+## Artefacts and notes
 
 The §3.4 producer idiom to copy from `tests/steps/torn_turn_steps.py` (here
 declaring an unrecoverable `draft.md` and raising a sentinel error so the
@@ -773,7 +773,7 @@ settled baseline spec; the `pending-turn-rollback-unrecoverable` corpus variant
 is this baseline plus only the `pending_turn` field, per
 `tests/working_corpus/_reconcile_variants.py:200-206`), so declaring
 `working/manuscript/chapter-99/draft.md` — a chapter the baseline never
-materialises — yields a *missing unrecoverable* `draft.md` → ROLLBACK.
+materializes — yields a *missing unrecoverable* `draft.md` → ROLLBACK.
 
 ## Interfaces and dependencies
 

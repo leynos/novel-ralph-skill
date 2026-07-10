@@ -120,7 +120,7 @@ workaround.
   `TYPE_CHECKING` — exactly as the other `loaderkit` modules do (design §6, §6.1,
   §6.3; `docs/adr-003-shared-interface-contract.md`). It may depend only on
   `novel_ralph_skill.contract.errors`, `novel_ralph_skill.loaderkit` siblings
-  (`coerce`, `load`), and the standard library. The parametrised package-wide
+  (`coerce`, `load`), and the standard library. The parametrized package-wide
   import-direction guard
   (`tests/test_loaderkit_scan.py::test_loaderkit_module_imports_no_pack_domain`,
   which globs `loaderkit/*.py`) must continue to pass with the new module in
@@ -130,7 +130,7 @@ workaround.
   must carry a docstring. `interrogate` is AST-based: it reads source, it does
   not import. Any dataclass bundle the skeleton introduces must be a literal
   `class`/`@dataclass` statement with a literal docstring, not a runtime
-  synthesiser (mirroring Decision D-STATIC-CLASSES in
+  synthesizer (mirroring Decision D-STATIC-CLASSES in
   `docs/execplans/roadmap-7-2-5.md`).
 - **No file exceeds 400 lines (AGENTS.md "Keep file size manageable").** After
   the refactor each `parse.py` shrinks; the new `loaderkit/parse.py` must stay
@@ -270,7 +270,7 @@ workaround.
 - Work item 1: the `entry_id` default could not be expressed with `@overload`
   (the planned shape) because three project gates conflict on overloads: the
   repo bans `from typing import overload` (Ruff TID), `interrogate` 1.7.0 does
-  not recognise the aliased `@typ.overload` decorator (so it demands a stub
+  not recognize the aliased `@typ.overload` decorator (so it demands a stub
   docstring), and Ruff D418 forbids a docstring on an overload stub. The
   resolution — fully type-safe, no `Any`, no overloads — is to bound the entry
   `TypeVar` to a module-local `_HasId` `Protocol` (`build_entries[T: _HasId]`),
@@ -289,7 +289,7 @@ workaround.
   the resolved `schema_version` int (from the head) and the built entry `tuple`
   (from the tail) — to the caller, which constructs its own
   `RulePack`/`DeviceLedger`. The skeleton (split per D-SKELETON-HEAD-TAIL) is
-  parameterised on: the `CoercionErrors` bundle, the allowed top-level key
+  parameterized on: the `CoercionErrors` bundle, the allowed top-level key
   `frozenset`, the schema-version constant, the unsupported-version noun string
   (head); and the entry-array key, the `EntriesMessages` bundle, a per-entry
   builder callable `Callable[[Mapping, int], T]`, and the `entry_id` projection
@@ -360,7 +360,7 @@ workaround.
   typecheck — all already gated by `make all`. The `cuprum` source pinning and
   firecrawl library research the workflow asks for are therefore not applicable;
   the only load-bearing tooling claim ("`interrogate` is AST-based, so a
-  runtime-synthesised bundle fails the 100% gate") is pinned by Work item 1's
+  runtime-synthesized bundle fails the 100% gate") is pinned by Work item 1's
   `make lint` run, not asserted from memory. This mirrors Decision
   D-NO-EXTERNAL-RESEARCH in `docs/execplans/roadmap-7-2-5.md`, the directly
   preceding consolidation task.
@@ -398,7 +398,7 @@ Deviations from the plan, with rationale:
   `entry_id` default via `@overload` (a `_HasId`-bound overload plus an
   unbounded one). Three project gates make overloads unworkable here: the repo
   bans `from typing import overload` (Ruff TID), `interrogate` 1.7.0 does not
-  recognise the aliased `@typ.overload` decorator (and the codebase mandates
+  recognize the aliased `@typ.overload` decorator (and the codebase mandates
   `import typing as typ`), and Ruff D418 forbids a docstring on an overload
   stub — so interrogate and D418 deadlock. The resolution bounds the entry
   `TypeVar` directly (`build_entries[T: _HasId]`) against a module-local `_HasId`
@@ -500,7 +500,7 @@ Terms:
   `Mapping` into a validated frozen dataclass, runtime-checking every field and
   converting every fault into the family's content error.
 - *Skeleton* — the shared `loaderkit` orchestration body this task introduces,
-  parameterised on each family's constant, key set, array key, builder, and
+  parameterized on each family's constant, key set, array key, builder, and
   result products.
 - *Binding* — a thin per-package module that adapts a shared `loaderkit` body to
   that package's typed channel, nouns, and types, introduced for coercion by
@@ -567,7 +567,7 @@ D-SKELETON-RETURNS-TUPLE):
 - Carry a module docstring and a function docstring with full numpydoc
   `Parameters`/`Returns`/`Raises` on each. No result bundle class is needed (the
   head returns a bare `int`, the tail a bare tuple), so there is no runtime
-  synthesiser concern (Constraints, `interrogate` 100%).
+  synthesizer concern (Constraints, `interrogate` 100%).
 
 Do **not** import or reference any rule-pack/ledger noun or type here. The
 `build_entry` callback receives `(entry, index)` and is the per-family builder;
@@ -886,7 +886,7 @@ working-tree change for that file and re-apply. If a commit must be parked for
 formatter churn, name the stash `df12-stash v1 task=roadmap-7-2-6 kind=discard
 reason="formatter churn"`. No destructive or irreversible step is involved.
 
-## Artifacts and notes
+## Artefacts and notes
 
 The two near-copy orchestrations being consolidated are shown in full in
 *Context and orientation* above. The neutral products the skeleton returns (the

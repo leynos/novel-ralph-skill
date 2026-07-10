@@ -91,7 +91,7 @@ escalation, not a workaround.
 - The `result` payload shape of **each** path must be byte-for-byte unchanged
   for every existing input. Rule-pack `result` keys remain, in order, `pack`,
   `total_words`, `violations`, `findings`; ledger `result` keys remain, in
-  order, `violations`, `findings`. The `render_machine` JSON serialisation does
+  order, `violations`, `findings`. The `render_machine` JSON serialization does
   **not** sort keys (`novel_ralph_skill/contract/envelope.py:143-151`,
   `json.dumps(ordered)` with `dict(env.result)` and no `sort_keys`), so the
   builder must emit each path's `result` keys in that exact insertion order. The
@@ -158,7 +158,7 @@ escalation, not a workaround.
   builder behaviour to "fix" silently.
 - Layering: if making the builder generic appears to require importing a
   `rulepack` or `ledger` type into the `contract` package, stop and escalate —
-  that signals the parameterisation is wrong (the builder must be generic over
+  that signals the parameterization is wrong (the builder must be generic over
   an opaque finding type via `TypeVar`).
 - Per-hit payload merge: if the work appears to require sharing or unifying the
   two `_finding_payload` functions, stop and escalate — that is explicitly out
@@ -531,7 +531,7 @@ Assume no prior knowledge of this repository. The relevant pieces:
   - `tests/test_desloppify_report.py` (projection-level slimming unit tests for
     both paths, added by roadmap 7.1.3).
   - `tests/test_desloppify_finding_message.py` (per-hit message unit tests).
-- Because syrupy serialises dict snapshots with sorted keys, the `.ambr` files do
+- Because syrupy serializes dict snapshots with sorted keys, the `.ambr` files do
   **not** by themselves catch a `result` key reorder. **Nor does any existing
   end-to-end or command suite catch it**: every test that reads the envelope
   decodes it with `json.loads(...)` into a `dict` and then asserts on individual
@@ -652,7 +652,7 @@ tests; the call sites still use their inline skeletons).
 Implements: roadmap 7.1.4 ("one shared contract-package builder owns the
 failed-filter, exit-code, and `violations`/`findings`/`messages` skeleton");
 design §3.1, §3.2; ADR-003 (the shared envelope and exit-code contract the
-builder centralises).
+builder centralizes).
 
 Source edits:
 
@@ -849,7 +849,7 @@ Test edits:
    `test_ledger_report_outcome_slims_findings_to_over_ration`), so reuse those
    shapes; add the `list(outcome.result)` assertion to those tests or add two
    focused `test_*_result_key_order` tests beside them. These assert order on the
-   exact `dict` that `render_machine` serialises with no `sort_keys`, so they pin
+   exact `dict` that `render_machine` serializes with no `sort_keys`, so they pin
    the raw-JSON key order without depending on `json.loads` round-tripping.
 3. **Required — call-site exit-code assertion.** Extend
    `tests/test_desloppify_report.py` with one assertion per path that the
@@ -867,7 +867,7 @@ testing"; `python-testing` for snapshot discipline.
 
 Skills to load: `python-router`, then `python-abstractions` (the call sites now
 inject behaviour via callables into a shared builder — a behaviour-shaped
-parameterisation) and `python-testing` (confirming snapshots do not regenerate).
+parameterization) and `python-testing` (confirming snapshots do not regenerate).
 `leta` to confirm the two call sites have no other in-package callers that would
 need updating.
 
@@ -1104,7 +1104,7 @@ against source. Every test that reads the envelope decodes it with
 `json.loads(...)` into a `dict` and asserts by key
 (`tests/test_command_surface_matrix.py:239`/`:332`/`:418`,
 `tests/test_desloppify_command.py:48`, `tests/test_ai_isms_e2e.py:243`), never on
-key order; the `.ambr` snapshots serialise with sorted keys (the rule-pack
+key order; the `.ambr` snapshots serialize with sorted keys (the rule-pack
 `result` keys appear as `findings, pack, total_words, violations` alphabetically
 in `tests/__snapshots__/test_desloppify_snapshots.ambr`); and the cross-command
 matrix asserts only `set(result)` membership
@@ -1120,7 +1120,7 @@ real `report_outcome` and `["violations", "findings"]` on the real
 `ledger_report_outcome`, so a mis-wired `extra_result` (e.g. `{"total_words": …,
 "pack": …}`) at the rule-pack call site fails the suite rather than shipping
 unguarded. The assertion reads `outcome.result` (the exact insertion-ordered
-`dict` that `render_machine` serialises with no `sort_keys`), so it pins the
+`dict` that `render_machine` serializes with no `sort_keys`), so it pins the
 raw-JSON order without relying on `json.loads` round-tripping. The Work-item-1
 isolated builder test still pins the builder's order, but is no longer claimed as
 the call-site guard. No mechanism or scope change otherwise; the edit set grows

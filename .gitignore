@@ -208,3 +208,6 @@ target/
 mutants/
 
 .crush/
+
+.typos-oxendict-base.json
+.typos-oxendict-base.toml

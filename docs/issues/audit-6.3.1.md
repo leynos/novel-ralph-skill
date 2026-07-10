@@ -83,7 +83,7 @@ genuinely new debt 6.3.1 surfaces.
 The missing-arm guard is `if not path.parent.exists() or not path.exists():`,
 and that arm emits `f"no novel working/ found in {cwd}; run from the novel root,
 or run 'novel state init' to create one"`. When `working/` *does* exist but
-`state.toml` is missing (a half-initialised tree, or a `state.toml` deleted by
+`state.toml` is missing (a half-initialized tree, or a `state.toml` deleted by
 hand), `path.parent.exists()` is `True` while `path.exists()` is `False`, so this
 arm fires and tells the operator no `working/` was found — which is factually
 wrong, since `working/` is right there. The remedy (`novel state init`) is still
@@ -168,7 +168,7 @@ structural near-twins: `_coerce.py` is a line-for-line copy modulo the error typ
 prose; `errors.py` is the same two-channel pair (a per-entity content error plus
 a file error). `ledger/_coerce.py`'s own docstring documents this as a deliberate
 near-copy justified by the frozen rule-pack path. The fold-out onto
-error-factory-parameterised helpers is already enumerated in the roadmap (the
+error-factory-parameterized helpers is already enumerated in the roadmap (the
 reroute at lines 4286-4303 names both `_coerce.py` files and the `parse`/`detect`
 siblings), so no new tracking is required. Recorded here only to confirm the
 duplication still stands after 6.3.1 and that the roadmap inventory is current.

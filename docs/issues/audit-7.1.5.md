@@ -43,7 +43,7 @@ markdown-parsing helpers from the shared pure sibling
 `tests/_skill_contract_scanner.py`.
 
 A future wording or matching-semantics change (for example, switching to
-whole-word matching, or normalising punctuation) would have to be made in two
+whole-word matching, or normalizing punctuation) would have to be made in two
 places, and a drift between the two copies would silently weaken one guard.
 
 **Proposed fix:** Move `_meaning_has_keyword` into

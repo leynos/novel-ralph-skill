@@ -10,7 +10,7 @@ be fixed before implementation.
 
 Verification performed (sources cited so the trail is reproducible):
 
-- Regex normaliser behaviour confirmed empirically in-worktree against the plan's
+- Regex normalizer behaviour confirmed empirically in-worktree against the plan's
   table; all six cited cases reproduce exactly. (`tests/test_interrogate_gate.py:24`.)
 - pyproject Ruff `per-file-ignores` glob `**/test_*.py` confirmed at line 96;
   `[tool.interrogate] fail-under = 100` at 312; `tool.pytest.ini_options`
@@ -34,18 +34,18 @@ convention verbatim: "All Hypothesis inputs come from strategies; no `@given`
 test takes a function-scoped fixture, which would raise
 `HealthCheck.function_scoped_fixture` (Hypothesis Compatibility docs)."
 
-Work item 3 specifies a `@given` property test for the normaliser, but the plan
+Work item 3 specifies a `@given` property test for the normalizer, but the plan
 deletes `_DIST_NAME`/`_dist_name` from `test_interrogate_gate.py` and places the
-normaliser ONLY in `tests/conftest.py`, reachable solely as the function-scoped
+normalizer ONLY in `tests/conftest.py`, reachable solely as the function-scoped
 `dist_name` fixture (Constraints; Work item 3 edit 1; Interfaces lines 505-526).
-The only sanctioned way for the property test to obtain the normaliser is then to
+The only sanctioned way for the property test to obtain the normalizer is then to
 take `dist_name` as a parameter — which, combined with `@given` and the plan's
 stated "default Hypothesis settings" (Risks, line 118), is a guaranteed
 `HealthCheck.function_scoped_fixture` failure, not a hypothetical. The plan's
 xdist-flakiness risk (lines 116-121) does not cover this; it is a determinate
 error under the default profile.
 
-The plan must specify HOW the `@given` test reaches a fixture-free normaliser
+The plan must specify HOW the `@given` test reaches a fixture-free normalizer
 without re-introducing the duplication this task exists to remove, and without
 suppressing the health check (suppression would weaken the guard the existing
 convention defends). Options for the planner to choose and pin explicitly (do not
@@ -57,7 +57,7 @@ leave to the implementer):
 - Have the `dist_name` fixture's underlying callable be a module-level function
   in `conftest.py` that the fixture merely returns, and let the property test in
   `test_interrogate_gate.py` import nothing from conftest but instead exercise the
-  normaliser through a session-scoped fixture (session scope does not trip the
+  normalizer through a session-scoped fixture (session scope does not trip the
   health check) — but verify session scope against the Hypothesis compatibility
   docs and cite it; or
 - Place the property test in `tests/test_conftest_helpers.py` or
@@ -75,7 +75,7 @@ cost and the new one must match.
 Work item 3 edit 3 builds the specifier by composing "a valid bare name ... with
 an optional suffix drawn from extras/operator/marker characters (`[`, `]`, `>`,
 `<`, `=`, `~`, `;`, space, version digits)" and asserts invariant (a): "the
-normaliser returns exactly the bare name for the composed specifier."
+normalizer returns exactly the bare name for the composed specifier."
 
 This is false. The PEP 503 name alphabet the regex accepts internally includes
 `.`, `_`, and `-`, and the suffix alphabet the plan names includes "version
@@ -125,7 +125,7 @@ suffix's first character set) so the implementation is mechanical.
   than reason from first principles, since that precedent is also the source of
   B1.
 
-- A4 (Wafflecat) — Strongest alternative: keep the normaliser as a module-level
+- A4 (Wafflecat) — Strongest alternative: keep the normalizer as a module-level
   function in `conftest.py` AND expose it as a fixture wrapping that function.
   Tests that are not `@given` consume the fixture (honouring the no-conftest-import
   rule for ordinary tests); the single `@given` property test, which structurally

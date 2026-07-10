@@ -82,7 +82,7 @@ as a "focused classifier" tweak slipped into a sibling task's modules under a
   `set-chapters`. A genuinely-considered alternative: write the manifest only
   (single-file, already atomic, **no `[pending_turn]`, no Work item 3a, no
   reconcile change**), and let a later loop step (or `reconcile`'s existing
-  `draft-without-manifest-entry` / bijection path) materialise directories — or
+  `draft-without-manifest-entry` / bijection path) materialize directories — or
   have the per-chapter drafting step create its own directory on demand. The
   plan rejects this only implicitly (D2 escalation trigger). Given that D2 is
   what forces the multi-file bracket, the torn-turn hazard, the reconcile

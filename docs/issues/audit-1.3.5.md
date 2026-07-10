@@ -59,7 +59,7 @@ the call as a structural-completeness *assertion* and the other as a *value
 producer*, using one function in two roles. Calling a value-returning query and
 discarding its result is the inverse of command/query separation and reads as a
 latent smell: a future reader may "fix" the discard by wiring the unused view
-into the edit, or may not realise the call is load-bearing (it must run before
+into the edit, or may not realize the call is load-bearing (it must run before
 the `document["drafting"]` scalar edits, or a missing `[drafting]` table would
 raise `NonExistentKey` uncaught and exit `1`, breaching the exit-`3` contract).
 
@@ -113,7 +113,7 @@ copies.
   [`commands/_state_mutators.py`](../../novel_ralph_skill/commands/_state_mutators.py)
   lines 57–59 (`_state_path`).
 
-`_state_mutators._state_path()` centralises the fixed cwd-relative
+`_state_mutators._state_path()` centralizes the fixed cwd-relative
 `working/state.toml` path for the two write mutators, but `_check` re-derives it
 inline as `pathlib.Path(WORKING_DIR_NAME) / "state.toml"` and `_init` builds it
 as `working / "state.toml"`. Three independent constructions of one canonical
@@ -141,7 +141,7 @@ AGENTS.md "Keep file size manageable" caps a single code file at 400 lines;
 `rulepack/parse.py` is 515. Task 1.3.5 did not touch this file, so this is a
 standing overflow, not a regression. It was raised as `audit-2.2.2` Finding 5
 (low) and, like Finding 3 above, was not triaged onto the roadmap. It is recorded
-again so the cap breach is not normalised by repetition.
+again so the cap breach is not normalized by repetition.
 
 Proposed fix: split the scalar-coercion helpers (`_where`,
 `_reject_unknown_keys`, `_require`, `_require_str`, `_require_int`, `_entries`)

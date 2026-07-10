@@ -16,7 +16,7 @@ are advisory; none block implementation.
   the slow item" hedge is genuinely removed. (Minor: the plan cites `Makefile:116`
   and `ci.yml:10`; the substantive lines are off by a line or two but the content
   is exactly as claimed.)
-- **cuprum 0.1.0 surface.** The *installed* artifact's `SafeCmd.run_sync` is
+- **cuprum 0.1.0 surface.** The *installed* artefact's `SafeCmd.run_sync` is
   `(*, capture=True, echo=False, context=None) -> CommandResult` — exactly the
   chain the existing `_run_installed` uses and the plan reuses. Confirmed by
   introspecting the installed package. NOTE: the read-only sibling checkout at

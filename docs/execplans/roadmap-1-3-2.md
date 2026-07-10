@@ -10,7 +10,7 @@ Status: COMPLETE
 
 This is roadmap task 1.3.2 (`docs/roadmap.md` lines 229-236, step 1.3). It
 builds the shared on-disk test corpus every later slice consumes: a set of
-reusable pytest fixtures that materialise a `working/` directory tree under
+reusable pytest fixtures that materialize a `working/` directory tree under
 `tmp_path` for each of the eleven phase states, for coherent and deliberately
 incoherent `state.toml` variants, and for chapter drafts with `done.flag`
 permutations. The corpus is the seed of the snapshot and behavioural suites in
@@ -25,7 +25,7 @@ The corpus is anchored to the design's authoritative artefacts:
 authoritative source for the on-disk layout".
 
 After this change a contributor can, in any test module, request a fixture by
-parameter name and receive a fully materialised `working/` tree on disk, then
+parameter name and receive a fully materialized `working/` tree on disk, then
 point a command (in a later slice) at it. Concretely, after this task lands:
 
 - A new conftest-level factory fixture (the "factory as fixture" pattern,
@@ -38,7 +38,7 @@ point a command (in a later slice) at it. Concretely, after this task lands:
   (`premise` … `done`, design §5.1), the coherent baseline, the deliberately
   incoherent variants (each violating exactly one §5.2 invariant), and the
   `done.flag` permutations.
-- A self-validating corpus test proves every fixture materialises the tree it
+- A self-validating corpus test proves every fixture materializes the tree it
   claims and that the coherent / incoherent split is real: the coherent
   variants satisfy a corpus-local structural oracle while each incoherent
   variant fails it on exactly the one invariant it is built to break.
@@ -388,7 +388,7 @@ Hard invariants; violation requires escalation, not a workaround.
   design does not define, so the oracle cannot diverge from `novel-compile` by
   encoding a compile model the design lacks (design-review B1).
 - Risk: `tomlkit` writes a state file the phase-2 round-trip cannot preserve
-  byte-for-byte (e.g. through an idiom `tomlkit` normalises on load). Severity:
+  byte-for-byte (e.g. through an idiom `tomlkit` normalizes on load). Severity:
   medium. Likelihood: low. Mitigation: write each `state.toml` through
   `tomlkit` and, in the self-test, read it back with `tomllib` and assert the
   decoded values match the specification; additionally assert a `tomlkit`
@@ -410,11 +410,11 @@ Hard invariants; violation requires escalation, not a workaround.
 ## Progress
 
 - [x] Work item 1: define the corpus specification types and the tree builder
-  (`build_working_tree`), with unit tests proving it materialises the declared
+  (`build_working_tree`), with unit tests proving it materializes the declared
   files and writes a `tomlkit`-round-trippable `state.toml`.
 - [x] Work item 2: define the named specification library — the eleven phase
   states and the coherent baseline — and expose them through a factory fixture,
-  with tests asserting each phase state materialises with the right
+  with tests asserting each phase state materializes with the right
   `phase.current` / `phase.completed`.
 - [x] Work item 3: add the deliberately incoherent variants (one per §5.2
   invariant), the contradictory-disk cases — including
@@ -588,7 +588,7 @@ Hard invariants; violation requires escalation, not a workaround.
   themselves stay in `conftest` so consumers still receive them by parameter
   name (no value import). Date/Author: 2026-06-22, planning agent. (The split
   is now mandatory, not conditional, because the no-value-import resolution
-  above requires a dedicated non-`test_*` data module; finalise nothing else in
+  above requires a dedicated non-`test_*` data module; finalize nothing else in
   Work item 1.)
 - Decision (Work item 1): `working_corpus` is a *package* (`tests/working_corpus/`)
   rather than a single `tests/working_corpus.py` module, because the corpus data
@@ -630,7 +630,7 @@ Hard invariants; violation requires escalation, not a workaround.
 - Decision (fix round 1): make design §5.2 invariant 3 genuinely reachable on
   disk. The original `by-chapter-sum-mismatch` variant used a
   `by_chapter_override`, but the builder computed `word_counts.current` as
-  `sum(by_chapter.values())` unconditionally, so the materialised `state.toml`
+  `sum(by_chapter.values())` unconditionally, so the materialized `state.toml`
   always satisfied `sum(by_chapter) == current` — the real invariant 3 was never
   violated, and the oracle's `_check_by_chapter_sum` instead compared the
   override against the chapters' `draft_words` (a corpus-internal property, not
@@ -642,7 +642,7 @@ Hard invariants; violation requires escalation, not a workaround.
   override verbatim while `by_chapter` still derives from the drafts — so the
   variant's on-disk state now has `sum(by_chapter) != current`, a genuine
   invariant-3 violation. The oracle's `_check_by_chapter_sum` now reads the
-  materialised `state.toml` and compares the written `sum(by_chapter)` against the
+  materialized `state.toml` and compares the written `sum(by_chapter)` against the
   written `current`, i.e. the exact disk evidence task 2.1.2's validator will see,
   so the corpus label and the real validator agree. The `by-chapter-sum-mismatch`
   variant switches to `current_words_override=1`. A new self-test
@@ -721,12 +721,12 @@ External library docs (verified during planning, cite when implementing):
   (`https://docs.pytest.org/en/stable/how-to/fixtures.html#factories-as-fixtures`):
   a fixture may return a function that generates data, callable multiple times
   in one test, optionally with parameters; if the data needs managing, the
-  fixture `yield`s the factory and tears down afterward. This is the verified
+  fixture `yield`s the factory and tears down afterwards. This is the verified
   mechanism for `build_working_tree` as a factory fixture. (The corpus needs no
   teardown beyond pytest's own `tmp_path` cleanup, so a plain `return` factory
   suffices.)
 - `tomlkit` is the locked round-trip writer (0.15.0, `uv.lock`); design §5.3
-  and ADR-002 pin it as the comment/format-preserving serialiser. `tomllib`
+  and ADR-002 pin it as the comment/format-preserving serializer. `tomllib`
   (stdlib) reads but cannot write TOML (design §5.3), so it is used only to
   read a written file back in a self-test.
 
@@ -752,7 +752,7 @@ fixed, enumerated data, not an invariant over a generated range. The property
 suites that exercise the corpus belong to the *consumers* (task 2.1.2's
 Hypothesis suite over the validator, task 2.2.1's round-trip property). This
 task's own tests are example-based assertions that each named fixture
-materialises the tree it claims. If, while implementing, the structural oracle
+materializes the tree it claims. If, while implementing, the structural oracle
 seems to warrant generated inputs, escalate and reconsider per
 `python-verification` rather than adding Hypothesis speculatively.
 
@@ -767,7 +767,7 @@ self-test before its fixtures exist where practical (red, then green).
 ### Work item 1: specification types and the tree builder
 
 Purpose: deliver the data shape that describes a `working/` tree and the
-builder that materialises it on disk, so every later variant is declared once
+builder that materializes it on disk, so every later variant is declared once
 and rendered uniformly.
 
 New code (in `tests/working_corpus.py` if the line-count split is taken, else in
@@ -796,7 +796,7 @@ New code (in `tests/working_corpus.py` if the line-count split is taken, else in
   `compiled-not-concatenation-of-drafts` variant), and
   `pending_turn: Mapping[str, object] | None` (the two-key `operation`/`paths`
   marker for the torn-turn variant).
-- `build_working_tree(spec: WorkingTreeSpec, dest: Path) -> Path`: materialises
+- `build_working_tree(spec: WorkingTreeSpec, dest: Path) -> Path`: materializes
   the tree under `dest` (the test's `tmp_path`). It creates `working/` and its
   subdirectories with `pathlib`, writes each `chapter-NN/draft.md` (zero-padded
   to two digits) with `draft_words` deterministic words, touches `done.flag`
@@ -812,7 +812,7 @@ New code (in `tests/working_corpus.py` if the line-count split is taken, else in
   `convergence_target`, and `last_finding_counts`), `[drafting.fangirl]`,
   `[gates.knitting]`, `[gates.final]`, `[word_counts]` (with `by_chapter` keyed
   by zero-padded two-digit **string**), and `[chapters]`, plus `[pending_turn]`
-  only when the spec provides one. Tables the spec does not parameterise are
+  only when the spec provides one. Tables the spec does not parameterize are
   emitted with fixed deterministic builder defaults so task 2.1.1 parses
   without loss. Returns the `working/` path.
 - `CORPUS_SEPARATOR: str` (the single `"\n\n"` separator constant) and
@@ -906,7 +906,7 @@ Tests to add (extend `tests/test_working_corpus.py`):
 
 - A test that requests `phase_names` and `phase_state_tree` by parameter name,
   iterates the phase tuple, and for each phase asserts
-  `phase_state_tree(phase)` materialises a tree whose read-back `state.toml` has
+  `phase_state_tree(phase)` materializes a tree whose read-back `state.toml` has
   `phase.current == phase` and `phase.completed` equal to the in-order prefix
   before `phase`. (No `PHASE_STATES` symbol appears in the test; pytest's
   `parametrize` cannot take a fixture value, so iterate the `phase_names` tuple
@@ -1058,7 +1058,7 @@ Tests to add (extend `tests/test_working_corpus.py`):
 
 - A test receiving `done_flag_permutation_names`, `done_flag_tree`, and
   `check_corpus` by parameter name iterates the permutation tuple and, for
-  each, asserts the materialised tree carries `done.flag` in exactly the
+  each, asserts the materialized tree carries `done.flag` in exactly the
   chapters the permutation names and in no others, and that `check_corpus`
   still returns the empty tuple (the permutations are coherent). No
   `DONE_FLAG_PERMUTATIONS` or `corpus_check` symbol is imported.
@@ -1131,7 +1131,7 @@ make nixie        # Mermaid validation (Work item 5)
 Expected: `make all` ends with pytest reporting all tests passed (the new
 `test_working_corpus.py` among them) and `interrogate` reporting 100% docstring
 coverage. A new corpus test fails before its builder/specs exist and passes
-after (red/green): e.g. `tests/test_working_corpus.py`'s materialisation test
+after (red/green): e.g. `tests/test_working_corpus.py`'s materialization test
 fails before Work item 1's `build_working_tree` lands.
 
 ## Validation and acceptance
@@ -1139,7 +1139,7 @@ fails before Work item 1's `build_working_tree` lands.
 Acceptance is behavioural:
 
 - Requesting `phase_state_tree("drafting")` (the factory fixture, by parameter
-  name) in a test materialises a `working/` tree on disk at exactly the design
+  name) in a test materializes a `working/` tree on disk at exactly the design
   paths (manuscript under `working/manuscript/`, chapters `chapter-NN/`,
   `compiled.md` under `working/manuscript/`), whose read-back `state.toml` has
   the declared phase, completed prefix, manifest, and word counts — verified by
@@ -1147,14 +1147,14 @@ Acceptance is behavioural:
   the only argument.
 - Every incoherent variant (driven through the `incoherent_tree` /
   `incoherent_variant_names` / `check_corpus` fixtures, all by parameter name)
-  materialises a tree the corpus-local oracle flags on **exactly** its one
+  materializes a tree the corpus-local oracle flags on **exactly** its one
   named §5.2 (or §5.4) invariant — including the
   `compiled-not-concatenation-of-drafts` case, detected by recomputing
   `concatenate_drafts` and comparing content, not by parsing chapter names —
   while the coherent baseline and all eleven phase states pass the oracle clean
   — verified by the Work item 3 self-test (the proof the coherent/incoherent
   split is real and isolated).
-- The `done.flag` permutations materialise flags in exactly the named chapters
+- The `done.flag` permutations materialize flags in exactly the named chapters
   and remain coherent — verified by the Work item 4 tests.
 - The written `state.toml` is `tomlkit`-round-trip idempotent, so phase 2's
   no-op round-trip property will preserve every corpus state file — verified by
@@ -1278,7 +1278,7 @@ at runtime; the only runtime import edge is `conftest → working_corpus`. No
 test performs a runtime cross-module import, and the test-facing
 `TYPE_CHECKING` import is `from conftest import …` — exactly the sanctioned
 form (developers-guide lines 39-52), so the contract holds with no guide
-amendment. The exact field set above is indicative; finalise it in Work item 1
+amendment. The exact field set above is indicative; finalize it in Work item 1
 to carry every datum the §5.1 schema and §5.2 invariants need, recording any
 change in the Decision Log. Do not add a field the design does not name, and do
 not drop one phase 2 must parse.

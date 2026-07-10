@@ -94,7 +94,7 @@ comments" acceptance is genuinely tested at the locked tomlkit version.
 
 ### B3 — The empirical round-trip probe was run at tomlkit 0.14.0, but the locked version is 0.15.0; the cross-version equivalence is asserted from memory, not verified
 
-"Surprises & discoveries" and "Artifacts and notes" record the probe results
+"Surprises & discoveries" and "Artefacts and notes" record the probe results
 (NOOP_BYTE_IDENTICAL, VALUE_MUTATION_SURGICAL, the add-then-remove whitespace
 artefact) at **tomlkit 0.14.0 ambient**, then assert "locked 0.15.0 behaves
 identically per the official quickstart." That is an uncited, memory-based
@@ -144,7 +144,7 @@ signpost the boundary.
 The corpus fixtures (`phase_state_tree`, `baseline_tree`) are **factory
 callables** returning the `working/` directory path; `coherent_oracle_cases`
 returns `(spec, working_dir)` pairs (`corpus_fixtures.py` 125-203). The plan's
-prose ("a tree fixture materialises a `working/` directory … with
+prose ("a tree fixture materializes a `working/` directory … with
 `state.toml` at its root") is close but elides that these are callables and
 that the state file is at `working_dir / "state.toml"`. Minor, but the
 implementer should not expect a bare `Path` fixture; tighten the wording so the

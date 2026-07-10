@@ -73,7 +73,7 @@ Proposed fix: lift the shared shape into the `contract` layer — a
 `usage_error_outcome(exc: EnvelopeMessagesError) -> CommandOutcome` helper that
 both command modules call. Each module keeps its own thin domain subclass for the
 docstring-level trigger, but the exit-2 envelope construction lives in exactly
-one place, mirroring how `_state_mutators` already centralises the load/refuse
+one place, mirroring how `_state_mutators` already centralizes the load/refuse
 helpers. Add a unit test pinning the shared helper's envelope.
 
 ## Finding 2 — Inline rule-name strings break the named-constant precedent
@@ -183,7 +183,7 @@ must now know that "the subcommands of `novel-state`" live in two files under tw
 idioms.
 
 Proposed fix: this is acceptable as a size-driven trade-off, but consider, when
-a further mutator family lands, normalising on the registrar pattern (one
+a further mutator family lands, normalizing on the registrar pattern (one
 `register_*` per mutator family, `build_app` becoming a thin sequence of registrar
 calls) so the app has a single, uniform wiring idiom rather than a mix.
 

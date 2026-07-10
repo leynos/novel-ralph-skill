@@ -354,7 +354,7 @@ escalation, not a workaround.
     - Observation: one venv install yields all five console-scripts. The wheel's
       `[project.scripts]` registers `novel-state`, `novel-done`, `novel-compile`,
       `desloppify`, and `wordcount` (`pyproject.toml` lines 10-15), so a single
-      `uv build --wheel` + `uv venv` + `uv pip install` materialises every script
+      `uv build --wheel` + `uv venv` + `uv pip install` materializes every script
       in the one `scripts_dir`, each runnable by absolute path through a
       single-program cuprum catalogue (`tests/test_console_scripts_e2e.py` lines
       105-124 drives all five this way; `tests/test_recount_e2e.py` lines
@@ -975,7 +975,7 @@ fails mid-item, fix and re-run; nothing is left in a partial state because no
 production or corpus file is mutated. To start over, `git restore` the new test
 files (they are additive).
 
-## Artifacts and notes
+## Artefacts and notes
 
 The load-bearing ground-truth values are recorded in `Surprises &
 discoveries`. The key citations the implementer must keep in view:

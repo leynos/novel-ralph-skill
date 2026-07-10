@@ -112,7 +112,7 @@ escalation, not a workaround.
 ## Risks
 
     - Risk: A §6 offender row uses a placeholder ("[her]", "[verb]-ed
-      sadly/quietly/softly", "capitalised abstract noun") that has no single
+      sadly/quietly/softly", "capitalized abstract noun") that has no single
       obvious regex, or one obvious reading silently misses the offender.
       Severity: medium
       Likelihood: high
@@ -127,7 +127,7 @@ escalation, not a workaround.
       one of the three named adverbs — and the broader §4 "X said with adverbs"
       dialogue tell (whose canonical example "she said sadly" does **not** end in
       "-ed") is **out of scope** for the §6 pack (it is a §4 tell, not a §6 row);
-      (2) "capitalised abstract noun" is narrowed to the closed alternation of
+      (2) "capitalized abstract noun" is narrowed to the closed alternation of
       the §6 named offenders ("Tapestry"/"Symphony"/"Paradigm"), not a
       part-of-speech check. Both narrowings are recorded in the Decision Log.
 
@@ -154,7 +154,7 @@ escalation, not a workaround.
       Severity: low
       Likelihood: medium
       Mitigation: Report line numbers per source file (chapter), not against a
-      synthesised global buffer; the detection core records `(chapter, line)`
+      synthesized global buffer; the detection core records `(chapter, line)`
       for each hit. Pin with a two-chapter snapshot.
 
     - Risk: A multi-token span offender ("it's not just… it's…",
@@ -344,12 +344,12 @@ escalation, not a workaround.
 
     - Decision: "shivers down [her] spine" pins the `[her]` placeholder to a
       possessive/article set and allows the common "shiver"/"shivers" and
-      "down"/"up" variants; "capitalised abstract noun" narrows to a closed
+      "down"/"up" variants; "capitalized abstract noun" narrows to a closed
       alternation of the §6 named offenders.
       Rationale: The `[her]` bracket is the checklist's placeholder for "any
       possessive"; pinning it to `(?:her|his|their|my|your|the)` covers the POV
       pronouns plus the article without a part-of-speech engine. A true
-      "capitalised abstract noun" classifier is out of reach for stdlib `re`;
+      "capitalized abstract noun" classifier is out of reach for stdlib `re`;
       the §6 table already supplies the offenders to count ("Tapestry",
       "Symphony", "Paradigm"), so the rule is a closed alternation of those
       proper-noun-cased tells, anchored to word boundaries. Both are pinned
@@ -368,7 +368,7 @@ escalation, not a workaround.
       with no following verb), which is an unpinned reinterpretation that flags
       prose the §6 row does not name — the same defect-class as round-1 defect 2.
       A true part-of-speech verb classifier is out of reach for stdlib `re` (the
-      same constraint already pinned for the capitalised-abstract-noun row), so
+      same constraint already pinned for the capitalized-abstract-noun row), so
       the faithful, testable reading is to require at least one more word token
       immediately after the reflexive: `[^\S\n]+\w`. `[^\S\n]` is whitespace
       except a newline, so the continuation stays on the same physical line
@@ -384,7 +384,7 @@ escalation, not a workaround.
       (it tolerates incidental hits) and a POS check is unavailable in `re`. The
       positive/negative matrix in `tests/test_offenders_pack.py` pins this exact
       reading. (Round-3 blocking defect; mirrors the shivers/verb-ed-adverb/
-      capitalised-noun placeholder decisions.)
+      capitalized-noun placeholder decisions.)
       Date/Author: 2026-06-24, planner.
 
     - Decision: The spaced en dash ( – ) of the df12 register (§1 of the
@@ -427,7 +427,7 @@ escalation, not a workaround.
       Date/Author: 2026-06-24, planner.
 
     - Decision: Line numbers are reported per source chapter file, not against a
-      synthesised global buffer.
+      synthesized global buffer.
       Rationale: Whole-manuscript scope concatenates several drafts; a global
       line number would be meaningless to the agent fixing chapter 7. Each hit
       carries `{chapter, line}`. (Risk "line numbers drift".)
@@ -511,7 +511,7 @@ Lessons:
 - The combined command module overran the 400-line cap; splitting the pure
   envelope projection and the resolver into `_desloppify_report.py` (mirroring
   `_recount.py`) kept both files well under the cap with a clean dependency edge.
-- Placeholder §6 rows ("[her]", "+ verb", capitalised abstract noun, the
+- Placeholder §6 rows ("[her]", "+ verb", capitalized abstract noun, the
   contraction-only "couldn't help but") each needed an explicit pinned reading
   and a both-directions positive/negative test, so the pack's comments never
   assert behaviour the regex lacks.
@@ -566,7 +566,7 @@ Key existing files (full repository-relative paths):
 - `tests/test_console_scripts_e2e.py` — the build-install-run e2e pattern that
   uses cuprum to run an installed script by absolute path.
 - `tests/test_novel_state_check.py` — the in-process command test pattern
-  (`monkeypatch.chdir`, `capsys`, `run(...)` under a materialised `working/`).
+  (`monkeypatch.chdir`, `capsys`, `run(...)` under a materialized `working/`).
 
 Terms:
 
@@ -748,7 +748,7 @@ The `id` for each row is the slug given. The pinned pack is:
     # word token (the "+ verb" part of the §6 row). [^\S\n]+\w is a newline-safe
     # whitespace-then-word continuation: it is the regex-expressible proxy for
     # "+ verb" (stdlib re has no part-of-speech engine; same constraint as the
-    # capitalised-abstract-noun row). It matches "found herself wondering" but NOT
+    # capitalized-abstract-noun row). It matches "found herself wondering" but NOT
     # the bare reflexive "found herself." / "found himself!" / "found herself,".
     # The [^\S\n] (whitespace except newline) keeps the continuation on the same
     # physical line, consistent with the line-by-line scan (Work item 1). The
@@ -807,7 +807,7 @@ The `id` for each row is the slug given. The pinned pack is:
     basis = "manuscript"
 
     [[rule]]
-    id = "capitalised-abstract-noun"
+    id = "capitalized-abstract-noun"
     # Narrowed to the closed set of §6 named offenders, proper-noun-cased; NOT a
     # part-of-speech check (Decision Log). Case-sensitive on purpose.
     pattern = '''\b(?:Tapestry|Symphony|Paradigm)\b'''
@@ -1053,7 +1053,7 @@ In `_desloppify.py`, add the command body and the Cyclopts app:
      **Emit `basis` as an explicit string** (`finding.basis.value`), not the raw
      `RuleBasis` member: `render_machine` calls `json.dumps(ordered)` with no
      `default=` handler (`contract/envelope.py:147`), so although a `StrEnum`
-     member serialises as its bare value today, a future change of `RuleBasis`
+     member serializes as its bare value today, a future change of `RuleBasis`
      to a non-`str` Enum would silently break the contract. The snapshot test
      (Work item 5) asserts `result.findings[].basis` is a `str` to pin this.
    - `messages` carries human prose: one line per failed rule, or "no slop
@@ -1129,7 +1129,7 @@ Snapshot tests (`tests/test_desloppify_snapshots.py`, `syrupy`, following
 `tests/test_contract_envelope_snapshots.py`): snapshot the machine-mode JSON
 envelope for (a) a clean pass and (b) a manuscript with exactly one rule one
 hit past threshold (the design §9 "hit exactly at threshold / clean pass"
-boundary pair). Normalise `working_dir` to the fixed constant; there are no
+boundary pair). Normalize `working_dir` to the fixed constant; there are no
 timestamps or absolute paths in this envelope, but assert that invariant in the
 test so a future addition cannot silently churn the snapshot. Pair each
 snapshot with semantic assertions (AGENTS.md snapshot rules — the snapshot is
@@ -1142,7 +1142,7 @@ snapshot.
 
 End-to-end test (extend or mirror `tests/test_console_scripts_e2e.py`, marked
 `slow`, `@pytest.mark.timeout(180)`, POSIX-only per ADR-006): build the wheel,
-install into a throwaway venv, materialise a `working/` tree with a manifest
+install into a throwaway venv, materialize a `working/` tree with a manifest
 and one offending draft, then run the installed `desloppify` **by absolute
 path** through a cuprum catalogue that **registers that exact path**. The
 registration is the gate: `sh.make(prog, catalogue=…)` calls
@@ -1235,7 +1235,7 @@ Quality criteria (what "done" means):
 - Lint/typecheck: `make check-fmt`, `make lint` (Ruff + interrogate at 100% +
   Pylint), `make typecheck` (`ty`) all green. No file over 400 lines.
 - Markdown: `make markdownlint` and `make nixie` pass on the edited docs.
-- Behaviour (manual spot check, from a tmp dir with a materialised `working/`):
+- Behaviour (manual spot check, from a tmp dir with a materialized `working/`):
   - `desloppify` over clean prose prints `ok:true` and `echo $?` is `0`.
   - `desloppify` over an em-dash-flooded draft prints `ok:false`, names
     `em-dash` in `result.violations`, and `echo $?` is `4`.
@@ -1254,7 +1254,7 @@ work item's `make all` fails, fix forward (the change is uncommitted until the
 gate is green); no rollback of disk state is needed because nothing outside the
 working tree is mutated. The e2e builds into `tmp_path` and is self-cleaning.
 
-## Artifacts and notes
+## Artefacts and notes
 
 To be filled with concise transcripts as work proceeds (the failing-then-passing
 `pytest` runs, the `make all` summary, and the e2e exit-`4` transcript that
@@ -1340,9 +1340,9 @@ row, an unpinned reinterpretation matching the bare reflexive):
   the line-by-line scan.
 - **Decision Log entry added** recording the deliberate narrowing of "+ verb"
   to "+ following word token" (stdlib `re` has no POS engine, same constraint
-  as the capitalised-abstract-noun row), with the threshold-2 tolerance
+  as the capitalized-abstract-noun row), with the threshold-2 tolerance
   rationale — mirroring the three existing placeholder decisions (shivers,
-  verb-ed-adverb, capitalised-noun).
+  verb-ed-adverb, capitalized-noun).
 - **Explicit positive/negative tests pinned** in Work item 2's
   `tests/test_offenders_pack.py` matrix: three positives, four single-line
   negatives (including the exact round-2 false positive "found herself."), and
@@ -1403,7 +1403,7 @@ projection) were re-routed to roadmap step 7.1 (tasks 7.1.3–7.1.5) because the
 enrich the per-hit contract the §7.1 packs inherit rather than confirming the
 settled step-5.1 detection-as-versioned-data hypothesis; the chapter-draft
 shared-reader consolidation was re-routed to the new roadmap step 7.10. These
-four are the small doc fixes, the localised test refactor, and the coverage gap
+four are the small doc fixes, the localized test refactor, and the coverage gap
 only.
 
 - [x] 5.1.2.1 — Document the per-page density behaviour on short or near-empty
@@ -1437,4 +1437,4 @@ only.
   per-page density over one chapter, not the manuscript total; reword them to
   name the actual scope. Add a focused test for the untested per-page density
   branch of `_finding_message` (`commands/_desloppify_report.py`). Both are
-  localised to the 5.1.2 surface. Gate with `make all`.
+  localized to the 5.1.2 surface. Gate with `make all`.

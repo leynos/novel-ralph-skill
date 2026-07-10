@@ -525,7 +525,7 @@ never in parallel) from the worktree root. `make all` is
 - No destructive operations. Recovery is `git checkout -- <file>` on any edited
   file within the worktree.
 
-## Artifacts and notes
+## Artefacts and notes
 
 - Work item 1: `make all` reported `121 passed in 4.70s`; `make audit` reported
   `No known vulnerabilities found`. The `ruff format` check required joining the

@@ -10,7 +10,7 @@ source tree in this worktree (not the planner's summary). The inventory is
 exhaustive and correct, the work-item ordering keeps the tree green at every
 commit boundary, the deterministic/judgemental boundary (ADR-001) and the frozen
 rule-pack contract (ADR-003) are untouched, and the prune decision (D-PRUNE) is
-explicitly authorised by audit-7.2.3 Finding 1 and corroborated by a fresh
+explicitly authorized by audit-7.2.3 Finding 1 and corroborated by a fresh
 whole-repo grep showing no out-of-tree consumer.
 
 One **advisory** correction (rationale imprecision under PEP 563) and a couple

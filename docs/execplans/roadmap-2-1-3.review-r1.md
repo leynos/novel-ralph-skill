@@ -13,7 +13,7 @@ defects below.
 ### B1 (Pandalump / Telefono) — the "independent disk re-derivation" is not independent
 
 Decision Log D1 promises an *independent* re-derivation that reads
-`[word_counts].by_chapter` / `.current` / `.target` from the materialised
+`[word_counts].by_chapter` / `.current` / `.target` from the materialized
 `state.toml` via `tomllib` and computes invariant 3 as
 `sum(by_chapter.values()) == current` and invariant 7 as
 `sum(by_chapter.values()) / target` against the thresholds (Work item 2, lines
@@ -74,8 +74,8 @@ then the guide edit must say what was actually delivered, not overclaim.
 ### B4 (Wafflecat / structural) — invariant 3 is already disk-derived; the premise is stale
 
 The 1.3.2 fix-round-1 decision (1.3.2 execplan lines 630-654) already moved
-`_check_by_chapter_sum` to read the materialised `state.toml` ("The oracle's
-`_check_by_chapter_sum` now reads the materialised `state.toml` and compares
+`_check_by_chapter_sum` to read the materialized `state.toml` ("The oracle's
+`_check_by_chapter_sum` now reads the materialized `state.toml` and compares
 the written `sum(by_chapter)` against the written `current`"). The oracle's
 invariant 3 is therefore *already* the disk reading the validator sees. Only
 invariant 7 remains spec-keyed.

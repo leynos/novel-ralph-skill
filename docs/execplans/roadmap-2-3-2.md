@@ -71,7 +71,7 @@ checker/mutator boundary (`docs/novel-ralph-harness-design.md` §3.3, §5.4):
 - `novel-state check` becomes **disk-aware**. In addition to the pure-state
   invariants it already reports, it reads the `working/` tree, asserts the
   chapter-manifest-to-disk bijection, detects six classes of disk evidence
-  (including the new disk-vs-table word-count divergence that realises the
+  (including the new disk-vs-table word-count divergence that realizes the
   roadmap's done-claim case), and — when disk is internally consistent but
   `state.toml` is merely *stale* — reports the discrepancy *and the
   reconciliation it implies* in its payload, exiting `4`. `check` still writes
@@ -192,7 +192,7 @@ deliberate twin is therefore a **new per-chapter disk oracle** in the corpus,
 `_check_word_counts_match_drafts` (`tests/working_corpus/_oracle.py`), which
 globs `manuscript/chapter-*/draft.md`, splits each present body, derives the
 per-chapter mapping straight from disk, and compares it against the table read
-from the materialised `state.toml` — the per-chapter analogue of the existing
+from the materialized `state.toml` — the per-chapter analogue of the existing
 totals-only `_check_by_chapter_sum_live` (`_live_draft.py:95`). Production
 `check_disk_evidence` and the new corpus oracle each read disk independently
 and a test pins their per-chapter verdicts equal on every corpus tree (the
@@ -200,7 +200,7 @@ deliberate-twin policy, `developers-guide.md:371-379`).
 
 This plan therefore scopes `reconcile`'s **repairs** to two state→disk
 corrections that are deterministically recomputable from disk and that the
-design authorises:
+design authorizes:
 
 1. **Stale `[word_counts]` vs the drafts** — the roadmap's headline done-claim
    divergence and the §5.4 worked example. Detected by the new
@@ -224,7 +224,7 @@ design authorises:
    (`skill/novel-ralph/references/state-layout.md:104,174-177`; design §5.2
    line 469-470 frames the gate as *consistent with* the ratio, true only *if*
    crossed — eligibility, not an automatic flip), which is an agent action disk
-   does not record; synthesising it would violate "disk is authoritative, never
+   does not record; synthesizing it would violate "disk is authoritative, never
    the reverse". The scope is therefore pinned by Decision Log **D-GATES**: a
    `word-counts-match-drafts` reconciliation is in scope **only when the
    disk-vs- table delta crosses no gate threshold** (the post-recount ratio
@@ -354,7 +354,7 @@ workaround.
   `load_document` (`tomlkit`, not `tomllib`), edits the live `TOMLDocument` in
   place, and writes through `write_document_atomically` (temp-file +
   `Path.replace`), preserving comments and layout (ADR-002; design §5.3, §3.4).
-  It must not re-serialise from the typed `State` read view.
+  It must not re-serialize from the typed `State` read view.
 - **`reconcile` is the project's first genuinely multi-file mutator, and its log
   receipt must land *inside* the bracket.** When it recounts (or completes a
   torn turn) it touches `state.toml` *and* appends the recovery receipt to
@@ -587,7 +587,7 @@ Stop and escalate — do not work around — when any of these is reached:
   via `removeprefix`, and extracts basenames via `PurePosixPath(...).name`
   (CodeRabbit: pathlib over string manipulation). Tests:
   `tests/test_reconcile_derivation.py` — a table-driven action map over every
-  materialising corpus variant, an inline unrecoverable-torn-turn ROLLBACK
+  materializing corpus variant, an inline unrecoverable-torn-turn ROLLBACK
   case, a RECOUNT payload assertion, and a Hypothesis property pinning totality
   - "no disk-evidence violation yields NONE" over generated torn-turn
   declared-path sets (`python-verification`: example tests cannot exhaust the
@@ -636,7 +636,7 @@ Stop and escalate — do not work around — when any of these is reached:
 - [x] Work item 5 — Refuse-class handling in both `check` and `reconcile`
   (three contradictions plus `cursor-plan-present`), exit `4`, no repair. The
   REFUSE path was already implemented in Work item 4's dispatch; this work item
-  finalises it with the comprehensive `tests/test_reconcile_refuse.py` suite:
+  finalizes it with the comprehensive `tests/test_reconcile_refuse.py` suite:
   all seven refuse-class variants (both done-flag directions, the compile
   divergence, both manifest directions, both cursor-plan variants) exit `4`
   with action `refuse` in **both** commands; `reconcile` leaves `state.toml`
@@ -648,7 +648,7 @@ Stop and escalate — do not work around — when any of these is reached:
   and reconcile e2e; documentation updates including the **gating** §5.4
   design-doc note (D-DESIGN-NOTE). `tests/test_reconcile_integration.py` pins the
   cross-check (check's reported action equals reconcile's enacted action on every
-  materialising variant; D-SHARED), idempotence (a second reconcile is a `none`
+  materializing variant; D-SHARED), idempotence (a second reconcile is a `none`
   byte-identical no-op), and self-recovery (an interruption after the receipt but
   before the clear leaves a recoverable `operation="reconcile"` record, and
   repeated reconcile converges the tree). `tests/test_reconcile_e2e.py` adds a fast
@@ -694,7 +694,7 @@ Stop and escalate — do not work around — when any of these is reached:
   stale `[word_counts]` vs the drafts (`RECOUNT`) and `[pending_turn]` recovery
   (complete/rollback) — and refuses everything else (contradictions and
   `cursor-plan-present`) loudly. The roadmap's "state claims a chapter is done
-  but no `done.flag` exists" headline is realised as the **steady-state** stale-
+  but no `done.flag` exists" headline is realized as the **steady-state** stale-
   `[word_counts]` case, *not* a pending-turn rollback: a settled tree (no
   `[pending_turn]`) whose `word_counts.by_chapter` records a done chapter the
   drafts do not corroborate, detected by the new `word-counts-match-drafts`
@@ -740,12 +740,12 @@ Stop and escalate — do not work around — when any of these is reached:
   `_check_word_counts_match_drafts` in `tests/working_corpus/_oracle.py`, that
   globs `manuscript/chapter-*/draft.md`, splits each present body into the
   per-chapter mapping straight from disk, and compares it against the table
-  read from the materialised `state.toml` — the per-chapter analogue of the
+  read from the materialized `state.toml` — the per-chapter analogue of the
   existing totals-only `_check_by_chapter_sum_live` (`_live_draft.py:95`). It
   reads disk (not the `spec`), because no `WorkingTreeSpec` channel encodes a
   per-chapter table-vs-draft divergence (advisory: round-2 review point 3; the
   spec's `by_chapter_override` sets the table, `draft_words` sets the disk, and
-  only the materialised tree carries both). Production carries its own copy
+  only the materialized tree carries both). Production carries its own copy
   (deliberate-twin policy) and a test pins the two **per-chapter** verdicts
   equal on every corpus tree. Precedence in `derive_reconciliation`: a
   contradiction dominates, then `pending-turn-cleared`, then
@@ -776,7 +776,7 @@ Stop and escalate — do not work around — when any of these is reached:
   integrated and logged" (`state-layout.md:104,174-177`; design §5.2 line
   469-470 frames it as *consistent with* the ratio, true only *if* crossed —
   eligibility, not an automatic flip), an agent judgement disk does not record.
-  Synthesising it would violate "disk is authoritative, never the reverse" and
+  Synthesizing it would violate "disk is authoritative, never the reverse" and
   turn the recovery routine into the "loud but wrong" failure §5.4 warns
   against (Doggylump pre-mortem). Adopting review option (b): the headline is
   delivered for the sub-threshold class — precisely the class a
@@ -832,7 +832,7 @@ Stop and escalate — do not work around — when any of these is reached:
   with no on-disk `scenes.md`/`beats.md`; oracle `_oracle.py:245-267`, corpus
   variants `scene-cursor-without-plan` / `beat-cursor-without-plan`,
   `_variants.py:158-169`) is a real disk-evidence violation that `check` must
-  exit 4 on, but it is **reported-not-repaired**: `reconcile` cannot synthesise
+  exit 4 on, but it is **reported-not-repaired**: `reconcile` cannot synthesize
   a missing plan from disk without fabricating planning prose (the reverse of
   "disk authoritative"), and it is not a contradiction between two disk
   artefacts. It maps to `derive_reconciliation` action `REFUSE` — the same
@@ -1164,7 +1164,7 @@ per-chapter token counts from the drafts via the shared `recount_words`
 passing the manifest it derives from `state.chapters`
 (`recount_words(working_dir, state.chapters)`), and fires when the recomputed
 `by_chapter` or its derived `current` differs from the table — this is the
-disk-vs-table signal that realises the roadmap's done-claim case and that the
+disk-vs-table signal that realizes the roadmap's done-claim case and that the
 round-1 plan lacked (round-2 blocking point 2). Its reference twin is **not**
 the corpus `live_draft_counts` (`tests/working_corpus/_live_draft.py:69`),
 which returns a totals-and-count pair
@@ -1174,7 +1174,7 @@ and so cannot pin a per-chapter divergence (round-3 blocking point 1). Add a
 `_check_word_counts_match_drafts` in `tests/working_corpus/_oracle.py`: it globs
 `manuscript/chapter-*/draft.md`, splits each present body into the per-chapter
 mapping straight from disk, and compares it against the table read from the
-materialised `state.toml` (the per-chapter analogue of the existing totals-only
+materialized `state.toml` (the per-chapter analogue of the existing totals-only
 `_check_by_chapter_sum_live`, `_live_draft.py:95`). The corpus predicate reads
 **disk**, not the `spec`, because no `WorkingTreeSpec` channel encodes a
 per-chapter table-vs-draft divergence (round-2 review advisory 3). Re-export
@@ -1185,7 +1185,7 @@ new disk-reading `_check_word_counts_match_drafts`) so the two vocabularies
 stay equal.
 
 These predicates are **deliberate twins** of `_oracle.py`'s same-named checks
-(the oracle reads the `WorkingTreeSpec`; production reads the materialised
+(the oracle reads the `WorkingTreeSpec`; production reads the materialized
 `State` + disk). Add the reciprocal cross-reference comment each module carries
 (developers' guide twin policy, lines 371-379). Do not import the oracle.
 
@@ -1195,7 +1195,7 @@ reads `spec.chapters` / `spec.manifest_only_numbers` and is registered in
 `_SPEC_CHECKS` (`_oracle.py:280`), not among the disk-reading checks. So for
 the bijection alone the production detector reads disk while its corpus twin
 reads the spec; the Work item 3 agreement test still holds because the builder
-materialises the spec faithfully, but do **not** "fix" the spec-reading oracle
+materializes the spec faithfully, but do **not** "fix" the spec-reading oracle
 to read disk and do not describe the bijection twin as "disk-reads-disk" (that
 framing is true for `done-flag`, `compiled`, `cursor-plan`, and the new
 `word-counts-match-drafts` twins, which both read disk). Pin the production
@@ -1285,7 +1285,7 @@ Classification logic (pure, no writes):
 
 `cursor-plan-present` is resolved here, not deferred: it is reported by `check`
 (exit 4) and maps to `REFUSE` for `reconcile` (D-REPORT), because `reconcile`
-cannot synthesise a missing plan from disk without fabricating prose. No
+cannot synthesize a missing plan from disk without fabricating prose. No
 classification is left "escalate if ambiguous"; the precedence above is total
 and the property test below pins it.
 
@@ -1304,7 +1304,7 @@ Tests (`tests/test_reconcile_derivation.py`):
   trees → `NONE`).
 - Property (`hypothesis`): `derive_reconciliation` is **total** — it returns a
   `Reconciliation` (never raises) for every constructible `State` over a
-  materialised tree; and the precedence is deterministic and exhaustive: a
+  materialized tree; and the precedence is deterministic and exhaustive: a
   refuse-class violation dominates a pending-turn signal, which dominates
   `word-counts-match-drafts`, which dominates `NONE`, and **no** disk-evidence
   violation ever yields `NONE` (the round-2 blocking-point-4 invariant). Load
@@ -1458,7 +1458,7 @@ Tests (`tests/test_reconcile.py`, plus a BDD scenario):
   (`pending-turn-complete-recomputable`: an uncleared record whose only missing
   declared path is `state.toml`/`log.md`;
   `pending-turn-rollback-unrecoverable`: an uncleared record whose missing
-  declared path is a `draft.md`/`done.flag`), realising D-COMPLETE.
+  declared path is a `draft.md`/`done.flag`), realizing D-COMPLETE.
 - Behavioural (**roadmap headline**): the `done-claim-stale-word-counts` tree →
   `check` exits `4` naming `word-counts-match-drafts` with a `recount`
   reconciliation; `reconcile` exits `0`, rewrites `[word_counts]` to the
@@ -1503,7 +1503,7 @@ Validation: `make test` green; `make lint typecheck check-fmt` clean.
 
 ### Work item 5 — Contradiction refusal in both commands
 
-Finalise the `REFUSE` path (D-REPORT — the single action for both
+Finalize the `REFUSE` path (D-REPORT — the single action for both
 contradictions and `cursor-plan-present`): in `check`, a refuse-class tree exits
 `4` with the refused names in `result.violations` and a
 `result.reconciliation` of action `refuse` (no repair implied). In `reconcile`,
@@ -1562,7 +1562,7 @@ Validation: `make test` green; `make lint typecheck check-fmt` clean.
   record (the receipt-loss window the round-1 plan opened is closed); a
   subsequent `reconcile` re-derives and finishes it.
 - **e2e** (POSIX-only, ADR-006): reuse `_build_and_install_novel_state` verbatim
-  (D-CUPRUM); build+install the wheel, materialise a stale tree under the
+  (D-CUPRUM); build+install the wheel, materialize a stale tree under the
   subprocess cwd, run the installed `novel-state reconcile` via
   `sh.make(prog, catalogue=single_program_catalogue(...))` invoked with
   `("reconcile")` then
@@ -1728,7 +1728,7 @@ Acceptance phrased as behaviour:
   attempts); on breach, stop and escalate per Tolerances. No destructive steps
   are involved; `working/` deletion is forbidden by Constraint.
 
-## Artifacts and notes
+## Artefacts and notes
 
 - Locked-cuprum pin evidence (D-CUPRUM): cached wheel
   `~/.cache/uv/archive-v0/vvzZ1jTMbiIrGZD_2Lryn/cuprum/sh.py:450-455`
@@ -1802,7 +1802,7 @@ Revision 3 (2026-06-24, round-3 design review). Resolved both blocking points:
    a **new disk-reading oracle** `_check_word_counts_match_drafts` in
    `_oracle.py` that globs `manuscript/chapter-*/draft.md`, splits each present
    body into a per-chapter mapping straight from disk, and compares it against
-   the table read from the materialised `state.toml` (the per-chapter analogue
+   the table read from the materialized `state.toml` (the per-chapter analogue
    of `_check_by_chapter_sum_ live`). The pinning test now compares two
    **per-chapter, disk-reading** verdicts — like with like (also closing
    round-2 review advisory 3). Corrected in the Controlling-decision section,

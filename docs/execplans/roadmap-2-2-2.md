@@ -18,8 +18,8 @@ harness loop) can:
    an initial, schema-coherent `state.toml` from a title, a slug, and a target
    word count, with `phase.current = "premise"`, `phase.completed = []`, an
    empty chapter manifest, and zeroed counts (design §4.1 `init` row;
-   state-layout.md "Initialisation"). Running `novel-state check` against the
-   freshly initialised tree exits `0` with `ok: true`.
+   state-layout.md "Initialization"). Running `novel-state check` against the
+   freshly initialized tree exits `0` with `ok: true`.
 2. Move the drafting cursor safely. `novel-state set-cursor` advances the
    `(current_chapter, current_scene, current_beat)` cursor and **refuses an
    incoherent cursor** — a chapter past the manifest, or a scene/beat set while
@@ -53,7 +53,7 @@ escalation, not a workaround.
   read, mutate, and re-write `state.toml` through the existing
   `novel_ralph_skill.state.document` helpers (`load_document` /
   `document_to_state` / `write_document_atomically`), never `tomli_w`, a
-  hand-built serialiser, or `tomllib`-plus-side-channel (ADR-002; design §5.3).
+  hand-built serializer, or `tomllib`-plus-side-channel (ADR-002; design §5.3).
   `init`, which creates a *new* file, builds a `tomlkit` document and writes it
   through the same `write_document_atomically` helper. `tomllib` still backs
   the read-only `load_state`/`parse_state` decode, but the **mutators must not
@@ -160,7 +160,7 @@ Stop and escalate when any of these is breached rather than working around it.
   `pytest-timeout` are already in `[dependency-groups].dev` (`pyproject.toml`).
   If a new dependency seems required, stop and escalate.
 - **`init` overwrite semantics.** If the design's `init` row and state-layout.md
-  "Initialisation" cannot be reconciled on whether `init` may run when
+  "Initialization" cannot be reconciled on whether `init` may run when
   `working/state.toml` already exists, stop and present the options (refuse
   with exit `3` versus overwrite) with trade-offs rather than guessing. (This
   plan's Decision Log records the proposed reading: refuse, exit `3`; see Risk
@@ -220,7 +220,7 @@ Stop and escalate when any of these is breached rather than working around it.
   is empty, in the command body. A test pins both the refusal (empty manifest)
   and the success (populated manifest, exit `0`), the latter on the explicitly
   constructed tree named in Decision Log D6 / work item 4.
-- Risk: the proposed-state construction re-serialises through the *lossy* typed
+- Risk: the proposed-state construction re-serializes through the *lossy* typed
   `State` model rather than editing the live `tomlkit` document, discarding
   comments/layout. Severity: high. Likelihood: low. Mitigation: follow the task
   2.2.1 discipline exactly — mutate the live `TOMLDocument` in place (set the
@@ -235,7 +235,7 @@ Stop and escalate when any of these is breached rather than working around it.
   Severity: low. Likelihood: low. Mitigation: work item 4 adds a
   round-trip/comment-preservation assertion for the *append-to-array* sub-case
   (advisory A5, round 1): after `document["phase"]["completed"].append(value)`
-  and the cursor/current edits, `tomlkit.dumps` re-serialises the untouched
+  and the cursor/current edits, `tomlkit.dumps` re-serializes the untouched
   tables byte-for-byte and only the touched array/scalar change.
 - Risk: the command module breaches the 400-line cap once three mutator bodies
   plus `init`'s builder land. Severity: medium. Likelihood: medium. Mitigation:
@@ -254,7 +254,7 @@ Stop and escalate when any of these is breached rather than working around it.
   writes only `state.toml` is already atomic via `write_document_atomically`,
   so it does **not** need the bracket. `init` writes one state file plus an
   empty `log.md`; the `state.toml` write precedes and is independent of the
-  `log.md` write, so the realisable partial `init` is (state present, log
+  `log.md` write, so the realizable partial `init` is (state present, log
   absent). That partial is reconciled by task 2.3.4 (`init` itself still refuses
   whenever `state.toml` exists), so no bracket is required. The plan records this
   scoping decision (Decision Log D3) so a reviewer does not read the absent
@@ -321,7 +321,7 @@ Stop and escalate when any of these is breached rather than working around it.
   Done 2026-06-23: `build_initial_document` is re-exported and pinned in a
   public-surface test. `tests/test_novel_state_mutator_snapshots.py` snapshots
   the `init` success, `set-cursor` refusal, and `advance-phase` refusal
-  envelopes (timestamp normalised), each paired with a semantic exit-code/`ok`
+  envelopes (timestamp normalized), each paired with a semantic exit-code/`ok`
   assertion. A
   "State mutators" subsection was added to `docs/developers-guide.md` (the
   validate-before-persist discipline, the exit-`3` refusal, the two-helper load
@@ -368,7 +368,7 @@ Stop and escalate when any of these is breached rather than working around it.
   agent.
 - Decision: `init` refuses (exit `3`) when `working/state.toml` already exists
   rather than overwriting. Rationale: the design §4.1 `init` row says "Create …
-  an initial `state.toml`" and state-layout.md "Initialisation" frames it as
+  an initial `state.toml`" and state-layout.md "Initialization" frames it as
   the first-turn bootstrap ("working/ does not exist"); silently clobbering a
   live project's state would violate the "State is precious. Never delete files
   in `working/`" hygiene rule (state-layout.md "Working directory hygiene").
@@ -377,7 +377,7 @@ Stop and escalate when any of these is breached rather than working around it.
   (advisory A1). Date/Author: 2026-06-23, planning agent.
 - Decision: the proposed-state for `set-cursor`/`advance-phase` is built by
   mutating the live `tomlkit` document, with `document_to_state` giving the
-  typed read view for `validate_state`. Rationale: re-serialising from the lossy
+  typed read view for `validate_state`. Rationale: re-serializing from the lossy
   `State` would defeat ADR-002 (task 2.2.1 Decision Log). The document is the
   write source; `State` is the validation view. Date/Author: 2026-06-23,
   planning agent.
@@ -450,7 +450,7 @@ Stop and escalate when any of these is breached rather than working around it.
   another coherent state (the in-order prefix of the successor). The only
   out-of-order refusal therefore fires when the **prior** `completed` is
   already not the in-order prefix — i.e. the prior state is already incoherent.
-  The design §3.2/§4.1 "refuses … out-of-order completion" is realised as: a
+  The design §3.2/§4.1 "refuses … out-of-order completion" is realized as: a
   prior state whose `completed` is out of order yields a proposed state that
   *still* fails `completed-prefix`, so the advance is refused. Validating the
   prior state explicitly first makes the refusal unambiguous and means the
@@ -482,11 +482,11 @@ Stop and escalate when any of these is breached rather than working around it.
   `0.0` ratio (invariant 7) — confirmed empirically in the Verified Facts
   section. Resolves round-1 blocking point B4. Date/Author: 2026-06-23,
   planning agent.
-- Decision: `init` creates the full Initialisation directory skeleton —
+- Decision: `init` creates the full Initialization directory skeleton —
   `working/{characters,world,reader,plan,manuscript,reviews}` — to match
-  state-layout.md "Initialisation" step 1 verbatim, rather than deferring
+  state-layout.md "Initialization" step 1 verbatim, rather than deferring
   per-subdirectory creation. Rationale: the plan's Context and "Docs to read"
-  sections claim fidelity to "state-layout.md Initialisation"; that source's
+  sections claim fidelity to "state-layout.md Initialization"; that source's
   step 1 is
   `mkdir -p working/{characters,world,reader,plan,manuscript,reviews}`, so
   silently omitting the skeleton would contradict the cited source of truth. No
@@ -509,7 +509,7 @@ Confirmed against the acceptance criteria:
 
 - `init`/`set-cursor`/`advance-phase` each write through `tomlkit` plus the
   atomic `write_document_atomically`; `init` builds the full required table set
-  and `check` accepts the freshly initialised tree.
+  and `check` accepts the freshly initialized tree.
 - Every refusal path (incoherent cursor, out-of-order/terminal/empty-manifest
   advance, missing/unparseable/structurally-incomplete state) exits `3`, never
   `1`; the structurally-incomplete-but-valid-TOML case (BR2-1) is routed through
@@ -816,17 +816,17 @@ signature `init(*, title: str, slug: str, target_word_count: int = 80000)`
 80000"). The body: resolve `working = pathlib.Path(WORKING_DIR_NAME)`; if
 `working / "state.toml"` exists, raise `StateInputError` (exit `3`, the
 refusal); else `working.mkdir(parents=True, exist_ok=True)` **and create the
-full Initialisation directory skeleton** — `working / name` for each `name` in
+full Initialization directory skeleton** — `working / name` for each `name` in
 `("characters", "world", "reader", "plan", "manuscript", "reviews")`, each with
 `mkdir(parents=True, exist_ok=True)` — to match state-layout.md
-"Initialisation" step 1
+"Initialization" step 1
 (`mkdir -p working/{characters,world,reader,plan,manuscript,reviews}`) verbatim
 (Decision Log; BR2-2). Then build the document with a generated `created_at`
 (an RFC 3339 UTC timestamp via
 `datetime.datetime.now(datetime.UTC).isoformat()` or equivalent),
 `write_document_atomically(document, working / "state.toml")`, and return
 `CommandOutcome(code=ExitCode.SUCCESS, …)`. Create an empty `working/log.md`
-too (state-layout.md "Initialisation" step 3), through a plain
+too (state-layout.md "Initialization" step 3), through a plain
 `Path.write_text` — `log.md` is not `state.toml`, so the direct-edit guard
 (`state-layout.md` recipes) does not apply. The six subdirectory names are
 sourced verbatim from state-layout.md step 1; the creation is idempotent, so a
@@ -835,12 +835,12 @@ partially-present `working/` does not crash.
 Keep `created_at` out of the snapshot's stable surface and out of the unit
 test's equality: tests assert `phase.current`/`completed`/manifest/target,
 **explicitly excluding** the timestamp (advisory A2), and the work-item-5
-snapshot normalises it (per AGENTS.md "Redact or normalize nondeterministic
+snapshot normalizes it (per AGENTS.md "Redact or normalize nondeterministic
 fields such as timestamps").
 
 Docs to read first: design §4.1 (the `init` row), §5.1 (the schema and the
 three added fields — manifest, `convergence_target`, `[pending_turn]`);
-state-layout.md "Initialisation" and "state.toml schema"; AGENTS.md
+state-layout.md "Initialization" and "state.toml schema"; AGENTS.md
 "Documentation maintenance"; `tests/working_corpus/_builder.py`
 `_build_state_document` (the reference table shape, read for the field set only
 — not imported).
@@ -871,7 +871,7 @@ coherent). The success-then-fields ordering is the B1 prevention — it catches 
 missing table before any field assertion masks it. Add a directory-skeleton
 test: after a successful `init`, each of `characters`, `world`, `reader`,
 `plan`, `manuscript`, and `reviews` is a directory under `working/` and
-`working / "log.md"` exists (BR2-2; state-layout.md "Initialisation" step 1 and
+`working / "log.md"` exists (BR2-2; state-layout.md "Initialization" step 1 and
 step 3).
 
 Validation: `make all` green.
@@ -1023,7 +1023,7 @@ successor). The only out-of-order refusal therefore fires when the **prior**
 `completed` is already not the in-order prefix — i.e. the prior is already
 incoherent (step 2 rejects it, and step 6 confirms the proposed state still
 fails `completed-prefix`). Design §3.2/§4.1's "refuses … out-of-order
-completion" is realised exactly this way: a prior whose `completed` is out of
+completion" is realized exactly this way: a prior whose `completed` is out of
 order yields a proposed state that still fails `completed-prefix`, so the
 advance is refused.
 
@@ -1100,7 +1100,7 @@ Validation: `make all` green.
 
 Add snapshot coverage of the three mutators' machine-mode JSON envelopes
 (`syrupy`, per design §9 "Snapshot tests pin the machine-mode JSON envelope per
-command"), normalising the `created_at` timestamp and any absolute path so the
+command"), normalizing the `created_at` timestamp and any absolute path so the
 snapshot identifies a real contract change, not churn (AGENTS.md "Redact or
 normalize nondeterministic fields"). Pair each snapshot with a semantic
 assertion (the success/refusal exit code and the `result` keys) rather than
@@ -1122,7 +1122,7 @@ validate-before-persist discipline, the exit-`3` refusal contract, the
 so the `recount`/`reconcile` tasks find the pattern. State plainly (AR2-1) that
 because `advance-phase` takes no argument and always moves to the immediate
 successor, a phase *skip* cannot be requested; "refuses out-of-order
-completion" is therefore realised **solely** as the prior-state coherence guard
+completion" is therefore realized **solely** as the prior-state coherence guard
 (a prior whose `completed` is not the in-order prefix is refused), so a future
 reader does not hunt for skip-rejection logic that cannot exist. Also document
 the two-helper load path: `_load_document_or_state_error` (load faults) and
@@ -1229,7 +1229,7 @@ Acceptance is behaviour a human can verify:
   `[word_counts].target = 80000`; a follow-up `novel-state check` exits `0` with
   `ok: true`. Re-running `init` where `working/state.toml` already exists exits
   `3` and leaves the existing state byte-for-byte unchanged (design §4.1;
-  state-layout.md "Initialisation").
+  state-layout.md "Initialization").
 - **`set-cursor` refuses an incoherent cursor with exit `3`.** Setting a cursor
   within the manifest exits `0`; setting `current_chapter` past the manifest,
   or a scene/beat with no chapter, exits `3`, names `cursor-coherent` in
@@ -1282,7 +1282,7 @@ identical bytes (success) or refuses (exit `3`) without mutating. Tests mutate
 only `tmp_path`. There is no destructive operation; recovery from a botched
 edit is `git restore` of the in-progress change.
 
-## Artifacts and notes
+## Artefacts and notes
 
 ### Verified facts the plan relies on
 
@@ -1403,7 +1403,7 @@ locked versions in this worktree (round 2).
   are already in `[dependency-groups].dev` (`pyproject.toml`); the `torn_turn`
   feature/step/binder trio is the working template for the new behavioural
   scenario. No new dev dependency.
-- **Initial-state shape** (state-layout.md "Initialisation"; design §5.1): first
+- **Initial-state shape** (state-layout.md "Initialization"; design §5.1): first
   turn `working/` does not exist; create it with `phase.current = "premise"`,
   `phase.completed = []`, `target_word_count` from input or default `80000`,
   provisional `title`/`slug`, an empty `log.md`. The §5.1 additions
@@ -1551,16 +1551,16 @@ blocking points, both verified against source in this worktree:
   tables) asserting exit `3` not `1`, and a `_state_view_or_state_error` unit
   test over an incomplete document and a bad-phase-string document. Constraint
   "Typed-view derivation is also exit-3-routed" and Decision Log D8 record it.
-- **BR2-2** — `init` now creates the full Initialisation directory skeleton
+- **BR2-2** — `init` now creates the full Initialization directory skeleton
   `working/{characters,world,reader,plan,manuscript,reviews}` (sourced verbatim
-  from state-layout.md "Initialisation" step 1, read in this worktree),
+  from state-layout.md "Initialization" step 1, read in this worktree),
   matching its cited source of truth rather than silently diverging. A
   work-item-2 test asserts the six subdirectories and `log.md` exist after
   `init`. The Decision Log records the decision and rationale.
 
 Advisories addressed in round 3: AR2-1 (the developers-guide subsection states
 plainly that, because `advance-phase` takes no argument, "refuses out-of-order
-completion" is realised solely as the prior-state coherence guard and no
+completion" is realized solely as the prior-state coherence guard and no
 skip-rejection logic exists), AR2-2 (the `set-cursor` success test pins the
 exact in-range cursor `chapter=2, scene=0, beat=0`). Status: DRAFT, pending
 design review (round 3).
@@ -1600,9 +1600,9 @@ and the partial-`init` bootstrap recovery (review:2.2.2) to step 2.3
   route all four call sites through it, removing the triplicated path
   construction without changing behaviour. Gate with `make all`.
 - [x] 2.2.2.3 — Correct the partial-`init` direction in this plan's Decision Log
-  D3 (from review:2.3.4, low). D3 describes the realisable partial-`init` as
+  D3 (from review:2.3.4, low). D3 describes the realizable partial-`init` as
   `log.md` present and `state.toml` absent, but `init` writes `state.toml` first,
-  so the realisable case is the inverse (`state.toml` present, `log.md` absent),
+  so the realizable case is the inverse (`state.toml` present, `log.md` absent),
   the direction task 2.3.4 actually targets and reconciles. D3 was intentionally
   left untouched as out of scope when 2.3.4 landed; correct the stale D3 prose
   here so this plan's Decision Log agrees with the implemented direction. Gate

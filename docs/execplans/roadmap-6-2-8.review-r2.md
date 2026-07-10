@@ -52,7 +52,7 @@ trusted from the plan's summary:
 - `build_working_tree(spec, dest)` signature matches the helper's
   `wc.build_working_tree(wc.PHASE_STATES["drafting"], root)` call.
 - The helper's chdir target (`working.parent == root`, which is `mkdir`'d) exists
-  for both arms; `working/` is materialised only for the usage arm. Correct.
+  for both arms; `working/` is materialized only for the usage arm. Correct.
 - cyclopts locked at 4.18.0, syrupy present (uv.lock). Cyclopts behaviour is
   asserted from empirical in-process drives (round-1 verified), not memory — this
   satisfies the verify-or-pin obligation. cuprum is genuinely uninvolved

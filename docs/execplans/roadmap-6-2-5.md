@@ -393,7 +393,7 @@ Key terms (defined for a first-time reader):
   boundary the roadmap clause means by "command entry points, not the bracket
   primitive".
 - **`working_corpus`** — `tests/working_corpus/`, the test-only package that
-  materialises `working/` trees from declarative specs. `build_working_tree(spec,
+  materializes `working/` trees from declarative specs. `build_working_tree(spec,
   tmp_path)` returns the built `working/` path; `INCOHERENT_VARIANTS` maps named
   variants to `(spec, expected)` pairs; `COHERENT_BASELINE` is the settled
   baseline spec. Consume it by the sanctioned `import working_corpus as wc` value
@@ -615,14 +615,14 @@ cache rewards sequential runs).
 
 ## Idempotence and recovery
 
-Every step is re-runnable. The tests materialise throwaway `working/` trees under
+Every step is re-runnable. The tests materialize throwaway `working/` trees under
 pytest `tmp_path`, so re-running leaves no residue. `monkeypatch` automatically
 restores `_reconcile._append_recovery_entry` at the end of each test, so the
 crash injection cannot leak across tests. Editing the roadmap checkbox and this
 plan is a plain text edit; re-running the markdown gates is safe. If a gate fails
 mid-way, fix and re-run the same command; nothing is destructive.
 
-## Artifacts and notes
+## Artefacts and notes
 
 The crash-injection seam, verified in
 `tests/test_reconcile_integration.py::test_interrupted_reconcile_leaves_recoverable_record`

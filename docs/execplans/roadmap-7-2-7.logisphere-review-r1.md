@@ -50,7 +50,7 @@ literally could leave a dangling `_ERRORS` import or a half-repointed call site.
   bite this task; D-NO-EXTERNAL-RESEARCH is sound, not an evasion.
 - ADR-001 (detect-only, message-is-behaviour) and ADR-003 (no import cycle;
   `loaderkit` imports neither pack) are preserved: `bind_coercion` stays in
-  `loaderkit/coerce.py`, parameterised on `content_error` + noun pair, naming
+  `loaderkit/coerce.py`, parameterized on `content_error` + noun pair, naming
   no pack type.
 - The roadmap entry's success criteria map one-to-one onto the plan's four
   observable criteria.

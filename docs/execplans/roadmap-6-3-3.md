@@ -369,7 +369,7 @@ escalation, not a workaround.
       via `uv tool upgrade`, or re-created entirely via subsequent `uv tool
       install` operations." "Overwriting executables": "Installation of tools
       will not overwrite executables … The `--force` flag can be used to override
-      this behavior."
+      this behaviour."
       Impact: Work item 3's note is written as: the installed `novel` binary does
       not auto-update, so before a dogfood session reinstall with `uv tool
       install --force --from . novel-ralph-skill` (or pin a version with a
@@ -949,7 +949,7 @@ is staged, `git restore` the affected docs to HEAD and re-apply only the intende
 hunks. No production source, tests, or on-disk novel state are touched, so there
 is nothing to roll back beyond the Markdown edits themselves.
 
-## Artifacts and notes
+## Artefacts and notes
 
 The canonical contract sources this task documents, for the implementer's quick
 reference:

@@ -18,7 +18,7 @@ This reference is the protocol for Phase 5. It produces
 ### Reader
 
 The specific person the novel is for. Not "readers of literary fiction"; not
-"fans of speculative fiction"; a recognisable individual. Their reading habits,
+"fans of speculative fiction"; a recognizable individual. Their reading habits,
 what shelf they pull from, how they discover books, how much time they have,
 what they read last and last loved.
 

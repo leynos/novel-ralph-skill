@@ -240,7 +240,7 @@ escalation, not a workaround.
       `TestDevelopersGuideEnvelopeFieldListDriftGuard`.
     - [x] Work item 4: Vacuous-pass hardening and planted-divergence red/green
       proof; final docs gates. Done: `test_regions_are_non_empty`; both red
-      proofs captured (Artifacts); no collection-count tripwire found; `make
+      proofs captured (Artefacts); no collection-count tripwire found; `make
       all`, `make markdownlint`, and `make nixie` green.
 
 ## Surprises & discoveries
@@ -708,7 +708,7 @@ Quality method (how we check):
   contract (a Tolerance breach), stop, do not "fix" it by editing the contract or
   the table, and escalate per the Tolerances section.
 
-## Artifacts and notes
+## Artefacts and notes
 
 Captured during implementation (the `docs/developers-guide.md` edits are
 transient and reverted; `git status` confirms the guide clean before each

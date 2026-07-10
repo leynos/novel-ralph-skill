@@ -101,6 +101,6 @@ longer mislabels a state-document fault.
 - A4: If B3 is resolved by keeping a single draft-read formatter that also
   serves
   the structurally-incomplete case, the formatter name `_draft_read_error` and
-  its docstring should be generalised (e.g. `_present_but_faulted_error`) so
+  its docstring should be generalized (e.g. `_present_but_faulted_error`) so
   the vocabulary does not lie about what it covers (Pandalump: names describe
   intent).

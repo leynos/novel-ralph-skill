@@ -34,7 +34,7 @@ scripts directory, (5) `uv pip install`s the wheel, and (6) asserts the named
 console-script exists, is copy-pasted across at least five modules. The five
 copies differ only in the console-script name string (`novel-state`,
 `desloppify`, `novel-done`, `wordcount`) and the catalogue project label. Task
-6.2.4 correctly recognised this as scaffolding and extracted it into
+6.2.4 correctly recognized this as scaffolding and extracted it into
 `installed_novel_state`, but only for the `novel-state` binary, leaving the four
 other copies in place and adding a sixth instance of the build/install body.
 
@@ -44,7 +44,7 @@ than a fresh copy in each module." A per-binary build/install fixture is exactly
 such scaffolding.
 
 - **Proposed fix:** Promote the build/install body to a single
-  binary-parametrised helper in the `installed_binary_fixtures` plugin — e.g. a
+  binary-parametrized helper in the `installed_binary_fixtures` plugin — e.g. a
   module-scoped fixture factory `installed_console_script(script_name: str) ->
   Path`, or a plain `_build_and_install(tmp_path, script_name) -> Path` helper
   the per-binary fixtures call. Replace the `installed_novel_state`,
@@ -103,7 +103,7 @@ reusing that shape.
 - **Proposed fix:** Add one shared helper to the `installed_binary_fixtures`
   plugin — e.g. `run_installed(script: Path, catalogue_builder, *args, cwd: Path)
   -> CommandResult` — and have the recount, reconcile, check, wordcount,
-  desloppify, and novel-done e2es call it. This also centralises the
+  desloppify, and novel-done e2es call it. This also centralizes the
   `capture=True` / `ExecutionContext` choice so a future change to the run
   convention touches one site.
 
@@ -143,7 +143,7 @@ the module-scoped approach already avoids.
 docstring); the `test_*.py` build/install helpers get `per-file-ignores` relief
 and use bare `assert`. This is the intended policy split, but it means the
 otherwise-identical build/install bodies cannot be literally shared without the
-guard style diverging. The fix for Finding 1 should standardise on raising
+guard style diverging. The fix for Finding 1 should standardize on raising
 `AssertionError` (the stricter form) so the single shared body lives correctly in
 the plugin regardless of which module consumes it.
 
@@ -169,7 +169,7 @@ path for these commands, so the installed gap is narrow, but it is an asymmetry
 worth recording: the harness branches on the *installed* exit code for every
 command, not just `recount`.
 
-- **Proposed fix:** Add a parametrised installed exit-3 case (missing and
+- **Proposed fix:** Add a parametrized installed exit-3 case (missing and
   unparseable `state.toml`) to `test_reconcile_e2e.py` and `test_wordcount_e2e.py`,
   mirroring `test_installed_novel_state_recount_state_error_exits_three`. Once
   Finding 3's `run_installed` helper exists, each addition is a few lines.

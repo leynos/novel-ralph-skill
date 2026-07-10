@@ -238,7 +238,7 @@ Key existing files you will consume or mirror:
   behavioural suite consumes `baseline_tree`, `incoherent_tree`, and the
   spec-building constructors (`make_working_tree_spec`, `build_tree`). Consume
   by fixture name only; never import a corpus value. `incoherent_tree(name)`
-  returns `(spec, working_dir, expected_invariant_name)` and materialises
+  returns `(spec, working_dir, expected_invariant_name)` and materializes
   `state.toml` directly under `working_dir` (so the validator loads
   `working_dir / "state.toml"`).
 - `tests/test_contract_runner.py` and the `wrapper_app` conftest fixture (line
@@ -462,7 +462,7 @@ Definitions of terms used below:
   would diverge. Mitigation: the Decision Log records the manifest-length proxy
   as a deliberate pure-state approximation, names exactly where it could diverge
   from the design's disk-quantity intent, and notes that task 2.1.3's on-disk
-  cross-check runs the validator against materialised trees where the two could
+  cross-check runs the validator against materialized trees where the two could
   surface a disagreement — so 2.1.3 (not this task) owns reconciling the proxy
   with a live draft count. Work item 1 confirms agreement on the corpus.
 - Risk (severity high, likelihood high — RESOLVED by B2): replacing or
@@ -511,7 +511,7 @@ Definitions of terms used below:
   agreement suite would not surface this, but the WI3 Hypothesis strategies draw
   `target` and a `target == 0` draw would raise `ZeroDivisionError` mid-property
   (a flake, not a verdict), and task 2.1.3 cross-checks `validate_state` against
-  arbitrary materialised states where a `target == 0` state would crash the
+  arbitrary materialized states where a `target == 0` state would crash the
   validator while the oracle returns gates-consistent — a validator-vs-oracle
   divergence by exception. Mitigation: the gate predicate mirrors the oracle's
   `if spec.target_words <= 0: return True` (`_oracle.py` lines 144-145) and
@@ -669,7 +669,7 @@ def novel_state() -> None:
 ```
 
 where `parse_global_flags(argv) -> tuple[bool, list[str]]` is a small,
-standard-library splitter (no new dependency) that recognises a `--human`
+standard-library splitter (no new dependency) that recognizes a `--human`
 boolean flag in **any** position, removes every occurrence of it from the
 vector, and returns `(human, residual)`. It does **not** parse a working-dir
 option (there is none — B4). It lives in `commands/novel_state.py` (so `stub.py`
@@ -724,7 +724,7 @@ comparison, cross-checked against the oracle's structural re-implementation:
   bad phase reports exactly `phase-in-enum`, not two violations).
 - `by-chapter-sum`: `sum(state.word_counts.by_chapter.values()) ==
   state.word_counts.current` (matches the oracle's `_check_by_chapter_sum`,
-  line 80, which reads the materialised `state.toml`).
+  line 80, which reads the materialized `state.toml`).
 - `consecutive-clean-bound`: `convergence_target >= 1`,
   `0 <= consecutive_clean <= convergence_target`, and
   `consecutive_clean <= len(state.chapters)` (the manifest-length proxy for
@@ -824,7 +824,7 @@ changes the exit code of the two tests that invoke or run the *real*
   over `COMMAND_NAMES`, run by `test_console_scripts_install_and_exit_two`). The
   installed `novel-state` run with no args in a cwd lacking `working/` now exits
   `3`. Narrow `_assert_scripts_exit_two` to the four still-stubbed names; add a
-  dedicated `novel-state` e2e (below) that materialises a `working/` tree and
+  dedicated `novel-state` e2e (below) that materializes a `working/` tree and
   asserts exit `0`.
 
 The three `make_stub_app`-based tests are **unaffected** and must NOT be touched
@@ -849,7 +849,7 @@ Write the failing **behavioural / e2e suite** `tests/test_novel_state_check.py`
 (red before the command body is complete):
 
 All these cases select a fixture working directory by `monkeypatch.chdir(dest)`
-into the materialised parent (the corpus fixtures build `dest/working/` and
+into the materialized parent (the corpus fixtures build `dest/working/` and
 return the `working/` path; `chdir(dest.parent of working)` — i.e. the `dest`
 passed to `build_tree`/`build_working_tree` — makes the default `./working/`
 resolve to the fixture). The `check` body and the envelope both use the fixed
@@ -875,7 +875,7 @@ resolve to the fixture). The `check` body and the envelope both use the fixed
   `RunContext` before `run` reached the usage path); and the residual argv after
   the `--human` strip still drives the subcommand correctly (`--human check`
   reaches the `check` body).
-- **`parse_global_flags` unit tests:** `--human` recognised and removed from any
+- **`parse_global_flags` unit tests:** `--human` recognized and removed from any
   position (leading, between tokens, trailing); absence of `--human` yields
   `human is False`; the residual argv preserves the subcommand tokens in order;
   multiple `--human` occurrences all removed. No working-dir token is parsed
@@ -890,7 +890,7 @@ for the global-flag cases (`monkeypatch.chdir` into the fixture parent,
 
 Add **one subprocess e2e through the installed console-script** for the genuine
 end-to-end path, mirroring `test_console_scripts_e2e.py` but for `novel-state`:
-materialise a coherent `working/` tree under a `tmp_path` directory (build a
+materialize a coherent `working/` tree under a `tmp_path` directory (build a
 `baseline_tree`-equivalent spec via `make_working_tree_spec`/`build_tree` so the
 tree lands at `dest/working/`), install (or reuse the installed) `novel-state`,
 and run it with cuprum setting the subprocess cwd to `dest` so the script
@@ -1440,7 +1440,7 @@ function, and `tests/test_validate_state_*` / `tests/test_novel_state_check.py`.
   `working_dir` to `"working"` (design line 151) and defines exit `3` as
   "working dir absent" (design line 189). The round-2 plan invented a
   `--working-dir VALUE` flag and mis-attributed it to ADR-003 §3.1; this is
-  dropped. It is also unnecessary: the corpus fixtures materialise `dest/working/`
+  dropped. It is also unnecessary: the corpus fixtures materialize `dest/working/`
   and tests select a fixture by `monkeypatch.chdir(dest)`, relying on the default
   `working/`. Eliminating the flag yields a single source of truth for the
   working directory (the envelope value and the file path are the same constant),
@@ -1465,7 +1465,7 @@ function, and `tests/test_validate_state_*` / `tests/test_novel_state_check.py`.
   four still-stubbed names). The three `make_stub_app`-based tests
   (`test_command_result_exits_two`, `test_unknown_option_exits_one`,
   `test_meta_flags_exit_zero`) are **unaffected** (the factory is untouched) and
-  must not be edited. The new `novel-state` subprocess e2e materialises a coherent
+  must not be edited. The new `novel-state` subprocess e2e materializes a coherent
   `working/` tree under a tmp dir and runs the installed script with cuprum's
   `ExecutionContext(cwd=dest)` (verified against `cuprum/sh.py` lines 168-198 and
   the `run_sync(context=...)` seam at line 441) so it resolves `./working/` and
@@ -1485,7 +1485,7 @@ function, and `tests/test_validate_state_*` / `tests/test_novel_state_check.py`.
   and raises `ZeroDivisionError` rather than returning a verdict. That would (a)
   flake the WI3 Hypothesis suite whenever the `target` draw is `0`, and (b) crash
   the public `validate_state` surface when task 2.1.3 cross-checks it against an
-  arbitrary materialised `target == 0` state, where the oracle returns
+  arbitrary materialized `target == 0` state, where the oracle returns
   gates-consistent — a silent validator-vs-oracle divergence by exception, the
   same drift class the round-1 pre-mortem flagged for B1, one task deeper. The
   corpus always has a positive `target`, so WI4's agreement suite would not catch
@@ -1660,7 +1660,7 @@ adopting the reviewer's Wafflecat alternative (cwd-relative `working/`,
   `test_entry_point_callable_exits_two` and `_assert_scripts_exit_two` move to
   exit `3` for `novel-state` with no `working/` and are narrowed to the four
   still-stubbed commands; the three `make_stub_app`-based tests are untouched.
-  The new `novel-state` subprocess e2e materialises a coherent `working/` tree
+  The new `novel-state` subprocess e2e materializes a coherent `working/` tree
   and sets the subprocess cwd via cuprum `ExecutionContext(cwd=dest)` (verified
   against `cuprum/sh.py`), asserting exit `0`, and carries
   `@pytest.mark.timeout(180)` to supersede the global `timeout = 30` (pyproject

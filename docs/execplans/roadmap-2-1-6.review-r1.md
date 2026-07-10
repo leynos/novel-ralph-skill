@@ -86,7 +86,7 @@ module-docstring refresh (Work item 5) is realistically 50-60 lines, landing
 
 A4. Work item 5's mutant spot-check should pin, in Outcomes, the exact
 before/after oracle verdict on BOTH trees (under: `{gate-ratio}` -> `set()`
-killed; over: unchanged survives), matching the transcript in Artifacts. The plan
+killed; over: unchanged survives), matching the transcript in Artefacts. The plan
 says to confirm the under-counting failure and "would have passed on the
 over-counting variant alone" — record the over-counting survival explicitly so a
 later reader sees why the second tree was necessary.

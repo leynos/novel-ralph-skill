@@ -623,7 +623,7 @@ Snapshot updates (if any unexpectedly arise) are recoverable via
 `--snapshot-update`. If a commit fails the gate, fix forward and re-run
 `make all`; do not commit a failing gate (AGENTS.md line 108).
 
-## Artifacts and notes
+## Artefacts and notes
 
 The load-bearing facts pinned during research:
 

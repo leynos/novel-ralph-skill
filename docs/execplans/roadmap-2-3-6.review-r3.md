@@ -52,9 +52,9 @@ remain (all comment/doc drift, none gate `make all`).
   correction stands. The sibling assertion in `test_validate_state_corpus.py`
   lines 80-87 is also pure set algebra and passes unedited. Verified.
 - `_VARIANT_ACTIONS` (`test_reconcile_derivation.py:47`) is an explicit dict
-  parametrised over its own items — a manual enrolment point, silent if a
+  parametrized over its own items — a manual enrolment point, silent if a
   variant is omitted (advisory A2 correctly captured). The disk-aware
-  `test_disk_evidence_tree_exits_four_with_reconciliation` is parametrised over
+  `test_disk_evidence_tree_exits_four_with_reconciliation` is parametrized over
   `(name, invariant, action)` tuples (line 74), so the plan's proposed
   `("…", "word-counts-cover-drafts", "recount")` case fits. Verified.
 - No `cuprum` / Cyclopts / pytest-timeout / uv behaviour is load-bearing on the
@@ -137,7 +137,7 @@ check. Blast radius: documentation/onboarding, not production. Signal missed:
 the comment drift is invisible to `make all`. Prevention designed-in: fold A1
 and A2 into work items 2 and 4 as explicit edits rather than leaving them to the
 implementer's discretion. The second-most-plausible failure — a double-fire
-receipt — is already neutralised by the single-invariant isolation self-test and
+receipt — is already neutralized by the single-invariant isolation self-test and
 the `DISK_EVIDENCE_INVARIANT_NAMES`-ordered `recount_names` filter (advisory A4
 from round 1, folded in).
 

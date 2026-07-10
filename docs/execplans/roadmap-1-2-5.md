@@ -1012,7 +1012,7 @@ work item 3.
 - No step is destructive to tracked files beyond the intended edits and updates
   to this execplan.
 
-## Artifacts and notes
+## Artefacts and notes
 
 - Locked versions, verified: `interrogate 1.7.0`, `cuprum 0.1.0`,
   `cyclopts 4.18.0` (`uv.lock`); syrupy, hypothesis, and CrossHair are **not**

@@ -98,7 +98,7 @@ letting `check`'s read shape leak into the mutators by copy.
   [`commands/_state_mutators.py`](../../novel_ralph_skill/commands/_state_mutators.py)
   lines 57–59 (`_state_path`).
 
-`_state_mutators._state_path()` exists to centralise the fixed cwd-relative
+`_state_mutators._state_path()` exists to centralize the fixed cwd-relative
 `working/state.toml` path and is used by `set_cursor` and `advance_phase`. But
 `_check` re-derives the same path inline as
 `pathlib.Path(WORKING_DIR_NAME) / "state.toml"` (line 146) and `_init` builds it
@@ -155,7 +155,7 @@ AGENTS.md "Keep file size manageable" caps a single code file at 400 lines.
 (`_require`, `_require_str`, `_require_int`), pattern/basis/page-words resolvers,
 and the `_rule`/`parse_rulepack`/`load_rulepack` assembly. Task 2.2.2 did not
 touch this file, so this is a pre-existing overflow surfaced by the audit, not a
-regression. It is flagged so the cap breach is recorded rather than normalised.
+regression. It is flagged so the cap breach is recorded rather than normalized.
 
 Proposed fix: split the scalar-coercion helpers (`_where`, `_reject_unknown_keys`,
 `_require`, `_require_str`, `_require_int`, `_entries`) into a sibling
