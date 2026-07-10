@@ -11,6 +11,9 @@ the network is unavailable, and ``typos.local.toml`` supplies the narrow
 repository-specific policy that must not weaken the estate-wide base.
 """
 
+import tomllib
+import urllib.error
+import urllib.parse
 from pathlib import Path
 
 import typos_rollout as rollout
@@ -39,6 +42,20 @@ def render_config(repository: Path = REPOSITORY_ROOT) -> str:
     return rollout.render_typos_config(dictionary_from_cache(repository))
 
 
+def _tracked_remote_fallback(
+    source: str | Path,
+    destination: Path,
+) -> rollout.RefreshResult | None:
+    """Return a valid tracked config only for an unavailable HTTPS authority."""
+    if not isinstance(source, str) or urllib.parse.urlsplit(source).scheme != "https":
+        return None
+    try:
+        tomllib.loads(destination.read_text(encoding="utf-8"))
+    except (FileNotFoundError, OSError, tomllib.TOMLDecodeError):
+        return None
+    return rollout.RefreshResult("tracked-config", destination)
+
+
 def main(
     output: Path | None = None,
     *,
@@ -47,13 +64,19 @@ def main(
     offline: bool = False,
 ) -> rollout.RefreshResult:
     """Refresh the shared base cache and write the merged configuration."""
-    result = rollout.refresh_base(
-        source,
-        repository / ".typos-oxendict-base.toml",
-        metadata=repository / ".typos-oxendict-base.json",
-        offline=offline,
-    )
     destination = output if output is not None else repository / "typos.toml"
+    try:
+        result = rollout.refresh_base(
+            source,
+            repository / ".typos-oxendict-base.toml",
+            metadata=repository / ".typos-oxendict-base.json",
+            offline=offline,
+        )
+    except (OSError, urllib.error.URLError):
+        fallback = _tracked_remote_fallback(source, destination)
+        if fallback is not None:
+            return fallback
+        raise
     rollout.write_config(destination, dictionary_from_cache(repository))
     return result
 
