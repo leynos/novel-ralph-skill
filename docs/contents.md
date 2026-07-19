@@ -61,7 +61,9 @@ documentation set.
 - [Developer guide](developers-guide.md) explains the contributor workflow and
   points maintainers to script automation standards. Its "Shared test
   scaffolding" section documents the `working/` fixture corpus
-  ([`working_corpus`](../tests/working_corpus)) the slice suites consume.
+  ([`working_corpus`](../tests/working_corpus)) the slice suites consume, and
+  its "Mutation-testing workflow contract tests" section documents the
+  caller-workflow contract test that pins `mutation-testing.yml`'s shape.
 - [Documentation style guide](documentation-style-guide.md) defines the
   spelling, structure, Markdown, Architecture Decision Record (ADR), Request
   for Comments (RFC), and roadmap conventions used by this documentation set.
