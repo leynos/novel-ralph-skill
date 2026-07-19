@@ -1,5 +1,8 @@
 # 📖 novel-ralph-skill
 
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](
+https://deepwiki.com/leynos/novel-ralph-skill)
+
 *Write a complete novel under a Ralph Loop harness — one truthful turn at a
 time.*
 
