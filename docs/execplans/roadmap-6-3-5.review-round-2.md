@@ -26,15 +26,15 @@ D6/D8; first-hand read of `_state_load.py`, `_state_mutators.py`, `_compile.py`,
   guard and no longer describes line 116 as an assertion to "update" (plan
   lines 178-189, 663-675; Decision D7).
 - **B2 (dangling Decision D6 / unresolved `_compile.py:150` write tail) —
-  CLOSED.**
-  Decision D6 now exists (plan lines 300-316) and scopes the atomic-**write**
-  tail out with a stated, defensible rationale: it is a *write* fault wanting a
-  write-shaped remedy ("create `working/manuscript/`"), not the draft-read
-  formatter's "inspect the draft you read". Verified `_compile.py:150` does
-  interpolate raw `{exc}` (`cannot write {_COMPILED_REL}: {exc}`); leaving it
-  for a sibling write-fault task is coherent. The plan now adds an in-code
-  comment at that tail (Work item 2 step 5) so a future reader does not mistake
-  it for a missed read tail. Forward references resolved.
+  CLOSED.** Decision D6 now exists (plan lines 300-316) and scopes the
+  atomic-**write** tail out with a stated, defensible rationale: it is a
+  *write* fault wanting a write-shaped remedy ("create `working/manuscript/`"),
+  not the draft-read formatter's "inspect the draft you read". Verified
+  `_compile.py:150` does interpolate raw `{exc}`
+  (`cannot write {_COMPILED_REL}: {exc}`); leaving it for a sibling write-fault
+  task is coherent. The plan now adds an in-code comment at that tail (Work
+  item 2 step 5) so a future reader does not mistake it for a missed read tail.
+  Forward references resolved.
 - **B3 (state-document fault routed through a draft-read formatter) — CLOSED.**
   Decision D7 (plan lines 317-335) now routes `_state_view_or_state_error`
   through 6.3.1's existing `_state_input_error(state_path(), exc)`
@@ -45,7 +45,8 @@ D6/D8; first-hand read of `_state_load.py`, `_state_mutators.py`, `_compile.py`,
   document (`_state_mutators.py:241-242, 247, 330-332, 342`), so by the time
   the view-derivation fault fires the file provably exists. Therefore
   `_state_input_error`'s `if not path.parent.exists() or not path.exists()`
-  test is false and the present-but-corrupt arm (`<path> is unreadable or
+  test is false and the present-but-corrupt arm
+  (`<path> is unreadable or
   corrupt; inspect and repair it, or restore it from a known-good copy`)
   fires — the exact inspect/repair remedy the roadmap mandates, naming the
   state-document path with no raw `{exc}`/`Errno`. The corrupt-arm wording is
@@ -90,8 +91,7 @@ string (verified by `grep`). The `_state_load.py` re-export uses `__all__`
 ## Panel notes (no blockers)
 
 - **Pandalump 🐼 (structure).** Dependency direction is sound: the formatter
-  lives
-  in the leaf `_state_load.py` (imports only `state`/`contract.runner`),
+  lives in the leaf `_state_load.py` (imports only `state`/`contract.runner`),
   re-exported via `novel_state`, mirroring `_state_input_error`; no import
   cycle. Minor residual: the internal name `_draft_read_error` covers
   `compiled.md` reads too (via `check_compiled`, `_novel_done`), which is a

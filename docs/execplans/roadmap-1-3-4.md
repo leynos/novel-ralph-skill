@@ -26,8 +26,8 @@ subclass it; `RulePackError` adds its own `rule_id` attribute. The
 freeze-on-construct decision (that `messages` is captured once as an immutable
 tuple) then has one home.
 
-Success is observable three ways. First, a new unit test asserts that all
-three domain exceptions are subclasses of `EnvelopeMessagesError` and that an
+Success is observable three ways. First, a new unit test asserts that all three
+domain exceptions are subclasses of `EnvelopeMessagesError` and that an
 instance of each carries its `messages` tuple verbatim. Second, the existing
 suites that exercise these exceptions — `tests/test_rulepack_schema.py`,
 `tests/test_rulepack_loader.py`, `tests/test_rulepack_properties.py`,
@@ -137,26 +137,26 @@ Thresholds that trigger escalation when breached.
   Net blocks `git restore`).
 - [x] (done) Work item 2: rebase `StateInputError` onto the base in
   `contract/runner.py`. Deleted its redundant `__init__` (the base supplies it);
-  `interrogate` stays at 100% (a subclass without a local `__init__` needs none
-  documented). Extended `tests/test_contract_errors.py` with a subclass/messages
-  assertion. `make all` green (278 passed). CodeRabbit raised three minor
-  docs-style findings (first/second-person pronouns in this execplan); all
-  fixed. `make markdownlint`/`make nixie` pass for `roadmap-1-3-4.md` (no errors
-  in this file; nixie validates clean).
+  `interrogate` stays at 100% (a subclass without a local `__init__` needs
+  none documented). Extended `tests/test_contract_errors.py` with a
+  subclass/messages assertion. `make all` green (278 passed). CodeRabbit raised
+  three minor docs-style findings (first/second-person pronouns in this
+  execplan); all fixed. `make markdownlint`/`make nixie` pass for
+  `roadmap-1-3-4.md` (no errors in this file; nixie validates clean).
 - [x] (done) Work item 3: rebase `RulePackError` and `RulePackFileError` onto
   the base in `rulepack/errors.py` and refresh the stale module docstring.
   `RulePackFileError` drops its redundant `__init__`; `RulePackError` keeps a
   local `__init__` for `rule_id`, calling `super().__init__(*messages)` (which
   now sets `self.messages` via the base) and dropping its redundant local
   `self.messages` assignment. Module docstring updated: "Both mirror
-  `StateInputError`" replaced with the shared-base statement and the
-  `rulepack` → `contract` dependency direction (design §3.1). `make all` green
-  (278 passed). CodeRabbit: 0 findings.
+  `StateInputError`" replaced with the shared-base statement and the `rulepack`
+  → `contract` dependency direction (design §3.1). `make all` green (278
+  passed). CodeRabbit: 0 findings.
 - [x] (done) Work item 4: add the cross-layer hierarchy test and run the full
   validation gate. Added three consolidating tests to
   `tests/test_contract_errors.py`: all three domain errors subclass the base,
-  `RulePackError`/`RulePackFileError` stay unrelated to each other (fan-out, not
-  chain), and each subclass round-trips its payload (`RulePackError` keeps
+  `RulePackError`/`RulePackFileError` stay unrelated to each other (fan-out,
+  not chain), and each subclass round-trips its payload (`RulePackError` keeps
   `rule_id`). The cross-layer test imports the rulepack errors from
   `novel_ralph_skill.rulepack` and the base from `novel_ralph_skill.contract`.
   `make all` green (281 passed). CodeRabbit hit a rate limit; cleared after six
@@ -196,11 +196,11 @@ Thresholds that trigger escalation when breached.
   the roadmap's "neutral `contract` module" success criterion. Date/Author:
   2026-06-23, planning agent.
 - Decision: implement the base as a plain
-  `class EnvelopeMessagesError(Exception)`, not a dataclass.
-  Rationale: the three current exceptions are plain `Exception` subclasses using
-  `*messages` varargs and `super().__init__`; preserving `str()`/`args` and
-  the varargs signature is a Constraint. A dataclass would change construction
-  semantics. Date/Author: 2026-06-23, planning agent.
+  `class EnvelopeMessagesError(Exception)`, not a dataclass. Rationale: the
+  three current exceptions are plain `Exception` subclasses using `*messages`
+  varargs and `super().__init__`; preserving `str()`/`args` and the varargs
+  signature is a Constraint. A dataclass would change construction semantics.
+  Date/Author: 2026-06-23, planning agent.
 - Decision: re-export `EnvelopeMessagesError` from
   `novel_ralph_skill.contract.__init__` (add to the import block and
   `__all__`). Rationale: it is part of the shared contract surface and the new
@@ -211,13 +211,13 @@ Thresholds that trigger escalation when breached.
 ## Outcomes & retrospective
 
 Outcome matches the purpose. `EnvelopeMessagesError` in the new leaf module
-`novel_ralph_skill/contract/errors.py` records `self.messages` exactly once. The
-three domain exceptions subclass it: `StateInputError` and `RulePackFileError`
-drop their `__init__` entirely, and `RulePackError` keeps only the `rule_id`
-extension while deferring `messages` storage to the base. The hierarchy fans out
-from the base (the rulepack errors stay unrelated to each other), so the
-distinctness test still holds. No public name, import path, or constructor
-signature changed; consumers needed no edits.
+`novel_ralph_skill/contract/errors.py` records `self.messages` exactly once.
+The three domain exceptions subclass it: `StateInputError` and
+`RulePackFileError` drop their `__init__` entirely, and `RulePackError` keeps
+only the `rule_id` extension while deferring `messages` storage to the base.
+The hierarchy fans out from the base (the rulepack errors stay unrelated to
+each other), so the distinctness test still holds. No public name, import path,
+or constructor signature changed; consumers needed no edits.
 
 The existing rulepack and contract suites pass unchanged, confirming the
 refactor is behaviour-preserving; `make all` is green at every work item (281
@@ -227,8 +227,8 @@ breached; no escalation was required.
 
 The four work items committed cleanly in order. The only friction was a
 CodeRabbit rate limit on work item 4, cleared after six exponential-backoff
-retries. The `make fmt` mdformat churn on unrelated docs (a known repo nuisance)
-was kept out of every commit by explicit `git add` pathspecs.
+retries. The `make fmt` mdformat churn on unrelated docs (a known repo
+nuisance) was kept out of every commit by explicit `git add` pathspecs.
 
 ## Context and orientation
 

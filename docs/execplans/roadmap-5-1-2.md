@@ -493,9 +493,9 @@ observable outcomes from Purpose hold, each verified by an automated test:
   `test_installed_desloppify_clean_tree_exits_zero` proves it for the installed
   script).
 - `desloppify` over an em-dash flood prints `ok:false`, names `em-dash` in
-  `result.violations`, and exits `4`
-  (`test_em_dash_flood_exits_four`; e2e `test_installed_desloppify_flags_offender`
-  proves the packaged pack travels in the wheel).
+  `result.violations`, and exits `4` (`test_em_dash_flood_exits_four`; e2e
+  `test_installed_desloppify_flags_offender` proves the packaged pack travels
+  in the wheel).
 - A malformed pack / bad `--chapter` exits `2` and an absent pack file / absent
   `working/` exits `3`, each distinguishable by exit code alone
   (`test_malformed_pack_exits_two`, `test_chapter_outside_manifest_exits_two`,
@@ -510,7 +510,8 @@ Lessons:
   critical finding).
 - The combined command module overran the 400-line cap; splitting the pure
   envelope projection and the resolver into `_desloppify_report.py` (mirroring
-  `_recount.py`) kept both files well under the cap with a clean dependency edge.
+  `_recount.py`) kept both files well under the cap with a clean dependency
+  edge.
 - Placeholder §6 rows ("[her]", "+ verb", capitalized abstract noun, the
   contraction-only "couldn't help but") each needed an explicit pinned reading
   and a both-directions positive/negative test, so the pack's comments never
@@ -981,8 +982,8 @@ only the two conventions, so the density `total_words` cannot drift from
 
 - Resolve `working/state.toml` via
   `pathlib.Path(WORKING_DIR_NAME) / "state.toml"` and load the typed `State`
-  through `_load_or_state_error`
-  (reused from `novel_state.py`), so a missing/unparseable state is exit 3.
+  through `_load_or_state_error` (reused from `novel_state.py`), so a
+  missing/unparseable state is exit 3.
 - Read the `[chapters]` manifest (`state.chapters`). For whole-manuscript
   scope, scan every manifest chapter in ascending `number` order; for
   `--chapter N`, scan only that chapter. `--chapter N` not in the manifest is a
@@ -1393,12 +1394,12 @@ off the `[chapters]` manifest; loader errors map to exit 2/4/3 via the shared
 ## Addenda (post-merge follow-ups)
 
 Lightweight addendum work items folded back onto this completed task from the
-post-merge reviews and audit of step 5.1. Execute each as a small addendum
-pass — no plan or design-review cycle: make the change, run `make all` (plus
+post-merge reviews and audit of step 5.1. Execute each as a small addendum pass
+— no plan or design-review cycle: make the change, run `make all` (plus
 `make markdownlint`/`make nixie` for Markdown), `coderabbit review --agent`,
 commit, and tick the matching roadmap sub-task on merge. The substantial
-forward-looking output-contract items (slimming the clean-pass payload, adding a
-matched-text span per hit, and giving `RuleFinding`/`LineHit` a canonical
+forward-looking output-contract items (slimming the clean-pass payload, adding
+a matched-text span per hit, and giving `RuleFinding`/`LineHit` a canonical
 projection) were re-routed to roadmap step 7.1 (tasks 7.1.3–7.1.5) because they
 enrich the per-hit contract the §7.1 packs inherit rather than confirming the
 settled step-5.1 detection-as-versioned-data hypothesis; the chapter-draft
@@ -1407,15 +1408,16 @@ four are the small doc fixes, the localized test refactor, and the coverage gap
 only.
 
 - [x] 5.1.2.1 — Document the per-page density behaviour on short or near-empty
-  drafts (from review:5.1.2, low; merges the two near-identical density-surprise
-  proposals). The §4.5 density formula lets a single `per_page` offender trip the
-  threshold on a sub-page draft because a partial page still counts; add a
-  one-paragraph note to the `desloppify` users'-guide section so an operator
-  scanning an early or short chapter is not surprised by the design-correct
-  extrapolation. (An optional minimum-page floor was weighed and left out of this
-  lightweight pass: the behaviour is design-correct, so documentation suffices.)
-  Gate with `make markdownlint` and `make nixie`.
-- [x] 5.1.2.2 — Tighten the snapshot volatile-field guard from a bare slash check
+  drafts (from review:5.1.2, low; merges the two near-identical
+  density-surprise proposals). The §4.5 density formula lets a single
+  `per_page` offender trip the threshold on a sub-page draft because a partial
+  page still counts; add a one-paragraph note to the `desloppify` users'-guide
+  section so an operator scanning an early or short chapter is not surprised by
+  the design-correct extrapolation. (An optional minimum-page floor was weighed
+  and left out of this lightweight pass: the behaviour is design-correct, so
+  documentation suffices.) Gate with `make markdownlint` and `make nixie`.
+- [x] 5.1.2.2 — Tighten the snapshot volatile-field guard from a bare slash
+      check
   to a path/timestamp pattern (from review:5.1.2, low).
   `tests/test_desloppify_snapshots.py`'s `_assert_no_volatile_fields` asserts no
   `/` appears in the rendered envelope, so a future rule id, pack name, or
@@ -1423,18 +1425,19 @@ only.
   with a regex matching absolute-path or timestamp shapes so the guard stays
   durable across packs. Test-only. Gate with `make all`.
 - [x] 5.1.2.3 — Reconcile the per-hit `phrase` wording across design §4.4, the
-  roadmap, and the emitted envelope (from review:5.1.2, low). The envelope emits
-  the rule's authored pattern source under `phrase` while `rule_id` is the
-  canonical slug; reconcile the design §4.4 and roadmap 5.1.2 "phrase, count,
-  density…" wording (and the users'-guide gloss) with the shipped contract so the
-  §7.1 ai-isms and device-ledger packs inherit an unambiguous per-hit output
-  vocabulary. Doc-only; the code contract is unchanged here (a matched-text span
-  is the separate 7.1.4 reroute). Gate with `make markdownlint` and `make nixie`.
+  roadmap, and the emitted envelope (from review:5.1.2, low). The envelope
+  emits the rule's authored pattern source under `phrase` while `rule_id` is
+  the canonical slug; reconcile the design §4.4 and roadmap 5.1.2 "phrase,
+  count, density…" wording (and the users'-guide gloss) with the shipped
+  contract so the §7.1 ai-isms and device-ledger packs inherit an unambiguous
+  per-hit output vocabulary. Doc-only; the code contract is unchanged here (a
+  matched-text span is the separate 7.1.4 reroute). Gate with
+  `make markdownlint` and `make nixie`.
 - [x] 5.1.2.4 — Correct the "cannot drift from `recount_words`" docstrings under
   `--chapter` scope and test the per-page density message branch (from
   audit:5.1.2, medium; merges audit Findings 3 and 4). `detect`'s "cannot drift
-  from `recount_words`" docstrings are misleading because `--chapter N` computes
-  per-page density over one chapter, not the manuscript total; reword them to
-  name the actual scope. Add a focused test for the untested per-page density
-  branch of `_finding_message` (`commands/_desloppify_report.py`). Both are
-  localized to the 5.1.2 surface. Gate with `make all`.
+  from `recount_words`" docstrings are misleading because `--chapter N`
+  computes per-page density over one chapter, not the manuscript total; reword
+  them to name the actual scope. Add a focused test for the untested per-page
+  density branch of `_finding_message` (`commands/_desloppify_report.py`). Both
+  are localized to the 5.1.2 surface. Gate with `make all`.

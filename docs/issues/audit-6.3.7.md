@@ -1,8 +1,7 @@
 # Post-merge audit — roadmap task 6.3.7
 
 Audit of the codebase after roadmap task 6.3.7 ("Pin the `SKILL.md` command
-contract to code with a drift-guard test") merged to `main` at commit
-`359c130`.
+contract to code with a drift-guard test") merged to `main` at commit `359c130`.
 
 The merged change closes the last unguarded copy of the shared interface
 contract. It adds a pure markdown scanner
@@ -27,9 +26,9 @@ new guard derives the envelope field order from the *code* —
 ([`tests/test_skill_contract_drift_guard.py`](../../tests/test_skill_contract_drift_guard.py)
 line 209) — making the dataclass the single source of truth for the field set
 and order. But three pre-existing copies of that same field order remain
-hand-written and unpinned to the dataclass, so the contract the new guard
-just anchored is still re-spelled three times by literal tuples that can drift
-from the dataclass the guard treats as canonical (Finding 1). The remaining two
+hand-written and unpinned to the dataclass, so the contract the new guard just
+anchored is still re-spelled three times by literal tuples that can drift from
+the dataclass the guard treats as canonical (Finding 1). The remaining two
 findings record that 6.3.7's scanner is now the third independent markdown
 fence/region parser in the test suite, reimplementing a CommonMark fence regex
 (Finding 2) and a find-or-fail document slicer (Finding 3) that two sibling
@@ -76,9 +75,9 @@ derived from the dataclass:
 
 The consequence is a four-way pin with only a partial spanning tree. A field
 reordered or renamed in the dataclass is caught by the 6.3.7 SKILL guard, but
-`render_machine`, `_FIXED_FIELD_ORDER`, and `ENVELOPE_KEY_ORDER` would each need
-a matching hand-edit; conversely, `render_machine` could be reordered out of
-step with the dataclass and *only* the two literal test tuples — themselves
+`render_machine`, `_FIXED_FIELD_ORDER`, and `ENVELOPE_KEY_ORDER` would each
+need a matching hand-edit; conversely, `render_machine` could be reordered out
+of step with the dataclass and *only* the two literal test tuples — themselves
 hand-maintained twins of the old order — would catch it, never the dataclass.
 The new guard makes the dataclass canonical for the SKILL copy alone; the
 in-tree renderer and its two test oracles still treat their own literals as the
@@ -88,16 +87,17 @@ eliminate, left standing one layer down in the code the guard imports.
 - **Proposed fix**: Make `dataclasses.fields(Envelope)` the one source for every
   consumer of the field order. (1) Have `render_machine` build its ordered
   mapping by iterating `dataclasses.fields(Envelope)` and pulling each value via
-  `getattr`, with `result`/`messages` coerced to `dict`/`list` as today, so the
-  renderer cannot diverge from the declaration it renders. (2) Replace the two
-  literal tuples with a single shared constant derived once from the dataclass
-  — e.g. promote `ENVELOPE_FIELD_ORDER = tuple(f.name for f in
-  dataclasses.fields(Envelope))` beside the `Envelope` definition in
-  `envelope.py`, and have both `_FIXED_FIELD_ORDER` and `ENVELOPE_KEY_ORDER`
-  import it rather than re-spell it. Keep one literal-tuple assertion (for
-  instance in `test_contract_envelope.py`) as the human-readable tripwire that
-  pins the *expected* names, so an accidental dataclass reorder still fails a
-  test rather than silently propagating. Proposed as a roadmap item below; not
+  `getattr`, with `result`/`messages` coerced to `dict`/`list` as today, so
+  the renderer cannot diverge from the declaration it renders. (2) Replace the
+  two literal tuples with a single shared constant derived once from the
+  dataclass — e.g. promote
+  `ENVELOPE_FIELD_ORDER = tuple(f.name for f in dataclasses.fields(Envelope))`
+  beside the `Envelope` definition in `envelope.py`, and have both
+  `_FIXED_FIELD_ORDER` and `ENVELOPE_KEY_ORDER` import it rather than re-spell
+  it. Keep one literal-tuple assertion (for instance in
+  `test_contract_envelope.py`) as the human-readable tripwire that pins the
+  *expected* names, so an accidental dataclass reorder still fails a test
+  rather than silently propagating. Proposed as a roadmap item below; not
   applied here.
 
 ## Finding 2 — The 6.3.7 scanner is the second hand-rolled CommonMark fence regex; the two share a non-trivial core that could be a shared helper

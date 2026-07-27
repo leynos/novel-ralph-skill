@@ -8,10 +8,10 @@ predicate) and the `working/manuscript/compiled.md` location (now the
 `compiled_manuscript_path` / `COMPILED_REL` path seam). Both seam members live
 in `novel_ralph_skill/state/compile_model.py`, the existing owner of the join
 rule, and are re-exported through `novel_ralph_skill/state/__init__.py`. The
-four consumers — `_compile.check_compiled`, `done_predicate.compile_consistent`,
-the `_novel_done` compile clause, and the `state` package re-exports — were
-routed through the seam, and `tests/test_compile_model_seam.py` pins the
-projection and the single path.
+four consumers — `_compile.check_compiled`,
+`done_predicate.compile_consistent`, the `_novel_done` compile clause, and the
+`state` package re-exports — were routed through the seam, and
+`tests/test_compile_model_seam.py` pins the projection and the single path.
 
 Trail followed: `docs/novel-ralph-harness-design.md` §4.3/§5.4 (the compile and
 disk-evidence model), `docs/developers-guide.md` §"`compile_consistent` is the
@@ -24,10 +24,10 @@ and `leta`/`sem` for navigation and history. Files inspected:
 `novel_ralph_skill/state/compile_model.py`,
 `novel_ralph_skill/state/done_predicate.py`,
 `novel_ralph_skill/state/disk_evidence.py`,
-`novel_ralph_skill/state/__init__.py`,
-`novel_ralph_skill/commands/_compile.py`,
+`novel_ralph_skill/state/__init__.py`, `novel_ralph_skill/commands/_compile.py`,
 `novel_ralph_skill/commands/_novel_done.py`,
-`tests/test_compile_model_seam.py`, and the design and developer documents above.
+`tests/test_compile_model_seam.py`, and the design and developer documents
+above.
 
 The merged change is high quality. The extraction is well motivated (it closes
 `docs/issues/audit-4.1.2.md` Findings 1 and 2), the four consumers genuinely
@@ -38,8 +38,8 @@ test exhausts the `CompiledComparison` truth table with a guard that forces a
 decision if a fourth member is ever added. The findings below are at the
 documentation-narrative and minor-ergonomics layer; none is a correctness
 defect. Note also that the prior `docs/issues/audit-7.1.1.md` on `main`
-described a *different* change (the `ai-isms.toml` pack, commit `42a6fc6`); this
-file replaces it with an audit of the change that actually merged as 7.1.1.
+described a *different* change (the `ai-isms.toml` pack, commit `42a6fc6`);
+this file replaces it with an audit of the change that actually merged as 7.1.1.
 
 ## Finding 1 — developers' guide narrative predates the named currency predicate (severity: low)
 
@@ -50,16 +50,16 @@ content comparison (roadmap 3.1.2)" (lines ~1017-1048) and §"The exit-`4`
 carve-out" (lines ~1050-1059).
 
 **Description:** The guide thoroughly documents the shared
-`compile_model.compiled_matches_drafts` helper and its three-valued verdict, but
-its prose still describes the content-polarity projection inline ("an absent
-`compiled.md` is `False`, a present one is `True` iff …") and the path stat as a
-bare "`compiled.md` `exists()` stat". After 7.1.1 there are now two *named*
+`compile_model.compiled_matches_drafts` helper and its three-valued verdict,
+but its prose still describes the content-polarity projection inline ("an absent
+`compiled.md` is `False`, a present one is `True` iff …") and the path stat as
+a bare "`compiled.md` `exists()` stat". After 7.1.1 there are now two *named*
 single-owner seam members that own exactly these two operations:
 `compile_is_current(verdict)` (the content-polarity projection both
 `check_compiled` and `compile_consistent` route through) and
 `compiled_manuscript_path` / `COMPILED_REL` (the single filesystem join and the
-envelope token). A developer reading the guide is told the rule but not the name
-of the function that now enforces it, so a future change that needs the
+envelope token). A developer reading the guide is told the rule but not the
+name of the function that now enforces it, so a future change that needs the
 projection or the path may re-derive it inline rather than calling the seam —
 the exact regression 7.1.1 was extracting to prevent.
 
@@ -76,21 +76,21 @@ guide and the code agree on where the rule lives.
 
 **Category:** docs-gap
 
-**Location:** `novel_ralph_skill/state/compile_model.py` module docstring (lines
-1-17).
+**Location:** `novel_ralph_skill/state/compile_model.py` module docstring
+(lines 1-17).
 
-**Description:** The module-level docstring still describes the module solely as
-"the §4.3/§9 draft-concatenation model the disk-evidence detector shares" and
-singles out `concatenate_drafts` as the production twin. After 7.1.1 the module
-also owns the compile-currency projection (`compile_is_current`) and the
-compiled-manuscript path seam (`compiled_manuscript_path`, `COMPILED_REL`) — two
-responsibilities the header does not announce. A reader scanning the module top
-to decide whether a new currency or path concern belongs here will not learn
-from the docstring that this module is the designated single owner of both, even
-though the per-symbol docstrings (correctly) say so.
+**Description:** The module-level docstring still describes the module solely
+as "the §4.3/§9 draft-concatenation model the disk-evidence detector shares"
+and singles out `concatenate_drafts` as the production twin. After 7.1.1 the
+module also owns the compile-currency projection (`compile_is_current`) and the
+compiled-manuscript path seam (`compiled_manuscript_path`, `COMPILED_REL`) —
+two responsibilities the header does not announce. A reader scanning the module
+top to decide whether a new currency or path concern belongs here will not
+learn from the docstring that this module is the designated single owner of
+both, even though the per-symbol docstrings (correctly) say so.
 
-**Proposed fix:** Extend the module docstring with one sentence stating that the
-module is also the single owner of the compile-currency projection
+**Proposed fix:** Extend the module docstring with one sentence stating that
+the module is also the single owner of the compile-currency projection
 (`compile_is_current`) and the `compiled.md` path/envelope token
 (`compiled_manuscript_path` / `COMPILED_REL`), cross-referencing
 `docs/issues/audit-4.1.2.md` Findings 1 and 2. This keeps the module header an
@@ -141,18 +141,20 @@ the tail. The claim that the function never doubles the prefix is asserted only
 implicitly.
 
 **Proposed fix:** Add one assertion that exercises a non-`working`-named anchor
-(e.g. `compiled_manuscript_path(Path("/tmp/run/working")).parts[-2:] ==
-("manuscript", "compiled.md")`) so the relative tail is pinned independently of
-the `working/` segment, making the "no doubled prefix" contract explicit rather
-than incidental to the one happy-path equality. Keep the existing
-`COMPILED_REL` equality as the envelope-token guard.
+(e.g.
+`compiled_manuscript_path(Path("/tmp/run/working")).parts[-2:] ==
+("manuscript", "compiled.md")`)
+so the relative tail is pinned independently of the `working/` segment, making
+the "no doubled prefix" contract explicit rather than incidental to the one
+happy-path equality. Keep the existing `COMPILED_REL` equality as the
+envelope-token guard.
 
 ## Finding 5 — the `working/`-anchored input contract is a convention, not a type (severity: low)
 
 **Category:** ergonomics
 
-**Location:** `novel_ralph_skill/state/compile_model.py` `compiled_manuscript_path`
-(lines 66-87); `COMPILED_REL` (line 45).
+**Location:** `novel_ralph_skill/state/compile_model.py`
+`compiled_manuscript_path` (lines 66-87); `COMPILED_REL` (line 45).
 
 **Description:** `compiled_manuscript_path(working_dir)` and the string constant
 `COMPILED_REL = "working/manuscript/compiled.md"` are agreed *only* when the
@@ -160,16 +162,17 @@ caller passes a directory whose final segment is literally `working` (the
 docstring spells this out, and the seam test passes exactly `Path("working")`).
 The coupling between the path-builder's input contract and the hardcoded
 envelope token is carried entirely in prose; a caller that passed a differently
-named `working/` directory (e.g. a renamed scratch dir in a future test harness)
-would silently produce a path whose POSIX form no longer matches `COMPILED_REL`,
-with no type or assertion catching it. This is the residual seam after 7.1.1:
-the path *join* is centralized, but the "input must be the `working/` segment"
-precondition is not enforced anywhere it is called.
+named `working/` directory (e.g. a renamed scratch dir in a future test
+harness) would silently produce a path whose POSIX form no longer matches
+`COMPILED_REL`, with no type or assertion catching it. This is the residual
+seam after 7.1.1: the path *join* is centralized, but the "input must be the
+`working/` segment" precondition is not enforced anywhere it is called.
 
 **Proposed fix:** This is a watch-item rather than an actionable defect for a
-docs-only audit. If a future task introduces a second caller with a non-canonical
-working directory, consider either (a) deriving `COMPILED_REL` from
-`compiled_manuscript_path(Path("working")).as_posix()` so the constant cannot
-drift from the join, or (b) accepting the `working/` root through a single shared
-accessor so the precondition has one enforcement point. No change is warranted
-now; recording so the next compile-surface task sees the latent coupling.
+docs-only audit. If a future task introduces a second caller with a
+non-canonical working directory, consider either (a) deriving `COMPILED_REL`
+from `compiled_manuscript_path(Path("working")).as_posix()` so the constant
+cannot drift from the join, or (b) accepting the `working/` root through a
+single shared accessor so the precondition has one enforcement point. No change
+is warranted now; recording so the next compile-surface task sees the latent
+coupling.

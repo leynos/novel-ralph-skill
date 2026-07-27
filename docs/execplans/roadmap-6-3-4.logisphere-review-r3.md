@@ -17,15 +17,15 @@ remain; none gate implementation.
   57-59 — there is no message redaction); the instruction is now a JSON-aware /
   scoped redaction of only `result.working_dir`, leaving the synthetic top-level
   `"working"` label untouched. The Scope tolerance is raised to the true
-  12-file / ~340-line footprint, every file enumerated (Decision D7). Work
-  item 0 step 4 points precisely at `test_init_success_envelope_snapshot`
+  12-file / ~340-line footprint, every file enumerated (Decision D7). Work item
+  0 step 4 points precisely at `test_init_success_envelope_snapshot`
   (`tests/test_novel_state_mutator_snapshots.py:62`) and `.ambr:22`.
   Independently confirmed: `grep -rn '"result":[^}]*"working_dir"'` over
   `tests/__snapshots__/` returns exactly one hit — line 22 of that `.ambr`
   (`"result": {"working_dir": "working", "slug": "s"}`). No other snapshot
-  carries a body `result.working_dir`. `test_command_surface_matrix.py` excludes
-  the `init` mutator (line 29) and uses the synthetic contract constant, so it is
-  correctly bucketed as insulated.
+  carries a body `result.working_dir`. `test_command_surface_matrix.py`
+  excludes the `init` mutator (line 29) and uses the synthetic contract
+  constant, so it is correctly bucketed as insulated.
 
 - **B6 (stale documented contract invariant).** Resolved. Decision D8 and Work
   item 1 fold in the correction of the now-false module docstring at
@@ -50,8 +50,9 @@ remain; none gate implementation.
 - **A6 (inside-`working/` e2e cwd).** Resolved. Work item 2 step 2 now reaches
   the deeper cwd by passing `run_dir / "working"` as the first argument to the
   `run_installed(run_dir, argv)` fixture rather than constructing an
-  `ExecutionContext` (verified: the fixture builds `ExecutionContext(cwd=run_dir)`
-  internally at lines 174-178; it does not expose `ExecutionContext` to callers).
+  `ExecutionContext` (verified: the fixture builds
+  `ExecutionContext(cwd=run_dir)` internally at lines 174-178; it does not
+  expose `ExecutionContext` to callers).
 
 ## Independent verification (this round)
 
@@ -61,20 +62,23 @@ remain; none gate implementation.
   delegates every `sys.exit` to `run`, so the Work item 1 behavioural test must
   catch `SystemExit` + read `capsys` — which is what the plan prescribes.
 - **`_init` coherence.** `_init` calls `working_dir().mkdir()` (line 248) before
-  stamping the body (line 264), so `working/` exists when `resolved_working_dir()`
-  resolves; the non-strict `resolve()` is correct either way.
+  stamping the body (line 264), so `working/` exists when
+  `resolved_working_dir()` resolves; the non-strict `resolve()` is correct
+  either way.
 - **`pathlib.Path.resolve()` non-strict.** Re-confirmed on Python 3.14.3:
   `chdir(tmp); Path("working").resolve()` yields `<tmp>/working`, is absolute,
-  and succeeds with no `working/` present; matches `Path(tmp).resolve()/"working"`.
+  and succeeds with no `working/` present; matches
+  `Path(tmp).resolve()/"working"`.
 - **Locked cuprum.** Verified against the installed source
   `/data/leynos/Projects/novel-ralph-skill/.venv/lib/python3.14/site-packages/cuprum/sh.py`:
   <!-- markdownlint-disable-next-line MD013 -->
   `run_sync(*, capture: bool = True, echo: bool = False, context: ExecutionContext | None = None)`
   at line 450; `CommandResult.exit_code: int`, `stdout/stderr: str | None`;
   `ExecutionContext.cwd`. The git HEAD at `/data/leynos/Projects/cuprum`
-  (de54bff) has collapsed `capture` into `RunOutputOptions` (the `output` kwarg),
-  confirming the drift warning. The plan correctly pins to the installed wheel and
-  the e2e reuses the existing call verbatim; no cuprum API is asserted from memory.
+  (de54bff) has collapsed `capture` into `RunOutputOptions` (the `output`
+  kwarg), confirming the drift warning. The plan correctly pins to the
+  installed wheel and the e2e reuses the existing call verbatim; no cuprum API
+  is asserted from memory.
 - **Roadmap criterion.** roadmap.md:2217-2229 offers upward-search OR
   absolute-`working_dir` ("pick one and justify it"); the plan picks option 2,
   justifies it (D1), and meets "running from inside `working/` no longer
@@ -95,14 +99,14 @@ remain; none gate implementation.
   attribution is cosmetically wrong. The substantive requirement (every new
   module/function/test carries a docstring or `make all` fails) is correct.
 - **AD2 (Pandalump).** Work item 1 says to re-export `resolved_working_dir` from
-  `novel_state.py` "alongside the existing exports" but does not spell out the two
-  mechanical edits the module's own lint discipline requires: add the symbol to
-  the `_state_load` import block (lines 61-68) AND to `__all__` (lines 83-91), per
-  the comment at lines 58-60. Likewise `novel.py:36` currently imports
-  `WORKING_DIR_NAME` from `novel_state`; after the change `main` no longer uses
-  it and must import `resolved_working_dir` instead, or the unused-import lint
-  fires.
-  `make all` catches both, so this is guidance, not a gap.
+  `novel_state.py` "alongside the existing exports" but does not spell out the
+  two mechanical edits the module's own lint discipline requires: add the
+  symbol to the `_state_load` import block (lines 61-68) AND to `__all__`
+  (lines 83-91), per the comment at lines 58-60. Likewise `novel.py:36`
+  currently imports `WORKING_DIR_NAME` from `novel_state`; after the change
+  `main` no longer uses it and must import `resolved_working_dir` instead, or
+  the unused-import lint fires. `make all` catches both, so this is guidance,
+  not a gap.
 - **AD3 (Doggylump).** The inside-`working/` e2e (Work item 2 step 2) runs the
   state arm from inside `working/`, so the binary looks for
   `working/working/state.toml`, exits 3, and stamps `.../working/working`. This
@@ -126,16 +130,16 @@ in.
 ## Strongest alternative (Wafflecat)
 
 The only credible alternative (drop D6, leave the `init` body literal) was
-analysed in round 2 and correctly rejected: it re-opens the round-1 B2 asymmetry
-(envelope loud, `init` body silent) that an earlier review demanded be closed,
-and is a regression on agreed scope. No new alternative is stronger than the
-chosen design. The absence of a better option is itself a signal the design is on
-solid ground.
+analysed in round 2 and correctly rejected: it re-opens the round-1 B2
+asymmetry (envelope loud, `init` body silent) that an earlier review demanded
+be closed, and is a regression on agreed scope. No new alternative is stronger
+than the chosen design. The absence of a better option is itself a signal the
+design is on solid ground.
 
 ## Verdict
 
-✅ **Proceed.** The plan is implementable and design-conformant as written. Every
-load-bearing claim — line numbers, the three-bucket pin inventory, the single
-init-body snapshot, the locked cuprum signature, `resolve()` non-strict
-semantics, and the roadmap success criterion — was verified against real source.
-The three advisories are guidance the `make all` gates already enforce.
+✅ **Proceed.** The plan is implementable and design-conformant as written.
+Every load-bearing claim — line numbers, the three-bucket pin inventory, the
+single init-body snapshot, the locked cuprum signature, `resolve()` non-strict
+semantics, and the roadmap success criterion — was verified against real
+source. The three advisories are guidance the `make all` gates already enforce.

@@ -26,8 +26,8 @@ The pieces are: array key (`'rule'`/`'device'` = `array_key`), **container
 noun** (`pack`/`ledger`), and **item noun** (`rule`/`device` = `per_id_noun`).
 The container noun "pack"/"ledger" is NEITHER `per_id_noun` ("rule"/"device")
 NOR `per_level_noun` ("rule pack"/"device ledger"). Work item 2 asserts "The
-three messages … are copied verbatim with the array key substituted" — that
-is false for this message. As specified, `entries` cannot emit byte-identical
+three messages … are copied verbatim with the array key substituted" — that is
+false for this message. As specified, `entries` cannot emit byte-identical
 prose for both packages, which violates the Constraints ("'array is empty' …
 reproduced verbatim") and the roadmap success criterion ("operator messages are
 unchanged"). Fix: give `entries` an explicit container-noun parameter (or pass
@@ -86,8 +86,8 @@ and demonstrate it, rather than carrying a branch.
 
 Both current bodies iterate the sequence and raise on the FIRST repeated id in
 authoring order. The plan generalizes to `Iterable[str]` and the callers pass a
-generator (`rule.id for rule in rules`). The WI2 test says "raises … naming
-the first repeat" — good — but the plan should state explicitly that the shared
+generator (`rule.id for rule in rules`). The WI2 test says "raises … naming the
+first repeat" — good — but the plan should state explicitly that the shared
 primitive preserves authoring-order first-duplicate detection, since a
 set-based rewrite could change WHICH id is named. The message
 `"<noun> '<id>' is defined more than once; ids must be unique"` is not asserted
@@ -118,9 +118,8 @@ scramble.
 ## What the plan got RIGHT (verified)
 
 - Six primitives are genuinely the duplicated set; schema glue
-  (`_resolve_basis`,
-  `_rationing_fields`, `_window*`, `_rule`/`_device`) is genuinely distinct and
-  correctly scoped OUT.
+  (`_resolve_basis`, `_rationing_fields`, `_window*`, `_rule`/`_device`) is
+  genuinely distinct and correctly scoped OUT.
 - Error constructors confirmed: `RulePackError(*messages, rule_id=...)`,
   `LedgerError(*messages, device_id=...)`; the `content_error` lambda bridge is
   correct, and `EnvelopeMessagesError(*messages)` is the shared base.
@@ -146,13 +145,13 @@ scramble.
 
 Six months on, a third pack family (roadmap §8.1) binds `loaderkit` and ships.
 An operator hits an empty-pack and the message reads "a rule pack must declare
-at least one rule" instead of "a pack must declare …" — drift introduced by
-B1, never caught because B3 means no test pins it. Blast radius:
-operator-facing prose only, but it silently violates the roadmap's "operator
-messages unchanged" contract and the design's self-describing-envelope
-guarantee. Prevention designed in now: WI2 pins every entries/scan/file message
-verbatim for both noun sets (closes B3), and `entries` gets the container-noun
-parameter (closes B1).
+at least one rule" instead of "a pack must declare …" — drift introduced by B1,
+never caught because B3 means no test pins it. Blast radius: operator-facing
+prose only, but it silently violates the roadmap's "operator messages
+unchanged" contract and the design's self-describing-envelope guarantee.
+Prevention designed in now: WI2 pins every entries/scan/file message verbatim
+for both noun sets (closes B3), and `entries` gets the container-noun parameter
+(closes B1).
 
 ## Alternatives checkpoint (Wafflecat)
 

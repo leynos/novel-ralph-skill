@@ -14,26 +14,27 @@ table header absent from the reference's `## state.toml schema` fence.
 The slice is sound and discharges its Success clause. The guard derives its
 required leaf-name and table-header nets from the *serialized* dump of
 `build_initial_document(...)` rather than a type walk, so the documented fence
-must mirror the textual shape `init` writes; the two known emitted-vs-fence shape
-mismatches (the parent-only `[gates]` table emitting no bare header, and the
-empty `chapters = []` leaf documented as the populated `[[chapters]]` block) fall
-out by construction and are checked separately. The reference now documents
-`convergence_target` in both the schema fence and the "Critic sub-state" prose,
-and the chapter manifest in the "Chapter manifest" section. The guard, the
-reference, and the emitter (`state/initial.py`) agree on the emitted key set.
+must mirror the textual shape `init` writes; the two known emitted-vs-fence
+shape mismatches (the parent-only `[gates]` table emitting no bare header, and
+the empty `chapters = []` leaf documented as the populated `[[chapters]]`
+block) fall out by construction and are checked separately. The reference now
+documents `convergence_target` in both the schema fence and the "Critic
+sub-state" prose, and the chapter manifest in the "Chapter manifest" section.
+The guard, the reference, and the emitter (`state/initial.py`) agree on the
+emitted key set.
 
 None of the findings below is a blocking defect. The dominant theme is a
 *value-semantics gap the new guard does not close*: the guard pins key and
 header *presence* but never a field's *value*, and the freshly-initialized
 critic sub-state (`pass`, `consecutive_clean`, `convergence_target`) is not
-pinned by any test, so the one place a value can drift — the inline
-`pass = 1` documented as "0 means no pass run yet" — is both an undocumented
-contradiction and uncaught by a regression. Secondary themes are a *docs-gap*
-(the new guard has no developers-guide entry, unlike its sibling write-recipe
-guard) and *minor robustness/duplication* points in the guard's helpers.
+pinned by any test, so the one place a value can drift — the inline `pass = 1`
+documented as "0 means no pass run yet" — is both an undocumented contradiction
+and uncaught by a regression. Secondary themes are a *docs-gap* (the new guard
+has no developers-guide entry, unlike its sibling write-recipe guard) and
+*minor robustness/duplication* points in the guard's helpers.
 
-Trail followed: created a `git-donkey` worktree off `origin/main`; explored
-with `leta`/`grep` and direct reads over
+Trail followed: created a `git-donkey` worktree off `origin/main`; explored with
+`leta`/`grep` and direct reads over
 [`state/initial.py`](../../novel_ralph_skill/state/initial.py),
 [`state/validate.py`](../../novel_ralph_skill/state/validate.py),
 [`state/parse.py`](../../novel_ralph_skill/state/parse.py),
@@ -78,22 +79,22 @@ run no passes should carry `pass = 0`, not `1`. The corpus builder
 ([`tests/working_corpus/_builder.py`](../../tests/working_corpus/_builder.py)
 line 67) emits `pass = 1` too, so the emitter is internally consistent with the
 test corpus, but neither the design (§5.1/§5.2) nor the reference explains why
-init seeds `pass = 1` rather than the documented "no pass run yet" value of `0`.
-This is precisely the class of schema-vs-reference drift task 2.1.8 set out to
-close, but it slips through because the 2.1.8 guard checks key *presence*, not
-field *values* (see finding 2). It is a documentation/semantics inconsistency,
-not a validator breach — `pass` carries no §5.2 invariant — but a reader
-reconciling the reference against a real `init` output will find the comment
-and the value disagree.
+init seeds `pass = 1` rather than the documented "no pass run yet" value of
+`0`. This is precisely the class of schema-vs-reference drift task 2.1.8 set
+out to close, but it slips through because the 2.1.8 guard checks key
+*presence*, not field *values* (see finding 2). It is a documentation/semantics
+inconsistency, not a validator breach — `pass` carries no §5.2 invariant — but
+a reader reconciling the reference against a real `init` output will find the
+comment and the value disagree.
 
 **Proposed fix:** decide the intended initial value and make all three sources
 agree. Either (a) seed `pass = 0` in both `state/initial.py` and the corpus
 builder so the emitted value matches the "no pass run yet" comment, or (b) keep
 `pass = 1` and correct the reference comment and prose to state that init seeds
-`pass = 1` (the first pass is numbered 1 and is pending, not run), recording the
-rationale next to the emitter. Option (b) is the lower-risk change because it
-touches no emitted state or corpus fixture; whichever is chosen, the reference
-comment and the emitter must stop disagreeing.
+`pass = 1` (the first pass is numbered 1 and is pending, not run), recording
+the rationale next to the emitter. Option (b) is the lower-risk change because
+it touches no emitted state or corpus fixture; whichever is chosen, the
+reference comment and the emitter must stop disagreeing.
 
 ## 2. The schema guard pins key presence but never a field value
 
@@ -106,8 +107,8 @@ comment and the emitter must stop disagreeing.
   (`test_initial_document_parses_then_carries_initial_fields`, lines 34-51).
 
 The 2.1.8 guard derives leaf names and table headers from the emitted dump and
-asserts each *name* appears as documented TOML syntax in the reference fence. It
-deliberately "checks key names and table headers, never values" (module
+asserts each *name* appears as documented TOML syntax in the reference fence.
+It deliberately "checks key names and table headers, never values" (module
 docstring line 61). Separately, `test_state_initial.py` pins the initial
 `phase`, `chapters`, and `word_counts` values but asserts *nothing* about the
 critic sub-state: the emitted `pass = 1`, `consecutive_clean = 0`, and
@@ -118,17 +119,17 @@ full suite still green, because no test asserts its value and the guard asserts
 only that the *name* `pass` is documented. The new field 2.1.8 reconciled,
 `convergence_target`, is likewise unpinned at the initial-document level; a
 regression that seeded it as `0` would pass `init`'s own coherence check only
-because `validate_state` happens to reject a sub-1 target elsewhere, not because
-any initial-document test guards the seeded `1`.
+because `validate_state` happens to reject a sub-1 target elsewhere, not
+because any initial-document test guards the seeded `1`.
 
 **Proposed fix:** add a focused assertion to
 `test_initial_document_parses_then_carries_initial_fields` (or a sibling test)
 pinning the initial critic sub-state — `state.drafting.critic.pass_number`,
 `consecutive_clean`, and `convergence_target` — to their intended values, with
-a comment naming the design clause (§5.1 default convergence ceiling of 1). This
-closes the value-drift gap the name-only guard leaves open and gives finding 1's
-chosen value a regression anchor. It is a test addition only; no production code
-changes.
+a comment naming the design clause (§5.1 default convergence ceiling of 1).
+This closes the value-drift gap the name-only guard leaves open and gives
+finding 1's chosen value a regression anchor. It is a test addition only; no
+production code changes.
 
 ## 3. The new schema-drift guard has no developers-guide entry
 
@@ -143,13 +144,14 @@ The developers' guide carries a dedicated subsection documenting the *sibling*
 guard, `test_state_layout_reference.py` (the direct-edit write-recipe scanner),
 explaining what it scans, what it leaves untouched, and which roadmap tasks
 shaped it. The new 2.1.8 guard, `test_state_layout_schema_guard.py`, is a
-distinct and equally load-bearing tripwire — it is the only thing preventing the
-reference fence from silently falling out of step with what `init` emits — yet
-it gets no equivalent guide entry. A developer who adds a leaf or table to
-`build_initial_document` will hit this guard on `make test` with no prior pointer
-in the guide to tell them the reference fence must be updated in step. The two
-guards are easily confused (both scan `state-layout.md`, both read it through
-`read_repo_text`), so the absence of a paired entry is a discoverability gap.
+distinct and equally load-bearing tripwire — it is the only thing preventing
+the reference fence from silently falling out of step with what `init` emits —
+yet it gets no equivalent guide entry. A developer who adds a leaf or table to
+`build_initial_document` will hit this guard on `make test` with no prior
+pointer in the guide to tell them the reference fence must be updated in step.
+The two guards are easily confused (both scan `state-layout.md`, both read it
+through `read_repo_text`), so the absence of a paired entry is a
+discoverability gap.
 
 **Proposed fix:** add a short "The state-layout schema-drift guard" subsection
 to the developers' guide alongside the existing direct-edit-guard subsection,
@@ -172,11 +174,11 @@ serialize on one physical line and so are not their own `key =` lines — the
 helper subscripts `document["drafting"]["critic"]["last_finding_counts"]` with
 a hardcoded three-segment path. The subscription is correct for today's schema,
 but if a future slice relocates or renames the inline table the helper raises a
-bare `KeyError` at module import time (the net is computed at module level, line
-275), aborting *collection* of the whole module with an opaque traceback rather
-than a guard failure naming the drift. The guard's reason for existing is to
-turn schema drift into a legible test failure; this one path turns a particular
-drift into a collection-time crash instead.
+bare `KeyError` at module import time (the net is computed at module level,
+line 275), aborting *collection* of the whole module with an opaque traceback
+rather than a guard failure naming the drift. The guard's reason for existing
+is to turn schema drift into a legible test failure; this one path turns a
+particular drift into a collection-time crash instead.
 
 **Proposed fix:** guard the subscription with an explicit lookup that raises a
 descriptive `AssertionError` (mirroring `_extract_schema_fence`'s
@@ -196,22 +198,22 @@ test-robustness change, no behavioural effect on a passing run.
   267-271), `_emitted_table_headers` (lines 99-104), and the inline header scan
   in `_chapters_block` (line 225).
 
-Four helpers independently iterate `text.splitlines()`, `strip()` each line, and
-match it against `_HEADER_LINE_RE` or a per-name leaf pattern. The header-line
-recognition in particular is restated in three places (`_emitted_table_headers`,
-`_header_is_documented`, and the `_chapters_block` boundary test), each doing
-`_HEADER_LINE_RE.match(line.strip())`. The logic is small and correct, but the
-"is this stripped line a `[header]`?" predicate exists in three spellings, so a
-future change to the header grammar (for example admitting a quoted dotted key)
-must be made in each. This is a within-module test-helper duplication, not a
-production concern.
+Four helpers independently iterate `text.splitlines()`, `strip()` each line,
+and match it against `_HEADER_LINE_RE` or a per-name leaf pattern. The
+header-line recognition in particular is restated in three places
+(`_emitted_table_headers`, `_header_is_documented`, and the `_chapters_block`
+boundary test), each doing `_HEADER_LINE_RE.match(line.strip())`. The logic is
+small and correct, but the "is this stripped line a `[header]`?" predicate
+exists in three spellings, so a future change to the header grammar (for
+example admitting a quoted dotted key) must be made in each. This is a
+within-module test-helper duplication, not a production concern.
 
 **Proposed fix:** none required at this size; the helpers are short and clear.
 Recorded so that if the header/leaf grammar grows, a single
 `_is_header_line(line) -> str | None` (returning the captured header or `None`)
 and a single `_line_assigns(name, line) -> bool` are introduced and consumed by
-all sites, rather than spreading a fourth copy of the `splitlines`/`strip`/match
-idiom. No change is warranted for 2.1.8 alone.
+all sites, rather than spreading a fourth copy of the `splitlines`/`strip`
+/match idiom. No change is warranted for 2.1.8 alone.
 
 ## Pre-existing items not re-litigated
 
@@ -220,5 +222,6 @@ line 198) refers to "The `[chapters]` array" using single-bracket TOML table
 syntax for what the schema fence correctly renders as the `[[chapters]]`
 array-of-tables. This single-vs-double-bracket prose looseness predates 2.1.8
 (the section is unchanged by this slice) and is cosmetic — the fence the guard
-checks uses the correct `[[chapters]]` form — so it is noted for visibility only
-and not raised as a 2.1.8 regression. No new roadmap item is proposed for it.
+checks uses the correct `[[chapters]]` form — so it is noted for visibility
+only and not raised as a 2.1.8 regression. No new roadmap item is proposed for
+it.

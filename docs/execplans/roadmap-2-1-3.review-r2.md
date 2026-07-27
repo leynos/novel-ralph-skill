@@ -44,10 +44,9 @@ whose token count is positive (the live oracle already reads each `draft.md` to
 total tokens). Either:
 
 - extend the live oracle to recompute the drafted-chapters count from the
-  present
-  `draft.md` bodies and reconcile `consecutive-clean-within-drafted` against
-  *that* (matching the guide's "reconcile the proxy against a live draft count"
-  for both proxies); or
+  present `draft.md` bodies and reconcile `consecutive-clean-within-drafted`
+  against *that* (matching the guide's "reconcile the proxy against a live
+  draft count" for both proxies); or
 - narrow the plan and the Work item 3 guide edit to claim only what is delivered
   (the `gate-ratio-consistent` reconciliation plus the table-coherence
   `by-chapter-sum` check), and justify against the guide why the
@@ -86,9 +85,8 @@ disk-independence.
 ## Advisory
 
 - A1 (Wafflecat alternatives): the strongest alternative remains the one the
-  plan
-  adopted (live-draft oracle); no better structural option exists. A leaner
-  variant worth weighing: since the existing
+  plan adopted (live-draft oracle); no better structural option exists. A
+  leaner variant worth weighing: since the existing
   `test_incoherent_agreement_restricted_to_owned` already discharges the
   literal roadmap Success clause (validator vs spec-oracle over the materialized
   `state.toml`, restricted to owned), the *only* genuinely new value this task
@@ -150,8 +148,7 @@ source for both the drafted-words and the drafted-chapters quantities.
   the two-proxy / live-draft-count definition at 323-334 and the
   deliberate-twin policy at 336-344).
 - `docs/novel-ralph-harness-design.md` §5.2 (invariants, lines 430-456 — note
-  the
-  design's canonical invariant-7 numerator is `current`, deliberately
+  the design's canonical invariant-7 numerator is `current`, deliberately
   approximated by the implementation's `sum(by_chapter)`), §9 (verification
   strategy, lines 671-711).
 - `docs/roadmap.md` 2.1.3 entry and reroute (lines 375-393).

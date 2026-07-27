@@ -23,11 +23,11 @@ This is roadmap task 3.1.1 (`docs/roadmap.md` §3.1, lines 852-859). The split
 between 3.1.1 and 3.1.2 is deliberate **and the boundary moved during review**:
 
 - **3.1.1 (this task)** delivers the predicate engine, the structured result,
-  the entry-point wiring, the corpus fixtures the six-clause matrix needs, and a
-  **sound existence-only** `compile_consistent` clause: `compiled.md` must
+  the entry-point wiring, the corpus fixtures the six-clause matrix needs, and
+  a **sound existence-only** `compile_consistent` clause: `compiled.md` must
   exist, or the clause is false. This closes the dangerous exit-0 lie the
-  reviewer identified (B1): a novel whose `compiled.md` is *absent* can never be
-  declared "done" by 3.1.1. See Decision Log D-COMPILE-EXISTENCE.
+  reviewer identified (B1): a novel whose `compiled.md` is *absent* can never
+  be declared "done" by 3.1.1. See Decision Log D-COMPILE-EXISTENCE.
 - **3.1.2** swaps the existence-only half for the full shared compile-and-hash
   routine (catching a *present-but-stale* `compiled.md`) and adds the
   exit-`4`-versus-exit-`1` carve-out (`docs/roadmap.md:860-878`; design §4.2
@@ -83,12 +83,13 @@ escalation, not a workaround.
   by design §4.2's JSON (lines 320-334): `phase_is_done`, `final_pass_complete`,
   `all_chapters_flagged`, `knitting_gates_passed`, `compile_consistent`,
   `no_unresolved_blockers`. Their truth conditions are the `novel_predicate`
-  body in `skill/novel-ralph/references/done-conditions.md:150-185` ("Novel-level
-  predicate"), adapted to read the **manifest** chapter set rather than the
-  reference's outline parse (D-CLAUSES, divergence note). The design states the
-  predicate "holds **on disk**" (§2.3 line 115), so clauses that name on-disk
-  artefacts (`done.flag`, `reviews/knitting-NN.md`, `critic-notes.md`,
-  `compiled.md`) read those artefacts, not a state mirror of them.
+  body in `skill/novel-ralph/references/done-conditions.md:150-185`
+  ("Novel-level predicate"), adapted to read the **manifest** chapter set
+  rather than the reference's outline parse (D-CLAUSES, divergence note). The
+  design states the predicate "holds **on disk**" (§2.3 line 115), so clauses
+  that name on-disk artefacts (`done.flag`, `reviews/knitting-NN.md`,
+  `critic-notes.md`, `compiled.md`) read those artefacts, not a state mirror of
+  them.
 
 - **The shared contract is fixed (ADR-003; design §3.1, §3.2).** The command
   emits the common envelope through the shared
@@ -121,25 +122,25 @@ escalation, not a workaround.
 - **The compile join rule is the single shared rule.** The existence-only clause
   in 3.1.1 needs no concatenation, but the developers' guide note (Work item 5)
   must point at `novel_ralph_skill.state.compile_model.concatenate_drafts`
-  (`compile_model.py:33`) — already the production twin of the corpus helper and
-  already called by the `compiled-matches-drafts` disk-evidence detector
+  (`compile_model.py:33`) — already the production twin of the corpus helper
+  and already called by the `compiled-matches-drafts` disk-evidence detector
   (`disk_evidence.py:179-196`) — as the routine 3.1.2 will reuse for the hash
   half. Do not invent a second join or hash rule.
 
 - **The word-count / token rule is the single shared rule.** Where a clause
-  needs a draft's token count, it uses `len(text.split())` over the UTF-8
-  body — the one rule
-  `novel_ralph_skill.state.wordcount._chapter_word_count` owns. 3.1.1's clauses
-  do not count words (existence checks only), but if any helper does, it reuses
-  that rule. Do not invent a second counter.
+  needs a draft's token count, it uses `len(text.split())` over the UTF-8 body
+  — the one rule `novel_ralph_skill.state.wordcount._chapter_word_count` owns.
+  3.1.1's clauses do not count words (existence checks only), but if any helper
+  does, it reuses that rule. Do not invent a second counter.
 
 - **Reuse the established command shape; do not renegotiate the contract.** The
   entry point follows the `desloppify` pattern exactly
   (`novel_ralph_skill/commands/stub.py:103-123`): pre-parse `--human` with
   `parse_global_flags`, build a single-`@app.default` Cyclopts app configured
   `result_action="return_value", exit_on_error=False, print_error=False,
-  help_on_error=False` (`_desloppify.py:290-312`), and drive it through `run`.
-  `novel-done` takes no positional or keyword arguments.
+  help_on_error=False`
+  (`_desloppify.py:290-312`), and drive it through `run`. `novel-done` takes
+  no positional or keyword arguments.
 
 - **Style and quality gates (AGENTS.md).** No module exceeds 400 lines.
   Comments and prose use en-GB Oxford spelling (`-ize`/`-yse`/`-our`). Every
@@ -167,8 +168,8 @@ Thresholds that trigger escalation when breached.
 - **Clause semantics.** If a clause cannot be evaluated deterministically from
   disk without an undecided design fork — for example, if the format of an
   unresolved BLOCKER in `critic-notes.md` cannot be pinned to the reference
-  without a judgement call — stop and present the options with trade-offs rather
-  than guessing.
+  without a judgement call — stop and present the options with trade-offs
+  rather than guessing.
 - **Iterations.** If `make all` still fails after 3 fix attempts on a single
   work item, stop and escalate.
 
@@ -179,39 +180,41 @@ Known uncertainties, with mitigations.
 - Risk (R-STALE): the existence-only `compile_consistent` clause leaves a known
   unsoundness window — a *present but stale* `compiled.md` passes
   `compile_consistent` in 3.1.1, so an otherwise-complete tree exits `0`
-  ("done") with a stale compile until 3.1.2 lands. Severity: medium (this is the
-  exact "compiled.md is stale" failure mode `done-conditions.md:214` names).
-  Likelihood: low for the *absent* case (now closed; B1), real but bounded for
-  the *stale* case. Mitigation: (i) the clause is sound for absence — an absent
-  compile is always exit `1`, never `0`; (ii) the window is documented in the
-  users' guide ("v1 caveat") and developers' guide as the 3.1.2 deferral; (iii)
-  the existence-only function is a single named helper a one-edit swap replaces
-  (D-COMPILE-EXISTENCE), and a test pins both that it is false when `compiled.md`
-  is absent and true when present (stale or not), so 3.1.2's behaviour change is
-  localized and visible.
+  ("done") with a stale compile until 3.1.2 lands. Severity: medium (this is
+  the exact "compiled.md is stale" failure mode `done-conditions.md:214`
+  names). Likelihood: low for the *absent* case (now closed; B1), real but
+  bounded for the *stale* case. Mitigation: (i) the clause is sound for absence
+  — an absent compile is always exit `1`, never `0`; (ii) the window is
+  documented in the users' guide ("v1 caveat") and developers' guide as the
+  3.1.2 deferral; (iii) the existence-only function is a single named helper a
+  one-edit swap replaces (D-COMPILE-EXISTENCE), and a test pins both that it is
+  false when `compiled.md` is absent and true when present (stale or not), so
+  3.1.2's behaviour change is localized and visible.
 
 - Risk (R-ALLHOLD): no §1.3.2 corpus tree satisfies all six clauses, so the
-  roadmap 3.1.1 success criterion ("exit 0 only when every clause holds") cannot
-  be demonstrated without new fixture data — the existing `PHASE_STATES["done"]`
-  spec lacks `reviews/knitting-NN.md` (so `knitting_gates_passed` cannot hold)
-  and has no modelled `critic-notes.md`. Severity: high. Likelihood: certain
-  (verified — `_library.py:79-97` builds no reviews; `_specs.py` models neither
-  artefact). Mitigation: Work item 2 adds an explicit, **separate**
-  all-six-clauses-hold named spec (and per-clause-isolating specs) without
-  mutating the existing `PHASE_STATES`/`COHERENT_BASELINE` specs (D-CORPUS).
+  roadmap 3.1.1 success criterion ("exit 0 only when every clause holds")
+  cannot be demonstrated without new fixture data — the existing
+  `PHASE_STATES["done"]` spec lacks `reviews/knitting-NN.md` (so
+  `knitting_gates_passed` cannot hold) and has no modelled `critic-notes.md`.
+  Severity: high. Likelihood: certain (verified — `_library.py:79-97` builds no
+  reviews; `_specs.py` models neither artefact). Mitigation: Work item 2 adds
+  an explicit, **separate** all-six-clauses-hold named spec (and
+  per-clause-isolating specs) without mutating the existing `PHASE_STATES`/
+  `COHERENT_BASELINE` specs (D-CORPUS).
 
 - Risk (R-CHURN): adding the two new artefacts to the corpus could re-baseline
   an existing snapshot or oracle suite. Severity: medium. Likelihood: low
-  (verified). The disk-evidence detector reads only `manuscript/`, `compiled.md`,
-  and `log.md` — never `reviews/` or `critic-notes.md`
-  (`disk_evidence.py:109-266`; the `_disk_word_counts` cluster likewise) — so its
-  verdicts (and `test_novel_state_check_disk.ambr`) are unaffected by the two new
-  artefacts. The only `rglob("*")`-based assertions
-  (`test_novel_state_check_disk.py:131-138`) run over the `done-flag-*` incoherent
-  variants, not `PHASE_STATES["done"]`. Mitigation: Work item 2 adds *new* named
-  specs rather than mutating the in-use ones, so every existing spec stays
-  byte-identical and no snapshot re-baselines; a test asserts the new specs add
-  exactly `reviews/` and `critic-notes.md` and nothing else (D-CORPUS).
+  (verified). The disk-evidence detector reads only `manuscript/`,
+  `compiled.md`, and `log.md` — never `reviews/` or `critic-notes.md`
+  (`disk_evidence.py:109-266`; the `_disk_word_counts` cluster likewise) — so
+  its verdicts (and `test_novel_state_check_disk.ambr`) are unaffected by the
+  two new artefacts. The only `rglob("*")`-based assertions
+  (`test_novel_state_check_disk.py:131-138`) run over the `done-flag-*`
+  incoherent variants, not `PHASE_STATES["done"]`. Mitigation: Work item 2 adds
+  *new* named specs rather than mutating the in-use ones, so every existing
+  spec stays byte-identical and no snapshot re-baselines; a test asserts the
+  new specs add exactly `reviews/` and `critic-notes.md` and nothing else
+  (D-CORPUS).
 
 - Risk (R-CLAUSE-SOURCE): reading per-manifest chapter rather than the
   reference's per-outline parse could be read as an unacknowledged departure
@@ -239,13 +242,14 @@ Known uncertainties, with mitigations.
 ## Progress
 
 - [x] Work item 1: the pure per-clause predicate engine and its result shape
-  (no command wiring), including the existence-only `compile_consistent` clause.
-  Completed 2026-06-24. Delivered `novel_ralph_skill/state/done_predicate.py`
-  (`DoneClauses` with `all_hold`/`failed_clause_names`/`as_result`, one pure
-  function per clause, `evaluate_done` aggregator) and
-  `tests/test_done_predicate.py` (per-clause true/false, R-STALE existence pin,
-  undecodable-`critic-notes.md` propagation, the conjunction/ordering property).
-  `make all` green; coderabbit `--agent` reported 0 findings.
+  (no command wiring), including the existence-only `compile_consistent`
+  clause. Completed 2026-06-24. Delivered
+  `novel_ralph_skill/state/done_predicate.py` (`DoneClauses` with `all_hold`/
+  `failed_clause_names`/`as_result`, one pure function per clause,
+  `evaluate_done` aggregator) and `tests/test_done_predicate.py` (per-clause
+  true/false, R-STALE existence pin, undecodable-`critic-notes.md` propagation,
+  the conjunction/ordering property). `make all` green; coderabbit `--agent`
+  reported 0 findings.
 - [x] Work item 2: extend the corpus to model `reviews/knitting-NN.md` and
   `critic-notes.md`; add the all-six-clauses-hold spec and the clause-isolating
   specs; pin the BLOCKER format. Completed 2026-06-24. Added
@@ -259,14 +263,14 @@ Known uncertainties, with mitigations.
   one-clause-per-failer guarantee, the BLOCKER edges, twin agreement, and the
   R-CHURN byte-identity of the existing specs. Decision: the new specs live in
   their own modules (not `_library.py`) to keep every file under the 400-line
-  cap and leave `PHASE_STATES`/`COHERENT_BASELINE` untouched (D-CORPUS). `make
-  all` green; coderabbit `--agent` 0 findings.
+  cap and leave `PHASE_STATES`/`COHERENT_BASELINE` untouched (D-CORPUS).
+  `make all` green; coderabbit `--agent` 0 findings.
 - [x] Work item 3: wire the `novel-done` command body, app, and entry point;
   retire the stub. Completed 2026-06-24. Added
   `novel_ralph_skill/commands/_novel_done.py` (`_novel_done` body resolving
   `working_dir`/`state_path`, loading via `_load_or_state_error`, wrapping
-  `evaluate_done` under `STATE_INPUT_ERRORS` for the D-FAULT exit-3 mapping, and
-  the four-flag `build_app`), rewired `stub.py` `novel_done()` to mirror
+  `evaluate_done` under `STATE_INPUT_ERRORS` for the D-FAULT exit-3 mapping,
+  and the four-flag `build_app`), rewired `stub.py` `novel_done()` to mirror
   `desloppify()`. Moved `novel-done` into `_REAL_COMMANDS` in
   `test_console_scripts_e2e.py` and `test_command_stubs.py` (it now resolves
   `working/` and exits per the predicate, not the stub's 2).
@@ -281,8 +285,8 @@ Known uncertainties, with mitigations.
   Scenario Outline driving each failer to exit 1),
   `tests/test_novel_done_snapshots.py` (two machine-mode envelope snapshots
   paired with per-clause assertions, plus the `--human` presence test), and
-  `tests/test_novel_done_e2e.py` (installed-wheel POSIX e2e: all-hold -> exit 0,
-  absent-`compiled.md` -> exit 1). `make all` green (672 then 670 passed);
+  `tests/test_novel_done_e2e.py` (installed-wheel POSIX e2e: all-hold -> exit
+  0, absent-`compiled.md` -> exit 1). `make all` green (672 then 670 passed);
   coderabbit `--agent` pending (rate-limited; see below).
 - [x] Work item 5: documentation (users' guide v1 caveat, developers' guide
   done-predicate subsection, design cross-reference) and the contents map.
@@ -304,9 +308,9 @@ commit. Update this section with a timestamp at every stopping point.
 
 - Observation: `corpus_fixtures.py` was already at the 400-line cap, so the
   `novel-done` corpus fixtures could not be added there. Evidence: the existing
-  `corpus_live_draft_fixtures.py` / `corpus_divergent_fixtures.py` split. Impact:
-  added a fourth plugin `corpus_done_predicate_fixtures.py`, registered in
-  `conftest.py`'s `pytest_plugins`, following the established pattern.
+  `corpus_live_draft_fixtures.py` / `corpus_divergent_fixtures.py` split.
+  Impact: added a fourth plugin `corpus_done_predicate_fixtures.py`, registered
+  in `conftest.py`'s `pytest_plugins`, following the established pattern.
 - Observation: `_RESOLVED_TOKEN = "[resolved]"` trips Ruff S105
   (hardcoded-password) and the property docstrings trip the
   property-docstring-starts-with-verb rule. Evidence: the `Phase.FINAL_PASS`
@@ -319,10 +323,11 @@ commit. Update this section with a timestamp at every stopping point.
 ## Decision log
 
 - Decision (D-CLAUSES): pin each clause's exact truth condition, with the
-  manifest-source divergence from the reference made explicit. Rationale: design
-  §2.3 (line 115) says the predicate "holds on disk"; the authoritative clause
-  semantics are `skill/novel-ralph/references/done-conditions.md:150-185`
-  ("Novel-level predicate"). The mapping is:
+  manifest-source divergence from the reference made explicit. Rationale:
+  design §2.3 (line 115) says the predicate "holds on disk"; the authoritative
+  clause semantics are
+  `skill/novel-ralph/references/done-conditions.md:150-185` ("Novel-level
+  predicate"). The mapping is:
   - `phase_is_done` := `state.phase.current == Phase.DONE`;
   - `final_pass_complete` := `state.gates.final.final_pass_complete`;
   - `all_chapters_flagged` := every **manifest** chapter
@@ -346,10 +351,10 @@ commit. Update this section with a timestamp at every stopping point.
   codebase has no `parse_chapter_outline`; and `novel-state check` already
   asserts the manifest⇄on-disk-directory bijection (design §5.2;
   `disk_evidence.py:109-130`), so the manifest is the authoritative,
-  already-validated chapter set. This is a design-conformant substitution, not a
-  transcription error; `done-conditions.md` should be reconciled to the manifest
-  source in a later docs pass and this divergence is recorded so that pass is
-  traceable. Date/Author: 2026-06-24, planning agent (revised round 2).
+  already-validated chapter set. This is a design-conformant substitution, not
+  a transcription error; `done-conditions.md` should be reconciled to the
+  manifest source in a later docs pass and this divergence is recorded so that
+  pass is traceable. Date/Author: 2026-06-24, planning agent (revised round 2).
 
 - Decision (D-COMPILE-EXISTENCE): `compile_consistent` in 3.1.1 is the **sound
   existence half** of the real clause — `working/manuscript/compiled.md` exists
@@ -357,13 +362,13 @@ commit. Update this section with a timestamp at every stopping point.
   exit-0 path unsound, declaring a novel "done" even when `compiled.md` was
   *absent* (review B1). The cheap, sound half of design §4.2's clause is the
   existence test; deferring only the hash comparison and the exit-`4` carve-out
-  to 3.1.2 (roadmap 3.1.2; design §4.2 lines 337-343) keeps the exit-0 path sound
-  for the absent case from day one. The clause is a single named function
+  to 3.1.2 (roadmap 3.1.2; design §4.2 lines 337-343) keeps the exit-0 path
+  sound for the absent case from day one. The clause is a single named function
   `compile_consistent_exists(working_dir) -> bool` whose docstring names task
   3.1.2 as the owner of the hash half, so 3.1.2's swap is a localized edit. The
   residual stale-but-present window is Risk R-STALE, documented in the
-  users'/developers' guides. (This is the reviewer's preferred B1 option (b) and
-  the Wafflecat-recommended split.) Date/Author: 2026-06-24, planning agent
+  users'/developers' guides. (This is the reviewer's preferred B1 option (b)
+  and the Wafflecat-recommended split.) Date/Author: 2026-06-24, planning agent
   (revised round 2).
 
 - Decision (D-CORPUS): model the two new artefacts and the all-hold case as
@@ -377,14 +382,15 @@ commit. Update this section with a timestamp at every stopping point.
   unaffected *by the artefacts themselves*; but to avoid any coupling the new
   specs are added beside the existing ones (a new `DONE_PREDICATE_STATES`
   mapping or equivalently named specs in the library), and `_drafting_spec` /
-  `PHASE_STATES` are not altered. The blanket round-1 "every existing corpus spec
-  stays byte-identical, no churn" claim was *true only because* no existing spec
-  is mutated — this decision makes that mechanism explicit and a test asserts the
-  new specs introduce exactly `reviews/knitting-NN.md` and `critic-notes.md`.
-  The all-hold spec is: `phase=done`, `final_pass_complete=True`, all flags, all
-  three gate booleans, all three `knitting-NN.md` present, clean/absent
-  `critic-notes.md`, and a present `compiled.md` (`COMPILED_AUTO`). Date/Author:
-  2026-06-24, planning agent (revised round 2).
+  `PHASE_STATES` are not altered. The blanket round-1 "every existing corpus
+  spec stays byte-identical, no churn" claim was *true only because* no
+  existing spec is mutated — this decision makes that mechanism explicit and a
+  test asserts the new specs introduce exactly `reviews/knitting-NN.md` and
+  `critic-notes.md`. The all-hold spec is: `phase=done`,
+  `final_pass_complete=True`, all flags, all three gate booleans, all three
+  `knitting-NN.md` present, clean/absent `critic-notes.md`, and a present
+  `compiled.md` (`COMPILED_AUTO`). Date/Author: 2026-06-24, planning agent
+  (revised round 2).
 
 - Decision (D-BLOCKER): pin the unresolved-BLOCKER detection format. Rationale:
   `done-conditions.md:182` names "unresolved BLOCKER findings" in
@@ -394,13 +400,14 @@ commit. Update this section with a timestamp at every stopping point.
   resolved (the line does not contain the literal substring `[resolved]`) is an
   unresolved blocker. An absent `critic-notes.md` means no blockers (the
   reference treats a missing notes file as clean:
-  `if notes.exists() and contains_unresolved_blocker`, `done-conditions.md:181`).
-  The substring rule is acknowledged brittle (a prose mention of `[resolved]`, or
-  `RESOLVED`/`(resolved)`, would mis-classify); the corpus pins this edge with a
-  near-miss spec (a BLOCKER whose body merely mentions resolution; advisory A5).
-  This format is recorded in the developers' guide and modelled by the corpus so
-  production and corpus cannot drift; if review rejects this format, escalate
-  rather than widen it silently. Date/Author: 2026-06-24, planning agent.
+  `if notes.exists() and contains_unresolved_blocker`,
+  `done-conditions.md:181`). The substring rule is acknowledged brittle (a
+  prose mention of `[resolved]`, or `RESOLVED`/`(resolved)`, would
+  mis-classify); the corpus pins this edge with a near-miss spec (a BLOCKER
+  whose body merely mentions resolution; advisory A5). This format is recorded
+  in the developers' guide and modelled by the corpus so production and corpus
+  cannot drift; if review rejects this format, escalate rather than widen it
+  silently. Date/Author: 2026-06-24, planning agent.
 
 - Decision (D-FAULT): the per-clause fault boundary mirrors `wordcount` /
   `disk_evidence`. Rationale: an absent on-disk artefact (no `done.flag`, no
@@ -410,49 +417,50 @@ commit. Update this section with a timestamp at every stopping point.
   swallowed as a false clause and misreported as exit `1`. The predicate engine
   lets such faults propagate; the command body wraps them under
   `novel_state.STATE_INPUT_ERRORS` and re-raises `StateInputError`, exactly as
-  `_load_or_state_error` does (`novel_state.py:125-153`). A negative test pins an
-  undecodable `critic-notes.md` to exit `3`. Date/Author: 2026-06-24, planning
-  agent.
+  `_load_or_state_error` does (`novel_state.py:125-153`). A negative test pins
+  an undecodable `critic-notes.md` to exit `3`. Date/Author: 2026-06-24,
+  planning agent.
 
 - Decision (D-TWIN): the two new disk-reading clauses get oracle twins up front,
-  not "if warranted". Rationale: the developers' guide treats disk-evidence reads
-  as deliberate twins with an independent oracle (`tests/working_corpus/_oracle.py`;
-  `disk_evidence.py:26-34`). `knitting_gates_passed`'s review-existence read and
+  not "if warranted". Rationale: the developers' guide treats disk-evidence
+  reads as deliberate twins with an independent oracle
+  (`tests/working_corpus/_oracle.py`; `disk_evidence.py:26-34`).
+  `knitting_gates_passed`'s review-existence read and
   `no_unresolved_blockers`'s BLOCKER scan are disk-evidence reads of the same
   shape, so Work item 2 adds a corpus-side reader for each and pins it equal to
   the production predicate by a cross-check test, mirroring how `disk_evidence`
-  twins the oracle (review A4). If building the twins balloons the work item past
-  the scope tolerance, escalate. Date/Author: 2026-06-24, planning agent
+  twins the oracle (review A4). If building the twins balloons the work item
+  past the scope tolerance, escalate. Date/Author: 2026-06-24, planning agent
   (revised round 2).
 
 - Decision (D-LOC): module placement. Rationale: the pure predicate engine
   lives in a new `novel_ralph_skill/state/done_predicate.py` beside the schema
-  and the `disk_evidence` detector it parallels (both are pure
-  `State` + `working_dir` -> structured verdict readers). It reuses
-  `_chapter_dir_name` from `novel_ralph_skill/state/_disk_paths.py` (where it is
-  defined — `disk_evidence.py` only *imports* it; advisory A1), not from
-  `disk_evidence`. The command body and its app/entry wiring live in a new
+  and the `disk_evidence` detector it parallels (both are pure `State` +
+  `working_dir` -> structured verdict readers). It reuses `_chapter_dir_name`
+  from `novel_ralph_skill/state/_disk_paths.py` (where it is defined —
+  `disk_evidence.py` only *imports* it; advisory A1), not from `disk_evidence`.
+  The command body and its app/entry wiring live in a new
   `novel_ralph_skill/commands/_novel_done.py` mirroring `_desloppify.py`'s
   placement, with the `stub.py` `novel_done()` entry point rewired to drive it.
-  Keeping the pure engine out of the command module keeps each under the 400-line
-  cap and lets the property tests exercise the engine without the Cyclopts shell.
-  Date/Author: 2026-06-24, planning agent.
+  Keeping the pure engine out of the command module keeps each under the
+  400-line cap and lets the property tests exercise the engine without the
+  Cyclopts shell. Date/Author: 2026-06-24, planning agent.
 
 - Decision (D-EXTERNAL): no firecrawl-sourced library behaviour is
-  load-bearing. Rationale: `novel-done` reuses the cyclopts 4.18.0 (`uv.lock:137,
-  146`) + runner + envelope path already shipped and gated by `novel-state` and
-  `desloppify`. The `--help`/`--version` non-`CommandOutcome` handling, the
-  `result_action="return_value"` seam, and the single-`@app.default` body are
-  all already pinned by `tests/test_contract_runner.py` and
-  `tests/test_cyclopts_contract.py`. The cyclopts **v4** API docs
-  (`cyclopts.readthedocs.io/en/v4.4.1/api.html`) confirm `exit_on_error=False`
-  makes the app raise rather than `sys.exit`, which is exactly why the app is
-  built with `exit_on_error=False` so the wrapper owns exits; `--help`/`-h` are
-  auto-added (cyclopts `docs/source/help.rst`). No new external surface is
-  introduced, so no firecrawl claim is pinned beyond confirming the existing
-  pattern, which the existing tests already gate (advisory A3 — citing the v4
-  docs, not v5-develop). Date/Author: 2026-06-24, planning agent (revised round
-  2).
+  load-bearing. Rationale: `novel-done` reuses the cyclopts 4.18.0
+  (`uv.lock:137, 146`) + runner + envelope path already shipped and gated by
+  `novel-state` and `desloppify`. The `--help`/`--version` non-`CommandOutcome`
+  handling, the `result_action="return_value"` seam, and the
+  single-`@app.default` body are all already pinned by
+  `tests/test_contract_runner.py` and `tests/test_cyclopts_contract.py`. The
+  cyclopts **v4** API docs (`cyclopts.readthedocs.io/en/v4.4.1/api.html`)
+  confirm `exit_on_error=False` makes the app raise rather than `sys.exit`,
+  which is exactly why the app is built with `exit_on_error=False` so the
+  wrapper owns exits; `--help`/`-h` are auto-added (cyclopts
+  `docs/source/help.rst`). No new external surface is introduced, so no
+  firecrawl claim is pinned beyond confirming the existing pattern, which the
+  existing tests already gate (advisory A3 — citing the v4 docs, not
+  v5-develop). Date/Author: 2026-06-24, planning agent (revised round 2).
 
 ## Outcomes & retrospective
 
@@ -462,9 +470,9 @@ six-key `result` in §4.2 order with `schema_version: 1` and the `ok`/exit-code
 biconditional), and the §1.3.2 corpus success criterion is met: a named
 behavioural scenario proves the predicate exits `0` on the all-six-clauses-hold
 tree, and a Scenario Outline drives each clause false to exit `1`. The B1
-soundness fix holds end-to-end — the e2e proves an absent `compiled.md` exits `1`
-(never a false `0`). The residual stale-but-present compile window (R-STALE) is
-the named, documented deferral to roadmap task 3.1.2.
+soundness fix holds end-to-end — the e2e proves an absent `compiled.md` exits
+`1` (never a false `0`). The residual stale-but-present compile window
+(R-STALE) is the named, documented deferral to roadmap task 3.1.2.
 
 Lessons: (i) the corpus's plugin-per-fixture-surface split (driven by the
 400-line cap) is the right place to add new fixture families — adding a fourth
@@ -484,17 +492,18 @@ repository-relative to the worktree root
 (`/data/leynos/Projects/novel-ralph-skill.worktrees/roadmap-3-1-1`).
 
 The harness is a set of five console-scripts in the `novel_ralph_skill` package
-(design §4). Each is a Cyclopts application driven through one shared wrapper so
-they share an exit-code policy and a JSON envelope. The pieces this task builds
-on are already in place and stable:
+(design §4). Each is a Cyclopts application driven through one shared wrapper
+so they share an exit-code policy and a JSON envelope. The pieces this task
+builds on are already in place and stable:
 
 - `novel_ralph_skill/contract/runner.py` — the shared `run(app, argv, context)`
   wrapper. It owns every `sys.exit` and every envelope emission. A command body
   returns a `CommandOutcome(code, result, messages)`; a body raises
   `StateInputError` to signal the exit-`3` channel; a usage error surfaces as a
   `CycloptsError` the wrapper maps to exit `2`; `--help`/`--version` return a
-  non-`CommandOutcome` value the wrapper treats as exit `0`. `parse_global_flags`
-  splits the `--human` flag off argv before `run` is called.
+  non-`CommandOutcome` value the wrapper treats as exit `0`.
+  `parse_global_flags` splits the `--human` flag off argv before `run` is
+  called.
 - `novel_ralph_skill/contract/envelope.py` — `build_envelope`, `render_machine`,
   `render_human`. Stamps the envelope `schema_version` and computes `ok` via
   `is_ok`.
@@ -502,23 +511,24 @@ on are already in place and stable:
   (`SUCCESS=0`, `BENIGN_NEGATIVE=1`, `USAGE_ERROR=2`, `STATE_ERROR=3`,
   `ACTIONABLE_FINDING=4`) and `is_ok`.
 - `novel_ralph_skill/state/schema.py` — the frozen typed `State` dataclass and
-  its tables: `State.phase.current` (a `Phase`), `State.gates.final.
-  final_pass_complete`, `State.gates.knitting.done_30/done_50/done_80`,
-  `State.chapters` (the `ChapterEntry` manifest, each with `.number`).
+  its tables: `State.phase.current` (a `Phase`),
+  `State.gates.final. final_pass_complete`,
+  `State.gates.knitting.done_30/done_50/done_80`, `State.chapters` (the
+  `ChapterEntry` manifest, each with `.number`).
 - `novel_ralph_skill/state/phase.py` — the `Phase` enum; `Phase.DONE` is the
   terminal member.
 - `novel_ralph_skill/state/disk_evidence.py` — the closest existing parallel: a
   pure `(State, working_dir) -> tuple[Violation, ...]` detector that reads the
-  `working/` tree. `novel-done`'s predicate engine follows its shape (per-clause
-  predicate functions, a `chapter-NN` path derivation, a benign-absent /
-  propagate-everything-else fault boundary). It already contains a
-  `_check_compiled_matches_drafts` (`disk_evidence.py:179-196`) reading
-  `compiled.md` existence and hash — 3.1.2 will share that machinery; 3.1.1 only
-  needs the existence half.
+  `working/` tree. `novel-done`'s predicate engine follows its shape
+  (per-clause predicate functions, a `chapter-NN` path derivation, a
+  benign-absent / propagate-everything-else fault boundary). It already
+  contains a `_check_compiled_matches_drafts` (`disk_evidence.py:179-196`)
+  reading `compiled.md` existence and hash — 3.1.2 will share that machinery;
+  3.1.1 only needs the existence half.
 - `novel_ralph_skill/state/_disk_paths.py` — defines `_chapter_dir_name`
   (`_disk_paths.py:19-21`) and `_on_disk_chapter_numbers`; the predicate engine
-  imports `_chapter_dir_name` from **here** (not from `disk_evidence`, which only
-  re-imports it; advisory A1).
+  imports `_chapter_dir_name` from **here** (not from `disk_evidence`, which
+  only re-imports it; advisory A1).
 - `novel_ralph_skill/state/wordcount.py` — `_chapter_word_count` and the one
   `len(text.split())` token rule.
 - `novel_ralph_skill/state/compile_model.py` — `concatenate_drafts`
@@ -527,11 +537,11 @@ on are already in place and stable:
 - `novel_ralph_skill/commands/novel_state.py` — the `novel-state` app, and the
   reusable boundary helpers `working_dir()` (`:88`), `state_path()` (`:99`),
   `STATE_INPUT_ERRORS` (`:116`), `_load_or_state_error` (`:125`), and
-  `WORKING_DIR_NAME` (`:85`). `novel-done` imports these so it resolves the same
-  fixed `working/` tree and maps load faults the same way.
+  `WORKING_DIR_NAME` (`:85`). `novel-done` imports these so it resolves the
+  same fixed `working/` tree and maps load faults the same way.
 - `novel_ralph_skill/commands/_desloppify.py` — the single-action checker
-  template `novel-done` mirrors: a `build_app()` (`:290`) with one `@app.default`
-  body (`:313`) returning a `CommandOutcome`, configured
+  template `novel-done` mirrors: a `build_app()` (`:290`) with one
+  `@app.default` body (`:313`) returning a `CommandOutcome`, configured
   `result_action="return_value", exit_on_error=False` (`:307`).
 - `novel_ralph_skill/commands/stub.py` — the entry points. `novel_done()`
   (lines 93-95) is currently a stub; this task rewires it like `desloppify()`
@@ -539,19 +549,21 @@ on are already in place and stable:
 - `tests/working_corpus/` — the §1.3.2 fixture corpus. `_specs.py` declares
   `ChapterSpec`/`WorkingTreeSpec`; `_builder.py` materializes a tree on disk;
   `_library.py` holds `PHASE_STATES`/`COHERENT_BASELINE`; `_oracle.py`/
-  `_oracle_disk.py` hold the independent cross-check oracles; `tests/conftest.py`
-  re-exposes corpus data as fixtures; `tests/working_corpus/__init__.py` is the
-  public surface (`__all__`). The corpus models `done.flag`
-  (`ChapterSpec.has_done_flag`), gates, phase, manifest, and `compiled.md`
-  (`WorkingTreeSpec.compiled`: `None`/`COMPILED_AUTO`/verbatim), but **not**
-  `reviews/knitting-NN.md` or `critic-notes.md`.
+  `_oracle_disk.py` hold the independent cross-check oracles;
+  `tests/conftest.py` re-exposes corpus data as fixtures;
+  `tests/working_corpus/__init__.py` is the public surface (`__all__`). The
+  corpus models `done.flag` (`ChapterSpec.has_done_flag`), gates, phase,
+  manifest, and `compiled.md` (`WorkingTreeSpec.compiled`: `None`/
+  `COMPILED_AUTO`/verbatim), but **not** `reviews/knitting-NN.md` or
+  `critic-notes.md`.
 
 Authoritative documents (read these before coding the matching work item):
 
 - Design: `docs/novel-ralph-harness-design.md` §1 (boundary), §2.3
-  (verification scope / predicate truthfulness, lines 106-129), §3.1 (envelope),
-  §3.2 (exit codes), §3.3 (checker/mutator segregation), §4.2 (`novel-done`,
-  lines 302-348), §4.3 (`novel-compile` / manifest-ordered, lines 350-374).
+  (verification scope / predicate truthfulness, lines 106-129), §3.1
+  (envelope), §3.2 (exit codes), §3.3 (checker/mutator segregation), §4.2
+  (`novel-done`, lines 302-348), §4.3 (`novel-compile` / manifest-ordered,
+  lines 350-374).
 - Reference predicate: `skill/novel-ralph/references/done-conditions.md`
   ("Novel-level predicate" lines 145-204, "Phase 8 — Drafting" lines 105-114,
   "Phase 9 — Final pass" lines 115-122, "Failure modes" lines 206-219).
@@ -582,17 +594,17 @@ Five ordered work items, each a single commit gated by `make all`.
 first:** design §4.2, §2.3; `done-conditions.md:145-204` "Novel-level
 predicate"; `disk_evidence.py` (the parallel shape); `_disk_paths.py:19-21`
 (`_chapter_dir_name`). **Skills:** `python-router` → `python-data-shapes` (the
-frozen result dataclass), `python-errors-and-logging` (the
-propagate-vs-absorb fault boundary).
+frozen result dataclass), `python-errors-and-logging` (the propagate-vs-absorb
+fault boundary).
 
 Create `novel_ralph_skill/state/done_predicate.py`. It owns:
 
 - A frozen, slotted, keyword-only `DoneClauses` dataclass mirroring design
-  §4.2's six booleans, in the design's key order (`done-conditions.md` /
-  design §4.2 JSON): `phase_is_done`, `final_pass_complete`,
-  `all_chapters_flagged`, `knitting_gates_passed`, `compile_consistent`,
-  `no_unresolved_blockers`. It exposes `all_hold` (the conjunction) and
-  `failed_clause_names` (the ordered names of the false clauses, for `messages`).
+  §4.2's six booleans, in the design's key order (`done-conditions.md` / design
+  §4.2 JSON): `phase_is_done`, `final_pass_complete`, `all_chapters_flagged`,
+  `knitting_gates_passed`, `compile_consistent`, `no_unresolved_blockers`. It
+  exposes `all_hold` (the conjunction) and `failed_clause_names` (the ordered
+  names of the false clauses, for `messages`).
 - One pure predicate function per clause. The state-only clauses
   (`phase_is_done`, `final_pass_complete`) read only `State`. The disk-aware
   clauses read `working_dir`, deriving the chapter path with the imported
@@ -611,8 +623,8 @@ Create `novel_ralph_skill/state/done_predicate.py`. It owns:
     `working/manuscript/compiled.md` exists, docstring-flagged as
     existence-only with the hash half owned by roadmap 3.1.2
     (D-COMPILE-EXISTENCE).
-- An `evaluate_done(state, working_dir) -> DoneClauses` aggregator assembling the
-  six in design order.
+- An `evaluate_done(state, working_dir) -> DoneClauses` aggregator assembling
+  the six in design order.
 
 The fault boundary (D-FAULT): only `FileNotFoundError` is absorbed (benign
 absent artefact); every other read fault propagates for the command layer to
@@ -622,16 +634,17 @@ between the gate booleans and the review-file names so they cannot drift; cite
 
 Tests (this commit): `tests/test_done_predicate.py` — a unit test per clause
 proving each independently true and false over hand-built `tmp_path` trees
-(state-only clauses over crafted `State` values, disk-aware clauses over written
-artefacts); a test that `compile_consistent_exists` is `False` when
-`compiled.md` is absent and `True` when present (including when present-but-stale
-— pinning the R-STALE window so 3.1.2's swap is visible); a test that
-`DoneClauses.all_hold` is the six-way conjunction and `failed_clause_names`
-lists exactly the false ones in design order; a property test (`hypothesis`)
-over a strategy generating the six booleans asserting `all_hold == all(...)`
-and the `failed_clause_names` ordering. Per `python-verification`, Hypothesis is
-the right adversary here (an invariant over the boolean cross-product);
-CrossHair/mutmut are not needed for this work item.
+(state-only clauses over crafted `State` values, disk-aware clauses over
+written artefacts); a test that `compile_consistent_exists` is `False` when
+`compiled.md` is absent and `True` when present (including when
+present-but-stale — pinning the R-STALE window so 3.1.2's swap is visible); a
+test that `DoneClauses.all_hold` is the six-way conjunction and
+`failed_clause_names` lists exactly the false ones in design order; a property
+test (`hypothesis`) over a strategy generating the six booleans asserting
+`all_hold == all(...)` and the `failed_clause_names` ordering. Per
+`python-verification`, Hypothesis is the right adversary here (an invariant
+over the boolean cross-product); CrossHair/mutmut are not needed for this work
+item.
 
 ### Work item 2 — model the two missing artefacts and the all-hold case in the corpus
 
@@ -642,21 +655,20 @@ driven true and false from the corpus, and an all-six-hold tree existing);
 `developers-guide.md` twin/oracle discipline. **Skills:** `python-router` →
 `python-testing` (corpus fixtures, the conftest re-export rule).
 
-Extend `ChapterSpec` with a `critic_notes: str | None = None` field
-(`None` = no file; a string = the `critic-notes.md` body to write) and
-`WorkingTreeSpec` with a `knitting_reviews` field
-(a tuple of the percentages from `{30, 50, 80}` whose
-`working/reviews/knitting-NN.md` files exist), defaulting to the empty/`None`
-state so every existing corpus spec stays byte-identical. Teach `_builder.py`
-`_write_chapter` to write `critic-notes.md` when set, and add a `_write_reviews`
-step writing `working/reviews/knitting-NN.md` for each named percentage. Record
-the D-BLOCKER format beside the field docstring so the corpus is the BLOCKER
-format's worked example.
+Extend `ChapterSpec` with a `critic_notes: str | None = None` field (`None` =
+no file; a string = the `critic-notes.md` body to write) and `WorkingTreeSpec`
+with a `knitting_reviews` field (a tuple of the percentages from `{30, 50, 80}`
+whose `working/reviews/knitting-NN.md` files exist), defaulting to the empty/
+`None` state so every existing corpus spec stays byte-identical. Teach
+`_builder.py` `_write_chapter` to write `critic-notes.md` when set, and add a
+`_write_reviews` step writing `working/reviews/knitting-NN.md` for each named
+percentage. Record the D-BLOCKER format beside the field docstring so the
+corpus is the BLOCKER format's worked example.
 
-Add **new** named specs (a `DONE_PREDICATE_STATES` mapping or equivalently named
-specs in `_library.py`, exported through `__init__.py` `__all__`, surfaced as
-conftest fixtures) — **without altering `PHASE_STATES`/`COHERENT_BASELINE` or
-`_drafting_spec`** (D-CORPUS, R-CHURN):
+Add **new** named specs (a `DONE_PREDICATE_STATES` mapping or equivalently
+named specs in `_library.py`, exported through `__init__.py` `__all__`,
+surfaced as conftest fixtures) — **without altering `PHASE_STATES`/
+`COHERENT_BASELINE` or `_drafting_spec`** (D-CORPUS, R-CHURN):
 
 - **all-six-clauses-hold** (the load-bearing fixture the roadmap criterion
   needs): `phase=done`, `final_pass_complete=True`, all chapters flagged, all
@@ -688,8 +700,8 @@ byte-identically to before (no `reviews/`, no `critic-notes.md`).
 five-script surface). **Read first:** `_desloppify.py:206-320` (the template),
 `novel_state.py:116-153` (`_load_or_state_error`, `STATE_INPUT_ERRORS`,
 `working_dir`), `runner.py`. **Skills:** `python-router` →
-`python-types-and-apis` (the `build_app` signature), `python-errors-and-logging`
-(StateInputError routing).
+`python-types-and-apis` (the `build_app` signature),
+`python-errors-and-logging` (StateInputError routing).
 
 Create `novel_ralph_skill/commands/_novel_done.py`:
 
@@ -701,45 +713,48 @@ Create `novel_ralph_skill/commands/_novel_done.py`:
   `code` is `ExitCode.SUCCESS` when `all_hold` else `ExitCode.BENIGN_NEGATIVE`;
   `messages` names the failed clauses (or "novel is done").
 - A `build_app() -> cyclopts.App` with a single `@app.default` body, configured
-  exactly as `desloppify`'s (`result_action="return_value", exit_on_error=False,
+  exactly as `desloppify`'s
+  (`result_action="return_value", exit_on_error=False,
   print_error=False, help_on_error=False`).
 
 Rewire `stub.py` `novel_done()` to mirror `desloppify()` (`stub.py:103-123`):
 pre-parse `--human`, import `_novel_done` lazily, drive `build_app()` through
-`run` with a `RunContext(command=_NAME_FOR["novel_done"],
-working_dir=WORKING_DIR_NAME, human=human)`. The `novel_done` name continues to
-come from the single `COMMAND_ENTRY_POINTS` registry (`stub.py:23`; roadmap
-1.2.4), so no name is re-spelled.
+`run` with a
+`RunContext(command=_NAME_FOR["novel_done"],
+working_dir=WORKING_DIR_NAME, human=human)`.
+The `novel_done` name continues to come from the single `COMMAND_ENTRY_POINTS`
+registry (`stub.py:23`; roadmap 1.2.4), so no name is re-spelled.
 
 Tests (this commit): `tests/test_novel_done_command.py` — drive `build_app()`
 in-process over corpus trees materialized under `tmp_path` (chdir into the
 parent so `working/` resolves), asserting exit `0` only on the all-hold tree,
 exit `1` on each single-clause-fail tree (including the absent-`compiled.md`
 tree — proving the existence half drives a benign `1`, never a false `0`), exit
-`3` on a missing/unparseable `state.toml` and on an undecodable `critic-notes.md`
-(the D-FAULT negative test), and exit `2` on a stray positional token (the
-runner's `CycloptsError` arm). Assert `compile_consistent` never drives exit `4`
-in 3.1.1.
+`3` on a missing/unparseable `state.toml` and on an undecodable
+`critic-notes.md` (the D-FAULT negative test), and exit `2` on a stray
+positional token (the runner's `CycloptsError` arm). Assert
+`compile_consistent` never drives exit `4` in 3.1.1.
 
 ### Work item 4 — the clause matrix, snapshot, and e2e suites
 
-**Implements:** design §2.3 (combinatorial surface `command × output-mode ×
-phase`, lines 125-129), §9 (coverage strategy); AGENTS.md testing rules. **Read
-first:** `AGENTS.md` "Python verification and testing", `docs/adr-006` (POSIX
-e2e policy), the existing `tests/test_desloppify_snapshots.py`,
-`tests/test_console_scripts_e2e.py`, and the `recount.feature`/`reconcile.feature`
-BDD wiring. **Skills:** `python-router` → `python-testing` (BDD, snapshot,
-parametrization); `hypothesis` if a further property emerges.
+**Implements:** design §2.3 (combinatorial surface
+`command × output-mode × phase`, lines 125-129), §9 (coverage strategy);
+AGENTS.md testing rules. **Read first:** `AGENTS.md` "Python verification and
+testing", `docs/adr-006` (POSIX e2e policy), the existing
+`tests/test_desloppify_snapshots.py`, `tests/test_console_scripts_e2e.py`, and
+the `recount.feature`/`reconcile.feature` BDD wiring. **Skills:**
+`python-router` → `python-testing` (BDD, snapshot, parametrization);
+`hypothesis` if a further property emerges.
 
 Add:
 
 - `tests/features/novel_done.feature` + `tests/steps/novel_done_steps.py` (the
-  behavioural proof): scenarios driving each clause independently true and false
-  over the new corpus specs and asserting the predicate exits `0` **only** on the
-  all-six-clauses-hold tree — the literal roadmap 3.1.1 success criterion. The
-  all-hold "exits 0" scenario is the load-bearing half (R-ALLHOLD); it must be a
-  named scenario, not implied. Register the feature like the existing
-  `recount.feature`/`reconcile.feature` BDD wiring.
+  behavioural proof): scenarios driving each clause independently true and
+  false over the new corpus specs and asserting the predicate exits `0`
+  **only** on the all-six-clauses-hold tree — the literal roadmap 3.1.1 success
+  criterion. The all-hold "exits 0" scenario is the load-bearing half
+  (R-ALLHOLD); it must be a named scenario, not implied. Register the feature
+  like the existing `recount.feature`/`reconcile.feature` BDD wiring.
 - A machine-mode envelope snapshot suite (`syrupy`) for two pinned trees
   (all-clauses-hold → exit `0`; one-clause-fails → exit `1`), redacting nothing
   nondeterministic (the corpus uses a fixed `created_at`; `novel-done` emits no
@@ -761,21 +776,20 @@ R-STALE unsoundness-window disclosure (B1). **Read first:**
 **Skills:** `en-gb-oxendict` (spelling), `execplans` (keep this plan current).
 
 - `docs/users-guide.md`: add a `novel-done` entry describing the six-clause
-  result and the `0`/`1`/`3` exit codes it produces in v1, with an explicit **v1
-  caveat**: `compile_consistent` in v1 checks only that `compiled.md` *exists*,
-  so a present-but-stale compile is not yet caught and the exit-`4` compile
-  carve-out lands with task 3.1.2 (R-STALE). State that an *absent* compile is
-  always reported (never a false "done").
+  result and the `0`/`1`/`3` exit codes it produces in v1, with an explicit
+  **v1 caveat**: `compile_consistent` in v1 checks only that `compiled.md`
+  *exists*, so a present-but-stale compile is not yet caught and the exit-`4`
+  compile carve-out lands with task 3.1.2 (R-STALE). State that an *absent*
+  compile is always reported (never a false "done").
 - `docs/developers-guide.md`: add a "Done predicate (`novel-done`)" subsection
   documenting the clause→artefact mapping (D-CLAUSES) including the
-  manifest-vs-outline divergence (B3), the D-BLOCKER format, the
-  existence-only `compile_consistent` placeholder and its 3.1.2 owner with the
-  R-STALE window, the D-FAULT boundary, and the D-TWIN oracle discipline for the
-  two new disk clauses, in the same register as the "Invariant validation"
-  subsection.
+  manifest-vs-outline divergence (B3), the D-BLOCKER format, the existence-only
+  `compile_consistent` placeholder and its 3.1.2 owner with the R-STALE window,
+  the D-FAULT boundary, and the D-TWIN oracle discipline for the two new disk
+  clauses, in the same register as the "Invariant validation" subsection.
 - `docs/novel-ralph-harness-design.md`: add a one-line note in §4.2 that 3.1.1
-  ships five sound clauses plus an existence-only `compile_consistent`, with the
-  hash half and exit-`4` carve-out in 3.1.2; otherwise leave the design
+  ships five sound clauses plus an existence-only `compile_consistent`, with
+  the hash half and exit-`4` carve-out in 3.1.2; otherwise leave the design
   unchanged and record that in the Decision Log.
 - `docs/contents.md`: index this execplan.
 - Update this plan's `Progress`, `Outcomes & retrospective`, and Status.
@@ -819,8 +833,8 @@ Run everything from the worktree root
    naming the roadmap task (3.1.1) and the design section it implements. Do not
    begin implementation until this plan is approved.
 
-A representative transcript once the command is wired (Work item 3), over a tree
-where only `phase_is_done` is unmet:
+A representative transcript once the command is wired (Work item 3), over a
+tree where only `phase_is_done` is unmet:
 
 ```console
 $ novel-done; echo "exit=$?"
@@ -839,9 +853,9 @@ Acceptance is behaviour a human can verify:
 
 - **Per-clause independence and the all-hold exit-0 (the roadmap success
   criterion).** Running the `tests/features/novel_done.feature` scenarios
-  passes: each clause is driven true and false from the §1.3.2 corpus, **and** a
-  named scenario proves the predicate exits `0` on the all-six-clauses-hold tree.
-  The new scenarios fail before Work items 1–3 land and pass after.
+  passes: each clause is driven true and false from the §1.3.2 corpus, **and**
+  a named scenario proves the predicate exits `0` on the all-six-clauses-hold
+  tree. The new scenarios fail before Work items 1–3 land and pass after.
 - **Sound absent-compile behaviour.** Over an otherwise-complete tree whose
   `compiled.md` is *absent*, `novel-done` exits `1` (never `0`): the
   existence-only clause is false, so no false "done" is emitted (B1).
@@ -859,8 +873,8 @@ Acceptance is behaviour a human can verify:
 Quality criteria ("done" means):
 
 - Tests: the new unit, behavioural, property, snapshot, and e2e suites pass; the
-  whole suite passes under `make test` (xdist; per-test 30s timeout is ample for
-  these filesystem-only tests).
+  whole suite passes under `make test` (xdist; per-test 30s timeout is ample
+  for these filesystem-only tests).
 - Lint/typecheck: `make lint` (ruff, `interrogate` docstring gate, pylint) and
   `make typecheck` (`ty`) report no findings.
 - Markdown: `make markdownlint` passes; `make nixie` passes if any Mermaid is
@@ -871,10 +885,11 @@ documentation work item) is the single gate run before every commit.
 
 ## Idempotence and recovery
 
-`novel-done` is read-only, so re-running it is always safe and never mutates the
-tree. The implementation steps are ordinary source edits under version control;
-to retry a work item, reset the working tree (`git restore`) and re-apply. No
-step is destructive and no backup is required. The corpus extensions (Work item
+`novel-done` is read-only, so re-running it is always safe and never mutates
+the tree. The implementation steps are ordinary source edits under version
+control; to retry a work item, reset the working tree (`git restore`) and
+re-apply. No step is destructive and no backup is required. The corpus
+extensions (Work item
 2) default to the existing behaviour and add only **new** named specs, so a
 half-applied change leaves every existing fixture and snapshot byte-identical.
 
@@ -973,10 +988,11 @@ Round 2 (2026-06-24). Revised after Logisphere design-review round 1
   all-six-clauses-hold spec and the per-clause failers as **new** named specs
   (D-CORPUS), leaving `PHASE_STATES`/`COHERENT_BASELINE` byte-identical;
   retracted the blanket "no churn" claim and replaced it with the verified
-  mechanism — the disk-evidence detector ignores `reviews/` and `critic-notes.md`
-  (`disk_evidence.py`), and the only full-tree `rglob` assertions run over the
-  `done-flag-*` variants, not `PHASE_STATES["done"]` (R-CHURN). The all-hold
-  exit-0 scenario is a named, load-bearing acceptance criterion (R-ALLHOLD).
+  mechanism — the disk-evidence detector ignores `reviews/` and
+  `critic-notes.md` (`disk_evidence.py`), and the only full-tree `rglob`
+  assertions run over the `done-flag-*` variants, not `PHASE_STATES["done"]`
+  (R-CHURN). The all-hold exit-0 scenario is a named, load-bearing acceptance
+  criterion (R-ALLHOLD).
 - **B3** — recorded the deliberate per-manifest (not per-outline)
   chapter-source divergence and its design §4.3 justification in D-CLAUSES.
 
@@ -984,14 +1000,14 @@ Advisories addressed: A1 (`_chapter_dir_name` imported from `_disk_paths`, not
 `disk_evidence`); A2 (runtime deps cited at `pyproject.toml:8`, not line 16);
 A3 (cyclopts behaviour cited against the v4 API docs, not v5-develop); A4
 (D-TWIN decides up front that the two new disk clauses get oracle twins); A5 (a
-near-miss BLOCKER corpus spec pins the substring rule's edge). Initial draft was
-2026-06-24; this round revises the `compile_consistent` mechanism, the corpus
-strategy, and the citations.
+near-miss BLOCKER corpus spec pins the substring rule's edge). Initial draft
+was 2026-06-24; this round revises the `compile_consistent` mechanism, the
+corpus strategy, and the citations.
 
 ## Addenda
 
-Lightweight post-merge corrections folded onto this completed task. Each runs as
-a no-plan, no-review addendum pass (roadmap sub-task under the `[x]` 3.1.1
+Lightweight post-merge corrections folded onto this completed task. Each runs
+as a no-plan, no-review addendum pass (roadmap sub-task under the `[x]` 3.1.1
 parent).
 
 - [x] **Roadmap 3.1.1.1 — reconcile `done-conditions.md` to the manifest chapter
@@ -999,19 +1015,21 @@ parent).
   that the shipped predicate reads per-manifest chapters (`state.chapters`)
   while the reference `novel_predicate` at
   `skill/novel-ralph/references/done-conditions.md:158,180` still parses
-  `plan/chapter-outline.md` through a `parse_chapter_outline` that does not exist
-  in the codebase, and flagged the reference for a later docs reconciliation. Edit
-  the reference predicate prose so it iterates the manifest chapter source rather
-  than the absent outline parse, keeping the design §4.3 chapter-source rule the
-  single described path. Docs-only; no code or test change.
+  `plan/chapter-outline.md` through a `parse_chapter_outline` that does not
+  exist in the codebase, and flagged the reference for a later docs
+  reconciliation. Edit the reference predicate prose so it iterates the
+  manifest chapter source rather than the absent outline parse, keeping the
+  design §4.3 chapter-source rule the single described path. Docs-only; no code
+  or test change.
 
 - [x] **Roadmap 3.1.1.2 — reconcile the `novel_predicate` pseudocode to the
   zero-padded `chapter-NN` layout** (from audit:3.1.5; severity low). The
   reference `novel_predicate`'s unpadded `chapter-{chapter_id}` path
   (`skill/novel-ralph/references/done-conditions.md:162,184`) contradicts the
   shipped `_chapter_dir_name` (`novel_ralph_skill/state/_disk_paths.py`), which
-  zero-pads to `chapter-NN`, so a reader following the pseudocode literally looks
-  in the wrong directory for single-digit chapters. Edit the two pseudocode
-  `done.flag` / `critic-notes.md` paths to the zero-padded `chapter-NN` layout the
-  code derives. Docs-only one-line fix removing a standing docs-vs-code
-  inconsistency; closes audit-3.1.5 Finding 1. No code or test change.
+  zero-pads to `chapter-NN`, so a reader following the pseudocode literally
+  looks in the wrong directory for single-digit chapters. Edit the two
+  pseudocode `done.flag` / `critic-notes.md` paths to the zero-padded
+  `chapter-NN` layout the code derives. Docs-only one-line fix removing a
+  standing docs-vs-code inconsistency; closes audit-3.1.5 Finding 1. No code or
+  test change.

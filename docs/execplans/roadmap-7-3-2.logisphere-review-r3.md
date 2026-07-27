@@ -24,9 +24,10 @@ correction) resolves the only blocking defect from round 2.
     plan now fixes is real.
   - `build_multiplexer()` registers exactly `{state,done,compile,desloppify,
     wordcount}`, equal to `set(_SUBCOMMAND_FOR_VERB)`.
-- The prescriptive mount loop `for verb in _SUBCOMMAND_FOR_VERB:
-  app.command(table[verb](), name=verb)` binds bare verbs, indexes the table
-  successfully, and registers the bare mount names the shape test expects.
+- The prescriptive mount loop
+  `for verb in _SUBCOMMAND_FOR_VERB: app.command(table[verb](), name=verb)`
+  binds bare verbs, indexes the table successfully, and registers the bare
+  mount names the shape test expects.
 - All five leaf modules expose `build_app`
   (`novel_state`,`_novel_done`,`_compile`,`_desloppify`,`_wordcount`).
 - `make_contract_app(name)` at `runner.py:52`.
@@ -62,9 +63,9 @@ correction) resolves the only blocking defect from round 2.
   path, the very repetition the task removes. Keying the table by bare verb and
   iterating `_SUBCOMMAND_FOR_VERB` is the simpler, registry-anchored choice. No
   superior alternative exists; that is a strength signal.
-- Buzzy Bee (scaling): irrelevant at this scale — five-entry table built once per
-  `main()`. No fan-out, no unbounded operation, no cost concern. The factory-not-
-  return-value table (D3) preserves build-then-mount timing.
+- Buzzy Bee (scaling): irrelevant at this scale — five-entry table built once
+  per `main()`. No fan-out, no unbounded operation, no cost concern. The
+  factory-not- return-value table (D3) preserves build-then-mount timing.
 - Telefono (contracts): no wire-format, exit-code, or signature change. The
   four-flag contract is preserved by reusing `make_contract_app` and
   `app.command`. Mount semantics (flags not copied) are pinned by the existing
@@ -92,10 +93,11 @@ correction) resolves the only blocking defect from round 2.
   `_SUBCOMMAND_FOR_VERB`, which is in surface order), not by an explicit test.
   The plan correctly notes Cyclopts mount order has no observable dispatch
   effect, so this is acceptable; no test is required. If cheap, the implementer
-  could assert `list(novel._build_mount_table()) == list(novel._SUBCOMMAND_FOR_VERB)`
-  (ordered) in addition to the set equality, to pin order as well as membership.
-  Not blocking — order is a non-observable property and the iteration source
-  guarantees it.
+  could assert
+  `list(novel._build_mount_table()) == list(novel._SUBCOMMAND_FOR_VERB)`
+  (ordered) in addition to the set equality, to pin order as well as
+  membership. Not blocking — order is a non-observable property and the
+  iteration source guarantees it.
 
 No design constraint was relaxed in this review. The deterministic/judgemental
 boundary is untouched (pure dispatch-layer refactor). The plan is sound.

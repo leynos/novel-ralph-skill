@@ -130,8 +130,8 @@ Rules:
 
 The `novel done` checker reads `critic-notes.md` to decide whether a chapter
 still carries an unresolved BLOCKER, so the producer (this critic loop) and the
-consumer (`done-conditions.md`, the `novel done` predicate) share one convention
-for what "resolved" looks like on disk (roadmap 3.1.5; design §4.2):
+consumer (`done-conditions.md`, the `novel done` predicate) share one
+convention for what "resolved" looks like on disk (roadmap 3.1.5; design §4.2):
 
 - A blocker is a `### Bn — <label>` finding heading under the `## BLOCKER`
   section heading. The section is entered at a line whose stripped text equals
@@ -147,8 +147,8 @@ for what "resolved" looks like on disk (roadmap 3.1.5; design §4.2):
   entirely. When the chapter has no blockers the critic writes exactly
   `No BLOCKER. No MAJOR.` and emits no `## BLOCKER` section, which is clean by
   construction. The in-place `[resolved]` token is for the cap-reached path,
-  where unresolved findings are logged rather than fixed (the pass cap of 4) and
-  a since-fixed finding must be marked closed without deleting it.
+  where unresolved findings are logged rather than fixed (the pass cap of 4)
+  and a since-fixed finding must be marked closed without deleting it.
 - The token is case-sensitive and the only recognized spelling. Variants such as
   `[RESOLVED]` or `(resolved)` are **not** recognized and leave the finding
   unresolved.

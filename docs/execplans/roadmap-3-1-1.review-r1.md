@@ -27,9 +27,9 @@ blocking items below makes it implementable.
 ### B1 — The `compile_consistent` placeholder makes 3.1.1's exit-0 verdict unsound (Pandalump / Telefono)
 
 Design §2.3 names "predicate truthfulness" as a verifiable property:
-`novel-done` returns "done" only when the §4.2 predicate holds **on disk**.
-The §4.2 predicate (and the reference `novel_predicate`) require
-`compiled.md` to exist and equal the ordered concatenation of drafts.
+`novel-done` returns "done" only when the §4.2 predicate holds **on disk**. The
+§4.2 predicate (and the reference `novel_predicate`) require `compiled.md` to
+exist and equal the ordered concatenation of drafts.
 
 D-COMPILE-PLACEHOLDER hardcodes `compile_consistent = True`. The corpus already
 models `compiled` as `None` / `COMPILED_AUTO` / stale-bytes
@@ -45,8 +45,8 @@ five clauses in the all-hold case" — is exactly the unsound choice. Required:
 the plan must either (a) state explicitly that 3.1.1's exit-0 path is knowingly
 unsound for `compiled.md` until 3.1.2 lands, scope every 3.1.1 all-hold
 snapshot/e2e/feature fixture to a tree with a valid `COMPILED_AUTO`
-`compiled.md`, and document this unsoundness window in the developers' guide and
-the users' guide "v1 caveat"; or (b) have the placeholder read the real
+`compiled.md`, and document this unsoundness window in the developers' guide
+and the users' guide "v1 caveat"; or (b) have the placeholder read the real
 existence/staleness of `compiled.md` as a stop-gap (returning `False` when
 `compiled.md` is absent) so exit-0 is never wrongly emitted, deferring only the
 hash comparison and exit-4 to 3.1.2. Pick one and pin it; do not leave the
@@ -59,16 +59,17 @@ clause holds" — which requires a fixture where all six clauses hold. The
 existing `PHASE_STATES["done"]` spec (`tests/working_corpus/_library.py`
 `_drafting_spec`) sets `phase=done`, `final_pass_complete=True`, all flags, all
 gates true, and `compiled=COMPILED_AUTO` — but under D-CLAUSES
-`knitting_gates_passed` also needs `reviews/knitting-{30,50,80}.md` to **exist**,
-and work item 2 defaults `knitting_reviews` to empty. So with work item 2 as
-written, **no tree satisfies `knitting_gates_passed`, and the all-hold case is
-unreachable** — the central success criterion cannot be demonstrated.
+`knitting_gates_passed` also needs `reviews/knitting-{30,50,80}.md` to
+**exist**, and work item 2 defaults `knitting_reviews` to empty. So with work
+item 2 as written, **no tree satisfies `knitting_gates_passed`, and the
+all-hold case is unreachable** — the central success criterion cannot be
+demonstrated.
 
 Resolving this means the `done` (and `final-pass`) library spec must gain the
 three review files. But `PHASE_STATES` feeds `test_novel_state_check_disk.ambr`
-and the corpus oracle agreement suites, and work item 2 promises "every existing
-corpus spec stays byte-identical (no churn in the existing snapshot or oracle
-suites)." These two requirements collide. The plan must:
+and the corpus oracle agreement suites, and work item 2 promises "every
+existing corpus spec stays byte-identical (no churn in the existing snapshot or
+oracle suites)." These two requirements collide. The plan must:
 
 1. Add an explicit work-item-2 step that constructs (or upgrades) an
    all-six-clauses-hold tree — `phase=done`, final gate, all flags, all three
@@ -83,16 +84,17 @@ suites)." These two requirements collide. The plan must:
 
 The reference `novel_predicate` derives planned chapters from
 `parse_chapter_outline(working_dir / "plan/chapter-outline.md")` and reads
-`reviews/knitting-NN.md` / `manuscript/chapter-NN/critic-notes.md` per **outline
-chapter**. The plan instead reads per **manifest chapter** (`State.chapters`).
-That substitution is in fact the design-conformant choice — design §4.3 pins
-chapter ordering and set to the manifest, not outline prose, and the codebase
-has no `parse_chapter_outline` — but the plan presents D-CLAUSES as a faithful
-transcription of the reference without flagging that it deliberately departs
-from the reference's `parse_chapter_outline` in favour of the manifest. Record
-the divergence and its §4.3 justification in D-CLAUSES so a reader comparing the
-plan against the reference does not read it as an unacknowledged error, and so a
-future reconciliation of `done-conditions.md` is traceable.
+`reviews/knitting-NN.md` / `manuscript/chapter-NN/critic-notes.md` per
+**outline chapter**. The plan instead reads per **manifest chapter**
+(`State.chapters`). That substitution is in fact the design-conformant choice —
+design §4.3 pins chapter ordering and set to the manifest, not outline prose,
+and the codebase has no `parse_chapter_outline` — but the plan presents
+D-CLAUSES as a faithful transcription of the reference without flagging that it
+deliberately departs from the reference's `parse_chapter_outline` in favour of
+the manifest. Record the divergence and its §4.3 justification in D-CLAUSES so
+a reader comparing the plan against the reference does not read it as an
+unacknowledged error, and so a future reconciliation of `done-conditions.md` is
+traceable.
 
 ## Advisory (non-blocking but fix before implementation)
 
@@ -100,8 +102,8 @@ future reconciliation of `done-conditions.md` is traceable.
   `_chapter_dir_name`" (Context line ~328; Artefacts cites
   `disk_evidence.py:133-161`). `_chapter_dir_name` is defined in
   `novel_ralph_skill/state/_disk_paths.py`; `disk_evidence.py` only imports it.
-  The implementer should import from `_disk_paths` (or re-derive), not expect it
-  in `disk_evidence`. Correct the citation.
+  The implementer should import from `_disk_paths` (or re-derive), not expect
+  it in `disk_evidence`. Correct the citation.
 
 - A2 (citation): The plan repeatedly cites `pyproject.toml:16` as the runtime
   dependency line. Line 16 is a `[project.scripts]` entry (`desloppify = ...`).
@@ -116,22 +118,22 @@ future reconciliation of `done-conditions.md` is traceable.
   than a v5 page for a v4 pin.
 
 - A4 (twin discipline): Work item 2 hedges the oracle-twin obligation with "if
-  warranted ... escalate if this balloons." The developers' guide treats
+  warranted … escalate if this balloons." The developers' guide treats
   disk-evidence reads as deliberate twins with an independent oracle
   (`tests/working_corpus/_oracle.py`). The two new disk-reading clauses
   (`knitting_gates_passed` review-existence, `no_unresolved_blockers`
   BLOCKER-scan) are disk-evidence reads of the same shape. Decide up front
-  whether they get oracle twins; deferring the decision into the work item risks
-  the central twin discipline being silently skipped. Make it a stated decision,
-  not a hedge.
+  whether they get oracle twins; deferring the decision into the work item
+  risks the central twin discipline being silently skipped. Make it a stated
+  decision, not a hedge.
 
-- A5 (D-BLOCKER fragility): `[resolved]` as the sole resolution token, matched by
-  substring, is brittle — a BLOCKER line quoting the word "[resolved]" in prose,
-  or resolution written as "RESOLVED"/"(resolved)", would mis-classify. The plan
-  pins one format and routes disputes to escalation, which is acceptable, but
-  add at least one corpus spec exercising a near-miss (a BLOCKER whose body
-  merely mentions resolution) so the substring rule's edge is pinned by a test,
-  not left implicit.
+- A5 (D-BLOCKER fragility): `[resolved]` as the sole resolution token, matched
+  by substring, is brittle — a BLOCKER line quoting the word "[resolved]" in
+  prose, or resolution written as "RESOLVED"/"(resolved)", would mis-classify.
+  The plan pins one format and routes disputes to escalation, which is
+  acceptable, but add at least one corpus spec exercising a near-miss (a
+  BLOCKER whose body merely mentions resolution) so the substring rule's edge
+  is pinned by a test, not left implicit.
 
 ## Pre-mortem (Doggylump)
 
@@ -141,19 +143,19 @@ Six months on, the harness loops forever or stops early on a real novel:
    v1 `novel-done` against a tree with a stale `compiled.md`. The placeholder
    returns `True`, every other clause holds, the predicate exits `0`, and the
    Ralph Loop **stops with a stale manuscript** — the exact "compiled.md is
-   stale" failure mode the reference's "Failure modes for the predicate" section
-   warns about, now masked by the predicate that was supposed to catch it.
-   Blast radius: a shipped novel with a stale compile. Missed signal: there is
-   no exit-4 and no exit-0 guard. Wrong bet: "returning True is the safe
+   stale" failure mode the reference's "Failure modes for the predicate"
+   section warns about, now masked by the predicate that was supposed to catch
+   it. Blast radius: a shipped novel with a stale compile. Missed signal: there
+   is no exit-4 and no exit-0 guard. Wrong bet: "returning True is the safe
    placeholder." Prevention designed-in: B1 option (b) — placeholder returns
    `False` when `compiled.md` is absent/stale — closes this without waiting for
    3.1.2's hash work.
 
-2. **Second failure:** the all-hold feature scenario is quietly never satisfiable
-   (B2) because no tree carries the three review files, so the suite proves
-   "exits 1 when a clause fails" but never proves "exits 0 when all hold." The
-   roadmap success criterion passes on paper while its load-bearing half is
-   untested. Prevention: B2.
+2. **Second failure:** the all-hold feature scenario is quietly never
+   satisfiable (B2) because no tree carries the three review files, so the
+   suite proves "exits 1 when a clause fails" but never proves "exits 0 when
+   all hold." The roadmap success criterion passes on paper while its
+   load-bearing half is untested. Prevention: B2.
 
 ## Strongest alternative (Wafflecat)
 

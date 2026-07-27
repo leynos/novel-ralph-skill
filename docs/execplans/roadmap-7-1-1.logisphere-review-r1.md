@@ -1,8 +1,7 @@
 # Logisphere design review — roadmap 7.1.1 (round 1)
 
-Adversarial pre-implementation review of
-`docs/execplans/roadmap-7-1-1.md` (single-source the compile-currency
-projection and the `compiled.md` path seam).
+Adversarial pre-implementation review of `docs/execplans/roadmap-7-1-1.md`
+(single-source the compile-currency projection and the `compiled.md` path seam).
 
 Verdict: **Proceed with conditions.** The refactor is structurally sound,
 correctly scoped against audit-4.1.2 and the roadmap, and every load-bearing
@@ -21,8 +20,8 @@ tempted to edit docstrings and stray into 7.1.2.
   `_compile.py:147`, `_novel_done.py:128`, `_novel_done.py:173`,
   `compile_model.py:105` (the internal read).
 - `_COMPILED_REL` uses in `_compile.py`: lines 74, 156, 161, 165, 225, 229,
-  240 (the plan's enumeration "156,161,165,225,229,234,240" maps correctly;
-  234 is the second `"checked"` key).
+  240 (the plan's enumeration "156,161,165,225,229,234,240" maps correctly; 234
+  is the second `"checked"` key).
 - Detector polarity untouched: `disk_evidence.py:209` uses
   `is not CompiledComparison.DIVERGES` — correctly excluded (non-goal).
 - `WORKING_DIR_NAME = "working"` (`_state_load.py:36`); `working_dir()` returns
@@ -48,33 +47,33 @@ tempted to edit docstrings and stray into 7.1.2.
 ## Blocking defects
 
 1. **Purpose-section success grep contradicts the 7.1.2 non-goal (path
-   literal).** Purpose (lines 59-63) asserts `git grep -n 'manuscript/compiled.md'`
-   over `novel_ralph_skill/` will "resolve every hit to the new seam in
-   `compile_model.py` (the literals no longer appear in `_compile.py` or
-   `_novel_done.py`)". This is false: the slash-form path appears in
-   **docstrings** at `_compile.py:5,110`, `_novel_done.py:164`, and
-   `done_predicate.py:86,217`, which this task deliberately does not touch
-   (prose consolidation is 7.1.2). The precise WI3 validation grep
-   (`'"manuscript" / "compiled.md"'`, quoted code-join form) is correct and
-   should be the stated observable; the Purpose-section claim must be narrowed
-   to the code-join form or explicitly scoped to "code joins, not docstring
-   prose".
+   literal).** Purpose (lines 59-63) asserts
+   `git grep -n 'manuscript/compiled.md'` over `novel_ralph_skill/` will
+   "resolve every hit to the new seam in `compile_model.py` (the literals no
+   longer appear in `_compile.py` or `_novel_done.py`)". This is false: the
+   slash-form path appears in **docstrings** at `_compile.py:5,110`,
+   `_novel_done.py:164`, and `done_predicate.py:86,217`, which this task
+   deliberately does not touch (prose consolidation is 7.1.2). The precise WI3
+   validation grep (`'"manuscript" / "compiled.md"'`, quoted code-join form) is
+   correct and should be the stated observable; the Purpose-section claim must
+   be narrowed to the code-join form or explicitly scoped to "code joins, not
+   docstring prose".
 
 2. **Purpose-section success claim contradicts the 7.1.2 non-goal (MATCHES
    references).** Purpose (lines 55-58) asserts "the only surviving
-   `CompiledComparison.MATCHES` references are inside `compile_model.py`". False:
-   `_compile.py:184,202` and `done_predicate.py:229-231` retain
+   `CompiledComparison.MATCHES` references are inside `compile_model.py`".
+   False: `_compile.py:184,202` and `done_predicate.py:229-231` retain
    `CompiledComparison.MATCHES` `:attr:` references in docstring prose (7.1.2).
-   The narrow WI3 grep `"is CompiledComparison.MATCHES"` (with leading `is`)
-   is correct and unaffected; the loose Purpose-section claim about *all*
+   The narrow WI3 grep `"is CompiledComparison.MATCHES"` (with leading `is`) is
+   correct and unaffected; the loose Purpose-section claim about *all*
    `CompiledComparison.MATCHES` references must be restricted to the
    `is CompiledComparison.MATCHES` projection form.
 
 ## Advisory (non-blocking)
 
 - **WI3 step 3 presupposes a non-existent import block.** `_novel_done.py`
-  currently has no `compile_model`/`state` import (verified). The plan says
-  "add `compiled_manuscript_path` to the module's `compile_model`/state import";
+  currently has no `compile_model`/`state` import (verified). The plan says "add
+  `compiled_manuscript_path` to the module's `compile_model`/state import";
   there is no such block — a new import statement must be created. Reword to
   "add a new `from novel_ralph_skill.state import compiled_manuscript_path`
   import" so a novice is not hunting for a block that isn't there.
@@ -109,14 +108,15 @@ snapshot suites as backstop). No mitigation gap found.
 ## Alternatives checkpoint (Wafflecat)
 
 Strongest alternative: collapse the path seam to a single member by having the
-envelope derive its token from `compiled_manuscript_path(working_dir()).as_posix()`
-rather than carrying a separate `COMPILED_REL` constant. Trade: removes one
-member but reintroduces exactly the working-prefix coupling the plan's Decision
-Log rejects — the envelope token is `working/...`-prefixed whereas the `Path`
-is built from an already-`working/`-anchored dir, so the single-member form
-needs an asymmetry-hiding transform. The plan's two-member split is the better
-call; the alternative is viable but trades clarity for a spurious line saving.
-The plan is on solid ground here.
+envelope derive its token from
+`compiled_manuscript_path(working_dir()).as_posix()` rather than carrying a
+separate `COMPILED_REL` constant. Trade: removes one member but reintroduces
+exactly the working-prefix coupling the plan's Decision Log rejects — the
+envelope token is `working/...`-prefixed whereas the `Path` is built from an
+already-`working/`-anchored dir, so the single-member form needs an
+asymmetry-hiding transform. The plan's two-member split is the better call; the
+alternative is viable but trades clarity for a spurious line saving. The plan
+is on solid ground here.
 
 ## Conditions to clear before implementation
 
@@ -127,8 +127,8 @@ The plan is on solid ground here.
 - (Advisory) Reword WI3 step 3 to add a new import rather than extend a
   non-existent block.
 
-Docs and skills relied on: `logisphere-design-review`; design doc §4.2/§4.3/§5.4;
-`docs/issues/audit-4.1.2.md`; `docs/roadmap.md` 7.1.1; ADR-001, ADR-003;
-AGENTS.md. Source verified directly in the worktree (`compile_model.py`,
-`_compile.py`, `done_predicate.py`, `_novel_done.py`, `_state_load.py`,
-`state/__init__.py`, `disk_evidence.py`, the cited tests).
+Docs and skills relied on: `logisphere-design-review`; design doc
+§4.2/§4.3/§5.4; `docs/issues/audit-4.1.2.md`; `docs/roadmap.md` 7.1.1; ADR-001,
+ADR-003; AGENTS.md. Source verified directly in the worktree
+(`compile_model.py`, `_compile.py`, `done_predicate.py`, `_novel_done.py`,
+`_state_load.py`, `state/__init__.py`, `disk_evidence.py`, the cited tests).

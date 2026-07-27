@@ -47,10 +47,10 @@ All five are the identical two statements: create `tomlkit.inline_table()`,
 (`_chapter_array`) passes a four-key `dict` literal; copy 4
 (`_zero_word_counts`) passes a `dict` comprehension; copies 2 and 3 (the two
 `_inline` twins) pass the incoming mapping straight through. The shared helper
-subsumes every form — see Risk "subtle argument-type differences".) This mirrors
-how roadmap task 2.3.1 centralized the *counting*
-rule into one `state/wordcount.py:recount_words` consumed everywhere, and how
-task 2.2.1 centralized the *atomic write* into one
+subsumes every form — see Risk "subtle argument-type differences".) This
+mirrors how roadmap task 2.3.1 centralized the *counting* rule into one
+`state/wordcount.py:recount_words` consumed everywhere, and how task 2.2.1
+centralized the *atomic write* into one
 `state/document.py:write_text_atomically`. The inline-table builder is the same
 single-home discipline applied to one more shared mechanism.
 
@@ -459,22 +459,23 @@ Purpose is met:
 Deviations from the drafted plan, all recorded inline above:
 
 - The inventory was **six** copies, not five: `commands/_reconcile.py` re-used
-  `_recount._inline_by_chapter` via a cross-module import (two sites). It is now
-  routed through the shared helper too (Decision D-RECONCILE), which strengthens
-  the single-home DoD. This is the one material correction to the plan's
-  D-INVENTORY count.
+  `_recount._inline_by_chapter` via a cross-module import (two sites). It is
+  now routed through the shared helper too (Decision D-RECONCILE), which
+  strengthens the single-home DoD. This is the one material correction to the
+  plan's D-INVENTORY count.
 - The helper's unit tests live in a new `tests/test_build_inline_table.py`
-  rather than appended to `tests/test_state_document.py` (the append breached the
-  400-line cap; AGENTS.md takes precedence over the plan's "extend" wording).
+  rather than appended to `tests/test_state_document.py` (the append breached
+  the 400-line cap; AGENTS.md takes precedence over the plan's "extend"
+  wording).
 - No new corpus-builder inline-table-form assertion was added (work item 5): the
-  corpus state read goes through `tomllib`, which cannot see the inline-vs-block
-  distinction, and the round-trip property already pins byte-stability, which the
-  plan allows as sufficient.
+  corpus state read goes through `tomllib`, which cannot see the
+  inline-vs-block distinction, and the round-trip property already pins
+  byte-stability, which the plan allows as sufficient.
 
 Process note: `make fmt` mdformat-reflows every tracked markdown file in the
 tree (not just touched docs); it was avoided in favour of `ruff format <file>`
-plus `make markdownlint`/`make nixie`, and its one-off reflow churn was parked in
-a discard stash.
+plus `make markdownlint`/`make nixie`, and its one-off reflow churn was parked
+in a discard stash.
 
 The deferred D-ARRAY-FOLLOWUP (the `_chapter_array`/`_chapters_array`
 array-of-inline-tables near-copy) remains a candidate 7.2.x addendum, untouched
@@ -935,9 +936,9 @@ Quality method (how we check) — mechanically checkable, not eyeballed:
 
         rg -n 'def build_inline_table\(' novel_ralph_skill
 
-   must return **exactly one match**, in
-   `novel_ralph_skill/state/document.py`. Second, the production tree's only
-   `tomlkit.inline_table()` *call* is inside that helper body:
+   must return **exactly one match**, in `novel_ralph_skill/state/document.py`.
+   Second, the production tree's only `tomlkit.inline_table()` *call* is inside
+   that helper body:
 
         rg -n 'tomlkit\.inline_table\(' novel_ralph_skill
 
@@ -1081,8 +1082,8 @@ merge.
   append-loop skeleton that produces the four-key `[[chapters]]` array
   (`number`, `slug`, `title`, `target_words`) is still a two-site near-copy
   across `novel_ralph_skill/commands/_set_chapters.py` (`_chapter_array`) and
-  `tests/working_corpus/_builder.py` (`_chapters_array`); the two differ only in
-  how each derives the four-key record (a `ChapterPlanEntry` versus
+  `tests/working_corpus/_builder.py` (`_chapters_array`); the two differ only
+  in how each derives the four-key record (a `ChapterPlanEntry` versus
   manifest-only fallbacks). Extract a state-package helper taking an ordered
   sequence of `(number, slug, title, target_words)` records and returning the
   multiline `tomlkit` array, route both sites through it, pin it with a test

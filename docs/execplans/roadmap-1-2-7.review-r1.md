@@ -14,8 +14,8 @@ advisory items below would tighten it but do not stop implementation.
 ## What was verified (and held)
 
 - **cuprum 0.1.0 API** (against
-  `/data/leynos/Projects/cuprum/cuprum/catalogue.py`
-  and `.venv/.../cuprum/catalogue.py`): `ProgramCatalogue(*, projects=...)`
+  `/data/leynos/Projects/cuprum/cuprum/catalogue.py` and
+  `.venv/.../cuprum/catalogue.py`): `ProgramCatalogue(*, projects=...)`
   keyword-only;
   `ProjectSettings(name, programs, documentation_locations, noise_rules)`
   frozen dataclass; `Program = NewType("Program", str)` with no validation;
@@ -43,15 +43,14 @@ advisory items below would tighten it but do not stop implementation.
   `tests/test_conftest_helpers.py` *does* match the glob, so its bare `assert`s
   are fine.
 - **Audit findings** (`audit-1.2.{1,3,4,5,6}.md`) all exist and say what the
-  plan
-  claims. audit-1.2.3 Finding 2 explicitly proposes the conftest-fixture home
-  and warns against the cross-module private import — the plan conforms. The
-  Wafflecat alternative (`tests/_helpers.py`) is named in the audit and
+  plan claims. audit-1.2.3 Finding 2 explicitly proposes the conftest-fixture
+  home and warns against the cross-module private import — the plan conforms.
+  The Wafflecat alternative (`tests/_helpers.py`) is named in the audit and
   explicitly rejected in the plan's Decision Log with rationale.
 - **Design boundary**: zero production-code change; the
-  deterministic/judgemental
-  boundary (`developers-guide.md` §"The deterministic/judgemental boundary") is
-  untouched. The single-source-of-truth `commands/names.py` is preserved.
+  deterministic/judgemental boundary (`developers-guide.md` §"The
+  deterministic/judgemental boundary") is untouched. The single-source-of-truth
+  `commands/names.py` is preserved.
 - Referenced files exist: `adr-006-...md`, `documentation-style-guide.md`,
   `contents.md`, all six audits.
 
@@ -110,8 +109,7 @@ Conway-aligned (one repo, one test tree, one conftest).
    Mitigation already in plan: explicit skip-count verification on the POSIX
    host (Risks final entry; WI-2 go/no-go). Adequate.
 2. **`interrogate` 100% trips on an undocstringed fixture.** Caught by
-   `make lint`
-   per WI. Mitigation in plan. Adequate.
+   `make lint` per WI. Mitigation in plan. Adequate.
 3. **A future cuprum bump adds `Program` path validation and breaks the
    absolute-path e2e.** The plan adds a guard test pinning the bare-`str`
    behaviour (WI-2) so this fails loudly. Good forward-defence.

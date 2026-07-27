@@ -12,49 +12,49 @@ the line-239 double-hit, then this proceeds.
   line 416 "novel-state ×17"; Artefacts line 612 "novel-state ×17"). The live
   count is **15** `novel-state` occurrences across 14 lines, plus **1**
   `novel-compile`. Evidence: `grep -oE 'novel-state' state-layout.md | wc -l` →
-  15. Work item 1 is explicitly "the contract the three sweep items execute
-  against" and Work item 5's acceptance gate counts against it, so an off-by-two
-  enumeration will trip the plan's own Tolerance (ambiguity / count mismatch)
-  and stall the implementer hunting for two nonexistent occurrences.
+  1. Work item 1 is explicitly "the contract the three sweep items execute
+  against" and Work item 5's acceptance gate counts against it, so an
+  off-by-two enumeration will trip the plan's own Tolerance (ambiguity / count
+  mismatch) and stall the implementer hunting for two nonexistent occurrences.
 
 - B2 (Pandalump): Line 239 is a double-hit, not a single `novel-compile`. The
-  plan's Work item 1 expected output (line 416-418) and Artefacts block
-  (line 612-615) mark only `230 (×2)` as a two-token line and present line 239
-  as a lone `novel-compile`. In fact line 239 carries BOTH `novel-compile` and
+  plan's Work item 1 expected output (line 416-418) and Artefacts block (line
+  612-615) mark only `230 (×2)` as a two-token line and present line 239 as a
+  lone `novel-compile`. In fact line 239 carries BOTH `novel-compile` and
   `novel-state set-chapters`, reading (pre-sweep):
   `` `novel-compile` follows. It is written only by ``
-  `` `novel-state set-chapters` when ``.
-  Work item 2's instruction list (lines 455-457) does separately catch
-  `novel-state set-chapters` at line 239, so the per-edit instructions are
-  complete — but the enumeration "contract" that Work items 1 and 5 audit
-  against under-counts line 239 by one token. Reconcile the enumeration with the
-  per-edit list or the count audit in Work item 5 cannot pass cleanly.
+  `` `novel-state set-chapters` when ``. Work item 2's instruction list (lines
+  455-457) does separately catch `novel-state set-chapters` at line 239, so the
+  per-edit instructions are complete — but the enumeration "contract" that Work
+  items 1 and 5 audit against under-counts line 239 by one token. Reconcile the
+  enumeration with the per-edit list or the count audit in Work item 5 cannot
+  pass cleanly.
 
 ## Corrected enumeration (verified live, planning-run date)
 
-state-layout.md convertible tokens = 16 total:
-  novel-state ×15 — lines 118, 181, 190, 201, 211, 214, 217, 223, 230 (×2),
+state-layout.md convertible tokens = 16 total: novel-state ×15 — lines 118,
+181, 190, 201, 211, 214, 217, 223, 230 (×2),
                     237, 239, 256, 257, 260
-  novel-compile ×1 — line 239
-  Two-token lines: 230 (complete-final-pass + set-gate --final);
+  novel-compile ×1 — line 239 Two-token lines: 230 (complete-final-pass +
+  set-gate --final);
                    239 (novel-compile + novel-state set-chapters).
 done-conditions.md: novel-done ×5 — lines 17, 18, 141, 144, 145 (plan correct).
-critic-personas.md: novel-done ×2 — lines 131, 133 (plan correct).
-Preserve (desloppify noun): state-layout 167, 168; done-conditions 110, 191;
-  critic-personas 162 (plan correct; genuine running-prose noun forms).
+critic-personas.md: novel-done ×2 — lines 131, 133 (plan correct). Preserve
+(desloppify noun): state-layout 167, 168; done-conditions 110, 191;
+critic-personas 162 (plan correct; genuine running-prose noun forms).
 
 ## What is sound (no change needed)
 
 - Deterministic/judgemental boundary (ADR 001), state.toml-write discipline,
-  exit-code and gate-ratio contracts: untouched. Correctly identified as a prose
-  sweep only.
+  exit-code and gate-ratio contracts: untouched. Correctly identified as a
+  prose sweep only.
 - Surface vocabulary verified against source: `names.py` `SUBCOMMAND_NAMES` =
-  ("novel state", "novel done", "novel compile", "novel desloppify",
-  "novel wordcount"). Every verb the references use (`set-chapters`, `set-gate`,
+  ("novel state", "novel done", "novel compile", "novel desloppify", "novel
+  wordcount"). Every verb the references use (`set-chapters`, `set-gate`,
   `set-fangirl`, `set-critic-pass`, `complete-final-pass`, `recount`, `check`,
   `init`, `reconcile`) is a registered `novel state` subcommand, so the spaced
-  conversions are truthful. ADR 007 line 92's six-verb list is illustrative, not
-  exhaustive — not a defect.
+  conversions are truthful. ADR 007 line 92's six-verb list is illustrative,
+  not exhaustive — not a defect.
 - Test-body safety bet holds. `_state_layout_scanner.py` forbids only write
   recipes inside executable fences and does not require the `novel-state`
   literal. `test_state_layout_schema_guard.py` extracts the `toml` schema fence
@@ -79,9 +79,9 @@ Preserve (desloppify noun): state-layout 167, 168; done-conditions 110, 191;
   expects empty, but the registered subcommand spelling really is
   `novel desloppify` (a valid surface form). If a future edit legitimately
   introduced `novel desloppify` it would be flagged as a mis-sweep. For this
-  task the references contain no such token, so the gate is fine, but the gate's
-  rationale comment should note it is asserting "no noun form was converted",
-  not "the string novel desloppify is forbidden".
+  task the references contain no such token, so the gate is fine, but the
+  gate's rationale comment should note it is asserting "no noun form was
+  converted", not "the string novel desloppify is forbidden".
 - A2 (Dinolump): The plan twice re-derives the same enumeration (Work item 1
-  expected output and the Artefacts block). Keep one canonical copy to avoid the
-  two drifting — the present B1/B2 defect exists in both.
+  expected output and the Artefacts block). Keep one canonical copy to avoid
+  the two drifting — the present B1/B2 defect exists in both.

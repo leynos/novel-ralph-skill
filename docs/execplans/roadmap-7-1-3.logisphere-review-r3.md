@@ -4,10 +4,10 @@ Verdict: **Proceed.** No blocking defects. The two prior rounds' blocking
 findings (r1 B1 — the mischaracterised `test_reconcile_refuse.ambr` snapshot;
 r3-recorded B2 and B3 — the `novel_state.py` import-block misdirection and the
 `_write_outcome` "byte-identical" overstatement) are all fully and correctly
-resolved, and every corrected claim was re-verified against current source.
-The design (one `reconciliation_payload` projection in `state/reconcile.py`,
-four arms routed through it, dict-not-`CommandOutcome` return, no behaviour
-change) is sound, atomic, ordered, testable, and design-conformant.
+resolved, and every corrected claim was re-verified against current source. The
+design (one `reconciliation_payload` projection in `state/reconcile.py`, four
+arms routed through it, dict-not-`CommandOutcome` return, no behaviour change)
+is sound, atomic, ordered, testable, and design-conformant.
 
 This round was genuinely adversarial: I re-read the plan from disk and
 independently re-verified every load-bearing source claim rather than trusting
@@ -16,11 +16,12 @@ the planner's summary or the prior reviews. Nothing new rose to blocking.
 ## What was independently verified (all TRUE against source)
 
 - **Four hand-built sites** exist exactly as described:
-  `_render_reconciliation` (`novel_state.py:138-146`, `str(reconciliation.action)`,
-  recount-guarded); `_write_outcome` (`_reconcile.py:224-231`, `str(action)`
-  parameter, recount-guarded); `_refuse_outcome` (`_reconcile.py:250-254`, base
-  three keys, `str(reconciliation.action)`); the `NONE` arm
-  (`_reconcile.py:296-300`, `str(action)`, `discrepancies: []`).
+  `_render_reconciliation` (`novel_state.py:138-146`,
+  `str(reconciliation.action)`, recount-guarded); `_write_outcome`
+  (`_reconcile.py:224-231`, `str(action)` parameter, recount-guarded);
+  `_refuse_outcome` (`_reconcile.py:250-254`, base three keys,
+  `str(reconciliation.action)`); the `NONE` arm (`_reconcile.py:296-300`,
+  `str(action)`, `discrepancies: []`).
 - **B3 caller invariant** holds: `_write_outcome`'s `action` parameter equals
   `reconciliation.action` at both callers — `:322` passes `action` (bound to
   `reconciliation.action` at `:291`), `:313` passes the literal `RECREATE_LOG`,
@@ -37,14 +38,14 @@ the planner's summary or the prior reviews. Nothing new rose to blocking.
   is `json.dumps(ordered)` with **no** `sort_keys`, asserted `raw == snapshot`
   at `test_novel_state_check_disk.py:234,248` — pins insertion order, READ path
   only. `test_reconcile_refuse.py:187` is `json.dumps(env, sort_keys=True)`,
-  and the stored `.ambr` reads `{action, detail, discrepancies}` (alphabetical),
-  pinning the field set, not order. The check_disk `.ambr` stores
-  `{action, discrepancies, detail, current, by_chapter}` (code order),
+  and the stored `.ambr` reads `{action, detail, discrepancies}`
+  (alphabetical), pinning the field set, not order. The check_disk `.ambr`
+  stores `{action, discrepancies, detail, current, by_chapter}` (code order),
   including the recount-pair order. The write-side order is therefore guarded
   solely by the Work Item 2 `items()` pin — correctly named load-bearing.
-- **Dataclass defaults**: `recounted_by_chapter: ... = None` (`reconcile.py:150`),
-  so REFUSE/NONE reconciliations yield exactly the base three keys through the
-  projection — behaviour-preserving.
+- **Dataclass defaults**: `recounted_by_chapter: ... = None`
+  (`reconcile.py:150`), so REFUSE/NONE reconciliations yield exactly the base
+  three keys through the projection — behaviour-preserving.
 - **Re-export pattern**: `state/__init__.py` imports
   `ReconcileAction, Reconciliation, derive_reconciliation` from
   `state.reconcile` and lists them in `__all__`; adding one name beside
@@ -95,9 +96,10 @@ the planner's summary or the prior reviews. Nothing new rose to blocking.
   `list(payload.items())` assertion is the only write-side order check and is
   named load-bearing. No snapshot guards it (refuse is sorted; check_disk is
   READ-only). Plan is explicit not to weaken it.
-- *Implementer puts the import in the TYPE_CHECKING block and ships a NameError.*
-  Mitigated: Work Item 3 step 1 now spells out the runtime-block placement and
-  forbids the old heuristic; `make all` would catch a regression anyway.
+- *Implementer puts the import in the TYPE_CHECKING block and ships a
+  NameError.* Mitigated: Work Item 3 step 1 now spells out the runtime-block
+  placement and forbids the old heuristic; `make all` would catch a regression
+  anyway.
 - *A future field rename silently diverges check and reconcile.* This is the
   defect the task exists to remove; after routing, the single projection makes
   divergence structurally impossible.
@@ -108,10 +110,10 @@ the planner's summary or the prior reviews. Nothing new rose to blocking.
   (still well under 400); fix opportunistically if convenient.
 - The plan cites the `state/__init__.py` reconcile import block as lines
   `63-67`; it is `62-66`, and `__all__` likewise drifts by one. The symbols and
-  the "beside `derive_reconciliation`" instruction are unambiguous, so this does
-  not impede implementation. (The audit's own line citations have drifted
-  further from source — e.g. it lists `_render_reconciliation` at 142-150 vs the
-  current 138-146 — confirming this class of citation is navigational, not
+  the "beside `derive_reconciliation`" instruction are unambiguous, so this
+  does not impede implementation. (The audit's own line citations have drifted
+  further from source — e.g. it lists `_render_reconciliation` at 142-150 vs
+  the current 138-146 — confirming this class of citation is navigational, not
   load-bearing.)
 
 ## Trail (docs and skills relied on)

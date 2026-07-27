@@ -2,11 +2,11 @@
 
 Audit of the codebase after roadmap task 3.1.4 ("Anchor unresolved-BLOCKER
 resolution positionally and cover the false-clean direction") merged to `main`
-at commit `94ac1d8`. The slice tightens the `no_unresolved_blockers` clause from
-a substring test (`[resolved]` appears anywhere on a line) to a positional one
-(the stripped line must *end with* the `[resolved]` token), closing the
-false-clean direction in which a live BLOCKER that incidentally quoted the token
-in its prose was wrongly cleared. It documents the new grammar in
+at commit `94ac1d8`. The slice tightens the `no_unresolved_blockers` clause
+from a substring test (`[resolved]` appears anywhere on a line) to a positional
+one (the stripped line must *end with* the `[resolved]` token), closing the
+false-clean direction in which a live BLOCKER that incidentally quoted the
+token in its prose was wrongly cleared. It documents the new grammar in
 [`done_predicate.py`](../../novel_ralph_skill/state/done_predicate.py),
 [`done-conditions.md`](../../skill/novel-ralph/references/done-conditions.md),
 the developers' guide, and design §4.2; pins a false-clean corpus tree with an
@@ -43,22 +43,24 @@ The predicate decides a line is a BLOCKER when its stripped text *starts with*
 the literal `BLOCKER` (case-sensitive) and clears it only when the same line
 *ends with* `[resolved]`. But nothing in the skill instructs the side that
 *writes* `critic-notes.md` to emit either shape. The critic-personas reference
-(`critic-personas.md:81-104`) fixes a strict output format where blockers appear
-under a `## BLOCKER` section heading with each finding as `### B1 — <label>`,
-quoted passage, "What's wrong:", and "Suggested action:". Under that format:
+(`critic-personas.md:81-104`) fixes a strict output format where blockers
+appear under a `## BLOCKER` section heading with each finding as
+`### B1 — <label>`, quoted passage, "What's wrong:", and "Suggested action:".
+Under that format:
 
 - No emitted line's stripped text starts with `BLOCKER`. The section line is
   `## BLOCKER` (stripped: `## BLOCKER`, which starts with `##`); the finding
   lines are `### B1 — …`. So `_contains_unresolved_blocker` matches **zero**
   lines and `no_unresolved_blockers` returns `True` against genuine critic
-  output — an exit-0 lie strictly larger than the mid-line false-clean one 3.1.4
-  fixed, because it fires on *every* real unresolved blocker, not a near-miss
-  edge.
+  output — an exit-0 lie strictly larger than the mid-line false-clean one
+  3.1.4 fixed, because it fires on *every* real unresolved blocker, not a
+  near-miss edge.
 - There is no defined way to *mark a blocker resolved*. The loop is told to
-  "address every BLOCKER" (`SKILL.md:353`) and that done requires "no unresolved
-  BLOCKER findings" (`done-conditions.md:111`), but no reference tells it to
-  append `[resolved]` to anything. The `[resolved]` trailing-token grammar is
-  invented by the predicate and the corpus, never by the producer's spec.
+  "address every BLOCKER" (`SKILL.md:353`) and that done requires "no
+  unresolved BLOCKER findings" (`done-conditions.md:111`), but no reference
+  tells it to append `[resolved]` to anything. The `[resolved]` trailing-token
+  grammar is invented by the predicate and the corpus, never by the producer's
+  spec.
 
 The round-1 design review's advisory A5 already noted "the grammar-vs-critic-
 format mismatch as a known limitation" and the developers' guide records the
@@ -72,12 +74,12 @@ and/or `done-conditions.md` that defines exactly how a resolved finding is
 marked, and align the predicate's recognizer to the actual heading-based format
 (match `### B<n>` finding lines under a `## BLOCKER` section, or a `BLOCKER:`
 inline form, whichever the loop is told to emit). (b) Add a corpus tree built
-from a *real* critic-personas-shaped `critic-notes.md` with an unresolved `### B1`
-finding and assert `no_unresolved_blockers` is `False` against it — today no
-test exercises the predicate against the format the producer is specified to
-emit, so the mismatch is invisible to the suite. This is a redesign beyond a
-single audit fix and is the strongest candidate for a roadmap item (see proposed
-roadmap items).
+from a *real* critic-personas-shaped `critic-notes.md` with an unresolved
+`### B1` finding and assert `no_unresolved_blockers` is `False` against it —
+today no test exercises the predicate against the format the producer is
+specified to emit, so the mismatch is invisible to the suite. This is a
+redesign beyond a single audit fix and is the strongest candidate for a roadmap
+item (see proposed roadmap items).
 
 ## Finding 2 — the `endswith` tightening silently introduces a new false-dirty direction (a resolved BLOCKER with trailing text) that is undocumented and untested
 
@@ -89,8 +91,8 @@ roadmap items).
   [`developers-guide.md:578-583`](../../docs/developers-guide.md)
 
 Moving from "contains `[resolved]`" to "ends with `[resolved]`" closes the
-false-clean direction but opens a symmetric false-dirty one the old rule did not
-have: a genuinely resolved blocker that carries any trailing text after the
+false-clean direction but opens a symmetric false-dirty one the old rule did
+not have: a genuinely resolved blocker that carries any trailing text after the
 marker — for example `BLOCKER B1 fixed [resolved] (see log entry 42)` or
 `… [resolved].` with a trailing full stop — is now classified *unresolved* and
 keeps the loop running. The developers' guide enumerates the documented
@@ -105,11 +107,11 @@ Proposed fix: pin the decision explicitly. If trailing text after the marker is
 forbidden, say so in the producer convention (Finding 1) and add a corpus/unit
 case asserting `… [resolved] trailing` is treated as unresolved *by design*
 (documenting the trade as deliberate). If trailing text should be tolerated,
-relax the recognizer to "the stripped line *contains* `[resolved]` as a trailing
-*token* (last whitespace-separated token, or last token before terminal
-punctuation)" and add the corresponding case. Either way the developers' guide's
-"limitations in both directions" sentence should name this third edge so the
-asymmetry the tightening created is recorded.
+relax the recognizer to "the stripped line *contains* `[resolved]` as a
+trailing *token* (last whitespace-separated token, or last token before
+terminal punctuation)" and add the corresponding case. Either way the
+developers' guide's "limitations in both directions" sentence should name this
+third edge so the asymmetry the tightening created is recorded.
 
 ## Finding 3 — the resolution marker is case- and spelling-brittle with no negative test pinning the documented mis-classification
 
@@ -118,8 +120,8 @@ asymmetry the tightening created is recorded.
 - Location:
   [`done_predicate.py:74`](../../novel_ralph_skill/state/done_predicate.py)
   (`_RESOLVED_TOKEN`);
-  [`developers-guide.md:580-581`](../../docs/developers-guide.md)
-  (`RESOLVED`, `(resolved)` "still mis-classified")
+  [`developers-guide.md:580-581`](../../docs/developers-guide.md) (`RESOLVED`,
+  `(resolved)` "still mis-classified")
 
 The developers' guide states that case or alternative-spelling variants
 (`RESOLVED`, `(resolved)`) are "still mis-classified (out of scope per
@@ -144,18 +146,20 @@ flip.
 - Location:
   [`done_predicate.py:293-296`](../../novel_ralph_skill/state/done_predicate.py)
 
-The line-level rule (`stripped.startswith(_BLOCKER_PREFIX) and not
-stripped.endswith(_RESOLVED_TOKEN)`) is embedded inside the `any(...)` generator
-in `_contains_unresolved_blocker`, which only runs against a file path. Every
-test of the rule must therefore round-trip through `tmp_path`, a written
-`critic-notes.md`, and a built working tree (see
-`test_blocker_resolution_is_positional`, which spins a `TemporaryDirectory` and
-an all-hold tree per Hypothesis example just to classify one string). The rule
-is a pure `str -> bool` function; extracting it (e.g. `def _line_is_unresolved
-_blocker(stripped: str) -> bool`) would let the property test and the unit cases
-assert directly over strings — faster, clearer, and with no filesystem in the
-loop — while `_contains_unresolved_blocker` keeps only the file-fault boundary.
-The oracle twin could mirror the same split, keeping the cross-check honest.
+The line-level rule
+(`stripped.startswith(_BLOCKER_PREFIX) and not
+stripped.endswith(_RESOLVED_TOKEN)`)
+is embedded inside the `any(...)` generator in `_contains_unresolved_blocker`,
+which only runs against a file path. Every test of the rule must therefore
+round-trip through `tmp_path`, a written `critic-notes.md`, and a built working
+tree (see `test_blocker_resolution_is_positional`, which spins a
+`TemporaryDirectory` and an all-hold tree per Hypothesis example just to
+classify one string). The rule is a pure `str -> bool` function; extracting it
+(e.g. `def _line_is_unresolved _blocker(stripped: str) -> bool`) would let the
+property test and the unit cases assert directly over strings — faster,
+clearer, and with no filesystem in the loop — while
+`_contains_unresolved_blocker` keeps only the file-fault boundary. The oracle
+twin could mirror the same split, keeping the cross-check honest.
 
 Proposed fix: extract the line-classification rule into a private pure helper in
 `done_predicate.py` and rewrite the positional property and the unit BLOCKER
@@ -166,14 +170,14 @@ ergonomic and test-speed improvement with no behavioural change.
 ## Items verified sound (no action)
 
 - The 3.1.4 soundness fix is correct and minimal; the oracle twin
-  (`_done_predicate_oracle.py:64`) re-spells the rule independently and is pinned
-  equal to production on every tree by `test_blocker_oracle_twin_agrees`
+  (`_done_predicate_oracle.py:64`) re-spells the rule independently and is
+  pinned equal to production on every tree by `test_blocker_oracle_twin_agrees`
   ([`tests/test_working_corpus_done_predicate.py:131-144`](../../tests/test_working_corpus_done_predicate.py)).
 - The read-only invariant (ADR-001) and the absent-vs-fault boundary (D-FAULT)
   are preserved: the `endswith` swap is in-memory line classification only and
   cannot swallow or raise a new fault.
 - The Hypothesis property constructs valid inputs (fixed `X` sentinel,
-  `[`/`]`/newline-excluded alphabet) rather than filtering, so it will not flake
-  on whitespace-only suffixes — the round-1 A1 advisory was actioned.
+  `[`/`]`/newline-excluded alphabet) rather than filtering, so it will not
+  flake on whitespace-only suffixes — the round-1 A1 advisory was actioned.
 - The `S105` suppressions on `_RESOLVED_TOKEN` carry an accurate why-comment in
   both production and the twin.

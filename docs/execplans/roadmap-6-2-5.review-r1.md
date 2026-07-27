@@ -1,10 +1,9 @@
 # Logisphere design review — roadmap 6.2.5, round 1
 
-Adversarial pre-implementation review of
-`docs/execplans/roadmap-6-2-5.md`. Verdict: **Proceed with conditions**. The
-mechanism is sound and verified against real source; one factual coverage claim
-in the Constraints block is false and must be corrected, and two small
-clarifications are advisable.
+Adversarial pre-implementation review of `docs/execplans/roadmap-6-2-5.md`.
+Verdict: **Proceed with conditions**. The mechanism is sound and verified
+against real source; one factual coverage claim in the Constraints block is
+false and must be corrected, and two small clarifications are advisable.
 
 ## Trail (docs and source relied on)
 
@@ -62,46 +61,47 @@ clarifications are advisable.
 ## Blocking
 
 1. **False coverage claim in the Constraints block (lines 70-71).** The plan
-   asserts the hand-planted `uncleared-pending-turn` corpus variant "already has
-   command-boundary coverage in `tests/test_novel_state_check_disk.py` *and
+   asserts the hand-planted `uncleared-pending-turn` corpus variant "already
+   has command-boundary coverage in `tests/test_novel_state_check_disk.py` *and
    `tests/test_reconcile_e2e.py`*." Verified false: `test_reconcile_e2e.py`
-   contains no pending-turn coverage at all (it covers `recount`,
-   `cover`-gap, and `recreate-log` only). The hand-planted variant has
-   `check`-boundary coverage in `test_novel_state_check_disk.py:85` only; no
-   test reconciles a hand-planted COMPLETE/ROLLBACK pending-turn through the
-   command boundary. Correct the citation (drop `test_reconcile_e2e.py`) and
-   restate the actual coverage. This claim is load-bearing for the plan's
-   scope/completeness argument, so it cannot stand uncorrected.
+   contains no pending-turn coverage at all (it covers `recount`, `cover`-gap,
+   and `recreate-log` only). The hand-planted variant has `check`-boundary
+   coverage in `test_novel_state_check_disk.py:85` only; no test reconciles a
+   hand-planted COMPLETE/ROLLBACK pending-turn through the command boundary.
+   Correct the citation (drop `test_reconcile_e2e.py`) and restate the actual
+   coverage. This claim is load-bearing for the plan's scope/completeness
+   argument, so it cannot stand uncorrected.
 
 ## Advisory
 
-- **Near-duplication of the existing integration test.** `test_reconcile_
-  integration.py::test_interrupted_reconcile_leaves_recoverable_record` already
-  crashes a real `reconcile` and drives recovery `reconcile`/`check` through the
-  runner (`_drive` → `run(build_app(), ...)`); its only non-command-boundary
-  step is the *crash-producing* call (`_reconcile.reconcile()` direct, line
-  158). The plan's genuine delta is narrow: drive the *crashing* reconcile
-  through `run(...)` too, and express it as a BDD scenario. This is exactly the
-  roadmap gap, so the work is justified — but the plan should state the delta
-  crisply (it is "move the crash-producing call onto the command path", not a
-  whole new recovery proof) so the implementer does not re-derive coverage that
-  exists. Tighten the Purpose section to say so.
+- **Near-duplication of the existing integration test.**
+  `test_reconcile_ integration.py::test_interrupted_reconcile_leaves_recoverable_record`
+  already crashes a real `reconcile` and drives recovery `reconcile`/`check`
+  through the runner (`_drive` → `run(build_app(), ...)`); its only
+  non-command-boundary step is the *crash-producing* call
+  (`_reconcile.reconcile()` direct, line 158). The plan's genuine delta is
+  narrow: drive the *crashing* reconcile through `run(...)` too, and express it
+  as a BDD scenario. This is exactly the roadmap gap, so the work is justified
+  — but the plan should state the delta crisply (it is "move the
+  crash-producing call onto the command path", not a whole new recovery proof)
+  so the implementer does not re-derive coverage that exists. Tighten the
+  Purpose section to say so.
 
 - **Stage B "red" is contrived.** The plan concedes the red signal requires
   transiently stubbing the convergence loop or the crash-origin assertion
-  (lines 386-391). A scenario that "fails because it is unbound" is a collection
-  error, not a behavioural red. The plan's guard ("do not leave Stage B with a
-  passing test that never exercised the crash path") is the right mitigation;
-  keep it explicit and prefer a genuine red where the crash path is asserted but
-  the convergence step is the last to land.
+  (lines 386-391). A scenario that "fails because it is unbound" is a
+  collection error, not a behavioural red. The plan's guard ("do not leave
+  Stage B with a passing test that never exercised the crash path") is the
+  right mitigation; keep it explicit and prefer a genuine red where the crash
+  path is asserted but the convergence step is the last to land.
 
 - **ROLLBACK branch is out of scope and uncovered at the reconcile boundary.**
   The scenario only exercises COMPLETE (both declared paths present). The
-  roadmap clause says "completes or rolls it back per what landed"; the COMPLETE
-  branch alone satisfies the success clause ("recovered by reconcile"), so this
-  is acceptable for 6.2.5 — but the plan should not imply the ROLLBACK branch is
-  already covered at the reconcile command boundary (it is not). Note it as a
-  known gap rather than asserting coverage.
+  roadmap clause says "completes or rolls it back per what landed"; the
+  COMPLETE branch alone satisfies the success clause ("recovered by
+  reconcile"), so this is acceptable for 6.2.5 — but the plan should not imply
+  the ROLLBACK branch is already covered at the reconcile command boundary (it
+  is not). Note it as a known gap rather than asserting coverage.
 
 ## Pre-mortem (most likely failure paths)
 
@@ -116,9 +116,9 @@ clarifications are advisable.
    fail. Mitigation: the D-CONVERGE bounded loop is mandatory, not optional;
    reuse the `range(3)` loop shape from the integration test.
 3. Implementer wraps the crashing `reconcile` in `pytest.raises(SystemExit)`.
-   The crash propagates as `_CrashError`, never reaching `sys.exit`. Mitigation:
-   the plan's Artefacts note already specifies `pytest.raises(_CrashError)`;
-   keep it prominent in the step skeleton.
+   The crash propagates as `_CrashError`, never reaching `sys.exit`.
+   Mitigation: the plan's Artefacts note already specifies
+   `pytest.raises(_CrashError)`; keep it prominent in the step skeleton.
 
 ## Strongest alternative (Wafflecat)
 

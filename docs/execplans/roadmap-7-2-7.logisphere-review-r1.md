@@ -1,9 +1,8 @@
 # Logisphere design review — roadmap 7.2.7, round 1
 
-Adversarial pre-implementation review of
-`docs/execplans/roadmap-7-2-7.md`. The plan was read from disk and every
-load-bearing claim verified against the real source under
-`novel_ralph_skill/loaderkit`, `novel_ralph_skill/rulepack`,
+Adversarial pre-implementation review of `docs/execplans/roadmap-7-2-7.md`. The
+plan was read from disk and every load-bearing claim verified against the real
+source under `novel_ralph_skill/loaderkit`, `novel_ralph_skill/rulepack`,
 `novel_ralph_skill/ledger`, and `tests/`, plus the roadmap entry, ADR-003, and
 ADR-001.
 
@@ -21,8 +20,8 @@ literally could leave a dangling `_ERRORS` import or a half-repointed call site.
   `Callable[[int, int], LineHit]` and `LineHit` is `frozen, kw_only, slots`;
   `loaderkit/parse.py::build_entries` types `build_entry` as
   `Callable[[Mapping, int], T]` and calls it positionally
-  (`build_entry(entry, index)`), while `_rule`/`_device` are `*, index`.
-  Both detect call sites pass the byte-identical
+  (`build_entry(entry, index)`), while `_rule`/`_device` are `*, index`. Both
+  detect call sites pass the byte-identical
   `line_hit=lambda chapter, line: LineHit(chapter=chapter, line=line)`
   (`rulepack/detect.py:207`, `ledger/detect.py:245`); both parse sites pass the
   `build_entry=lambda entry, index: …` shim (`rulepack/parse.py:279`,
@@ -45,9 +44,9 @@ literally could leave a dangling `_ERRORS` import or a half-repointed call site.
   Interfaces section).
 - No-external-surface finding (D-NO-EXTERNAL-RESEARCH) confirmed independently:
   `grep -rlnE "cuprum|catalogue|subprocess|sh\.run|cyclopts|pytest_timeout"`
-  over the three packages returns nothing. The locked-library
-  (Cyclopts / pytest-timeout / uv / cuprum) citation requirement does **not**
-  bite this task; D-NO-EXTERNAL-RESEARCH is sound, not an evasion.
+  over the three packages returns nothing. The locked-library (Cyclopts /
+  pytest-timeout / uv / cuprum) citation requirement does **not** bite this
+  task; D-NO-EXTERNAL-RESEARCH is sound, not an evasion.
 - ADR-001 (detect-only, message-is-behaviour) and ADR-003 (no import cycle;
   `loaderkit` imports neither pack) are preserved: `bind_coercion` stays in
   `loaderkit/coerce.py`, parameterized on `content_error` + noun pair, naming
@@ -68,18 +67,18 @@ literally could leave a dangling `_ERRORS` import or a half-repointed call site.
    `rulepack/parse.py` (lines ~264, ~274) and `ledger/parse.py` (lines ~182,
    ~189) break. Either keep an `_ERRORS = _COERCION.errors` alias in each
    `_coerce.py` **or** explicitly list those two repoints per family. State
-   which, and enumerate all `errors=` sites, so the implementer does not leave a
-   half-repointed module.
+   which, and enumerate all `errors=` sites, so the implementer does not leave
+   a half-repointed module.
 
 2. **`ledger/_fields.py` repoints are under-specified.** `_fields.py` imports
-   four names (`_Mapping, _require, _require_int, _where`) and calls
-   `_where` / `_require_int` / `_require` across ~13 sites (`_positive_int`,
+   four names (`_Mapping, _require, _require_int, _where`) and calls `_where` /
+   `_require_int` / `_require` across ~13 sites (`_positive_int`,
    `_allowed_chapters`, `_rationing_fields`). WI4 edit 4 names only
    `_require → _COERCION.require`. The `_where → _COERCION.where` and
    `_require_int → _COERCION.require_int` repoints, and the `_Mapping` handling
    (`_fields.py` imports `_Mapping`, so the `type _Mapping = Mapping` re-export
-   must survive in `ledger/_coerce.py` or `_fields.py` must re-source it),
-   are not stated. Enumerate them.
+   must survive in `ledger/_coerce.py` or `_fields.py` must re-source it), are
+   not stated. Enumerate them.
 
 3. **`rulepack/parse.py` has ~14 helper call sites, not "etc."** `_where`,
    `_require_int`, `_require_str`, `_reject_unknown_keys` are called throughout
@@ -95,32 +94,33 @@ literally could leave a dangling `_ERRORS` import or a half-repointed call site.
 
 - **Pre-mortem (Doggylump).** The most likely incident path is a *silent*
   message change: an implementer, repointing `_where` call sites, accidentally
-  passes `offending_id` positionally where the old keyword `rule_id=`/`device_id=`
-  was used, transposing it with another positional argument on a multi-arg
-  helper (`reject_unknown_keys(mapping, allowed, offending_id=…)`). The snapshot
-  suites are the safety net, but the plan should call out keeping `offending_id`
-  **keyword** at the call sites (the bundle methods declare it `*, offending_id`
-  for `reject_unknown_keys`/`require*`, positional-or-keyword only for `where`)
-  so a transposition is a TypeError, not a wrong-id message. The Interfaces
-  signatures already make `offending_id` keyword-only on the multi-arg
-  methods — good — but WI4's example
-  `_COERCION.reject_unknown_keys(entry, _RULE_KEYS, offending_id=...)`
-  should be the mandated form, not illustrative.
+  passes `offending_id` positionally where the old keyword `rule_id=`/
+  `device_id=` was used, transposing it with another positional argument on a
+  multi-arg helper (`reject_unknown_keys(mapping, allowed, offending_id=…)`).
+  The snapshot suites are the safety net, but the plan should call out keeping
+  `offending_id` **keyword** at the call sites (the bundle methods declare it
+  `*, offending_id` for `reject_unknown_keys`/`require*`, positional-or-keyword
+  only for `where`) so a transposition is a TypeError, not a wrong-id message.
+  The Interfaces signatures already make `offending_id` keyword-only on the
+  multi-arg methods — good — but WI4's example
+  `_COERCION.reject_unknown_keys(entry, _RULE_KEYS, offending_id=...)` should
+  be the mandated form, not illustrative.
 
 - **Alternatives checkpoint (Wafflecat).** The strongest alternative to a
   `BoundCoercion` dataclass-of-methods is a `functools.partial` set returned in
   a frozen `NamedTuple`/`dataclass` (partials over the free functions, with
-  `offending_id` left free). It trades away the keyword-rename (which is why the
-  plan rejected bare `partial`) but, since `offending_id` is *not* being renamed
-  (only `rule_id`/`device_id` is, and that lives inside `content_error`), a
-  partial bundle is in fact viable and is shorter. The plan's bound-method
-  bundle is defensible (clearer typing, one `errors` attribute for the
-  `compile_pattern`/`resolve_schema_version` sites), but D-ID-KEYWORD's stated
-  rationale ("partial cannot rename a keyword") slightly overstates the case:
-  partial does not *need* to rename `offending_id`. Recommend tightening the
-  rationale to "a partial bundle works too, but a bound dataclass gives one
-  typed `.errors` handle for the raw-`CoercionErrors` consumers and explicit
-  method signatures" rather than implying partial is infeasible.
+  `offending_id` left free). It trades away the keyword-rename (which is why
+  the plan rejected bare `partial`) but, since `offending_id` is *not* being
+  renamed (only `rule_id`/`device_id` is, and that lives inside
+  `content_error`), a partial bundle is in fact viable and is shorter. The
+  plan's bound-method bundle is defensible (clearer typing, one `errors`
+  attribute for the `compile_pattern`/`resolve_schema_version` sites), but
+  D-ID-KEYWORD's stated rationale ("partial cannot rename a keyword") slightly
+  overstates the case: partial does not *need* to rename `offending_id`.
+  Recommend tightening the rationale to "a partial bundle works too, but a
+  bound dataclass gives one typed `.errors` handle for the raw-`CoercionErrors`
+  consumers and explicit method signatures" rather than implying partial is
+  infeasible.
 
 - **Buzzy Bee / Dinolump.** No scaling or long-term-viability concerns: this is
   a bounded internal refactor that *reduces* surface (removes two forwarder

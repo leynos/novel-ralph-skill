@@ -22,9 +22,9 @@ The slice is sound and discharges its success criterion: a self-contradicting
 `state.toml` exits `4` naming each breached invariant, a coherent one exits `0`
 with an empty `result.violations`, and a missing or unparseable file is routed
 to the separate exit-`3` state-error channel. The checker/mutator split (design
-§5.4) holds (`check` writes nothing, pinned by `test_check_writes_nothing`), the
-validator is total over every constructible `State` (the `target <= 0` guard,
-Decision Log B7), the verdict order is deterministic, and the
+§5.4) holds (`check` writes nothing, pinned by `test_check_writes_nothing`),
+the validator is total over every constructible `State` (the `target <= 0`
+guard, Decision Log B7), the verdict order is deterministic, and the
 deterministic/judgemental boundary (ADR-001) is respected (the validator checks
 self-consistency, never judges prose). The findings below are tidy-up,
 consistency, duplication, and coverage opportunities; none is a blocking defect.
@@ -33,9 +33,12 @@ consistency, duplication, and coverage opportunities; none is a blocking defect.
 
 - **Category:** duplication
 - **Severity:** medium
-- **Location:** [`novel_ralph_skill/state/validate.py:73`](../../novel_ralph_skill/state/validate.py)
-  (`_GATE_THRESHOLDS`), [`tests/working_corpus/_specs.py:44`](../../tests/working_corpus/_specs.py)
-  (`GATE_THRESHOLDS`), [`tests/test_validate_state_property.py:52`](../../tests/test_validate_state_property.py)
+- **Location:**
+  [`novel_ralph_skill/state/validate.py:73`](../../novel_ralph_skill/state/validate.py)
+  (`_GATE_THRESHOLDS`),
+  [`tests/working_corpus/_specs.py:44`](../../tests/working_corpus/_specs.py)
+  (`GATE_THRESHOLDS`),
+  [`tests/test_validate_state_property.py:52`](../../tests/test_validate_state_property.py)
   (`_GATE_THRESHOLDS`).
 
 The literal triple `(0.30, 0.50, 0.80)` is defined three times. The corpus
@@ -48,8 +51,8 @@ property suite could silently agree with a wrong validator because it reads its
 own copy rather than the validator's.
 
 **Proposed fix:** make `validate._GATE_THRESHOLDS` the single production source
-of truth (it is the §5.2 design constant). Have `tests/test_validate_state_property.py`
-import the production constant
+of truth (it is the §5.2 design constant). Have
+`tests/test_validate_state_property.py` import the production constant
 (`from novel_ralph_skill.state.validate import _GATE_THRESHOLDS`, or expose a
 read-only accessor) instead of redeclaring it, so the property suite cannot
 drift from the validator it checks. Pin the corpus `_specs.GATE_THRESHOLDS`
@@ -62,11 +65,14 @@ stays an independent cross-check) without letting it drift unnoticed.
 
 - **Category:** similarity
 - **Severity:** low
-- **Location:** [`novel_ralph_skill/state/validate.py:93-250`](../../novel_ralph_skill/state/validate.py)
-  vs [`tests/working_corpus/_oracle.py:70-174`](../../tests/working_corpus/_oracle.py).
+- **Location:**
+  [`novel_ralph_skill/state/validate.py:93-250`](../../novel_ralph_skill/state/validate.py)
+  vs
+  [`tests/working_corpus/_oracle.py:70-174`](../../tests/working_corpus/_oracle.py).
 
 Six of the validator's predicates (`_check_completed_prefix`,
-`_check_consecutive_clean_within_target`, `_check_convergence_target_at_least_one`,
+`_check_consecutive_clean_within_target`,
+`_check_convergence_target_at_least_one`,
 `_check_consecutive_clean_within_drafted`, `_check_cursor_coherent`,
 `_check_gate_ratio_consistent`) are line-for-line structural twins of the
 oracle's same-named predicates, differing only in the input type (`State`
@@ -89,7 +95,8 @@ developers' guide so it reads as a design choice, not an oversight.
 
 - **Category:** separation-of-concerns
 - **Severity:** low
-- **Location:** [`novel_ralph_skill/state/validate.py:93-100`](../../novel_ralph_skill/state/validate.py)
+- **Location:**
+  [`novel_ralph_skill/state/validate.py:93-100`](../../novel_ralph_skill/state/validate.py)
   (`_check_phase_in_enum`) and the guard at
   [`validate.py:111`](../../novel_ralph_skill/state/validate.py)
   (`_check_completed_prefix`'s out-of-enum early return).
@@ -116,48 +123,53 @@ paired in-memory test makes the two-layer design self-documenting.
 
 - **Category:** separation-of-concerns
 - **Severity:** low
-- **Location:** [`novel_ralph_skill/commands/novel_state.py:74-119`](../../novel_ralph_skill/commands/novel_state.py)
+- **Location:**
+  [`novel_ralph_skill/commands/novel_state.py:74-119`](../../novel_ralph_skill/commands/novel_state.py)
   (`_check`).
 
 `_check` resolves the path, loads and parses the file, maps five exception
 types to `StateInputError`, runs the validator, and assembles two distinct
 `CommandOutcome` shapes — four responsibilities in one function. The exit-`3`
-exception tuple `(OSError, tomllib.TOMLDecodeError, KeyError, ValueError,
-TypeError)` is the same set `tests/test_validate_state_corpus.py:_PARSE_ERRORS`
-hand-lists (minus `OSError`), so the "what counts as a state-input error"
-vocabulary is duplicated between production and test with no shared constant.
+exception tuple
+`(OSError, tomllib.TOMLDecodeError, KeyError, ValueError, TypeError)` is the
+same set `tests/test_validate_state_corpus.py:_PARSE_ERRORS` hand-lists (minus
+`OSError`), so the "what counts as a state-input error" vocabulary is
+duplicated between production and test with no shared constant.
 
 **Proposed fix:** extract the load-and-translate step into a small helper (e.g.
-`_load_or_state_error(path) -> State`) that owns the exception-to-`StateInputError`
-mapping, leaving `_check` to read as "load → validate → build outcome". Define
-the state-input exception tuple as a named module constant and have the corpus
-test reference it (or assert its own list is a subset), so the parse-error
-vocabulary has one home. This also makes the mapping reusable for the four
-later mutators that will hit the same load boundary.
+`_load_or_state_error(path) -> State`) that owns the
+exception-to-`StateInputError` mapping, leaving `_check` to read as "load →
+validate → build outcome". Define the state-input exception tuple as a named
+module constant and have the corpus test reference it (or assert its own list
+is a subset), so the parse-error vocabulary has one home. This also makes the
+mapping reusable for the four later mutators that will hit the same load
+boundary.
 
 ## 5. The two `CommandOutcome` branches in `_check` repeat the result/messages plumbing
 
 - **Category:** complexity
 - **Severity:** low
-- **Location:** [`novel_ralph_skill/commands/novel_state.py:108-119`](../../novel_ralph_skill/commands/novel_state.py).
+- **Location:**
+  [`novel_ralph_skill/commands/novel_state.py:108-119`](../../novel_ralph_skill/commands/novel_state.py).
 
 The coherent and incoherent branches each construct a `CommandOutcome` with a
 hand-written `result={"violations": …}` and `messages=…`. The shapes are close
-enough that the "violations" key and the verdict-to-messages projection could be
-expressed once, with only the exit code differing.
+enough that the "violations" key and the verdict-to-messages projection could
+be expressed once, with only the exit code differing.
 
-**Proposed fix:** compute the verdict once, then build a single `CommandOutcome`
-whose `code` is `SUCCESS` when the verdict is empty else `ACTIONABLE_FINDING`,
-`result={"violations": [v.invariant for v in verdict]}`, and
-`messages=[v.detail for v in verdict] or ["state is coherent"]`. This removes
-the branch duplication and makes the "empty verdict ⇒ success" rule a single
-expression rather than two parallel constructors.
+**Proposed fix:** compute the verdict once, then build a single
+`CommandOutcome` whose `code` is `SUCCESS` when the verdict is empty else
+`ACTIONABLE_FINDING`, `result={"violations": [v.invariant for v in verdict]}`,
+and `messages=[v.detail for v in verdict] or ["state is coherent"]`. This
+removes the branch duplication and makes the "empty verdict ⇒ success" rule a
+single expression rather than two parallel constructors.
 
 ## 6. Validator subtly distinguishes "eight invariant names" from "seven §5.2 invariants" only in prose
 
 - **Category:** docs-gap
 - **Severity:** low
-- **Location:** [`novel_ralph_skill/state/validate.py:42-69`](../../novel_ralph_skill/state/validate.py)
+- **Location:**
+  [`novel_ralph_skill/state/validate.py:42-69`](../../novel_ralph_skill/state/validate.py)
   and [`docs/developers-guide.md:289`](../../docs/developers-guide.md).
 
 The validator owns **eight** names but covers only design §5.2 invariants 1, 2,
@@ -187,15 +199,16 @@ three `consecutive-clean-*` / `convergence-*` sub-rules, `cursor-coherent`,
 explaining what each name means or how to remedy it.
 
 **Proposed fix:** add a short reference list (name → one-line plain-English
-meaning) to the users' guide `novel-state check` section, noting that the set is
-the pure-state half and that disk-evidence invariants arrive in a later release.
-This closes the loop between the envelope a user sees and the guide.
+meaning) to the users' guide `novel-state check` section, noting that the set
+is the pure-state half and that disk-evidence invariants arrive in a later
+release. This closes the loop between the envelope a user sees and the guide.
 
 ## 8. No test pins the `Violation.detail` prose, leaving the human-facing message channel uncovered
 
 - **Category:** test-gap
 - **Severity:** low
-- **Location:** [`novel_ralph_skill/state/validate.py:77-250`](../../novel_ralph_skill/state/validate.py)
+- **Location:**
+  [`novel_ralph_skill/state/validate.py:77-250`](../../novel_ralph_skill/state/validate.py)
   (the `detail` field) and the test suites.
 
 Every test asserts on `violation.invariant` (the machine name) but none asserts
@@ -216,21 +229,20 @@ same coverage as the machine-name channel.
 
 - **Category:** separation-of-concerns
 - **Severity:** low
-- **Location:** [`novel_ralph_skill/commands/novel_state.py:44-71`](../../novel_ralph_skill/commands/novel_state.py)
+- **Location:**
+  [`novel_ralph_skill/commands/novel_state.py:44-71`](../../novel_ralph_skill/commands/novel_state.py)
   (`parse_global_flags`, `_HUMAN_FLAG`).
 
 The docstring states the conventions this module sets "are the ones the four
-later commands inherit", and `parse_global_flags` is a command-agnostic `--human`
-splitter (ADR-003 §3.1) with no dependency on `novel-state`. Leaving it in the
-`novel_state` command module means the four later command entry points must
-either import it cross-command from `novel_state` (an awkward dependency
-direction between sibling commands) or re-implement it.
+later commands inherit", and `parse_global_flags` is a command-agnostic
+`--human` splitter (ADR-003 §3.1) with no dependency on `novel-state`. Leaving
+it in the `novel_state` command module means the four later command entry
+points must either import it cross-command from `novel_state` (an awkward
+dependency direction between sibling commands) or re-implement it.
 
 **Proposed fix:** when the second command lands, hoist `parse_global_flags` and
 `_HUMAN_FLAG` into a shared seam (e.g. `novel_ralph_skill.contract.runner` or a
-small `commands/_global_flags.py`) so every command imports the one splitter and
-no command depends on a sibling. Recorded now as a pre-emptive note; it is not
-worth moving until a second consumer exists, but the eventual home should be
-chosen before that import direction sets.
-</content>
-</invoke>
+small `commands/_global_flags.py`) so every command imports the one splitter
+and no command depends on a sibling. Recorded now as a pre-emptive note; it is
+not worth moving until a second consumer exists, but the eventual home should
+be chosen before that import direction sets. </content> </invoke>

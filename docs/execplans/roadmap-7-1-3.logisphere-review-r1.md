@@ -44,8 +44,8 @@ actually guarantees; one small advisory tightens the test.
   is sound.
 - Audit-2.3.2 Finding 2 (`audit-2.3.2.md:68-100`) matches the plan's reading
   exactly: centralize *only* the `Reconciliation`-to-dict serialization; the
-  read/write *envelope code* and *exit codes* "genuinely differ" and stay at the
-  call sites. The non-goals (Findings 3-6) are correctly excluded.
+  read/write *envelope code* and *exit codes* "genuinely differ" and stay at
+  the call sites. The non-goals (Findings 3-6) are correctly excluded.
 - No external-library behaviour is load-bearing. This is a pure-Python refactor
   with no new subprocess, console-script path, `--flag`, or third-party import.
   The cuprum / Cyclopts / pytest-timeout / uv research mandated by the workflow
@@ -74,9 +74,10 @@ Evidence:
 - By contrast `tests/test_novel_state_check_disk.py:234,248` assert
   `raw == snapshot` where `raw` is the unsorted `render_machine` output
   (`contract/envelope.py:126-151`, `json.dumps(ordered)` with **no**
-  `sort_keys`). The stored snapshot preserves `action, discrepancies, detail,
-  current, by_chapter` in insertion order. This snapshot **is** a genuine
-  order backstop, for both the base shape and the recount-pair position.
+  `sort_keys`). The stored snapshot preserves
+  `action, discrepancies, detail, current, by_chapter` in insertion order. This
+  snapshot **is** a genuine order backstop, for both the base shape and the
+  recount-pair position.
 
 Impact: the plan's stated safety argument names a backstop that does not exist.
 The actual order guarantee comes from (a) the check-disk recount/refuse
@@ -125,9 +126,9 @@ implementer's confidence.
    byte move. The `check_disk` snapshots catch the read path, but the write-side
    `REFUSE`/`NONE` order is caught only by the WI2 `items()` pin. If that pin
    were authored loosely (e.g. `payload == {...}` instead of
-   `list(payload.items()) == [...]`), the reorder ships green on the write path.
-   Mitigation: B1 + A1 — make the `items()` assertion the named primary order
-   pin and document that the refuse snapshot does not cover order.
+   `list(payload.items()) == [...]`), the reorder ships green on the write
+   path. Mitigation: B1 + A1 — make the `items()` assertion the named primary
+   order pin and document that the refuse snapshot does not cover order.
 2. **Second failure:** the `reconcile.py` line cap. At 341 lines, the addition
    is safe, but a verbose docstring could brush 400. Mitigation: the Constraint
    already requires a post-addition line check; keep it.
@@ -142,10 +143,10 @@ The roadmap permits a `Reconciliation.to_payload()` method. The plan chose a
 free function. This is the right call for this module: the dataclass is a frozen
 `slots` pure data shape and the module's grain is free functions over it
 (`derive_reconciliation`, `_refuse`, `_recount`), and the 7.1.1 sibling set the
-free-function precedent. No credible structurally-different alternative exists —
-the task is a mechanical four-site consolidation with a snapshot-pinned target
-shape. That the only "alternative" is method-vs-function cosmetics is a strong
-signal the design is on solid ground.
+free-function precedent. No credible structurally-different alternative exists
+— the task is a mechanical four-site consolidation with a snapshot-pinned
+target shape. That the only "alternative" is method-vs-function cosmetics is a
+strong signal the design is on solid ground.
 
 ## Trail (docs and skills relied on)
 

@@ -12,8 +12,7 @@ and the `pending_turn` context manager). It is re-exported from
 documented in the developers' guide, and guarded by
 [`tests/test_state_document.py`](../../tests/test_state_document.py) plus the
 torn-turn behavioural scenario
-([`tests/features/torn_turn.feature`](../../tests/features/torn_turn.feature),
-[`tests/steps/torn_turn_steps.py`](../../tests/steps/torn_turn_steps.py)).
+([`tests/features/torn_turn.feature`](../../tests/features/torn_turn.feature), [`tests/steps/torn_turn_steps.py`](../../tests/steps/torn_turn_steps.py)).
 
 The slice is sound and discharges its success criterion: a no-op write
 round-trips byte-for-byte, a surgical value edit rewrites only the touched
@@ -58,13 +57,13 @@ values (`COMMENT_BEARING_STATE_TOML` has two `[[chapters]]` and richer comment
 layout; `_SETTLED_STATE_TOML` has one chapter and `completed = ["premise"]`).
 Both must stay schema-aligned with
 [`novel_ralph_skill/state/schema.py`](../../novel_ralph_skill/state/schema.py)
-and `parse_state` by hand. A schema change (a new required table or key) must be
-mirrored in both literals or one suite silently tests a stale shape. The
+and `parse_state` by hand. A schema change (a new required table or key) must
+be mirrored in both literals or one suite silently tests a stale shape. The
 comment-bearing literal genuinely cannot come from the corpus builder (the
 builder emits no comments, which is the documented reason the round-trip
 property uses a hand-authored carrier — ExecPlan round-1 review B1/B2). But
-`_SETTLED_STATE_TOML` is comment-free, so it overlaps both the
-comment-bearing literal *and* the comment-free baseline the corpus builder
+`_SETTLED_STATE_TOML` is comment-free, so it overlaps both the comment-bearing
+literal *and* the comment-free baseline the corpus builder
 ([`tests/working_corpus/_builder.py`](../../tests/working_corpus/_builder.py),
 exposed as the `baseline_tree` fixture) already produces.
 
@@ -86,13 +85,13 @@ test-refactor change gated by Ruff and `pytest`.
   and `write_document_atomically` (lines 114-151)
 
 `write_document_atomically(document, path)` accepts an arbitrary target `path`
-and is documented as the generic atomic writer the whole `state` slice composes,
-but the in-directory temporary file is always prefixed `.state.toml.`
+and is documented as the generic atomic writer the whole `state` slice
+composes, but the in-directory temporary file is always prefixed `.state.toml.`
 (`_TEMP_PREFIX = ".state.toml."`). If a later mutator reuses this helper to
 write any file other than `state.toml` (the helper's signature invites that),
 the leaked-temp-file recognisability the prefix is meant to provide (Risk
-"atomic temp file leaks") names the wrong file, and a directory holding two such
-writes would collide on the same recognizable prefix. The prefix couples a
+"atomic temp file leaks") names the wrong file, and a directory holding two
+such writes would collide on the same recognizable prefix. The prefix couples a
 generic mechanism to one specific filename.
 
 **Proposed fix:** derive the prefix from the target, for example
@@ -115,19 +114,19 @@ Gated by Ruff, `pyright`, and `pytest`.
 `write_document_atomically`'s docstring states the target's parent must already
 exist, because the temp file is created with `dir=path.parent`. If a caller
 passes a path whose parent is absent, `tempfile.NamedTemporaryFile` raises
-`FileNotFoundError` from inside the helper rather than a domain-meaningful error,
-and no test pins this contract — so the failure mode is undocumented at the
-exit-code boundary task 2.2.x will own. The other failure path (a `Path.replace`
-that raises) is tested thoroughly
+`FileNotFoundError` from inside the helper rather than a domain-meaningful
+error, and no test pins this contract — so the failure mode is undocumented at
+the exit-code boundary task 2.2.x will own. The other failure path (a
+`Path.replace` that raises) is tested thoroughly
 ([`test_atomic_write_leaves_prior_file_and_no_temp_on_failure`](../../tests/test_state_document.py:269)),
 which makes the missing parent case the one untested edge of the writer.
 
 **Proposed fix:** add a small unit test asserting the behaviour when
-`path.parent` is absent (either that it raises a recognizable error, or — if the
-slice prefers — that the helper creates the parent), and align the docstring
-with whichever behaviour is chosen. This documents the precondition at the seam
-where the §5.2 validator and the CLI (tasks 2.1.2, 2.2.2) will rely on it.
-Gated by `pytest` and `interrogate`.
+`path.parent` is absent (either that it raises a recognizable error, or — if
+the slice prefers — that the helper creates the parent), and align the
+docstring with whichever behaviour is chosen. This documents the precondition
+at the seam where the §5.2 validator and the CLI (tasks 2.1.2, 2.2.2) will rely
+on it. Gated by `pytest` and `interrogate`.
 
 ## Finding 4 — `open_pending_turn` re-implements list population instead of constructing the array directly
 
@@ -148,9 +147,9 @@ The two-step create-then-extend pattern reads as imperative scaffolding around
 what is conceptually one value, and the second statement subscripts the record
 again to reach the array it just set. `tomlkit.array()` accepts the items
 directly (`tomlkit.array(list(paths))` or `tomlkit.item(list(paths))`), which
-expresses the intent — "the paths array is this sequence" — in one statement and
-still copies into a fresh `tomlkit` array so the document does not alias the
-caller's sequence (the aliasing guarantee the `Notes` section promises).
+expresses the intent — "the paths array is this sequence" — in one statement
+and still copies into a fresh `tomlkit` array so the document does not alias
+the caller's sequence (the aliasing guarantee the `Notes` section promises).
 
 **Proposed fix:** construct the array in one expression, for example
 `record["paths"] = tomlkit.array(list(paths))` (verifying the single-line vs

@@ -1,44 +1,44 @@
 # Relocate the shared scan shapes into `loaderkit`
 
-This ExecPlan (execution plan) is a living document. The sections
-`Constraints`, `Tolerances`, `Risks`, `Progress`, `Surprises & Discoveries`,
-`Decision Log`, and `Outcomes & Retrospective` must be kept up to date as work
-proceeds.
+This ExecPlan (execution plan) is a living document. The sections `Constraints`,
+`Tolerances`, `Risks`, `Progress`, `Surprises & Discoveries`, `Decision Log`,
+and `Outcomes & Retrospective` must be kept up to date as work proceeds.
 
 Status: COMPLETE (2026-06-27; revised after design review rounds 1, 2, and 3)
 
 ## Purpose / big picture
 
-Roadmap task 7.2.2 moved the shared per-line scan *body*
-(`scan_pattern`) into the neutral `loaderkit` package but deliberately left its
-input and output shapes — `ScannedChapter` and `LineHit` — stranded in the
-rule-pack domain (`novel_ralph_skill/rulepack/detect.py`). The consequence is a
+Roadmap task 7.2.2 moved the shared per-line scan *body* (`scan_pattern`) into
+the neutral `loaderkit` package but deliberately left its input and output
+shapes — `ScannedChapter` and `LineHit` — stranded in the rule-pack domain
+(`novel_ralph_skill/rulepack/detect.py`). The consequence is a
 sibling-to-sibling domain edge the neutral home was created to remove: the
 ledger domain runtime-imports `LineHit` from the rule-pack domain
 (`novel_ralph_skill/ledger/detect.py:35`), and `loaderkit/scan.py` reaches back
-into `rulepack.detect` (under `TYPE_CHECKING`) for the very shapes its signature
-is typed against. That makes the `loaderkit/scan.py` docstring claim — "no
-`Rule`/`Device` knowledge", a self-contained neutral primitive — read as a
-half-truth, because the primitive's type signature still depends on shapes that
-live in a consumer domain.
+into `rulepack.detect` (under `TYPE_CHECKING`) for the very shapes its
+signature is typed against. That makes the `loaderkit/scan.py` docstring claim
+— "no `Rule`/`Device` knowledge", a self-contained neutral primitive — read as
+a half-truth, because the primitive's type signature still depends on shapes
+that live in a consumer domain.
 
 After this change a reader can observe the single-home property directly:
 `ScannedChapter` and `LineHit` live in `loaderkit`; neither `loaderkit.scan` nor
-`ledger.detect` imports them from `rulepack.detect`; the runtime `ledger →
-rulepack` scan-shape edge and the `TYPE_CHECKING` `loaderkit → rulepack` edge are
-both gone; and a hypothetical third pack family would inherit the two neutral
-shapes from `loaderkit` instead of cloning or cross-importing them. The same pass
-folds in the low-severity tidy-ups it naturally exposes: the thin duplicated
-`_scan_rule`/`_scan_device` wrappers are inlined onto the `scan_pattern` call,
-the dead `rulepack._coerce._require` (no caller) is deleted, the triple-stated
-per-line scan docstring is single-stated, and a callback-contract test pins
-`scan_pattern`'s `line_hit` factory.
+`ledger.detect` imports them from `rulepack.detect`; the runtime
+`ledger → rulepack` scan-shape edge and the `TYPE_CHECKING`
+`loaderkit → rulepack` edge are both gone; and a hypothetical third pack family
+would inherit the two neutral shapes from `loaderkit` instead of cloning or
+cross-importing them. The same pass folds in the low-severity tidy-ups it
+naturally exposes: the thin duplicated `_scan_rule`/`_scan_device` wrappers are
+inlined onto the `scan_pattern` call, the dead `rulepack._coerce._require` (no
+caller) is deleted, the triple-stated per-line scan docstring is single-stated,
+and a callback-contract test pins `scan_pattern`'s `line_hit` factory.
 
-You can see success by running `make all`: the rule-pack, ledger, and `loaderkit`
-suites stay green, `ty check` passes with the new import graph (no
-`rulepack.detect` import of the scan shapes from `loaderkit` or `ledger`), and a
-new contract test demonstrates that `scan_pattern` constructs every hit through
-the caller-supplied `line_hit` callable rather than importing `LineHit` itself.
+You can see success by running `make all`: the rule-pack, ledger, and
+`loaderkit` suites stay green, `ty check` passes with the new import graph (no
+`rulepack.detect` import of the scan shapes from `loaderkit` or `ledger`), and
+a new contract test demonstrates that `scan_pattern` constructs every hit
+through the caller-supplied `line_hit` callable rather than importing `LineHit`
+itself.
 
 ## Constraints
 
@@ -55,24 +55,25 @@ escalation (see `Tolerances`), not a workaround.
   `TYPE_CHECKING` (design §6, §6.3; ADR-001/003; developers' guide "The shared
   loader primitives (`loaderkit`)"). After the move, the import direction is
   `rulepack.detect → loaderkit.scan` and `ledger.detect → loaderkit.scan`, both
-  acyclic; the `loaderkit → rulepack` `TYPE_CHECKING` edge that
-  Decision D-SCANTYPES of `docs/execplans/roadmap-7-2-2.md` introduced as a
-  *temporary* expedient is removed, not relocated.
+  acyclic; the `loaderkit → rulepack` `TYPE_CHECKING` edge that Decision
+  D-SCANTYPES of `docs/execplans/roadmap-7-2-2.md` introduced as a *temporary*
+  expedient is removed, not relocated.
 - **Frozen, slotted, keyword-only house style.** The relocated `ScannedChapter`
-  and `LineHit` keep `@dataclasses.dataclass(frozen=True, kw_only=True,
-  slots=True)` and their exact field names (`number`/`text`, `chapter`/`line`),
-  so every existing construction site (`ScannedChapter(number=…, text=…)`,
+  and `LineHit` keep
+  `@dataclasses.dataclass(frozen=True, kw_only=True, slots=True)` and their
+  exact field names (`number`/`text`, `chapter`/`line`), so every existing
+  construction site (`ScannedChapter(number=…, text=…)`,
   `LineHit(chapter=…, line=…)`) compiles unchanged (rule-pack/ledger schema
   house style; design §6.1).
 - **Each pack's typed error channel and operator messages are untouched.** This
-  task moves shapes only; `RulePackError`/`RulePackFileError`,
-  `LedgerError`/`LedgerFileError`, the exit-code mappings, and all device/rule
-  messages stay exactly as 7.2.2 left them (roadmap 7.2.3 Success; ADR-003).
+  task moves shapes only; `RulePackError`/`RulePackFileError`, `LedgerError`/
+  `LedgerFileError`, the exit-code mappings, and all device/rule messages stay
+  exactly as 7.2.2 left them (roadmap 7.2.3 Success; ADR-003).
 - **The rule-pack contract stays frozen (ADR-003).** `RuleFinding` and
   `DetectionReport` continue to live in `rulepack.detect` and reference
-  `LineHit`; only the *definition site* of `LineHit`/`ScannedChapter` moves. The
-  rule-pack public surface (`novel_ralph_skill/rulepack/__init__.py` `__all__`)
-  is unchanged.
+  `LineHit`; only the *definition site* of `LineHit`/`ScannedChapter` moves.
+  The rule-pack public surface (`novel_ralph_skill/rulepack/__init__.py`
+  `__all__`) is unchanged.
 - **en-GB Oxford spelling** ("-ize"/"-yse"/"-our") in all prose, docstrings,
   comments, and commit messages (AGENTS.md; the `en-gb-oxendict` skill).
 - **Docstring coverage stays at 100%** (`interrogate`, gated by `make lint`):
@@ -81,16 +82,16 @@ escalation (see `Tolerances`), not a workaround.
 ## Tolerances (exception triggers)
 
 - **Scope:** if implementation touches more than 12 files or more than ~250 net
-  lines, stop and escalate. (Estimate: 3 package modules, 2 package `__init__`s,
-  4 test modules, 2 docs files — comfortably inside this bound.)
+  lines, stop and escalate. (Estimate: 3 package modules, 2 package
+  `__init__`s, 4 test modules, 2 docs files — comfortably inside this bound.)
 - **Interface:** if any *public* signature must change beyond the
-  definition-site move and re-export (for example, if `scan_pattern`'s parameter
-  or return types must change), stop and escalate.
+  definition-site move and re-export (for example, if `scan_pattern`'s
+  parameter or return types must change), stop and escalate.
 - **Import cycle:** if `ty check` reports any cycle, or if removing the
   `loaderkit → rulepack` edge cannot be done without a runtime import of
-  `rulepack`/`ledger` into `loaderkit`, stop and escalate — do **not** reach for
-  a function-local import (D-SCANTYPES of roadmap-7-2-2 already rejected that as
-  the weaker mechanism).
+  `rulepack`/`ledger` into `loaderkit`, stop and escalate — do **not** reach
+  for a function-local import (D-SCANTYPES of roadmap-7-2-2 already rejected
+  that as the weaker mechanism).
 - **Iterations:** if `make all` still fails after 3 fix attempts on any one work
   item, stop and escalate.
 - **Behaviour drift:** if any existing rule-pack, ledger, desloppify, or
@@ -515,13 +516,14 @@ Completed 2026-06-27. Compared against Purpose, every success criterion holds:
   `novel_ralph_skill/loaderkit/scan.py`; `d.LineHit.__module__` /
   `d.ScannedChapter.__module__` (imported via `rulepack.detect`) both report
   `novel_ralph_skill.loaderkit.scan`. `loaderkit/__init__.py` re-exports both,
-  so a third pack family can `from novel_ralph_skill.loaderkit import
-  ScannedChapter, LineHit`.
+  so a third pack family can
+  `from novel_ralph_skill.loaderkit import ScannedChapter, LineHit`.
 - **Consumer-domain edges gone.** `ledger.detect` imports both shapes from the
-  neutral home (no `ledger → rulepack` scan-shape edge); `loaderkit.scan` dropped
-  its `TYPE_CHECKING` `rulepack.detect` import (no `loaderkit → rulepack` edge).
-  The AST-scoped guard test `test_loaderkit_scan_imports_no_pack_domain` pins this.
-  `rulepack.detect` keeps a backward-compatible re-export (via its `__all__`) so
+  neutral home (no `ledger → rulepack` scan-shape edge); `loaderkit.scan`
+  dropped its `TYPE_CHECKING` `rulepack.detect` import (no
+  `loaderkit → rulepack` edge). The AST-scoped guard test
+  `test_loaderkit_scan_imports_no_pack_domain` pins this. `rulepack.detect`
+  keeps a backward-compatible re-export (via its `__all__`) so
   `commands/_desloppify.py` and the rule-pack tests need no churn.
 - **`loaderkit/scan.py` docstring reads true.** Its "no `Rule`/`Device`
   knowledge / imports neither `rulepack` nor `ledger`" claim is now literal —
@@ -536,13 +538,13 @@ Completed 2026-06-27. Compared against Purpose, every success criterion holds:
 mandated `__all__` already marks the re-export a runtime use, so TC001 does not
 fire and a `# noqa` would trip RUF100 (Work item 1 note). (2) The Work item 4
 callback double returns a `LineHit` sentinel rather than a bare `object()`, to
-satisfy `ty`'s `Callable[[int, int], LineHit]` annotation; identity (`is`) still
-pins the pass-through contract.
+satisfy `ty`'s `Callable[[int, int], LineHit]` annotation; identity (`is`)
+still pins the pass-through contract.
 
 **Scope:** 7 files touched (`loaderkit/scan.py`, `loaderkit/__init__.py`,
 `rulepack/detect.py`, `rulepack/_coerce.py`, `ledger/detect.py`,
-`tests/test_loaderkit_scan.py`, plus the two docs) — within the 12-file / 250-line
-tolerance.
+`tests/test_loaderkit_scan.py`, plus the two docs) — within the 12-file /
+250-line tolerance.
 
 ## Context and orientation
 
@@ -573,8 +575,8 @@ writing harness skill. Three packages matter here:
 Terms defined:
 
 - **Scan shape:** one of the two frozen dataclasses `ScannedChapter` /
-  `LineHit`. They carry no `Rule`/`Device` knowledge; they are the neutral input
-  and output of the per-line scan.
+  `LineHit`. They carry no `Rule`/`Device` knowledge; they are the neutral
+  input and output of the per-line scan.
 - **Re-export:** a module imports a name defined elsewhere so that
   `from this.module import Name` keeps working, without redefining `Name`.
 - **`TYPE_CHECKING` import:** an import guarded by `if typing.TYPE_CHECKING:`,
@@ -596,9 +598,8 @@ Current importers of the two shapes (from
   `DetectionReport, RuleFinding`, not the scan shapes — left untouched).
 - Tests importing from `rulepack.detect`:
   `tests/test_rulepack_detect.py:24-29` (`LineHit`, `ScannedChapter`, plus
-  `DetectionReport`, `RuleFinding`, `detect`),
-  `tests/test_ledger_detect.py:27`, `tests/test_ledger_properties.py:40`,
-  `tests/test_loaderkit_scan.py:21`.
+  `DetectionReport`, `RuleFinding`, `detect`), `tests/test_ledger_detect.py:27`,
+  `tests/test_ledger_properties.py:40`, `tests/test_loaderkit_scan.py:21`.
 
 The dead symbol: `novel_ralph_skill/rulepack/_coerce.py:55` defines
 `_require(...)` but `rulepack/parse.py` imports only `_require_int` and
@@ -632,61 +633,62 @@ D-GUARD.
 
 Docs to read first: `docs/novel-ralph-harness-design.md` §6, §6.1, §6.3;
 `docs/adr-003-shared-interface-contract.md`; `docs/adr-001-*` (the detect-only,
-no-flags discipline); `docs/execplans/roadmap-7-2-2.md` Constraints and Decision
-D-SCANTYPES; `docs/developers-guide.md` section "The shared loader primitives
-(`loaderkit`)".
+no-flags discipline); `docs/execplans/roadmap-7-2-2.md` Constraints and
+Decision D-SCANTYPES; `docs/developers-guide.md` section "The shared loader
+primitives (`loaderkit`)".
 
 Skills to load: `leta` (navigate `loaderkit.scan`, `rulepack.detect`,
 `ledger.detect`, and every importer — use `leta refs ScannedChapter` /
-`leta refs LineHit` before editing); `python-router` → `python-data-shapes` (the
-frozen/slotted/kw-only dataclass choice for the relocated shapes is exactly its
-remit) and `python-types-and-apis` (the re-export and module-boundary surface);
-`arch-crate-design` (the neutral-leaf boundary and the import-direction
-invariant); `sem` (entity-level diff to confirm the shapes moved, not mutated).
+`leta refs LineHit` before editing); `python-router` → `python-data-shapes`
+(the frozen/slotted/kw-only dataclass choice for the relocated shapes is
+exactly its remit) and `python-types-and-apis` (the re-export and
+module-boundary surface); `arch-crate-design` (the neutral-leaf boundary and
+the import-direction invariant); `sem` (entity-level diff to confirm the shapes
+moved, not mutated).
 
 Steps:
 
 1. In `novel_ralph_skill/loaderkit/scan.py`, define `ScannedChapter` and
    `LineHit` at module top (above `scan_pattern`), copied verbatim from
    `rulepack/detect.py` including their docstrings and the
-   `@dataclasses.dataclass(frozen=True, kw_only=True, slots=True)` decorator. Add
-   `import dataclasses` to the runtime imports. Update `scan_pattern`'s
+   `@dataclasses.dataclass(frozen=True, kw_only=True, slots=True)` decorator.
+   Add `import dataclasses` to the runtime imports. Update `scan_pattern`'s
    annotations to reference the now-module-local classes and **remove** the
-   `if typ.TYPE_CHECKING:` import `from novel_ralph_skill.rulepack.detect import
-   LineHit, ScannedChapter` (D-SCAN-IMPORT). The `TYPE_CHECKING` block keeps only
-   `import collections.abc as cabc` and `import re`. Rewrite the module docstring
-   so the "no `Rule`/`Device` knowledge" claim is now literally true (the shapes
-   are defined here and carry no `Rule`/`Device` reference) and drop the
-   D-SCANTYPES sentence about referencing the shapes "only under
+   `if typ.TYPE_CHECKING:` import
+   `from novel_ralph_skill.rulepack.detect import LineHit, ScannedChapter`
+   (D-SCAN-IMPORT). The `TYPE_CHECKING` block keeps only
+   `import collections.abc as cabc` and `import re`. Rewrite the module
+   docstring so the "no `Rule`/`Device` knowledge" claim is now literally true
+   (the shapes are defined here and carry no `Rule`/`Device` reference) and
+   drop the D-SCANTYPES sentence about referencing the shapes "only under
    `TYPE_CHECKING`". Also re-point `scan_pattern`'s docstring cross-references:
-   the existing
-   `:class:~novel_ralph_skill.rulepack.detect.LineHit` Sphinx references in the
-   module and function docstrings now name a shape defined in *this* module, so
-   rewrite them to the bare `:class:LineHit` (or
-   `:class:~novel_ralph_skill.loaderkit.scan.LineHit`). This keeps the docstring
-   accurate after the move and removes the last `rulepack` mention from
-   `scan.py`'s prose — though the D-GUARD test asserts only on *import* nodes
-   (D-GUARD, revised), so a stray docstring mention would not fail it.
+   the existing `:class:~novel_ralph_skill.rulepack.detect.LineHit` Sphinx
+   references in the module and function docstrings now name a shape defined in
+   *this* module, so rewrite them to the bare `:class:LineHit` (or
+   `:class:~novel_ralph_skill.loaderkit.scan.LineHit`). This keeps the
+   docstring accurate after the move and removes the last `rulepack` mention
+   from `scan.py`'s prose — though the D-GUARD test asserts only on *import*
+   nodes (D-GUARD, revised), so a stray docstring mention would not fail it.
 2. In `novel_ralph_skill/loaderkit/__init__.py`, add `LineHit` and
    `ScannedChapter` to the `from novel_ralph_skill.loaderkit.scan import …`
    line and to `__all__` (kept alphabetical), and extend the module docstring's
    list of what `loaderkit` owns to mention the two neutral scan shapes.
-3. In `novel_ralph_skill/rulepack/detect.py`, delete the two `class
-   ScannedChapter` / `class LineHit` definitions and instead re-export them from
-   the neutral home (D-REEXPORT, revised). Write the import in **exactly** this
-   form at module top (do not leave the `# noqa` as a choice — it is mandatory to
-   pass `make lint`):
+3. In `novel_ralph_skill/rulepack/detect.py`, delete the two
+   `class ScannedChapter` / `class LineHit` definitions and instead re-export
+   them from the neutral home (D-REEXPORT, revised). Write the import in
+   **exactly** this form at module top (do not leave the `# noqa` as a choice —
+   it is mandatory to pass `make lint`):
 
        from novel_ralph_skill.loaderkit.scan import (
            LineHit,
            ScannedChapter,  # noqa: TC001 - runtime re-export for _desloppify
        )
 
-   Then add a module-level `__all__` to `rulepack/detect.py` listing the module's
-   public surface, **including** both re-exported names, e.g.
+   Then add a module-level `__all__` to `rulepack/detect.py` listing the
+   module's public surface, **including** both re-exported names, e.g.
    `__all__ = ["DetectionReport", "LineHit", "RuleFinding", "ScannedChapter", "detect"]`
-   (kept alphabetical). `RuleFinding`/`DetectionReport` keep referencing `LineHit`
-   in their fields unchanged.
+   (kept alphabetical). `RuleFinding`/`DetectionReport` keep referencing
+   `LineHit` in their fields unchanged.
 
    Why the `# noqa` is required (design-review round 1, B1): after this step
    removes the class bodies and Work item 3 inlines `_scan_rule`, the only
@@ -694,59 +696,62 @@ Steps:
    `detect`'s `chapters` parameter (and its docstring). Under
    `from __future__ import annotations` that annotation is a string, so Ruff
    TC001 sees a runtime import used only for typing and demands it move into a
-   `TYPE_CHECKING` block — which is impossible because `commands/_desloppify.py`
-   constructs `ScannedChapter` from `rulepack.detect` at runtime. The
-   `# noqa: TC001` mirrors the live precedent at
+   `TYPE_CHECKING` block — which is impossible because
+   `commands/_desloppify.py` constructs `ScannedChapter` from `rulepack.detect`
+   at runtime. The `# noqa: TC001` mirrors the live precedent at
    `novel_ralph_skill/commands/novel_state.py:53` and is the verified mechanism
    that silences the rule. `LineHit` carries **no** `# noqa`: after Work item 3
-   the inlined `detect` lambda `LineHit(chapter=…, line=…)` is a genuine runtime
-   use, so TC001 does not fire on it (keeping a stray `# noqa` on `LineHit` would
-   itself trip Ruff `RUF100`, unused-noqa). Note the runtime-use status holds at
-   *this* work item's commit boundary too: at the end of Work item 1, `_scan_rule`
-   still exists and its `line_hit=lambda chapter, line: LineHit(...)` constructs
-   `LineHit` at runtime, while `ScannedChapter` is already annotation-only (the
-   `_scan_rule` and `detect` parameter annotations are strings under
+   the inlined `detect` lambda `LineHit(chapter=…, line=…)` is a genuine
+   runtime use, so TC001 does not fire on it (keeping a stray `# noqa` on
+   `LineHit` would itself trip Ruff `RUF100`, unused-noqa). Note the
+   runtime-use status holds at *this* work item's commit boundary too: at the
+   end of Work item 1, `_scan_rule` still exists and its
+   `line_hit=lambda chapter, line: LineHit(...)` constructs `LineHit` at
+   runtime, while `ScannedChapter` is already annotation-only (the `_scan_rule`
+   and `detect` parameter annotations are strings under
    `from __future__ import annotations`). So `LineHit` needs no `# noqa` and
-   `ScannedChapter` needs the `# noqa` from Work item 1 onward — the lint posture
-   is stable across the Work item 1 → Work item 3 boundary. Verify with
-   `uv run ruff check novel_ralph_skill/rulepack/detect.py` (or `make lint`) that
-   the module is clean — no TC001 on `ScannedChapter`, no RUF100 on `LineHit` —
-   before declaring the work item done.
+   `ScannedChapter` needs the `# noqa` from Work item 1 onward — the lint
+   posture is stable across the Work item 1 → Work item 3 boundary. Verify with
+   `uv run ruff check novel_ralph_skill/rulepack/detect.py` (or `make lint`)
+   that the module is clean — no TC001 on `ScannedChapter`, no RUF100 on
+   `LineHit` — before declaring the work item done.
 4. In `novel_ralph_skill/ledger/detect.py`, change the runtime import
    `from novel_ralph_skill.rulepack.detect import LineHit` to
    `from novel_ralph_skill.loaderkit.scan import LineHit` (line 35), and the
-   `TYPE_CHECKING` import `from novel_ralph_skill.rulepack.detect import
-   ScannedChapter` to `from novel_ralph_skill.loaderkit.scan import
-   ScannedChapter` (line 41) (D-LEDGER-REPOINT). Update the module docstring
-   sentence that says it "reuses
-   `novel_ralph_skill.rulepack.detect.ScannedChapter` and `…LineHit`" to name the
-   neutral `loaderkit` home instead.
+   `TYPE_CHECKING` import
+   `from novel_ralph_skill.rulepack.detect import ScannedChapter` to
+   `from novel_ralph_skill.loaderkit.scan import ScannedChapter` (line 41)
+   (D-LEDGER-REPOINT). Update the module docstring sentence that says it "reuses
+   `novel_ralph_skill.rulepack.detect.ScannedChapter` and `…LineHit`" to name
+   the neutral `loaderkit` home instead.
 5. Repoint the `loaderkit.scan` unit test: in `tests/test_loaderkit_scan.py`,
-   change `from novel_ralph_skill.rulepack.detect import LineHit, ScannedChapter`
-   to `from novel_ralph_skill.loaderkit.scan import LineHit, ScannedChapter`, and
+   change
+   `from novel_ralph_skill.rulepack.detect import LineHit, ScannedChapter` to
+   `from novel_ralph_skill.loaderkit.scan import LineHit, ScannedChapter`, and
    update the module docstring reference accordingly (it currently says it
    constructs the shapes "directly (as `tests/test_rulepack_detect.py` does)").
    Leave `tests/test_rulepack_detect.py`, `tests/test_ledger_detect.py`, and
    `tests/test_ledger_properties.py` importing from `rulepack.detect` — they
-   exercise the rule-pack/ledger detectors, and the re-export keeps those imports
-   valid; repointing them is out of scope for 7.2.3 (which names only the two
-   detectors and the `loaderkit.scan` unit test).
+   exercise the rule-pack/ledger detectors, and the re-export keeps those
+   imports valid; repointing them is out of scope for 7.2.3 (which names only
+   the two detectors and the `loaderkit.scan` unit test).
 
 Tests to add/update (this work item):
 
 - **Update** `tests/test_loaderkit_scan.py` import line and docstring (step 5).
 - **Add** the D-GUARD import-direction test in `tests/test_loaderkit_scan.py`: a
   unit test `test_scan_shapes_are_defined_in_loaderkit` asserting
-  `ScannedChapter.__module__ == "novel_ralph_skill.loaderkit.scan"` and likewise
-  for `LineHit`; and a test `test_loaderkit_scan_imports_no_pack_domain` that
-  **parses** `novel_ralph_skill/loaderkit/scan.py` with `ast.parse(...)` and
-  walks `ast.Import` / `ast.ImportFrom` nodes only, asserting no imported module
-  name begins with `novel_ralph_skill.rulepack` or `novel_ralph_skill.ledger`
-  (A1). Do **not** write a `Path(...).read_text()` substring check for
-  `"rulepack"`/`"ledger"`: `scan_pattern`'s docstring legitimately cross-
-  references `:class:~novel_ralph_skill.rulepack.detect.LineHit` and names
-  ``rule``/``device`` in prose, so a substring check would false-positive. A
-  sketch of the import-scoped assertion (en-GB docstring):
+  `ScannedChapter.__module__ == "novel_ralph_skill.loaderkit.scan"` and
+  likewise for `LineHit`; and a test
+  `test_loaderkit_scan_imports_no_pack_domain` that **parses**
+  `novel_ralph_skill/loaderkit/scan.py` with `ast.parse(...)` and walks
+  `ast.Import` / `ast.ImportFrom` nodes only, asserting no imported module name
+  begins with `novel_ralph_skill.rulepack` or `novel_ralph_skill.ledger` (A1).
+  Do **not** write a `Path(...).read_text()` substring check for `"rulepack"`/
+  `"ledger"`: `scan_pattern`'s docstring legitimately cross- references
+  `:class:~novel_ralph_skill.rulepack.detect.LineHit` and names ``rule``/
+  ``device`` in prose, so a substring check would false-positive. A sketch of
+  the import-scoped assertion (en-GB docstring):
 
       def test_loaderkit_scan_imports_no_pack_domain() -> None:
           """`loaderkit.scan` imports nothing from a pack domain."""
@@ -774,17 +779,17 @@ Tests to add/update (this work item):
 Validation:
 
 - `make all` — expect `ty check` to report all checks passed with the new graph
-  (no `loaderkit → rulepack`/`ledger` edge; the `rulepack.detect →
-  loaderkit.scan` and `ledger.detect → loaderkit.scan` edges acyclic), and the
-  rule-pack, ledger, desloppify, and `loaderkit` suites green.
+  (no `loaderkit → rulepack`/`ledger` edge; the
+  `rulepack.detect → loaderkit.scan` and `ledger.detect → loaderkit.scan` edges
+  acyclic), and the rule-pack, ledger, desloppify, and `loaderkit` suites green.
 - **Lint-gate check (B1):** before `make all`, run
   `uv run ruff check novel_ralph_skill/rulepack/detect.py` and confirm zero
   findings — specifically no `TC001` on `ScannedChapter` (silenced by the
-  mandated `# noqa`) and no `RUF100` "unused noqa" on `LineHit` (which must carry
-  no `# noqa`, because its inlined construction after Work item 3 is a runtime
-  use). If `TC001` still fires, the `# noqa` comment is mis-placed (it must sit
-  on the `ScannedChapter` import line); fix it before continuing. This is the
-  exact gate the design review flagged would otherwise fail `make lint`.
+  mandated `# noqa`) and no `RUF100` "unused noqa" on `LineHit` (which must
+  carry no `# noqa`, because its inlined construction after Work item 3 is a
+  runtime use). If `TC001` still fires, the `# noqa` comment is mis-placed (it
+  must sit on the `ScannedChapter` import line); fix it before continuing. This
+  is the exact gate the design review flagged would otherwise fail `make lint`.
 - Spot-check with `leta refs ScannedChapter` and `leta refs LineHit` that every
   reference now resolves to the `loaderkit.scan` definition (directly or via the
   `rulepack.detect` re-export).
@@ -814,17 +819,18 @@ error-factory binding the other wrappers share).
 
 Steps:
 
-1. Re-confirm zero callers: `grep -rn "\b_require\b"
-   novel_ralph_skill/rulepack/` must show only the definition at
-   `novel_ralph_skill/rulepack/_coerce.py:55`. Cross-check with `leta refs
-   _require` / `deadcode novel_ralph_skill/rulepack/`. (The ledger's `_require`
-   is **kept** — `ledger/_fields.py` calls it.)
+1. Re-confirm zero callers:
+   `grep -rn "\b_require\b" novel_ralph_skill/rulepack/` must show only the
+   definition at `novel_ralph_skill/rulepack/_coerce.py:55`. Cross-check with
+   `leta refs _require` / `deadcode novel_ralph_skill/rulepack/`. (The ledger's
+   `_require` is **kept** — `ledger/_fields.py` calls it.)
 2. Delete the `def _require(mapping, key, *, rule_id)` function (and its
    docstring) from `novel_ralph_skill/rulepack/_coerce.py`. Leave `require`
-   imported from `loaderkit.coerce` only if another rule-pack wrapper still uses
-   it; if `_require` was the sole consumer of the imported `require` name in this
-   module, drop `require` from the `from novel_ralph_skill.loaderkit.coerce
-   import (…)` line too (Ruff F401 will flag an unused import if you miss it).
+   imported from `loaderkit.coerce` only if another rule-pack wrapper still
+   uses it; if `_require` was the sole consumer of the imported `require` name
+   in this module, drop `require` from the
+   `from novel_ralph_skill.loaderkit.coerce import (…)` line too (Ruff F401
+   will flag an unused import if you miss it).
 
 Tests to add/update: none new. The deletion is dead-code removal; the existing
 rule-pack parse/coerce suites (`tests/test_rulepack_*`,
@@ -833,19 +839,19 @@ the removed wrapper. (AGENTS.md: run the relevant unit suites before and after.)
 
 Validation:
 
-- `make all` — Ruff (`make lint`) flags any now-unused `require` import; `make
-  test` confirms the rule-pack suites stay green. Expect no test changes.
+- `make all` — Ruff (`make lint`) flags any now-unused `require` import;
+  `make test` confirms the rule-pack suites stay green. Expect no test changes.
 
-Acceptance (observable): `grep -rn "def _require\b"
-novel_ralph_skill/rulepack/_coerce.py` returns nothing after the change;
-`make all` passes.
+Acceptance (observable):
+`grep -rn "def _require\b" novel_ralph_skill/rulepack/_coerce.py` returns
+nothing after the change; `make all` passes.
 
 ### Work item 3 — inline the thin scan wrappers and single-state the docstring
 
-Implements: roadmap 7.2.3 ("inline the thin duplicated `_scan_rule`/`_scan_device`
-wrappers" and "de-duplicate the triple-stated per-line scan docstring"); design
-§6.1, §6.3; ADR-001 (the per-line, no-flags discipline whose rationale is
-consolidated); Decisions D-INLINE, D-DOCSTRING.
+Implements: roadmap 7.2.3 ("inline the thin duplicated `_scan_rule`/
+`_scan_device` wrappers" and "de-duplicate the triple-stated per-line scan
+docstring"); design §6.1, §6.3; ADR-001 (the per-line, no-flags discipline
+whose rationale is consolidated); Decisions D-INLINE, D-DOCSTRING.
 
 Docs to read first: `docs/novel-ralph-harness-design.md` §6.1 and §6.3 (the
 detectors' shapes and the line-by-line discipline); `docs/adr-001-*` (the
@@ -853,31 +859,32 @@ no-flags / single-line-coverage v1 rule the docstring states).
 
 Skills to load: `leta` (`leta refs _scan_rule`, `leta refs _scan_device` to
 confirm each has exactly one caller — its own `detect`/`detect_ledger` — before
-inlining); `python-router` → `python-iterators-and-generators` (the
-`detect`/`detect_ledger` loops the inlined call lives in) and
-`python-abstractions` (judging that the wrapper adds no abstraction worth
-keeping); `code-review` (a light pass to confirm readability after inlining).
+inlining); `python-router` → `python-iterators-and-generators` (the `detect`/
+`detect_ledger` loops the inlined call lives in) and `python-abstractions`
+(judging that the wrapper adds no abstraction worth keeping); `code-review` (a
+light pass to confirm readability after inlining).
 
 Steps:
 
 1. In `novel_ralph_skill/rulepack/detect.py`, inline `_scan_rule` into `detect`:
    replace `count, lines = _scan_rule(rule, chapters)` with
-   `count, lines = scan_pattern(rule.compiled, chapters, line_hit=lambda chapter,
-   line: LineHit(chapter=chapter, line=line))`, then delete the `def _scan_rule`
-   function and its docstring. `scan_pattern` is already imported at module top.
+   `count, lines = scan_pattern(rule.compiled, chapters, line_hit=lambda
+   chapter, line: LineHit(chapter=chapter, line=line))`,
+   then delete the `def _scan_rule` function and its docstring. `scan_pattern`
+   is already imported at module top.
 2. In `novel_ralph_skill/ledger/detect.py`, inline `_scan_device` into
-   `detect_ledger` the same way (`device.compiled`), then delete the `def
-   _scan_device` function and its docstring.
+   `detect_ledger` the same way (`device.compiled`), then delete the
+   `def _scan_device` function and its docstring.
 3. Apply D-DOCSTRING: ensure the full per-line single-line-coverage rationale
    ("the no-flags compilation means `.` cannot cross `\n`, so a per-line scan
    makes line numbers exact and bounds every match to one line; ADR-001 v1
    discipline") is stated once, at `scan_pattern`'s docstring in
-   `loaderkit/scan.py`. Trim the two detector **module** docstrings so each states
-   *that* detection is line-by-line and references `scan_pattern` for the full
-   rationale, rather than re-stating it. **Both module docstrings carry the
-   rationale independently of the wrapper docstrings deleted in steps 1-2**, so
-   trimming them is a *separate, required* edit — deleting `_scan_rule`/
-   `_scan_device` does not remove it:
+   `loaderkit/scan.py`. Trim the two detector **module** docstrings so each
+   states *that* detection is line-by-line and references `scan_pattern` for
+   the full rationale, rather than re-stating it. **Both module docstrings
+   carry the rationale independently of the wrapper docstrings deleted in steps
+   1-2**, so trimming them is a *separate, required* edit — deleting
+   `_scan_rule`/ `_scan_device` does not remove it:
    - `rulepack/detect.py:11-22` — the passage "Detection scans **line by line**
      … so ``.`` cannot cross ``\n``; splitting each chapter into physical
      lines … makes line numbers exact, bounds every match to a single line …"
@@ -896,73 +903,77 @@ Tests to add/update: none new in this item (Work item 4 adds the callback
 contract test). The existing `tests/test_rulepack_detect.py`,
 `tests/test_ledger_detect.py`, `tests/test_ledger_properties.py`, and
 `tests/test_loaderkit_scan.py` must stay green with no assertion changes,
-proving the inlining is behaviour-preserving. (AGENTS.md: run unit, property, and
-behavioural suites before and after.)
+proving the inlining is behaviour-preserving. (AGENTS.md: run unit, property,
+and behavioural suites before and after.)
 
 Validation:
 
 - `make all` — Ruff flags any now-unused name; `ty check` passes; every
   detector/scan suite stays green. Expect zero assertion changes.
 
-Acceptance (observable): `grep -rn "def _scan_rule\|def _scan_device"
-novel_ralph_skill/` returns nothing; `make test -k "detect or loaderkit_scan or
-ledger"` (or `make all`) passes.
+Acceptance (observable):
+`grep -rn "def _scan_rule\|def _scan_device" novel_ralph_skill/` returns
+nothing; `make test -k "detect or loaderkit_scan or ledger"` (or `make all`)
+passes.
 
 For the docstring de-duplication, "single-stated" means a single *home module*
 for the **per-line scan rationale**, not a single textual occurrence of the
-phrase ``cannot cross`` across the whole package (design-review rounds 1-3). Three
-facts matter here, and they must not be conflated:
+phrase ``cannot cross`` across the whole package (design-review rounds 1-3).
+Three facts matter here, and they must not be conflated:
 
-1. `loaderkit/scan.py` legitimately states the per-line scan rationale in **both**
-   its module docstring (line 6) and `scan_pattern`'s function docstring (line
-   42), and **both survive** — the consolidation removes the *cross-module*
-   duplication (the rule-pack and ledger detector docstrings), not the in-module
-   pair that documents the same primitive at two altitudes.
+1. `loaderkit/scan.py` legitimately states the per-line scan rationale in
+   **both** its module docstring (line 6) and `scan_pattern`'s function
+   docstring (line 42), and **both survive** — the consolidation removes the
+   *cross-module* duplication (the rule-pack and ledger detector docstrings),
+   not the in-module pair that documents the same primitive at two altitudes.
 2. `novel_ralph_skill/loaderkit/load.py:139` **also** contains the phrase
    ``.`` cannot cross ``\n`` — but in a *different, unrelated* docstring: the
-   `compile_pattern` primitive (roadmap 5.1.1) states the same compile-time fact
-   about no-flags regex for *its own* reason (matching the whole chapter at load
-   time). `load.py` is **out of this plan's edit scope** — it is not touched by
-   any work item and appears only in the orientation prose. Its ``cannot cross``
-   occurrence is the compile-time phrasing of the same regex fact and **must
-   remain untouched** (editing it would be Tolerance-forbidden scope creep).
+   `compile_pattern` primitive (roadmap 5.1.1) states the same compile-time
+   fact about no-flags regex for *its own* reason (matching the whole chapter
+   at load time). `load.py` is **out of this plan's edit scope** — it is not
+   touched by any work item and appears only in the orientation prose. Its
+   ``cannot cross`` occurrence is the compile-time phrasing of the same regex
+   fact and **must remain untouched** (editing it would be Tolerance-forbidden
+   scope creep).
 3. **(round 3, B2) In `rulepack/detect.py` the phrase is line-wrapped**, so a
    *single-line* `grep "cannot cross" novel_ralph_skill/rulepack/detect.py`
    **never matches** — it exits 1 today and after any edit, because ``cannot``
    ends line 13 and ``cross`` begins line 14 in the module docstring, and
    ``cannot`` ends line 157 and ``cross`` begins line 158 in the `_scan_rule`
-   docstring. A single-line grep is therefore a **vacuous, always-green** de-dup
-   check for that file: it would certify "de-duplicated" even if the implementer
-   deleted `_scan_rule` but left the full module-docstring rationale at lines
-   11-22 in place. The acceptance below is **wrap-insensitive** for that reason,
-   and uses a **positive** `scan_pattern`-reference check as the primary signal.
-   (`ledger/detect.py` carries the phrase on single lines — 13 and 115 — so a
-   single-line grep is valid there, but the same wrap-insensitive count is used
-   for symmetry and to cover the module-docstring occurrence at line 13 that
-   inlining `_scan_device` does **not** delete.)
+   docstring. A single-line grep is therefore a **vacuous, always-green**
+   de-dup check for that file: it would certify "de-duplicated" even if the
+   implementer deleted `_scan_rule` but left the full module-docstring
+   rationale at lines 11-22 in place. The acceptance below is
+   **wrap-insensitive** for that reason, and uses a **positive**
+   `scan_pattern`-reference check as the primary signal. (`ledger/detect.py`
+   carries the phrase on single lines — 13 and 115 — so a single-line grep is
+   valid there, but the same wrap-insensitive count is used for symmetry and to
+   cover the module-docstring occurrence at line 13 that inlining
+   `_scan_device` does **not** delete.)
 
 A whole-package `grep -rln "cannot cross" novel_ralph_skill/` therefore returns
 **two** correct paths after Work item 3 — `loaderkit/scan.py` (retained,
-in-scope) and `loaderkit/load.py` (retained, out-of-scope) — and would mislead an
-implementer running a literal "exactly one path" check into hunting a
+in-scope) and `loaderkit/load.py` (retained, out-of-scope) — and would mislead
+an implementer running a literal "exactly one path" check into hunting a
 non-existent duplicate or wrongly editing `load.py`. Do **not** use that
 whole-tree check, and do **not** use a single-line `cannot cross` grep on
-`rulepack/detect.py` (it never matches; fact 3 above). The acceptance is instead
-a **positive** reference check (primary) plus a **wrap-insensitive** zero-count
-backstop, plus a positive check on the retained home:
+`rulepack/detect.py` (it never matches; fact 3 above). The acceptance is
+instead a **positive** reference check (primary) plus a **wrap-insensitive**
+zero-count backstop, plus a positive check on the retained home:
 
 - **De-dup PRIMARY signal — module docstrings reference the home, not the
   rationale:** the two detector module docstrings must reference `scan_pattern`
-  for the full rationale instead of re-stating the splitlines/line-numbers-exact
-  passage. Confirm both files reference the primitive:
+  for the full rationale instead of re-stating the
+  splitlines/line-numbers-exact passage. Confirm both files reference the
+  primitive:
   `grep -rln "scan_pattern" novel_ralph_skill/rulepack/detect.py novel_ralph_skill/ledger/detect.py`
-  returns **both** paths. Then read each trimmed module docstring and confirm the
-  splitlines/line-numbers-exact *why* (the "splitting each chapter into physical
-  lines … makes line numbers exact, bounds every match to a single line" passage)
-  is **gone** from `rulepack/detect.py:11-22` and its `ledger/detect.py` mirror,
-  replaced by a one-line `scan_pattern` pointer. This is the load-bearing check:
-  it certifies the rationale was actually removed, not merely that a wrapper
-  function was deleted.
+  returns **both** paths. Then read each trimmed module docstring and confirm
+  the splitlines/line-numbers-exact *why* (the "splitting each chapter into
+  physical lines … makes line numbers exact, bounds every match to a single
+  line" passage) is **gone** from `rulepack/detect.py:11-22` and its
+  `ledger/detect.py` mirror, replaced by a one-line `scan_pattern` pointer.
+  This is the load-bearing check: it certifies the rationale was actually
+  removed, not merely that a wrapper function was deleted.
 - **De-dup BACKSTOP — wrap-insensitive zero count:** collapse newlines before
   counting so a line-wrapped occurrence is still caught:
 
@@ -972,17 +983,17 @@ backstop, plus a positive check on the retained home:
         | grep -o "cannot  *cross" | wc -l   # must print 0
 
   Both print **0** after Work item 3 (each prints **2** before it — the module
-  docstring plus the wrapper docstring). The `"cannot  *cross"` pattern (a space
-  then zero-or-more spaces between the two words) tolerates the single space the
-  line-wrap collapse introduces and any double-space. Do **not** substitute a
-  plain `grep "cannot cross"` on
-  `rulepack/detect.py`: it never matches the wrapped phrase and would pass
-  vacuously. (`grep -Pzc "cannot\s+cross"` is **not** used — it returned 0 with
-  exit 1 in this worktree's `grep`, i.e. it is unreliable here; the `tr`-collapse
+  docstring plus the wrapper docstring). The `"cannot  *cross"` pattern (a
+  space then zero-or-more spaces between the two words) tolerates the single
+  space the line-wrap collapse introduces and any double-space. Do **not**
+  substitute a plain `grep "cannot cross"` on `rulepack/detect.py`: it never
+  matches the wrapped phrase and would pass vacuously.
+  (`grep -Pzc "cannot\s+cross"` is **not** used — it returned 0 with exit 1 in
+  this worktree's `grep`, i.e. it is unreliable here; the `tr`-collapse
   pipeline is the verified mechanism.)
 - **Home retained:**
-  `grep -rln "cannot cross" novel_ralph_skill/loaderkit/scan.py`
-  returns **exactly that one path** — `scan.py` still owns the rationale (its
+  `grep -rln "cannot cross" novel_ralph_skill/loaderkit/scan.py` returns
+  **exactly that one path** — `scan.py` still owns the rationale (its
   occurrences are on single lines, so a plain grep is valid here).
 - **Out-of-scope occurrence acknowledged, untouched:**
   `grep -rln "cannot cross" novel_ralph_skill/loaderkit/load.py` still returns
@@ -997,28 +1008,29 @@ Implements: roadmap 7.2.3 ("add a callback-contract test for `scan_pattern`'s
 primitive). Design §6.3 (the scan primitive constructs hits through a
 caller-supplied factory so it holds no `Rule`/`Device` knowledge).
 
-Docs to read first: `loaderkit/scan.py`'s `scan_pattern` docstring (the `line_hit`
-parameter contract: "Constructs a `LineHit` from `(chapter_number,
-line_index)`"); `docs/execplans/roadmap-7-2-2.md` Decision D-SCANTYPES (why the
-factory exists — to keep the primitive from importing a hit type itself).
+Docs to read first: `loaderkit/scan.py`'s `scan_pattern` docstring (the
+`line_hit` parameter contract: "Constructs a `LineHit` from
+`(chapter_number, line_index)`"); `docs/execplans/roadmap-7-2-2.md` Decision
+D-SCANTYPES (why the factory exists — to keep the primitive from importing a
+hit type itself).
 
-Skills to load: `leta` (locate `tests/test_loaderkit_scan.py` and `scan_pattern`);
-`python-router` → `python-testing` (the example-based contract test design and
-where it sits versus the existing Hypothesis property);
+Skills to load: `leta` (locate `tests/test_loaderkit_scan.py` and
+`scan_pattern`); `python-router` → `python-testing` (the example-based contract
+test design and where it sits versus the existing Hypothesis property);
 `python-verification` (decide adversary depth: an example-based callback-arg
-assertion is sufficient here — a property/CrossHair pass is **not** required for
-a callback-shape contract, and `python-verification` confirms when Hypothesis is
-*not* the right tool, avoiding over-engineering).
+assertion is sufficient here — a property/CrossHair pass is **not** required
+for a callback-shape contract, and `python-verification` confirms when
+Hypothesis is *not* the right tool, avoiding over-engineering).
 
 Steps:
 
 1. In `tests/test_loaderkit_scan.py`, add a contract test
    (`test_scan_pattern_builds_every_hit_via_line_hit_callback`) that proves
    `scan_pattern` invokes `line_hit` once per match with exactly
-   `(chapter_number, one_based_line_index)` and uses the *returned* object as the
-   hit, never constructing `LineHit` itself. Use a recording double whose
-   `line_hit` appends each `(chapter, line)` argument pair to a list and returns
-   a shared `sentinel = object()`. The test below is the model.
+   `(chapter_number, one_based_line_index)` and uses the *returned* object as
+   the hit, never constructing `LineHit` itself. Use a recording double whose
+   `line_hit` appends each `(chapter, line)` argument pair to a list and
+   returns a shared `sentinel = object()`. The test below is the model.
 
 The recording-double test (indented block, en-GB docstring):
 
@@ -1044,8 +1056,9 @@ The recording-double test (indented block, en-GB docstring):
             assert all(hit is sentinel for hit in hits)
 
 This asserts: one call per match, the exact `(chapter, line)` argument pairs in
-scan order, and that every element of the returned tuple is the factory's return
-value (so `scan_pattern` does not import or construct any hit type of its own).
+scan order, and that every element of the returned tuple is the factory's
+return value (so `scan_pattern` does not import or construct any hit type of
+its own).
 
 Tests to add/update: the one new unit test above. No existing test changes.
 (AGENTS.md: a unit test pinning the callback contract; CrossHair/Hypothesis not
@@ -1063,41 +1076,41 @@ hit by any means other than calling `line_hit` would fail this test (the
 ### Work item 5 — update the developers' guide and design references; run Markdown gates
 
 Implements: the step-7.2 definition of done ("it is documented as the single
-source of truth"); roadmap 7.2.3 Success (the `loaderkit/scan.py` docstring reads
-true and the single home is documented). Design §6.3 (the loaderkit ownership
-sentence); `docs/developers-guide.md` "The shared loader primitives".
+source of truth"); roadmap 7.2.3 Success (the `loaderkit/scan.py` docstring
+reads true and the single home is documented). Design §6.3 (the loaderkit
+ownership sentence); `docs/developers-guide.md` "The shared loader primitives".
 
 Docs to read first: `docs/developers-guide.md` lines around "The shared loader
-primitives (`loaderkit`)" — specifically the `scan_pattern` paragraph that today
-says the shapes are "(still defined in `rulepack/detect.py`)" and references the
-`TYPE_CHECKING` edge; and the test-pin sentence listing
+primitives (`loaderkit`)" — specifically the `scan_pattern` paragraph that
+today says the shapes are "(still defined in `rulepack/detect.py`)" and
+references the `TYPE_CHECKING` edge; and the test-pin sentence listing
 `tests/test_loaderkit_scan.py`. `AGENTS.md` "Markdown guidance".
 
 Skills to load: `en-gb-oxendict` (Oxford spelling in the prose edits);
 `execplans` (keep this plan's living sections current as the final item lands);
-`leta`/`sem` only if cross-checking that the documented symbol names still match
-the code.
+`leta`/`sem` only if cross-checking that the documented symbol names still
+match the code.
 
 Steps:
 
 1. In `docs/developers-guide.md`, update the `scan_pattern` paragraph (currently
-   "`scan_pattern` references the `ScannedChapter`/`LineHit` shapes (still defined
-   in `rulepack/detect.py`) only under `TYPE_CHECKING`…") to state the post-7.2.3
-   reality: `loaderkit` now **defines** `ScannedChapter`/`LineHit` alongside
-   `scan_pattern`, both detectors import them from the neutral home, and there is
-   no longer any `loaderkit → rulepack` edge (the `TYPE_CHECKING` expedient is
-   gone); the `line_hit` callable remains the seam that keeps the primitive from
-   importing any `Rule`/`Device` knowledge. Extend the "owns the six primitives
-   once each" list (or add a clause) to note the two neutral scan shapes now live
-   in `loaderkit` too. Update the test-pin sentence if the new guard/contract
-   tests are worth naming.
+   "`scan_pattern` references the `ScannedChapter`/`LineHit` shapes (still
+   defined in `rulepack/detect.py`) only under `TYPE_CHECKING`…") to state the
+   post-7.2.3 reality: `loaderkit` now **defines** `ScannedChapter`/`LineHit`
+   alongside `scan_pattern`, both detectors import them from the neutral home,
+   and there is no longer any `loaderkit → rulepack` edge (the `TYPE_CHECKING`
+   expedient is gone); the `line_hit` callable remains the seam that keeps the
+   primitive from importing any `Rule`/`Device` knowledge. Extend the "owns the
+   six primitives once each" list (or add a clause) to note the two neutral
+   scan shapes now live in `loaderkit` too. Update the test-pin sentence if the
+   new guard/contract tests are worth naming.
 2. In `docs/novel-ralph-harness-design.md` §6.3, confirm the sentence "The
    rule-pack (§6.1) and device-ledger (§6.3) loaders share one home for their
    schema-agnostic primitives — `novel_ralph_skill/loaderkit/`, owning the
-   coercion, entry-extraction, pattern-compilation, duplicate-id, file-load, and
-   per-line scan bodies once each" still reads true; if a short clause clarifies
-   that the per-line scan's *shapes* now live there too, add it, keeping the
-   prose ≤80 columns.
+   coercion, entry-extraction, pattern-compilation, duplicate-id, file-load,
+   and per-line scan bodies once each" still reads true; if a short clause
+   clarifies that the per-line scan's *shapes* now live there too, add it,
+   keeping the prose ≤80 columns.
 3. Mark this plan's `Progress` items complete with timestamps and fill
    `Outcomes & retrospective`.
 
@@ -1114,15 +1127,16 @@ Validation:
 
 Acceptance (observable): `make markdownlint` and `make nixie` pass; reading the
 developers' guide "shared loader primitives" section, the `scan_pattern`
-paragraph no longer claims the shapes live in `rulepack/detect.py` and no longer
-mentions a `loaderkit → rulepack` `TYPE_CHECKING` import.
+paragraph no longer claims the shapes live in `rulepack/detect.py` and no
+longer mentions a `loaderkit → rulepack` `TYPE_CHECKING` import.
 
 ## Validation summary (all work items)
 
-- After every code work item (1-4): `make all` (runs `build check-fmt lint
-  typecheck test`). `ty 0.0.51` must report all checks passed with the new import
-  graph; the rule-pack, ledger, desloppify, and `loaderkit` suites must stay
-  green; Ruff and `interrogate` (100% docstring coverage) must pass.
+- After every code work item (1-4): `make all` (runs
+  `build check-fmt lint typecheck test`). `ty 0.0.51` must report all checks
+  passed with the new import graph; the rule-pack, ledger, desloppify, and
+  `loaderkit` suites must stay green; Ruff and `interrogate` (100% docstring
+  coverage) must pass.
 - After the docs work item (5): `make markdownlint` and `make nixie` in addition
   to `make all`.
 - Commit after each work item (the user gates each commit; en-GB Oxford-spelling
@@ -1140,10 +1154,10 @@ mentions a `loaderkit → rulepack` `TYPE_CHECKING` import.
   docstring-deduplication acceptance, which was factually wrong (A2). The
   previous check asserted `grep -rln "cannot cross" novel_ralph_skill/` returns
   "exactly one path" (`loaderkit/scan.py`), but
-  `novel_ralph_skill/loaderkit/load.py:139` also carries ``cannot cross`` in the
-  *unrelated, out-of-scope* `compile_pattern` docstring (roadmap 5.1.1). After
-  Work item 3 deletes the `_scan_rule`/`_scan_device` wrapper docstrings, that
-  whole-tree grep returns **two** paths on a *correct* implementation
+  `novel_ralph_skill/loaderkit/load.py:139` also carries ``cannot cross`` in
+  the *unrelated, out-of-scope* `compile_pattern` docstring (roadmap 5.1.1).
+  After Work item 3 deletes the `_scan_rule`/`_scan_device` wrapper docstrings,
+  that whole-tree grep returns **two** paths on a *correct* implementation
   (`scan.py` and `load.py`), so an implementer running the literal check would
   see a false failure and risk wrongly editing the out-of-scope `load.py`
   docstring. The acceptance is now scoped to the two de-duplication targets
@@ -1151,8 +1165,8 @@ mentions a `loaderkit → rulepack` `TYPE_CHECKING` import.
   ``cannot cross``), with a separate positive check that `loaderkit/scan.py`
   retains it and an explicit acknowledgement that `load.py`'s occurrence is the
   unrelated compile-time phrasing and stays untouched. D-DOCSTRING and the
-  Surprises section were updated to match. No code, work-item ordering, or other
-  acceptance criteria changed; this is a pure acceptance-correctness fix.
+  Surprises section were updated to match. No code, work-item ordering, or
+  other acceptance criteria changed; this is a pure acceptance-correctness fix.
 
 - **Round 3 → round 4 (design review round 3, B2):** corrected a *second*
   factual error in Work item 3's de-dup acceptance that made it vacuous for
@@ -1160,27 +1174,27 @@ mentions a `loaderkit → rulepack` `TYPE_CHECKING` import.
   `grep -rln "cannot cross" …/rulepack/detect.py` to prove the rationale was
   de-duplicated, and the Surprises section asserted that grep "finds the phrase
   in … `rulepack/detect.py:157-158`". Both were wrong: the phrase is
-  **line-wrapped**
-  in `rulepack/detect.py` (``cannot``/``cross`` straddle the line break in both
-  the module docstring at lines 13-14 and the `_scan_rule` docstring at lines
-  157-158), so the single-line grep **never matches that file** (it exits 1 in
-  the worktree, today and after any edit). The check therefore passed regardless
-  of whether the implementer trimmed the rule-pack rationale — certifying
-  under-editing (the inverse of round 2's over-editing defect). The fix: (1) the
-  Surprises section's false "finds … `rulepack/detect.py:157-158`" claim is
-  corrected to record that a single-line grep does **not** list
-  `rulepack/detect.py` because the phrase is wrapped; (2) the de-dup acceptance
-  is now **wrap-insensitive** — a `tr '\n' ' '`-collapsed
-  `grep -o "cannot  *cross" | wc -l` count of **0** on each of
-  `rulepack/detect.py` and `ledger/detect.py`
-  — with the **positive** `scan_pattern`-reference check (and a read-through that
-  the splitlines/line-numbers-exact rationale is gone from each module docstring)
-  promoted to the **primary** de-dup signal; (3) Work item 3 step 3 now names the
-  two **module** docstrings (`rulepack/detect.py:11-22`, `ledger/detect.py:11-17`)
-  as a separate, required trim — deleting the wrapper functions alone does not
-  remove the module-docstring rationale. D-DOCSTRING, the Risks mitigation, and
-  the Surprises section were updated to match. No code, work-item ordering, or
-  other acceptance criteria changed; this is a pure acceptance-correctness fix.
+  **line-wrapped** in `rulepack/detect.py` (``cannot``/``cross`` straddle the
+  line break in both the module docstring at lines 13-14 and the `_scan_rule`
+  docstring at lines 157-158), so the single-line grep **never matches that
+  file** (it exits 1 in the worktree, today and after any edit). The check
+  therefore passed regardless of whether the implementer trimmed the rule-pack
+  rationale — certifying under-editing (the inverse of round 2's over-editing
+  defect). The fix: (1) the Surprises section's false "finds …
+  `rulepack/detect.py:157-158`" claim is corrected to record that a single-line
+  grep does **not** list `rulepack/detect.py` because the phrase is wrapped;
+  (2) the de-dup acceptance is now **wrap-insensitive** — a
+  `tr '\n' ' '`-collapsed `grep -o "cannot  *cross" | wc -l` count of **0** on
+  each of `rulepack/detect.py` and `ledger/detect.py` — with the **positive**
+  `scan_pattern`-reference check (and a read-through that the
+  splitlines/line-numbers-exact rationale is gone from each module docstring)
+  promoted to the **primary** de-dup signal; (3) Work item 3 step 3 now names
+  the two **module** docstrings (`rulepack/detect.py:11-22`,
+  `ledger/detect.py:11-17`) as a separate, required trim — deleting the wrapper
+  functions alone does not remove the module-docstring rationale. D-DOCSTRING,
+  the Risks mitigation, and the Surprises section were updated to match. No
+  code, work-item ordering, or other acceptance criteria changed; this is a
+  pure acceptance-correctness fix.
 
 ## Addenda
 
@@ -1191,15 +1205,16 @@ mentions a `loaderkit → rulepack` `TYPE_CHECKING` import.
   applies to every `loaderkit` module — `coerce.py`, `load.py`, and
   `__init__.py` — each of which must import neither `rulepack` nor `ledger`.
   Parametrize the guard to walk every module in the `loaderkit` package (or its
-  `__init__` re-export surface) so a future regression in any of them is caught,
-  not just one in `scan.py`. Test-only; no production change. Lightweight
-  addendum pass.
-- [x] **7.2.3.2 — Align `loaderkit/scan.py` docstrings with the post-7.2.3 callback
+  `__init__` re-export surface) so a future regression in any of them is
+  caught, not just one in `scan.py`. Test-only; no production change.
+  Lightweight addendum pass.
+- [x] **7.2.3.2 — Align `loaderkit/scan.py` docstrings with the post-7.2.3
+      callback
   framing** (from review:7.2.3; low). The `scan.py` module docstring and the
   `scan_pattern` docstring still justify the `line_hit` callback as preventing
   import of a "pack-domain hit type", which is now self-contradictory because
   `LineHit` is defined in that very module after 7.2.3 relocated it. The
   developers' guide already uses the correct "free of any `Rule`/`Device`
-  knowledge" framing. Retune both docstrings to that framing so the rationale no
-  longer contradicts the relocated type's home. Doc-only; no behaviour change.
-  Lightweight addendum pass.
+  knowledge" framing. Retune both docstrings to that framing so the rationale
+  no longer contradicts the relocated type's home. Doc-only; no behaviour
+  change. Lightweight addendum pass.

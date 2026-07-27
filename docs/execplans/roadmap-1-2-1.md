@@ -1,9 +1,8 @@
 # Wire the five console-script entry points in pyproject.toml
 
-This ExecPlan (execution plan) is a living document. The sections
-`Constraints`, `Tolerances`, `Risks`, `Progress`, `Surprises & Discoveries`,
-`Decision Log`, and `Outcomes & Retrospective` must be kept up to date as work
-proceeds.
+This ExecPlan (execution plan) is a living document. The sections `Constraints`,
+`Tolerances`, `Risks`, `Progress`, `Surprises & Discoveries`, `Decision Log`,
+and `Outcomes & Retrospective` must be kept up to date as work proceeds.
 
 Status: DONE
 
@@ -18,20 +17,21 @@ roadmap slice, deliberately reports "not yet implemented" and exits with code
 
 The precise stub contract — settled here and **verified empirically against the
 locked Cyclopts** (`cyclopts` resolves to 4.18.0 under `requires-python
->=3.14`; see the Decision Log entry "Cyclopts argument-path exit codes,
-verified") — is:
+>=3.14
+>; see the Decision Log entry "Cyclopts argument-path exit codes, verified") —
+ is:
 
 - The stub's own command path is reached on a bare, no-argument invocation, and
   on any invocation that supplies only positional tokens. To make positional
   tokens route to the stub body (rather than raising a parser error), the
   registered default callback takes `*tokens: str` and ignores them. That path
-  writes a short "`<name>` is not yet implemented" line to stderr and exits `2`.
-  This is the path the roadmap success criterion exercises: "each is invocable
-  on `PATH` and reports a usage error rather than crashing".
+  writes a short "`<name>` is not yet implemented" line to stderr and exits
+  `2`. This is the path the roadmap success criterion exercises: "each is
+  invocable on `PATH` and reports a usage error rather than crashing".
 - Three argument classes never reach the stub body; the Cyclopts argument parser
-  handles them *before* dispatch, so they are not command results and are exempt
-  from the exit-code contract (design §3.2 governs command results, not the
-  framework's own argument validation):
+  handles them *before* dispatch, so they are not command results and are
+  exempt from the exit-code contract (design §3.2 governs command results, not
+  the framework's own argument validation):
   - `--help` (and `-h`) prints usage to stdout and exits `0` (verified).
   - `--version` prints the version string to stdout and exits `0` (verified).
   - An unknown option (a token beginning with `--` that the stub does not
@@ -43,10 +43,10 @@ verified") — is:
 
 This is the honest reconciliation of "the stubs exit 2 until implemented"
 (roadmap task 1.2.1 text) with the framework's real behaviour: the headline and
-the roadmap's literal success criterion is that the **bare PATH invocation exits
-2 without crashing**. The two conventional meta-flags exit 0, and the parser's
-own unknown-option rejection exits 1; both are facts of the locked framework,
-pinned by tests, not choices this task makes.
+the roadmap's literal success criterion is that the **bare PATH invocation
+exits 2 without crashing**. The two conventional meta-flags exit 0, and the
+parser's own unknown-option rejection exits 1; both are facts of the locked
+framework, pinned by tests, not choices this task makes.
 
 This is roadmap task 1.2.1 (`docs/roadmap.md`, step 1.2). It stands up the
 packaging boundary the design fixes in ADR 004 (installed console-scripts) and
@@ -57,8 +57,8 @@ depends on roadmap tasks 1.1.3 (shared interface contract,
 `docs/adr-005-command-surface-five-scripts.md`), both already accepted.
 
 To verify the implementation, build a wheel, install it into a throwaway
-virtual environment, and run each of the five commands: every one is found
-on `PATH`, prints a short usage message to stderr, and exits `2`. No command
+virtual environment, and run each of the five commands: every one is found on
+`PATH`, prints a short usage message to stderr, and exits `2`. No command
 crashes with a traceback.
 
 Success is observable as: a `pytest` suite that invokes each stub application
@@ -101,12 +101,12 @@ escalation, not a workaround.
 - The CLI framework is Cyclopts (`docs/scripting-standards.md`). Do not use
   `argparse`, `click`, or `typer`.
 - Filesystem work, if any, uses `pathlib` (scripting standards). The *command
-  code* (the stubs) shells out to nothing — design §4 states "cuprum is required
-  only where a command shells out (none do in v1)" — so **no production cuprum
-  catalogue is introduced into `novel_ralph_skill`**. The *end-to-end test*
-  shells out, and its shell-out discipline is fixed in the Decision Log entry
-  "End-to-end shell-out: cuprum for `uv`, scoped subprocess for the installed
-  scripts".
+  code* (the stubs) shells out to nothing — design §4 states "cuprum is
+  required only where a command shells out (none do in v1)" — so **no
+  production cuprum catalogue is introduced into `novel_ralph_skill`**. The
+  *end-to-end test* shells out, and its shell-out discipline is fixed in the
+  Decision Log entry "End-to-end shell-out: cuprum for `uv`, scoped subprocess
+  for the installed scripts".
 - Prose, comments, and commit messages use en-GB Oxford spelling
   ("-ize"/"-yse"/"-our").
 - Every public module, class, and function carries a docstring; `interrogate`
@@ -128,11 +128,12 @@ escalation, not a workaround.
   `[project.scripts]` entries and the `cyclopts` runtime dependency. If any
   other public interface must change, stop and escalate.
 - Dependencies: this plan adds exactly one *runtime* dependency, `cyclopts`, and
-  exactly one *dev* dependency, `cuprum` (used only by the e2e test to shell out
-  to `uv` per the scripting standards; added to `[dependency-groups] dev`, not
-  to `[project.dependencies]`). If a second new runtime dependency, or a dev
-  dependency beyond `cuprum`, proves necessary, stop and escalate. (`tomlkit` is
-  already present; adding or confirming it is task 1.2.2, not this task.)
+  exactly one *dev* dependency, `cuprum` (used only by the e2e test to shell
+  out to `uv` per the scripting standards; added to `[dependency-groups] dev`,
+  not to `[project.dependencies]`). If a second new runtime dependency, or a
+  dev dependency beyond `cuprum`, proves necessary, stop and escalate.
+  (`tomlkit` is already present; adding or confirming it is task 1.2.2, not
+  this task.)
 - Iterations: if `make all` still fails after 3 focused fix attempts on the same
   gate, stop and escalate.
 - Entry-point mechanism: if a wheel build cannot register the console-scripts
@@ -170,9 +171,9 @@ escalation, not a workaround.
     transitive `docstring-parser` and `rich-rst`.)
 - Risk: the end-to-end "build wheel, create venv, install, run five commands"
   check runs **under pytest-xdist** (`make test` is `uv run pytest -v -n auto`,
-  Makefile line 116; default `PYTEST_XDIST_WORKERS = auto`, line 14), so the slow
-  e2e test executes on a worker process concurrently with every fast test, and it
-  must beat the project-wide 30s pytest timeout on a cold cache
+  Makefile line 116; default `PYTEST_XDIST_WORKERS = auto`, line 14), so the
+  slow e2e test executes on a worker process concurrently with every fast test,
+  and it must beat the project-wide 30s pytest timeout on a cold cache
   (`pyproject.toml` `[tool.pytest.ini_options]` sets `timeout = 30`).
   - Severity: medium. Likelihood: high (build + venv + install + five subprocess
     runs is realistically 30–90s cold).
@@ -192,14 +193,14 @@ escalation, not a workaround.
     insufficient on the target machine, that is a tolerance breach to escalate,
     not a mechanism to swap.
 - Risk: the locked cuprum's public catalogue API differs from the example in
-  `docs/scripting-standards.md`. The standards show `Catalogue.from_programs("uv")`
-  and `sh.scoped(CATALOGUE)`, but the locked cuprum source exposes neither
-  `Catalogue` nor `from_programs`.
+  `docs/scripting-standards.md`. The standards show
+  `Catalogue.from_programs("uv")` and `sh.scoped(CATALOGUE)`, but the locked
+  cuprum source exposes neither `Catalogue` nor `from_programs`.
   - Severity: medium. Likelihood: high (confirmed by reading the source).
   - Mitigation: the e2e test uses the **real** locked cuprum API, pinned against
     the source: `cuprum.ProgramCatalogue(projects=...)` built from
     `ProjectSettings` and `Program`, with `cuprum.sh.make(Program("uv"),
-    catalogue=...)`. See the Decision Log entry "Locked cuprum catalogue API,
+    catalogue=…)`. See the Decision Log entry "Locked cuprum catalogue API,
     verified against source" for the exact symbols and file references. The
     scripting-standards example is treated as illustrative, not as the API of
     record.
@@ -220,21 +221,21 @@ escalation, not a workaround.
 - [x] Work item 2: Add the stub command surface (a `commands` subpackage with a
   documented `__init__.py`, one shared `make_stub_app` factory registering an
   `@app.default(*tokens: str)` exit, and five named entry-point callables) with
-  unit tests asserting exit `2` on no-arg/positional-token, exit `0` on `--help`
-  and `--version`, and exit `1` on an unknown `--option`. Done 2026-06-21. The
-  verified construction from the Interfaces section was used verbatim; the four
-  argument-path exit codes were re-confirmed against cyclopts 4.18.0 before
-  writing the tests (no-arg/positional -> 2, `--help`/`--version` -> 0, unknown
-  `--option` -> 1). The unknown-option assertion carries a "provisional until
-  1.3.1" docstring note (review-round1 advisory 2). Two deviations from the
-  letter of the plan, both forced by the locked toolchain: (a) the entry-point
-  callable test `monkeypatch`es `sys.argv` to `[name]`, because the callable
-  runs `app()` which parses `sys.argv` and would otherwise inherit pytest's
-  own argv; (b) that same test filters cyclopts' `UserWarning` ("Cyclopts
-  application invoked without tokens under unit-test framework pytest"), which
-  fires on the bare `app()` path and is benign. `interrogate` reports 100%,
-  Pylint 10.00/10, `ty` clean, all 31 tests pass; coderabbit returned zero
-  findings.
+  unit tests asserting exit `2` on no-arg/positional-token, exit `0` on
+  `--help` and `--version`, and exit `1` on an unknown `--option`. Done
+  2026-06-21. The verified construction from the Interfaces section was used
+  verbatim; the four argument-path exit codes were re-confirmed against
+  cyclopts 4.18.0 before writing the tests (no-arg/positional -> 2, `--help`/
+  `--version` -> 0, unknown `--option` -> 1). The unknown-option assertion
+  carries a "provisional until 1.3.1" docstring note (review-round1 advisory
+  2). Two deviations from the letter of the plan, both forced by the locked
+  toolchain: (a) the entry-point callable test `monkeypatch`es `sys.argv` to
+  `[name]`, because the callable runs `app()` which parses `sys.argv` and would
+  otherwise inherit pytest's own argv; (b) that same test filters cyclopts'
+  `UserWarning` ("Cyclopts application invoked without tokens under unit-test
+  framework pytest"), which fires on the bare `app()` path and is benign.
+  `interrogate` reports 100%, Pylint 10.00/10, `ty` clean, all 31 tests pass;
+  coderabbit returned zero findings.
 - [x] Work item 3: Add `cuprum` (dev), register the `slow` marker and the five
   `[project.scripts]` entry points, add a fast `[project.scripts]`-table unit
   test, and add the build-and-install end-to-end test (slow, 180s per-test
@@ -243,20 +244,21 @@ escalation, not a workaround.
   cuprum resolved from PyPI as 0.1.0 and its installed API matches the
   source-verified plan exactly (`ProgramCatalogue(projects=...)`,
   `ProjectSettings(name, programs, documentation_locations, noise_rules)`,
-  `sh.make(Program("uv"), catalogue=...)`, `CommandResult.exit_code/.stdout/
-  .stderr`); `uv --version` through the catalogue reported `uv 0.9.21` as
-  predicted. The e2e build, venv, and install run through the scoped cuprum
-  catalogue and the five scripts run by absolute path via one
-  `subprocess.run`. Three small hardenings/deviations: (a) advisory 1 from the
-  round-one review is addressed by passing the project directory explicitly to
-  `uv build --wheel <project_root> --out-dir <tmp>` rather than relying on the
-  xdist worker's inherited cwd, plus an assertion that exactly one wheel is
-  produced; (b) the venv scripts directory and Python interpreter are resolved
-  via `sysconfig` so the test is not POSIX-hardcoded; (c) the `subprocess`
-  import carries `# noqa: S404` (the call already carries `S603`) since it runs
-  installed scripts by absolute path only. The e2e passed under `-n auto` (the
-  180s per-test timeout coexists with the 30s project default on a worker), and
-  full `make all` is green. coderabbit returned zero findings.
+  `sh.make(Program("uv"), catalogue=...)`,
+  `CommandResult.exit_code/.stdout/ .stderr`); `uv --version` through the
+  catalogue reported `uv 0.9.21` as predicted. The e2e build, venv, and install
+  run through the scoped cuprum catalogue and the five scripts run by absolute
+  path via one `subprocess.run`. Three small hardenings/deviations: (a)
+  advisory 1 from the round-one review is addressed by passing the project
+  directory explicitly to `uv build --wheel <project_root> --out-dir <tmp>`
+  rather than relying on the xdist worker's inherited cwd, plus an assertion
+  that exactly one wheel is produced; (b) the venv scripts directory and Python
+  interpreter are resolved via `sysconfig` so the test is not POSIX-hardcoded;
+  (c) the `subprocess` import carries `# noqa: S404` (the call already carries
+  `S603`) since it runs installed scripts by absolute path only. The e2e passed
+  under `-n auto` (the 180s per-test timeout coexists with the 30s project
+  default on a worker), and full `make all` is green. coderabbit returned zero
+  findings.
 - [x] Work item 4: Document the wired commands in the developers' guide and
   users' guide. Done 2026-06-21. `docs/developers-guide.md` "The five commands"
   section now notes the entry points are wired as exit-2 stubs, pointing at
@@ -268,12 +270,13 @@ escalation, not a workaround.
 
 ## Surprises & discoveries
 
-- Observation: `cyclopts.testing.invoke`, shown in `docs/scripting-standards.md`,
-  does **not** exist in the locked cyclopts (4.18.0); `import cyclopts.testing`
-  raises `ModuleNotFoundError`.
+- Observation: `cyclopts.testing.invoke`, shown in
+  `docs/scripting-standards.md`, does **not** exist in the locked cyclopts
+  (4.18.0); `import cyclopts.testing` raises `ModuleNotFoundError`.
   - Evidence: `python -c "from cyclopts.testing import invoke"` fails on the
     resolved 4.18.0 in the worktree venv.
-  - Impact: the unit tests must not import it. They drive each app in-process via
+  - Impact: the unit tests must not import it. They drive each app in-process
+    via
     `app([...], exit_on_error=False)` inside a `pytest.raises(SystemExit)` guard
     (or catch `CycloptsError` for the unknown-option path). The plan's work
     item 2 specifies this verified pattern instead.
@@ -289,8 +292,8 @@ escalation, not a workaround.
 
 ## Decision log
 
-- Decision: the stub command result exits `2`; the Cyclopts parser carve-outs are
-  `--help` → `0`, `--version` → `0`, unknown `--option` → `1`.
+- Decision: the stub command result exits `2`; the Cyclopts parser carve-outs
+  are `--help` → `0`, `--version` → `0`, unknown `--option` → `1`.
   - Rationale: the roadmap success criterion for 1.2.1 says each command
     "reports a usage error rather than crashing", and the task text says the
     stubs "exit 2 until implemented"; ADR 003 / design §3.2 maps usage error to
@@ -358,7 +361,8 @@ escalation, not a workaround.
     docstring fails the lint gate.
   - Date/Author: 2026-06-21, planning agent.
 - Decision: share one stub factory rather than five hand-written apps.
-  - Rationale: AGENTS.md DRY and refactoring heuristics; avoids drift across five
+  - Rationale: AGENTS.md DRY and refactoring heuristics; avoids drift across
+    five
     identical bodies and keeps each module docstringed and under 400 lines.
   - Date/Author: 2026-06-21, planning agent.
 - Decision: prefer a direct semantic assertion over a `syrupy` snapshot for the
@@ -378,7 +382,8 @@ escalation, not a workaround.
   - Date/Author: 2026-06-21, planning agent.
 - Decision: end-to-end shell-out — cuprum for `uv`, scoped subprocess for the
   installed scripts.
-  - Rationale: the scripting standards mandate cuprum's allowlist-based execution
+  - Rationale: the scripting standards mandate cuprum's allowlist-based
+    execution
     for external processes. The e2e build/venv/install steps run `uv`, a bare
     program name, so they go through a local cuprum catalogue scoped to the test
     file. The final step invokes each of the five installed console-scripts **by
@@ -400,7 +405,8 @@ escalation, not a workaround.
     implementer to discover.
   - Date/Author: 2026-06-21, planning agent.
 - Decision: locked cuprum catalogue API, verified against source.
-  - Rationale: `docs/scripting-standards.md` shows `Catalogue.from_programs("uv")`
+  - Rationale: `docs/scripting-standards.md` shows
+    `Catalogue.from_programs("uv")`
     and `sh.scoped(CATALOGUE)`, but the locked cuprum source exposes neither
     `Catalogue` nor `from_programs`. The real public API, read from the source,
     is: `from cuprum import ProgramCatalogue, ProjectSettings` and
@@ -474,10 +480,10 @@ relative to the worktree root
 - `tests/test_stub.py` — the single existing test, asserting `hello()` returns
   its greeting. New tests live alongside it under `tests/`. There is no
   `conftest.py` yet.
-- `Makefile` — `make all` runs `build check-fmt lint typecheck test`. `make
-  build` is `uv sync --group dev`. `make build-release` builds the sdist and
-  wheel via `python -m build`. `make test` runs `uv run pytest -v -n auto`. `make
-  markdownlint` and `make nixie` gate Markdown and Mermaid.
+- `Makefile` — `make all` runs `build check-fmt lint typecheck test`.
+  `make build` is `uv sync --group dev`. `make build-release` builds the sdist
+  and wheel via `python -m build`. `make test` runs `uv run pytest -v -n auto`.
+  `make markdownlint` and `make nixie` gate Markdown and Mermaid.
 
 Terms of art, defined here so the plan is self-contained:
 
@@ -505,8 +511,8 @@ Authoritative sources to read before editing:
 - `docs/adr-003-shared-interface-contract.md` and design §3.2 — the exit-code
   table the stub exit must honour.
 - `docs/novel-ralph-harness-design.md` §4 — the five commands and that "Each is
-  a Cyclopts application exposed as a console-script in `novel_ralph_skill`", and
-  that cuprum is required only where a command shells out (none do in v1).
+  a Cyclopts application exposed as a console-script in `novel_ralph_skill`",
+  and that cuprum is required only where a command shells out (none do in v1).
 - `docs/scripting-standards.md` — the Cyclopts pattern (`App`, `@app.default` /
   command functions, `def main(): app()` entrypoint) and the cuprum section.
   Note: its `cyclopts.testing.invoke` and `Catalogue.from_programs` examples do
@@ -541,15 +547,15 @@ entry-point registration with the build-install proof, then the docs.
 ### Work item 1 — Add the `cyclopts` runtime dependency
 
 Implements: ADR 004 (one shared dependency set), design §4 (each command is a
-Cyclopts application), `docs/scripting-standards.md` (Cyclopts is the default CLI
-framework).
+Cyclopts application), `docs/scripting-standards.md` (Cyclopts is the default
+CLI framework).
 
 Edit `pyproject.toml` `[project.dependencies]`, changing
 `dependencies = ["tomlkit"]` to add `cyclopts`, kept alphabetical:
 `dependencies = ["cyclopts", "tomlkit"]`. Leave `tomlkit` in place; its
 confirmation is task 1.2.2. Leave `cyclopts` unpinned (or floor it only if a
-constraint is warranted) so it takes the locked resolution; at planning time that
-resolved to cyclopts 4.18.0.
+constraint is warranted) so it takes the locked resolution; at planning time
+that resolved to cyclopts 4.18.0.
 
 Run `make build` to refresh `uv.lock`, then `make audit`.
 
@@ -567,24 +573,25 @@ Validation:
 
 - `make build` succeeds and `uv.lock` now contains a `cyclopts` entry.
 - `make audit` passes (no known vulnerability in `cyclopts`).
-- `make all` passes (the existing `tests/test_stub.py` still passes; nothing else
-  changed).
+- `make all` passes (the existing `tests/test_stub.py` still passes; nothing
+  else changed).
 
 ### Work item 2 — Add the stub command surface with unit tests
 
 Implements: design §4 (five Cyclopts applications), ADR 005 (five distinct
-commands), ADR 003 / design §3.2 (exit code `2` = usage error), ADR 001 / design
-§2.2 (no real behaviour, no judgement).
+commands), ADR 003 / design §3.2 (exit code `2` = usage error), ADR 001 /
+design §2.2 (no real behaviour, no judgement).
 
 Create a `commands` subpackage (path fixed by the Decision Log, no alternative):
 `novel_ralph_skill/commands/__init__.py` and
 `novel_ralph_skill/commands/stub.py`.
 
 `novel_ralph_skill/commands/__init__.py` **must carry a module docstring** (a
-single line such as `"""Console-script entry points for the deterministic
-spine."""`). This is not optional: `make lint` runs `interrogate --fail-under
-100` over `novel_ralph_skill` and Ruff's `D` rules apply to every module; the
-only `__init__.py` per-file ignore in `pyproject.toml` is `RUF067`, not the `D`
+single line such as
+`"""Console-script entry points for the deterministic spine."""`). This is not
+optional: `make lint` runs `interrogate --fail-under 100` over
+`novel_ralph_skill` and Ruff's `D` rules apply to every module; the only
+`__init__.py` per-file ignore in `pyproject.toml` is `RUF067`, not the `D`
 rules or interrogate, so an undocumented `__init__.py` fails the lint gate.
 
 In `stub.py`, define one factory and the five entry-point callables (exact
@@ -594,9 +601,9 @@ construction in Interfaces). The factory `make_stub_app(name)`:
 2. registers an `@app.default` callback — the stub's only code path — that takes
    `*tokens: str` (so positional tokens route to it and exit `2` rather than
    raising `UnusedCliTokensError`; verified against cyclopts 4.18.0) and whose
-   body writes a short "`<name>` is not yet implemented" line to stderr and calls
-   `sys.exit(STUB_EXIT_CODE)` (module constant `STUB_EXIT_CODE = 2`, the single
-   call site); and
+   body writes a short "`<name>` is not yet implemented" line to stderr and
+   calls `sys.exit(STUB_EXIT_CODE)` (module constant `STUB_EXIT_CODE = 2`, the
+   single call site); and
 3. returns `app`.
 
 Each of the five callables is the console-script target: it calls
@@ -604,8 +611,8 @@ Each of the five callables is the console-script target: it calls
 `def main(): app()` pattern in `docs/scripting-standards.md`. The exit is
 produced by *running the app*, not by the callable calling `sys.exit` directly,
 so `make_stub_app` returning an `App` is load-bearing. Each callable and the
-factory carries a numpy-style docstring (Ruff `D` and `interrogate --fail-under
-100` require it).
+factory carries a numpy-style docstring (Ruff `D` and
+`interrogate --fail-under 100` require it).
 
 Keep the message human prose on stderr; do **not** emit the JSON envelope. The
 envelope and `--human` switch are roadmap step 1.3 (the shared scaffolding
@@ -613,16 +620,16 @@ module), explicitly out of scope here. Note this boundary in a `# why:` comment
 so a later reader does not mistake the stub for a contract violation.
 
 Add unit tests under `tests/test_command_stubs.py`. These are the red-green
-tests: write them to assert exit `2` and the per-command message before the stubs
-are complete (they fail), then make them pass. Drive each app **in-process** —
-do not import `cyclopts.testing.invoke`, which does not exist in the locked
-cyclopts (Surprises). Use a `pytest.raises(SystemExit)` guard around
-`app([...], exit_on_error=False)` and assert `excinfo.value.code`. Parametrize
-over the five command/callable pairs so the five are asserted uniformly without
-copied bodies. Cover:
+tests: write them to assert exit `2` and the per-command message before the
+stubs are complete (they fail), then make them pass. Drive each app
+**in-process** — do not import `cyclopts.testing.invoke`, which does not exist
+in the locked cyclopts (Surprises). Use a `pytest.raises(SystemExit)` guard
+around `app([...], exit_on_error=False)` and assert `excinfo.value.code`.
+Parametrize over the five command/callable pairs so the five are asserted
+uniformly without copied bodies. Cover:
 
-- No arguments → exits `2` (exercises the registered `@app.default` callback, the
-  code path that produces the exit).
+- No arguments → exits `2` (exercises the registered `@app.default` callback,
+  the code path that produces the exit).
 - A positional token (e.g. `["foo"]`) → exits `2` (routes to the `*tokens`
   default; verified).
 - An unknown `--option` (e.g. `["--nope"]`) → exits `1`. Assert with Cyclopts'
@@ -652,10 +659,10 @@ signatures), `python-errors-and-logging` (the exit path; narrow, no bare
 Tests added/updated:
 
 - `tests/test_command_stubs.py` — unit tests, parametrized over the five
-  commands, asserting exit `2` for no-arg and positional-token invocations, that
-  stderr names the command without a traceback, that `--help` and `--version`
-  each exit `0`, and that an unknown `--option` exits `1`. These are CLI
-  error-path tests per design §9.
+  commands, asserting exit `2` for no-arg and positional-token invocations,
+  that stderr names the command without a traceback, that `--help` and
+  `--version` each exit `0`, and that an unknown `--option` exits `1`. These
+  are CLI error-path tests per design §9.
 - No property test (no range invariant; Decision Log).
 
 Validation:
@@ -668,11 +675,12 @@ Validation:
 ### Work item 3 — Register the five entry points and prove install
 
 Implements: roadmap task 1.2.1 success criterion ("a wheel build installs all
-five commands; each is invocable on `PATH` and reports a usage error rather than
-crashing"), ADR 004 (`[project.scripts]` registration), ADR 005 (five names).
+five commands; each is invocable on `PATH` and reports a usage error rather
+than crashing"), ADR 004 (`[project.scripts]` registration), ADR 005 (five
+names).
 
-Add a `[project.scripts]` table to `pyproject.toml` mapping each command name to
-its callable in the module from work item 2:
+Add a `[project.scripts]` table to `pyproject.toml` mapping each command name
+to its callable in the module from work item 2:
 
 ```toml
 [project.scripts]
@@ -683,9 +691,9 @@ desloppify = "novel_ralph_skill.commands.stub:desloppify"
 wordcount = "novel_ralph_skill.commands.stub:wordcount"
 ```
 
-Add `cuprum` to `[dependency-groups] dev` in `pyproject.toml` (test-only; it must
-not enter `[project.dependencies]`), then `make build` to refresh `uv.lock` and
-`make audit` to clear it.
+Add `cuprum` to `[dependency-groups] dev` in `pyproject.toml` (test-only; it
+must not enter `[project.dependencies]`), then `make build` to refresh
+`uv.lock` and `make audit` to clear it.
 
 Register the `slow` marker so the e2e test's mark is declared. Add to
 `pyproject.toml` `[tool.pytest.ini_options]`:
@@ -736,16 +744,16 @@ _uv = sh.make(Program("uv"), catalogue=_CATALOGUE)
 ```
 
 Before relying on these symbols, re-read `cuprum/catalogue.py`,
-`cuprum/program.py`, and `cuprum/sh.py` against the actually-installed cuprum and
-adjust if the locked version moved; the invariant is fixed (allowlist exactly
-`uv`). Read `CommandResult.exit_code`/`.stdout`/`.stderr` (`cuprum/sh.py`) to
-assert each `uv` step succeeded.
+`cuprum/program.py`, and `cuprum/sh.py` against the actually-installed cuprum
+and adjust if the locked version moved; the invariant is fixed (allowlist
+exactly `uv`). Read `CommandResult.exit_code`/`.stdout`/`.stderr`
+(`cuprum/sh.py`) to assert each `uv` step succeeded.
 
 Step 4 is the **single justified raw-subprocess exception** (Decision Log
-"End-to-end shell-out"). Cuprum allowlists *bare program names* only and exposes
-no API to allowlist or execute an absolute path (`cuprum/catalogue.py`;
-`Program` is `NewType(str)`), so it cannot run `<tmp/venv/bin/novel-state>`. Run
-each installed script directly by absolute path:
+"End-to-end shell-out"). Cuprum allowlists *bare program names* only and
+exposes no API to allowlist or execute an absolute path (`cuprum/catalogue.py`;
+`Program` is `NewType(str)`), so it cannot run `<tmp/venv/bin/novel-state>`.
+Run each installed script directly by absolute path:
 
 ```python
 import subprocess
@@ -772,7 +780,8 @@ Read first: `docs/adr-004-distribution-console-scripts.md`,
 `docs/adr-005-command-surface-five-scripts.md`, `.rules/python-pyproject.md`,
 `docs/scripting-standards.md` (the cuprum section — illustrative only; pin the
 real API per the Decision Log), the Makefile `build-release` target,
-`/data/leynos/Projects/cuprum/cuprum/catalogue.py`, `.../program.py`, `.../sh.py`.
+`/data/leynos/Projects/cuprum/cuprum/catalogue.py`, `.../program.py`,
+`.../sh.py`.
 
 Skills: `python-router`, `python-testing` (slow marks, timeouts, the
 build-install e2e boundary, the xdist interaction). `cmd-mox` is not used — the
@@ -784,8 +793,8 @@ Tests added/updated:
 - `tests/test_pyproject_scripts.py` — fast unit test asserting the five
   `[project.scripts]` entries map to the expected callables.
 - `tests/test_console_scripts_e2e.py` — end-to-end: build the wheel with `uv`
-  (via the cuprum catalogue), install into a fresh `uv venv`, then run each of the
-  five console-scripts by absolute path from the venv `bin/` (one scoped
+  (via the cuprum catalogue), install into a fresh `uv venv`, then run each of
+  the five console-scripts by absolute path from the venv `bin/` (one scoped
   `subprocess.run`), asserting exit `2` and no traceback. Marked
   `@pytest.mark.slow` and `@pytest.mark.timeout(180)`. This is the
   externally-observable command-line behaviour `AGENTS.md` requires an e2e test
@@ -802,19 +811,19 @@ Validation:
 ### Work item 4 — Document the wired command surface
 
 Implements: `AGENTS.md` "Documentation maintenance" (update users' and
-developers' guides for behaviour and interface changes), ADR 004/005 (record the
-realized wiring).
+developers' guides for behaviour and interface changes), ADR 004/005 (record
+the realized wiring).
 
 Update `docs/developers-guide.md` (it already has a "The five commands" section
 referencing ADR 004/005) to note that the entry points are now wired as stubs
 that exit `2` until each slice implements its command, and to point at the stub
-module and the e2e test. Update `docs/users-guide.md` to list the five installed
-command names and the current "not yet implemented; exits 2" status, so a user
-who installs the wheel today understands what they will see.
+module and the e2e test. Update `docs/users-guide.md` to list the five
+installed command names and the current "not yet implemented; exits 2" status,
+so a user who installs the wheel today understands what they will see.
 
-If a Mermaid diagram is added or changed, run `make nixie`. All Markdown changes
-run through `make markdownlint`. Wrap prose at 80 columns and use en-GB Oxford
-spelling per `AGENTS.md`.
+If a Mermaid diagram is added or changed, run `make nixie`. All Markdown
+changes run through `make markdownlint`. Wrap prose at 80 columns and use en-GB
+Oxford spelling per `AGENTS.md`.
 
 Read first: `docs/developers-guide.md`, `docs/users-guide.md`,
 `docs/documentation-style-guide.md`, `AGENTS.md` "Markdown guidance".
@@ -863,8 +872,8 @@ make nixie       # only required if a Mermaid diagram is present/changed
 Before relying on the per-test timeout override under xdist (work item 3),
 confirm it empirically with a throwaway probe (delete it afterwards): a test
 sleeping a few seconds, marked `@pytest.mark.timeout(<large>)`, must pass under
-`uv run pytest -n auto` while the project `timeout = 30` is temporarily lowered.
-This was verified at planning time; re-confirm on the target machine.
+`uv run pytest -n auto` while the project `timeout = 30` is temporarily
+lowered. This was verified at planning time; re-confirm on the target machine.
 
 Expected high-level transcripts (illustrative):
 
@@ -913,8 +922,8 @@ Quality criteria (what "done" means):
 - Tests: `make test` passes; the new unit and e2e tests are present and green;
   the pre-existing `tests/test_stub.py` still passes.
 - Lint/typecheck: `make lint` (Ruff, `interrogate --fail-under 100`, Pylint),
-  `make check-fmt` (`ruff format --check`), and `make typecheck` (`ty check`) all
-  pass.
+  `make check-fmt` (`ruff format --check`), and `make typecheck` (`ty check`)
+  all pass.
 - Audit: `make audit` (`pip-audit`) passes against the added `cyclopts` (and dev
   `cuprum`).
 - Markdown: `make markdownlint` passes; `make nixie` passes if any Mermaid
@@ -922,8 +931,8 @@ Quality criteria (what "done" means):
 - Aggregate: `make all` is green at each commit.
 
 Quality method (how we check): run `make all` before and after each work item;
-run `make audit` after work items 1 and 3; run `make markdownlint` (and `make
-nixie` when a diagram is touched) after the documentation work item.
+run `make audit` after work items 1 and 3; run `make markdownlint` (and
+`make nixie` when a diagram is touched) after the documentation work item.
 
 ## Idempotence and recovery
 
@@ -947,8 +956,8 @@ nixie` when a diagram is touched) after the documentation work item.
   negative, `2` usage error, `3` state/input error, `4` actionable finding. The
   stub uses `2` for its command result.
 - Supplementary manual e2e transcript (documentation of the automated flow; the
-  automated `tests/test_console_scripts_e2e.py` is the proof of record). Run from
-  the worktree root:
+  automated `tests/test_console_scripts_e2e.py` is the proof of record). Run
+  from the worktree root:
 
 ```plaintext
 $ uv build --wheel --out-dir /tmp/nrs-e2e
@@ -969,17 +978,19 @@ wordcount is not yet implemented
 Dependencies (work items 1 and 3), in `pyproject.toml`:
 
 - `cyclopts` as a runtime dependency in `[project.dependencies]` (the CLI
-  framework, per `docs/scripting-standards.md`). One new runtime dependency only.
+  framework, per `docs/scripting-standards.md`). One new runtime dependency
+  only.
 - `cuprum` as a *dev* dependency in `[dependency-groups] dev` (work item 3): the
   e2e test shells out to `uv` (build/venv/install) through a local cuprum
   catalogue. The five installed scripts are then run by absolute path via one
   scoped `subprocess.run` (cuprum cannot allowlist an absolute path — verified;
-  Decision Log). `cuprum` is test-only and must not enter `[project.dependencies]`.
+  Decision Log). `cuprum` is test-only and must not enter
+  `[project.dependencies]`.
 
 Public interface at the end of the task, in `novel_ralph_skill.commands.stub`
 (module path fixed; there is no `cli.py` alternative). The new
-`novel_ralph_skill/commands/__init__.py` carries a one-line module docstring (to
-satisfy `interrogate --fail-under 100` and Ruff `D`).
+`novel_ralph_skill/commands/__init__.py` carries a one-line module docstring
+(to satisfy `interrogate --fail-under 100` and Ruff `D`).
 
 The construction is shown so the no-arg path provably reaches the exit:
 
@@ -1046,15 +1057,14 @@ def wordcount() -> None:
 ```
 
 Each callable delegates to ``app()``; the exit is produced by running the app,
-not by the callable calling ``sys.exit`` directly, so ``make_stub_app`` returning
-an ``App`` is load-bearing. The ``@app.default`` decorator, the ``name=``
-argument, and the four argument-path exit codes (no-arg/positional → 2,
-``--help`` → 0, ``--version`` → 0, unknown ``--option`` → 1) are verified for
-cyclopts 4.18.0 (Decision Log). Re-confirm them against the locked version
+not by the callable calling ``sys.exit`` directly, so ``make_stub_app``
+returning an ``App`` is load-bearing. The ``@app.default`` decorator, the
+``name=`` argument, and the four argument-path exit codes (no-arg/positional →
+2, ``--help`` → 0, ``--version`` → 0, unknown ``--option`` → 1) are verified
+for cyclopts 4.18.0 (Decision Log). Re-confirm them against the locked version
 when implementing; if a helper name differs, adjust the call but keep the
-invariants —
-the no-arg and positional-token paths must reach the exit and produce ``2``, and
-the carve-out codes must be the ones the unit test asserts.
+invariants — the no-arg and positional-token paths must reach the exit and
+produce ``2``, and the carve-out codes must be the ones the unit test asserts.
 
 Entry-point registration at the end of the task, in `pyproject.toml`:
 
@@ -1067,9 +1077,9 @@ desloppify = "novel_ralph_skill.commands.stub:desloppify"
 wordcount = "novel_ralph_skill.commands.stub:wordcount"
 ```
 
-Out of scope (later roadmap tasks, do not build here): the shared JSON envelope,
-the `--human` switch, and the exit-code helper (task 1.3.1, design §3.1–§3.2);
-the `tomlkit` confirmation (task 1.2.2); any real command behaviour
+Out of scope (later roadmap tasks, do not build here): the shared JSON
+envelope, the `--human` switch, and the exit-code helper (task 1.3.1, design
+§3.1–§3.2); the `tomlkit` confirmation (task 1.2.2); any real command behaviour
 (`novel-state` subcommands, the compile-and-hash routine, the desloppify rule
 pack, the wordcount gates) — design §4.1–§4.5.
 
@@ -1088,11 +1098,11 @@ pack, the wordcount gates) — design §4.1–§4.5.
   `app([...], exit_on_error=False)`. Second, the locked cuprum exposes
   `ProgramCatalogue(projects=...)` with `ProjectSettings` and `Program`, not
   `Catalogue.from_programs`, so the e2e `uv` catalogue is pinned to the real
-  source-verified API. Pinned the e2e shell-out discipline (cuprum for
-  `uv`; one justified absolute-path `subprocess.run` for the installed scripts,
-  because cuprum cannot allowlist an absolute path and `uv run` resolves against
-  the project env — verified against uv 0.9.21). The plan remains in DRAFT pending
-  approval; no implementation has begun.
+  source-verified API. Pinned the e2e shell-out discipline (cuprum for `uv`;
+  one justified absolute-path `subprocess.run` for the installed scripts,
+  because cuprum cannot allowlist an absolute path and `uv run` resolves
+  against the project env — verified against uv 0.9.21). The plan remains in
+  DRAFT pending approval; no implementation has begun.
 - 2026-06-21 (implementation): Executed all four work items in order as four
   atomic, separately-gated commits. Status moved DRAFT -> IN PROGRESS -> DONE.
   Progress ticks, the Outcomes & retrospective section, and the per-item

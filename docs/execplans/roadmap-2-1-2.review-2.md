@@ -16,16 +16,16 @@ cross-command convention the design never sanctioned. Two consequential gaps
 - **B1 (gate-ratio quantity) — RESOLVED.** Verified: no corpus variant sets
   `by_chapter_override` (`_variants.py` never assigns it), so
   `sum(state.word_counts.by_chapter.values())` equals the oracle's
-  `sum(chapter.draft_words)` on every tree (`_specs.py::derive_by_chapter`).
-  On `by-chapter-sum-mismatch` (`current_words_override=1`, drafts and gate
+  `sum(chapter.draft_words)` on every tree (`_specs.py::derive_by_chapter`). On
+  `by-chapter-sum-mismatch` (`current_words_override=1`, drafts and gate
   booleans intact) the validator now names exactly `{by-chapter-sum}`, matching
   the oracle. The drafted-total numerator decouples invariant 7 from invariant
-  3. Work item 4's strict restricted-set equality will hold. The prior
+  1. Work item 4's strict restricted-set equality will hold. The prior
   "current/target isolates 7 from 3" reasoning was correctly removed.
 - **B2 (entry-point) — RESOLVED.** Verified: `names.py` binds all five entry
   points to `STUB_MODULE` and `project_scripts_table()` derives
-  `[project.scripts]` from it. Keeping `novel-state` on `stub.py::novel_state()`
-  (evolved in place) leaves the three registry gates
+  `[project.scripts]` from it. Keeping `novel-state` on
+  `stub.py::novel_state()` (evolved in place) leaves the three registry gates
   (`test_registry_matches_project_scripts`, `test_registry_order_matches_table`,
   `test_entry_points_resolve_to_callables`) valid, since the last only asserts
   `callable(getattr(stub, func))`. The Wafflecat alternative from round 1 was
@@ -38,8 +38,8 @@ cross-command convention the design never sanctioned. Two consequential gaps
 The plan asserts (Context item 6; B3 Decision Log; Work item 2) that "ADR-003
 §3.1 and design §3.1 mandate a `--human` switch and a `working_dir` in every
 envelope" and from this derives a global `--working-dir VALUE` command-line
-flag that it threads through `RunContext` and establishes as "the convention all
-four later commands inherit".
+flag that it threads through `RunContext` and establishes as "the convention
+all four later commands inherit".
 
 Verified against source, this conflates two different things:
 
@@ -54,18 +54,18 @@ Verified against source, this conflates two different things:
 
 So `--working-dir` is the plan's own invention, presented as ADR-mandated. Per
 the task's standing rule, an uncited memory-based claim about a locked contract
-surface is a blocking defect: the plan must either cite the design/ADR text that
-sanctions a `--working-dir` CLI flag (none exists) or drop it.
+surface is a blocking defect: the plan must either cite the design/ADR text
+that sanctions a `--working-dir` CLI flag (none exists) or drop it.
 
 It is also **unnecessary**. The established corpus pattern materializes a tree
 under `tmp_path` and returns the `working/` path (`build_tree`, `baseline_tree`,
 `incoherent_tree` all build `dest/working/`). The behavioural suite can point
 `check` at a fixture by `monkeypatch.chdir(dest)` and relying on the default
-`working/`, exactly matching the design's fixed `working_dir="working"` — no new
-flag, no new cross-command CLI surface. The legitimate, ADR-backed part of B3
-(pre-parsing `--human` off argv before `run`, because `run` stamps the envelope
-on the body-less exit-2/exit-3 paths) stands; only the `--working-dir` portion
-is the defect.
+`working/`, exactly matching the design's fixed `working_dir="working"` — no
+new flag, no new cross-command CLI surface. The legitimate, ADR-backed part of
+B3 (pre-parsing `--human` off argv before `run`, because `run` stamps the
+envelope on the body-less exit-2/exit-3 paths) stands; only the `--working-dir`
+portion is the defect.
 
 Resolution required: drop `--working-dir` (and its "convention all four later
 commands inherit" framing), or escalate it as a genuine design decision with a
@@ -76,9 +76,9 @@ before any body runs).
 ### B5 (Pandalump / Doggylump) — `build_app()`'s zero-arg signature cannot deliver the resolved working directory to the `check` body
 
 The Interfaces section pins `def build_app() -> cyclopts.App` (no parameters)
-as a stable public surface later tasks import. Separately, the `check` body
-"is given the resolved working directory (a `pathlib.Path`) by the entry point"
-and the plan strips the global tokens off argv **before** `run`, so the residual
+as a stable public surface later tasks import. Separately, the `check` body "is
+given the resolved working directory (a `pathlib.Path`) by the entry point" and
+the plan strips the global tokens off argv **before** `run`, so the residual
 argv passed to `app()` no longer contains any working-directory token.
 
 These two statements are mutually inconsistent. The established wiring
@@ -101,8 +101,8 @@ the Interfaces section rather than offering two non-working alternatives.
 ### B6 (Doggylump) — the stub/e2e narrowing is under-specified; `novel_state()` now exits 3 (not 2) with no `working/`, and the plan does not enumerate which gates break or how the new e2e is built
 
 Work item 2 says to "narrow any 'all five commands exit 2' assertion in the
-stub/e2e suites to the four still-stubbed commands". Verified against the gates,
-this is directionally right but materially incomplete:
+stub/e2e suites to the four still-stubbed commands". Verified against the
+gates, this is directionally right but materially incomplete:
 
 - `test_command_stubs.py::test_command_result_exits_two`,
   `::test_unknown_option_exits_one`, and `::test_meta_flags_exit_zero` call
@@ -111,8 +111,8 @@ this is directionally right but materially incomplete:
 - `test_command_stubs.py::test_entry_point_callable_exits_two` is parametrized
   over the real `ENTRY_POINTS` and calls `novel_state()` with a clean argv.
   After WI2, `novel_state()` runs `run(...)` against `./working/`, which does
-  not exist in the test's cwd, so `load_state` raises and the command exits
-  **`3`, not `2`**. This test breaks and must be narrowed — but the plan never
+  not exist in the test's cwd, so `load_state` raises and the command exits **
+  `3`, not `2`**. This test breaks and must be narrowed — but the plan never
   states the new exit code is `3`, so a reader cannot predict the failure mode.
 - `test_console_scripts_e2e.py::_assert_scripts_exit_two` runs the **installed**
   `novel-state` with no args and asserts exit `2`; post-WI2 it exits `3`.
@@ -143,11 +143,11 @@ green without on-the-fly redesign.
   silent gap when task 2.1.3 cross-checks against arbitrary on-disk states.
 
 - A2 (Telefono) — the `check` body's exit-3 exception set
-  (`FileNotFoundError`/`OSError`/`TOMLDecodeError`/`KeyError`/`ValueError`) omits
-  `TypeError`, which `parse_state` can raise on a structurally wrong table. The
-  two tested faults (missing file → `FileNotFoundError`; `not = toml =` →
-  `TOMLDecodeError`) are covered, so this is not blocking, but record `TypeError`
-  in the mapping or justify its exclusion.
+  (`FileNotFoundError`/`OSError`/`TOMLDecodeError`/`KeyError`/`ValueError`)
+  omits `TypeError`, which `parse_state` can raise on a structurally wrong
+  table. The two tested faults (missing file → `FileNotFoundError`;
+  `not = toml =` → `TOMLDecodeError`) are covered, so this is not blocking, but
+  record `TypeError` in the mapping or justify its exclusion.
 
 - A3 (Buzzy Bee / Dinolump) — a hand-rolled `parse_global_flags` that must
   coexist with Cyclopts subcommand parsing is fragile at the edges
@@ -166,18 +166,19 @@ green without on-the-fly redesign.
   `state.word_counts.current/.target/.by_chapter`;
   `state.drafting.critic.consecutive_clean/.convergence_target`;
   `state.drafting.current_chapter/.current_scene/.current_beat`;
-  `state.gates.knitting.done_30/.done_50/.done_80`; `state.chapters`;
-  `Phase`/`PHASE_ORDER`; `load_state` at parse.py:228.
+  `state.gates.knitting.done_30/.done_50/.done_80`; `state.chapters`; `Phase`/
+  `PHASE_ORDER`; `load_state` at parse.py:228.
 - The six owned invariant-name strings match `CORPUS_INVARIANT_NAMES` exactly
   (`_oracle.py` lines 37–55), and developers-guide lines 115–118 confirm task
   2.1.2 keys on them.
 - The consecutive-clean manifest-length proxy and the two bijection variants'
-  cursor agreement were re-verified: `_BASE.current_chapter = 3 = len(chapters)`,
-  and neither bijection variant perturbs the cursor, so the manifest-vs-on-disk
-  divergence on those variants does not break cursor-coherent agreement.
+  cursor agreement were re-verified:
+  `_BASE.current_chapter = 3 = len(chapters)`, and neither bijection variant
+  perturbs the cursor, so the manifest-vs-on-disk divergence on those variants
+  does not break cursor-coherent agreement.
 - Exit-4-on-violation, exit-3-on-state-fault, checker-no-write, and the
-  pure-state/disk-evidence scope split match design §3.2/§3.3/§4.1/§5.2/§5.4 and
-  the roadmap decomposition (2.1.2 vs 2.3.2).
+  pure-state/disk-evidence scope split match design §3.2/§3.3/§4.1/§5.2/§5.4
+  and the roadmap decomposition (2.1.2 vs 2.3.2).
 - Hypothesis (not CrossHair/mutmut) is the right adversary per design §2.3 and
   `uv.lock`; `cuprum` correctly out of scope (verified against
   `/data/leynos/Projects/cuprum/cuprum/catalogue.py`, an executable allowlist);
@@ -203,21 +204,22 @@ has exactly one source of truth before this becomes a cross-command contract.
 Drop `--working-dir` entirely and let `novel-state check` operate on
 `./working/` relative to the process cwd, exactly as the design's fixed
 `working_dir="working"` field implies. The entry point pre-parses only the
-ADR-mandated `--human` boolean; the `check` body forms `Path("working") /
-"state.toml"`. Behavioural and e2e tests select a fixture by `chdir`-ing into
-the materialized parent directory (the corpus fixtures already return
-`dest/working/`). This trades the plan's "explicit working-dir override" for
-strict design conformance, a one-flag pre-parse, zero new cross-command CLI
-surface, and a single source of truth for the working directory — and it removes
-the root cause of B4, B5, and most of A3 at once. If a working-directory
-override is genuinely wanted later, it should be raised as a design/ADR change,
-not introduced as a side effect of the first command's plan.
+ADR-mandated `--human` boolean; the `check` body forms
+`Path("working") / "state.toml"`. Behavioural and e2e tests select a fixture by
+`chdir`-ing into the materialized parent directory (the corpus fixtures already
+return `dest/working/`). This trades the plan's "explicit working-dir override"
+for strict design conformance, a one-flag pre-parse, zero new cross-command CLI
+surface, and a single source of truth for the working directory — and it
+removes the root cause of B4, B5, and most of A3 at once. If a
+working-directory override is genuinely wanted later, it should be raised as a
+design/ADR change, not introduced as a side effect of the first command's plan.
 
 ## Verdict
 
-REVISE. B1 and B2 are correctly resolved and verified. B3 is only half-resolved:
-the `--working-dir` flag (B4) is an uncited, design-non-conformant, and
-unnecessary contract-surface addition; B5 (the `build_app()` data-flow) and B6
-(the stub/e2e narrowing specifics) follow from it. Adopting the Wafflecat
-alternative — cwd-relative `working/`, `--human`-only pre-parse — resolves all
-three blockers and leaves the plan implementable and design-conformant.
+REVISE. B1 and B2 are correctly resolved and verified. B3 is only
+half-resolved: the `--working-dir` flag (B4) is an uncited,
+design-non-conformant, and unnecessary contract-surface addition; B5 (the
+`build_app()` data-flow) and B6 (the stub/e2e narrowing specifics) follow from
+it. Adopting the Wafflecat alternative — cwd-relative `working/`,
+`--human`-only pre-parse — resolves all three blockers and leaves the plan
+implementable and design-conformant.

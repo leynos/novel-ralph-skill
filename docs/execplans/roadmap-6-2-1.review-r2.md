@@ -26,9 +26,9 @@ Every pinned value reproduces exactly:
   `done`. ✓ (the most contestable claim — that even the `done` tree fails the
   full predicate — is correct.)
 - wordcount — exit 0, ok=True; zero-progress branch for the 8 pre-drafting +
-  `chapter-planning` phases (`chapters==[]`, cumulative as below);
-  populated branch for drafting/final-pass/done (`current:68800`, all gates
-  true, `next_gate_threshold:null`, `next_gate_distance:null`). ✓ exact.
+  `chapter-planning` phases (`chapters==[]`, cumulative as below); populated
+  branch for drafting/final-pass/done (`current:68800`, all gates true,
+  `next_gate_threshold:null`, `next_gate_distance:null`). ✓ exact.
 
   ```json
   {current:0, target:80000, percent_of_target:0.0, gate_triggered_*:false, next_gate_threshold:0.3, next_gate_distance:24000}
@@ -43,9 +43,9 @@ Every pinned value reproduces exactly:
   `phrase` strings, `count:0`, `lines:[]` — deterministic, snapshots cleanly.
 
 Locked-library / infra claims also verified in-repo (no firecrawl needed, the
-repo pins them): `timeout = 30` global (`pyproject.toml:326`),
-`pytest-timeout` and `pytest-xdist` locked, `**/test_*.py` per-file-ignores
-cover S101/PLR2004, all `make` targets exist
+repo pins them): `timeout = 30` global (`pyproject.toml:326`), `pytest-timeout`
+and `pytest-xdist` locked, `**/test_*.py` per-file-ignores cover S101/PLR2004,
+all `make` targets exist
 (`all check-fmt lint typecheck test audit markdownlint nixie`), syrupy
 one-snapshot-per-parametrized-case proven by
 `test_contract_envelope_snapshots.py`, conftest re-exports spec types under
@@ -78,8 +78,8 @@ is **`knitting_gates_passed`**, not `compile_consistent`. The plan's stated
 reason is incorrect. The pinned *assertions* (exit 1 / ok=False everywhere;
 `phase_is_done` True only on `done`) still hold, so the tests pass — but the
 plan asserts of itself that "every load-bearing per-phase envelope was captured
-from the real commands … No cell is left to be decided", and this rationale
-was plainly not captured: it is the same assumption-class error round 1 caught
+from the real commands … No cell is left to be decided", and this rationale was
+plainly not captured: it is the same assumption-class error round 1 caught
 (B1/B2/B3). An implementer following WI3 verbatim writes a misleading docstring.
 
 This also surfaces a latent corpus surprise the plan must record, not paper

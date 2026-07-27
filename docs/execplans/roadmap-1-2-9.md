@@ -1,8 +1,9 @@
 # Tighten the `read_repo_text` fixture to a precise `(*parts: str) -> str` type
 
 This ExecPlan (execution plan) is a living document. The sections `Constraints`,
-`Tolerances`, `Risks`, `Progress`, `Surprises and discoveries`, `Decision log`,
-and `Outcomes and retrospective` must be kept up to date as work proceeds.
+`Tolerances`, `Risks`, `Progress`, `Surprises and discoveries`,
+`Decision log`, and `Outcomes and retrospective` must be kept up to date as
+work proceeds.
 
 Status: COMPLETE
 
@@ -16,8 +17,8 @@ checking at every call site. So today a call such as `read_repo_text(123)` or
 `read_repo_text("Makefile", mode="rb")` typechecks clean even though the
 underlying reader only accepts positional `str` parts. The reviewer of 1.2.7
 flagged this (roadmap remediation, source `review:1.2.7`, severity low): the
-fixture's real shape is the variadic `(*parts: str) -> str` form, and the
-1.2.7 "Interfaces" section explicitly anticipated tightening it
+fixture's real shape is the variadic `(*parts: str) -> str` form, and the 1.2.7
+"Interfaces" section explicitly anticipated tightening it
 (`docs/execplans/roadmap-1-2-7.md` lines 652-654: "The exact return-callable
 signatures may be tightened during implementation (for example `read_repo_text`
 as `Callable[[str], str]` with `*parts`)").
@@ -69,24 +70,23 @@ Hard invariants that must hold throughout implementation.
   `conftest` itself", and as that section reads on `origin/main` it states no
   exception. This plan therefore (a) first amends that guide in WI-1 to carve
   out an explicit, narrow exception for a **type-only** `if TYPE_CHECKING:`
-  import of a shared *type* (never a fixture/helper value), and only then
-  (b) introduces any `from conftest import RepoTextReader` consumer. Every
-  consumer import sits inside an `if typ.TYPE_CHECKING:` guard, which is `False`
-  at runtime, so no runtime import is created (verified: pytest collects and
-  runs the suite with this guarded import; see "Verified facts"). Because every
+  import of a shared *type* (never a fixture/helper value), and only then (b)
+  introduces any `from conftest import RepoTextReader` consumer. Every consumer
+  import sits inside an `if typ.TYPE_CHECKING:` guard, which is `False` at
+  runtime, so no runtime import is created (verified: pytest collects and runs
+  the suite with this guarded import; see "Verified facts"). Because every
   touched file carries `from __future__ import annotations`, the fixture's own
   `-> RepoTextReader` return annotation is a lazy string and the name is never
   needed at runtime either — so the `Protocol` lives wholly inside the
   `TYPE_CHECKING` block (verified).
 - `tests/conftest.py` is inside `PYTHON_TARGETS`
   (`Makefile`, `PYTHON_TARGETS ?= novel_ralph_skill tests`), so it must pass
-  Ruff lint and format, 100% `interrogate` docstring coverage
-  (`pyproject.toml` `[tool.interrogate] fail-under = 100`), the PyPy-backed
-  Pylint runner, and `ty` typecheck. interrogate scans inside `TYPE_CHECKING`
-  blocks, so the new `Protocol` class needs a class docstring and its `__call__`
-  method needs a method docstring even though both sit inside the guard
-  (verified: removing the `__call__` docstring drops coverage to 92.3% and fails
-  the gate).
+  Ruff lint and format, 100% `interrogate` docstring coverage (`pyproject.toml`
+  `[tool.interrogate] fail-under = 100`), the PyPy-backed Pylint runner, and
+  `ty` typecheck. interrogate scans inside `TYPE_CHECKING` blocks, so the new
+  `Protocol` class needs a class docstring and its `__call__` method needs a
+  method docstring even though both sit inside the guard (verified: removing the
+  `__call__` docstring drops coverage to 92.3% and fails the gate).
 - `tests/test_state_layout_reference.py` is at exactly 400 lines, the AGENTS.md
   per-file cap ("No single code file should be longer than 400 lines"). The
   three annotation changes in that file must be line-neutral: replace
@@ -102,8 +102,8 @@ Hard invariants that must hold throughout implementation.
 
 - Scope: this change touches four files
   (`tests/conftest.py`, `tests/test_conftest_helpers.py`,
-  `tests/test_interrogate_gate.py`, `tests/test_state_layout_reference.py`) plus
-  the developers' guide. If implementation requires editing more than five
+  `tests/test_interrogate_gate.py`, `tests/test_state_layout_reference.py`)
+  plus the developers' guide. If implementation requires editing more than five
   files, or more than roughly 70 net lines, stop and escalate.
 - Interface: the fixture's *return value* (a callable accepting `*parts: str`)
   must not change. If making the type precise forces a change to the runtime
@@ -115,8 +115,8 @@ Hard invariants that must hold throughout implementation.
 - Iterations: if `make all` still fails after three fix attempts on a work
   item, stop and escalate with the failing output.
 - Typechecker behaviour: if `ty` rejects the `Protocol`-based variadic callable
-  form, or rejects it when defined inside the `TYPE_CHECKING` block (contrary to
-  the verification below), stop and escalate rather than reaching for `Any`,
+  form, or rejects it when defined inside the `TYPE_CHECKING` block (contrary
+  to the verification below), stop and escalate rather than reaching for `Any`,
   `# type: ignore`, or a runtime-level class definition.
 
 ## Risks
@@ -324,8 +324,7 @@ touched.
 `tests/conftest.py` is the single home for shared test scaffolding (roadmap
 1.2.7; `docs/developers-guide.md`, "Shared test scaffolding"). It exposes
 fixtures consumed by name across the suite, with no inter-module imports. The
-fixture this plan changes is `read_repo_text`
-(`tests/conftest.py` lines 64-84):
+fixture this plan changes is `read_repo_text` (`tests/conftest.py` lines 64-84):
 
     @pytest.fixture
     def read_repo_text(project_root: Path) -> cabc.Callable[..., str]:
@@ -367,8 +366,8 @@ fixture parameter under an `if typ.TYPE_CHECKING:` block):
   `test_makefile_invokes_interrogate`. Calls `read_repo_text("Makefile")`.
 - `tests/test_state_layout_reference.py` lines 264, 276, 291 —
   `read_repo_text: cabc.Callable[..., str]` in three methods. Calls
-  `read_repo_text(*_STATE_LAYOUT_PARTS)` (a multi-part call: `("skill",
-  "novel-ralph", "references", "state-layout.md")`).
+  `read_repo_text(*_STATE_LAYOUT_PARTS)` (a multi-part call:
+  `("skill", "novel-ralph", "references", "state-layout.md")`).
 
 Term definitions:
 
@@ -389,17 +388,17 @@ Term definitions:
 
 These were confirmed in this worktree before drafting; the implementer should
 re-run the probes in WI-2 to keep them pinned. The conftest and scratch test
-files used for verification were created, checked, and then removed, leaving the
-working tree clean.
+files used for verification were created, checked, and then removed, leaving
+the working tree clean.
 
 - Locked versions (`uv.lock`): `ty` 0.0.51, `cuprum` 0.1.0, CPython 3.14.
   This task does not call any cuprum API — the changed fixture reads a file with
-  `pathlib.Path.joinpath(...).read_text(...)` and touches no external command —
-  so no cuprum catalogue, allowlist, or run/output option is in scope (confirmed
-  by reading `tests/conftest.py`: `read_repo_text` uses only `pathlib`; cuprum's
-  `ProgramCatalogue`/`ProjectSettings` are used only by the unrelated
-  `single_program_catalogue` fixture, which is out of scope). The only
-  load-bearing external behaviour is the `ty` typechecker's handling of a
+  `pathlib.Path.joinpath(...).read_text(...)` and touches no external command
+  — so no cuprum catalogue, allowlist, or run/output option is in scope
+  (confirmed by reading `tests/conftest.py`: `read_repo_text` uses only
+  `pathlib`; cuprum's `ProgramCatalogue`/`ProjectSettings` are used only by the
+  unrelated `single_program_catalogue` fixture, which is out of scope). The
+  only load-bearing external behaviour is the `ty` typechecker's handling of a
   variadic `Protocol` defined inside a `TYPE_CHECKING` block.
 
 - `ty` 0.0.51 accepts a `typing.Protocol` whose `__call__` is
@@ -423,22 +422,22 @@ working tree clean.
   `if typ.TYPE_CHECKING:` block, imported by a scratch `tests/test_*.py` module
   via `from conftest import RepoTextReader` under that module's own
   `TYPE_CHECKING` guard, is collected and run by `uv run pytest` ("1 passed",
-  prepend import mode, no `tests/__init__.py`) and resolves for `uv run ty
-  check` ("All checks passed!"). This disproves the round-1 claim that the
-  Protocol "must exist at runtime"; it does not.
+  prepend import mode, no `tests/__init__.py`) and resolves for
+  `uv run ty check` ("All checks passed!"). This disproves the round-1 claim
+  that the Protocol "must exist at runtime"; it does not.
 
 - interrogate scans inside the `TYPE_CHECKING` block. Verified by removing the
   `__call__` docstring from the `TYPE_CHECKING`-only Protocol and running
   `uv run interrogate -c pyproject.toml tests/conftest.py`, which reported
-  `RESULT: FAILED (minimum: 100.0%, actual: 92.3%)`. So the class-plus-`__call__`
-  docstring burden is identical whether the Protocol is at module level or
-  inside the guard; the docstrings are required either way.
+  `RESULT: FAILED (minimum: 100.0%, actual: 92.3%)`. So the
+  class-plus-`__call__` docstring burden is identical whether the Protocol is
+  at module level or inside the guard; the docstrings are required either way.
 
 - The pytest config (`pyproject.toml` `[tool.pytest.ini_options]`) sets no
   `import-mode` and the tree has no `tests/__init__.py`, so `conftest.py` is
   importable as the top-level module `conftest` — hence the import path
-  `from conftest import RepoTextReader` rather than `from tests.conftest import
-  ...` (the latter does not resolve in this layout).
+  `from conftest import RepoTextReader` rather than
+  `from tests.conftest import ...` (the latter does not resolve in this layout).
 
 ## Plan of work
 
@@ -446,17 +445,17 @@ Four atomic, independently committable, gate-passable work items, in dependency
 order. WI-1 is markdown-only and runs `make markdownlint` and `make nixie` in
 addition to `make all`. WI-2 through WI-4 each end with the full `make all`
 gate. The ordering is load-bearing: WI-1 lands the developers'-guide carve-out
-**before** any commit introduces a `from conftest import RepoTextReader` import,
-so no interim commit ever contradicts the source-of-truth guide (round-1
-blocking point 1).
+**before** any commit introduces a `from conftest import RepoTextReader`
+import, so no interim commit ever contradicts the source-of-truth guide
+(round-1 blocking point 1).
 
 ### WI-1: Carve out the type-only `TYPE_CHECKING`-import exception in the guide
 
 Documentation to read first: `docs/developers-guide.md` "Shared test
-scaffolding" (lines 20-47, especially the prohibition at lines 29-35); AGENTS.md
-"Markdown guidance" (80-column prose wrap, 120-column code wrap, dash bullets);
-`docs/documentation-style-guide.md`. Skills to load: none code-specific; honour
-`en-gb-oxendict` Oxford spelling.
+scaffolding" (lines 20-47, especially the prohibition at lines 29-35);
+AGENTS.md "Markdown guidance" (80-column prose wrap, 120-column code wrap, dash
+bullets); `docs/documentation-style-guide.md`. Skills to load: none
+code-specific; honour `en-gb-oxendict` Oxford spelling.
 
 Implements: AGENTS.md "Documentation maintenance" / "Internal interfaces"
 (record internally facing conventions in the developers' guide); roadmap task
@@ -472,8 +471,8 @@ carve-out in its own first commit means every later commit is consistent with
 the guide.
 
 Edit `docs/developers-guide.md`, "Shared test scaffolding" section. After the
-existing paragraph that forbids importing helpers from `conftest` (lines 29-35),
-add a short paragraph that:
+existing paragraph that forbids importing helpers from `conftest` (lines
+29-35), add a short paragraph that:
 
 1. States the narrow exception: a shared *type* (such as the `RepoTextReader`
    `Protocol` that types the `read_repo_text` fixture's return value) may be
@@ -505,8 +504,8 @@ imports in dev guide".
 Documentation to read first: `docs/developers-guide.md` "Shared test
 scaffolding" (now including the WI-1 carve-out);
 `docs/execplans/roadmap-1-2-7.md` "Interfaces and dependencies" (lines 618-656);
-`.rules/python-typing.md` (standard aliases `typ`, `cabc`; `TYPE_CHECKING` guard
-guidance). Skills to load: `python-router`, then `python-types-and-apis`
+`.rules/python-typing.md` (standard aliases `typ`, `cabc`; `TYPE_CHECKING`
+guard guidance). Skills to load: `python-router`, then `python-types-and-apis`
 (Protocols, variadic callables, public-callback typing).
 
 Implements: roadmap task 1.2.9 (`docs/roadmap.md` lines 148-154); the 1.2.7
@@ -522,8 +521,8 @@ Edit `tests/conftest.py`:
    `-> RepoTextReader` return annotation is a lazy string never evaluated at
    runtime, so the class need not exist at runtime (verified — see "Verified
    facts"). interrogate scans inside the guard, so the class needs a class
-   docstring and `__call__` needs a method docstring (verified). Use numpy-style
-   docstrings to match the file:
+   docstring and `__call__` needs a method docstring (verified). Use
+   numpy-style docstrings to match the file:
 
        if typ.TYPE_CHECKING:
            import collections.abc as cabc
@@ -547,20 +546,20 @@ Edit `tests/conftest.py`:
 2. Change the `read_repo_text` fixture's return annotation from
    `cabc.Callable[..., str]` to `RepoTextReader`, and update its numpy-style
    "Returns" section to name `RepoTextReader` (keep the `(*parts: str) -> str`
-   gloss). The inner `_read` closure body is unchanged. `cabc` is still imported
-   in the guard because the other fixtures (`toml_table`,
-   `single_program_catalogue`, `venv_scripts_dir`) still annotate with it, so do
-   not remove the `cabc` import.
+   gloss). The inner `_read` closure body is unchanged. `cabc` is still
+   imported in the guard because the other fixtures (`toml_table`,
+   `single_program_catalogue`, `venv_scripts_dir`) still annotate with it, so
+   do not remove the `cabc` import.
 
-Tests for this work item (per AGENTS.md "Python verification and testing"): this
-is a typing-only refactor, so the primary verification is the typechecker plus a
-red/green probe rather than a new behavioural test in this WI (the behavioural
-regression test is added in WI-3, which owns `test_conftest_helpers.py`). To
-prove the tightening has teeth, run a **temporary red probe**: in a scratch
-file (not committed), add a `RepoTextReader`-annotated parameter calling
-`read_repo_text(123)` and confirm `ty` flags it (`invalid-argument-type`); then
-delete the probe before committing. Record the transcript in `Artefacts and
-notes`.
+Tests for this work item (per AGENTS.md "Python verification and testing"):
+this is a typing-only refactor, so the primary verification is the typechecker
+plus a red/green probe rather than a new behavioural test in this WI (the
+behavioural regression test is added in WI-3, which owns
+`test_conftest_helpers.py`). To prove the tightening has teeth, run a
+**temporary red probe**: in a scratch file (not committed), add a
+`RepoTextReader`-annotated parameter calling `read_repo_text(123)` and confirm
+`ty` flags it (`invalid-argument-type`); then delete the probe before
+committing. Record the transcript in `Artefacts and notes`.
 
 Validation: `make all` (Ruff format-check and lint, interrogate 100%, Pylint,
 `ty`, pytest). Expect the full suite to pass with the same counts as before.
@@ -581,9 +580,9 @@ regression test).
 Edit `tests/test_conftest_helpers.py` (the first module to add the consumer
 import — permitted because WI-1 has landed the carve-out):
 
-1. In its `if typ.TYPE_CHECKING:` block, add `from conftest import
-   RepoTextReader` (the `cabc` import there stays — `toml_table` annotations
-   still use it).
+1. In its `if typ.TYPE_CHECKING:` block, add
+   `from conftest import RepoTextReader` (the `cabc` import there stays —
+   `toml_table` annotations still use it).
 2. Change the parameter annotation in `test_read_repo_text_reads_a_known_marker`
    (line 48) from `cabc.Callable[..., str]` to `RepoTextReader`.
 3. Add a regression test that pins the *multi-part* call — the behaviour the
@@ -598,8 +597,8 @@ import — permitted because WI-1 has landed the carve-out):
            assert "1.2.9" in text, "multi-part read did not reach docs/roadmap.md"
 
    This test documents and locks the variadic contract at runtime (the
-   typechecker locks it statically). Its docstring states the behaviour, not the
-   mechanics (AGENTS.md "Test documentation should omit examples that only
+   typechecker locks it statically). Its docstring states the behaviour, not
+   the mechanics (AGENTS.md "Test documentation should omit examples that only
    restate the test logic").
 
 Property/snapshot/e2e: none warranted. There is no invariant over a range of
@@ -624,34 +623,34 @@ Implements: roadmap 1.2.9.
 
 Edit `tests/test_interrogate_gate.py`:
 
-1. In its `if typ.TYPE_CHECKING:` block, add `from conftest import
-   RepoTextReader` (keep `cabc` — other annotations in the file still use it).
+1. In its `if typ.TYPE_CHECKING:` block, add
+   `from conftest import RepoTextReader` (keep `cabc` — other annotations in
+   the file still use it).
 2. Change the parameter annotation in `test_makefile_invokes_interrogate`
    (line 51) from `cabc.Callable[..., str]` to `RepoTextReader`.
 
 Edit `tests/test_state_layout_reference.py` (at the 400-line cap — every edit
 here must keep the file at or below 400 lines):
 
-1. In its `if typ.TYPE_CHECKING:` block, add `from conftest import
-   RepoTextReader`. If `cabc` becomes unused after step 2 below, drop the
-   `import collections.abc as cabc` line and verify Ruff is clean (a removed
-   unused import keeps the file at or under 400 lines — acceptable, net
-   negative). If `cabc` is still used elsewhere in the file, replace its import
-   line in place with the new import or add the new import on a net-neutral
-   line. Either way the net line delta must be zero or negative; confirm with
-   `wc -l`.
+1. In its `if typ.TYPE_CHECKING:` block, add
+   `from conftest import RepoTextReader`. If `cabc` becomes unused after step 2
+   below, drop the `import collections.abc as cabc` line and verify Ruff is
+   clean (a removed unused import keeps the file at or under 400 lines —
+   acceptable, net negative). If `cabc` is still used elsewhere in the file,
+   replace its import line in place with the new import or add the new import
+   on a net-neutral line. Either way the net line delta must be zero or
+   negative; confirm with `wc -l`.
 2. Change the three parameter annotations at lines 264, 276, 291 from
    `cabc.Callable[..., str]` to `RepoTextReader`, each on its existing line.
 
-Before committing this file, run
-`wc -l tests/test_state_layout_reference.py` and confirm the count is `<= 400`.
-If it exceeds 400, stop and escalate per Tolerances (do not split the module —
-that is 1.2.18).
+Before committing this file, run `wc -l tests/test_state_layout_reference.py`
+and confirm the count is `<= 400`. If it exceeds 400, stop and escalate per
+Tolerances (do not split the module — that is 1.2.18).
 
 Tests: no new tests; the existing guard tests in
-`test_state_layout_reference.py` and the interrogate-gate tests already exercise
-these call sites and must keep passing unchanged. The static guarantee is
-verified by `make typecheck` inside `make all`.
+`test_state_layout_reference.py` and the interrogate-gate tests already
+exercise these call sites and must keep passing unchanged. The static guarantee
+is verified by `make typecheck` inside `make all`.
 
 Validation: `make all`. Expect unchanged test counts and a clean `ty` pass.
 Commit, e.g. "Type remaining read_repo_text call sites with RepoTextReader".
@@ -662,8 +661,8 @@ Run all commands from the worktree root
 `/data/leynos/Projects/novel-ralph-skill.worktrees/roadmap-1-2-9`.
 
 1. Confirm the branch and a clean tree before starting. Running
-   `git branch --show-current` reports `roadmap-1-2-9`, and `git status
-   --short` reports nothing (beyond this plan).
+   `git branch --show-current` reports `roadmap-1-2-9`, and
+   `git status --short` reports nothing (beyond this plan).
 
 2. WI-1 — edit `docs/developers-guide.md`, then run the markdown gates and the
    aggregate gate: `make markdownlint`, `make nixie`, and `make all` each pass.
@@ -739,9 +738,9 @@ Quality method: `make all` after every work item, plus `make markdownlint` and
 
 ## Idempotence and recovery
 
-Every code edit is an in-place annotation/type change and is re-runnable safely;
-no filesystem state, network, or external command is involved. If a work item's
-gate fails, revert the working-tree changes for that file
+Every code edit is an in-place annotation/type change and is re-runnable
+safely; no filesystem state, network, or external command is involved. If a
+work item's gate fails, revert the working-tree changes for that file
 (`git checkout -- <file>`) and reapply. The temporary `ty` red probe is a
 throwaway file deleted before commit; if forgotten, `make lint`/`ty` will flag
 it, and removing it restores green. No backups or rollback of committed history
@@ -797,14 +796,14 @@ existing `TYPE_CHECKING` guard (not at module level):
     def read_repo_text(project_root: Path) -> RepoTextReader: ...
 
 Consuming modules (`tests/test_conftest_helpers.py`,
-`tests/test_interrogate_gate.py`, `tests/test_state_layout_reference.py`) import
-the type under their `if typ.TYPE_CHECKING:` block:
+`tests/test_interrogate_gate.py`, `tests/test_state_layout_reference.py`)
+import the type under their `if typ.TYPE_CHECKING:` block:
 
     if typ.TYPE_CHECKING:
         from conftest import RepoTextReader
 
-and annotate the fixture parameter as `read_repo_text: RepoTextReader`. No other
-fixture signature changes; `cabc.Callable[...]` remains correct for the
+and annotate the fixture parameter as `read_repo_text: RepoTextReader`. No
+other fixture signature changes; `cabc.Callable[...]` remains correct for the
 non-variadic fixtures (`toml_table`, `single_program_catalogue`,
 `venv_scripts_dir`) and is out of scope for this task.
 
@@ -823,13 +822,14 @@ Round 2 (2026-06-22). Resolved both design-review blocking points.
   defined **wholly inside** conftest's `if typ.TYPE_CHECKING:` block, not at
   module level. The round-1 "must exist at runtime" justification was
   empirically disproved in this worktree (TYPE_CHECKING-only resolves for `ty`,
-  is collected and run by pytest, and still flags `read_repo_text(123)`), and is
-  removed. The lazy-annotation rationale (`from __future__ import annotations`)
-  and the interrogate-scans-the-guard fact (docstrings still required) are
-  documented in Verified facts and the Decision log.
+  is collected and run by pytest, and still flags `read_repo_text(123)`), and
+  is removed. The lazy-annotation rationale
+  (`from __future__ import annotations`) and the interrogate-scans-the-guard
+  fact (docstrings still required) are documented in Verified facts and the
+  Decision log.
 
 Work-item count is unchanged at four, but reordered: WI-1 is now the
-markdown-only carve-out; WI-2 defines the Protocol and retypes the fixture; WI-3
-takes the conftest-helper consumer plus the variadic regression test; WI-4 takes
-the remaining consumers under the 400-line cap. No cuprum API is in scope (the
-fixture touches no external command).
+markdown-only carve-out; WI-2 defines the Protocol and retypes the fixture;
+WI-3 takes the conftest-helper consumer plus the variadic regression test; WI-4
+takes the remaining consumers under the 400-line cap. No cuprum API is in scope
+(the fixture touches no external command).

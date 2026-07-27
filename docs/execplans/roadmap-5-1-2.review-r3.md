@@ -77,9 +77,8 @@ and §6; real source — `rulepack/{parse,schema,errors}.py`,
   The sole round-3 blocking point is resolved.
 - **All 24 rows present, thresholds verbatim.** The pack's
   `(id, threshold, basis)` triples match the §6 table row-for-row; `em-dash` is
-  the only
-  `per_page` row (threshold 5, page_words 300). The round-1 completeness defect
-  (defect 1) and the rule-id-set-equality test stand.
+  the only `per_page` row (threshold 5, page_words 300). The round-1
+  completeness defect (defect 1) and the rule-id-set-equality test stand.
 - **Every locked-library claim verified.** cuprum: `sh.py:make` (line 528) →
   `catalogue.lookup` (line 538); `catalogue.py:lookup` (line 79) raises
   `UnknownProgramError` (line 85); `allowlist` is a read-only `frozenset`

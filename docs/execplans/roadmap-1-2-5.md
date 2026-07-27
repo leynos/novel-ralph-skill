@@ -1,9 +1,8 @@
 # Establish a docstring-coverage gate (interrogate) for the Python package
 
-This ExecPlan (execution plan) is a living document. The sections
-`Constraints`, `Tolerances`, `Risks`, `Progress`, `Surprises & Discoveries`,
-`Decision Log`, and `Outcomes & Retrospective` must be kept up to date as work
-proceeds.
+This ExecPlan (execution plan) is a living document. The sections `Constraints`,
+`Tolerances`, `Risks`, `Progress`, `Surprises & Discoveries`, `Decision Log`,
+and `Outcomes & Retrospective` must be kept up to date as work proceeds.
 
 Status: DONE
 
@@ -24,8 +23,8 @@ CI. What is **still** genuinely missing — and what this task delivers — is t
 
 - There is no `[tool.interrogate]` table in `pyproject.toml`. The `100%`
   threshold and the scan scope live **only** as a command-line flag in the
-  `Makefile` (`interrogate --fail-under 100 $(PYTHON_TARGETS)`, `Makefile`
-  line 96). interrogate's own default `fail-under` is `80.0` (verified against
+  `Makefile` (`interrogate --fail-under 100 $(PYTHON_TARGETS)`, `Makefile` line
+  96). interrogate's own default `fail-under` is `80.0` (verified against
   `interrogate/config.py` line 57 and the official docs), so anyone who runs a
   bare `interrogate` (outside the Makefile, e.g. an IDE plugin, a pre-commit
   hook, or a contributor typing `uv run interrogate`) silently gets the 80%
@@ -38,16 +37,16 @@ CI. What is **still** genuinely missing — and what this task delivers — is t
 
 The deliverable is therefore a **self-documenting, pinned docstring-coverage
 gate**: a `[tool.interrogate]` configuration block in `pyproject.toml` that
-records the 100% threshold and the intended scan behaviour as data; a `Makefile`
-adjusted so the threshold is sourced from that config rather than re-spelt as a
-literal flag (the `Makefile` still passes the paths, because interrogate's
-config does not carry the path list); a guard test that asserts the
-configuration, the Makefile invocation, and the dev dependency are all present
-and mutually consistent; and reconciliation of **all** prose homes of the old
-literal so contributors read one authoritative statement of the standard. An
-exhaustive `git grep -niE 'interrogate.*(fail.under|100)'` across tracked files
-(excluding `docs/execplans` and `uv.lock`) returns **exactly five** homes of the
-literal, and this enumeration is provably complete:
+records the 100% threshold and the intended scan behaviour as data; a
+`Makefile` adjusted so the threshold is sourced from that config rather than
+re-spelt as a literal flag (the `Makefile` still passes the paths, because
+interrogate's config does not carry the path list); a guard test that asserts
+the configuration, the Makefile invocation, and the dev dependency are all
+present and mutually consistent; and reconciliation of **all** prose homes of
+the old literal so contributors read one authoritative statement of the
+standard. An exhaustive `git grep -niE 'interrogate.*(fail.under|100)'` across
+tracked files (excluding `docs/execplans` and `uv.lock`) returns **exactly
+five** homes of the literal, and this enumeration is provably complete:
 
 1. `Makefile` line 96 — the recipe being changed (the source of truth being
    migrated to config).
@@ -55,35 +54,36 @@ literal, and this enumeration is provably complete:
    home).
 3. **`docs/developers-guide.md`** line 12 — the one-line gate statement (a prose
    home).
-4. **`docs/developers-guide.md`** line 157 — the CI-job paragraph (a prose home).
+4. **`docs/developers-guide.md`** line 157 — the CI-job paragraph (a prose
+   home).
 5. **`docs/users-guide.md`** line 18 — the user-facing description of what
    `lint-python` runs (a prose home).
 
-So there are **four prose homes across three files** (AGENTS.md, the developers'
-guide twice, and the users' guide), all of which currently spell the gate as
-`interrogate --fail-under 100 $(PYTHON_TARGETS)`. When the Makefile drops the
-literal `--fail-under 100`, those four prose statements become factually false
-unless updated in the same change, so they are all part of the edit set (see
-Constraints and work items 2-4). The design document
+So there are **four prose homes across three files** (AGENTS.md, the
+developers' guide twice, and the users' guide), all of which currently spell
+the gate as `interrogate --fail-under 100 $(PYTHON_TARGETS)`. When the Makefile
+drops the literal `--fail-under 100`, those four prose statements become
+factually false unless updated in the same change, so they are all part of the
+edit set (see Constraints and work items 2-4). The design document
 (`docs/novel-ralph-harness-design.md`) does **not** describe interrogate at all
-(verified: grepping it for `interrogate`, `fail-under`, and `docstring coverage`
-returns zero hits), so it is **not** an edit target.
+(verified: grepping it for `interrogate`, `fail-under`, and
+`docstring coverage` returns zero hits), so it is **not** an edit target.
 
-To verify the implementation: `make lint` still enforces 100% docstring coverage
-(now sourced from the config, not a literal CLI threshold) and stays green
-against the already-fully-documented package; a new
+To verify the implementation: `make lint` still enforces 100% docstring
+coverage (now sourced from the config, not a literal CLI threshold) and stays
+green against the already-fully-documented package; a new
 `tests/test_interrogate_gate.py` asserts that `pyproject.toml` carries a
 `[tool.interrogate]` table with `fail-under = 100`, that a single `Makefile`
 recipe line invokes `interrogate` over `$(PYTHON_TARGETS)` (same-line
 co-occurrence, so deleting the recipe line fails the gate even if some other
-`interrogate` or `$(PYTHON_TARGETS)` mention survives), and that `interrogate` is
-a declared dev dependency; AGENTS.md line 86, `docs/developers-guide.md`
+`interrogate` or `$(PYTHON_TARGETS)` mention survives), and that `interrogate`
+is a declared dev dependency; AGENTS.md line 86, `docs/developers-guide.md`
 lines 12-13 and 157, and `docs/users-guide.md` line 18 no longer spell the
-dropped `--fail-under 100` literal; and
-`make all`, `make markdownlint`, and `make nixie` are all green. Success is
-observable as: a bare `uv run interrogate novel_ralph_skill tests` now fails
-under 100% rather than passing under the silent 80% default, and any future
-weakening of the threshold or removal of the invocation fails `make test`.
+dropped `--fail-under 100` literal; and `make all`, `make markdownlint`, and
+`make nixie` are all green. Success is observable as: a bare
+`uv run interrogate novel_ralph_skill tests` now fails under 100% rather than
+passing under the silent 80% default, and any future weakening of the threshold
+or removal of the invocation fails `make test`.
 
 ## Constraints
 
@@ -97,13 +97,13 @@ escalation, not a workaround.
   fixed by AGENTS.md ("Every public module, class, and function carries a
   docstring; `interrogate` enforces 100% coverage", plus the Makefile-wiring
   list at line 86), by the existing `Makefile` flag, by the developers' guide
-  (lines 12-13 and the CI paragraph at line 157), by the users' guide (line 18),
-  and by roadmap precedent. The
-  design document (`docs/novel-ralph-harness-design.md`) does **not** mention
-  interrogate (verified by grep: zero hits for `interrogate`, `fail-under`, or
+  (lines 12-13 and the CI paragraph at line 157), by the users' guide (line
+  18), and by roadmap precedent. The design document
+  (`docs/novel-ralph-harness-design.md`) does **not** mention interrogate
+  (verified by grep: zero hits for `interrogate`, `fail-under`, or
   `docstring coverage`), so it is not a source of this standard and not an edit
-  target. This task makes the 100% threshold **self-documenting and pinned**; it
-  does not change its value.
+  target. This task makes the 100% threshold **self-documenting and pinned**;
+  it does not change its value.
 - The scan scope stays `$(PYTHON_TARGETS) = novel_ralph_skill tests`
   (`Makefile` line 15). interrogate must continue to scan **both** the package
   and the test tree, because every test function in the repo already carries a
@@ -125,17 +125,17 @@ escalation, not a workaround.
 - This task is **pure configuration plus packaging plus one guard test**. It
   adds no command behaviour, emits no program output, shells out to nothing at
   runtime, and touches no command body, the `make_stub_app` factory, the cuprum
-  run-loop in `tests/test_console_scripts_e2e.py`, the command-name registry, or
-  the `[project.scripts]` table. It does not introduce the shared JSON envelope
-  or the `--human` switch (roadmap step 1.3).
+  run-loop in `tests/test_console_scripts_e2e.py`, the command-name registry,
+  or the `[project.scripts]` table. It does not introduce the shared JSON
+  envelope or the `--human` switch (roadmap step 1.3).
 - Prose, comments, docstrings, and commit messages use en-GB Oxford spelling
   ("-ize"/"-yse"/"-our"), per AGENTS.md and the `en-gb-oxendict` convention.
 - Every public module, class, and function carries a docstring; `interrogate`
   enforces 100% coverage (the gate this task pins). No file exceeds 400 lines
   (AGENTS.md).
 - Tests live in the top-level `tests/` tree, never inside the package (AGENTS.md
-  "Python verification and testing"; the `novel_ralph_skill` package contains no
-  tests so xdist-backed SlipCover coverage stays correct).
+  "Python verification and testing"; the `novel_ralph_skill` package contains
+  no tests so xdist-backed SlipCover coverage stays correct).
 - Markdown prose wraps at 80 columns; code blocks at 120; tables and headings
   are not wrapped; list bullets use `-`; Mermaid is validated by nixie
   (AGENTS.md "Markdown guidance").
@@ -147,28 +147,28 @@ escalation, not a workaround.
   this plan; `pyproject.toml` (the new `[tool.interrogate]` table); `Makefile`
   (the `lint-python` recipe line, to source the threshold from config);
   `tests/test_interrogate_gate.py` (new guard test); `AGENTS.md` (line 86, to
-  drop the now-removed `--fail-under 100` literal from the Makefile-wiring list);
-  `docs/developers-guide.md` (lines 12-13 and line 157, to drop the same literal
-  and name the config); `docs/users-guide.md` (line 18, to drop the same literal
-  from the user-facing `lint-python` description and name the config). This edit
-  set is provably complete: the exhaustive `git grep` recorded in Purpose returns
-  exactly these five homes of the literal (Makefile plus four prose statements),
-  so no sixth doc can silently go stale. `docs/novel-ralph-harness-design.md` is
-  **not** in the edit set (it does not mention interrogate). If a sixth home of
-  the literal is found before committing, or any **command body**, the
-  `make_stub_app` factory, the cuprum run-loop, the command-name registry, or
-  the `[project.scripts]` targets must change, stop and escalate — that is
-  outside 1.2.5.
+  drop the now-removed `--fail-under 100` literal from the Makefile-wiring
+  list); `docs/developers-guide.md` (lines 12-13 and line 157, to drop the same
+  literal and name the config); `docs/users-guide.md` (line 18, to drop the
+  same literal from the user-facing `lint-python` description and name the
+  config). This edit set is provably complete: the exhaustive `git grep`
+  recorded in Purpose returns exactly these five homes of the literal (Makefile
+  plus four prose statements), so no sixth doc can silently go stale.
+  `docs/novel-ralph-harness-design.md` is **not** in the edit set (it does not
+  mention interrogate). If a sixth home of the literal is found before
+  committing, or any **command body**, the `make_stub_app` factory, the cuprum
+  run-loop, the command-name registry, or the `[project.scripts]` targets must
+  change, stop and escalate — that is outside 1.2.5.
 - Threshold: the threshold is `100`. If the package is found **not** to be at
-  100% coverage when the literal `--fail-under 100` flag is dropped in favour of
-  the config (i.e. removing the flag changes the gate's pass/fail outcome), stop
-  and escalate rather than lowering the threshold or adding an `exclude` to make
-  the gate pass.
+  100% coverage when the literal `--fail-under 100` flag is dropped in favour
+  of the config (i.e. removing the flag changes the gate's pass/fail outcome),
+  stop and escalate rather than lowering the threshold or adding an `exclude`
+  to make the gate pass.
 - Makefile recipe: this plan's chosen approach (option (a), see Decision Log) is
   to **keep** `interrogate` invoked from `make lint-python` and source the
   `fail-under` threshold from `[tool.interrogate]` (dropping the literal
-  `--fail-under 100` from the recipe, keeping the `$(PYTHON_TARGETS)` paths), and
-  to **reconcile** all four prose homes — AGENTS.md line 86,
+  `--fail-under 100` from the recipe, keeping the `$(PYTHON_TARGETS)` paths),
+  and to **reconcile** all four prose homes — AGENTS.md line 86,
   `docs/developers-guide.md` lines 12-13 and 157, and `docs/users-guide.md`
   line 18 — in the same change so no doc goes stale. The belt-and-braces
   alternative (option (b)) — **retain** the explicit `--fail-under 100` flag in
@@ -176,8 +176,8 @@ escalation, not a workaround.
   AGENTS.md, the developers' guide, and the users' guide untouched — is a
   materially different decision about the source of truth. It is **not** the
   default: if the implementer finds reason to prefer it (for example, the
-  reconciliation edits would exceed the file-count tolerance, a sixth prose home
-  is discovered, or interrogate fails to honour the config on the target
+  reconciliation edits would exceed the file-count tolerance, a sixth prose
+  home is discovered, or interrogate fails to honour the config on the target
   machine), stop and escalate so the recipe, the config, the guard test,
   AGENTS.md, the developers' guide, and the users' guide are made consistent
   rather than half-migrated.
@@ -225,8 +225,8 @@ escalation, not a workaround.
     run from the worktree root (the same cwd `make lint` uses), so the verified
     behaviour matches CI's.
 - Risk: a future contributor lowers `fail-under`, deletes the `interrogate`
-  line from `make lint-python`, or removes the dev dependency, reintroducing the
-  unenforced-coverage gap this task closes.
+  line from `make lint-python`, or removes the dev dependency, reintroducing
+  the unenforced-coverage gap this task closes.
   - Severity: medium. Likelihood: medium.
   - Mitigation: `tests/test_interrogate_gate.py` parses `pyproject.toml` and
     asserts `[tool.interrogate] fail-under == 100`; reads the `Makefile` text
@@ -241,8 +241,8 @@ escalation, not a workaround.
   `docs/developers-guide.md` line 12, `docs/developers-guide.md` line 157, and
   `docs/users-guide.md` line 18 (the user-facing description of `lint-python`).
   Leaving any of them after the Makefile change ships a direct contradiction
-  between an authoritative or user-facing quality-gate description and the actual
-  recipe.
+  between an authoritative or user-facing quality-gate description and the
+  actual recipe.
   - Severity: high. Likelihood: high (it is the certain consequence of the
     Makefile edit, not a chance event).
   - Mitigation: all four prose statements are in the edit set (work items 2, 3,
@@ -258,10 +258,10 @@ escalation, not a workaround.
     that is the Makefile-recipe escalation trigger (prefer option (b), keep the
     literal).
 - Risk: the guard test that reads the `Makefile` as text is brittle to harmless
-  whitespace or ordering changes in the recipe, or gives a false pass if it only
-  checks the two tokens independently (`$(PYTHON_TARGETS)` appears eight times in
-  the Makefile, so an edit could delete the interrogate recipe line while another
-  `$(PYTHON_TARGETS)` line survives).
+  whitespace or ordering changes in the recipe, or gives a false pass if it
+  only checks the two tokens independently (`$(PYTHON_TARGETS)` appears eight
+  times in the Makefile, so an edit could delete the interrogate recipe line
+  while another `$(PYTHON_TARGETS)` line survives).
   - Severity: medium. Likelihood: medium.
   - Mitigation: the test asserts **same-line co-occurrence** — it iterates the
     Makefile's lines and requires that at least one single line contains both the
@@ -270,8 +270,8 @@ escalation, not a workaround.
     recipe line is deleted, even if other `interrogate` or `$(PYTHON_TARGETS)`
     mentions survive. The intent is pinned, not the formatting.
 - Risk: adding self-documenting ignore flags (for example `ignore-init-module`)
-  to `[tool.interrogate]` changes what is measured and could let an undocumented
-  module slip through.
+  to `[tool.interrogate]` changes what is measured and could let an
+  undocumented module slip through.
   - Severity: medium. Likelihood: low.
   - Mitigation: the plan's default config sets every `ignore-*` flag that could
     relax measurement to `false` (the interrogate default), so the table is
@@ -294,24 +294,24 @@ escalation, not a workaround.
 - [x] Work item 2: Source the threshold from the config in the `Makefile`
   `lint-python` recipe (drop the literal `--fail-under 100`, keep the
   `$(PYTHON_TARGETS)` paths); reconcile AGENTS.md line 86 in the same commit so
-  the authoritative quality-gate description does not contradict the recipe; and
-  add `tests/test_interrogate_gate.py` pinning the config, the same-line
+  the authoritative quality-gate description does not contradict the recipe;
+  and add `tests/test_interrogate_gate.py` pinning the config, the same-line
   invocation, and the dev dependency. Done 2026-06-22 (option (a), chosen
   default): Makefile line 96 now reads `interrogate $(PYTHON_TARGETS)`;
   AGENTS.md line 86 names `[tool.interrogate]` as the threshold's home. Guard
   test groups three example-based methods in `TestInterrogateGate`, parses
-  `pyproject.toml` via `tomllib` with `match`-based table narrowing, and matches
-  the dev dependency by a PEP 508-robust `_dist_name` regex (handles bare names,
-  version specifiers, and extras). `make all` green (45 passed); the live
-  transcript still reads `minimum: 100.0%`. CodeRabbit: resolved trivials
-  (inline read, split-chain comment, class grouping) and majors (PEP 508 parse,
-  `match`/`case` over `isinstance`); skipped one repeated "AGENTS.md is stale"
-  finding — AGENTS.md is the live authoritative source for the 100% standard
-  (per the standing rules and this plan), so removing the citation would reduce
-  accuracy. Surprise: `make fmt` runs mdformat globally and reflowed many
-  out-of-scope tracked docs, briefly breaking `make markdownlint`; reverted the
-  reflows (stashed) and used targeted `ruff format` instead, restoring 0
-  markdownlint errors.
+  `pyproject.toml` via `tomllib` with `match`-based table narrowing, and
+  matches the dev dependency by a PEP 508-robust `_dist_name` regex (handles
+  bare names, version specifiers, and extras). `make all` green (45 passed);
+  the live transcript still reads `minimum: 100.0%`. CodeRabbit: resolved
+  trivials (inline read, split-chain comment, class grouping) and majors (PEP
+  508 parse, `match`/`case` over `isinstance`); skipped one repeated "AGENTS.md
+  is stale" finding — AGENTS.md is the live authoritative source for the 100%
+  standard (per the standing rules and this plan), so removing the citation
+  would reduce accuracy. Surprise: `make fmt` runs mdformat globally and
+  reflowed many out-of-scope tracked docs, briefly breaking
+  `make markdownlint`; reverted the reflows (stashed) and used targeted
+  `ruff format` instead, restoring 0 markdownlint errors.
 - [x] Work item 3: Update `docs/developers-guide.md` (lines 12-13 and the CI
   paragraph at line 157) so the standard is stated once and points at
   `[tool.interrogate]` as where the threshold lives; do **not** edit the design
@@ -360,7 +360,8 @@ escalation, not a workaround.
   `docs/users-guide.md` line 18 is a fourth prose home that the earlier drafts
   missed because they grepped only AGENTS.md, the developers' guide, and the
   design doc, never the whole tracked tree.
-  - Evidence: `git grep -niE 'interrogate.*(fail.under|100)' -- ':!docs/execplans'
+  - Evidence:
+    `git grep -niE 'interrogate.*(fail.under|100)' -- ':!docs/execplans'
     ':!uv.lock'` returns exactly five lines: `Makefile:96`, `AGENTS.md:86`,
     `docs/developers-guide.md:12`, `docs/developers-guide.md:157`, and
     `docs/users-guide.md:18` (exit code 0). The users'-guide line reads "The
@@ -392,12 +393,12 @@ escalation, not a workaround.
     self-documenting (config), robust to bare invocation, and pinned by a test.
   - Date/Author: 2026-06-22, planning agent.
 - Decision (option (a), chosen): make `[tool.interrogate]` in `pyproject.toml`
-  the source of truth for the threshold and **drop** the literal `--fail-under
-  100` from the `Makefile` recipe (keeping the `$(PYTHON_TARGETS)` paths, which
-  the config does not carry), **and reconcile in the same change** all four prose
-  homes of the old literal — AGENTS.md line 86, `docs/developers-guide.md`
-  lines 12-13 and 157, and `docs/users-guide.md` line 18 — so no authoritative or
-  user-facing document goes stale.
+  the source of truth for the threshold and **drop** the literal
+  `--fail-under 100` from the `Makefile` recipe (keeping the
+  `$(PYTHON_TARGETS)` paths, which the config does not carry), **and reconcile
+  in the same change** all four prose homes of the old literal — AGENTS.md line
+  86, `docs/developers-guide.md` lines 12-13 and 157, and `docs/users-guide.md`
+  line 18 — so no authoritative or user-facing document goes stale.
   - Rationale: a single source for the threshold avoids drift between a Makefile
     literal and the config; interrogate auto-detects `pyproject.toml` and reads
     `[tool.interrogate]` (verified against `interrogate/config.py`), so the
@@ -425,9 +426,10 @@ escalation, not a workaround.
   - Date/Author: 2026-06-22 (round 2; edit set widened round 3), planning agent.
 - Decision (round 3): add `docs/users-guide.md` line 18 to the edit set as the
   fourth prose home of the literal, raise the file-count tolerance to 8 (seven
-  besides this plan), and record the exhaustive grep that proves the edit set is
-  complete before option (a) is committed.
-  - Rationale: the round-2 design review found that the literal lives in **five**
+  besides this plan), and record the exhaustive grep that proves the edit set
+  is complete before option (a) is committed.
+  - Rationale: the round-2 design review found that the literal lives in
+    **five**
     tracked homes, not three — the user-facing `docs/users-guide.md` line 18 was
     missed by the earlier drafts, which grepped only AGENTS.md, the developers'
     guide, and the design doc. Dropping `--fail-under 100` from the Makefile while
@@ -437,12 +439,12 @@ escalation, not a workaround.
     and pinning the exhaustive `git grep` (exactly five homes) makes the
     option-(a) edit set provably exhaustive.
   - Date/Author: 2026-06-22 (round 3), planning agent.
-- Decision: correct the source map — the `interrogate --fail-under 100
-  $(PYTHON_TARGETS)` literal lives in AGENTS.md line 86, `docs/developers-guide.md`
-  lines 12-13 and 157, and `docs/users-guide.md` line 18 (four prose homes across
-  three files), plus the `Makefile` recipe at line 96, and **not** in any
-  design-document "GitHub Actions" section. Drop the design document from the edit
-  set entirely.
+- Decision: correct the source map — the
+  `interrogate --fail-under 100 $(PYTHON_TARGETS)` literal lives in AGENTS.md
+  line 86, `docs/developers-guide.md` lines 12-13 and 157, and
+  `docs/users-guide.md` line 18 (four prose homes across three files), plus the
+  `Makefile` recipe at line 96, and **not** in any design-document "GitHub
+  Actions" section. Drop the design document from the edit set entirely.
   - Rationale: `grep -ni 'interrogate\|fail-under\|docstring cover'
     docs/novel-ralph-harness-design.md` returns zero hits, while
     `git grep -niE 'interrogate.*(fail.under|100)'` (excluding `docs/execplans`
@@ -495,8 +497,8 @@ escalation, not a workaround.
 Completed 2026-06-22 (option (a), the chosen default).
 
 - Config that landed: a minimal `[tool.interrogate]` table in `pyproject.toml`
-  with `fail-under = 100` (the only load-bearing key) plus every `ignore-*` flag
-  pinned to interrogate's non-relaxing default (`false`), so the table is
+  with `fail-under = 100` (the only load-bearing key) plus every `ignore-*`
+  flag pinned to interrogate's non-relaxing default (`false`), so the table is
   documentary and narrows nothing. No `exclude`, `omit-covered-files`, or
   `style` key was added.
 - Makefile: option (a) taken — the literal `--fail-under 100` was **removed**
@@ -506,8 +508,8 @@ Completed 2026-06-22 (option (a), the chosen default).
   (work item 2), `docs/developers-guide.md` lines 12-13 and 157 (work item 3),
   and `docs/users-guide.md` line 18 (work item 4). The exhaustive
   `git grep -niE 'interrogate.*(fail.under|100)'` (excluding `docs/execplans`
-  and `uv.lock`) afterwards finds no surviving `--fail-under 100` literal in any
-  prose or in the Makefile.
+  and `uv.lock`) afterwards finds no surviving `--fail-under 100` literal in
+  any prose or in the Makefile.
 - Runtime transcript: with the config present and no CLI flag,
   `uv run interrogate novel_ralph_skill tests` reports
   `RESULT: PASSED (minimum: 100.0%, actual: 100.0%)` — the config governs the
@@ -520,12 +522,12 @@ Completed 2026-06-22 (option (a), the chosen default).
   already at 100% and the wiring was consistent); it is the forward guard
   against future regressions.
 - CodeRabbit: work item 1 raised only findings against the untracked planning
-  artefact (no actionable change). Work item 2 went through three review passes,
-  resolving trivials (inline read, split-chain comment, class grouping) and
-  majors (PEP 508-robust dependency parse, `match`/`case` over `isinstance`),
-  and skipping one repeated "AGENTS.md is stale" finding because AGENTS.md is the
-  live authoritative source for the 100% standard. Work items 3 and 4 returned
-  zero findings.
+  artefact (no actionable change). Work item 2 went through three review
+  passes, resolving trivials (inline read, split-chain comment, class grouping)
+  and majors (PEP 508-robust dependency parse, `match`/`case` over
+  `isinstance`), and skipping one repeated "AGENTS.md is stale" finding because
+  AGENTS.md is the live authoritative source for the 100% standard. Work items
+  3 and 4 returned zero findings.
 - `make all`, `make markdownlint`, and `make nixie` are green at each commit's
   HEAD.
 
@@ -539,8 +541,8 @@ the worktree root
 - `pyproject.toml` — `[dependency-groups] dev` lists `interrogate` (line 20);
   `requires-python = ">=3.14"` (line 6); `[project.scripts]` (lines 10-15);
   Ruff config including `[tool.ruff.lint.pydocstyle] convention = "numpy"`
-  (lines 161-162) and the `D` (pydocstyle) selection (line 67). There is
-  **no** `[tool.interrogate]` table today — this task adds it.
+  (lines 161-162) and the `D` (pydocstyle) selection (line 67). There is **no**
+  `[tool.interrogate]` table today — this task adds it.
 - `Makefile` — `PYTHON_TARGETS ?= novel_ralph_skill tests` (line 15);
   `lint-python` (lines 94-97) runs Ruff, then
   `interrogate --fail-under 100 $(PYTHON_TARGETS)` (line 96), then PyPy-backed
@@ -564,21 +566,21 @@ the worktree root
 - `docs/users-guide.md` lines 17-18 — the user-facing "Quality Gates" prose
   describing what `lint-python` runs: "The `lint-python` target runs Ruff, then
   Interrogate with `interrogate --fail-under 100 $(PYTHON_TARGETS)` to enforce
-  100% docstring coverage…". This is the fourth prose home of the literal and an
-  edit target (work item 4); it must drop the `--fail-under 100` literal when the
-  Makefile recipe does.
+  100% docstring coverage…". This is the fourth prose home of the literal and
+  an edit target (work item 4); it must drop the `--fail-under 100` literal
+  when the Makefile recipe does.
 - `docs/novel-ralph-harness-design.md` — context only, and **not** an edit
   target: it does not mention interrogate, `fail-under`, or docstring coverage
-  (verified by grep, zero hits). There is no design-doc "GitHub Actions" section
-  describing the gate; the gate literal lives in AGENTS.md, the developers'
-  guide, and the users' guide (and the Makefile recipe), per the exhaustive grep
-  recorded in Purpose.
+  (verified by grep, zero hits). There is no design-doc "GitHub Actions"
+  section describing the gate; the gate literal lives in AGENTS.md, the
+  developers' guide, and the users' guide (and the Makefile recipe), per the
+  exhaustive grep recorded in Purpose.
 - `AGENTS.md` — "Every public module, class, and function carries a docstring;
-  `interrogate` enforces 100% coverage"; the "generated Makefile wiring" list at
-  line 86 ("`make lint-python` runs `ruff check …`, enforces 100% docstring
+  `interrogate` enforces 100% coverage"; the "generated Makefile wiring" list
+  at line 86 ("`make lint-python` runs `ruff check …`, enforces 100% docstring
   coverage with `interrogate --fail-under 100 $(PYTHON_TARGETS)`, and runs …
-  Pylint"); the quality gates; tests under `tests/`; the 400-line limit; Markdown
-  guidance. Line 86 is an edit target (work item 2): it must drop the
+  Pylint"); the quality gates; tests under `tests/`; the 400-line limit;
+  Markdown guidance. Line 86 is an edit target (work item 2): it must drop the
   `--fail-under 100` literal when the Makefile recipe does.
 - `docs/scripting-standards.md` — the Cyclopts/cuprum conventions (context only;
   this task shells out to nothing at runtime and adds no script). Note its
@@ -653,8 +655,8 @@ Authoritative sources to read before editing:
   400-line limit, the snapshot/property discipline, and Markdown guidance.
 - `docs/developers-guide.md` lines 12-13 and line 157 — the two edit targets in
   the developers' guide (the gate statement and the CI paragraph).
-- `docs/users-guide.md` lines 17-18 — the user-facing "Quality Gates" edit target
-  (the `lint-python` description).
+- `docs/users-guide.md` lines 17-18 — the user-facing "Quality Gates" edit
+  target (the `lint-python` description).
 - `docs/novel-ralph-harness-design.md` — read for context, but it does **not**
   mention interrogate and is **not** an edit target (verified by grep).
 - `.rules/python-00.md`, `.rules/python-return.md`, `.rules/python-pyproject.md`
@@ -670,12 +672,13 @@ validation; `make all` must be green before each commit, and every
 Markdown-touching work item also runs `make markdownlint` and `make nixie`
 (work item 2 edits AGENTS.md, work item 3 edits the developers' guide, and work
 item 4 edits the users' guide, so all three run the Markdown gates). The items
-are ordered so the configuration lands first and is proven to govern the gate (1),
-then the Makefile is migrated to source the threshold from it, AGENTS.md is
-reconciled in the same commit, and the guard test pins the wiring (2), then the
-developers' guide converges on the single source (3), then the users' guide does
-the same (4). Each commit leaves every gate green and ships no contradiction
-between the Makefile recipe and any authoritative or user-facing document.
+are ordered so the configuration lands first and is proven to govern the gate
+(1), then the Makefile is migrated to source the threshold from it, AGENTS.md
+is reconciled in the same commit, and the guard test pins the wiring (2), then
+the developers' guide converges on the single source (3), then the users' guide
+does the same (4). Each commit leaves every gate green and ships no
+contradiction between the Makefile recipe and any authoritative or user-facing
+document.
 
 ### Work item 1 — Add the `[tool.interrogate]` configuration block
 
@@ -684,8 +687,9 @@ with no configuration"); AGENTS.md ("`interrogate` enforces 100% coverage").
 
 Add a `[tool.interrogate]` table to `pyproject.toml` (placed beside the other
 `[tool.*]` tables, e.g. after `[tool.pylint.*]` and before
-`[tool.pytest.ini_options]`, so the tool configuration stays grouped). The table
-is minimal and self-documenting; the only load-bearing key is `fail-under`:
+`[tool.pytest.ini_options]`, so the tool configuration stays grouped). The
+table is minimal and self-documenting; the only load-bearing key is
+`fail-under`:
 
 ```toml
 [tool.interrogate]
@@ -721,9 +725,9 @@ property/snapshot suite belongs here). No code module changes in this item.
 Tests added/updated: none in this item (the guard test lands in work item 2,
 after the Makefile is migrated, so the test asserts the end state). The live
 proof for this item is a runtime transcript (see `Concrete steps`): with the
-config present and **no** literal `--fail-under` flag, `uv run interrogate
-novel_ralph_skill tests` reports `minimum: 100.0%` (not `80.0%`) and passes,
-proving the config governs the threshold.
+config present and **no** literal `--fail-under` flag,
+`uv run interrogate novel_ralph_skill tests` reports `minimum: 100.0%` (not
+`80.0%`) and passes, proving the config governs the threshold.
 
 Validation: `make all` stays green (the package is already at 100%, so the gate
 — still driven by the unchanged Makefile line 96 in this item — passes); the
@@ -752,13 +756,14 @@ In `AGENTS.md` (line 86, inside the "generated Makefile wiring" list under
 `make lint`):
 
 - Drop the now-removed `--fail-under 100` literal so the description matches the
-  recipe. Change "enforces 100% docstring coverage with `interrogate
-  --fail-under 100 $(PYTHON_TARGETS)`" to read, for example, "enforces 100%
-  docstring coverage by running `interrogate` over `$(PYTHON_TARGETS)` with the
-  threshold pinned in `[tool.interrogate]` in `pyproject.toml`". Keep it factual,
-  one or two wrapped lines at the file's prose width, en-GB Oxford spelling.
-  Reconcile AGENTS.md in the **same commit** as the Makefile edit so no committed
-  HEAD ships a contradiction between AGENTS.md and the recipe.
+  recipe. Change "enforces 100% docstring coverage with
+  `interrogate --fail-under 100 $(PYTHON_TARGETS)`" to read, for example,
+  "enforces 100% docstring coverage by running `interrogate` over
+  `$(PYTHON_TARGETS)` with the threshold pinned in `[tool.interrogate]` in
+  `pyproject.toml`". Keep it factual, one or two wrapped lines at the file's
+  prose width, en-GB Oxford spelling. Reconcile AGENTS.md in the **same
+  commit** as the Makefile edit so no committed HEAD ships a contradiction
+  between AGENTS.md and the recipe.
 
 Add `tests/test_interrogate_gate.py`, the guard that pins the gate's wiring:
 
@@ -769,18 +774,18 @@ Add `tests/test_interrogate_gate.py`, the guard that pins the gate's wiring:
    **both** the token `interrogate` and the substring `$(PYTHON_TARGETS)`
    (iterate the lines and require co-occurrence on one line; do **not** perform
    two independent whole-file substring checks, because `$(PYTHON_TARGETS)`
-   appears eight times and a future edit could delete the interrogate recipe line
-   while another mention survives). This is robust to reformatting yet fails when
-   the interrogate invocation is removed.
+   appears eight times and a future edit could delete the interrogate recipe
+   line while another mention survives). This is robust to reformatting yet
+   fails when the interrogate invocation is removed.
 3. Assert `interrogate` is a declared dev dependency
-   (`data["dependency-groups"]["dev"]` contains an entry whose distribution name
-   is `interrogate`), so removing the dependency fails the gate.
+   (`data["dependency-groups"]["dev"]` contains an entry whose distribution
+   name is `interrogate`), so removing the dependency fails the gate.
 
-Read first: `Makefile` lines 92-97; `AGENTS.md` lines 81-92 (the Makefile-wiring
-list); `pyproject.toml` lines 17-28 and the new `[tool.interrogate]` table;
-`tests/test_pyproject_scripts.py` and `tests/test_command_names_registry.py`
-(the `tomllib` guard pattern to mirror); `.rules/python-00.md`,
-`.rules/python-return.md`.
+Read first: `Makefile` lines 92-97; `AGENTS.md` lines 81-92 (the
+Makefile-wiring list); `pyproject.toml` lines 17-28 and the new
+`[tool.interrogate]` table; `tests/test_pyproject_scripts.py` and
+`tests/test_command_names_registry.py` (the `tomllib` guard pattern to mirror);
+`.rules/python-00.md`, `.rules/python-return.md`.
 
 Skills: `python-router`, then `python-testing` (the `tomllib` + text-read
 guard); `en-gb-oxendict` for the AGENTS.md prose edit.
@@ -788,9 +793,9 @@ guard); `en-gb-oxendict` for the AGENTS.md prose edit.
 Tests added/updated:
 
 - `tests/test_interrogate_gate.py` (new) — three example-based tests: the
-  `fail-under == 100` config pin, the same-line Makefile-invocation pin, and the
-  dev-dependency pin. Each test function carries a docstring (interrogate scans
-  `tests/`). This is the load-bearing new gate that makes the standard
+  `fail-under == 100` config pin, the same-line Makefile-invocation pin, and
+  the dev-dependency pin. Each test function carries a docstring (interrogate
+  scans `tests/`). This is the load-bearing new gate that makes the standard
   enforceable against future regressions.
 
 Validation: `make lint` still enforces 100% (now from config) and is green;
@@ -803,18 +808,18 @@ with the `Concrete steps` transcript (now the Makefile no longer passes
 
 ### Work item 3 — Reconcile the developers' guide
 
-Implements: roadmap task 1.2.5; AGENTS.md ("Record internally facing conventions
-… in `docs/developers-guide.md`").
+Implements: roadmap task 1.2.5; AGENTS.md ("Record internally facing
+conventions … in `docs/developers-guide.md`").
 
-There are **two** statements of the old literal in this file; both must drop the
-removed `--fail-under 100` so the guide matches the Makefile and AGENTS.md.
+There are **two** statements of the old literal in this file; both must drop
+the removed `--fail-under 100` so the guide matches the Makefile and AGENTS.md.
 
 In `docs/developers-guide.md` lines 12-13 (the one-line gate statement):
 
 - Update the sentence so it states the standard once and names
   `[tool.interrogate]` in `pyproject.toml` as where the threshold lives, e.g.:
-  "`make lint` runs Ruff, `interrogate` over `$(PYTHON_TARGETS)` to enforce 100%
-  docstring coverage (the threshold is pinned in `[tool.interrogate]` in
+  "`make lint` runs Ruff, `interrogate` over `$(PYTHON_TARGETS)` to enforce
+  100% docstring coverage (the threshold is pinned in `[tool.interrogate]` in
   `pyproject.toml`; `tests/test_interrogate_gate.py` guards it), and Pylint."
   Keep it to one or two wrapped lines at 80 columns; do not restate the whole
   gate. (Exact wording pinned by the implementer; en-GB Oxford spelling.)
@@ -822,15 +827,17 @@ In `docs/developers-guide.md` lines 12-13 (the one-line gate statement):
 In `docs/developers-guide.md` line 157 (the CI-job paragraph describing
 `.github/workflows/ci.yml` running `make lint`):
 
-- This line currently reads "`make lint` (Ruff + `interrogate --fail-under 100
-  $(PYTHON_TARGETS)` + Pylint)". Drop the `--fail-under 100` literal so it reads,
-  for example, "`make lint` (Ruff + `interrogate` over `$(PYTHON_TARGETS)` +
-  Pylint)" — the CI job runs the same recipe, so it must not re-spell the removed
-  flag. This is the only "GitHub Actions"-flavoured statement of the gate; it is
-  in the developers' guide, **not** in the design document.
+- This line currently reads "`make lint` (Ruff +
+  `interrogate --fail-under 100 $(PYTHON_TARGETS)` + Pylint)". Drop the
+  `--fail-under 100` literal so it reads, for example, "`make lint` (Ruff +
+  `interrogate` over `$(PYTHON_TARGETS)` + Pylint)" — the CI job runs the same
+  recipe, so it must not re-spell the removed flag. This is the only "GitHub
+  Actions"-flavoured statement of the gate; it is in the developers' guide,
+  **not** in the design document.
 
-Do **not** edit `docs/novel-ralph-harness-design.md`: it contains no interrogate
-reference (verified by grep), so there is no design-doc sentence to reconcile.
+Do **not** edit `docs/novel-ralph-harness-design.md`: it contains no
+interrogate reference (verified by grep), so there is no design-doc sentence to
+reconcile.
 
 Read first: `docs/developers-guide.md` lines 12-13 and 150-160 (the CI
 paragraph); `docs/documentation-style-guide.md`; AGENTS.md "Markdown guidance".
@@ -858,11 +865,12 @@ In `docs/users-guide.md` lines 17-18 (the "Quality Gates" description of what
   100% docstring coverage for the Python targets, then Pylint via a PyPy-backed
   runner." Drop the `--fail-under 100` literal and name `[tool.interrogate]` as
   where the threshold lives, e.g.: "The `lint-python` target runs Ruff, then
-  Interrogate over `$(PYTHON_TARGETS)` to enforce 100% docstring coverage for the
-  Python targets (the threshold is pinned in `[tool.interrogate]` in
-  `pyproject.toml`), then Pylint via a PyPy-backed runner." Keep the surrounding
-  sentences (the Pylint runner, the `uv tool run` note) unchanged; wrap at 80
-  columns; en-GB Oxford spelling. (Exact wording pinned by the implementer.)
+  Interrogate over `$(PYTHON_TARGETS)` to enforce 100% docstring coverage for
+  the Python targets (the threshold is pinned in `[tool.interrogate]` in
+  `pyproject.toml`), then Pylint via a PyPy-backed runner." Keep the
+  surrounding sentences (the Pylint runner, the `uv tool run` note) unchanged;
+  wrap at 80 columns; en-GB Oxford spelling. (Exact wording pinned by the
+  implementer.)
 
 Do **not** touch any other section of the users' guide (the `make all` target
 list, the pytest-discovery paragraph, or the Rust sections are out of scope).
@@ -879,8 +887,9 @@ design).
 Validation: `make markdownlint` and `make nixie` pass over the edited doc;
 `make all` is green. After this commit, re-run the exhaustive
 `git grep -niE 'interrogate.*(fail.under|100)' -- ':!docs/execplans' ':!uv.lock'`
-and confirm the only surviving home is `Makefile:96` reduced to the no-flag form
-— i.e. the literal `--fail-under 100` no longer appears in any tracked prose.
+and confirm the only surviving home is `Makefile:96` reduced to the no-flag
+form — i.e. the literal `--fail-under 100` no longer appears in any tracked
+prose.
 
 ## Concrete steps
 
@@ -924,8 +933,8 @@ uv run interrogate -v novel_ralph_skill tests
 # expect: RESULT: PASSED (minimum: 80.0%, actual: 100.0%)   [before config]
 ```
 
-After work item 1 (config added; Makefile still has the literal flag), prove the
-config governs the threshold when no CLI flag is passed:
+After work item 1 (config added; Makefile still has the literal flag), prove
+the config governs the threshold when no CLI flag is passed:
 
 ```bash
 uv run interrogate novel_ralph_skill tests
@@ -970,14 +979,14 @@ Acceptance, phrased as observable behaviour:
   already-fully-documented package and tests.
 - `tests/test_interrogate_gate.py` pins the gate: it asserts the config
   `fail-under == 100`, that a single Makefile recipe line invokes `interrogate`
-  over `$(PYTHON_TARGETS)` (same-line co-occurrence), and that `interrogate`
-  is a declared dev dependency; any regression fails `make test`.
+  over `$(PYTHON_TARGETS)` (same-line co-occurrence), and that `interrogate` is
+  a declared dev dependency; any regression fails `make test`.
 - AGENTS.md line 86, `docs/developers-guide.md` lines 12-13 and 157, and
   `docs/users-guide.md` line 18 no longer spell the removed `--fail-under 100`
   literal; they state the standard and name `[tool.interrogate]` as where the
-  threshold lives. The exhaustive `git grep` for the literal returns no prose home
-  afterwards (only the reduced Makefile recipe survives, without the flag). The
-  design document is untouched (it never mentioned interrogate).
+  threshold lives. The exhaustive `git grep` for the literal returns no prose
+  home afterwards (only the reduced Makefile recipe survives, without the
+  flag). The design document is untouched (it never mentioned interrogate).
 
 Quality criteria (what "done" means):
 
@@ -991,10 +1000,10 @@ Quality criteria (what "done" means):
   doc(s).
 - Aggregate: `make all` is green at each code work item's commit.
 
-Quality method (how it is checked): run the `Concrete steps` transcript to prove
-the config governs the threshold; run `make all` before and after each code work
-item; run `make markdownlint` and `make nixie` after the documentation edit in
-work item 3.
+Quality method (how it is checked): run the `Concrete steps` transcript to
+prove the config governs the threshold; run `make all` before and after each
+code work item; run `make markdownlint` and `make nixie` after the
+documentation edit in work item 3.
 
 ## Idempotence and recovery
 
@@ -1025,13 +1034,13 @@ work item 3.
   interrogate official docs (v1.7.0).
 - `tomllib` is standard-library on Python 3.14 (`requires-python = ">=3.14"`)
   and is already used by `tests/test_pyproject_scripts.py` and
-  `tests/test_command_names_registry.py`; the new guard reuses that pattern with
-  no new dependency.
+  `tests/test_command_names_registry.py`; the new guard reuses that pattern
+  with no new dependency.
 - The scripting-standards `Catalogue.from_programs` example is **not** part of
   the locked cuprum `0.1.0` public surface (`cuprum/__init__.py` `__all__` at
   tag `v0.1.0`); the static-parse guard shells out to nothing, so this mismatch
-  does not affect the plan. Recorded here so a future implementer does not reach
-  for `Catalogue.from_programs` if they instead choose a subprocess guard.
+  does not affect the plan. Recorded here so a future implementer does not
+  reach for `Catalogue.from_programs` if they instead choose a subprocess guard.
 - Scope fences restated: this task does **not** change any command body, the
   `make_stub_app` factory, the cuprum run-loop, the command-name registry, the
   venv resolver, the `slow`/`timeout` markers, or the `[project.scripts]`
@@ -1041,9 +1050,10 @@ work item 3.
 
 ## Interfaces and dependencies
 
-Dependencies: **no change** to `[project] dependencies` or `[dependency-groups]
-dev`, and no change to `uv.lock`. This task adds no runtime and no test
-dependency; it configures and pins the already-locked `interrogate 1.7.0`.
+Dependencies: **no change** to `[project] dependencies` or
+`[dependency-groups] dev`, and no change to `uv.lock`. This task adds no
+runtime and no test dependency; it configures and pins the already-locked
+`interrogate 1.7.0`.
 
 New configuration (illustrative; the implementer pins the exact key set against
 the interrogate `1.7.0` surface):
@@ -1121,55 +1131,57 @@ scope or an `exclude`; any new dependency; any snapshot (syrupy) or property
   Re-scoped the task to its live gap: the **configuration** half. Pinned,
   against `interrogate/config.py` (v1.7.0) and the official docs, that
   `[tool.interrogate]` is the pyproject table, keys normalize `-`→`_`, the
-  default `fail-under` is
-  `80.0`, the config is injected into `ctx.default_map` (so a CLI `--fail-under`
-  overrides it), and `pyproject.toml` is auto-detected from the project root.
-  Decided to make `[tool.interrogate] fail-under = 100` the single source of
-  truth and drop the Makefile literal (recording the belt-and-braces alternative
-  as a tolerance trigger), to keep the config minimal (only `fail-under` is
-  load-bearing; ignore flags are documentary), and to pin the wiring with a fast
-  `tomllib`/text guard test rather than a subprocess run. Confirmed via
-  `python-verification` that no snapshot/property/mutation suite is warranted.
-  Noted that the scripting-standards `Catalogue.from_programs` example is not in
-  the locked cuprum `0.1.0` surface, so the static-parse guard avoids cuprum
-  entirely. Decomposed into three atomic work items (config; Makefile + guard
-  test; documentation) and fenced out command bodies, the registry, the JSON
+  default `fail-under` is `80.0`, the config is injected into `ctx.default_map`
+  (so a CLI `--fail-under` overrides it), and `pyproject.toml` is auto-detected
+  from the project root. Decided to make `[tool.interrogate] fail-under = 100`
+  the single source of truth and drop the Makefile literal (recording the
+  belt-and-braces alternative as a tolerance trigger), to keep the config
+  minimal (only `fail-under` is load-bearing; ignore flags are documentary),
+  and to pin the wiring with a fast `tomllib`/text guard test rather than a
+  subprocess run. Confirmed via `python-verification` that no
+  snapshot/property/mutation suite is warranted. Noted that the
+  scripting-standards `Catalogue.from_programs` example is not in the locked
+  cuprum `0.1.0` surface, so the static-parse guard avoids cuprum entirely.
+  Decomposed into three atomic work items (config; Makefile + guard test;
+  documentation) and fenced out command bodies, the registry, the JSON
   envelope, and any scope narrowing. The plan remains DRAFT pending review.
 - 2026-06-22 (planning round 2): Resolved the two blocking defects from the
   round-1 Logisphere design review. (1) AGENTS.md staleness: adopted option (a)
-  — config is the single source of truth, the Makefile drops `--fail-under 100`,
-  and AGENTS.md line 86 is reconciled in the **same commit** (work item 2) so no
-  authoritative document contradicts the recipe. Added AGENTS.md to the edit set,
-  raised the file-count tolerance from 6 to 7, added a high-severity
-  documentation-staleness risk, and recorded option (b) (keep the literal) as an
-  explicit escalation-only alternative, not a silent default. (2) Misattributed
-  source: corrected throughout — verified by grep that
-  `docs/novel-ralph-harness-design.md` mentions interrogate **nowhere**, so the
-  phantom "design-doc GitHub-Actions section" references in Purpose, Constraints,
-  Surprises, Context, Authoritative sources, and work item 3 are removed. The two
-  real homes of the literal are named: AGENTS.md line 86 and
-  `docs/developers-guide.md` lines 12-13 and 157. Work item 3 now reconciles both
-  developers'-guide lines and explicitly does **not** touch the design doc. Also
-  actioned the advisory: the Makefile guard test now asserts **same-line**
-  co-occurrence of `interrogate` and `$(PYTHON_TARGETS)` (illustrative code and
-  prose updated) so deleting the recipe line fails the gate even though
-  `$(PYTHON_TARGETS)` appears eight times. Updated the Markdown-gate notes so
-  both work item 2 (AGENTS.md) and work item 3 (developers' guide) run
-  `make markdownlint` and `make nixie`. The plan remains DRAFT pending review.
-- 2026-06-22 (planning round 3): Resolved the single round-2 blocking defect — the
-  incomplete edit set. An exhaustive `git grep -niE
-  'interrogate.*(fail.under|100)'` (excluding `docs/execplans` and `uv.lock`)
-  proves the literal has **exactly five** tracked homes: `Makefile:96`,
-  `AGENTS.md:86`, `docs/developers-guide.md:12`, `docs/developers-guide.md:157`,
-  and the previously-missed user-facing `docs/users-guide.md:18`. Added
-  `docs/users-guide.md` (line 18) to the edit set as new **work item 4** (a
-  Markdown doc, so it runs `make markdownlint` and `make nixie`); raised the
-  file-count tolerance from 7 to 8 (seven besides this plan) and added the users'
-  guide to its enumeration; corrected every "two real homes"/"three statements"
-  enumeration to "four prose homes across three files" in Purpose, Constraints,
-  the staleness Risk, Surprises, the Decision Log, Context, Authoritative sources,
-  the Plan-of-work intro, and Validation; pinned the exhaustive grep as both a
-  Surprises observation and a mandatory `Concrete steps` pre-flight check so the
-  option-(a) edit set is provably complete before the Makefile is changed; and
-  recorded a "sixth home discovered" condition as an additional Makefile-recipe
-  escalation trigger. The plan remains DRAFT pending review.
+  — config is the single source of truth, the Makefile drops
+  `--fail-under 100`, and AGENTS.md line 86 is reconciled in the **same
+  commit** (work item 2) so no authoritative document contradicts the recipe.
+  Added AGENTS.md to the edit set, raised the file-count tolerance from 6 to 7,
+  added a high-severity documentation-staleness risk, and recorded option (b)
+  (keep the literal) as an explicit escalation-only alternative, not a silent
+  default. (2) Misattributed source: corrected throughout — verified by grep
+  that `docs/novel-ralph-harness-design.md` mentions interrogate **nowhere**,
+  so the phantom "design-doc GitHub-Actions section" references in Purpose,
+  Constraints, Surprises, Context, Authoritative sources, and work item 3 are
+  removed. The two real homes of the literal are named: AGENTS.md line 86 and
+  `docs/developers-guide.md` lines 12-13 and 157. Work item 3 now reconciles
+  both developers'-guide lines and explicitly does **not** touch the design
+  doc. Also actioned the advisory: the Makefile guard test now asserts
+  **same-line** co-occurrence of `interrogate` and `$(PYTHON_TARGETS)`
+  (illustrative code and prose updated) so deleting the recipe line fails the
+  gate even though `$(PYTHON_TARGETS)` appears eight times. Updated the
+  Markdown-gate notes so both work item 2 (AGENTS.md) and work item 3
+  (developers' guide) run `make markdownlint` and `make nixie`. The plan
+  remains DRAFT pending review.
+- 2026-06-22 (planning round 3): Resolved the single round-2 blocking defect —
+  the incomplete edit set. An exhaustive
+  `git grep -niE 'interrogate.*(fail.under|100)'` (excluding `docs/execplans`
+  and `uv.lock`) proves the literal has **exactly five** tracked homes:
+  `Makefile:96`, `AGENTS.md:86`, `docs/developers-guide.md:12`,
+  `docs/developers-guide.md:157`, and the previously-missed user-facing
+  `docs/users-guide.md:18`. Added `docs/users-guide.md` (line 18) to the edit
+  set as new **work item 4** (a Markdown doc, so it runs `make markdownlint` and
+  `make nixie`); raised the file-count tolerance from 7 to 8 (seven besides
+  this plan) and added the users' guide to its enumeration; corrected every
+  "two real homes"/"three statements" enumeration to "four prose homes across
+  three files" in Purpose, Constraints, the staleness Risk, Surprises, the
+  Decision Log, Context, Authoritative sources, the Plan-of-work intro, and
+  Validation; pinned the exhaustive grep as both a Surprises observation and a
+  mandatory `Concrete steps` pre-flight check so the option-(a) edit set is
+  provably complete before the Makefile is changed; and recorded a "sixth home
+  discovered" condition as an additional Makefile-recipe escalation trigger.
+  The plan remains DRAFT pending review.

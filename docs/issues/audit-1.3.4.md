@@ -15,20 +15,21 @@ guarded by
 [`tests/test_contract_errors.py`](../../tests/test_contract_errors.py).
 
 The slice is sound and discharges its goal: the three domain exceptions now fan
-out from one base, pinning the cross-layer dependency direction
-(`rulepack` → `contract`, never the reverse; design §3.1, ADR-003). The unit
-tests pin the round-trip, the `Exception` base, the dual import path, the
-subclass relationships, the sibling independence of the two rule-pack errors,
-and the per-subclass payload. None of the findings below is a blocking defect;
-they are tidy-up, consistency, and coverage opportunities.
+out from one base, pinning the cross-layer dependency direction (`rulepack` →
+`contract`, never the reverse; design §3.1, ADR-003). The unit tests pin the
+round-trip, the `Exception` base, the dual import path, the subclass
+relationships, the sibling independence of the two rule-pack errors, and the
+per-subclass payload. None of the findings below is a blocking defect; they are
+tidy-up, consistency, and coverage opportunities.
 
 Trail followed: explored with `leta` (`show`, `grep`, `files`) over the
-`contract` and `rulepack` packages, `_freeze.py`, `commands/novel_state.py`,
-and `tests/test_contract_errors.py`; traced history with `git show 08fa690` and
+`contract` and `rulepack` packages, `_freeze.py`, `commands/novel_state.py`, and
+`tests/test_contract_errors.py`; traced history with `git show 08fa690` and
 `git log origin/main`. Source of truth consulted:
-`docs/novel-ralph-harness-design.md` §3.1, `docs/adr-003-shared-interface-contract.md`,
-`docs/developers-guide.md`, and `AGENTS.md`. Each finding records a category, a
-location, a description, a concrete proposed fix, and a severity.
+`docs/novel-ralph-harness-design.md` §3.1,
+`docs/adr-003-shared-interface-contract.md`, `docs/developers-guide.md`, and
+`AGENTS.md`. Each finding records a category, a location, a description, a
+concrete proposed fix, and a severity.
 
 ## Finding 1 — Redundant `list(exc.messages)` round-trip in the runner
 
@@ -61,8 +62,8 @@ the rest of the contract layer.
 - Severity: low
 - Location:
   [`docs/developers-guide.md`](../../docs/developers-guide.md) (the exit-code
-  channel prose around lines 254–257 and the rule-pack error prose around
-  lines 437–445).
+  channel prose around lines 254–257 and the rule-pack error prose around lines
+  437–445).
 
 The guide describes `StateInputError`, `RulePackError`, and `RulePackFileError`
 as three independent channels, but 1.3.4 unified their `messages` storage under
@@ -70,8 +71,8 @@ as three independent channels, but 1.3.4 unified their `messages` storage under
 errors now share a base, where that base lives, or why the dependency points
 `rulepack` → `contract`. The base is currently documented only in the ExecPlan,
 the roadmap, and the module docstring of `contract/errors.py`. The design doc
-(§3.1) is the authority for the `messages` contract but predates the extraction,
-so it too omits the shared base.
+(§3.1) is the authority for the `messages` contract but predates the
+extraction, so it too omits the shared base.
 
 Proposed fix: add a short paragraph to the developers' guide (in the contract
 section that already covers `StateInputError`) noting that the three domain
@@ -98,17 +99,17 @@ Every other contract-layer `messages` field is frozen through the shared
 `Envelope.__post_init__`). The base instead relies on the incidental fact that
 `*messages` varargs already arrives as a `tuple`, assigning
 `self.messages: tuple[str, ...] = messages` directly. The module docstring even
-calls this "the freeze-on-construct decision", yet it does not route through the
-one helper that names that decision elsewhere. The behaviour is correct today
-(varargs are always tuples), but the codebase now has two ways of expressing
-"freeze a messages sequence", and a future refactor that changed the base to
-accept a `Sequence[str]` parameter (rather than varargs) could silently drop the
-immutability guarantee.
+calls this "the freeze-on-construct decision", yet it does not route through
+the one helper that names that decision elsewhere. The behaviour is correct
+today (varargs are always tuples), but the codebase now has two ways of
+expressing "freeze a messages sequence", and a future refactor that changed the
+base to accept a `Sequence[str]` parameter (rather than varargs) could silently
+drop the immutability guarantee.
 
 Proposed fix: either (a) add a brief comment on the assignment noting that
-`*messages` is already an immutable tuple so no `freeze_sequence` call is needed,
-explicitly tying the line to the shared freeze convention; or (b) if the base is
-ever generalized to take a `Sequence[str]`, store
+`*messages` is already an immutable tuple so no `freeze_sequence` call is
+needed, explicitly tying the line to the shared freeze convention; or (b) if
+the base is ever generalized to take a `Sequence[str]`, store
 `self.messages = freeze_sequence(messages)` so the one normalizer owns the
 guarantee. Option (a) is the lighter-touch fix for the current varargs API.
 
@@ -120,8 +121,8 @@ guarantee. Option (a) is the lighter-touch fix for the current varargs API.
   [`tests/test_contract_errors.py`](../../tests/test_contract_errors.py).
 
 The new unit suite is thorough on round-trip, hierarchy, and per-subclass
-payload, but it does not assert two properties the base and its docstring imply:
-that constructing with no messages yields an empty tuple
+payload, but it does not assert two properties the base and its docstring
+imply: that constructing with no messages yields an empty tuple
 (`EnvelopeMessagesError().messages == ()`), and that the stored `messages`
 attribute is genuinely immutable (a `tuple`, not a list aliased from a caller).
 The "is an immutable tuple" claim is asserted only for the two-element case via

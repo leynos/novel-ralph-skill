@@ -95,15 +95,13 @@ narrowed `uv run pytest` over unaffected modules. AGENTS.md lines 100 and 108
 are unambiguous: "Only changes that meet all quality gates should be committed"
 and "Do not commit changes that fail any quality gate." The plan leaves the
 fold of items 1+2 as a conditional ("If repository policy forbids committing a
-red test…"). It does not; resolve this now: mandate a single green commit
-(red test plus its satisfying mechanism together), and drop the red-commit
-branch.
+red test…"). It does not; resolve this now: mandate a single green commit (red
+test plus its satisfying mechanism together), and drop the red-commit branch.
 
 ## Advisory
 
 - A1 (Buzzy Bee): scaling is a non-issue — the corpus is a fixed finite set
-  built
-  under `tmp_path`; xdist-safety reasoning is sound. No concern.
+  built under `tmp_path`; xdist-safety reasoning is sound. No concern.
 - A2 (Wafflecat alternative): the strongest viable design is the one the guide
   already names — a *live-draft* oracle. Recompute the drafted-word total from
   the `draft.md` bodies on disk (the corpus writes deterministic

@@ -28,20 +28,19 @@ envelope.
   note names `init` as the receipt exception so the roadmap's "log-receipt
   discipline" wording is reconciled airtight.
 - **A6 — class pinned but the pin is WRONG (see B5).**
-  `cyclopts.ValidationError`
-  *is* a `CycloptsError` subclass (verified live), and `runner.py:225-232` maps
-  `CycloptsError` → exit 2. That much holds. What round 2/3 did **not** verify
-  is that the runner can *stringify* a bare `ValidationError(msg=...)`. It
-  cannot.
+  `cyclopts.ValidationError` *is* a `CycloptsError` subclass (verified live),
+  and `runner.py:225-232` maps `CycloptsError` → exit 2. That much holds. What
+  round 2/3 did **not** verify is that the runner can *stringify* a bare
+  `ValidationError(msg=...)`. It cannot.
 
 ## External-library claims — verified live, not from memory
 
 - **cuprum** locked 0.1.0 (`uv.lock`):
   `SafeCmd.run_sync(*, capture=True, echo=False, context=None)` — confirmed via
-  `uv run inspect.signature`. The
-  read-only sibling `/data/leynos/Projects/cuprum/cuprum/sh.py:441` has the
-  drifted `output=RunOutputOptions` form; Surprise S1 correctly pins the locked
-  wheel, and `test_set_chapters_e2e.py:107-109` already calls the locked
+  `uv run inspect.signature`. The read-only sibling
+  `/data/leynos/Projects/cuprum/cuprum/sh.py:441` has the drifted
+  `output=RunOutputOptions` form; Surprise S1 correctly pins the locked wheel,
+  and `test_set_chapters_e2e.py:107-109` already calls the locked
   `run_sync(context=, capture=)` form. The e2e plan reuses this verbatim. Sound.
 - **Cyclopts** 4.18.0: `bool | None = None` yields `--flag`/`--no-flag` and a
   no-flag default of empty/None; `Annotated[int, Parameter(name="--pass")]`
@@ -156,8 +155,7 @@ without re-tripping the cap. Re-measure in WI5.
    "usage faults are exit 2" sign-off. The four mutator *bodies* and their
    ratio/precondition tests are unaffected and remain sound.
 3. **Carried, still mitigated:** WI1 Hypothesis vacuity — D8's `event()`/
-   `target`
-   anti-vacuity requirement stands; keep it non-negotiable.
+   `target` anti-vacuity requirement stands; keep it non-negotiable.
 
 ## Strongest alternative (Wafflecat)
 

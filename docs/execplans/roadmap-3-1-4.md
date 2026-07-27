@@ -152,12 +152,12 @@ escalation, not a workaround.
   already pinned by the `no_unresolved_blockers` failer snapshot and the BDD
   `Then` assertions (AGENTS.md "avoid snapshot-only coverage").
 - [x] W4 — Reconcile the documentation (developers' guide, done-conditions
-  reference, design note) to the positional grammar and both failure directions.
-  The developers' guide BLOCKER-format paragraph, the `done-conditions.md`
-  `contains_unresolved_blocker` reference, and the design §4.2
-  implementation-status note now describe the trailing-positional rule and both
-  failure directions (false-dirty prose mention; out-of-scope case variants).
-  `make markdownlint`, `make nixie`, and `make all` all green.
+  reference, design note) to the positional grammar and both failure
+  directions. The developers' guide BLOCKER-format paragraph, the
+  `done-conditions.md` `contains_unresolved_blocker` reference, and the design
+  §4.2 implementation-status note now describe the trailing-positional rule and
+  both failure directions (false-dirty prose mention; out-of-scope case
+  variants). `make markdownlint`, `make nixie`, and `make all` all green.
 
 ## Surprises & discoveries
 
@@ -243,22 +243,22 @@ All four work items landed against the purpose. The production grammar now reads
 `stripped.startswith(_BLOCKER_PREFIX) and not stripped.endswith(_RESOLVED_TOKEN)`,
 so a live BLOCKER quoting `[resolved]` mid-line is reported unresolved while a
 trailing-marker resolution still clears; the oracle twin mirrors it. The
-false-clean direction is pinned three ways — a unit test, a Hypothesis property,
-a §1.3.2 corpus tree — plus a `novel-done` BDD scenario, and the existing
-false-dirty near-miss and genuinely-resolved specs run unchanged. `make all` is
-green at HEAD (716 passed, 1 skipped); markdownlint and nixie pass for the doc
-changes.
+false-clean direction is pinned three ways — a unit test, a Hypothesis
+property, a §1.3.2 corpus tree — plus a `novel-done` BDD scenario, and the
+existing false-dirty near-miss and genuinely-resolved specs run unchanged.
+`make all` is green at HEAD (716 passed, 1 skipped); markdownlint and nixie
+pass for the doc changes.
 
-Commits: `96fa6dc` (W1+W2, fold), `3aa248f` (W3),
-plus the W4 documentation commit.
+Commits: `96fa6dc` (W1+W2, fold), `3aa248f` (W3), plus the W4 documentation
+commit.
 
 Deviation (recorded): `make fmt`'s `mdformat-all` step reflows every tracked
 markdown file in the repository, not just the edited ones — the well-known
 spurious churn this repo's stash history documents across many branches. For W4
 the churn (130+ unrelated `docs/` and `skill/` files) was stashed away and only
-the three intended documentation edits were re-applied by hand, so the W4 commit
-carries no collateral reflow. `make markdownlint` + `make nixie` + `make all`
-were run directly (not via `make fmt`) to gate the markdown without
+the three intended documentation edits were re-applied by hand, so the W4
+commit carries no collateral reflow. `make markdownlint` + `make nixie` +
+`make all` were run directly (not via `make fmt`) to gate the markdown without
 re-triggering the churn. One pre-existing over-length line in this execplan's
 W3 step was wrapped into a fenced `python` block to satisfy MD013.
 
@@ -330,8 +330,7 @@ Terms of art, defined:
 - "BLOCKER" — the most severe critic finding; a chapter with a live BLOCKER is
   not done (design §4.2; `critic-personas.md`).
 - "false-clean" — the predicate reporting a clause *satisfied* (clean) when it
-  is
-  not; here, declaring a live-BLOCKER tree done. This is the "exit-0 lie".
+  is not; here, declaring a live-BLOCKER tree done. This is the "exit-0 lie".
 - "false-dirty" — the opposite error: declaring a clean tree not-done. The
   existing near-miss pins this direction.
 - "positional marker" — a token whose *position* on the line (here, the end)

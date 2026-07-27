@@ -27,12 +27,12 @@ implementation.
 - `_classify_bijection.coherent_subset = not orphans and contiguous`
   (`_disk_paths.py` 99-109). Plan's extra `on_disk < manifest` gate is sound.
 - The behavioural pin
-  `test_cover_drafts_silent_on_relaxed_subset_with_drifted_table`
-  exists (line 196) and pins the old deferral; it uses an **extra** key (`04`)
-  drift, not a missing-drafted-key drift. WI2's replacement uses a different
-  tree (omit `02`); the planner must not claim the identical tree flips — under
-  D2 the original extra-key tree stays silent even after 2.3.8 (extra
-  suppressed on a relaxed subset). WI2 wording is consistent with this.
+  `test_cover_drafts_silent_on_relaxed_subset_with_drifted_table` exists (line
+  196) and pins the old deferral; it uses an **extra** key (`04`) drift, not a
+  missing-drafted-key drift. WI2's replacement uses a different tree (omit
+  `02`); the planner must not claim the identical tree flips — under D2 the
+  original extra-key tree stays silent even after 2.3.8 (extra suppressed on a
+  relaxed subset). WI2 wording is consistent with this.
 - Oracle twin `_check_word_counts_cover_drafts(working_dir)` takes only
   `working_dir` and inlines the bijection rule; `_disk_by_chapter` is
   manifest-keyed. The required end signature (add kw-only `relax_drafting`) is
@@ -109,7 +109,7 @@ carries a cover gap, asserting the pending-turn action wins (not RECOUNT).
   154-160/165-171). Cosmetic; fix when editing.
 - WI2's relaxed verdict must be taken from
   `check_disk_evidence(..., relax_drafting_bijection=True)`, not the
-  bijection-only `_bijection_verdict`
-  helper (which only runs `_check_manifest_disk_bijection`). The module already
-  imports `check_disk_evidence`; state this in WI2 so the new test wires the
-  full detector.
+  bijection-only `_bijection_verdict` helper (which only runs
+  `_check_manifest_disk_bijection`). The module already imports
+  `check_disk_evidence`; state this in WI2 so the new test wires the full
+  detector.

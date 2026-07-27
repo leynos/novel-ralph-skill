@@ -98,8 +98,8 @@ coverage that does not exist:
 - `make fmt` (`Makefile:81`) formats Markdown and fixes table markup; run it
   after edits per AGENTS.md:170.
 - The Markdown tools (`markdownlint-cli2` and `nixie`) are invoked through the
-  existing `make markdownlint` and `make nixie` targets above; the plan does not
-  rely on any machine-local tool path.
+  existing `make markdownlint` and `make nixie` targets above; the plan does
+  not rely on any machine-local tool path.
 
 ## Why no external-library research is load-bearing here
 
@@ -245,8 +245,7 @@ Thresholds that trigger escalation rather than autonomous workaround.
   re-homes any surviving normative text under a "see `novel-done`" pointer.
 
 - Risk: Markdown reflow after editing changes table or fence formatting and
-  trips
-  `markdownlint` rules unrelated to the intended edit. Severity: low.
+  trips `markdownlint` rules unrelated to the intended edit. Severity: low.
   Likelihood: medium. Mitigation: Run `make fmt` then `make markdownlint` after
   each file edit (not only at the end) per AGENTS.md:170.
 
@@ -259,28 +258,30 @@ Thresholds that trigger escalation rather than autonomous workaround.
 
 ## Progress
 
-- [x] Work Item 1: Reconcile the design §8 record (and the roadmap 6.2.3 item) to
-  the on-disk reality — defects (1) and (3) already corrected in the skill files
-  by `916313c`; defect (2) the live work. Done: verified on-disk by content; §8
-  and the roadmap item rewritten; `make all`, `make markdownlint`, `make nixie`
-  green.
+- [x] Work Item 1: Reconcile the design §8 record (and the roadmap 6.2.3 item)
+      to
+  the on-disk reality — defects (1) and (3) already corrected in the skill
+  files by `916313c`; defect (2) the live work. Done: verified on-disk by
+  content; §8 and the roadmap item rewritten; `make all`, `make markdownlint`,
+  `make nixie` green.
 - [x] Work Item 2: Reduce both prose copies of the novel-level done predicate to
-  a pointer at `novel-done`. Done: removed the `novel_predicate`/`novel_is_done`
-  pseudocode from `done-conditions.md` and the five-item short-form list from
-  `SKILL.md`; repointed the four in-text mentions (truthful-done principle,
-  entry-routine step 5, Phase 9 exit, "almost done" anti-pattern) at
-  `novel-done`; kept the BLOCKER resolution convention, final-log template,
-  failure modes, and anti-patterns. `grep -rn "novel_predicate" skill/` clean;
-  `make all`, `make markdownlint`, `make nixie` green; coderabbit 0 findings.
+  a pointer at `novel-done`. Done: removed the `novel_predicate`/
+  `novel_is_done` pseudocode from `done-conditions.md` and the five-item
+  short-form list from `SKILL.md`; repointed the four in-text mentions
+  (truthful-done principle, entry-routine step 5, Phase 9 exit, "almost done"
+  anti-pattern) at `novel-done`; kept the BLOCKER resolution convention,
+  final-log template, failure modes, and anti-patterns.
+  `grep -rn "novel_predicate" skill/` clean; `make all`, `make markdownlint`,
+  `make nixie` green; coderabbit 0 findings.
 - [x] Work Item 3: Repoint the developers' guide cross-reference off the removed
   pseudocode. Done: §562-564 now presents the clause table as authoritative,
   sourcing the conditions from design §4.2 and `done_predicate.py`, not the
   removed `novel_predicate` body; the "Manifest, not outline" note records the
   manifest reconciliation as 3.1.1.1's work (never 6.2.3's) and that the skill
-  prose now points at `novel-done`. `grep -n "novel_predicate"
-  docs/developers-guide.md` clean; remaining `done-conditions.md` references
-  point only at surviving content; `make all`, `make markdownlint`, `make nixie`
-  green; coderabbit 0 findings.
+  prose now points at `novel-done`.
+  `grep -n "novel_predicate" docs/developers-guide.md` clean; remaining
+  `done-conditions.md` references point only at surviving content; `make all`,
+  `make markdownlint`, `make nixie` green; coderabbit 0 findings.
 
 ## Surprises & discoveries
 
@@ -298,8 +299,7 @@ Thresholds that trigger escalation rather than autonomous workaround.
   in Work Item 2.
 
 - Observation: The round-1 plan cited commit `8d4a07c` as the fix for defects
-  (1)
-  and (3). That commit is not on this branch. Evidence:
+  (1) and (3). That commit is not on this branch. Evidence:
   `git merge-base --is-ancestor 8d4a07c HEAD` returns non-zero;
   `git branch -a --contains 8d4a07c` lists only `skill-turn-around` /
   `origin/skill-turn-around`. The real provenance is `916313c` ("Establish
@@ -373,17 +373,19 @@ Delivered as planned, in three atomic commits.
 - **Purpose met.** A reader looking for "when is the novel done" is now pointed
   at `novel-done` and the developers' guide six-clause table from both
   `SKILL.md` and `done-conditions.md`; no second hand-maintained predicate copy
-  survives (`grep -rn "novel_predicate" skill/` is clean). Design §8 records the
-  phase-mislabel and `plan.md` defects as already corrected in the skill files
-  (provenance `916313c`, never `8d4a07c`) and the two-source predicate as
+  survives (`grep -rn "novel_predicate" skill/` is clean). Design §8 records
+  the phase-mislabel and `plan.md` defects as already corrected in the skill
+  files (provenance `916313c`, never `8d4a07c`) and the two-source predicate as
   consolidated here; the roadmap 6.2.3 item matches. The dev-guide §562-564
   reference is repointed at design §4.2 and `done_predicate.py`, and the
-  "Manifest, not outline" note attributes the manifest reconciliation to 3.1.1.1.
-- **Gates.** `make markdownlint` and `make nixie` pass repo-wide on every commit;
-  `make all` (`build check-fmt lint typecheck test`) stays green at 761 passed,
-  1 skipped. Coderabbit: three runs (one per work item); the first surfaced three
-  minor portability nits on the execplan text (two fixed, one skipped — the
-  frozen round-1 review record), the latter two returned zero findings.
+  "Manifest, not outline" note attributes the manifest reconciliation to
+  3.1.1.1.
+- **Gates.** `make markdownlint` and `make nixie` pass repo-wide on every
+  commit; `make all` (`build check-fmt lint typecheck test`) stays green at 761
+  passed, 1 skipped. Coderabbit: three runs (one per work item); the first
+  surfaced three minor portability nits on the execplan text (two fixed, one
+  skipped — the frozen round-1 review record), the latter two returned zero
+  findings.
 - **Deviation (recorded).** `make fmt`/`mdtablefix` reflows the entire
   repository's Markdown — a known recurring nuisance on this repo (see the long
   run of "spurious make-fmt mdformat churn" stashes). Running it would have
@@ -437,9 +439,8 @@ The files this plan edits, with the content (not line number) each edit targets:
   is not edited.
 - `skill/novel-ralph/references/done-conditions.md` — the
   `## Novel-level predicate` section's `novel_predicate` pseudocode and the
-  novel-level
-  `## How to evaluate` pseudocode (the `return novel_predicate(...)` call near
-  line 26).
+  novel-level `## How to evaluate` pseudocode (the
+  `return novel_predicate(...)` call near line 26).
 - `docs/novel-ralph-harness-design.md` — §8 "Skill defects the rebuild
   corrects" (lines 772-792).
 - `docs/developers-guide.md` — the §"Done predicate (`novel-done`)" cross
@@ -462,8 +463,8 @@ Implements: design §8 (the record of defects); roadmap 6.2.3 first and third
 sub-bullets (`docs/roadmap.md:1304-1306`). Read first: design §8
 (`docs/novel-ralph-harness-design.md:772-792`);
 `docs/documentation-style-guide.md` (single-source-of-truth and cross-reference
-guidance). Load skill: none beyond the Markdown gates; this is prose. Use `leta`
-/`sem` only if navigation is needed — this item is a pure prose edit.
+guidance). Load skill: none beyond the Markdown gates; this is prose. Use
+`leta` /`sem` only if navigation is needed — this item is a pure prose edit.
 
 Verify on disk first (do not trust the cited line numbers): grep
 `skill/novel-ralph/SKILL.md` for the drafting-phase sentence and confirm it
@@ -789,20 +790,22 @@ consolidated.
 
 - [x] **6.2.3.1 — Repoint the `SKILL.md` reference-files table row (from
   review:6.2.3; low).** The "Reference files" table in
-  `skill/novel-ralph/SKILL.md` still names `references/done-conditions.md` as the
-  reference for "overall completion". After this task `done-conditions.md` merely
-  redirects the novel-level predicate to `novel-done`, so that table cell is the
-  last soft pointer implying `done-conditions.md` still holds the overall
-  predicate. Tweak the row to name `novel-done` for the novel-level completion
-  check, leaving the phase-level and chapter-level reference role intact.
-- [x] **6.2.3.2 — Reconcile design §8 and the developers' guide clause table (from
-  audit:6.2.3; low).** Two small docs-consistency residues this task left. Design
-  §8's two-source-predicate bullet
+  `skill/novel-ralph/SKILL.md` still names `references/done-conditions.md` as
+  the reference for "overall completion". After this task `done-conditions.md`
+  merely redirects the novel-level predicate to `novel-done`, so that table
+  cell is the last soft pointer implying `done-conditions.md` still holds the
+  overall predicate. Tweak the row to name `novel-done` for the novel-level
+  completion check, leaving the phase-level and chapter-level reference role
+  intact.
+- [x] **6.2.3.2 — Reconcile design §8 and the developers' guide clause table
+      (from
+  audit:6.2.3; low).** Two small docs-consistency residues this task left.
+  Design §8's two-source-predicate bullet
   (`docs/novel-ralph-harness-design.md`: "roadmap task 6.2.3 reduces both prose
   copies … which runs once …") still reads future-tense though the task has
   merged; reword it to record the consolidation as done. Separately, the
-  now-authoritative developers' guide clause table
-  (`docs/developers-guide.md` "The six clauses and their disk sources") lists
-  `no_unresolved_blockers` before `compile_consistent`, the reverse of the
-  canonical design §4.2 envelope order; reorder the two bullets to match §4.2.
-  Both are prose-only; `make markdownlint` and `make nixie` gate them.
+  now-authoritative developers' guide clause table (`docs/developers-guide.md`
+  "The six clauses and their disk sources") lists `no_unresolved_blockers`
+  before `compile_consistent`, the reverse of the canonical design §4.2
+  envelope order; reorder the two bullets to match §4.2. Both are prose-only;
+  `make markdownlint` and `make nixie` gate them.

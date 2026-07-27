@@ -525,8 +525,8 @@ Both work items landed as planned, in order, each as one atomic commit gated by
 - Deviation from the literal Concrete-steps RED recipe: because item 1 is
   committed (so the reference is clean at HEAD), the RED check exercised the
   guard predicates against `git show HEAD~1:…/state-layout.md` rather than a
-  `git stash` of an uncommitted edit. The outcome is identical — the three named
-  rows red on the reverted reference — and the worktree's repository-wide
+  `git stash` of an uncommitted edit. The outcome is identical — the three
+  named rows red on the reverted reference — and the worktree's repository-wide
   `git stash`/`git restore` safety net made the swap-in-place form impractical.
   Recorded here for the next agent.
 - A repo-wide hazard worth signposting: `make fmt` runs `mdformat-all`, which

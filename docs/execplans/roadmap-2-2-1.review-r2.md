@@ -89,7 +89,8 @@ tests and `pytest-bdd` for behavioural tests"), so the *style* is
 design-conformant.
 
 But `pytest-bdd` is **not installed**: it is absent from `pyproject.toml`'s
-`[dependency-groups].dev` (which is `pytest, interrogate, pip-audit, ruff,
+`[dependency-groups].dev` (which is
+`pytest, interrogate, pip-audit, ruff,
 pyright, ty, pytest-timeout, pytest-xdist, cuprum, hypothesis, syrupy`)
 and absent from `uv.lock`. No `.feature` file and no `from pytest_bdd` import
 exists anywhere in `tests/`; this plan is the first to need it. As written,

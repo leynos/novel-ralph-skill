@@ -105,8 +105,7 @@ Stop and escalate when any of these is breached; do not work around it.
 ## Risks
 
 - Risk: A mounted leaf app whose body is registered with `@app.default` might
-  not
-  fire when invoked as `novel <verb>` under the parent. Severity: high
+  not fire when invoked as `novel <verb>` under the parent. Severity: high
   Likelihood: low Mitigation: Verified empirically against Cyclopts 4.18.0
   (Decision Log D2); pinned by the multiplexer behavioural test in Work item 4.
 - Risk: Mounting a sub-app could clobber its `result_action="return_value"`
@@ -118,9 +117,8 @@ Stop and escalate when any of these is breached; do not work around it.
   `return_value` and it returns the leaf body value to `run` unchanged. Pinned
   by the contract-app tripwire (Work item 4).
 - Risk: Re-pointing the envelope command-name guard onto a superset that
-  includes
-  the spaced names while keeping `[project.scripts]` at the legacy five could
-  desynchronize the two registry consumers, breaking the existing
+  includes the spaced names while keeping `[project.scripts]` at the legacy
+  five could desynchronize the two registry consumers, breaking the existing
   `test_command_names_registry.py` / `test_pyproject_scripts.py` gates.
   Severity: medium Likelihood: medium Mitigation: Work item 2 decouples the two
   roles explicitly — a `SCRIPT_NAMES` / `project_scripts_table` view for
@@ -270,9 +268,10 @@ help/version/bare). The legacy five entry points stay registered and their
 existing suites pass unchanged; `make all` is green at HEAD (1074 passed, 1
 skipped) and coderabbit reported no findings.
 
-The scope boundary held: the e2e/contract suites and the design/`SKILL.md` prose
-were not migrated (tasks 1.2.13/1.2.14); the only test edits outside the new
-dispatch suite were the additive registry/guard updates Work item 2 mandates.
+The scope boundary held: the e2e/contract suites and the design/`SKILL.md`
+prose were not migrated (tasks 1.2.13/1.2.14); the only test edits outside the
+new dispatch suite were the additive registry/guard updates Work item 2
+mandates.
 
 Deviations from the plan, with rationale:
 
@@ -383,9 +382,8 @@ currently conflates:
   carrying `"novel state"`, `"novel done"`, `"novel compile"`,
   `"novel desloppify"`, and `"novel wordcount"` — plus the bare surface name
   `"novel"` (for the body-less help/version arms, Decision Log D4) — and an
-  `ENVELOPE_COMMAND_NAMES` superset tuple = legacy
-  `COMMAND_NAMES` + `SUBCOMMAND_NAMES` (+ `"novel"`). Keep order deterministic
-  and de-duplicated.
+  `ENVELOPE_COMMAND_NAMES` superset tuple = legacy `COMMAND_NAMES` +
+  `SUBCOMMAND_NAMES` (+ `"novel"`). Keep order deterministic and de-duplicated.
 - Re-point the envelope guard: `novel_ralph_skill/contract/envelope.py` imports
   `ENVELOPE_COMMAND_NAMES` (renamed import or new name) instead of
   `COMMAND_NAMES`, and validates `command` membership against the superset.
@@ -593,10 +591,9 @@ Quality method (how we check):
 ## Idempotence and recovery
 
 - All steps are re-runnable. Editing `names.py`, `envelope.py`,
-  `pyproject.toml`,
-  and adding `commands/novel.py` are pure source edits; re-running `make all`
-  is safe and cache-friendly. Do not run format/lint/test in parallel (build
-  cache).
+  `pyproject.toml`, and adding `commands/novel.py` are pure source edits;
+  re-running `make all` is safe and cache-friendly. Do not run format/lint/test
+  in parallel (build cache).
 - If a stage fails, revert only that stage's edits (`git restore <file>`) and
   retry; do not advance past a red gate.
 - No destructive operations. The legacy entry points remain a working fallback
@@ -703,14 +700,15 @@ as a no-plan, no-review pass: make the change, run the gates, merge.
 
 - [x] Roadmap 1.2.12.1 — guard `_command_name_for` against future multi-token
   global flags (from review:1.2.12; low). `_command_name_for` treats every
-  dash-prefixed token as a value-less global flag, true today because
-  `--human` is the only global flag and carries no separate value. Should a
-  later global flag carry its own value token, that value could be misread as
-  the subcommand verb. Add a small guard (or an explicit comment pinning the
+  dash-prefixed token as a value-less global flag, true today because `--human`
+  is the only global flag and carries no separate value. Should a later global
+  flag carry its own value token, that value could be misread as the subcommand
+  verb. Add a small guard (or an explicit comment pinning the
   single-value-less-flag assumption) so the latent regression cannot land
   silently when the global-flag surface grows. Scope: `commands/novel.py`
   `_command_name_for`, plus a focused unit assertion; one focused commit.
-- [x] Roadmap 1.2.12.2 — pin a bare unknown top-level verb arm (from review:1.2.12;
+- [x] Roadmap 1.2.12.2 — pin a bare unknown top-level verb arm (from
+      review:1.2.12;
   low). The behavioural usage-fault suite covers sub-verb and option faults
   (`novel state bogus`, `novel done extra`, `novel --bad-option`) but not a
   leading unknown verb (`novel bogus`). The path works (the probe shows

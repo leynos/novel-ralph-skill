@@ -66,8 +66,7 @@ escalation, not a workaround.
    venv-scripts directory through the `venv_scripts_dir` fixture
    (`tests/conftest.py` lines 270-294), never a hand-rolled platform branch.
 4. The exit-code semantics are fixed policy (design §3.2 table; ADR-003 Table
-   2):
-   0 success / mutator applied; 3 state-or-input error (missing/unparseable
+   2): 0 success / mutator applied; 3 state-or-input error (missing/unparseable
    `state.toml`, absent working dir). A mutator that refuses an invalid request
    exits 3, never 1 (design §3.2 "A mutator that refuses an invalid request").
    The plan must assert exactly these codes; it must not relabel them.
@@ -86,8 +85,8 @@ escalation, not a workaround.
    exactly as the existing installed e2es do.
 8. AGENTS.md quality gates (`make all`, plus `make markdownlint` and
    `make nixie` for any Markdown change) must pass before each commit. en-GB
-   Oxford
-   spelling ("-ize"/"-yse"/"-our") in all prose, comments, and commit messages.
+   Oxford spelling ("-ize"/"-yse"/"-our") in all prose, comments, and commit
+   messages.
 
 ## Tolerances (exception triggers)
 
@@ -148,28 +147,28 @@ Stop and escalate (document in `Decision Log`, then await direction) when:
   198-234). The e2e asserts `exit_code == 3` and `ok is False`, the two facts
   the harness branches on, not the message text.
 - Risk: the slow e2es add wheel-build + venv + install + run cost under
-  `-n auto`; a too-tight timeout could flake.
-  Severity: low. Likelihood: low. Mitigation: reuse the proven
-  `@pytest.mark.timeout(180)` (Constraint 7). The `installed_novel_state`
-  fixture is **module-scoped** (`scope="module"`, fed by `tmp_path_factory`),
-  so it builds the wheel and venv **once per consuming test module** and every
-  test in that module — including the two parametrized cases of Work item 3's
-  exit-3 test — reuses the one install. This is the exact shape the proven
-  `installed_desloppify` fixture uses (`test_ai_isms_e2e.py` lines 152-164:
-  `scope="module"`, `tmp_path_factory`, "the wheel build, venv create, and
-  install … run once and every parametrized case reuses the installed script").
-  Each test still materializes its own throwaway `working/` tree under a
-  per-test `tmp_path`, so the cases stay independent (Decision D-CWD). Net
-  wheel-build count for the whole suite becomes **three** — one per module that
-  owns installed e2es: `test_novel_state_check.py` (1 installed test),
-  `test_reconcile_e2e.py` (2 installed tests, now sharing 1 build), and
-  `test_recount_e2e.py` (3 new installed cases — WI2's one plus WI3's two —
-  sharing 1 build). Today the in-body helper builds the wheel **once per
-  installed test**, so the two existing modules already pay 1 + 2 = three
-  builds; the module-scoped fixture holds that flat (the reconcile module drops
-  from 2 builds to 1) and the new recount module adds exactly **one**. Total is
-  three, against the **six** a function-scoped fixture would cost (1 + 2 + 3).
-  The saving is genuine, not framing.
+  `-n auto`; a too-tight timeout could flake. Severity: low. Likelihood: low.
+  Mitigation: reuse the proven `@pytest.mark.timeout(180)` (Constraint 7). The
+  `installed_novel_state` fixture is **module-scoped** (`scope="module"`, fed by
+  `tmp_path_factory`), so it builds the wheel and venv **once per consuming
+  test module** and every test in that module — including the two parametrized
+  cases of Work item 3's exit-3 test — reuses the one install. This is the
+  exact shape the proven `installed_desloppify` fixture uses
+  (`test_ai_isms_e2e.py` lines 152-164: `scope="module"`, `tmp_path_factory`,
+  "the wheel build, venv create, and install … run once and every parametrized
+  case reuses the installed script"). Each test still materializes its own
+  throwaway `working/` tree under a per-test `tmp_path`, so the cases stay
+  independent (Decision D-CWD). Net wheel-build count for the whole suite
+  becomes **three** — one per module that owns installed e2es:
+  `test_novel_state_check.py` (1 installed test), `test_reconcile_e2e.py` (2
+  installed tests, now sharing 1 build), and `test_recount_e2e.py` (3 new
+  installed cases — WI2's one plus WI3's two — sharing 1 build). Today the
+  in-body helper builds the wheel **once per installed test**, so the two
+  existing modules already pay 1 + 2 = three builds; the module-scoped fixture
+  holds that flat (the reconcile module drops from 2 builds to 1) and the new
+  recount module adds exactly **one**. Total is three, against the **six** a
+  function-scoped fixture would cost (1 + 2 + 3). The saving is genuine, not
+  framing.
 
 ## Progress
 
@@ -211,19 +210,18 @@ Stop and escalate (document in `Decision Log`, then await direction) when:
   (developers-guide lines 31-37). Work item 1 promotes it to a fixture, which
   both serves the new tests and retires the existing violation.
 - Observation: adding the `installed_novel_state` fixture and its two helpers to
-  `conftest.py` took the module from 339 to 432 lines, breaching the 400-line cap
-  (AGENTS.md lines 24-27) and failing Ruff.
-  Evidence: `make all` PLE/format gate; `wc -l tests/conftest.py` == 432 with the
-  fixture inline.
-  Impact: the fixture moved to a new registered plugin
+  `conftest.py` took the module from 339 to 432 lines, breaching the 400-line
+  cap (AGENTS.md lines 24-27) and failing Ruff. Evidence: `make all` PLE/format
+  gate; `wc -l tests/conftest.py` == 432 with the fixture inline. Impact: the
+  fixture moved to a new registered plugin
   `tests/installed_binary_fixtures.py`, mirroring the four existing
   `corpus_*_fixtures` plugins (Decision D-PLUGIN). No behaviour change; the
   fixture is still consumed by name across all three modules.
 - Observation: the fixture body initially tripped Ruff PLR0914 (too many local
-  variables, 11 > 10).
-  Evidence: `make all` lint gate on `tests/installed_binary_fixtures.py`.
-  Impact: a `_run_ok(command)` helper folds the build/venv/install exit-code
-  guards, dropping the named-result locals back under the cap.
+  variables, 11 > 10). Evidence: `make all` lint gate on
+  `tests/installed_binary_fixtures.py`. Impact: a `_run_ok(command)` helper
+  folds the build/venv/install exit-code guards, dropping the named-result
+  locals back under the cap.
 - Observation: `runner.run` emits an `ok: false` envelope *and* exits 3 on
   `StateInputError`, so an installed-binary exit-3 run still prints a parseable
   JSON envelope on stdout. Evidence: `novel_ralph_skill/contract/runner.py`
@@ -235,27 +233,27 @@ Stop and escalate (document in `Decision Log`, then await direction) when:
 
 - Decision: D-PLUGIN — host the `installed_novel_state` fixture in a new
   registered pytest plugin (`tests/installed_binary_fixtures.py`) rather than in
-  `conftest.py` directly.
-  Rationale: the plan assumed `conftest.py` could absorb the fixture, but adding
-  the fixture plus its two inlined helpers took `conftest.py` from 339 to 432
-  lines, breaching the 400-line module cap (AGENTS.md lines 24-27) and tripping
-  Ruff. The codebase already solves exactly this tension: the corpus, live-draft,
-  divergent, and done-predicate fixtures all live in registered-plugin modules
-  (`tests/corpus_fixtures.py` etc.) "because the … fixture surface would push
-  ``conftest.py`` past the 400-line module cap … registering it as a plugin keeps
-  every fixture available by name exactly as a ``conftest`` fixture would be."
-  The new plugin follows that precedent verbatim; `conftest.py` registers it in
-  `pytest_plugins`. The fixture is consumed by name across all three installed-e2e
-  modules, satisfying Constraint 6 identically to the conftest plan. The runtime
-  cuprum imports (`sh`, `Program`) D-IMPORTS specified for `conftest.py` move to
-  the plugin module instead (`conftest.py`'s function-scoped fixtures keep
-  `Program` under `TYPE_CHECKING` as before). A `_run_ok` helper folds the three
-  uv-step exit-code guards so the fixture body stays under the Ruff PLR0914
-  local-variable cap.
-  Date/Author: 2026-06-24, implementation agent.
+  `conftest.py` directly. Rationale: the plan assumed `conftest.py` could
+  absorb the fixture, but adding the fixture plus its two inlined helpers took
+  `conftest.py` from 339 to 432 lines, breaching the 400-line module cap
+  (AGENTS.md lines 24-27) and tripping Ruff. The codebase already solves
+  exactly this tension: the corpus, live-draft, divergent, and done-predicate
+  fixtures all live in registered-plugin modules (`tests/corpus_fixtures.py`
+  etc.) "because the … fixture surface would push ``conftest.py`` past the
+  400-line module cap … registering it as a plugin keeps every fixture
+  available by name exactly as a ``conftest`` fixture would be." The new plugin
+  follows that precedent verbatim; `conftest.py` registers it in
+  `pytest_plugins`. The fixture is consumed by name across all three
+  installed-e2e modules, satisfying Constraint 6 identically to the conftest
+  plan. The runtime cuprum imports (`sh`, `Program`) D-IMPORTS specified for
+  `conftest.py` move to the plugin module instead (`conftest.py`'s
+  function-scoped fixtures keep `Program` under `TYPE_CHECKING` as before). A
+  `_run_ok` helper folds the three uv-step exit-code guards so the fixture body
+  stays under the Ruff PLR0914 local-variable cap. Date/Author: 2026-06-24,
+  implementation agent.
 - Decision: D-FIXTURE — promote `_build_and_install_novel_state` to a shared
-  fixture `installed_novel_state` rather than adding a third cross-module import
-  (hosted per D-PLUGIN in `tests/installed_binary_fixtures.py`, not
+  fixture `installed_novel_state` rather than adding a third cross-module
+  import (hosted per D-PLUGIN in `tests/installed_binary_fixtures.py`, not
   `conftest.py`). Rationale: the developers-guide shared-scaffolding rule
   (lines 31-37) forbids importing helper *values* across test modules; a
   fixture is the sanctioned shape and retires the existing
@@ -302,10 +300,10 @@ Stop and escalate (document in `Decision Log`, then await direction) when:
   `from __future__ import annotations` never forces a runtime import). The new
   fixture body calls `sh.make(...)`, `Program("uv")`, and `.run_sync(...)` at
   runtime, so without the imports an implementer following the plan verbatim
-  hits `NameError: name 'Program'` / `name 'sh'` at fixture execution, or a `ty`
-  /Ruff undefined-name failure under `make all`. The same class of gap exists in
-  `test_recount_e2e.py`, which imports no cuprum symbol today, so WI2 lists
-  the matching runtime imports for that module too. Both fixes mirror the
+  hits `NameError: name 'Program'` / `name 'sh'` at fixture execution, or a
+  `ty` /Ruff undefined-name failure under `make all`. The same class of gap
+  exists in `test_recount_e2e.py`, which imports no cuprum symbol today, so WI2
+  lists the matching runtime imports for that module too. Both fixes mirror the
   proven precedent `test_ai_isms_e2e.py` (runtime imports at lines 31-32). The
   imports resolve against locked `cuprum==0.1.0` (`cuprum/__init__.py`
   re-exports `sh` at line 134 and `Program` at line 62; `sh.make` at
@@ -314,16 +312,16 @@ Stop and escalate (document in `Decision Log`, then await direction) when:
   mechanically broken at runtime. Date/Author: 2026-06-24, planning agent.
 - Decision: D-EXIT3-SUBJECT — drive the installed exit-3 e2e through
   `novel-state recount` (the mutator this task names) over a
-  missing-or-unparseable
-  `state.toml`, asserting exit 3 and `ok: false`. Rationale: the roadmap text
-  names "a missing or unparseable `state.toml` through the installed binary"
-  and pairs it with `recount`; `recount` routes missing/unparseable state
-  through the same exit-3 channel as `check` (`_recount.py` lines 139-149).
-  Driving the named mutator keeps the proof on the task's subject. The success
-  criterion ("at least one exit-3 state-error path … asserted against a real
-  installed console-script") is met by one such case; the plan adds the
-  missing-`state.toml` case and, budget permitting, the unparseable case as a
-  parametrized second. Date/Author: 2026-06-24, planning agent.
+  missing-or-unparseable `state.toml`, asserting exit 3 and `ok: false`.
+  Rationale: the roadmap text names "a missing or unparseable `state.toml`
+  through the installed binary" and pairs it with `recount`; `recount` routes
+  missing/unparseable state through the same exit-3 channel as `check`
+  (`_recount.py` lines 139-149). Driving the named mutator keeps the proof on
+  the task's subject. The success criterion ("at least one exit-3 state-error
+  path … asserted against a real installed console-script") is met by one such
+  case; the plan adds the missing-`state.toml` case and, budget permitting, the
+  unparseable case as a parametrized second. Date/Author: 2026-06-24, planning
+  agent.
 - Decision: D-CWD — every installed run uses `ExecutionContext(cwd=run_dir)`
   with a dedicated per-test `run_dir = tmp_path / "run"` holding a
   `working_dir = run_dir / "working"` tree, never the build/venv subtree (which
@@ -340,15 +338,15 @@ Stop and escalate (document in `Decision Log`, then await direction) when:
 Milestone closed (2026-06-25). Against the Purpose:
 
 - The installed `novel-state recount` is now proven at the wheel/venv boundary:
-  `test_installed_novel_state_recount_exits_zero` corrects wrong counts and exits
-  0 with the recounted `{current, by_chapter}` envelope, and
-  `test_installed_novel_state_recount_state_error_exits_three` (parametrized over
-  `missing-state` and `unparseable-state`) exits 3 with an `ok: false` envelope
-  and no traceback. All three new cases pass under `make all`.
-- The cross-module `_build_and_install_novel_state` import is retired; the helper
-  is now the module-scoped `installed_novel_state` fixture, consumed by name by
-  all three installed-e2e modules. The reconcile module dropped from two wheel
-  builds to one.
+  `test_installed_novel_state_recount_exits_zero` corrects wrong counts and
+  exits 0 with the recounted `{current, by_chapter}` envelope, and
+  `test_installed_novel_state_recount_state_error_exits_three` (parametrized
+  over `missing-state` and `unparseable-state`) exits 3 with an `ok: false`
+  envelope and no traceback. All three new cases pass under `make all`.
+- The cross-module `_build_and_install_novel_state` import is retired; the
+  helper is now the module-scoped `installed_novel_state` fixture, consumed by
+  name by all three installed-e2e modules. The reconcile module dropped from
+  two wheel builds to one.
 - Design §9 gained an "Installed-binary e2es" bullet and the developers' guide
   documents the fixture and its plugin.
 
@@ -360,18 +358,19 @@ Deviations from the plan (each with rationale, recorded in the Decision Log):
   for fixture surfaces that would overflow `conftest`; behaviour is identical.
 - A `_run_ok` helper folds the uv-step exit-code guards to satisfy Ruff PLR0914.
 - The execplan and its review artefacts were caught by an inadvertent `make fmt`
-  mdformat reflow early in WI1; the spurious churn to unrelated tracked docs was
-  stashed (matching the long-standing "spurious make-fmt mdformat churn" pattern
-  in this repo), and the execplan's two over-width inline-code lines were
-  rewrapped by hand so `make markdownlint` passes. Lesson for the next agent:
-  format Python with `ruff format` directly; do **not** run `make fmt`, which
-  rewrites every Markdown file in the tree.
+  mdformat reflow early in WI1; the spurious churn to unrelated tracked docs
+  was stashed (matching the long-standing "spurious make-fmt mdformat churn"
+  pattern in this repo), and the execplan's two over-width inline-code lines
+  were rewrapped by hand so `make markdownlint` passes. Lesson for the next
+  agent: format Python with `ruff format` directly; do **not** run `make fmt`,
+  which rewrites every Markdown file in the tree.
 
 CodeRabbit raised two findings across the run, both against the ExecPlan or its
-`review-r1.md` artefact (Markdown width in the plan, and a citation nuance in the
-review note). The plan's over-width lines were fixed; the `review-r1.md` citation
-is a pre-existing design-review artefact left verbatim as the historical record,
-not live code, so it was not rewritten. No finding touched the implementation.
+`review-r1.md` artefact (Markdown width in the plan, and a citation nuance in
+the review note). The plan's over-width lines were fixed; the `review-r1.md`
+citation is a pre-existing design-review artefact left verbatim as the
+historical record, not live code, so it was not rewritten. No finding touched
+the implementation.
 
 ## Context and orientation
 
@@ -406,17 +405,15 @@ Key terms, defined for a newcomer:
   by direct value import (`import working_corpus as wc`), the sanctioned
   carve-out the BDD step modules use.
 - **`single_program_catalogue` / `venv_scripts_dir`**: the two
-  **function**-scoped
-  `conftest` fixtures that build a one-program `cuprum` catalogue and resolve a
-  venv's scripts directory (`tests/conftest.py` lines 238-294). Because they
-  are function-scoped, a module-scoped fixture cannot request them (pytest
-  raises `ScopeMismatch` at collection); the module-scoped
+  **function**-scoped `conftest` fixtures that build a one-program `cuprum`
+  catalogue and resolve a venv's scripts directory (`tests/conftest.py` lines
+  238-294). Because they are function-scoped, a module-scoped fixture cannot
+  request them (pytest raises `ScopeMismatch` at collection); the module-scoped
   `installed_novel_state` added by Work item 1 therefore inlines their *logic*
   as `conftest`-private helpers, exactly as `test_ai_isms_e2e.py`'s
   module-scoped `installed_desloppify` already does (Decision D-SCOPE).
 - **`tmp_path_factory`**: pytest's built-in **session**-scoped
-  temporary-directory
-  factory. A module/session-scoped fixture must use it (via
+  temporary-directory factory. A module/session-scoped fixture must use it (via
   `tmp_path_factory.mktemp(...)`) rather than the function-scoped `tmp_path`,
   because `tmp_path` is always function-scoped and would raise `ScopeMismatch`.
   `installed_desloppify` uses exactly this (`test_ai_isms_e2e.py` lines
@@ -429,9 +426,8 @@ Files this plan touches:
   add the `installed_novel_state` fixture plus its two inlined helpers (Work
   item 1).
 - `tests/test_novel_state_check.py` — reroute its
-  `_build_and_install_novel_state`
-  use to the fixture; keep the existing `check` e2e behaviourally identical
-  (Work item 1).
+  `_build_and_install_novel_state` use to the fixture; keep the existing
+  `check` e2e behaviourally identical (Work item 1).
 - `tests/test_reconcile_e2e.py` — drop the cross-module import; consume the
   fixture (Work item 1).
 - `tests/test_recount_e2e.py` — add the installed-binary recount exit-0 e2e
@@ -446,21 +442,20 @@ existing passing test, per the research mandate):
 - `cuprum==0.1.0`
   `sh.make(program, catalogue=…)(*argv).run_sync(context=…, capture=True)`
   returns a `CommandResult` with `.exit_code: int`, `.stdout: str | None`,
-  `.stderr: str | None`. Verified at
-  `/data/leynos/Projects/cuprum/cuprum/sh.py` `class CommandResult` (lines
-  93-118) and `class ExecutionContext` with a `cwd` field (lines 168-203). The
-  `cwd`-scoped installed run is already exercised by
-  `test_installed_novel_state_check_exits_zero` (lines 363-368), so the surface
-  is pinned by a passing test, not memory.
+  `.stderr: str | None`. Verified at `/data/leynos/Projects/cuprum/cuprum/sh.py`
+  `class CommandResult` (lines 93-118) and `class ExecutionContext` with a
+  `cwd` field (lines 168-203). The `cwd`-scoped installed run is already
+  exercised by `test_installed_novel_state_check_exits_zero` (lines 363-368),
+  so the surface is pinned by a passing test, not memory.
 - `cuprum` 0.1.0 allowlists any `Program` string, including an absolute path,
   and executes it via `asyncio.create_subprocess_exec`; the catalogue
   allowlist, not the `Program` type, is the execution gate (`tests/conftest.py`
   lines 244-246; ADR-006 "Decision outcome"). No `uv run`; `uv` is a bare name
   run through its own one-program catalogue.
 - `runner.run` emits an `ok: false` envelope and
-  `sys.exit(ExitCode.STATE_ERROR)`
-  (3) on `StateInputError` (`novel_ralph_skill/contract/runner.py` lines
-  233-239); `ExitCode.STATE_ERROR == 3` (`contract/exit_codes.py` line 29). The
+  `sys.exit(ExitCode.STATE_ERROR)` (3) on `StateInputError`
+  (`novel_ralph_skill/contract/runner.py` lines 233-239);
+  `ExitCode.STATE_ERROR == 3` (`contract/exit_codes.py` line 29). The
   in-process exit-3 paths for both `check` and `recount` are already pinned
   (`test_novel_state_check.py` lines 89-114; `test_recount_unit.py` lines
   198-234), so the e2e only has to prove the *installed binary* reproduces them.
@@ -601,10 +596,10 @@ Then reroute the consumers:
   exit 0, `ok: true`) is unchanged; this is a pure refactor.
 - In `tests/test_reconcile_e2e.py`, delete the
   `from test_novel_state_check import _build_and_install_novel_state` line
-  (line 32) and rewrite its **two**
-  installed e2es to take the `installed_novel_state` fixture. Both now share
-  the one module-scoped install (the reconcile module drops from 2 wheel builds
-  to 1), and each still materializes its own throwaway `working/` tree per test.
+  (line 32) and rewrite its **two** installed e2es to take the
+  `installed_novel_state` fixture. Both now share the one module-scoped install
+  (the reconcile module drops from 2 wheel builds to 1), and each still
+  materializes its own throwaway `working/` tree per test.
 
 The fixture lives in `conftest.py` (not a test module) so all three consuming
 modules see it by name without a value import (Constraint 6). Module scope —
@@ -681,8 +676,8 @@ shared Artefacts snippet (`run_dir` is the cwd; it contains `working/`):
 2. Build the run catalogue: `prog = Program(str(installed_novel_state))`;
    `catalogue = single_program_catalogue("novel-state-run", prog)`.
 3. Run the installed script — `sh.make(prog, catalogue=catalogue)("recount")`
-   with `.run_sync(context=ExecutionContext(cwd=run_dir), capture=True)` — so it
-   resolves `./working/state.toml` (the cwd is `run_dir`, which holds
+   with `.run_sync(context=ExecutionContext(cwd=run_dir), capture=True)` — so
+   it resolves `./working/state.toml` (the cwd is `run_dir`, which holds
    `working/`).
 4. Assert `result.exit_code == 0` (with `result.stderr` in the failure
    message), parse `result.stdout` as JSON, and assert the envelope `result`
@@ -748,12 +743,10 @@ timeout 180), parametrized over two fault shapes. As in Work item 2, the cwd is
 `working_dir = run_dir / "working"`:
 
 - `"missing-state"`: `working_dir` is created
-  (`working_dir.mkdir(parents=True)`)
-  but contains **no** `state.toml`.
+  (`working_dir.mkdir(parents=True)`) but contains **no** `state.toml`.
 - `"unparseable-state"`: `working_dir` is created and
-  `working_dir / "state.toml"`
-  is written with invalid TOML (`b"not = toml ="`, mirroring
-  `test_novel_state_check.py` line 109).
+  `working_dir / "state.toml"` is written with invalid TOML (`b"not = toml ="`,
+  mirroring `test_novel_state_check.py` line 109).
 
 For each case the test takes the function-scoped `tmp_path` and
 `single_program_catalogue`, plus the module-scoped `installed_novel_state`
@@ -764,8 +757,7 @@ installed `novel-state recount` via
 `.run_sync(context=ExecutionContext(cwd=run_dir), capture=True)`; and asserts:
 
 - `result.exit_code == 3` (the design §3.2 / ADR-003 state-error code; assert
-  the
-  integer 3, with `result.stderr` in the failure message);
+  the integer 3, with `result.stderr` in the failure message);
 - `result.stdout` parses as JSON with `ok is False` (the `runner.run`
   state-error envelope, lines 233-239);
 - `"Traceback" not in (result.stderr or "")` — the design §10 promise that a
@@ -890,8 +882,7 @@ Acceptance, phrased as observable behaviour:
   contract.
 - The former cross-module helper import is gone
   (`grep -rn "_build_and_install_novel_state" tests/` is empty); both prior
-  installed e2es
-  for `novel-state` still pass through the shared fixture.
+  installed e2es for `novel-state` still pass through the shared fixture.
 
 Quality criteria (what "done" means):
 

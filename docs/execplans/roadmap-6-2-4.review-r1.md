@@ -60,25 +60,23 @@ that rest on it.
   (`dest = tmp_path / "run"`, materialize `dest/working/`, run with `cwd=dest`).
 
 - **Net build-cost is flat, not improved.** The three rerouted tests already
-  each
-  build a wheel in-body today, so WI1 is net-neutral for them; the three new
-  builds (WI2 + WI3 two cases) are inherent. With a function-scoped fixture the
-  suite pays ~6 wheel builds under `-n auto`/180 s. This is acceptable but the
-  plan's framing implies a saving that is not realized. State the real cost.
+  each build a wheel in-body today, so WI1 is net-neutral for them; the three
+  new builds (WI2 + WI3 two cases) are inherent. With a function-scoped fixture
+  the suite pays ~6 wheel builds under `-n auto`/180 s. This is acceptable but
+  the plan's framing implies a saving that is not realized. State the real cost.
 
 ## What is sound (verified, no change needed)
 
 - Exit-3 channel: `runner.run` lines 233-239 emit via `_emit` →
-  `print(rendered)`
-  to **stdout**, then `sys.exit(STATE_ERROR==3)`; so asserting stdout JSON
-  `ok is False` AND `exit_code == 3` is correct (`exit_codes.py` line 29).
+  `print(rendered)` to **stdout**, then `sys.exit(STATE_ERROR==3)`; so
+  asserting stdout JSON `ok is False` AND `exit_code == 3` is correct
+  (`exit_codes.py` line 29).
 - recount routes missing/unparseable/undecodable state through `StateInputError`
   → exit 3 (`_recount.py` `_recount_or_state_error`, `recount()` lines
   139-149); in-process pins exist (`test_recount_unit.py` 198-234).
 - recount oracle: `draft_words` writes an N-word `draft.md`; `recount_words`
-  uses
-  `len(text.split())` (`state/disk_evidence.py` line 154); overrides write the
-  wrong counts; `{current: 8, by_chapter: {01: 3, 02: 5}}` is the corrected
+  uses `len(text.split())` (`state/disk_evidence.py` line 154); overrides write
+  the wrong counts; `{current: 8, by_chapter: {01: 3, 02: 5}}` is the corrected
   result and matches the in-process oracle (`test_recount_e2e.py` lines 67-69).
 - Shared-scaffolding rule and the existing cross-module import are real
   (developers-guide 31-64; `test_reconcile_e2e.py` line 32); D-FIXTURE is the

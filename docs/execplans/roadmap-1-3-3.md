@@ -1,9 +1,9 @@
 # Hoist `parse_global_flags` and `_HUMAN_FLAG` into the shared contract seam
 
-This ExecPlan (execution plan) is a living document. The sections
-`Constraints`, `Tolerances`, `Risks`, `Progress`, `Surprises and discoveries`,
-`Decision Log`, and `Outcomes and retrospective` must be kept up to date as work
-proceeds.
+This ExecPlan (execution plan) is a living document. The sections `Constraints`,
+`Tolerances`, `Risks`, `Progress`, `Surprises and discoveries`,
+`Decision Log`, and `Outcomes and retrospective` must be kept up to date as
+work proceeds.
 
 Status: DONE
 
@@ -12,31 +12,32 @@ Status: DONE
 Today the command-agnostic `--human` global-flag splitter (`parse_global_flags`
 and the `_HUMAN_FLAG` constant) lives inside the `novel-state` *command* module,
 `novel_ralph_skill/commands/novel_state.py`. Only one command imports it so far
-(`novel_ralph_skill/commands/stub.py`, which wires the real `novel_state` entry
-point). The four still-stubbed commands (`novel-done`, `novel-compile`,
+(`novel_ralph_skill/commands/stub.py`, which wires the real `novel_state`
+entry point). The four still-stubbed commands (`novel-done`, `novel-compile`,
 `desloppify`, `wordcount`) will each need the same splitter when their real
 entry points land. If the splitter stays where it is, those four commands must
 either import it from a *sibling command module* — coupling, for example,
 `novel-done` to `novel-state` for no domain reason — or re-implement it and
 drift.
 
-After this change, the splitter lives in a neutral, command-agnostic home in the
-shared interface-contract package (`novel_ralph_skill/contract/`), every command
-imports the one splitter, and no command depends on a sibling command module.
-The `--human` switch is part of the shared contract (design §3.1, Architecture
-Decision Record (ADR-003) §3.1),
-and `RunContext.human` — the field the splitter ultimately feeds — already lives
-in `novel_ralph_skill/contract/runner.py`, so the contract package is the
+After this change, the splitter lives in a neutral, command-agnostic home in
+the shared interface-contract package (`novel_ralph_skill/contract/`), every
+command imports the one splitter, and no command depends on a sibling command
+module. The `--human` switch is part of the shared contract (design §3.1,
+Architecture Decision Record (ADR-003) §3.1), and `RunContext.human` — the
+field the splitter ultimately feeds — already lives in
+`novel_ralph_skill/contract/runner.py`, so the contract package is the
 splitter's rightful seam.
 
 You can observe success three ways. First, `grep -rn "parse_global_flags" \
-novel_ralph_skill/commands/` returns only *import* lines, never a *definition*.
-Second, `novel_ralph_skill/commands/stub.py` imports the splitter from
-`novel_ralph_skill.contract` rather than from
-`novel_ralph_skill.commands.novel_state`. Third, the full quality gate — `make
-all` — passes, including the existing `parse_global_flags` unit suite and the
-`novel-state check` behavioural and end-to-end tests, which continue to exercise
-the moved splitter through its new import path.
+novel_ralph_skill/commands/
+` returns only *import* lines, never a *definition*. Second, `novel
+_ralph_skill/commands/stub.py` imports the splitter from `novel
+_ralph_skill.contract` rather than from `novel_ralph_skill.commands.novel_state
+`. Third, the full quality gate — `make all
+` — passes, including the existing `parse_global_flags
+` unit suite and the `novel-state check behavioural and end-to-end tests, which
+continue to exercise the moved splitter through its new import path.
 
 This task is roadmap item 1.3.3 ("Hoist `parse_global_flags` and `_HUMAN_FLAG`
 into a shared seam before the second command imports them cross-command"). It
@@ -70,15 +71,16 @@ escalation, not a workaround.
    behaviour change. No envelope field, no exit code, and no `RunContext` field
    changes.
 4. `WORKING_DIR_NAME` stays in `novel_ralph_skill/commands/novel_state.py`. It
-   is a `novel-state`-specific constant (the default state location that command
-   reads), not a command-agnostic global-flag concern, and it is part of
+   is a `novel-state`-specific constant (the default state location that
+   command reads), not a command-agnostic global-flag concern, and it is part of
    `build_app`'s documented orientation. Do not move it in this task. Only
    `parse_global_flags` and `_HUMAN_FLAG` move.
 5. The end-to-end installed-script test
    (`test_installed_novel_state_check_exits_zero` in
-   `tests/test_novel_state_check.py`) drives the *installed console script*, not
-   the splitter symbol, so it must remain green without edits to its body. Treat
-   any need to edit it as a signal that the move broke the entry-point wiring.
+   `tests/test_novel_state_check.py`) drives the *installed console script*,
+   not the splitter symbol, so it must remain green without edits to its body.
+   Treat any need to edit it as a signal that the move broke the entry-point
+   wiring.
 6. No new external dependency. The splitter is pure standard library; keep it
    so. `uv.lock` must not change.
 
@@ -88,8 +90,7 @@ Thresholds that trigger escalation rather than autonomous action.
 
 1. Scope: this is a small, mechanical move. If the implementation touches more
    than five files or exceeds roughly 80 net changed lines (excluding
-   documentation prose), stop and escalate — the scope has been
-   misunderstood.
+   documentation prose), stop and escalate — the scope has been misunderstood.
 2. Interface: the public signature of `parse_global_flags` must not change. If
    making the move clean appears to require changing its signature or return
    type, stop and escalate.
@@ -263,14 +264,15 @@ scripts forming the deterministic spine of a novel-writing harness. The reader
 needs to know only four files and one package.
 
 1. `novel_ralph_skill/contract/` — the shared interface-contract package. It
-   owns the JSON envelope (`envelope.py`), the exit-code table (`exit_codes.py`),
-   and the `run` wrapper plus its value types (`runner.py`). Its `__init__.py`
-   re-exports a curated public surface and lists it in `__all__`. The `run`
-   wrapper in `runner.py` drives a Cyclopts app and owns every `sys.exit` and
-   every envelope emission; `RunContext` (also in `runner.py`) is the frozen
-   per-invocation record carrying `command`, `working_dir`, and `human`. The
-   package imports only from `novel_ralph_skill._freeze` and its own
-   submodules — it never imports from `novel_ralph_skill/commands/`.
+   owns the JSON envelope (`envelope.py`), the exit-code table
+   (`exit_codes.py`), and the `run` wrapper plus its value types (`runner.py`).
+   Its `__init__.py` re-exports a curated public surface and lists it in
+   `__all__`. The `run` wrapper in `runner.py` drives a Cyclopts app and owns
+   every `sys.exit` and every envelope emission; `RunContext` (also in
+   `runner.py`) is the frozen per-invocation record carrying `command`,
+   `working_dir`, and `human`. The package imports only from
+   `novel_ralph_skill._freeze` and its own submodules — it never imports from
+   `novel_ralph_skill/commands/`.
 
 2. `novel_ralph_skill/commands/novel_state.py` — the `novel-state` command
    module. It currently *defines* the splitter at module scope:
@@ -283,17 +285,17 @@ needs to know only four files and one package.
            human = len(residual) != len(argv)
            return human, residual
 
-   It also defines `WORKING_DIR_NAME = "working"` (which stays here), the private
-   `_check()` body, and `build_app()`.
+   It also defines `WORKING_DIR_NAME = "working"` (which stays here), the
+   private `_check()` body, and `build_app()`.
 
 3. `novel_ralph_skill/commands/stub.py` — wires the five console-script entry
    points. The `novel_state()` entry point imports `WORKING_DIR_NAME`,
    `build_app`, and `parse_global_flags` from
    `novel_ralph_skill.commands.novel_state` (lines 17–21) and already imports
-   `RunContext` and `run` from `novel_ralph_skill.contract.runner` (line 22). It
-   pre-parses `--human` off `sys.argv[1:]` *before* calling `run`, because `run`
-   stamps the human selection into the envelope even on the body-less usage
-   (exit 2) and state-error (exit 3) paths (Decision Log B3 in the module
+   `RunContext` and `run` from `novel_ralph_skill.contract.runner` (line 22).
+   It pre-parses `--human` off `sys.argv[1:]` *before* calling `run`, because
+   `run` stamps the human selection into the envelope even on the body-less
+   usage (exit 2) and state-error (exit 3) paths (Decision Log B3 in the module
    docstring).
 
 4. `tests/test_novel_state_check.py` — the behavioural, unit, and end-to-end
@@ -302,8 +304,8 @@ needs to know only four files and one package.
    36–39). It contains the parametrized `test_parse_global_flags` unit suite
    (lines 276–300) and the POSIX-only installed-script e2e
    `test_installed_novel_state_check_exits_zero` (lines 343–372), which drives
-   the installed console script via `cuprum` and is unaffected by an import-seam
-   move.
+   the installed console script via `cuprum` and is unaffected by an
+   import-seam move.
 
 The term *seam* means the single, neutral place a shared helper lives so every
 consumer imports it from one home rather than from each other. The term *global
@@ -321,10 +323,11 @@ Authoritative references for this task:
   contract package's public surface) and the `novel-state check` passage near
   line 318 (the pre-parse-before-`run` convention).
 - `AGENTS.md` — quality gates (`make check-fmt`, `make lint`, `make typecheck`,
-  `make test`, `make audit`; for Markdown `make markdownlint` and `make
-  nixie`), the en-GB Oxford-spelling convention, atomic-commit discipline, and
-  the abstraction/helper sweep policy (sweep before adding a helper — here we
-  are *moving* an existing one, and the sweep confirms there is no rival).
+  `make test`, `make audit`; for Markdown `make markdownlint` and
+  `make nixie`), the en-GB Oxford-spelling convention, atomic-commit
+  discipline, and the abstraction/helper sweep policy (sweep before adding a
+  helper — here we are *moving* an existing one, and the sweep confirms there
+  is no rival).
 - `docs/scripting-standards.md` — no new cuprum/Cyclopts surface is introduced
   by this task, so its conventions are satisfied by leaving the existing
   splitter behaviour and the e2e's cuprum usage untouched.
@@ -367,15 +370,14 @@ if the current item's gate fails.
 ### Work item 1: Move the splitter into `contract.runner`
 
 Documentation to read first: `docs/novel-ralph-harness-design.md` §3.1;
-`docs/adr-003-shared-interface-contract.md` §3.1; `AGENTS.md`
-"Abstraction / port / helper policy" (confirm by sweep that no rival splitter
-exists — `grep -rn "--human"` across `novel_ralph_skill/` shows only the one
-definition).
+`docs/adr-003-shared-interface-contract.md` §3.1; `AGENTS.md` "Abstraction /
+port / helper policy" (confirm by sweep that no rival splitter exists —
+`grep -rn "--human"` across `novel_ralph_skill/` shows only the one definition).
 
-Skills to load: `python-router` (it routes to the smaller skills below);
-`leta` for navigation; from the router, `python-data-shapes` is not needed (no
-new data type), but `python-types-and-apis` is relevant because the moved
-function keeps its `tuple[bool, list[str]]` signature.
+Skills to load: `python-router` (it routes to the smaller skills below); `leta`
+for navigation; from the router, `python-data-shapes` is not needed (no new
+data type), but `python-types-and-apis` is relevant because the moved function
+keeps its `tuple[bool, list[str]]` signature.
 
 Implements: ADR-003 §3.1 (the `--human` switch belongs to the shared contract);
 design §3.1.
@@ -387,8 +389,8 @@ Steps:
    so the global-flag pre-parse reads as the first thing `run`'s callers reach.
    Move the *exact* body and docstring from `novel_state.py` (the docstring
    already cites ADR-003 §3.1 and Decision Log B3/B4 — keep those citations).
-   Adjust the docstring's first line only if needed so it reads naturally in its
-   new home; do not change the documented behaviour.
+   Adjust the docstring's first line only if needed so it reads naturally in
+   its new home; do not change the documented behaviour.
 
        _HUMAN_FLAG = "--human"
 
@@ -405,12 +407,12 @@ Steps:
 
 At the end of this item, `novel_state.py` no longer defines the splitter and
 `runner.py` does. `stub.py` and the test still import from the old path, so the
-package is momentarily broken — that is acceptable *within* item 1 because items
-1 and 2 are designed to be committed together if a single green commit is
+package is momentarily broken — that is acceptable *within* item 1 because
+items 1 and 2 are designed to be committed together if a single green commit is
 preferred. To keep each commit independently gate-passable, prefer to fold the
-`stub.py` reroute (the first half of Work item 2) into the *same* commit as this
-move, so no commit leaves an unresolved import. The Progress section records the
-chosen grouping.
+`stub.py` reroute (the first half of Work item 2) into the *same* commit as
+this move, so no commit leaves an unresolved import. The Progress section
+records the chosen grouping.
 
 Tests for this item: none new yet (the move is covered by the existing suite
 once the importers are rerouted in item 2/3). The guard test is added in item 3.
@@ -447,12 +449,12 @@ Steps:
    `novel_ralph_skill.contract` (the package front door) — or from
    `novel_ralph_skill.contract.runner` to match the existing `RunContext, run`
    import on line 22. Prefer the package front door
-   (`novel_ralph_skill.contract`) for the public seam so consumers depend on the
-   re-export, not the submodule; if you keep `RunContext, run` on the submodule
-   import for minimal churn, import `parse_global_flags` from the same submodule
-   for consistency and record the choice in the Decision Log. Either way, the
-   result is that `stub.py` no longer imports `parse_global_flags` from the
-   `novel_state` command module.
+   (`novel_ralph_skill.contract`) for the public seam so consumers depend on
+   the re-export, not the submodule; if you keep `RunContext, run` on the
+   submodule import for minimal churn, import `parse_global_flags` from the
+   same submodule for consistency and record the choice in the Decision Log.
+   Either way, the result is that `stub.py` no longer imports
+   `parse_global_flags` from the `novel_state` command module.
 
 3. Smoke-check the import graph (no cycle):
 
@@ -468,24 +470,24 @@ import. (If items 1 and 2 are committed together, the existing suite already
 exercises the moved splitter through `stub.novel_state()`.)
 
 Validation (this is the first fully green commit): from the worktree root, run
-`make all`. Expect `make check-fmt`, `make lint`, `make typecheck`, and `make
-test` to pass. The `novel-state check` behavioural tests and the
+`make all`. Expect `make check-fmt`, `make lint`, `make typecheck`, and
+`make test` to pass. The `novel-state check` behavioural tests and the
 `test_parse_global_flags` unit suite must pass because they drive the splitter
 through `stub.novel_state()` and (after item 3) the rerouted import.
 
 ### Work item 3: Reroute the test importer and add an import-seam guard
 
 Documentation to read first: `AGENTS.md` "Python verification and testing"
-(keep tests in `tests/`; unit + behavioural coverage); `docs/developers-guide.md`
-the `novel-state check` passage.
+(keep tests in `tests/`; unit + behavioural coverage);
+`docs/developers-guide.md` the `novel-state check` passage.
 
-Skills to load: `python-router` → `python-testing` (pytest import discipline and
-parametrization). Property testing (`hypothesis`/`crosshair`) is **not**
+Skills to load: `python-router` → `python-testing` (pytest import discipline
+and parametrization). Property testing (`hypothesis`/`crosshair`) is **not**
 warranted here: this is a pure import-seam move with no new invariant over a
 range of inputs, and the existing six parametrized cases already pin the
 splitter's behaviour exhaustively over flag positions. Record this verification
-decision in the Decision Log. Do **not** add a Hypothesis or CrossHair suite for
-this task; `mutmut` mutation testing is likewise out of scope for a move.
+decision in the Decision Log. Do **not** add a Hypothesis or CrossHair suite
+for this task; `mutmut` mutation testing is likewise out of scope for a move.
 
 Implements: roadmap 1.3.3 Success criterion (the *one* splitter; no
 sibling-command dependency); Constraint 2 (frozen behaviour).
@@ -494,11 +496,12 @@ Steps:
 
 1. In `tests/test_novel_state_check.py`, change the import (lines 36–39): import
    `build_app` from `novel_ralph_skill.commands.novel_state` and
-   `parse_global_flags` from `novel_ralph_skill.contract` (the public seam). The
-   existing `test_parse_global_flags` parametrized suite (lines 276–300) now
-   exercises the moved splitter through its new home without any change to its
-   assertions — its six cases (`leading`, `trailing`, `between`, `absent`,
-   `multiple`, `other-flag-untouched`) are the behavioural pins for Constraint 2.
+   `parse_global_flags` from `novel_ralph_skill.contract` (the public seam).
+   The existing `test_parse_global_flags` parametrized suite (lines 276–300)
+   now exercises the moved splitter through its new home without any change to
+   its assertions — its six cases (`leading`, `trailing`, `between`, `absent`,
+   `multiple`, `other-flag-untouched`) are the behavioural pins for Constraint
+   2.
 
 2. Add a small **import-seam guard** test. It belongs with the splitter's
    contract, so add it to `tests/test_contract_runner.py` (the contract-package
@@ -532,8 +535,8 @@ Steps:
    Give each test a docstring that states the contract it guards (per AGENTS.md
    "Illustrate with clear examples" — but omit examples that merely restate the
    test logic). These two tests *fail before* the move (the splitter is defined
-   on `novel_state` and absent from `contract`) and *pass after*, satisfying the
-   red-green discipline in the `execplans` skill and AGENTS.md.
+   on `novel_state` and absent from `contract`) and *pass after*, satisfying
+   the red-green discipline in the `execplans` skill and AGENTS.md.
 
 Tests added/updated by this item:
 
@@ -569,7 +572,8 @@ when an internal interface/seam moves); design §3.1 (the contract owns
 
 Steps:
 
-1. Update the moved-from and moved-to module docstrings so they describe reality:
+1. Update the moved-from and moved-to module docstrings so they describe
+   reality:
 
    - `novel_ralph_skill/commands/novel_state.py` module docstring currently says
      the module hosts "the standard-library `--human` pre-parse the entry point
@@ -584,26 +588,27 @@ Steps:
      `parse_global_flags` to the "public surface re-exported here is …" list.
 
 2. Update `docs/developers-guide.md`: in the contract-package public-surface
-   paragraph ("The shared implementation lives in `novel_ralph_skill/contract/`.
-   Its public surface is …"), add `parse_global_flags` to the enumerated surface.
-   In the `novel-state check` passage near line 318 ("its entry point pre-parses
-   the single `--human` flag off argv before `run`"), add a clause noting the
-   splitter is the *shared* `parse_global_flags` from the contract package, so
-   every command pre-parses `--human` through one seam rather than re-implementing
-   it. Wrap prose at 80 columns (AGENTS.md "Markdown guidance").
+   paragraph ("The shared implementation lives in
+   `novel_ralph_skill/contract/`. Its public surface is …"), add
+   `parse_global_flags` to the enumerated surface. In the `novel-state check`
+   passage near line 318 ("its entry point pre-parses the single `--human` flag
+   off argv before `run`"), add a clause noting the splitter is the *shared*
+   `parse_global_flags` from the contract package, so every command pre-parses
+   `--human` through one seam rather than re-implementing it. Wrap prose at 80
+   columns (AGENTS.md "Markdown guidance").
 
 3. Consider whether `docs/users-guide.md` needs a change: it does **not** — this
-   is an internal seam move with no user-visible behaviour change (the `--human`
-   flag works identically). Record this in the Decision Log so the next agent
-   knows the users' guide was deliberately left untouched.
+   is an internal seam move with no user-visible behaviour change (the
+   `--human` flag works identically). Record this in the Decision Log so the
+   next agent knows the users' guide was deliberately left untouched.
 
 Tests for this item: none (documentation only).
 
 Validation: from the worktree root, run `make markdownlint` and `make nixie`
-(the developers' guide is Markdown; `nixie` validates any Mermaid, of which this
-change adds none, but AGENTS.md requires running it on Markdown changes). Then
-run `make all` once more to confirm the whole gate is green after the docstring
-edits (docstrings are linted by `interrogate` and `ruff`).
+(the developers' guide is Markdown; `nixie` validates any Mermaid, of which
+this change adds none, but AGENTS.md requires running it on Markdown changes).
+Then run `make all` once more to confirm the whole gate is green after the
+docstring edits (docstrings are linted by `interrogate` and `ruff`).
 
 ## Concrete steps
 
@@ -623,8 +628,8 @@ All commands run from the worktree root
 
        grep -rn "def parse_global_flags" novel_ralph_skill/
 
-   Expect the single definition now in
-   `novel_ralph_skill/contract/runner.py`. Then:
+   Expect the single definition now in `novel_ralph_skill/contract/runner.py`.
+   Then:
 
        grep -rn "parse_global_flags" novel_ralph_skill/commands/
 
@@ -664,11 +669,11 @@ All commands run from the worktree root
 
 Commit grouping (each commit gate-passable):
 
-- Commit A: Work items 1 + 2 (move + re-export + `stub.py` reroute). Gate: `make
-  all`. This is the first point the package imports cleanly.
+- Commit A: Work items 1 + 2 (move + re-export + `stub.py` reroute). Gate:
+  `make all`. This is the first point the package imports cleanly.
 - Commit B: Work item 3 (test reroute + seam guard tests). Gate: `make all`.
-- Commit C: Work item 4 (documentation). Gate: `make markdownlint`, `make
-  nixie`, then `make all`.
+- Commit C: Work item 4 (documentation). Gate: `make markdownlint`,
+  `make nixie`, then `make all`.
 
 Each commit message uses the imperative mood, ≤ ~50-char subject, with a body
 explaining *what* and *why* (AGENTS.md "Committing"). Use the `commit-message`
@@ -684,8 +689,8 @@ Acceptance is behaviour a reviewer can verify:
   only import lines (in `stub.py`), never a definition, and no `commands/`
   module imports it from a *sibling command* module.
 - `uv run python -c "from novel_ralph_skill.contract import \
-  parse_global_flags; print(parse_global_flags(['--human']))"` prints
-  `(True, [])`.
+  parse_global_flags; print(parse_global_flags(['--human']))"`
+  prints `(True, [])`.
 - The two new guard tests in `tests/test_contract_runner.py` fail on a tree
   where the splitter still lives in `novel_state` and pass after the move.
 - The existing `test_parse_global_flags` parametrized suite passes unchanged in
@@ -712,15 +717,16 @@ commit.
 
 ## Idempotence and recovery
 
-Every step is re-runnable. The move is a pure relocation of code with no state or
-filesystem side effects. If `make all` fails after the move, the most likely
-causes are: a stale import path in `stub.py` or the test (fix the import line and
-re-run); a missing `__all__` entry (`ruff`/`pylint` flags the unused import or
-the docstring surface mismatch — add `"parse_global_flags"` to
-`contract/__init__.py`'s `__all__`); or `interrogate` failing because a new guard
-test lacks a docstring (add one). To roll back entirely, `git checkout -- \
-novel_ralph_skill/ tests/ docs/` from the worktree restores the pre-change tree;
-no external resource is touched.
+Every step is re-runnable. The move is a pure relocation of code with no state
+or filesystem side effects. If `make all` fails after the move, the most likely
+causes are: a stale import path in `stub.py` or the test (fix the import line
+and re-run); a missing `__all__` entry (`ruff`/`pylint` flags the unused import
+or the docstring surface mismatch — add `"parse_global_flags"` to
+`contract/__init__.py`'s `__all__`); or `interrogate` failing because a new
+guard test lacks a docstring (add one). To roll back entirely,
+`git checkout -- \
+novel_ralph_skill/ tests/ docs/
+` from the worktree restores the pre-change tree; no external resource is touched.
 
 ## Artefacts and notes
 
@@ -728,8 +734,8 @@ The seam decision rests on three verified facts from the current tree:
 
 1. The splitter is defined exactly once, in
    `novel_ralph_skill/commands/novel_state.py` (lines 41–71), and referenced by
-   exactly three files (`novel_state.py`, `stub.py`, `tests/
-   test_novel_state_check.py`) — confirmed by
+   exactly three files (`novel_state.py`, `stub.py`,
+   `tests/ test_novel_state_check.py`) — confirmed by
    `grep -rln "parse_global_flags\|_HUMAN_FLAG"`.
 
 2. `novel_ralph_skill/contract/runner.py` already imports only
@@ -739,9 +745,9 @@ The seam decision rests on three verified facts from the current tree:
    adds no reverse edge (Constraint 1 holds).
 
 3. `novel_ralph_skill/commands/stub.py` already imports `RunContext` and `run`
-   from `novel_ralph_skill.contract.runner` (line 22), so the contract package is
-   already on `stub.py`'s import graph — the reroute adds no new dependency, only
-   moves one symbol's source from a sibling command to the shared contract.
+   from `novel_ralph_skill.contract.runner` (line 22), so the contract package
+   is already on `stub.py`'s import graph — the reroute adds no new dependency,
+   only moves one symbol's source from a sibling command to the shared contract.
 
 ## Interfaces and dependencies
 
@@ -766,8 +772,8 @@ At the end of this task, these must exist with these exact names and shapes:
   `novel_ralph_skill.contract` (or `novel_ralph_skill.contract.runner`), never
   from `novel_ralph_skill.commands.novel_state`.
 
-No new third-party dependency. `uv.lock` unchanged. Standard library only for the
-splitter.
+No new third-party dependency. `uv.lock` unchanged. Standard library only for
+the splitter.
 
 ## Revision note
 

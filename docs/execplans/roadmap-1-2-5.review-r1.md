@@ -21,10 +21,10 @@ real interrogate 1.7.0 install and the cuprum v0.1.0 tag.
   (`spec.split()[0].split("[")[0] == "interrogate"`) returns `True` against the
   real `dependency-groups.dev` list; the `fail-under` parse returns `100`.
 - cuprum v0.1.0 `__all__` (real tag) contains `ProgramCatalogue`,
-  `ProjectSettings`, `Program`, `sh`, `scoped`, `CommandResult` and does **not**
-  contain `Catalogue`. The plan's substantive claim is correct (though it
-  presents the six as the whole list; the real `__all__` is much larger — this
-  is non-load-bearing context only).
+  `ProjectSettings`, `Program`, `sh`, `scoped`, `CommandResult` and does
+  **not** contain `Catalogue`. The plan's substantive claim is correct (though
+  it presents the six as the whole list; the real `__all__` is much larger —
+  this is non-load-bearing context only).
 - No new dependency; `tomllib` stdlib pattern mirrors the existing
   `test_pyproject_scripts.py` / `test_command_names_registry.py` guards.
 
@@ -33,14 +33,14 @@ real interrogate 1.7.0 install and the cuprum v0.1.0 tag.
 1. AGENTS.md goes stale and is not in the plan. AGENTS.md line 86 hard-codes
    `interrogate --fail-under 100 $(PYTHON_TARGETS)` as the Makefile invocation.
    Work item 2 removes `--fail-under 100` from the Makefile, which makes that
-   AGENTS.md statement factually false. AGENTS.md is tracked and editable in the
-   worktree. The plan never lists AGENTS.md as an edit target and never
+   AGENTS.md statement factually false. AGENTS.md is tracked and editable in
+   the worktree. The plan never lists AGENTS.md as an edit target and never
    reconciles it. Either: (a) add AGENTS.md to the edit set and the file-count
    tolerance, updating line 86 to match the config-sourced threshold; or (b)
-   adopt the belt-and-braces option (retain `--fail-under 100` in the recipe) so
-   no doc goes stale — which is itself the plan's declared
-   Makefile-recipe tolerance trigger, i.e. an escalation, not a silent default.
-   As written the plan ships a contradiction between AGENTS.md and the Makefile.
+   adopt the belt-and-braces option (retain `--fail-under 100` in the recipe)
+   so no doc goes stale — which is itself the plan's declared Makefile-recipe
+   tolerance trigger, i.e. an escalation, not a silent default. As written the
+   plan ships a contradiction between AGENTS.md and the Makefile.
 
 2. Misattributed documentation source — the "design doc GitHub-Actions section"
    does not exist. The plan asserts in multiple places (Purpose/Constraints,
@@ -49,10 +49,10 @@ real interrogate 1.7.0 install and the cuprum v0.1.0 tag.
    describing `interrogate --fail-under 100`. It does not: grepping the design
    doc for `interrogate`/`fail-under`/`docstring coverage` returns nothing. The
    literal lives in AGENTS.md line 86 (see defect 1) and in
-   `docs/developers-guide.md` lines 12-13. Work item 3 instructs the implementer
-   to "reconcile that sentence too" in a section that is absent, which is
-   unimplementable as written and will waste the implementer's time hunting a
-   phantom. Fix the source map: the two real homes of the literal are
+   `docs/developers-guide.md` lines 12-13. Work item 3 instructs the
+   implementer to "reconcile that sentence too" in a section that is absent,
+   which is unimplementable as written and will waste the implementer's time
+   hunting a phantom. Fix the source map: the two real homes of the literal are
    AGENTS.md and the developers' guide.
 
 ## Advisory (non-blocking)

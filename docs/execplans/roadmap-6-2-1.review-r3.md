@@ -44,10 +44,9 @@ reproduce exactly:
   ```
 
 - novel-compile --check — exit 3/result={} (8 pre-drafting); exit 4/
-  `diverged:true`
-  (drafting); exit 0/`diverged:false` (final-pass/done). ✓ exact. Exit-3 message
-  `"cannot compile: chapter manifest is absent or empty"` matches
-  `_compile.py:95`. ✓
+  `diverged:true` (drafting); exit 0/`diverged:false` (final-pass/done). ✓
+  exact. Exit-3 message `"cannot compile: chapter manifest is absent or empty"`
+  matches `_compile.py:95`. ✓
 - desloppify — exit 0, ok=True, keys {findings,pack,total_words,violations}, 24
   findings every phase, violations==[], total_words 0 vs 68800. ✓ exact.
 
@@ -60,8 +59,8 @@ verbatim:
  "compile_consistent": true, "no_unresolved_blockers": true}
 ```
 
-with `messages == ["knitting_gates_passed is false"]`. So `compile_consistent` is
-**True** on `done`; the sole failing clause is **`knitting_gates_passed`** —
+with `messages == ["knitting_gates_passed is false"]`. So `compile_consistent`
+is **True** on `done`; the sole failing clause is **`knitting_gates_passed`** —
 the plan now states this correctly in Surprises and WI3, and additionally pins
 `result["knitting_gates_passed"] is False`,
 `result["compile_consistent"] is True`, and the message in code. Root cause
@@ -176,15 +175,14 @@ not only a docstring that can drift.
   structurally clean. No boundary leak.
 
 - A4 (Doggylump) — WI2 exit-3 human cell verified: compile on a pre-drafting
-  tree
-  in human mode emits a non-empty body (shown below) and exits 3.
+  tree in human mode emits a non-empty body (shown below) and exits 3.
 
   ```text
   "command: novel-compile\nok: False\n… cannot compile: chapter manifest is absent or empty\n"
   ```
 
-  The plan correctly says `_drive` catches this as SystemExit
-  code 3 and WI2 asserts presence, not exit 0. ✓
+  The plan correctly says `_drive` catches this as SystemExit code 3 and WI2
+  asserts presence, not exit 0. ✓
 
 - A5 (Dinolump) — design-boundary conformance holds: tests only, over the
   deterministic spine (ADR-001), exercising the established envelope contract

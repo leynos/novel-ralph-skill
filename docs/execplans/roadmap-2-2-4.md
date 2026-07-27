@@ -59,9 +59,10 @@ whose ratio has crossed 0.30 (incoherent), assert `done_30 = true`, and write
 the now-coherent state. From an *already-coherent* prior,
 `set-gate --knitting-30` is a no-op re-assertion (the gate is already at its
 ratio-mandated value) and exits 0 idempotently; flipping a gate the ratio does
-**not** support (true below threshold, or false above it) is refused with
-exit 3. This is recorded as Decision D4 and pinned by the Work item 1 tests,
-which use an incoherent prior for the observable-flip case (Decision D8; B1
+**not** support (true below threshold, or false above it) is refused with exit
+
+1. This is recorded as Decision D4 and pinned by the Work item 1 tests, which
+use an incoherent prior for the observable-flip case (Decision D8; B1
 resolution).
 
 Success is observable: `novel-state check` stays coherent (exit 0) after each
@@ -186,8 +187,8 @@ escalation, not a workaround.
   beyond the new module and its tests, or more than ~450 net lines of
   production code, stop and escalate.
 - **Interface:** if `build_app()`'s zero-argument signature, the
-  `CommandOutcome`
-  shape, or any existing mutator body must change, stop and escalate.
+  `CommandOutcome` shape, or any existing mutator body must change, stop and
+  escalate.
 - **Dependencies:** if any work item appears to need a new dependency or a
   version bump, stop and escalate.
 - **Validator change:** if any work item appears to need a change to
@@ -196,8 +197,7 @@ escalation, not a workaround.
 - **Iterations:** if `make all` still fails after 3 focused attempts on one work
   item, stop and escalate.
 - **Ambiguity:** if the command names, the field set, or the gate semantics
-  admit
-  two materially different readings, stop and present options.
+  admit two materially different readings, stop and present options.
 
 ## Risks
 
@@ -615,35 +615,37 @@ Purpose: every gate and drafting sub-state field settable through a command, no
 hand-edit required, check coherent across the mutations, behavioural + e2e
 tests per mutator.
 
-Completion (2026-06-26). All six work items landed against the Purpose. The four
-fields are each settable through a validated `novel-state` subcommand; `set-gate`
-repairs a knitting gate that lags its ratio (incoherent→coherent, exit 0) and is
-an idempotent no-op from a coherent prior; `complete-final-pass`, `set-fangirl`,
-and `set-critic-pass` write their field with `check` staying coherent;
-ratio-contradicting/out-of-manifest/below-one sets are exit 3 with the file
-unchanged; the no-flag `set-gate` and a non-integer `--pass`/`--last-chapter` are
-exit 2. The SKILL bridge replaces every hand-edit instruction for these fields.
-`make all`, `make markdownlint`, and `make nixie` are green at the final commit.
+Completion (2026-06-26). All six work items landed against the Purpose. The
+four fields are each settable through a validated `novel-state` subcommand;
+`set-gate` repairs a knitting gate that lags its ratio (incoherent→coherent,
+exit 0) and is an idempotent no-op from a coherent prior; `complete-final-pass`,
+`set-fangirl`, and `set-critic-pass` write their field with `check` staying
+coherent; ratio-contradicting/out-of-manifest/below-one sets are exit 3 with
+the file unchanged; the no-flag `set-gate` and a non-integer `--pass`/
+`--last-chapter` are exit 2. The SKILL bridge replaces every hand-edit
+instruction for these fields. `make all`, `make markdownlint`, and `make nixie`
+are green at the final commit.
 
 Deviation from the WI ordering: the four bodies + the registrar landed together
 in the WI1 commit (the registrar references all four and the module must import
 cleanly), so WI2-4 added only their tests and WI5 added the surface/e2e proofs.
 The deterministic gates were green at every commit.
 
-Lesson: a CPU-heavy Hypothesis property co-scheduled under `pytest-xdist` can push
-*other* deadline-bound Hypothesis tests over their default 200ms deadline
-(observed against `test_state_document`). Keeping the new properties at 25 examples
-removed the perturbation; a future property near this boundary should set a modest
-`max_examples` rather than assume the default deadline survives parallel load.
+Lesson: a CPU-heavy Hypothesis property co-scheduled under `pytest-xdist` can
+push *other* deadline-bound Hypothesis tests over their default 200ms deadline
+(observed against `test_state_document`). Keeping the new properties at 25
+examples removed the perturbation; a future property near this boundary should
+set a modest `max_examples` rather than assume the default deadline survives
+parallel load.
 
 Open issue carried: CodeRabbit (run 4) flagged six items entirely within the
-prior-round review notes (`roadmap-2-2-4.review-r1/r2/r3.md`) — stale line counts,
-an exit-code left open at that round, a verdict a later round reopened. These are
-append-only historical records of how the plan evolved; rewriting them to match
-the final state would falsify the audit trail, so they are left as written. None
-touched the implementation. The only review-file edits made were a first-person
-verdict rewrite (r4, en-GB pronoun rule) and an MD040 fenced-code language tag
-(r3), both cosmetic and substance-preserving.
+prior-round review notes (`roadmap-2-2-4.review-r1/r2/r3.md`) — stale line
+counts, an exit-code left open at that round, a verdict a later round reopened.
+These are append-only historical records of how the plan evolved; rewriting
+them to match the final state would falsify the audit trail, so they are left
+as written. None touched the implementation. The only review-file edits made
+were a first-person verdict rewrite (r4, en-GB pronoun rule) and an MD040
+fenced-code language tag (r3), both cosmetic and substance-preserving.
 
 ## Context and orientation
 
@@ -674,10 +676,10 @@ keyword; `schema.py:CriticState`).
 - `_load_document_or_state_error(path)` → loads the `tomlkit` document, mapping
   faults to exit 3 under `STATE_INPUT_ERRORS`.
 - `_state_view_or_state_error(document)` → derives the typed `State` read view
-  via
-  `document_to_state`, mapping structural-incompleteness faults to exit 3. The
-  mutators **never** call bare `document_to_state` (a structurally incomplete
-  but valid-TOML file would otherwise exit 1, breaching the exit-3 contract).
+  via `document_to_state`, mapping structural-incompleteness faults to exit 3.
+  The mutators **never** call bare `document_to_state` (a structurally
+  incomplete but valid-TOML file would otherwise exit 1, breaching the exit-3
+  contract).
 - `_refuse_if_incoherent(state, *, context)` → runs `validate_state` and raises
   `StateInputError` (exit 3) naming the breached §5.2 invariants when non-empty.
 - `_state_path` / `_working_dir` → re-exported single path accessors.
@@ -734,11 +736,11 @@ modify this file** (Tolerance "Validator change").
   behavioural and e2e fixtures. `PHASE_STATES["drafting"]` and
   `PHASE_STATES["final-pass"]` are the relevant baselines.
 - `tests/installed_binary_fixtures.py` — the module-scoped
-  `installed_novel_state`
-  fixture that builds a wheel, installs it into a fresh `uv` venv, and returns
-  the installed `novel-state` console-script path. e2e tests drive it through
-  cuprum (`sh.make(prog, catalogue=...)(...).run_sync(context=...,
-  capture=True)`), POSIX-only per ADR 006.
+  `installed_novel_state` fixture that builds a wheel, installs it into a fresh
+  `uv` venv, and returns the installed `novel-state` console-script path. e2e
+  tests drive it through cuprum
+  (`sh.make(prog, catalogue=...)(...).run_sync(context=..., capture=True)`),
+  POSIX-only per ADR 006.
 - `tests/features/` holds the `pytest-bdd` `.feature` files; the new behavioural
   scenarios add `.feature` files here with step bindings in a `test_*_bdd.py`
   module, mirroring `advance_phase_refusal.feature` /
@@ -747,8 +749,7 @@ modify this file** (Tolerance "Validator change").
 ### Pinned external-library behaviour (verified, not assumed)
 
 - cuprum 0.1.0 (locked): `Program(str)` accepts an absolute path and
-  `str(program)`
-  returns it verbatim; `ProgramCatalogue(projects=...)`,
+  `str(program)` returns it verbatim; `ProgramCatalogue(projects=...)`,
   `ProjectSettings(name, programs, documentation_locations, noise_rules)`;
   `sh.make(program, *, catalogue=...)` → builder → `SafeCmd`;
   `SafeCmd.run_sync(*, capture=True, echo=False, context=None)` →
@@ -763,8 +764,7 @@ modify this file** (Tolerance "Validator change").
   Verified by
   `App.parse_args(["set-gate","--knitting-30"], exit_on_error=False)`.
 - pytest-timeout 2.4.0 (locked): the per-test `@pytest.mark.timeout(N)` marker
-  is
-  the highest-priority override and supersedes the `pyproject.toml`
+  is the highest-priority override and supersedes the `pyproject.toml`
   `timeout = 30` default for that test, including under `pytest-xdist` (each
   worker is a full pytest process applying the marker per item). Documented at
   <https://pypi.org/project/pytest-timeout/> ("a decorator to set the timeout
@@ -873,12 +873,11 @@ three WI1 fixtures are:
   `check` exits 0. This is the observable incoherent→coherent flip; it is the
   value of the command.
 - **`ratio_not_crossed` (the contradicting set; coherent prior).** Three
-  chapters
-  with `draft_words=4000` each (12000/80000 = 0.15: below every threshold) and
-  all three gates `False` — a **coherent** prior. `set-gate --knitting-30`
-  asserts `done_30=True` on a ratio of 0.15 → the proposed state is incoherent
-  → exits 3 naming `gate-ratio-consistent`, `state.toml` byte-for-byte
-  unchanged.
+  chapters with `draft_words=4000` each (12000/80000 = 0.15: below every
+  threshold) and all three gates `False` — a **coherent** prior.
+  `set-gate --knitting-30` asserts `done_30=True` on a ratio of 0.15 → the
+  proposed state is incoherent → exits 3 naming `gate-ratio-consistent`,
+  `state.toml` byte-for-byte unchanged.
 - **`ratio_crossed_coherent` (idempotent no-op + false-after-crossed refusal;
   coherent prior).** The `gate_lags_ratio` chapter words (0.45) but with
   `done_30=True, done_50=False, done_80=False` — a **coherent** prior.
@@ -1047,10 +1046,9 @@ Tests (`tests/test_set_critic_pass_*.py`):
   writes `pass = 2`, `check` stays coherent; `--pass 0` and `--pass -1` exit 3
   naming the precondition, file unchanged.
 - **Property** (`test_set_critic_pass_properties.py`, Hypothesis): for a
-  coherent
-  baseline and `p >= 1`, `set-critic-pass --pass p` exits 0 and the result is
-  coherent (the critic §5.2 sub-rules are unaffected by `pass`); for `p < 1`,
-  exit 3 and the file is unchanged.
+  coherent baseline and `p >= 1`, `set-critic-pass --pass p` exits 0 and the
+  result is coherent (the critic §5.2 sub-rules are unaffected by `pass`); for
+  `p < 1`, exit 3 and the file is unchanged.
 
 Docs: design §4.1, §5.1; `skill/novel-ralph/references/state-layout.md` "Critic
 sub-state"; `schema.py:CriticState` (the `pass` → `pass_number` rename). Skills:
@@ -1282,8 +1280,7 @@ requirement); AGENTS.md documentation rule; the documentation-style-guide and
 en-GB convention.
 
 - **ADR 010** `docs/adr-010-gate-drafting-mutators.md` (next free ADR number
-  after
-  009): record the four command names and input shapes, the exit-2
+  after 009): record the four command names and input shapes, the exit-2
   (shape/usage, incl. no-flag `set-gate`, realized by the
   `GateDraftingUsageError` + `_set_gate_or_usage` adapter that returns the
   exit-2 `CommandOutcome` directly — NOT `cyclopts.ValidationError(msg=...)`,
@@ -1405,8 +1402,7 @@ behaviour:
   `state.toml` byte-for-byte unchanged. Usage/shape faults are exit 2: a no-flag
   `set-gate` (Decision D9) and a non-integer `--pass`.
 - **Behavioural tests cover each mutator.** At least one `pytest-bdd` scenario
-  or
-  installed-binary e2e per mutator (`complete-final-pass` has a `.feature`;
+  or installed-binary e2e per mutator (`complete-final-pass` has a `.feature`;
   `set-gate`/`set-fangirl`/`set-critic-pass` have installed e2e arms).
 
 Quality criteria ("done"):
@@ -1431,9 +1427,8 @@ Quality method: `make all` per commit (the AGENTS.md commit gate), plus
 ## Idempotence and recovery
 
 - All steps are re-runnable. Re-running a mutator on an already-set coherent
-  value
-  re-writes the same bytes and exits 0 (`complete-final-pass` is explicitly
-  idempotent).
+  value re-writes the same bytes and exits 0 (`complete-final-pass` is
+  explicitly idempotent).
 - A refused mutator writes nothing, so a retry after fixing the input is safe.
 - `make all` is deterministic; the shared Cargo/uv caches serialize naturally.
 - No destructive step. The atomic `Path.replace` writer leaves either the old or
@@ -1563,17 +1558,16 @@ advisories from `roadmap-2-2-4.review-r1.md`.
   the rewritten Purpose, the gate-ratio Constraint, Decision D4 (revised), and
   ADR 010 (WI6).
 - **B2 (named baseline contradicts the WI1 recipe).** Work item 1 now names
-  three
-  exact `WorkingTreeSpec` fixtures (`gate_lags_ratio` 0.45/all-false incoherent,
-  `ratio_not_crossed` 0.15/all-false coherent, `ratio_crossed_coherent` 0.45/
-  `done_30`-true coherent), built the way
+  three exact `WorkingTreeSpec` fixtures (`gate_lags_ratio` 0.45/all-false
+  incoherent, `ratio_not_crossed` 0.15/all-false coherent,
+  `ratio_crossed_coherent` 0.45/ `done_30`-true coherent), built the way
   `_variants.py:_gate_true_below_threshold` builds its incoherent variant, and
   forbids reusing `COHERENT_BASELINE` (0.86, all gates already true). The
   Hypothesis strategy's tree-construction recipe and an anti-vacuity `event()`/
   `target` requirement are specified. Recorded in Decision D8.
 - **B3 (stale line count).** Corrected `_state_mutators.py` 245→325 lines
-  (verified
-  by `wc -l`) in the Constraint and the Risk; `novel_state.py` stays 399.
+  (verified by `wc -l`) in the Constraint and the Risk; `novel_state.py` stays
+  399.
 - **A1 (roadmap log-receipt wording).** ADR 010 now carries an explicit
   reconciliation note that single-file mutators inherit the no-receipt stance
   and the roadmap's receipt wording binds the multi-file mutators only.
@@ -1584,20 +1578,17 @@ advisories from `roadmap-2-2-4.review-r1.md`.
   Constraint forbidding "fixing" the validator into the stale doc; plan,
   fixtures, and tests all track the validator's `sum(by_chapter)` total.
 - **A4 (no-flag `set-gate` exit code).** Resolved to exit 2 (usage) via a
-  Cyclopts
-  group-required/usage-error raise in the wrapper, not a body
+  Cyclopts group-required/usage-error raise in the wrapper, not a body
   `StateInputError`; recorded in Decision D9 and asserted in the WI5 e2e arms.
 - Also recorded Decision D10 (general `set-gate` retained over Wafflecat's
-  per-gate
-  `complete-knitting-NN` alternative) and updated the WI5 e2e arms and the
-  Acceptance section to match the repair/exit-2 semantics.
+  per-gate `complete-knitting-NN` alternative) and updated the WI5 e2e arms and
+  the Acceptance section to match the repair/exit-2 semantics.
 
 Round 3 (2026-06-26). Resolves the one round-3 blocking point (B4) and two
 advisories (A5, A6) from `roadmap-2-2-4.review-r2.md`.
 
 - **B4 (Work item 5 breaches the 400-line cap on `novel_state.py`).** Resolved
-  by
-  Decision D11 (option (a) of the reviewer's three): the four `@app.command`
+  by Decision D11 (option (a) of the reviewer's three): the four `@app.command`
   wrappers are NOT defined in `build_app`. They live in a registrar function
   `register_gate_drafting_commands(app)` in the new
   `_gate_drafting_mutators.py` module (verified clean: `make_contract_app`
@@ -1615,9 +1606,8 @@ advisories (A5, A6) from `roadmap-2-2-4.review-r2.md`.
   Recorded in the 400-line Constraint, the new Risk, Decision D11, the
   rewritten WI5, the Interfaces section, and ADR 010 (WI6).
 - **A5 (ADR 010 reconciliation note should name `init` as the receipt
-  exception).**
-  The WI6 ADR-010 note now states explicitly that `init` is the one
-  single-file-style mutator that DOES append a `log.md` receipt
+  exception).** The WI6 ADR-010 note now states explicitly that `init` is the
+  one single-file-style mutator that DOES append a `log.md` receipt
   (developers-guide 378-380), and that the four new mutators follow the
   `set-cursor`/`advance-phase`/`recount` no-receipt sub-family, not `init`, so
   a reader applying the roadmap wording literally against `init` sees no
@@ -1635,9 +1625,8 @@ Round 4 (2026-06-26). Resolves the one round-3 blocking point (B5) and two
 advisories (A7, A8) from `roadmap-2-2-4.review-r3.md`.
 
 - **B5 (the no-flag `set-gate` exit-2 mechanism crashes the runner).** The
-  round-3
-  mechanism raised `cyclopts.ValidationError(msg=...)` in the wrapper and
-  relied on `runner.py:225-232` mapping `CycloptsError` -> exit 2 via
+  round-3 mechanism raised `cyclopts.ValidationError(msg=...)` in the wrapper
+  and relied on `runner.py:225-232` mapping `CycloptsError` -> exit 2 via
   `messages=[str(exc)]`. Verified live: a bare hand-raised
   `ValidationError(msg=...)` has `argument/group/command_chain` all `None`, so
   `ValidationError._segments()` (`cyclopts/exceptions.py:229-265`) reaches
@@ -1666,13 +1655,11 @@ advisories (A7, A8) from `roadmap-2-2-4.review-r3.md`.
   `GateDraftingUsageError` + adapter source is shown), the Interfaces section
   (A8), and ADR 010 (WI6).
 - **A7 (cite `state-layout.md` at its real path).** Every "Docs to read"
-  citation
-  now names `skill/novel-ralph/references/state-layout.md` (it lives under
-  `skill/novel-ralph/references/`, not `docs/`), with a one-line path note at
-  first use in the Constraints.
+  citation now names `skill/novel-ralph/references/state-layout.md` (it lives
+  under `skill/novel-ralph/references/`, not `docs/`), with a one-line path
+  note at first use in the Constraints.
 - **A8 (name the exit-2 adapter in the Interfaces section, re-measure WI5
-  budget).**
-  The Interfaces section now enumerates `GateDraftingUsageError` and
+  budget).** The Interfaces section now enumerates `GateDraftingUsageError` and
   `_set_gate_or_usage` alongside the four bodies and the registrar; the
   `_gate_drafting_mutators.py` projection is revised to ~245-305 lines (the
   +10-15 adapter lines), still well under 400, re-measured by `wc -l` in WI5.
@@ -1683,19 +1670,18 @@ Lightweight, post-merge corrections folded onto this completed task. Each runs
 as a no-plan, no-review lightweight pass.
 
 - [x] **2.2.4.1 — Restore snapshot/BDD parity for the gate and drafting
-  mutators** (from
-  audit:2.2.4 Findings 3 and 4; low). The sibling-mutator baseline pins both a
-  success and a refusal envelope snapshot per mutator
+  mutators** (from audit:2.2.4 Findings 3 and 4; low). The sibling-mutator
+  baseline pins both a success and a refusal envelope snapshot per mutator
   (`tests/test_novel_state_mutator_snapshots.py`) and a behavioural `.feature`
   per refusal-bearing verb. This slice shipped only a single `set-gate` success
   `result` snapshot and only `complete_final_pass.feature`, leaving the headline
   `set-gate` repair/refusal/usage arms and the `complete-final-pass`,
-  `set-fangirl`, and `set-critic-pass` envelopes without snapshot or behavioural
-  regression protection. Backfill the missing success (and where applicable
-  refusal) `result`/envelope snapshots for `complete-final-pass`, `set-fangirl`,
-  and `set-critic-pass`, add a `set-gate` below-threshold refusal snapshot, and
-  add a `set_gate.feature` covering the repair (exit 0), below-threshold refusal
-  (exit 3), and no-flag usage (exit 2) arms, matching the sibling-mutator parity
-  in `test_novel_state_mutator_snapshots.py` and the refusal-bearing `.feature`
-  files. This restores the project's uniform coverage standard without changing
-  shipped behaviour.
+  `set-fangirl`, and `set-critic-pass` envelopes without snapshot or
+  behavioural regression protection. Backfill the missing success (and where
+  applicable refusal) `result`/envelope snapshots for `complete-final-pass`,
+  `set-fangirl`, and `set-critic-pass`, add a `set-gate` below-threshold
+  refusal snapshot, and add a `set_gate.feature` covering the repair (exit 0),
+  below-threshold refusal (exit 3), and no-flag usage (exit 2) arms, matching
+  the sibling-mutator parity in `test_novel_state_mutator_snapshots.py` and the
+  refusal-bearing `.feature` files. This restores the project's uniform
+  coverage standard without changing shipped behaviour.

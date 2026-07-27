@@ -226,8 +226,8 @@ Stop and escalate when any of these is breached rather than working around it.
   (`tests/features/torn_turn.feature` + `tests/steps/torn_turn_steps.py`, bound
   by `tests/test_torn_turn_bdd.py`), a clear-restores parsed-equality test, a
   schema round-trip test, the A1 in-bracket-value-survives test, an
-  idempotent-clear test, and a record-persisted-before-yield test. Gate green at
-  174 passed.
+  idempotent-clear test, and a record-persisted-before-yield test. Gate green
+  at 174 passed.
 - [x] Work item 4: export the helper's public surface, update the developers'
   guide, and run the full gate (`make all`; `make markdownlint`; `make nixie`).
   **Done**: `novel_ralph_skill/state/__init__.py` re-exports the six writer
@@ -328,13 +328,12 @@ Stop and escalate when any of these is breached rather than working around it.
   promote it to a shared `tests/` module then. Date/Author: 2026-06-22,
   planning agent.
 - Decision: the `pending_turn` bracket's clean-exit write re-dumps the
-  **yielded,
-  caller-mutated** `TOMLDocument`, never a reloaded fresh copy. Rationale: a
-  real mutator (e.g. `recount`, task 2.3.1) edits state *values* on the yielded
-  document inside the bracket; reloading before the clear would silently
-  discard those edits (round-1 review A1). The yielded document is therefore
-  the single write source for the clean-exit write, and a test pins that an
-  in-bracket value edit survives a clean exit. Date/Author: 2026-06-22,
+  **yielded, caller-mutated** `TOMLDocument`, never a reloaded fresh copy.
+  Rationale: a real mutator (e.g. `recount`, task 2.3.1) edits state *values*
+  on the yielded document inside the bracket; reloading before the clear would
+  silently discard those edits (round-1 review A1). The yielded document is
+  therefore the single write source for the clean-exit write, and a test pins
+  that an in-bracket value edit survives a clean exit. Date/Author: 2026-06-22,
   planning agent.
 - Decision: introduce `pytest-bdd` as the project's first behavioural-test
   dependency under `[dependency-groups].dev`, as a named step in work item 3,
@@ -364,22 +363,22 @@ Stop and escalate when any of these is breached rather than working around it.
   The "clear-restores" property (parsed-equality) covers the clean-exit clear
   only. Date/Author: 2026-06-22, planning agent.
 - Decision (work item 3, implementation): the `pending_turn` generator leaves
-  its `yield` unprotected (no `try`/`finally`), so the clear-and-write runs only
-  on a clean exit. Ruff's preview rule RUF075 ("fallible-context-manager")
+  its `yield` unprotected (no `try`/`finally`), so the clear-and-write runs
+  only on a clean exit. Ruff's preview rule RUF075 ("fallible-context-manager")
   flags this and advises wrapping the `yield`; that advice is wrong here — a
   `finally` would clear the record on the error path, which is the exact
-  opposite of the design §3.4 leave-on-error contract. Suppressed with a
-  narrow `# noqa: RUF075` and a comment citing §3.4/§5.4. Date/Author:
-  2026-06-22, implementing agent.
+  opposite of the design §3.4 leave-on-error contract. Suppressed with a narrow
+  `# noqa: RUF075` and a comment citing §3.4/§5.4. Date/Author: 2026-06-22,
+  implementing agent.
 - Decision (work item 3, implementation): the step module lives in a
   `tests/steps/` package (`__init__.py` added, mirroring
-  `tests/working_corpus/`), and the scenario binder `tests/test_torn_turn_bdd.py`
-  star-imports it (`from steps.torn_turn_steps import *`) so `pytest-bdd`'s
-  `scenarios()` discovers the step callables in the binder's namespace.
-  Rationale: `tests/` is on `sys.path` (the corpus is imported the same way), so
-  a `steps` package resolves; the directory is already exempt from the
-  assert/argument-count rules (`pyproject.toml` line 97). Date/Author:
-  2026-06-22, implementing agent.
+  `tests/working_corpus/`), and the scenario binder
+  `tests/test_torn_turn_bdd.py` star-imports it
+  (`from steps.torn_turn_steps import *`) so `pytest-bdd`'s `scenarios()`
+  discovers the step callables in the binder's namespace. Rationale: `tests/`
+  is on `sys.path` (the corpus is imported the same way), so a `steps` package
+  resolves; the directory is already exempt from the assert/argument-count rules
+  (`pyproject.toml` line 97). Date/Author: 2026-06-22, implementing agent.
 - Decision (work item 3, coderabbit): CodeRabbit's R503 finding (add explicit
   `return` to the `-> None` step functions) was skipped. Ruff's enabled `RET`
   rules do not require it for void functions, and a redundant trailing `return`
@@ -407,8 +406,8 @@ Gaps the later mutator tasks must absorb (all signposted, none a defect here):
   `[pending_turn]`. Reading an uncleared record, comparing the named paths
   against disk, and rolling `state.toml` back to the prior coherent point is
   `reconcile`'s job (task 2.3.2). The clear-restores property covers only the
-  clean-exit clear (parsed-equality, not byte-for-byte, because tomlkit
-  table insertion-then-removal can leave a residual blank line).
+  clean-exit clear (parsed-equality, not byte-for-byte, because tomlkit table
+  insertion-then-removal can leave a residual blank line).
 - **No validation.** The writer enforces no §5.2 invariant; `novel-state check`
   (task 2.1.2) does. `write_document_atomically` will persist an incoherent
   document if a caller hands it one — coherence is the caller's contract.
@@ -416,14 +415,14 @@ Gaps the later mutator tasks must absorb (all signposted, none a defect here):
   `recount` (task 2.3.1) wire these seams into Cyclopts command bodies; the
   exit-code contract is exercised there, not here.
 
-Retrospective notes for the next implementer: (1) Hypothesis `@given` cannot use
-the function-scoped `tmp_path` fixture — use a per-input
+Retrospective notes for the next implementer: (1) Hypothesis `@given` cannot
+use the function-scoped `tmp_path` fixture — use a per-input
 `tempfile.TemporaryDirectory`. (2) The `pending_turn` generator's unprotected
 `yield` is load-bearing (leave-on-error) and trips preview rule RUF075; the
 `# noqa` is justified, not a smell. (3) `make fmt` rewrites unrelated Markdown
-docs (a known repo quirk); format only the touched files with `ruff format
-<paths>` and run `markdownlint-cli2 <file>` per touched doc instead of the
-whole-tree `make markdownlint`/`make fmt`.
+docs (a known repo quirk); format only the touched files with
+`ruff format <paths>` and run `markdownlint-cli2 <file>` per touched doc
+instead of the whole-tree `make markdownlint`/`make fmt`.
 
 ## Context and orientation
 
@@ -990,17 +989,18 @@ remains DRAFT pending re-review.
 Each addendum is a lightweight, no-plan, no-review correction folded onto this
 completed task and tracked by a nested sub-task on the roadmap.
 
-- [x] Addendum 2.2.1.1 (from review:1.2.13; severity: medium). The two Hypothesis
+- [x] Addendum 2.2.1.1 (from review:1.2.13; severity: medium). The two
+      Hypothesis
   property tests in `tests/test_state_document.py` —
   `test_noop_round_trip_is_byte_identical` and
   `test_surgical_mutation_rewrites_only_the_value` — carry no `@settings`
   override, so each example inherits the default 200ms Hypothesis deadline.
   Under `pytest -n auto` the per-example `tomllib`/`tomlkit` round-trip
-  intermittently breaches that deadline, turning `make all` non-deterministically
-  red even though the tests pass in isolation. Relax the deadline for these
-  round-trip checks (e.g. `@settings(deadline=None)`) so the shared gate stays
-  deterministic. Scope is the two `@given` tests in
-  `tests/test_state_document.py`; no production code changes. This is a localized
-  gate-stabilization pass; the systemic shared-deadline-profile consolidation is
-  the separate roadmap step 7.18. Lightweight addendum pass against this
-  execplan: the change, the gates, and a merge.
+  intermittently breaches that deadline, turning `make all`
+  non-deterministically red even though the tests pass in isolation. Relax the
+  deadline for these round-trip checks (e.g. `@settings(deadline=None)`) so the
+  shared gate stays deterministic. Scope is the two `@given` tests in
+  `tests/test_state_document.py`; no production code changes. This is a
+  localized gate-stabilization pass; the systemic shared-deadline-profile
+  consolidation is the separate roadmap step 7.18. Lightweight addendum pass
+  against this execplan: the change, the gates, and a merge.

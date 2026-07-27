@@ -8,8 +8,8 @@ three new test modules, and the developer/user guide updates.
 
 Each finding records a location, a description, a concrete proposed fix, and a
 severity. None of these are blocking defects; the merged slice is correct and
-well tested. They are tidy-up opportunities to action before the command
-bodies land in later slices, while the surface is still small.
+well tested. They are tidy-up opportunities to action before the command bodies
+land in later slices, while the surface is still small.
 
 ## Finding 1 — The five command names are duplicated across five files
 
@@ -33,9 +33,9 @@ the pyproject-versus-stub axis.
 
 **Proposed fix:** introduce a single registry in `stub.py`, for example a
 module-level mapping `STUB_COMMANDS: dict[str, Callable[[], None]]` (name ->
-entry point) or a tuple of `(name, callable)` pairs, and derive the five
-`def` entry points and any test fixtures from it. Both test modules can then
-import the names from the package instead of re-declaring them, and
+entry point) or a tuple of `(name, callable)` pairs, and derive the five `def`
+entry points and any test fixtures from it. Both test modules can then import
+the names from the package instead of re-declaring them, and
 `test_pyproject_scripts.py` can assert the `[project.scripts]` table against
 the registry rather than a separately maintained literal. This makes the
 package the single source of truth and reduces the rename blast radius to one
@@ -48,22 +48,21 @@ edit plus `pyproject.toml`.
 - **Location:** `novel_ralph_skill/commands/stub.py`, functions
   `novel_state`, `novel_done`, `novel_compile`, `desloppify`, `wordcount`
 
-The five entry points differ only in the name string passed to
-`make_stub_app`. Each is a two-line body of the shape
-`make_stub_app("<name>")()`. The `make_stub_app` factory already removes the
-duplication inside each app; the remaining repetition is the five thin
-wrappers themselves. This is acceptable today because `[project.scripts]`
-requires a named, importable callable per command, but it is worth recording
-so the pattern is deliberate rather than accidental once real bodies arrive.
+The five entry points differ only in the name string passed to `make_stub_app`.
+Each is a two-line body of the shape `make_stub_app("<name>")()`. The
+`make_stub_app` factory already removes the duplication inside each app; the
+remaining repetition is the five thin wrappers themselves. This is acceptable
+today because `[project.scripts]` requires a named, importable callable per
+command, but it is worth recording so the pattern is deliberate rather than
+accidental once real bodies arrive.
 
 **Proposed fix:** keep one wrapper per command (the packaging contract needs
 named callables), but generate or document them from the registry proposed in
 Finding 1 so the relationship is explicit. If a factory-of-callables approach
-is taken, assign the generated callables to module globals with `__name__`
-set, and add a comment explaining why distinct top-level symbols are required
-(entry-point resolution). Do not collapse them into a single dispatch
-function: that would reintroduce a multiplexer, which ADR-005 explicitly
-rejected.
+is taken, assign the generated callables to module globals with `__name__` set,
+and add a comment explaining why distinct top-level symbols are required
+(entry-point resolution). Do not collapse them into a single dispatch function:
+that would reintroduce a multiplexer, which ADR-005 explicitly rejected.
 
 ## Finding 3 — `_PROJECT_ROOT` boilerplate duplicated in two test modules
 
@@ -72,15 +71,14 @@ rejected.
 - **Location:** `tests/test_pyproject_scripts.py:14`,
   `tests/test_console_scripts_e2e.py:33`
 
-Both modules compute
-`_PROJECT_ROOT = Path(__file__).resolve().parent.parent` independently. This
-is a small, well-understood idiom, but as the test suite grows the project
-root is the kind of value that benefits from a single definition.
+Both modules compute `_PROJECT_ROOT = Path(__file__).resolve().parent.parent`
+independently. This is a small, well-understood idiom, but as the test suite
+grows the project root is the kind of value that benefits from a single
+definition.
 
-**Proposed fix:** expose the project root once as a session-scoped fixture in
-a `tests/conftest.py` (none exists yet) and consume it from both modules.
-This also gives a natural home for the shared command-name fixtures from
-Finding 1.
+**Proposed fix:** expose the project root once as a session-scoped fixture in a
+`tests/conftest.py` (none exists yet) and consume it from both modules. This
+also gives a natural home for the shared command-name fixtures from Finding 1.
 
 ## Finding 4 — No docstring-coverage gate despite `interrogate` being a dep
 
@@ -92,14 +90,14 @@ Finding 1.
 `interrogate` is installed as a dev dependency, but there is no
 `[tool.interrogate]` configuration and no Makefile target invoking it, so
 docstring coverage is not enforced. The current modules are well documented,
-which makes now the cheapest moment to lock that standard in before the
-command bodies expand the surface.
+which makes now the cheapest moment to lock that standard in before the command
+bodies expand the surface.
 
 **Proposed fix:** add a `[tool.interrogate]` block with an explicit
 `fail-under` threshold and wire an `interrogate` invocation into the lint or
 test gate (a Makefile target plus CI step), or remove `interrogate` from the
-dev group if docstring coverage is intentionally not gated. Either resolves
-the ambiguity of a tool that is installed but unused.
+dev group if docstring coverage is intentionally not gated. Either resolves the
+ambiguity of a tool that is installed but unused.
 
 ## Finding 5 — Stub message string is asserted in three places, defined once
 
@@ -113,8 +111,7 @@ The "not yet implemented" message format lives as an inline f-string in the
 `_not_implemented` callback. Tests assert only that the command `name` appears
 in stderr, not the full phrase, so the message wording can drift without any
 test failing. The user guide quotes the exact phrase
-(`docs/users-guide.md:88`), creating a documented contract the tests do not
-pin.
+(`docs/users-guide.md:88`), creating a documented contract the tests do not pin.
 
 **Proposed fix:** lift the message to a module-level template constant (for
 example `NOT_IMPLEMENTED_TEMPLATE = "{name} is not yet implemented"`) and have

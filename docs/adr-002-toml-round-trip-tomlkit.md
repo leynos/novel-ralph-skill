@@ -20,10 +20,9 @@ file until it is unreadable.
 
 The standard-library `tomllib` reads TOML but cannot write it. The reference
 material even carried a failed `tomli_w` snippet that did not round-trip
-comments. The rebuild must choose a write mechanism. This decision
-is hard to reverse once every mutator depends on it, so it is settled before
-the state slice is built. It resolves open question Q1 in the terms of
-reference.
+comments. The rebuild must choose a write mechanism. This decision is hard to
+reverse once every mutator depends on it, so it is settled before the state
+slice is built. It resolves open question Q1 in the terms of reference.
 
 ## Decision drivers
 

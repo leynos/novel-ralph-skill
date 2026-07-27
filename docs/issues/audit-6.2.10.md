@@ -10,25 +10,26 @@ modes, closing the in-process-versus-binary asymmetry the 6.2.8 in-process
 matrix left open. It also recorded that coverage in the harness design doc
 (§4.2 commentary) and the developers' guide, and captured the execplan.
 
-The task itself is test-and-docs only and is correct: the new e2e module mirrors
-the existing installed-e2e fixtures and marks, the design-doc and
+The task itself is test-and-docs only and is correct: the new e2e module
+mirrors the existing installed-e2e fixtures and marks, the design-doc and
 developers'-guide prose match the test, and the cited line ranges
 (`runner.py:223-239` two-arm `try/except`) check out. No finding below is a
 defect in 6.2.10's diff. The findings are pre-existing hygiene observations
 surfaced while reading the command and state layers the new e2e drives; none
 block the merge.
 
-Sources relied on: `docs/issues/audit-6.2.8.md` and `docs/issues/audit-6.1.1.md`
-(the prior duplication-by-copy-paste theme); `docs/roadmap.md` (completed tasks
-2.2.2.2 — the single `working/state.toml` accessor — and 3.1.1.2 — the
-`_chapter_dir_name` `chapter-NN` single source); `docs/novel-ralph-harness-
-design.md` (§3.2 exit codes, §4.1 disk-authoritative counting, §4.2 done
-predicate, §4.5 wordcount); `docs/adr-003-shared-interface-contract.md` (the
-shared `run`/envelope contract); `docs/scripting-standards.md`; and `AGENTS.md`
-(en-GB Oxford spelling, the 400-line module cap, the single-source-of-truth
-stance). Code navigated with `leta` (`grep`/`refs`/`show`); history traced with
-`sem`/`git show` over commit `72a9b99`. Skills consulted: `python-router`,
-which routed to `python-data-shapes` (the path-helper boundary) and
+Sources relied on: `docs/issues/audit-6.2.8.md` and
+`docs/issues/audit-6.1.1.md` (the prior duplication-by-copy-paste theme);
+`docs/roadmap.md` (completed tasks 2.2.2.2 — the single `working/state.toml`
+accessor — and 3.1.1.2 — the `_chapter_dir_name` `chapter-NN` single source);
+`docs/novel-ralph-harness- design.md` (§3.2 exit codes, §4.1 disk-authoritative
+counting, §4.2 done predicate, §4.5 wordcount);
+`docs/adr-003-shared-interface-contract.md` (the shared `run`/envelope
+contract); `docs/scripting-standards.md`; and `AGENTS.md` (en-GB Oxford
+spelling, the 400-line module cap, the single-source-of-truth stance). Code
+navigated with `leta` (`grep`/`refs`/`show`); history traced with `sem`/
+`git show` over commit `72a9b99`. Skills consulted: `python-router`, which
+routed to `python-data-shapes` (the path-helper boundary) and
 `python-errors-and-logging` (the `FileNotFoundError`-is-benign read boundary).
 
 ## Finding 1: Two commands bypass the canonical `state_path()` accessor
@@ -43,7 +44,7 @@ Roadmap task 2.2.2.2 promoted a single `working/state.toml` accessor —
 `novel_state.state_path()` (and `working_dir()`) — and routed `_check`, `init`,
 and the two `_state_mutators` through it "so the path has a single home"
 (roadmap lines 668-674). The `state_path()` docstring restates this: it is "the
-single accessor every command routes through ... so the canonical `state.toml`
+single accessor every command routes through … so the canonical `state.toml`
 path is constructed in exactly one place", and `working_dir()` warns against
 each caller "rebuilding `pathlib.Path(WORKING_DIR_NAME)`".
 
@@ -93,10 +94,10 @@ draft = working_dir / "manuscript" / f"chapter-{number:02d}" / "draft.md"
 
 `_chapter_text`'s own docstring acknowledges the coupling — "The path
 derivation is the same `chapter-{number:02d}` convention `recount` uses, so the
-two cannot disagree" — but enforces it by copy rather than by calling the shared
-helper, so a future change to the zero-padding (or a switch to a different
-layout) must be made in three places, and the docstring's "cannot disagree"
-guarantee is only true by vigilance.
+two cannot disagree" — but enforces it by copy rather than by calling the
+shared helper, so a future change to the zero-padding (or a switch to a
+different layout) must be made in three places, and the docstring's "cannot
+disagree" guarantee is only true by vigilance.
 
 - **Proposed fix:** import `_chapter_dir_name` into `state/wordcount.py` and
   `commands/_desloppify.py` and replace the inline `f"chapter-{number:02d}"`
@@ -145,16 +146,18 @@ codebase already centralized for the structural checks in `disk_evidence.py`.
 
 The `"manuscript"` directory name and the `"draft.md"` filename are bare string
 literals repeated across at least six modules. `_disk_paths.py` already owns the
-`chapter-NN` segment via `_chapter_dir_name`, but the surrounding `manuscript/`
-and `draft.md` segments of the same `state-layout.md` path are not centralized,
-so the layout the design fixes in one place is spelled out in many. This is the
-softest of the four findings — the literals are stable — but it is the residue
-of the same layout-knowledge-by-copy pattern Findings 2 and 3 address.
+`chapter-NN` segment via `_chapter_dir_name`, but the surrounding
+`manuscript/` and `draft.md` segments of the same `state-layout.md` path are
+not centralized, so the layout the design fixes in one place is spelled out in
+many. This is the softest of the four findings — the literals are stable — but
+it is the residue of the same layout-knowledge-by-copy pattern Findings 2 and 3
+address.
 
 - **Proposed fix:** as part of the Finding 3 extraction, give `_disk_paths.py`
   named segment constants (`MANUSCRIPT_DIR_NAME = "manuscript"`,
-  `DRAFT_FILE_NAME = "draft.md"`) and a `chapter_draft_path(working_dir,
-  number)` joiner, then route the draft-reading call sites through it. Leave the
-  `done.flag`/`critic-notes.md`/`compiled.md` joins as a follow-on if the same
-  treatment is wanted for them; scope the first pass to the draft path the three
-  duplications above share so the change stays reviewable.
+  `DRAFT_FILE_NAME = "draft.md"`) and a
+  `chapter_draft_path(working_dir, number)` joiner, then route the
+  draft-reading call sites through it. Leave the `done.flag`/`critic-notes.md`/
+  `compiled.md` joins as a follow-on if the same treatment is wanted for them;
+  scope the first pass to the draft path the three duplications above share so
+  the change stays reviewable.

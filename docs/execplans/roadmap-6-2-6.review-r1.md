@@ -34,9 +34,9 @@ must be verified and cited correctly, that is blocking.
   `_build_and_install_wordcount` is the module helper
   (`tests/test_wordcount_e2e.py:42`). No `ScopeMismatch` arises: reconcile uses
   the module fixture (built once), wordcount uses the function helper.
-- Lint relief: `pyproject.toml:97` `"**/test_*.py" = ["S101", "PLR0913",
-  "PLR0917", ...]` covers both target files, so bare `assert` and the 4-fixture
-  signatures are permitted.
+- Lint relief: `pyproject.toml:97`
+  `"**/test_*.py" = ["S101", "PLR0913", "PLR0917", ...]` covers both target
+  files, so bare `assert` and the 4-fixture signatures are permitted.
 
 ## Blocking defects
 
@@ -47,28 +47,30 @@ The locked dependency is `cuprum==0.1.0` (`uv.lock`). The sibling at
 into the canonical `RunOutputOptions`"), which is *after* 0.1.0 and has
 refactored the run API. Verified by installing the actual 0.1.0 wheel:
 
-- 0.1.0 `SafeCmd.run_sync(self, *, capture: bool = True, echo: bool = False,
-  context: ExecutionContext | None = None)` — `capture` is a **first-class
-  keyword on `run_sync`**.
-- Sibling `SafeCmd.run_sync(self, *, output: RunOutputOptions | None = None,
-  timeout=..., context=..., stdin=...)` — **no `capture` parameter**; capture is
-  routed through `RunOutputOptions`.
+- 0.1.0
+  `SafeCmd.run_sync(self, *, capture: bool = True, echo: bool = False, context:
+  ExecutionContext | None = None)` —
+  `capture` is a **first-class keyword on `run_sync`**.
+- Sibling
+  `SafeCmd.run_sync(self, *, output: RunOutputOptions | None = None,
+  timeout=…, context=…, stdin=…)` —
+  **no `capture` parameter**; capture is routed through `RunOutputOptions`.
 
 Consequence for the plan:
 
 - Plan §"Interfaces and dependencies" (≈ line 522) asserts: "`capture=True` is
-  the `RunOutputOptions` default (`cuprum/sh.py:281`) but is passed explicitly".
-  This describes the **sibling** API. In the locked 0.1.0 wheel there is no
-  `RunOutputOptions` routing on `run_sync`; `capture` is a direct keyword. The
-  claim is false for the wheel the tests actually run against.
+  the `RunOutputOptions` default (`cuprum/sh.py:281`) but is passed
+  explicitly". This describes the **sibling** API. In the locked 0.1.0 wheel
+  there is no `RunOutputOptions` routing on `run_sync`; `capture` is a direct
+  keyword. The claim is false for the wheel the tests actually run against.
 - The Constraints block (lines 63-65) and the Interfaces block (lines 517-525)
   cite `cuprum/sh.py:93-118,169-199,441,281`. Those line numbers are the
   sibling's. In the 0.1.0 wheel the same entities sit at: `CommandResult` class
   line 89, `ExecutionContext` line 165, `SafeCmd.run_sync` line 518 (the
-  `capture`-bearing one). The cited `:441` in the sibling is the
-  *capture-less* refactored `run_sync` — i.e. a reader who follows the citation
-  to "verify" 0.1.0 behaviour lands on an API that contradicts the prescribed
-  test code and could "fix" the test by deleting `capture=True`.
+  `capture`-bearing one). The cited `:441` in the sibling is the *capture-less*
+  refactored `run_sync` — i.e. a reader who follows the citation to "verify"
+  0.1.0 behaviour lands on an API that contradicts the prescribed test code and
+  could "fix" the test by deleting `capture=True`.
 - `cuprum/catalogue.py:79` (lookup raise) is `:82` in 0.1.0;
   `ProjectSettings/ProgramCatalogue` `:33-65` are `:30/:56` in 0.1.0.
 

@@ -33,8 +33,7 @@ Every assertion the plan promises is confirmed.
   fires whenever `state.pending_turn is not None` (`disk_evidence.py:190-205`),
   `_RECOMPUTABLE_BASENAMES = {state.toml, log.md}` (`reconcile.py:89`).
 - Producer signature `pending_turn(path, *, operation, paths)` and
-  leave-on-error
-  contract (`document.py:222-266`).
+  leave-on-error contract (`document.py:222-266`).
 - `_pending_turn_edit` is a no-op for ROLLBACK and deletes nothing
   (`_reconcile.py:150-180`); receipt prefix `reconcile:` (`_reconcile.py:87`).
 - Envelope nesting `result.reconciliation.{action,discrepancies,detail}`
@@ -44,8 +43,8 @@ Every assertion the plan promises is confirmed.
   - `pending_turn` only (`_variant_base.py:25`,
   `_reconcile_variants.py:200-206`).
 - Binder convention `from steps.X import *  # noqa: F403` +
-  `scenarios("features/X.feature")`
-  matches `tests/test_torn_turn_rollback_bdd.py`.
+  `scenarios("features/X.feature")` matches
+  `tests/test_torn_turn_rollback_bdd.py`.
 - Locked pins in `uv.lock`: cuprum 0.1.0, cyclopts 4.18.0, pytest-bdd 8.1.0,
   pytest-timeout 2.4.0, pytest-xdist 3.8.0 — all match the plan exactly.
 - No-cuprum claim holds: no `subprocess`/cuprum call in `commands/*.py`.
@@ -64,9 +63,8 @@ Every assertion the plan promises is confirmed.
   faithful §3.4 producer. The deviation from the literal roadmap wording is
   sound and well-evidenced, not a structural defect.
 - 🟢 Telefono: drives only locked in-process interfaces; envelope shape
-  verified;
-  no contract evolution. The plan asserts `action`/`discrepancies`, not the
-  exact `detail` prose — correctly robust.
+  verified; no contract evolution. The plan asserts `action`/`discrepancies`,
+  not the exact `detail` prose — correctly robust.
 - 🟢 Doggylump: pre-mortem covered. The realistic failure (misclassification as
   COMPLETE/REFUSE) is pinned by an explicit `action == "rollback-pending-turn"`
   assertion and the Disposition tolerance; empirically it cannot misfire over
@@ -74,12 +72,11 @@ Every assertion the plan promises is confirmed.
 - 🟢 Buzzy Bee / Dinolump: a single throwaway-`tmp_path` BDD scenario; trivial
   cost; mirrors an existing green sibling; cognitive load minimal.
 - 💡 Wafflecat (advisory): the strongest alternative is to add the
-  `pending_turn`
-  field at the spec level (`dc.replace(BASE, pending_turn=...)`) like the
-  corpus variant rather than via the runtime bracket. The plan rightly rejects
-  it: the spec field is the *hand-planted* path that already has body-call
-  coverage (`test_reconcile.py`); the runtime bracket is what makes this a
-  *real torn turn* and closes the genuine gap. No change required.
+  `pending_turn` field at the spec level (`dc.replace(BASE, pending_turn=...)`)
+  like the corpus variant rather than via the runtime bracket. The plan rightly
+  rejects it: the spec field is the *hand-planted* path that already has
+  body-call coverage (`test_reconcile.py`); the runtime bracket is what makes
+  this a *real torn turn* and closes the genuine gap. No change required.
 
 ## Advisory (non-blocking)
 

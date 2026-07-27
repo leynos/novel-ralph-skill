@@ -106,14 +106,13 @@ in the very module that performs the second-hop re-export.
   WI5/WI6 gate block.
 
 - **A2 (devguide:620 `_state_load` is on the WI5 Gate-1 path but edited in
-  WI6).**
-  The plan acknowledges line 620 is touched by both WI5 (gate enumeration) and
-  WI6 (the "Five … `state_sourcing`" edit) and says "whichever lands first must
-  change it". Because WI5 lands before WI6 and Gate 1 must pass at WI5 commit
-  time, WI5 must actually perform the 620 edit (not just enumerate it), or
-  WI5's own Gate 1 fails. The plan's WI5 clean-up-1 list does include
-  `devguide:620`, so this is consistent — flagging only so the implementer does
-  not defer 620 to WI6 and break the WI5 gate.
+  WI6).** The plan acknowledges line 620 is touched by both WI5 (gate
+  enumeration) and WI6 (the "Five … `state_sourcing`" edit) and says "whichever
+  lands first must change it". Because WI5 lands before WI6 and Gate 1 must
+  pass at WI5 commit time, WI5 must actually perform the 620 edit (not just
+  enumerate it), or WI5's own Gate 1 fails. The plan's WI5 clean-up-1 list does
+  include `devguide:620`, so this is consistent — flagging only so the
+  implementer does not defer 620 to WI6 and break the WI5 gate.
 
 ## 🟢 Improvements
 

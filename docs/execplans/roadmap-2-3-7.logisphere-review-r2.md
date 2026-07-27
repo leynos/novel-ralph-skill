@@ -7,11 +7,10 @@ Date: 2026-06-26.
 Verdict: **PROCEED**. The two Round-1 blocking defects (B1, B2) are genuinely
 resolved, not papered over. Advisories A1-A5 are folded in. Every load-bearing
 claim was re-verified against real source (`validate.py`, `_state_mutators.py`,
-`_recount.py`, `contract/errors.py` + `runner.py`, `_gate_drafting_mutators.py`,
-the e2e file, the cuprum read-only sibling, the Makefile/pyproject test config,
-and
-all four documentation surfaces). No blocking defects remain. The findings
-below are advisory polish only.
+`_recount.py`, `contract/errors.py` + `runner.py`,
+`_gate_drafting_mutators.py`, the e2e file, the cuprum read-only sibling, the
+Makefile/pyproject test config, and all four documentation surfaces). No
+blocking defects remain. The findings below are advisory polish only.
 
 ## Verification trail (re-checked against real source this round)
 
@@ -19,8 +18,8 @@ below are advisory polish only.
   `sum(by_chapter.values())`, `target <= 0` short-circuit, name
   `GATE_RATIO_CONSISTENT`, current detail
   `f"knitting gates {flags} disagree with drafted ratio {ratio:.4f} against
-  thresholds {GATE_THRESHOLDS}"`. `GATE_THRESHOLDS = (0.30, 0.50, 0.80)`
-  (line 76). All as the plan states.
+  thresholds {GATE_THRESHOLDS}"`.
+  `GATE_THRESHOLDS = (0.30, 0.50, 0.80)` (line 76). All as the plan states.
 - `_refuse_if_incoherent(state, *, context)` (_state_mutators.py 142) raises
   `StateInputError(summary, *details)`; recount calls it at _recount.py 149.
   Confirmed. Adding a backward-compatible `remedy=None` keyword (shape 2)
@@ -29,20 +28,21 @@ below are advisory polish only.
   varargs prose; `StateInputError` subclasses it (runner.py). Appending remedy
   lines as extra `messages` entries is contract-legal. Confirmed.
 - cuprum 0.1.0 (read-only /data/leynos/Projects/cuprum): `make` (sh.py 528),
-  `run_sync` (sh.py 441/509), `ExecutionContext` (sh.py 169), `capture`
-  (sh.py 281), `ProgramCatalogue` (catalogue.py 59). All present; the e2e
-  reuses the surface the existing `test_recount_e2e.py` already drives.
-- pytest-timeout under pytest-xdist: Makefile runs `pytest -v -n
-  $(PYTEST_XDIST_WORKERS)` (default `auto`); `pytest-timeout` is a declared dev
-  dep; project default `timeout = 30` (pyproject 327); the existing slow e2e
-  carries `@pytest.mark.timeout(180)` and passes under this config. Proven
-  in-repo pattern, not a memory claim. Acceptable — no firecrawl citation
-  required because the behaviour is pinned by a passing test in this repo.
+  `run_sync` (sh.py 441/509), `ExecutionContext` (sh.py 169), `capture` (sh.py
+  281), `ProgramCatalogue` (catalogue.py 59). All present; the e2e reuses the
+  surface the existing `test_recount_e2e.py` already drives.
+- pytest-timeout under pytest-xdist: Makefile runs
+  `pytest -v -n $(PYTEST_XDIST_WORKERS)` (default `auto`); `pytest-timeout` is
+  a declared dev dep; project default `timeout = 30` (pyproject 327); the
+  existing slow e2e carries `@pytest.mark.timeout(180)` and passes under this
+  config. Proven in-repo pattern, not a memory claim. Acceptable — no firecrawl
+  citation required because the behaviour is pinned by a passing test in this
+  repo.
 - Cyclopts flag mapping (_gate_drafting_mutators.py 70-74): `_KNITTING_KEYS`
   pairs Cyclopts param `knitting_30` with disk key `done_30` (and 50/80);
-  Cyclopts renders the param as `--knitting-30`. Remedy text `gate done_NN …
-  set-gate --knitting-NN` is consistent (`done_NN` is the disk key the operator
-  sees; `--knitting-NN` is the repair flag).
+  Cyclopts renders the param as `--knitting-30`. Remedy text
+  `gate done_NN … set-gate --knitting-NN` is consistent (`done_NN` is the disk
+  key the operator sees; `--knitting-NN` is the repair flag).
 - design §5.4 recovery rule 1 (harness-design.md 600-611): recount/reconcile
   rewrite `[word_counts]` only, never `[gates]`; "A done-claim large enough to
   move a gate is reported and escalated, not silently re-projected." The plan
@@ -67,11 +67,12 @@ reverse-engineered. This is a plan, not a wish.
 
 ## B2 — RESOLVED
 
-The downward line is specified verbatim and deliberately omits `set-gate
---knitting-NN` ("the recorded gate no longer matches the drafts. Adjudicate
-…"). Dual-direction coverage now exists at three levels: unit (with the
-`"set-gate" not in <downward line>` absence assertion), behavioural (upward +
-downward scenarios), and installed e2e (upward + downward, the downward e2e
+The downward line is specified verbatim and deliberately omits
+`set-gate --knitting-NN` ("the recorded gate no longer matches the drafts.
+Adjudicate …"). Dual-direction coverage now exists at three levels: unit (with
+the `"set-gate" not in <downward line>` absence assertion), behavioural (upward
+
+- downward scenarios), and installed e2e (upward + downward, the downward e2e
 asserting `"set-gate --knitting-80"` absent from *every* `messages` entry —
 stronger than the per-line unit check). The pre-mortem's most-likely incident
 (the upward-shaped message leaking into the downward path) is directly tested.
@@ -89,9 +90,9 @@ cannot be defeated by the shared detail line.
   calls it twice (_reconcile.py 146/207). This does **not** weaken shape 2 — the
   `remedy=None` default still protects every caller untouched, so the plan's
   *conclusion* ("no other caller changes") holds. But the plan's *premise* (the
-  exhaustive caller list) is wrong; correct it so the implementer does not trust
-  a stale enumeration when reasoning about the keyword's blast radius. The R1
-  review carried the same incomplete list, so this is inherited, not new.
+  exhaustive caller list) is wrong; correct it so the implementer does not
+  trust a stale enumeration when reasoning about the keyword's blast radius.
+  The R1 review carried the same incomplete list, so this is inherited, not new.
 
 - A7 (Pandalump) — **`:.0f` vs "two decimal places" wording slip.** Work item 2
   line 384 says the ratio is "rendered to two decimal places as a percentage
@@ -111,8 +112,8 @@ cannot be defeated by the shared detail line.
   this, but a real operator near a boundary could. This is cosmetic, not a
   correctness defect (the refusal verdict and exit code are unaffected).
   Optional mitigation: render the ratio with one decimal (`:.1f`) for the
-  message only, or note the edge in the Decision Log so a future reader does not
-  treat it as a bug. Not blocking.
+  message only, or note the edge in the Decision Log so a future reader does
+  not treat it as a bug. Not blocking.
 
 - A9 (Wafflecat / Buzzy Bee) — **Risk 3 (snapshot churn) is over-hedged: no
   snapshot currently captures the gate-ratio detail.** A grep of
@@ -123,8 +124,8 @@ cannot be defeated by the shared detail line.
   ("all knitting gates reached"), not the violation detail. The plan's
   conservative "locate every snapshot before editing" instruction is harmless
   and good hygiene, but the implementer can expect zero snapshot churn from
-  Work item 1's detail enrichment. State this so the snapshot-update step is not
-  treated as load-bearing.
+  Work item 1's detail enrichment. State this so the snapshot-update step is
+  not treated as load-bearing.
 
 - A10 (Dinolump) — **skill state-layout uses `current`, validator uses the
   drafted sum.** skill/novel-ralph/references/state-layout.md line 207 says
@@ -156,9 +157,9 @@ matrix proves fiddly. Now that B1/B2 are pinned with a finite, tested matrix
 (three thresholds × two directions, single- and multi-gate fan-out), the
 proposed design's extra actionability (the named percentage in the
 recount-specific line) is earned. The Tolerances already authorize falling back
-to shape 1 if shape 2 forces a caller change, and the command-layer branching is
-bounded and fully tested, so the proposed design is the right call. No stronger
-alternative exists; that is a positive signal.
+to shape 1 if shape 2 forces a caller change, and the command-layer branching
+is bounded and fully tested, so the proposed design is the right call. No
+stronger alternative exists; that is a positive signal.
 
 ## Recommended next steps (none blocking)
 

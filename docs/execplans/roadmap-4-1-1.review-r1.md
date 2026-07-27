@@ -1,7 +1,8 @@
 # Logisphere adversarial design review — roadmap 4.1.1 (Round 1)
 
 Reviewer: Logisphere crew (adversarial design review). Verdict source of truth:
-the StructuredOutput returned to the orchestrator. This file is the working note.
+the StructuredOutput returned to the orchestrator. This file is the working
+note.
 
 ## Verdict
 
@@ -16,11 +17,13 @@ strengthen the plan but do not block implementation.
   (`novel_ralph_skill/state/compile_model.py:30,33-53`). Matches the plan.
 - The round-trip oracle `_check_compiled_matches_drafts` recomputes
   `concatenate_drafts(_present_draft_bodies(state, working_dir))`
-  (`disk_evidence.py:179-196`). The plan's "ready oracle" claim holds; a compile
-  that reuses both functions is accepted by the invariant by construction.
-- `_present_draft_bodies` reads `draft.read_text("utf-8") if draft.exists() else
-  ""` ordered by ascending `chapter.number` (`disk_evidence.py:164-176`). The
-  plan's read-rule constraint is accurate.
+  (`disk_evidence.py:179-196`). The plan's "ready oracle" claim holds; a
+  compile that reuses both functions is accepted by the invariant by
+  construction.
+- `_present_draft_bodies` reads
+  `draft.read_text("utf-8") if draft.exists() else ""` ordered by ascending
+  `chapter.number` (`disk_evidence.py:164-176`). The plan's read-rule
+  constraint is accurate.
 - The atomic-write discipline and `_TEMP_PREFIX = ".state.toml."`
   (`document.py:57,114-151`). The text-twin D-WRITER plan is faithful.
 - Exit-3 routing precedent: `_recount._recount_or_state_error`
@@ -32,15 +35,16 @@ strengthen the plan but do not block implementation.
 - Single-default-callback Cyclopts app through `run`: `_desloppify.build_app`
   (`_desloppify.py:290-320`) is the exact pattern, with
   `result_action="return_value", exit_on_error=False, print_error=False,
-  help_on_error=False`. cyclopts is locked at 4.18.0 (`uv.lock:137-148`). No
-  uncited memory-based cyclopts claim is made — the plan leans on working code.
+  help_on_error=False`.
+  cyclopts is locked at 4.18.0 (`uv.lock:137-148`). No uncited memory-based
+  cyclopts claim is made — the plan leans on working code.
 - D-EMPTY: `PHASE_STATES["premise"]` has `chapters=()`
-  (`tests/working_corpus/_library.py:67-76`); `drafting`/`COHERENT_BASELINE` has
-  a populated manifest and `compiled=None` (`_library.py:79-97,118`). The
+  (`tests/working_corpus/_library.py:67-76`); `drafting`/`COHERENT_BASELINE`
+  has a populated manifest and `compiled=None` (`_library.py:79-97,118`). The
   empty-manifest refusal and the "coherent drafting tree without compiled.md"
   unit fixture both materialize directly. `parse._chapters` yields an empty
-  tuple for an absent/empty `[chapters]` (`parse.py:87-103`), so `not
-  state.chapters` is the correct refusal predicate.
+  tuple for an absent/empty `[chapters]` (`parse.py:87-103`), so
+  `not state.chapters` is the correct refusal predicate.
 - D-CWD: `monkeypatch.chdir(working.parent)` is the established e2e pattern
   (`tests/test_recount_e2e.py:62`).
 - Path helper `_chapter_dir_name` exists (`_disk_paths.py:19-21`).
@@ -57,24 +61,24 @@ strengthen the plan but do not block implementation.
 ## Documentation defects the plan correctly targets (verified accurate)
 
 - `docs/developers-guide.md:207-208` and `:596` list `novel-compile` among the
-  genuinely-multi-file `[pending_turn]` writers (grouped with `reconcile`). This
-  is a real mis-listing; the plan's D-PT correction is warranted.
-- `docs/developers-guide.md:303-304` asserts `novel-done` and `novel-compile
-  --check` "call the same compile-and-hash routine" — implies `--check` is
-  delivered. The plan's edit to scope this to the write path (4.1.1) vs the hash
-  routine (4.1.2/3.1.2) is correct.
+  genuinely-multi-file `[pending_turn]` writers (grouped with `reconcile`).
+  This is a real mis-listing; the plan's D-PT correction is warranted.
+- `docs/developers-guide.md:303-304` asserts `novel-done` and
+  `novel-compile --check` "call the same compile-and-hash routine" — implies
+  `--check` is delivered. The plan's edit to scope this to the write path
+  (4.1.1) vs the hash routine (4.1.2/3.1.2) is correct.
 - `docs/users-guide.md:87` lists `novel-compile` as a stub; the plan moves it.
 
 ## Design-conformance: the single-file / no-bracket call (D-PT, D-PT-DESIGN)
 
 This is the one place the design text is in genuine tension, so it was
-scrutinized. Design §3.4 lines 255-256 say "each mutator opens a `[pending_turn]`
-intent record … before it touches any other file." Taken literally that would
-bracket every mutator. But:
+scrutinized. Design §3.4 lines 255-256 say "each mutator opens a
+`[pending_turn]` intent record … before it touches any other file." Taken
+literally that would bracket every mutator. But:
 
 - §3.4's rationale is explicitly multi-file atomicity ("a turn that touches
-  several files … is not atomic as a whole"). `novel-compile` writes exactly one
-  file (`compiled.md`), already atomic via `Path.replace`.
+  several files … is not atomic as a whole"). `novel-compile` writes exactly
+  one file (`compiled.md`), already atomic via `Path.replace`.
 - The §3.3 mutator table names only `compiled.md` as `novel-compile`'s write.
 - §4.3 names only `compiled.md` as the output.
 - The codebase already realizes this reading: `recount`/`set-cursor`/
@@ -124,21 +128,21 @@ consistent with merged precedent. Not a defect.
 ## Pre-mortem (Doggylump)
 
 - Most likely failure: a freshly compiled tree fails `novel-state check` because
-  the write path and the invariant disagree on separator/read-rule/order.
-  Blast radius: every compile. Mitigation already in the plan: the round-trip
-  oracle test (Work item 2) and the literal-same-function read rule. Adequate.
+  the write path and the invariant disagree on separator/read-rule/order. Blast
+  radius: every compile. Mitigation already in the plan: the round-trip oracle
+  test (Work item 2) and the literal-same-function read rule. Adequate.
 - Second failure: an undecodable `draft.md` escapes as exit 1 instead of 3.
-  Mitigated by the `STATE_INPUT_ERRORS` wrapper and an explicit undecodable-draft
-  test. Adequate; precedented by `_recount`/`_desloppify`.
+  Mitigated by the `STATE_INPUT_ERRORS` wrapper and an explicit
+  undecodable-draft test. Adequate; precedented by `_recount`/`_desloppify`.
 - Third failure: non-deterministic ordering from a glob. Mitigated by ordering
-  strictly via `sorted(state.chapters, key=…number)` plus an out-of-order-on-disk
-  test. Adequate.
+  strictly via `sorted(state.chapters, key=…number)` plus an
+  out-of-order-on-disk test. Adequate.
 
 ## Alternatives checkpoint (Wafflecat)
 
 The strongest alternative is to put the compile body and the text-writer in a
-single new module rather than splitting the writer into `state/document.py`. The
-plan's split is correct: it keeps the atomic-write discipline single-homed
+single new module rather than splitting the writer into `state/document.py`.
+The plan's split is correct: it keeps the atomic-write discipline single-homed
 (D-WRITER) and re-exported, matching how every other mutator reaches
 `write_document_atomically`. No credible structural alternative improves on the
 chosen decomposition; the design space here is genuinely narrow because the

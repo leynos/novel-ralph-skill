@@ -10,9 +10,10 @@ Status: COMPLETE
 
 Roadmap task 6.3.1 made the *state.toml-load* faults speak plainly: run any
 `novel` command from a directory with no `working/` tree and the exit-3
-envelope now carries `no novel working/ found in <cwd>; run from the novel
-root, or run 'novel state init' to create one`, with no raw `Errno` and no
-traceback. But the *draft-read* faults on the same
+envelope now carries
+`no novel working/ found in <cwd>; run from the novel
+root, or run 'novel state init' to create one`,
+with no raw `Errno` and no traceback. But the *draft-read* faults on the same
 exit-3 channel were left raw. When a chapter's `draft.md` is present but
 undecodable (invalid UTF-8) or unreadable (a `PermissionError`), the same
 command surfaces operating-system noise instead:
@@ -43,9 +44,10 @@ string), which 6.3.1 Decision D8 deliberately kept distinct from the draft-read
 and load faults. The roadmap mandates "an inspect/repair remedy", not the
 draft-read formatter specifically; the correct inspect/repair home for a
 present-but-corrupt *state document* is 6.3.1's existing `_state_input_error`
-present-but-corrupt arm (`<path> is unreadable or corrupt; inspect and repair
-it, or restore it from a known-good copy`). Because the document parsed,
-`state.toml` exists, so that arm (not the
+present-but-corrupt arm
+(`<path> is unreadable or corrupt; inspect and repair
+it, or restore it from a known-good copy`).
+Because the document parsed, `state.toml` exists, so that arm (not the
 missing-`working/` arm) fires and names the `state.toml` *path* — the right
 artefact for a state-document fault — rather than the `working/` tree a
 draft-read message names. This plan therefore routes the view-derivation
@@ -232,7 +234,8 @@ escalation, not a workaround.
       plus the parity assertion
       (`tests/test_draft_read_message_parity.py`). Refreshed the two direct unit
       assertions (`test_compile_unit.py`, `test_desloppify_sourcing.py`). (Done.)
-- [x] Work item 6 — refreshed the `docs/developers-guide.md` exit-3 channel prose
+- [x] Work item 6 — refreshed the `docs/developers-guide.md` exit-3 channel
+      prose
       (around the `StateInputError` discussion) and the structurally-incomplete
       note to describe the two sibling formatters and the view-derivation reuse;
       `markdownlint-cli2 docs/developers-guide.md` and `make nixie` pass. (Done.)
@@ -337,10 +340,11 @@ escalation, not a workaround.
   "differs" from a draft fault, and warned future reviewers not to conflate it.
   Because the document parsed, the file `state.toml` exists, so
   `_state_input_error`'s `if not path.parent.exists() or not path.exists()`
-  test is false and its present-but-corrupt arm fires — emitting `<state.toml
+  test is false and its present-but-corrupt arm fires — emitting
+  `<state.toml
   path> is unreadable or corrupt; inspect and repair it, or restore it from a
-  known-good copy`, which names the *state-document path* (the right artefact)
-  and is exactly
+  known-good copy`,
+  which names the *state-document path* (the right artefact) and is exactly
   the inspect/repair remedy the roadmap mandates, with no `Errno`/`{exc}`. This
   reuses 6.3.1's machinery, respects D8's distinction, and keeps the draft-read
   formatter's vocabulary honest (it never has to claim to cover a
@@ -361,27 +365,28 @@ escalation, not a workaround.
 
 ## Outcomes & retrospective
 
-Delivered all six work items. The six draft-read boundaries now route through one
-`_draft_read_error(reported_dir, exc)` formatter that names the `working/` tree
-and advises inspect/repair without leaking an `Errno`, `{exc}` repr, traceback,
-or `init` suggestion; the mutator view-derivation boundary reuses
-`_state_input_error`'s present-but-corrupt arm (naming the `state.toml` path) per
-Decision D7. The `grep` sweep over `novel_ralph_skill/` and `tests/` returns no
-live `cannot read …: {exc}` or `state is structurally incomplete: {exc}`
-string — only negative assertions and docstrings describing the new behaviour.
+Delivered all six work items. The six draft-read boundaries now route through
+one `_draft_read_error(reported_dir, exc)` formatter that names the `working/`
+tree and advises inspect/repair without leaking an `Errno`, `{exc}` repr,
+traceback, or `init` suggestion; the mutator view-derivation boundary reuses
+`_state_input_error`'s present-but-corrupt arm (naming the `state.toml` path)
+per Decision D7. The `grep` sweep over `novel_ralph_skill/` and `tests/`
+returns no live `cannot read …: {exc}` or
+`state is structurally incomplete: {exc}` string — only negative assertions and
+docstrings describing the new behaviour.
 
 Deviations and notes:
 
 - The `exc` parameter of `_draft_read_error` is intentionally unused in the body
-  (the message is fault-independent by design, mirroring how `_state_input_error`
-  ignores the `Errno`); it is retained for call-site symmetry and `from exc`
-  chaining. Ruff/Pylint did not flag it.
+  (the message is fault-independent by design, mirroring how
+  `_state_input_error` ignores the `Errno`); it is retained for call-site
+  symmetry and `from exc` chaining. Ruff/Pylint did not flag it.
 - `make fmt` reflowed every Markdown file in the repo (the recurring
-  mdformat-all churn). Per established practice in this repo, that spurious churn
-  (including a full reflow of `docs/developers-guide.md`) was parked in a git
-  stash and the deliberate developers-guide edit re-applied to the pristine HEAD
-  version, so the committed Markdown diff is minimal. The deterministic gate
-  `check-fmt` (run by `make all`) passed without needing `make fmt`.
+  mdformat-all churn). Per established practice in this repo, that spurious
+  churn (including a full reflow of `docs/developers-guide.md`) was parked in a
+  git stash and the deliberate developers-guide edit re-applied to the pristine
+  HEAD version, so the committed Markdown diff is minimal. The deterministic
+  gate `check-fmt` (run by `make all`) passed without needing `make fmt`.
 - Behavioural/parity proof for `novel done` and `novel compile --check` uses the
   `final-pass` corpus phase (which carries a present `compiled.md`) rather than
   the mid-drafting baseline, because those two boundaries read a draft only when
@@ -391,10 +396,10 @@ Deviations and notes:
   finding (parametrize the unit test to forbid each fault's own repr fragment),
   which was addressed. A second confirmation pass stalled with no output for
   >20 minutes (the CLI buffers output until exit; the process stayed blocked on
-  the review service with negligible CPU — a transient backend/rate-limit stall).
-  Rather than block the work item indefinitely (the deterministic `make all` gate
-  is green and the prior finding is fixed), the stall is recorded here and in the
-  open issues, and the commits proceeded.
+  the review service with negligible CPU — a transient backend/rate-limit
+  stall). Rather than block the work item indefinitely (the deterministic
+  `make all` gate is green and the prior finding is fixed), the stall is
+  recorded here and in the open issues, and the commits proceeded.
 
 ## Context and orientation
 
@@ -440,8 +445,7 @@ D6):
    `novel wordcount`.
 4. `_novel_done` (`_novel_done.py` line 92) —
    `f"cannot evaluate the done predicate under {root}: {exc}"`. Wraps
-   `evaluate_done` (reads drafts and
-   `compiled.md`). Used by `novel done`.
+   `evaluate_done` (reads drafts and `compiled.md`). Used by `novel done`.
 5. `_desloppify.source_chapters` (`_desloppify.py` line 210) —
    `f"cannot read chapter drafts: {exc}"`. Wraps `_chapter_text`. Used by
    `novel desloppify`.
@@ -545,7 +549,8 @@ warranted — see Tests below).
 What to do:
 
 1. In `novel_ralph_skill/commands/_state_load.py`, add a module-private
-   formatter — proposed name `_draft_read_error(reported_dir: pathlib.Path,
+   formatter — proposed name
+   `_draft_read_error(reported_dir: pathlib.Path,
    exc: Exception) -> StateInputError` —
    that builds the actionable `StateInputError` for a present-but-faulted
    *draft artefact* (a corrupt/unreadable `draft.md` or `compiled.md`) under
@@ -691,8 +696,8 @@ Docs to read: `_state_mutators.py` lines 116-147 (the
 `_state_view_or_state_error` docstring and its `Decision Log D8` citation); the
 6.3.1 ExecPlan Decision D8 and its Outcomes (the present-but-corrupt arm wording
 `<path> is unreadable or corrupt; inspect and repair it, or restore it from a
-known-good copy`); `_state_load.py` lines 76-119 (`_state_input_error` — the
-two-arm
+known-good copy`);
+`_state_load.py` lines 76-119 (`_state_input_error` — the two-arm
 present/absent branch); `docs/developers-guide.md` line 589 (the exit-3 channel
 prose).
 
@@ -713,9 +718,10 @@ What to do:
    113). Because a structurally-incomplete `state.toml` *parsed*, the file
    exists, so `_state_input_error`'s
    `if not path.parent.exists() or not path.exists()` test is false and the
-   present-but-corrupt arm fires — emitting `<state.toml path> is unreadable or
-   corrupt; inspect and repair it, or restore it from a known-good copy`, the
-   inspect/repair remedy the roadmap mandates, naming the state-document
+   present-but-corrupt arm fires — emitting
+   `<state.toml path> is unreadable or
+   corrupt; inspect and repair it, or restore it from a known-good copy`,
+   the inspect/repair remedy the roadmap mandates, naming the state-document
    path with no raw `{exc}`/`Errno`. Do **not** route this through
    `_draft_read_error`: a state-document fault is not a draft fault (Decision
    D7; respects 6.3.1 Decision D8).
@@ -901,8 +907,7 @@ Run everything from the worktree root
    remains by Decision D6 (it is a write fault, out of this plan's scope).
 
 4. Commit each work item separately with an imperative, en-GB subject
-   (`AGENTS.md`
-   lines 99-108), gating each commit on `make all`.
+   (`AGENTS.md` lines 99-108), gating each commit on `make all`.
 
 ## Validation and acceptance
 
@@ -1016,12 +1021,13 @@ here would breach the coordination the roadmap records.
 Lightweight, no-plan corrections folded onto this completed task after the
 review of step 6.3 settled. Each runs as a no-review lightweight pass.
 
-- [x] **6.3.5.1 (from review:6.3.5; low).** Extract the shared inspect/repair remedy
+- [x] **6.3.5.1 (from review:6.3.5; low).** Extract the shared inspect/repair
+      remedy
   tail (`inspect and repair it, or restore it from a known-good copy`) into one
   constant both `_state_input_error` and `_draft_read_error` in
   `novel_ralph_skill/commands/_state_load.py` interpolate. The two sibling
   formatters today emit the same conceptual remedy with divergent punctuation
-  (the `_state_input_error` arm uses a semicolon, the `_draft_read_error` arm an
-  em-dash); folding the tail into one constant makes the parity guarantee
+  (the `_state_input_error` arm uses a semicolon, the `_draft_read_error` arm
+  an em-dash); folding the tail into one constant makes the parity guarantee
   structural rather than incidental and removes a latent drift surface. Scope:
   one shared module-level constant; both formatters interpolate it.

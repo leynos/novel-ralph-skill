@@ -1,9 +1,8 @@
 # Resolve `working/` robustly and surface the resolved path
 
-This ExecPlan (execution plan) is a living document. The sections
-`Constraints`, `Tolerances`, `Risks`, `Progress`, `Surprises & Discoveries`,
-`Decision Log`, and `Outcomes & Retrospective` must be kept up to date as work
-proceeds.
+This ExecPlan (execution plan) is a living document. The sections `Constraints`,
+`Tolerances`, `Risks`, `Progress`, `Surprises & Discoveries`, `Decision Log`,
+and `Outcomes & Retrospective` must be kept up to date as work proceeds.
 
 Status: COMPLETE (all four work items implemented, committed, and gated)
 
@@ -15,8 +14,8 @@ envelope's `working_dir` field (and, for `novel state init`, into its result
 body as well). Because neither field names *where* the command actually looked,
 a stray `cd` during beta testing silently misresolved the tree (a command run
 from inside `working/` looked for `working/working/…`) and read as a silent
-failure: the envelope said `working_dir: "working"` whichever directory you were
-in, so the misresolution was invisible.
+failure: the envelope said `working_dir: "working"` whichever directory you
+were in, so the misresolution was invisible.
 
 After this change, the path-bearing `working_dir` fields that the production
 `novel` entry point emits — the envelope's top-level `working_dir` on every
@@ -24,15 +23,14 @@ command, and the `result.working_dir` body of `novel state init` — carry the
 **absolute, resolved** path the command used, for example
 `/home/me/my-novel/working`, so a misresolution is immediately visible in the
 very fields the agent already reads. Running from inside `working/` no longer
-fails silently: the envelope shows `.../working/working`, naming the footgun out
-loud.
+fails silently: the envelope shows `.../working/working`, naming the footgun
+out loud.
 
 You can observe success by running the installed `novel` binary from a
 directory with no `working/` tree and seeing the envelope's `working_dir` carry
 the absolute path `<that-directory>/working` rather than the bare token
 `working`, and by the new behavioural test that drives the entry point from a
-chosen directory and asserts the stamped path equals
-`<that-directory>/working`.
+chosen directory and asserts the stamped path equals `<that-directory>/working`.
 
 ### Non-goal: subdirectory auto-resolution (deliberately accepted)
 
@@ -68,11 +66,11 @@ justification, recorded in the Decision Log as D1:
   resolution stays exactly as the code records it. The cwd-relative resolution
   rule is documented in the source, in the `WORKING_DIR_NAME` comment at
   `novel_ralph_skill/commands/_state_load.py:32-36` ("The fixed cwd-relative
-  working directory … There is no `--working-dir` flag") and the `working_dir()`
-  docstring at lines 40-48. (Note: the design document does *not* state the
-  resolution rule in prose — see Decision Log D4 and Surprises — so the rule is
-  cited to the source comment, which is its true locus.) No command starts
-  reading or writing a different tree.
+  working directory … There is no `--working-dir` flag") and the
+  `working_dir()` docstring at lines 40-48. (Note: the design document does
+  *not* state the resolution rule in prose — see Decision Log D4 and Surprises
+  — so the rule is cited to the source comment, which is its true locus.) No
+  command starts reading or writing a different tree.
 - **Option 1 cannot serve `novel state init`.** `init` creates `working/`; there
   is nothing to search upward *for* yet. An upward search would force a split
   between resolution-for-read and resolution-for-create, and would silently
@@ -83,14 +81,14 @@ justification, recorded in the Decision Log as D1:
   tie-break; option 2 has none of this.
 - **Option 2 directly closes the dogfooding defect.** The failure was *silence*:
   the field read `"working"` regardless of cwd. An absolute path makes the
-  `working/working` misresolution loud in the fields the agent already gates on,
-  which is precisely what roadmap §6.3 ("loud, consistent, self-describing")
-  demands.
+  `working/working` misresolution loud in the fields the agent already gates
+  on, which is precisely what roadmap §6.3 ("loud, consistent,
+  self-describing") demands.
 
 The success criterion's "running from inside `working/` no longer silently
 looks for `working/working`" is met by making that misresolution **visible**
-(the path shows `.../working/working`), not by suppressing it; the command still
-fails as it must, but loudly rather than silently.
+(the path shows `.../working/working`), not by suppressing it; the command
+still fails as it must, but loudly rather than silently.
 
 ## Constraints
 
@@ -124,24 +122,25 @@ escalation, not a workaround.
   untouched.
 - The envelope contract is unchanged in shape: six fields
   (`command`, `schema_version`, `ok`, `working_dir`, `result`, `messages`) in
-  order, `working_dir` still a JSON string (`docs/novel-ralph-harness-design.md`
-  §3.1; `docs/adr-003-shared-interface-contract.md`). Only the *value* of the
+  order, `working_dir` still a JSON string
+  (`docs/novel-ralph-harness-design.md` §3.1;
+  `docs/adr-003-shared-interface-contract.md`). Only the *value* of the
   top-level `working_dir` on the production path changes from `"working"` to an
-  absolute path string, and the *value* of `result.working_dir` in `novel state
-  init`'s body likewise becomes absolute (Decision Log D6).
+  absolute path string, and the *value* of `result.working_dir` in
+  `novel state init`'s body likewise becomes absolute (Decision Log D6).
 - The cross-command identity proof in `tests/cross_command_contract/` drives the
   contract via a synthetically-constructed `RunContext` it builds with an
   explicit `working_dir="working"` (`tests/contract_drive_support.py:190`); it
-  does **not** exercise the production
-  `novel_ralph_skill.commands.novel.main` entry point. Those tests pin the
-  envelope *shape*, not the production path's value, so they must continue to
-  pass unchanged (they keep injecting their own constant). Do not weaken them to
-  accommodate this change. The behaviour that the production entry point stamps
-  the absolute path is proved by new tests that drive `novel.main` and the
-  installed binary directly.
-- Atomic-write discipline and exit-code table (`docs/novel-ralph-harness-design.md`
-  §3.2, §3.4) are untouched: this change reads a path for the envelope/result
-  label and does not alter any write path or any exit code.
+  does **not** exercise the production `novel_ralph_skill.commands.novel.main`
+  entry point. Those tests pin the envelope *shape*, not the production path's
+  value, so they must continue to pass unchanged (they keep injecting their own
+  constant). Do not weaken them to accommodate this change. The behaviour that
+  the production entry point stamps the absolute path is proved by new tests
+  that drive `novel.main` and the installed binary directly.
+- Atomic-write discipline and exit-code table
+  (`docs/novel-ralph-harness-design.md` §3.2, §3.4) are untouched: this change
+  reads a path for the envelope/result label and does not alter any write path
+  or any exit code.
 - en-GB Oxford spelling ("-ize"/"-yse"/"-our") in all prose, comments, commit
   messages, and docstrings (AGENTS.md; `en-gb-oxendict`).
 - AGENTS.md enforces 100% docstring coverage via `interrogate` over
@@ -155,25 +154,24 @@ escalation, not a workaround.
 - **Scope:** if the implementation requires touching more than **12**
   source/test/doc files or more than ~340 net lines, stop and escalate. The
   twelve in-scope files are enumerated and fixed by this plan (Decision Log D6,
-  D7): (1) `novel_ralph_skill/commands/_state_load.py`,
-  (2) `novel_ralph_skill/commands/novel.py`,
-  (3) `novel_ralph_skill/commands/novel_state.py`,
-  (4) `tests/test_state_load_resolved_working_dir.py` (new),
-  (5) `tests/test_novel_main_working_dir.py` (new),
-  (6) `tests/test_novel_state_mutators.py` (init-body assertion),
-  (7) `tests/test_novel_state_mutator_snapshots.py` (`_normalise` helper +
-  module docstring),
-  (8) `tests/__snapshots__/test_novel_state_mutator_snapshots.ambr` (regenerated
-  `test_init_success_envelope_snapshot`),
-  (9) `tests/test_console_scripts_error_arms_e2e.py`,
-  (10) `docs/novel-ralph-harness-design.md`,
-  (11) `docs/adr-003-shared-interface-contract.md`,
-  (12) `docs/developers-guide.md`. (Raised from the round-2 bound of 9/280 once
-  the round-2 review (B5) showed the `novel state init` result-body change
-  (Decision Log D6) drags the `init`-success snapshot — its source module,
-  its `_normalise` helper, and its `.ambr` — into the edit set; the prior 9-file
-  tolerance undercounted that genuine footprint, Decision Log D7.) If a
-  **thirteenth** file (beyond these twelve) proves necessary, stop and escalate.
+  D7): (1) `novel_ralph_skill/commands/_state_load.py`, (2)
+  `novel_ralph_skill/commands/novel.py`, (3)
+  `novel_ralph_skill/commands/novel_state.py`, (4)
+  `tests/test_state_load_resolved_working_dir.py` (new), (5)
+  `tests/test_novel_main_working_dir.py` (new), (6)
+  `tests/test_novel_state_mutators.py` (init-body assertion), (7)
+  `tests/test_novel_state_mutator_snapshots.py` (`_normalise` helper + module
+  docstring), (8) `tests/__snapshots__/test_novel_state_mutator_snapshots.ambr`
+  (regenerated `test_init_success_envelope_snapshot`), (9)
+  `tests/test_console_scripts_error_arms_e2e.py`, (10)
+  `docs/novel-ralph-harness-design.md`, (11)
+  `docs/adr-003-shared-interface-contract.md`, (12) `docs/developers-guide.md`.
+  (Raised from the round-2 bound of 9/280 once the round-2 review (B5) showed
+  the `novel state init` result-body change (Decision Log D6) drags the
+  `init`-success snapshot — its source module, its `_normalise` helper, and its
+  `.ambr` — into the edit set; the prior 9-file tolerance undercounted that
+  genuine footprint, Decision Log D7.) If a **thirteenth** file (beyond these
+  twelve) proves necessary, stop and escalate.
 - **Interface:** if `RunContext.working_dir` must change type away from `str`
   (e.g. to `pathlib.Path`), or the envelope's `working_dir` JSON type must
   change from string, stop and escalate.
@@ -182,9 +180,9 @@ escalation, not a workaround.
 - **Iterations:** if `make all` still fails after 3 focused fix attempts on a
   single work item, stop and escalate.
 - **Ambiguity:** Work item 0's audit has already enumerated the production
-  stamps of a path-bearing `working_dir` and found exactly two —
-  `novel.main`'s envelope label and `novel state init`'s `result.working_dir`
-  body — both brought into scope by this plan (Decision Log D6). If the audit at
+  stamps of a path-bearing `working_dir` and found exactly two — `novel.main`'s
+  envelope label and `novel state init`'s `result.working_dir` body — both
+  brought into scope by this plan (Decision Log D6). If the audit at
   implementation time reveals a **third** production stamp of a path-bearing
   `working_dir` (beyond those two), stop and escalate before changing it.
 
@@ -616,16 +614,18 @@ committed.
 - `resolved_working_dir()` was added to `_state_load.py` and re-exported from
   `novel_state`. Both production stamps now carry the absolute resolved path:
   `novel.main`'s envelope label (`working_dir=str(resolved_working_dir())`) and
-  `novel state init`'s `result.working_dir` body. Resolution stays cwd-relative;
-  only the reported value changed. `RunContext.working_dir` stayed `str` (D3);
-  the parallel sites in `_desloppify.py`/`_wordcount.py` were left untouched (D5).
+  `novel state init`'s `result.working_dir` body. Resolution stays
+  cwd-relative; only the reported value changed. `RunContext.working_dir` stayed
+  `str` (D3); the parallel sites in `_desloppify.py`/`_wordcount.py` were left
+  untouched (D5).
 - Behavioural proof: new `tests/test_state_load_resolved_working_dir.py` (unit),
-  `tests/test_novel_main_working_dir.py` (the production entry point, no-working/
-  and inside-working/ arms), an init-body case in `test_novel_state_mutators.py`,
-  and the per-cell absolute `working_dir` plus an inside-`working/` case in the
-  installed-binary e2e. The synthetic-`RunContext` snapshots kept the injected
-  `"working"` top-level label; their `_normalise` helpers redact only the
-  absolute `init`-body `result.working_dir`.
+  `tests/test_novel_main_working_dir.py` (the production entry point,
+  no-working/ and inside-working/ arms), an init-body case in
+  `test_novel_state_mutators.py`, and the per-cell absolute `working_dir` plus
+  an inside-`working/` case in the installed-binary e2e. The
+  synthetic-`RunContext` snapshots kept the injected `"working"` top-level
+  label; their `_normalise` helpers redact only the absolute `init`-body
+  `result.working_dir`.
 - Two unplanned production-path test sites also needed updating (D9), and
   `make fmt`'s full-tree reflow was parked rather than committed (D10).
 - Gates: `make all` is green at HEAD; `make markdownlint` and `make nixie` pass.
@@ -634,45 +634,48 @@ committed.
   were applied; the "group tests into a class" finding was declined against the
   repository's flat-function convention. No coderabbit rate-limiting occurred.
 
-Retrospective: the plan's most material miss was the claim that "nothing existing
-drives `novel.main`" — two `test_novel_state_check.py` cases and the
+Retrospective: the plan's most material miss was the claim that "nothing
+existing drives `novel.main`" — two `test_novel_state_check.py` cases and the
 `test_reconcile_e2e.py` suite do. A future plan introducing a production-stamp
 change should grep for *all* drivers of the real entry point (not only the
-synthetic `RunContext` builders) when sizing the test footprint, and should size
-the Scope tolerance to absorb the mechanical fallout of the approved production
-change.
+synthetic `RunContext` builders) when sizing the test footprint, and should
+size the Scope tolerance to absorb the mechanical fallout of the approved
+production change.
 
 ## Context and orientation
 
 You are working in a Python package, `novel_ralph_skill`, that ships a single
 `novel` command-line multiplexer (`novel state …`, `novel done`,
-`novel compile`, `novel desloppify`, `novel wordcount`). Every command emits one
-JSON envelope on stdout (or a human rendering under `--human`) carrying the six
-fields `command`, `schema_version`, `ok`, `working_dir`, `result`, `messages`.
+`novel compile`, `novel desloppify`, `novel wordcount`). Every command emits
+one JSON envelope on stdout (or a human rendering under `--human`) carrying the
+six fields `command`, `schema_version`, `ok`, `working_dir`, `result`,
+`messages`.
 
 Key files (full repository-relative paths):
 
 - `novel_ralph_skill/commands/_state_load.py` — the home for this module's
-  resolution accessors. Defines `WORKING_DIR_NAME = "working"` (line 36, with the
-  cwd-relative-rule comment at lines 32-36), `working_dir()` (lines 40-48,
+  resolution accessors. Defines `WORKING_DIR_NAME = "working"` (line 36, with
+  the cwd-relative-rule comment at lines 32-36), `working_dir()` (lines 40-48,
   returns `pathlib.Path("working")`), and `state_path()`
   (`working_dir() / "state.toml"`). This is where the new
-  `resolved_working_dir()` accessor belongs. Note: this module is the resolution
-  home for the *contract entry point and state accessors*, but it is NOT the
-  only place in the codebase that resolves `working/` — see `_desloppify.py` and
-  `_wordcount.py` below (Decision Log D5).
+  `resolved_working_dir()` accessor belongs. Note: this module is the
+  resolution home for the *contract entry point and state accessors*, but it is
+  NOT the only place in the codebase that resolves `working/` — see
+  `_desloppify.py` and `_wordcount.py` below (Decision Log D5).
 - `novel_ralph_skill/commands/novel.py` — the production entry point. Its
-  `main()` (lines 147-153) builds the multiplexer and calls `run(...,
-  RunContext(command=name, working_dir=WORKING_DIR_NAME, human=human))` at line
-  152. `WORKING_DIR_NAME` (the literal `"working"`) is the value currently
-  stamped into the envelope label. This is one of the two production stamps that
-  change.
+  `main()` (lines 147-153) builds the multiplexer and calls
+  `run(…, RunContext(command=name, working_dir=WORKING_DIR_NAME, human=human))`
+  at line
+  1. `WORKING_DIR_NAME` (the literal `"working"`) is the value currently
+  stamped into the envelope label. This is one of the two production stamps
+  that change.
 - `novel_ralph_skill/commands/novel_state.py` — hosts `novel state` and its
-  mutators, and re-exports the `_state_load.py` accessors. Its `init` builder at
-  line 262-265 returns `result={"working_dir": WORKING_DIR_NAME, "slug": slug}`
-  — the **second** production stamp of a path-bearing `working_dir`, in the
-  result body (Decision Log D6). The new `resolved_working_dir()` accessor is
-  re-exported here too.
+  mutators, and re-exports the `_state_load.py` accessors. Its `init` builder
+  at line 262-265 returns
+  `result={"working_dir": WORKING_DIR_NAME, "slug": slug}` — the **second**
+  production stamp of a path-bearing `working_dir`, in the result body
+  (Decision Log D6). The new `resolved_working_dir()` accessor is re-exported
+  here too.
 - `novel_ralph_skill/commands/_desloppify.py` (line 198) and
   `novel_ralph_skill/commands/_wordcount.py` (line 130) — each rebuilds
   `working_dir = pathlib.Path(WORKING_DIR_NAME)` to read the tree for its
@@ -685,21 +688,22 @@ Key files (full repository-relative paths):
   it stamps whatever string it is handed.
 - `novel_ralph_skill/contract/envelope.py` — builds and renders the envelope;
   `working_dir` flows through as a plain string.
-- `tests/multiplexer_support.py` (line 107) and `tests/contract_drive_support.py`
-  (line 190) — the behavioural and identity drivers. They build their own
-  `RunContext` with the literal constant and drive `novel.build_multiplexer()` /
-  the per-command builders, **not** `novel.main`, so they are insulated from the
-  production change. Work item 1 must add a test that drives `novel.main`
-  directly (nothing existing does).
+- `tests/multiplexer_support.py` (line 107) and
+  `tests/contract_drive_support.py` (line 190) — the behavioural and identity
+  drivers. They build their own `RunContext` with the literal constant and drive
+  `novel.build_multiplexer()` / the per-command builders, **not**
+  `novel.main`, so they are insulated from the production change. Work item 1
+  must add a test that drives `novel.main` directly (nothing existing does).
 - `tests/cross_command_contract/` — the identity proof; builds `RunContext` with
   `working_dir="working"` directly. Leave it asserting its injected constant.
 - `tests/test_console_scripts_error_arms_e2e.py` — the installed-binary e2e. The
-  machine-envelope test `test_installed_error_arm_machine_envelope` (line 251) is
-  `@pytest.mark.parametrize("cell", _CELLS)`; `_CELLS` is `_COMMANDS`
-  (state, desloppify) × `_ARMS` (usage, state) (line 194-195). The full-envelope
-  equality asserting `"working_dir": "working"` is at line 300 and fires **once
-  per cell**. Each cell's `run_dir` is built inside `_run_installed_arm` at line
-  235 (`run_dir = tmp_path / f"{command.mount_verb[0]}-{arm.label}"`) and dropped
+  machine-envelope test `test_installed_error_arm_machine_envelope` (line 251)
+  is `@pytest.mark.parametrize("cell", _CELLS)`; `_CELLS` is `_COMMANDS`
+  (state, desloppify) × `_ARMS` (usage, state) (line 194-195). The
+  full-envelope equality asserting `"working_dir": "working"` is at line 300
+  and fires **once per cell**. Each cell's `run_dir` is built inside
+  `_run_installed_arm` at line 235
+  (`run_dir = tmp_path / f"{command.mount_verb[0]}-{arm.label}"`) and dropped
   before the assertion. This is the production-path assertion that changes, and
   it changes per cell, not at one literal (review B4).
 - `tests/installed_binary_fixtures.py` — builds the wheel once and exposes the
@@ -715,11 +719,11 @@ Terms:
   includes a `working_dir` key (Decision Log D6).
 - *Body-less diagnostic arm*: the exit-2 (usage) or exit-3 (state/input) error
   the shared `run` wrapper stamps before any command body executes; it still
-  carries the top-level `working_dir` field (`docs/novel-ralph-harness-design.md`
-  §3.2).
+  carries the top-level `working_dir` field
+  (`docs/novel-ralph-harness-design.md` §3.2).
 - *Resolve (a path)*: `pathlib.Path.resolve()` returns an absolute, normalized
-  path; with its default non-strict mode it succeeds even when the path does not
-  exist.
+  path; with its default non-strict mode it succeeds even when the path does
+  not exist.
 - *Synthetic `RunContext`*: a `RunContext` a test builds itself with an explicit
   `working_dir` string, as opposed to the one `novel.main` builds in production.
 
@@ -797,25 +801,26 @@ Actions (no production code change in this item):
    does **not** touch `result.working_dir`. Record this as the single snapshot
    that Work item 1 must regenerate — and that its source module
    (`tests/test_novel_state_mutator_snapshots.py`: `_normalise` helper + module
-   docstring) is itself an edit site, not just its `.ambr` (Decision Log D7, D8;
-   review round-2 B5/B6). Re-confirm no *other* mutator snapshot in that `.ambr`
-   carries a body `result.working_dir` (the others — `set-cursor`,
+   docstring) is itself an edit site, not just its `.ambr` (Decision Log D7,
+   D8; review round-2 B5/B6). Re-confirm no *other* mutator snapshot in that
+   `.ambr` carries a body `result.working_dir` (the others — `set-cursor`,
    `advance-phase`, `recount`, etc. — do not; only their synthetic top-level
    label reads `"working"`, which stays unchanged).
 
 Tests: none added in this item; it is a research-and-record step. The
 deliverable is the updated `Surprises & Discoveries` recording the confirmed
 three-bucket inventory and the single `init`-body snapshot to regenerate
-(`test_init_success_envelope_snapshot`), together with the confirmation that its
-source module `tests/test_novel_state_mutator_snapshots.py` (`_normalise` helper
-and module docstring) is a Work item 1 edit site.
+(`test_init_success_envelope_snapshot`), together with the confirmation that
+its source module `tests/test_novel_state_mutator_snapshots.py` (`_normalise`
+helper and module docstring) is a Work item 1 edit site.
 
 Validation: `make all` (must already be green at the start of the branch — this
 item changes only this plan document, so re-running confirms the baseline).
-Because this item edits a markdown file (`docs/execplans/roadmap-6-3-4.md`), also
-run `make markdownlint` and `make nixie`.
+Because this item edits a markdown file (`docs/execplans/roadmap-6-3-4.md`),
+also run `make markdownlint` and `make nixie`.
 
-Commit: "Audit working_dir pins ahead of absolute-path surfacing (roadmap 6.3.4)".
+Commit: "Audit working_dir pins ahead of absolute-path surfacing (roadmap
+6.3.4)".
 
 ### Work item 1 — Add the absolute-path accessor and stamp it at both production sites
 
@@ -828,9 +833,10 @@ Documentation to read first:
 - `docs/scripting-standards.md` (path-handling and message conventions).
 - `tests/test_novel_state_mutator_snapshots.py` lines 5-11 (the module docstring
   invariant to correct), lines 35-39 (`_TIMESTAMP` and the `created_at`
-  redaction this work mirrors), lines 57-59 (the `_normalise` helper to extend),
-  and lines 62-72 (`test_init_success_envelope_snapshot`, the one snapshot whose
-  body `result.working_dir` D6 makes absolute — Decision Log D7/D8).
+  redaction this work mirrors), lines 57-59 (the `_normalise` helper to
+  extend), and lines 62-72 (`test_init_success_envelope_snapshot`, the one
+  snapshot whose body `result.working_dir` D6 makes absolute — Decision Log
+  D7/D8).
 
 Skills to load: `leta`; `python-router` → `python-types-and-apis` (the accessor
 signature) and `python-testing` (the behavioural, unit, and snapshot tests).
@@ -841,18 +847,19 @@ judgement in the Decision Log if `python-verification` agrees).
 
 Actions:
 
-1. In `novel_ralph_skill/commands/_state_load.py`, add a `resolved_working_dir()
-   -> pathlib.Path` accessor returning `working_dir().resolve()`, with a
-   docstring stating it returns the absolute, resolved `working/` for the
-   envelope/result label and that it succeeds even when `working/` is absent
-   (Decision D2; rule at `_state_load.py:32-48`; en-GB spelling). Re-export it
-   from `novel_ralph_skill/commands/novel_state.py` alongside the existing
+1. In `novel_ralph_skill/commands/_state_load.py`, add a
+   `resolved_working_dir() -> pathlib.Path` accessor returning
+   `working_dir().resolve()`, with a docstring stating it returns the absolute,
+   resolved `working/` for the envelope/result label and that it succeeds even
+   when `working/` is absent (Decision D2; rule at `_state_load.py:32-48`;
+   en-GB spelling). Re-export it from
+   `novel_ralph_skill/commands/novel_state.py` alongside the existing
    `working_dir`/`state_path` exports so the public import surface stays
    consistent.
 2. In `novel_ralph_skill/commands/novel.py:main` (line 152), change the
    `RunContext` construction from `working_dir=WORKING_DIR_NAME` to
-   `working_dir=str(resolved_working_dir())`. Update the surrounding comment that
-   describes the field to the new absolute-resolved contract.
+   `working_dir=str(resolved_working_dir())`. Update the surrounding comment
+   that describes the field to the new absolute-resolved contract.
 3. In `novel_ralph_skill/commands/novel_state.py` `init` (line 264), change
    `result={"working_dir": WORKING_DIR_NAME, "slug": slug}` to
    `result={"working_dir": str(resolved_working_dir()), "slug": slug}`
@@ -880,9 +887,9 @@ every test module and function carries a docstring per the interrogate gate):
   capturing stdout (`capsys`) and the `SystemExit`. Parse the JSON envelope and
   assert `envelope["working_dir"] == str((tmp_path / "working").resolve())` and
   that the value is an absolute path. Add the inside-`working/` case:
-  `(tmp_path / "working").mkdir()` then `monkeypatch.chdir(tmp_path / "working")`
-  and assert the stamped path ends with `working/working`, proving the footgun
-  is now visible rather than silent.
+  `(tmp_path / "working").mkdir()` then
+  `monkeypatch.chdir(tmp_path / "working")` and assert the stamped path ends
+  with `working/working`, proving the footgun is now visible rather than silent.
 - New behavioural/unit test for `novel state init`'s body (e.g. extend
   `tests/test_novel_state_mutators.py` or add a focused case): drive `init` from
   `monkeypatch.chdir(tmp_path)` and assert
@@ -902,13 +909,14 @@ every test module and function carries a docstring per the interrogate gate):
     `working_dir` is the synthetic-injected `"working"` token and must stay
     verbatim, so prefer a JSON-aware normalization (parse the envelope, rewrite
     `result["working_dir"]`, re-serialize) or a regex anchored to the `"result":
-    {...}` object, not a blanket substitution of every `working_dir` occurrence.
+    {…}` object, not a blanket substitution of every `working_dir` occurrence.
   - Regenerate `tests/__snapshots__/test_novel_state_mutator_snapshots.ambr` by
     re-accepting the snapshot (`--snapshot-update`); the regenerated line 22 reads
     `"result": {"working_dir": "<working-dir>", "slug": "s"}`, with the top-level
     `"working_dir": "working"` unchanged. Verify the redaction is idempotent and
     machine-independent (Idempotence section).
-  - Correct the module docstring (lines 5-8), which currently asserts the now-false
+  - Correct the module docstring (lines 5-8), which currently asserts the
+    now-false
     invariant "the envelope carries no absolute path (`working_dir` is the fixed
     `"working"` token)" (review B6, Decision D8). State the new truth: the
     *production entry point* `novel.main` and the `novel state init` result body
@@ -918,14 +926,14 @@ every test module and function carries a docstring per the interrogate gate):
     snapshot stays machine-independent. Keep en-GB Oxford spelling.
 - These tests fail before the production change (the fields are `"working"`) and
   pass after. The `init`-success snapshot, once `_normalise` redacts the body
-  value, asserts a stable `<working-dir>` token both before and after; without the
-  redaction it would break on the absolute literal, so add the `_normalise`
+  value, asserts a stable `<working-dir>` token both before and after; without
+  the redaction it would break on the absolute literal, so add the `_normalise`
   extension in the same commit as the `novel_state.py` body change.
 
-Validation: `make all` (runs `build check-fmt lint typecheck test`, including the
-`interrogate` docstring gate). Expect the new tests to fail before the edits to
-`novel.py`/`novel_state.py` and pass after. No markdown changed in this item, so
-`markdownlint`/`nixie` are not required here.
+Validation: `make all` (runs `build check-fmt lint typecheck test`, including
+the `interrogate` docstring gate). Expect the new tests to fail before the
+edits to `novel.py`/`novel_state.py` and pass after. No markdown changed in
+this item, so `markdownlint`/`nixie` are not required here.
 
 Commit: "Surface the absolute resolved working_dir at both production stamps
 (roadmap 6.3.4)".
@@ -935,7 +943,8 @@ Commit: "Surface the absolute resolved working_dir at both production stamps
 Documentation to read first:
 
 - `docs/developers-guide.md` lines 132-135 (the "cwd tail is volatile" note;
-  roadmap §6.3.1 precedent for asserting a path-bearing field by computed value).
+  roadmap §6.3.1 precedent for asserting a path-bearing field by computed
+  value).
 - The module docstring of `tests/test_console_scripts_error_arms_e2e.py` for the
   POSIX-only e2e constraint and the slow/timeout marker discipline.
 
@@ -948,44 +957,44 @@ Actions:
 
 1. In `tests/test_console_scripts_error_arms_e2e.py`,
    `test_installed_error_arm_machine_envelope` (line 251) is parametrized over
-   **all** `_CELLS`; its full-envelope equality (line ~298-301) currently asserts
-   `"working_dir": "working"` for every cell. Because each cell runs the binary
-   with `ExecutionContext(cwd=run_dir)` and `run_dir` differs per cell
-   (`tmp_path / f"{command.mount_verb[0]}-{arm.label}"`, built at line 235 inside
-   `_run_installed_arm` and currently dropped), the fix must compute the expected
-   value from **each cell's own** `run_dir`. Surface `run_dir` to the assertion:
-   have `_run_installed_arm` return `(result, run_dir)` (or recompute `run_dir`
-   in the test the same way), then assert
+   **all** `_CELLS`; its full-envelope equality (line ~298-301) currently
+   asserts `"working_dir": "working"` for every cell. Because each cell runs
+   the binary with `ExecutionContext(cwd=run_dir)` and `run_dir` differs per
+   cell (`tmp_path / f"{command.mount_verb[0]}-{arm.label}"`, built at line 235
+   inside `_run_installed_arm` and currently dropped), the fix must compute the
+   expected value from **each cell's own** `run_dir`. Surface `run_dir` to the
+   assertion: have `_run_installed_arm` return `(result, run_dir)` (or recompute
+   `run_dir` in the test the same way), then assert
    `expected_working_dir = str((run_dir / "working").resolve())` and
-   `envelope["working_dir"] == expected_working_dir`. Build the expected dict per
-   cell with `command.name` and the computed `expected_working_dir`. Keep the
-   rest of the full-envelope equality intact (the redacted `messages`, the
-   `schema_version`, the field set and order). This is NOT a single-literal edit
-   (review B4).
-2. Add (or extend) an e2e case that proves the *inside-`working/`* behaviour over
-   the real binary: build a `working/` tree under `run_dir`, then **run the binary
-   with its cwd inside `working/`**. The `run_installed` fixture's signature is
-   `run_installed(run_dir, argv)` and it constructs `ExecutionContext(cwd=run_dir)`
-   internally (line 146-177); reach the deeper cwd by passing `run_dir / "working"`
-   as the **first argument** to the fixture — do **not** construct an
-   `ExecutionContext` in the test (the fixture does not expose that, review
-   advisory A6). Assert the envelope's `working_dir` ends with `working/working`
-   (the now-visible footgun). This is the installed mirror of the in-process
-   behavioural test from Work item 1.
+   `envelope["working_dir"] == expected_working_dir`. Build the expected dict
+   per cell with `command.name` and the computed `expected_working_dir`. Keep
+   the rest of the full-envelope equality intact (the redacted `messages`, the
+   `schema_version`, the field set and order). This is NOT a single-literal
+   edit (review B4).
+2. Add (or extend) an e2e case that proves the *inside-`working/`* behaviour
+   over the real binary: build a `working/` tree under `run_dir`, then **run
+   the binary with its cwd inside `working/`**. The `run_installed` fixture's
+   signature is `run_installed(run_dir, argv)` and it constructs
+   `ExecutionContext(cwd=run_dir)` internally (line 146-177); reach the deeper
+   cwd by passing `run_dir / "working"` as the **first argument** to the
+   fixture — do **not** construct an `ExecutionContext` in the test (the
+   fixture does not expose that, review advisory A6). Assert the envelope's
+   `working_dir` ends with `working/working` (the now-visible footgun). This is
+   the installed mirror of the in-process behavioural test from Work item 1.
 3. Confirm the human-mode test (`test_installed_error_arm_human_stamp`, line
-   ~308) needs no change — it asserts only the header and message prefix, not the
-   `working_dir` value.
+   ~308) needs no change — it asserts only the header and message prefix, not
+   the `working_dir` value.
 
 Tests: the modified parametrized cells and the added inside-`working/` case
 above. They are `@pytest.mark.slow` with a per-test `@pytest.mark.timeout(180)`
 that supersedes the project default; preserve those markers (the locked
 pytest-timeout per-test override is already in use on these tests — reuse the
-existing pattern verbatim rather than re-deriving it). Each test function carries
-a docstring (interrogate gate).
+existing pattern verbatim rather than re-deriving it). Each test function
+carries a docstring (interrogate gate).
 
-Validation: `make all`. The e2e suite is slow; expect the modified cells to fail
-before Work item 1's production change is present and pass with it. No markdown
-changed in this item.
+Validation: `make all`. The e2e suite is slow; expect the modified cells to
+fail before Work item 1's production change is present and pass with it. No
+markdown changed in this item.
 
 Commit: "Pin the per-cell absolute working_dir at the installed-binary boundary
 (roadmap 6.3.4)".
@@ -1003,39 +1012,39 @@ Actions:
 
 1. `docs/novel-ralph-harness-design.md` §3.1: update the envelope JSON sample
    (currently `"working_dir": "working"` at line 151) to show an absolute
-   resolved path (e.g. `"/home/me/my-novel/working"`) and add a sentence stating
-   that `working_dir` (and `novel state init`'s `result.working_dir`) is the
-   **absolute resolved** path the command used, so a misresolution (for example
-   a stray `cd` into `working/`) is visible. Cross-reference roadmap §6.3.4. The
-   design doc does not currently state the cwd-relative resolution rule in prose
-   (Decision D4); if a one-line note is added that the *reported* path is
-   absolutized while resolution stays cwd-relative, cite the rule's true locus
-   (`_state_load.py`), do not invent a "line 151 rule".
+   resolved path (e.g. `"/home/me/my-novel/working"`) and add a sentence
+   stating that `working_dir` (and `novel state init`'s `result.working_dir`)
+   is the **absolute resolved** path the command used, so a misresolution (for
+   example a stray `cd` into `working/`) is visible. Cross-reference roadmap
+   §6.3.4. The design doc does not currently state the cwd-relative resolution
+   rule in prose (Decision D4); if a one-line note is added that the *reported*
+   path is absolutized while resolution stays cwd-relative, cite the rule's
+   true locus (`_state_load.py`), do not invent a "line 151 rule".
 2. `docs/adr-003-shared-interface-contract.md`: **add a short note** recording
    that the `working_dir` field carries the absolute resolved path on the
-   production path, while the resolution rule itself is unchanged. Note there is
-   **no rich `working_dir` field description to amend** — line 46 lists
-   `working_dir` only as a field *name* in the six-field bullet (review advisory
-   A4), so take the add-a-note path; do not hunt for a phantom field description.
-   Keep it consistent with the design doc wording.
+   production path, while the resolution rule itself is unchanged. Note there
+   is **no rich `working_dir` field description to amend** — line 46 lists
+   `working_dir` only as a field *name* in the six-field bullet (review
+   advisory A4), so take the add-a-note path; do not hunt for a phantom field
+   description. Keep it consistent with the design doc wording.
 3. `docs/developers-guide.md`: the real targets are line **158** (within the
    155-176 cross-command identity-proof block, which calls `working_dir` "the
    fixed `working_dir` constant" — review advisory A5 corrects the round-2
    "line 160" drift) and lines 132-135 (the state-error arm and "cwd tail is
-   volatile").
-   Amend line 158's description to explain the split: the *synthetic-RunContext*
-   suites inject `"working"` and pin envelope *shape* (the "fixed constant" they
-   assert is the injected one), whereas the *production entry point*
-   (`novel.main`) and the installed-binary e2e stamp and assert the **absolute
-   resolved** path. Reference the new `resolved_working_dir()` accessor. Do NOT
-   search for the phrases "the single `WORKING_DIR_NAME`-anchored accessor" or a
-   `working_dir` "fixed constant" find-and-replace target as a round-1 draft
-   instructed — those exact strings are not in the guide (Decision D4).
+   volatile"). Amend line 158's description to explain the split: the
+   *synthetic-RunContext* suites inject `"working"` and pin envelope *shape*
+   (the "fixed constant" they assert is the injected one), whereas the
+   *production entry point* (`novel.main`) and the installed-binary e2e stamp
+   and assert the **absolute resolved** path. Reference the new
+   `resolved_working_dir()` accessor. Do NOT search for the phrases "the single
+   `WORKING_DIR_NAME`-anchored accessor" or a `working_dir` "fixed constant"
+   find-and-replace target as a round-1 draft instructed — those exact strings
+   are not in the guide (Decision D4).
 4. Re-wrap edited prose at 80 columns; keep tables and headings unwrapped.
 
 Tests: none (documentation only). If a docs-pinning test exists for the design
-doc (check `tests/test_state_layout_reference.py` and similar), confirm it still
-passes or update its expected strings.
+doc (check `tests/test_state_layout_reference.py` and similar), confirm it
+still passes or update its expected strings.
 
 Validation: `make all`, then `make markdownlint` and `make nixie` (required for
 markdown changes per AGENTS.md and the standing rules). Run `make fmt` to
@@ -1111,16 +1120,16 @@ Acceptance is behavioural:
 
 Quality criteria ("done"):
 
-- Tests: `make test` passes; the new unit, behavioural, and e2e cases fail before
-  the production change and pass after.
+- Tests: `make test` passes; the new unit, behavioural, and e2e cases fail
+  before the production change and pass after.
 - Lint/typecheck: `make all` (which runs `check-fmt`, `lint`, `typecheck`,
-  `test`) is green, including 100% docstring coverage (`interrogate`) on the new
-  accessor AND every new test module/function (AGENTS.md).
+  `test`) is green, including 100% docstring coverage (`interrogate`) on the
+  new accessor AND every new test module/function (AGENTS.md).
 - Markdown: `make markdownlint` and `make nixie` pass after the Work item 3 doc
   edits.
 
-Quality method: run `make all` after every work item; run
-`make markdownlint` and `make nixie` after any markdown change.
+Quality method: run `make all` after every work item; run `make markdownlint`
+and `make nixie` after any markdown change.
 
 ## Idempotence and recovery
 
@@ -1131,9 +1140,10 @@ Quality method: run `make all` after every work item; run
   roll back beyond `git restore` of the working file.
 - Snapshot regeneration (Work item 1) is idempotent: the extended `_normalise`
   replaces the `init`-body `result.working_dir` with the stable `<working-dir>`
-  token before comparison, so re-accepting the snapshot yields a path-independent
-  value identical on every machine. The top-level `working_dir` stays the
-  injected `"working"` token, so it is unaffected by the redaction.
+  token before comparison, so re-accepting the snapshot yields a
+  path-independent value identical on every machine. The top-level
+  `working_dir` stays the injected `"working"` token, so it is unaffected by
+  the redaction.
 - The docs edits are plain text; re-running `make fmt` re-normalizes them
   idempotently.
 
@@ -1160,9 +1170,9 @@ The production change is a one-function accessor plus two stamps:
 
 At the end of the milestone these symbols exist and have these contracts:
 
-- `novel_ralph_skill.commands._state_load.resolved_working_dir() ->
-  pathlib.Path` — returns `working_dir().resolve()`; absolute; succeeds when
-  `working/` is absent (non-strict `resolve()`). Re-exported as
+- novel_ralph_skill.commands._state_load.resolved_working_dir() -> pathlib.Path
+  — returns `working_dir().resolve()`; absolute; succeeds when `working/` is
+  absent (non-strict `resolve()`). Re-exported as
   `novel_ralph_skill.commands.novel_state.resolved_working_dir`.
 - `novel_ralph_skill.commands.novel.main` — stamps
   `working_dir=str(resolved_working_dir())` into `RunContext` (the envelope
@@ -1184,8 +1194,8 @@ git checkout):
 - **cuprum 0.1.0 (locked)** — used only by the e2e harness, reused verbatim. The
   locked API, verified against
   `.venv/lib/python3.14/site-packages/cuprum/sh.py` (NOT the
-  `/data/leynos/Projects/cuprum` git HEAD, which has drifted under PR #151), and
-  re-confirmed by the round-1 review:
+  `/data/leynos/Projects/cuprum` git HEAD, which has drifted under PR #151),
+  and re-confirmed by the round-1 review:
   - `cuprum.sh.make(program, *, catalogue) -> SafeCmdBuilder` (sh.py).
   - `SafeCmd.run_sync(*, capture: bool = True, echo: bool = False,
     context: ExecutionContext | None = None) -> CommandResult` (sh.py, locked
@@ -1198,7 +1208,8 @@ git checkout):
   - `CommandResult` carries `exit_code: int`, `stdout: str | None`,
     `stderr: str | None` (sh.py `CommandResult`) — the e2e reads `exit_code` and
     `json.loads(stdout)` for the envelope.
-  - `cuprum.ProgramCatalogue`, `cuprum.ProjectSettings`, `cuprum.program.Program`
+  - `cuprum.ProgramCatalogue`, `cuprum.ProjectSettings`,
+    `cuprum.program.Program`
     — used by `tests/installed_binary_fixtures.py` to allowlist the single
     installed `novel` program by absolute path; reused unchanged.
   No cuprum API beyond these is needed, and none of the drifted-HEAD
@@ -1208,11 +1219,11 @@ Note on `firecrawl`: no work item in this plan asserts the *behaviour* of an
 external library from memory. The only library behaviours load-bearing here are
 (1) `pathlib.Path.resolve()` non-strict semantics, verified locally above,
 confirmed in the round-1 review, and pinned by the Work item 1 unit test, and
-(2) the locked cuprum signatures, verified against the installed source above and
-in the round-1 review. Cyclopts argument parsing, `pytest-timeout` per-test
-overrides, and `uv run` resolution are unchanged by this task (the e2e reuses the
-existing markers and harness verbatim), so no firecrawl research is required;
-were a future work item to change any of those, it would need the
+(2) the locked cuprum signatures, verified against the installed source above
+and in the round-1 review. Cyclopts argument parsing, `pytest-timeout` per-test
+overrides, and `uv run` resolution are unchanged by this task (the e2e reuses
+the existing markers and harness verbatim), so no firecrawl research is
+required; were a future work item to change any of those, it would need the
 firecrawl-cited confirmation the standing rules demand.
 
 ## Revision note
@@ -1221,22 +1232,22 @@ Round 2 (2026-06-26). Resolved all four Logisphere blocking points from
 `docs/execplans/roadmap-6-3-4.review-r1.md`:
 
 - **B1**: dropped the false "single home … the only place resolution happens"
-  Constraint; named `_desloppify.py:198` and `_wordcount.py:130` as pre-existing
-  parallel resolution sites and scoped them OUT of the reported path (Decision
-  D5).
+  Constraint; named `_desloppify.py:198` and `_wordcount.py:130` as
+  pre-existing parallel resolution sites and scoped them OUT of the reported
+  path (Decision D5).
 - **B2**: brought `novel_state.py:264`'s `init` result-body `working_dir` into
   scope and absolutized it alongside the envelope label (Decision D6, advisory
-  A3 hybrid); corrected the false "only production stamp" claim and the Ambiguity
-  tolerance (now escalates on a *third* stamp).
+  A3 hybrid); corrected the false "only production stamp" claim and the
+  Ambiguity tolerance (now escalates on a *third* stamp).
 - **B3**: re-cited the cwd-relative resolution rule to its true locus
   (`_state_load.py:32-48`), not the phantom "design line 151" prose; re-pointed
-  the devguide edits to the real lines 132-135 and 160; recorded both findings in
-  Surprises and Decision D4.
+  the devguide edits to the real lines 132-135 and 160; recorded both findings
+  in Surprises and Decision D4.
 - **B4**: restated the e2e pin as the parametrized full-envelope equality across
-  all `_CELLS`, computing `expected_working_dir` from each cell's own `run_dir`;
-  Work item 0 now enumerates and classifies the full ~20-file inventory in three
-  buckets, naming the `.ambr` snapshots and `test_command_surface_matrix.py`
-  explicitly as synthetic-driven.
+  all `_CELLS`, computing `expected_working_dir` from each cell's own
+  `run_dir`; Work item 0 now enumerates and classifies the full ~20-file
+  inventory in three buckets, naming the `.ambr` snapshots and
+  `test_command_surface_matrix.py` explicitly as synthetic-driven.
 
 Also addressed advisories A1 (subdirectory auto-resolution declared a
 deliberate non-goal) and A2 (interrogate docstring gate called out for the new
@@ -1247,41 +1258,44 @@ Round 3 (2026-06-26). Resolved both Logisphere blocking points from
 `docs/execplans/roadmap-6-3-4.logisphere-review-r2.md`:
 
 - **B5** (scope-vs-footprint contradiction): named
-  `tests/test_novel_state_mutator_snapshots.py` as a first-class Work item 1 edit
-  site (its `_normalise` helper *and* module docstring), corrected the redaction
-  analogue — the existing redaction in that file is of the `created_at`
-  **timestamp**, NOT a message — and instructed a JSON-aware/scoped redaction of
-  only the **body** `result.working_dir` (the synthetic top-level label stays
-  `"working"`). Raised the Scope tolerance from 9/280 to the true **12-file /
-  ~340-line** footprint, enumerating all twelve files (including the snapshot
-  module and its `.ambr`), so an honest implementer no longer trips the tolerance
-  at the first `init`-body commit (Decision Log D7). Work item 0 step 4 now points
-  precisely at `test_init_success_envelope_snapshot` and its `.ambr:22` line.
+  `tests/test_novel_state_mutator_snapshots.py` as a first-class Work item 1
+  edit site (its `_normalise` helper *and* module docstring), corrected the
+  redaction analogue — the existing redaction in that file is of the
+  `created_at` **timestamp**, NOT a message — and instructed a
+  JSON-aware/scoped redaction of only the **body** `result.working_dir` (the
+  synthetic top-level label stays `"working"`). Raised the Scope tolerance from
+  9/280 to the true **12-file / ~340-line** footprint, enumerating all twelve
+  files (including the snapshot module and its `.ambr`), so an honest
+  implementer no longer trips the tolerance at the first `init`-body commit
+  (Decision Log D7). Work item 0 step 4 now points precisely at
+  `test_init_success_envelope_snapshot` and its `.ambr:22` line.
 - **B6** (stale documented invariant): folded the correction of the now-false
-  module docstring at `tests/test_novel_state_mutator_snapshots.py` lines 5-8 into
-  Work item 1, stating the new truth — `novel.main`'s envelope label and the
-  `novel state init` result body carry the absolute resolved path; only the
+  module docstring at `tests/test_novel_state_mutator_snapshots.py` lines 5-8
+  into Work item 1, stating the new truth — `novel.main`'s envelope label and
+  the `novel state init` result body carry the absolute resolved path; only the
   synthetic-`RunContext` snapshots keep the injected `"working"` token for the
   top-level label (Decision Log D8).
 
-Also addressed advisories A4 (ADR-003 has no `working_dir` field description, so
-Work item 3 takes the add-a-note path only), A5 (devguide "fixed `working_dir`
-constant" is at line 158, not 160), and A6 (the inside-`working/` e2e reaches the
-deeper cwd by passing `run_dir / "working"` to the `run_installed(run_dir, argv)`
-fixture, not by constructing an `ExecutionContext`). No implementation performed.
+Also addressed advisories A4 (ADR-003 has no `working_dir` field description,
+so Work item 3 takes the add-a-note path only), A5 (devguide "fixed
+`working_dir` constant" is at line 158, not 160), and A6 (the inside-`working/`
+e2e reaches the deeper cwd by passing `run_dir / "working"` to the
+`run_installed(run_dir, argv)` fixture, not by constructing an
+`ExecutionContext`). No implementation performed.
 
 ## Addenda
 
 Lightweight, no-plan corrections folded onto this completed task after the
 review and audit of step 6.3 settled. Each runs as a no-review lightweight pass.
 
-- [x] **6.3.4.1 (from review:6.3.4; low).** Normalize the ungated POSIX-separator
+- [x] **6.3.4.1 (from review:6.3.4; low).** Normalize the ungated
+      POSIX-separator
   suffix assertion `result["working_dir"].endswith("/working")` in
-  `tests/test_novel_state_mutators.py` (line 100) to a pathlib-based
-  `.name`/`.parts` check, matching the portability convention this task already
+  `tests/test_novel_state_mutators.py` (line 100) to a pathlib-based `.name`/
+  `.parts` check, matching the portability convention this task already
   enforced on its new test modules. The module is not `skipif`-gated for POSIX,
-  so the separator literal diverges from the rest of the suite; the pathlib form
-  keeps it portable and consistent. Scope: one assertion in one test file.
+  so the separator literal diverges from the rest of the suite; the pathlib
+  form keeps it portable and consistent. Scope: one assertion in one test file.
 - [x] **6.3.4.2 (from review:6.3.4; low).** Extract one shared JSON-aware
   `working_dir` snapshot-normalizer and route both snapshot modules through it.
   Two snapshot modules now redact `result.working_dir` with divergent
@@ -1289,5 +1303,5 @@ review and audit of step 6.3 settled. Each runs as a no-review lightweight pass.
   `tests/test_novel_state_mutator_snapshots.py` versus a robust JSON parse
   elsewhere. A single JSON-aware normalizer removes the regex fragility and
   prevents per-machine snapshot churn if the envelope renderer's key order or
-  whitespace changes. Scope: extract one shared test helper; route both snapshot
-  modules onto it.
+  whitespace changes. Scope: extract one shared test helper; route both
+  snapshot modules onto it.

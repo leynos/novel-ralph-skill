@@ -73,8 +73,7 @@ I re-verified independently rather than on the planner's word.
   both packages (grep-confirmed). The plan's "no cuprum claim to pin" is
   correct.
 - Locked-library claims: the plan correctly asserts it leans on **no** Cyclopts
-  /
-  pytest-timeout / uv-run behaviour and **no** new dependency. Verified: the
+  / pytest-timeout / uv-run behaviour and **no** new dependency. Verified: the
   primitives are pure stdlib (`tomllib`/`re`/`collections.abc`/`typing`/
   `dataclasses`) moved verbatim, plus the in-repo `EnvelopeMessagesError`. No
   external-library behaviour requires a firecrawl citation because none is
@@ -99,8 +98,7 @@ I re-verified independently rather than on the planner's word.
   WI3's example tests (chapter-attribution and same-line-number) catch a swap;
   keep both.
 - A-r2-3 (advisory). The `make all` gate runs `interrogate` 100% and Pylint via
-  a
-  PyPy shim (`Makefile:106-107`); the plan's docstring-coverage mitigation is
+  a PyPy shim (`Makefile:106-107`); the plan's docstring-coverage mitigation is
   sound. No action.
 
 ## Pre-mortem (Doggylump)

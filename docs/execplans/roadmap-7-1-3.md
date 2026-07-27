@@ -1,21 +1,20 @@
 # Single-source the `Reconciliation` payload projection
 
-This ExecPlan (execution plan) is a living document. The sections
-`Constraints`, `Tolerances`, `Risks`, `Progress`, `Surprises & Discoveries`,
-`Decision Log`, and `Outcomes & Retrospective` must be kept up to date as work
-proceeds.
+This ExecPlan (execution plan) is a living document. The sections `Constraints`,
+`Tolerances`, `Risks`, `Progress`, `Surprises & Discoveries`, `Decision Log`,
+and `Outcomes & Retrospective` must be kept up to date as work proceeds.
 
 Status: DELIVERED
 
 ## Purpose / big picture
 
-Today the serialization of a `Reconciliation` into its `{action,
-discrepancies, detail}` payload dict — plus the optional `current`/`by_chapter`
-recount pair — is hand-written at four sites across two command modules, even
-though `Reconciliation` already has a natural owner in
+Today the serialization of a `Reconciliation` into its
+`{action, discrepancies, detail}` payload dict — plus the optional `current`/
+`by_chapter` recount pair — is hand-written at four sites across two command
+modules, even though `Reconciliation` already has a natural owner in
 `novel_ralph_skill/state/reconcile.py` (the module that defines the dataclass
-and the one pure `derive_reconciliation` derivation both `check` and `reconcile`
-share).
+and the one pure `derive_reconciliation` derivation both `check` and
+`reconcile` share).
 
 The four sites that independently spell the same dict shape are:
 
@@ -35,11 +34,11 @@ The four sites that independently spell the same dict shape are:
    `derive_reconciliation` builds that `Reconciliation` with
    `action=RECREATE_LOG`, `reconcile.py:332-333`), so the two spellings produce
    the same string and routing through the projection is behaviour-preserving
-   (Work Item 3 records the caller invariant; `tests/test_reconcile.py:262` pins
-   the literal-passing `RECREATE_LOG` case).
+   (Work Item 3 records the caller invariant; `tests/test_reconcile.py:262`
+   pins the literal-passing `RECREATE_LOG` case).
 3. `_refuse_outcome` (`novel_ralph_skill/commands/_reconcile.py:237`) — the
-   exit-`4` refusal `result`: the base three keys only (a `REFUSE` never carries
-   a recount pair).
+   exit-`4` refusal `result`: the base three keys only (a `REFUSE` never
+   carries a recount pair).
 4. The `NONE` arm of `reconcile`
    (`novel_ralph_skill/commands/_reconcile.py:293`) — the coherent-tree no-op
    `result`: the base three keys with an empty `discrepancies` list inlined.
@@ -49,22 +48,22 @@ re-derive an *identical* `Reconciliation` for the same tree (Decision Log
 D-SHARED, pinned by the cross-check test), the only remaining way the two
 commands can drift is by serializing that identical object into *different*
 dict shapes. A field added to the reported reconciliation, or a rename of
-`discrepancies`, is shotgun surgery across four call sites in two modules, and a
-partial edit would silently let `check` and `reconcile` report different shapes
-for the same derivation — the very divergence D-SHARED exists to prevent
+`discrepancies`, is shotgun surgery across four call sites in two modules, and
+a partial edit would silently let `check` and `reconcile` report different
+shapes for the same derivation — the very divergence D-SHARED exists to prevent
 (audit-2.3.2 Finding 2).
 
 After this change `reconcile.py` owns one canonical projection —
 `reconciliation_payload(reconciliation)` (a free function beside the dataclass,
-mirroring the module's existing free-function vocabulary `derive_reconciliation`
-rather than introducing a method) — that returns the base `{action,
-discrepancies, detail}` dict plus the optional recount pair, and all four arms
-route through it. The "the read shape and the write shape serialize an identical
-`Reconciliation` identically" invariant becomes structurally enforced (one
-projection) rather than only test-pinned.
+mirroring the module's existing free-function vocabulary
+`derive_reconciliation` rather than introducing a method) — that returns the
+base `{action, discrepancies, detail}` dict plus the optional recount pair, and
+all four arms route through it. The "the read shape and the write shape
+serialize an identical `Reconciliation` identically" invariant becomes
+structurally enforced (one projection) rather than only test-pinned.
 
-This is deliberately the *serialization* only. The audit (audit-2.3.2 Finding 2;
-carried from audit-2.2.2 Finding 2) is explicit that `check`'s read shape and
+This is deliberately the *serialization* only. The audit (audit-2.3.2 Finding
+2; carried from audit-2.2.2 Finding 2) is explicit that `check`'s read shape and
 `reconcile`'s write shape keep distinct *vocabulary* and *envelope code*: the
 exit codes (`check` exits `0`/`4`; `reconcile` success exits `0` and refusal
 exits `4`), the `messages` lists, the `CommandOutcome` construction, and the
@@ -79,17 +78,15 @@ mentions `action`/`discrepancies`/`detail` (those describe the shape and are
 correct to keep).
 
 1. `git grep -n '"action": str(' novel_ralph_skill/` returns exactly one hit,
-   inside `reconciliation_payload` in
-   `novel_ralph_skill/state/reconcile.py`. None of `novel_state.py`,
-   `_reconcile.py` constructs the base dict by hand any more (each calls
-   `reconciliation_payload`, then `check`/`reconcile` add only their
-   command-specific envelope — `messages`, exit code, and, where they genuinely
-   differ, extra `result` keys).
+   inside `reconciliation_payload` in `novel_ralph_skill/state/reconcile.py`.
+   None of `novel_state.py`, `_reconcile.py` constructs the base dict by hand
+   any more (each calls `reconciliation_payload`, then `check`/`reconcile` add
+   only their command-specific envelope — `messages`, exit code, and, where
+   they genuinely differ, extra `result` keys).
 2. `git grep -n 'reconciliation_payload' novel_ralph_skill/` resolves the
-   definition to `state/reconcile.py`, the re-export to
-   `state/__init__.py`, and exactly four consumer call sites
-   (`_render_reconciliation`, `_write_outcome`, `_refuse_outcome`, the `NONE`
-   arm).
+   definition to `state/reconcile.py`, the re-export to `state/__init__.py`,
+   and exactly four consumer call sites (`_render_reconciliation`,
+   `_write_outcome`, `_refuse_outcome`, the `NONE` arm).
 3. `make all` is green with **no pre-existing test edited for new behaviour**:
    every reconcile, check, disk-evidence, derivation, refusal, integration,
    BDD, e2e, and snapshot suite stays green unchanged, plus one small new test
@@ -110,8 +107,8 @@ In scope (roadmap 7.1.3; audit-2.3.2 Finding 2):
 - A single free function
   `reconciliation_payload(reconciliation: Reconciliation) -> dict[str, object]`
   in `state/reconcile.py`, beside the `Reconciliation` dataclass, returning the
-  base `{action, discrepancies, detail}` dict plus the optional
-  `current`/`by_chapter` recount pair when `recounted_by_chapter is not None`.
+  base `{action, discrepancies, detail}` dict plus the optional `current`/
+  `by_chapter` recount pair when `recounted_by_chapter is not None`.
 - Exporting `reconciliation_payload` from
   `novel_ralph_skill/state/__init__.py` beside the existing `Reconciliation` /
   `ReconcileAction` / `derive_reconciliation` exports.
@@ -160,8 +157,9 @@ escalation, not a workaround.
   no behaviour changes; and the check, reconcile, and disk-evidence suites stay
   green." (design §3.3, §5.4; ADR-003 shared interface contract.)
 - **`reconciliation_payload` lives in `state/reconcile.py`**, beside the
-  `Reconciliation` dataclass and `derive_reconciliation` (the module the roadmap
-  and audit name: "a small free function beside it in `state/reconcile.py`").
+  `Reconciliation` dataclass and `derive_reconciliation` (the module the
+  roadmap and audit name: "a small free function beside it in
+  `state/reconcile.py`").
 - **It returns a dict, not a `CommandOutcome`.** The projection has no knowledge
   of exit codes, `messages`, or the read/write framing; those stay at the four
   call sites. This preserves the CQS read/write split (non-goals).
@@ -199,9 +197,9 @@ escalation, not a workaround.
 - **The recount pair is gated exactly as today** — added iff
   `reconciliation.recounted_by_chapter is not None`, with `current` taken from
   `recounted_current` and `by_chapter` from `dict(recounted_by_chapter)`. The
-  `REFUSE` and `NONE` arms never carry it (they have no recount pair to add), so
-  routing them through the same projection is a behaviour-preserving no-op for
-  those keys.
+  `REFUSE` and `NONE` arms never carry it (they have no recount pair to add),
+  so routing them through the same projection is a behaviour-preserving no-op
+  for those keys.
 - **Detect-only / mutator boundary unchanged (§3.3, ADR-001):** `check` still
   writes nothing; `reconcile` still drives the same D-SELF bracket. The
   projection is pure (a dict over an immutable dataclass) and touches no disk.
@@ -210,9 +208,9 @@ escalation, not a workaround.
   `docs/documentation-style-guide.md`).
 - **Quality gates:** 100% docstring coverage (`interrogate`, `pyproject.toml`
   `[tool.interrogate] fail-under = 100`); module line cap 400
-  (`[tool.pylint.main] max-module-lines = 400` — `reconcile.py` is at 342 lines,
-  so the projection plus its docstring must fit under 400; check after the
-  addition); Ruff line-length 88; Markdown prose wrapped at 80 columns
+  (`[tool.pylint.main] max-module-lines = 400` — `reconcile.py` is at 342
+  lines, so the projection plus its docstring must fit under 400; check after
+  the addition); Ruff line-length 88; Markdown prose wrapped at 80 columns
   (AGENTS.md "Markdown guidance").
 
 ## Tolerances (exception triggers)
@@ -221,9 +219,9 @@ escalation, not a workaround.
   `.ambr`) must be edited to keep green, stop and escalate — that means the
   projection moved behaviour (Constraints "No behaviour change").
 - **Scope:** if the refactor requires editing any module beyond
-  `state/reconcile.py`, `commands/novel_state.py`, `commands/_reconcile.py`,
-  and `state/__init__.py` (plus adding/extending one test file), stop and
-  escalate — it has drifted beyond the four named arms.
+  `state/reconcile.py`, `commands/novel_state.py`, `commands/_reconcile.py`, and
+  `state/__init__.py` (plus adding/extending one test file), stop and escalate
+  — it has drifted beyond the four named arms.
 - **CQS contamination:** if it appears the projection should also fold in the
   `messages`, the exit code, or the read/write framing, stop and escalate — the
   audit explicitly keeps those distinct (non-goals).
@@ -516,8 +514,8 @@ Read these before starting. They are the source of truth.
 - `docs/novel-ralph-harness-design.md` §3.3 (command/query segregation — the
   checker/mutator split that keeps `check` read-only and `reconcile` the only
   writer; the read/write vocabulary distinction this task must preserve) and
-  §5.4 (disk-authoritative reconciliation — `check` reports the reconciliation a
-  stale tree implies and exits 4; `reconcile` enacts it, recomputing
+  §5.4 (disk-authoritative reconciliation — `check` reports the reconciliation
+  a stale tree implies and exits 4; `reconcile` enacts it, recomputing
   independently; "loud, never silent" — the `result` payload and the `log.md`
   receipt). These establish *why* the projection is one shared fact and why the
   read and write *framing* are deliberately distinct.
@@ -533,8 +531,8 @@ Read these before starting. They are the source of truth.
 - `docs/adr-003-shared-interface-contract.md` (the envelope and exit-code
   contract this refactor must not perturb).
 - `AGENTS.md` "Python verification and testing" (unit/behavioural/property
-  discipline; the snapshot rule — keep snapshots on stable boundaries, pair them
-  with semantic assertions, no snapshot-only coverage for logic assertable
+  discipline; the snapshot rule — keep snapshots on stable boundaries, pair
+  them with semantic assertions, no snapshot-only coverage for logic assertable
   directly) and "Markdown guidance".
 - `docs/scripting-standards.md` and `docs/documentation-style-guide.md` for
   prose/comment conventions and Oxford spelling.
@@ -560,13 +558,11 @@ Key code, by full path:
   `_render_reconciliation` but serializing its `action` *parameter*
   `str(action)` rather than `str(reconciliation.action)` — value-identical
   because every caller passes `action == reconciliation.action`; see "Verified
-  external facts"),
-  `_refuse_outcome` (line 237, base three
-  keys only), and the `NONE` arm inlined in `reconcile` (line 293, base three
-  keys with an empty `discrepancies` list). Each wraps the dict in a
-  `CommandOutcome` with its own exit code and `messages`; route only the dict
-  through `reconciliation_payload`, leaving the `CommandOutcome` construction in
-  place.
+  external facts"), `_refuse_outcome` (line 237, base three keys only), and the
+  `NONE` arm inlined in `reconcile` (line 293, base three keys with an empty
+  `discrepancies` list). Each wraps the dict in a `CommandOutcome` with its own
+  exit code and `messages`; route only the dict through
+  `reconciliation_payload`, leaving the `CommandOutcome` construction in place.
 - `novel_ralph_skill/state/__init__.py` — re-exports the `reconcile` symbols
   (import block line 63-67: `ReconcileAction`, `Reconciliation`,
   `derive_reconciliation`; `__all__` line 137-149). Add
@@ -575,13 +571,13 @@ Key code, by full path:
 Terms defined:
 
 - *Reconciliation payload*: the JSON-serializable dict the `check` `result`
-  reports under `reconciliation` and the `reconcile` `result` returns directly —
-  the base `{action, discrepancies, detail}` plus a `current`/`by_chapter` pair
-  for a `RECOUNT`.
+  reports under `reconciliation` and the `reconcile` `result` returns directly
+  — the base `{action, discrepancies, detail}` plus a `current`/`by_chapter`
+  pair for a `RECOUNT`.
 - *Read shape / write shape*: `check`'s read-only payload reports a *finding*
-  (what `reconcile` *would* do); `reconcile`'s write-shaped `result` reports the
-  *action taken*. The audit keeps their *vocabulary* and *exit codes* distinct;
-  this task shares only the dict serialization, which is identical.
+  (what `reconcile` *would* do); `reconcile`'s write-shaped `result` reports
+  the *action taken*. The audit keeps their *vocabulary* and *exit codes*
+  distinct; this task shares only the dict serialization, which is identical.
 - *CQS*: command/query segregation (§3.3) — checkers (`check`) read and report;
   mutators (`reconcile`) write. The split this task must not blur.
 
@@ -595,14 +591,14 @@ Terms defined:
   already-existing `run(build_app(), …)` / installed-script harness in the
   reconcile and check suites; this task adds neither a new invocation surface
   nor a new subprocess. The standing cuprum / Cyclopts / `pytest-timeout` /
-  `uv run` research the workflow mandates therefore has **no bearing on any work
-  item here** — there is no place in this plan where a cuprum catalogue, a
+  `uv run` research the workflow mandates therefore has **no bearing on any
+  work item here** — there is no place in this plan where a cuprum catalogue, a
   Cyclopts argument, or a `pytest-timeout` override is exercised by a code
-  change. (Verified by inspection of the four arms and their callers
-  — `novel_state.py:129,213`, `_reconcile.py:215,237,293` — and by the
-  parallel finding in the delivered `docs/execplans/roadmap-7-1-1.md` "Verified
-  external facts" for the same class of pure-Python state-layer refactor.) The
-  existing e2e suite (`tests/test_reconcile_e2e.py`) already pins the installed
+  change. (Verified by inspection of the four arms and their callers —
+  `novel_state.py:129,213`, `_reconcile.py:215,237,293` — and by the parallel
+  finding in the delivered `docs/execplans/roadmap-7-1-1.md` "Verified external
+  facts" for the same class of pure-Python state-layer refactor.) The existing
+  e2e suite (`tests/test_reconcile_e2e.py`) already pins the installed
   behaviour through cuprum, and it must stay green **unedited**, which is
   precisely the no-behaviour-change guarantee. This is stated explicitly rather
   than hedged: there is no undecided external-library fork in this plan.
@@ -635,14 +631,14 @@ Terms defined:
   so adding one name there is the established pattern, not a new mechanism.
   (Verified by reading `state/__init__.py`.)
 - `_render_reconciliation` and `_write_outcome` build the same dict shape (base
-  three keys + the `recounted_by_chapter is not None`-guarded recount pair), but
-  their `action` key is **not** spelled identically: `_render_reconciliation`
-  uses `str(reconciliation.action)` (`novel_state.py:139`), while
-  `_write_outcome` uses `str(action)` — its *parameter* (`_reconcile.py:225`).
-  The projection uses `str(reconciliation.action)`, so routing `_write_outcome`
-  through it changes the *source* of the action string from the parameter to the
-  attribute.
-  This is behaviour-preserving because both `_write_outcome` callers pass
+  three keys + the `recounted_by_chapter is not None`-guarded recount pair),
+  but their `action` key is **not** spelled identically:
+  `_render_reconciliation` uses `str(reconciliation.action)`
+  (`novel_state.py:139`), while `_write_outcome` uses `str(action)` — its
+  *parameter* (`_reconcile.py:225`). The projection uses
+  `str(reconciliation.action)`, so routing `_write_outcome` through it changes
+  the *source* of the action string from the parameter to the attribute. This
+  is behaviour-preserving because both `_write_outcome` callers pass
   `action == reconciliation.action`:
   - `_reconcile.py:322` passes `action`, bound at `_reconcile.py:291` to
     `reconciliation.action` (`action = reconciliation.action`).
@@ -672,8 +668,8 @@ Item 2); the routing (Work Item 3) is a behaviour-preserving substitution the
 ### Work Item 1 — add `reconciliation_payload` to `reconcile.py` and export it (Stage B)
 
 In `novel_ralph_skill/state/reconcile.py`, add one free function beside the
-`Reconciliation` dataclass (after the dataclass definition; keep it close to the
-dataclass, before the private builders):
+`Reconciliation` dataclass (after the dataclass definition; keep it close to
+the dataclass, before the private builders):
 
         def reconciliation_payload(
             reconciliation: Reconciliation,
@@ -713,21 +709,21 @@ behaviour-preserving (both `_write_outcome` callers pass
 
 Validation:
 
-- `uv run python -c "from novel_ralph_skill.state import reconciliation_payload,
-  Reconciliation, ReconcileAction; r =
-  Reconciliation(action=ReconcileAction.NONE, discrepancies=(), detail='ok');
-  print(reconciliation_payload(r))"` prints
-  `{'action': 'none', 'discrepancies': [], 'detail': 'ok'}` (the base shape, no
-  recount pair).
+- Run:
+
+      uv run python -c "from novel_ralph_skill.state import reconciliation_payload, Reconciliation, ReconcileAction; r =
+      Reconciliation(action=ReconcileAction.NONE, discrepancies=(), detail='ok');
+
+  print(reconciliation_payload(r))"` prints `{'action': 'none',
+  'discrepancies': [], 'detail': 'ok'}` (the base shape, no recount pair).
 - `make all` green; commit (gate first).
 
 Docs to read: design §3.3, §5.4; `audit-2.3.2.md` Finding 2; `reconcile.py` as
 the structural template (mirror its docstring style and the
-`derive_reconciliation` free-function grain).
-Skills to load: `python-router` → `python-data-shapes` (the frozen-dataclass
-projection shape; why a free function over a method keeps the data shape pure)
-and `python-types-and-apis` (the `Reconciliation -> dict[str, object]`
-signature).
+`derive_reconciliation` free-function grain). Skills to load: `python-router` →
+`python-data-shapes` (the frozen-dataclass projection shape; why a free
+function over a method keeps the data shape pure) and `python-types-and-apis`
+(the `Reconciliation -> dict[str, object]` signature).
 
 ### Work Item 2 — pin the projection with a focused unit test (Stage B, red first)
 
@@ -736,28 +732,30 @@ Add the projection's pins to a new `tests/test_reconciliation_payload.py`
 package tree — AGENTS.md). It must:
 
 - Assert the **base shape and key order** for a recount-absent reconciliation
-  (e.g. a `REFUSE` or `NONE`): build a `Reconciliation(action=…,
-  discrepancies=(…,), detail=…)`, call `reconciliation_payload`, and assert
-  `list(payload.items()) == [("action", "<value>"), ("discrepancies", [...]),
-  ("detail", "...")]` — comparing `items()` (ordered), not just `==` (which
-  ignores order), so a reordered projection is red here. This `items()`
-  assertion is the **NAMED PRIMARY order pin** for the write-side
-  `REFUSE`/`NONE` `result` envelope: it is the *only* test that fails on a
-  write-side key reorder, because neither snapshot guards it. The
-  `check_disk` snapshot pins insertion order for the READ (`check`) path only,
-  and the `reconcile_refuse` snapshot is `sort_keys=True` (it pins the field
-  set, not the order — see Constraints "base-dict order is preserved" and Risk
-  "reorders the dict keys"). Treat this assertion as load-bearing: it must not
-  be weakened or removed in any future edit, or a write-side reorder bug could
-  ship green.
+  (e.g. a `REFUSE` or `NONE`): build a
+  `Reconciliation(action=…, discrepancies=(…,), detail=…)`, call
+  `reconciliation_payload`, and assert
+  `list(payload.items()) == [("action", "<value>"), ("discrepancies", […]),
+  ("detail", "…")]` —
+  comparing `items()` (ordered), not just `==` (which ignores order), so a
+  reordered projection is red here. This `items()` assertion is the **NAMED
+  PRIMARY order pin** for the write-side `REFUSE`/`NONE` `result` envelope: it
+  is the *only* test that fails on a write-side key reorder, because neither
+  snapshot guards it. The `check_disk` snapshot pins insertion order for the
+  READ (`check`) path only, and the `reconcile_refuse` snapshot is
+  `sort_keys=True` (it pins the field set, not the order — see Constraints
+  "base-dict order is preserved" and Risk "reorders the dict keys"). Treat this
+  assertion as load-bearing: it must not be weakened or removed in any future
+  edit, or a write-side reorder bug could ship green.
 - Assert the **recount pair is absent** when `recounted_by_chapter is None`
   (the projection has exactly the three base keys).
 - Assert the **recount pair is present and correct** when
   `recounted_by_chapter is not None`: build a
   `Reconciliation(action=ReconcileAction.RECOUNT, …, recounted_current=N,
-  recounted_by_chapter={...})` and assert the payload's `current` equals `N`,
-  `by_chapter` equals the mapping (as a plain `dict`), and the key order places
-  `current`/`by_chapter` *after* `detail`.
+  recounted_by_chapter={…})`
+  and assert the payload's `current` equals `N`, `by_chapter` equals the
+  mapping (as a plain `dict`), and the key order places `current`/`by_chapter`
+  *after* `detail`.
 - Assert `discrepancies` and `by_chapter` are **independent copies** (the
   projection uses `list(...)` / `dict(...)`), so mutating the payload does not
   alias the frozen dataclass's tuple/mapping — a `python-data-shapes`
@@ -770,9 +768,10 @@ Hypothesis/CrossHair/mutmut are **not** required (`python-verification`: there
 is no generated input space and the logic is a fixed-shape projection of a
 closed dataclass). Write them **red first** against the not-yet-exported symbol
 (import error), then green after Work Item 1 — or, if WI1 and WI2 are committed
-together, demonstrate the red by temporarily removing the `reconciliation_payload`
-export from `state/__init__.py`, then restore it (record the red/green
-transcript in `Progress`/`Surprises`, as the 7.1.1 plan did).
+together, demonstrate the red by temporarily removing the
+`reconciliation_payload` export from `state/__init__.py`, then restore it
+(record the red/green transcript in `Progress`/`Surprises`, as the 7.1.1 plan
+did).
 
 Validation:
 
@@ -783,15 +782,15 @@ Docs to read: AGENTS.md "Python verification and testing" (unit + example
 discipline; snapshots only for stable boundaries — this is *not* a snapshot
 test; pair semantic assertions with the existing snapshot suites);
 `tests/test_reconcile_derivation.py` as the `Reconciliation`-construction
-template.
-Skills to load: `python-router` → `python-testing` (parametrization over the
-recount-bearing/recount-absent cases, ids) and `python-verification` (to confirm
-the fixed-shape projection needs no Hypothesis/CrossHair/mutmut adversary).
+template. Skills to load: `python-router` → `python-testing` (parametrization
+over the recount-bearing/recount-absent cases, ids) and `python-verification`
+(to confirm the fixed-shape projection needs no Hypothesis/CrossHair/mutmut
+adversary).
 
 ### Work Item 3 — route the four arms through the projection (Stage C)
 
-Behaviour-preserving substitution. After this, no hand-built `{"action": str(…),
-"discrepancies": list(…), "detail": …}` dict remains outside
+Behaviour-preserving substitution. After this, no hand-built
+`{"action": str(…), "discrepancies": list(…), "detail": …}` dict remains outside
 `reconciliation_payload`.
 
 1. `novel_ralph_skill/commands/novel_state.py` — in `_render_reconciliation`
@@ -810,8 +809,8 @@ Behaviour-preserving substitution. After this, no hand-built `{"action": str(…
    `_render_reconciliation` *annotation*), whereas the line-80 runtime block
    imports `derive_reconciliation` (alongside `build_initial_document`,
    `check_disk_evidence`, `validate_state`, `write_document_atomically`) but
-   **not** `Reconciliation`. `reconciliation_payload` is *called* at runtime, so
-   it must be a runtime import. Do **not** apply a "put it where
+   **not** `Reconciliation`. `reconciliation_payload` is *called* at runtime,
+   so it must be a runtime import. Do **not** apply a "put it where
    `Reconciliation` is imported" heuristic: that resolves to the line-108
    `TYPE_CHECKING` block, where the name is absent at runtime, and the call
    would raise `NameError`. Place it in the line-80 block beside
@@ -879,10 +878,13 @@ Validation:
 - `git grep -n 'reconciliation_payload' novel_ralph_skill/` resolves to the
   definition (`state/reconcile.py`), the re-export (`state/__init__.py`), and
   four consumer call sites.
-- `uv run pytest tests/test_reconcile.py tests/test_reconcile_refuse.py
-  tests/test_reconcile_derivation.py tests/test_reconcile_integration.py
-  tests/test_novel_state_check_disk.py tests/test_disk_evidence.py -q` passes
-  unchanged.
+- Run:
+
+      uv run pytest tests/test_reconcile.py tests/test_reconcile_refuse.py tests/test_reconcile_derivation.py
+      tests/test_reconcile_integration.py
+
+  tests/test_novel_state_check_disk.py tests/test_disk_evidence.py -q
+  ` passes unchanged.
 - `make all` green (full suite, including the two `.ambr` snapshot suites, BDD,
   and e2e, all unedited); commit.
 
@@ -890,9 +892,9 @@ Docs to read: `audit-2.3.2.md` Finding 2 (the CQS read/write envelope and exit
 codes stay where they are); design §3.3 (the read/write split the framing
 docstrings preserve); `tests/test_reconcile_refuse.py` and
 `tests/test_novel_state_check_disk.py` (the snapshot suites that pin the two
-envelope shapes the projection must reproduce byte-for-byte).
-Skills to load: `python-router` → `python-testing` (to confirm the existing
-suites are the right regression net). Use `leta refs Reconciliation` and
+envelope shapes the projection must reproduce byte-for-byte). Skills to load:
+`python-router` → `python-testing` (to confirm the existing suites are the
+right regression net). Use `leta refs Reconciliation` and
 `leta grep '"action": str'` to confirm every hand-built-dict site is accounted
 for before editing, and `leta` for the import checks.
 
@@ -950,8 +952,8 @@ Quality criteria (what "done" means):
 - Tests: `tests/test_reconciliation_payload.py` passes (and failed red before
   Work Item 1's symbol existed). Every pre-existing reconcile, check,
   disk-evidence, derivation, refusal, integration, BDD, e2e, and snapshot suite
-  passes **without edit** — that is the no-behaviour-change proof (roadmap 7.1.3
-  success criterion).
+  passes **without edit** — that is the no-behaviour-change proof (roadmap
+  7.1.3 success criterion).
 - Lint/typecheck: `make all` (build, check-fmt, lint, typecheck, test) is green
   — Ruff, `interrogate` 100% (the new function carries a docstring), Pylint
   (`reconcile.py` under the 400-line cap after the addition), `pyright`/`ty`
@@ -969,13 +971,13 @@ Quality method (how we check):
   (the only Markdown this task touches). No Mermaid is added; `make nixie` is
   run per the workflow rule for Markdown changes.
 - Behaviour acceptance: the two snapshot suites
-  (`tests/test_novel_state_check_disk.py`,
-  `tests/test_reconcile_refuse.py`) still pass, proving the `check` read shape
-  and the `reconcile` `REFUSE` write shape are byte-identical to before — now
-  backed by one shared `reconciliation_payload` projection rather than four
-  hand-built dicts. Note the asymmetry: `test_novel_state_check_disk.py`
-  asserts the *unsorted* `render_machine` bytes (`raw == snapshot`), so it
-  also pins key order for the READ path; `test_reconcile_refuse.py` asserts
+  (`tests/test_novel_state_check_disk.py`, `tests/test_reconcile_refuse.py`)
+  still pass, proving the `check` read shape and the `reconcile` `REFUSE` write
+  shape are byte-identical to before — now backed by one shared
+  `reconciliation_payload` projection rather than four hand-built dicts. Note
+  the asymmetry: `test_novel_state_check_disk.py` asserts the *unsorted*
+  `render_machine` bytes (`raw == snapshot`), so it also pins key order for the
+  READ path; `test_reconcile_refuse.py` asserts
   `json.dumps(env, sort_keys=True)`, so it pins the write-side field set and
   values but not order. The write-side `REFUSE`/`NONE` key order is pinned by
   the Work Item 2 `items()` unit assertion, not by a snapshot.
@@ -984,8 +986,8 @@ Quality method (how we check):
 
 - Every edit is a behaviour-preserving substitution or an additive symbol;
   re-running any work item is safe. No `working/` tree, `state.toml`, or
-  `log.md` is mutated by any step (the projection is a pure read of an immutable
-  dataclass; ADR-001).
+  `log.md` is mutated by any step (the projection is a pure read of an
+  immutable dataclass; ADR-001).
 - If a commit's gate fails, fix forward on the same work item; do not advance.
   If a snapshot moves (it must not), treat it as a Tolerance breach (behaviour
   drift) — stop and escalate rather than re-recording the snapshot.
@@ -1011,8 +1013,8 @@ Quality method (how we check):
   shared `run`/envelope machinery (all untouched).
 - Dependencies: **no new third-party dependency**; the only new import crossing
   a module boundary is `reconciliation_payload`. No external library behaviour
-  (cuprum, Cyclopts, `pytest-timeout`, `uv run`) is exercised by any code change
-  in this task (see "Verified external facts").
+  (cuprum, Cyclopts, `pytest-timeout`, `uv run`) is exercised by any code
+  change in this task (see "Verified external facts").
 
 ## Revision note
 
@@ -1031,32 +1033,32 @@ Quality method (how we check):
   `test_novel_state_check_disk.ambr` (`render_machine`'s unsorted
   `json.dumps`), while `test_reconcile_refuse.ambr` is `sort_keys=True` and so
   pins the field set only, leaving the write-side `REFUSE`/`NONE` order to the
-  Work Item 2 `items()` pin — the CQS
-  projection returns a dict, not a `CommandOutcome`), and the established
-  `state/__init__.py` re-export pattern. Followed the delivered
-  `docs/execplans/roadmap-7-1-1.md` structure and its executable-form observable
-  scoping. Stated explicitly that no external-library behaviour is load-bearing
-  for this internal refactor — there is no undecided external fork.
+  Work Item 2 `items()` pin — the CQS projection returns a dict, not a
+  `CommandOutcome`), and the established `state/__init__.py` re-export pattern.
+  Followed the delivered `docs/execplans/roadmap-7-1-1.md` structure and its
+  executable-form observable scoping. Stated explicitly that no
+  external-library behaviour is load-bearing for this internal refactor — there
+  is no undecided external fork.
 - 2026-06-27 (round 2, prose-only): the design reviewer flagged B1 — the plan
   misrepresented `test_reconcile_refuse.ambr` as an insertion-order backstop,
   but `tests/test_reconcile_refuse.py:187` asserts
   `json.dumps(env, sort_keys=True) == snapshot` (keys SORTED), and the stored
-  snapshot shows `result` as the alphabetical `{action, detail, discrepancies}`,
-  not the code's insertion order `{action, discrepancies, detail}`. Verified
-  against source: `render_machine` (`contract/envelope.py:151`) is
-  `json.dumps(ordered)` with no `sort_keys`, asserted `raw == snapshot` at
-  `test_novel_state_check_disk.py:234,248` (so only the check_disk recount and
-  refuse snapshots pin *insertion order*, and only on the READ path); the
-  reconcile_refuse snapshot is sorted (pins the field set, not order). Corrected
-  the Constraints "base-dict order is preserved" bullet, Risk 1, the "Verified
-  external facts" snapshot entry, Risk 3, the Validation behaviour-acceptance
-  bullet, and this revision note, and elevated the Work Item 2
-  `list(payload.items())` ordered assertion to the NAMED PRIMARY order pin for
-  the write-side `REFUSE`/`NONE` `result` envelope (the only check that fails on
-  a write-side reorder, since no snapshot guards it). No design change: the
-  projection, the four-arm routing, the work-item decomposition, and the
-  no-behaviour-change guarantee are unchanged; only the order-backstop prose was
-  corrected.
+  snapshot shows `result` as the alphabetical
+  `{action, detail, discrepancies}`, not the code's insertion order
+  `{action, discrepancies, detail}`. Verified against source: `render_machine`
+  (`contract/envelope.py:151`) is `json.dumps(ordered)` with no `sort_keys`,
+  asserted `raw == snapshot` at `test_novel_state_check_disk.py:234,248` (so
+  only the check_disk recount and refuse snapshots pin *insertion order*, and
+  only on the READ path); the reconcile_refuse snapshot is sorted (pins the
+  field set, not order). Corrected the Constraints "base-dict order is
+  preserved" bullet, Risk 1, the "Verified external facts" snapshot entry, Risk
+  3, the Validation behaviour-acceptance bullet, and this revision note, and
+  elevated the Work Item 2 `list(payload.items())` ordered assertion to the
+  NAMED PRIMARY order pin for the write-side `REFUSE`/`NONE` `result` envelope
+  (the only check that fails on a write-side reorder, since no snapshot guards
+  it). No design change: the projection, the four-arm routing, the work-item
+  decomposition, and the no-behaviour-change guarantee are unchanged; only the
+  order-backstop prose was corrected.
 - 2026-06-27 (round 3, prose-only): the design reviewer flagged B2 and B3, both
   prose-only. B2 — Work Item 3's import-block guidance misdirected
   `novel_state.py`: it told the implementer to add `reconciliation_payload` to
@@ -1065,44 +1067,44 @@ Quality method (how we check):
   **only** in the `TYPE_CHECKING` block at line 108; the runtime `state` import
   block is at line 80 (it imports `derive_reconciliation`, not
   `Reconciliation`). Since `reconciliation_payload` is *called* at runtime, the
-  literal heuristic
-  would place it in the line-108 `TYPE_CHECKING` block and raise `NameError`.
-  Fixed Work Item 3 step 1 to direct the implementer to the runtime block at
-  line 80 (beside `derive_reconciliation`), explicitly **not** the line-108
-  `TYPE_CHECKING` block, and dropped the misdirecting "where `Reconciliation` is
-  imported" heuristic. The `_reconcile.py` guidance (the line-55 runtime block,
-  which imports `Reconciliation` **and** `derive_reconciliation` at runtime) was
-  already correct and is unchanged. Verified against source:
-  `novel_state.py:41` (`from __future__ import annotations`), `:80` (runtime
-  `state` import, no `Reconciliation`), `:108` (`TYPE_CHECKING` `Reconciliation`
-  import); `_reconcile.py:55-63` (runtime block with `Reconciliation`).
-  B3 — the "byte-identical" claim for `_write_outcome` rested on an unstated,
-  unpinned invariant: `_write_outcome` serializes its `action` *parameter*
+  literal heuristic would place it in the line-108 `TYPE_CHECKING` block and
+  raise `NameError`. Fixed Work Item 3 step 1 to direct the implementer to the
+  runtime block at line 80 (beside `derive_reconciliation`), explicitly **not**
+  the line-108 `TYPE_CHECKING` block, and dropped the misdirecting "where
+  `Reconciliation` is imported" heuristic. The `_reconcile.py` guidance (the
+  line-55 runtime block, which imports `Reconciliation` **and**
+  `derive_reconciliation` at runtime) was already correct and is unchanged.
+  Verified against source: `novel_state.py:41`
+  (`from __future__ import annotations`), `:80` (runtime `state` import, no
+  `Reconciliation`), `:108` (`TYPE_CHECKING` `Reconciliation` import);
+  `_reconcile.py:55-63` (runtime block with `Reconciliation`). B3 — the
+  "byte-identical" claim for `_write_outcome` rested on an unstated, unpinned
+  invariant: `_write_outcome` serializes its `action` *parameter*
   (`str(action)`, `_reconcile.py:225`), while the projection serializes
   `str(reconciliation.action)`; they are value-identical only because both
   `_write_outcome` callers pass `action == reconciliation.action`
   (`_reconcile.py:322` passes `action`, bound to `reconciliation.action` at
   `:291`; `:313` passes the literal `RECREATE_LOG`, equal to
   `reconciliation.action` because `derive_reconciliation` builds that
-  `Reconciliation` with `action=RECREATE_LOG`, `reconcile.py:332-333`). The plan
-  stated something textually false ("byte-identical body") and never named the
-  parameter-vs-attribute distinction or the caller invariant. Fixed: recorded
-  the distinction and the caller invariant in Work Item 3's `_write_outcome`
-  step, the Purpose section, the Context orientation, Work Item 1's lifting
-  note, and the "Verified external facts" entry, and named
+  `Reconciliation` with `action=RECREATE_LOG`, `reconcile.py:332-333`). The
+  plan stated something textually false ("byte-identical body") and never named
+  the parameter-vs-attribute distinction or the caller invariant. Fixed:
+  recorded the distinction and the caller invariant in Work Item 3's
+  `_write_outcome` step, the Purpose section, the Context orientation, Work
+  Item 1's lifting note, and the "Verified external facts" entry, and named
   `tests/test_reconcile.py:262` (`result["action"] == "recreate-log"`) as the
   pin for the one nominally-distinct (literal-passing `RECREATE_LOG`) case. No
-  design change: the
-  projection, the four-arm routing, the work-item decomposition, and the
-  no-behaviour-change guarantee are unchanged; only the import-block direction
-  and the action-key provenance prose were corrected.
+  design change: the projection, the four-arm routing, the work-item
+  decomposition, and the no-behaviour-change guarantee are unchanged; only the
+  import-block direction and the action-key provenance prose were corrected.
 
 ## Addenda
 
 Lightweight, no-plan corrections folded onto this completed task after its
 reviews and audits, triaged at the §7.1 step boundary.
 
-- [x] **7.1.3.1 — Drop the now-vestigial `action` parameter from `_write_outcome`**
+- [x] **7.1.3.1 — Drop the now-vestigial `action` parameter from
+      `_write_outcome`**
   (from review:7.1.3; severity: low). After this task routed `_write_outcome`
   through `reconciliation_payload`, the `action` parameter is no longer read by
   the body — the projection reads `reconciliation.action`. Remove the parameter

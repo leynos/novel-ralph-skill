@@ -20,7 +20,8 @@ the envelope. All reproduce exactly:
     genuinely fails), `compile_consistent` False;
   - `done`: `phase_is_done` True, `compile_consistent` **True**,
     `knitting_gates_passed` False.
-  Pre-drafting `messages` verbatim: `["phase_is_done is false",
+  Pre-drafting `messages` verbatim:
+  `["phase_is_done is false",
   "final_pass_complete is false", "knitting_gates_passed is false",
   "compile_consistent is false (compiled.md missing)"]`.
 - `novel-compile --check`: exit 3/`{}` (8 pre-drafting); exit 4/`diverged:true`

@@ -1,20 +1,20 @@
 # Logisphere design review — ExecPlan roadmap-7-3-5, round 1
 
-Adversarial pre-implementation review of
-`docs/execplans/roadmap-7-3-5.md` (DRAFT). Verdict: **REVISE** — the
-constructive design is sound and the library/source claims verify, but the
-plan's test-impact analysis is wrong in a way that guarantees a red gate and
-duplicates an existing guard.
+Adversarial pre-implementation review of `docs/execplans/roadmap-7-3-5.md`
+(DRAFT). Verdict: **REVISE** — the constructive design is sound and the
+library/source claims verify, but the plan's test-impact analysis is wrong in a
+way that guarantees a red gate and duplicates an existing guard.
 
 Trail followed: `logisphere-design-review` skill; design §4
 (`docs/novel-ralph-harness-design.md`); ADR 003, ADR 007; AGENTS.md (400-line
 cap, docstring/example rule, `interrogate` 100%); the real source for
 `novel.py`, `contract/runner.py`, `contract/__init__.py`; the test scaffolding
 (`tests/test_multiplexer_behaviour.py`, `tests/test_novel_main_working_dir.py`,
-`tests/test_contract_app_centralisation.py`, `tests/test_legacy_surface_retired.py`,
-`tests/conftest.py`, `tests/_state_layout_scanner.py`,
-`tests/test_multiplexer_mount_table.py`); read-only cuprum checkout at
-`/data/leynos/Projects/cuprum`; `docs/roadmap.md` lines 3040-3065.
+`tests/test_contract_app_centralisation.py`,
+`tests/test_legacy_surface_retired.py`, `tests/conftest.py`,
+`tests/_state_layout_scanner.py`, `tests/test_multiplexer_mount_table.py`);
+read-only cuprum checkout at `/data/leynos/Projects/cuprum`; `docs/roadmap.md`
+lines 3040-3065.
 
 ## What verifies (the plan's strong half)
 
@@ -58,9 +58,10 @@ preserved transitively.
 WI3 guard 3b asserts `novel.main`'s body contains **no** `Call` to `run`.
 `test_contract_app_centralisation.py` currently asserts `main` **does** invoke
 `run`. These two guards cannot both pass against the same surface. The plan
-must resolve the contradiction explicitly: re-home the 1.3.6 "routes through the
-shared seam" check onto `drive` (and have the seam prove it forwards to `run`),
-not silently leave two guards asserting opposite structural facts about `main`.
+must resolve the contradiction explicitly: re-home the 1.3.6 "routes through
+the shared seam" check onto `drive` (and have the seam prove it forwards to
+`run`), not silently leave two guards asserting opposite structural facts about
+`main`.
 
 ### B3 — WI2 caller enumeration is factually wrong
 
@@ -68,30 +69,31 @@ WI2 says to "confirm every `novel.main` caller (only the console-script
 declaration and the two behaviour tests)". `grep -rln "novel\.main()" tests/`
 returns **12** files (test_compile_e2e, test_compile_check_integration,
 test_contract_app_centralization, test_novel_main_working_dir,
-test_gate_drafting_mutators_e2e, test_reconcile_e2e, test_multiplexer_behaviour,
-test_set_chapters_e2e, test_recount_e2e, test_legacy_surface_retired,
-test_novel_state_check, test_relaxed_subset_e2e). The plan must re-run the
-enumeration and confirm which of these assert on `main`'s internal plumbing
-(at minimum B1's test does) versus pure behaviour, before claiming parity.
+test_gate_drafting_mutators_e2e, test_reconcile_e2e,
+test_multiplexer_behaviour, test_set_chapters_e2e, test_recount_e2e,
+test_legacy_surface_retired, test_novel_state_check, test_relaxed_subset_e2e).
+The plan must re-run the enumeration and confirm which of these assert on
+`main`'s internal plumbing (at minimum B1's test does) versus pure behaviour,
+before claiming parity.
 
 ### B4 — WI3 guard 3a duplicates an existing guard and ignores existing scaffolding
 
 `tests/test_legacy_surface_retired.py` already has
 `test_pyproject_scripts_is_novel_only` and `test_script_table_is_novel_only`,
 both asserting `[project.scripts]` is exactly `novel`, using the `pyproject` and
-`project_scripts` fixtures in `tests/conftest.py:136,201`. WI3 step 1a proposes
-a fresh `tests/test_entry_point_single_home.py` that re-parses pyproject with
-stdlib `tomllib` — re-copying scaffolding the developers-guide "Shared test
-scaffolding" rule (which the plan itself cites) forbids. Guard 3a must extend
-or reference the existing test/fixtures; only guard 3b (the ast "no inline
-`RunContext` in `main`") is net-new.
+`project_scripts` fixtures in `tests/conftest.py:136,201`. WI3 step 1a
+proposes a fresh `tests/test_entry_point_single_home.py` that re-parses
+pyproject with stdlib `tomllib` — re-copying scaffolding the developers-guide
+"Shared test scaffolding" rule (which the plan itself cites) forbids. Guard 3a
+must extend or reference the existing test/fixtures; only guard 3b (the ast "no
+inline `RunContext` in `main`") is net-new.
 
 ## Advisory (non-blocking)
 
 - A1 — `make all` is `build check-fmt lint typecheck test` (Makefile:37); it
-  does **not** run `audit`. The plan states `make all` runs `audit` (lines ~351,
-  ~579) and lists `make audit` as an acceptance gate. Either invoke `make audit`
-  separately or drop the claim.
+  does **not** run `audit`. The plan states `make all` runs `audit` (lines
+  ~351, ~579) and lists `make audit` as an acceptance gate. Either invoke
+  `make audit` separately or drop the claim.
 - A2 — The `drive` docstring "usage example" (WI1 step 3): the seam is
   `typ.NoReturn`, so a runnable doctest would terminate the process.
   `interrogate` only checks docstring presence, and `run`'s own docstring is
@@ -115,9 +117,9 @@ the shared seam ships undetected. Prevention designed in now: B1+B2 force the
 ## Alternatives checkpoint (Wafflecat)
 
 The strongest alternative: instead of a separate `drive` seam wrapping `run`,
-fold the `RunContext` construction into `run` itself by overloading it to accept
-keyword scalars. Trade-off: fewer indirections and no new public symbol, but it
-widens `run`'s signature (a Tolerances escalation trigger) and muddies the
-"`run` owns exit/emit; the entry point owns resolution" boundary. The plan's
-thin-wrapper seam is the better call. No change recommended to the mechanism —
-the defects are in the test-impact analysis, not the architecture.
+fold the `RunContext` construction into `run` itself by overloading it to
+accept keyword scalars. Trade-off: fewer indirections and no new public symbol,
+but it widens `run`'s signature (a Tolerances escalation trigger) and muddies
+the "`run` owns exit/emit; the entry point owns resolution" boundary. The
+plan's thin-wrapper seam is the better call. No change recommended to the
+mechanism — the defects are in the test-impact analysis, not the architecture.

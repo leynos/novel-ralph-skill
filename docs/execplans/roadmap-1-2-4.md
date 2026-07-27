@@ -1,9 +1,8 @@
 # Introduce a single source of truth for the five command names
 
-This ExecPlan (execution plan) is a living document. The sections
-`Constraints`, `Tolerances`, `Risks`, `Progress`, `Surprises & Discoveries`,
-`Decision Log`, and `Outcomes & Retrospective` must be kept up to date as work
-proceeds.
+This ExecPlan (execution plan) is a living document. The sections `Constraints`,
+`Tolerances`, `Risks`, `Progress`, `Surprises & Discoveries`, `Decision Log`,
+and `Outcomes & Retrospective` must be kept up to date as work proceeds.
 
 Status: COMPLETE
 
@@ -19,8 +18,8 @@ sources without a single gate catching it. The duplication exists today in:
   (`novel_state`, `novel_done`, `novel_compile`, `desloppify`, `wordcount`),
   each calling `make_stub_app("<name>")()` with the console-script name spelt
   out inline.
-- `pyproject.toml` `[project.scripts]` (lines 10-15) — five `name = "module:func"`
-  entries.
+- `pyproject.toml` `[project.scripts]` (lines 10-15) — five
+  `name = "module:func"` entries.
 - `tests/test_command_stubs.py` — a `COMMAND_NAMES` tuple (lines 23-29) and an
   `ENTRY_POINTS` tuple (lines 31-37).
 - `tests/test_console_scripts_e2e.py` — a second `COMMAND_NAMES` tuple
@@ -34,8 +33,8 @@ distributed as installed console-scripts by
 `docs/adr-004-distribution-console-scripts.md`, and described as the v1 spine in
 `docs/novel-ralph-harness-design.md` §4. The audit's prescription is precise:
 "a package registry consumed by the entry points and tests, asserted against
-`[project.scripts]`, removes the drift risk while the surface is still five thin
-stubs."
+`[project.scripts]`, removes the drift risk while the surface is still five
+thin stubs."
 
 The deliverable is therefore a **single package-level registry** —
 `novel_ralph_skill/commands/names.py` — that records, once, the ordered mapping
@@ -48,22 +47,22 @@ written as data (the registry) and one place each name is bound to runtime
 behaviour (`pyproject.toml`, gated against the registry); every other reference
 is derived.
 
-This task is **pure Python plus packaging**: it adds no command behaviour, emits
-no new program output, shells out to nothing, and adds no runtime or test
+This task is **pure Python plus packaging**: it adds no command behaviour,
+emits no new program output, shells out to nothing, and adds no runtime or test
 dependency. cuprum is touched only incidentally —
-`tests/test_console_scripts_e2e.py` imports the shared `COMMAND_NAMES` instead of
-re-declaring it; the cuprum run-loop it added in task 1.2.3 is unchanged.
+`tests/test_console_scripts_e2e.py` imports the shared `COMMAND_NAMES` instead
+of re-declaring it; the cuprum run-loop it added in task 1.2.3 is unchanged.
 
 To verify the implementation: `make test` proves the five entry points still
 build, install, and exit `2` (the e2e is unchanged in behaviour, only its name
-source moves); a new `tests/test_command_names_registry.py` asserts the registry
-matches `pyproject.toml [project.scripts]` exactly (same names, same
+source moves); a new `tests/test_command_names_registry.py` asserts the
+registry matches `pyproject.toml [project.scripts]` exactly (same names, same
 entry-point targets, same order) and that each registry name resolves to a
 callable on the stub module; the existing stub unit tests still pass, now
 parametrized off the shared registry; and `make all`, `make markdownlint`, and
-`make nixie` are all green. Success is observable as: a single edit to a command
-name in `names.py` would force `pyproject.toml` and every test to agree or fail
-the new gate, so the names can no longer silently drift.
+`make nixie` are all green. Success is observable as: a single edit to a
+command name in `names.py` would force `pyproject.toml` and every test to agree
+or fail the new gate, so the names can no longer silently drift.
 
 ## Constraints
 
@@ -71,15 +70,15 @@ Hard invariants that must hold throughout implementation. Violation requires
 escalation, not a workaround.
 
 - All work must stay exclusively inside the worktree at
-  `/data/leynos/Projects/novel-ralph-skill.worktrees/roadmap-1-2-4`. Files in the
-  root/control worktree must not be edited.
+  `/data/leynos/Projects/novel-ralph-skill.worktrees/roadmap-1-2-4`. Files in
+  the root/control worktree must not be edited.
 - The five command names and their entry-point targets are fixed by ADR 005 and
   the existing `[project.scripts]` table and must not change. The registry
   records exactly: `novel-state` → `novel_state`, `novel-done` → `novel_done`,
-  `novel-compile` → `novel_compile`, `desloppify` → `desloppify`,
-  `wordcount` → `wordcount`, all bound to module
-  `novel_ralph_skill.commands.stub`. This task introduces a single source of
-  truth; it does **not** rename, add, or remove a command.
+  `novel-compile` → `novel_compile`, `desloppify` → `desloppify`, `wordcount` →
+  `wordcount`, all bound to module `novel_ralph_skill.commands.stub`. This task
+  introduces a single source of truth; it does **not** rename, add, or remove a
+  command.
 - The externally observable contract is unchanged. After this task a wheel build
   still installs all five console-scripts, each still resolves on `PATH` and
   still exits `2` with "`<name>` is not yet implemented" on stderr, and the
@@ -93,34 +92,36 @@ escalation, not a workaround.
 - The registry is the **only** new place a name is written as data. The five
   entry-point functions in `stub.py` must be derived from the registry (not
   re-spelt inline), and all three existing tests must import their name and
-  entry-point data from the registry rather than re-declaring it. A name written
-  in two data sources after **all three work items complete** is a defect; this
-  is an end-state invariant, not a per-commit one. At work item 1's commit the
-  triple duplication (registry, `stub.py` inline, `pyproject.toml`) is expected
-  and legitimate — work items 2 and 3 collapse it onto the registry.
+  entry-point data from the registry rather than re-declaring it. A name
+  written in two data sources after **all three work items complete** is a
+  defect; this is an end-state invariant, not a per-commit one. At work item
+  1's commit the triple duplication (registry, `stub.py` inline,
+  `pyproject.toml`) is expected and legitimate — work items 2 and 3 collapse it
+  onto the registry.
 - `pyproject.toml [project.scripts]` remains authoritative for the runtime
-  binding (the build backend reads it; a Python constant cannot drive entry-point
-  installation). The registry does not replace it; the new test makes the two
-  agree by gate. (Verified: hatchling — the build backend, `pyproject.toml`
-  `[build-system]` — installs console-scripts from `[project.scripts]` only; no
-  build backend reads a Python constant for entry points. The registry therefore
-  cannot be the runtime source; it is the asserted-against source of truth.)
+  binding (the build backend reads it; a Python constant cannot drive
+  entry-point installation). The registry does not replace it; the new test
+  makes the two agree by gate. (Verified: hatchling — the build backend,
+  `pyproject.toml` `[build-system]` — installs console-scripts from
+  `[project.scripts]` only; no build backend reads a Python constant for entry
+  points. The registry therefore cannot be the runtime source; it is the
+  asserted-against source of truth.)
 - No new runtime or test dependency. `tomllib` is in the standard library on
   Python 3.14 (`requires-python = ">=3.14"`, `pyproject.toml` line 6) and is
   already used by `tests/test_pyproject_scripts.py`. syrupy and hypothesis are
-  **not** locked (`uv.lock`); this task must not add them — see Decision Log for
-  why no snapshot or property suite belongs here.
+  **not** locked (`uv.lock`); this task must not add them — see Decision Log
+  for why no snapshot or property suite belongs here.
 - Prose, comments, docstrings, and commit messages use en-GB Oxford spelling
   ("-ize"/"-yse"/"-our"), per AGENTS.md and the `en-gb-oxendict` convention.
 - Every public module, class, and function carries a docstring; `interrogate`
   enforces 100% coverage (AGENTS.md; Makefile `lint-python`). No file exceeds
   400 lines (AGENTS.md).
-- Tests live in the top-level `tests/` tree, never inside the package (AGENTS.md,
-  "Python verification and testing"; the `novel_ralph_skill` package contains no
-  tests so xdist-backed SlipCover coverage stays correct).
-- Markdown prose wraps at 80 columns; code blocks at 120; tables and headings are
-  not wrapped; list bullets use `-`; Mermaid is validated by nixie (AGENTS.md
-  "Markdown guidance").
+- Tests live in the top-level `tests/` tree, never inside the package
+  (AGENTS.md, "Python verification and testing"; the `novel_ralph_skill`
+  package contains no tests so xdist-backed SlipCover coverage stays correct).
+- Markdown prose wraps at 80 columns; code blocks at 120; tables and headings
+  are not wrapped; list bullets use `-`; Mermaid is validated by nixie
+  (AGENTS.md "Markdown guidance").
 
 ## Tolerances (exception triggers)
 
@@ -128,12 +129,12 @@ escalation, not a workaround.
   200 net lines, stop and escalate. Expected files: this plan;
   `novel_ralph_skill/commands/names.py` (new registry); `stub.py` (entry-point
   functions derived from the registry); `tests/test_command_stubs.py`,
-  `tests/test_console_scripts_e2e.py`, `tests/test_pyproject_scripts.py` (import
-  the shared data); `tests/test_command_names_registry.py` (new gate); and a
-  one-line cross-reference in `docs/developers-guide.md`. If any **command body**,
-  the `make_stub_app` factory logic, the cuprum run-loop, or the
-  `[project.scripts]` targets must change, stop and escalate — that is outside
-  1.2.4.
+  `tests/test_console_scripts_e2e.py`, `tests/test_pyproject_scripts.py`
+  (import the shared data); `tests/test_command_names_registry.py` (new gate);
+  and a one-line cross-reference in `docs/developers-guide.md`. If any
+  **command body**, the `make_stub_app` factory logic, the cuprum run-loop, or
+  the `[project.scripts]` targets must change, stop and escalate — that is
+  outside 1.2.4.
 - Dependencies: this task adds **no** new runtime or dev dependency. If the
   registry-versus-`[project.scripts]` assertion appears to need syrupy,
   hypothesis, or any new package, stop and escalate (it does not: `tomllib`
@@ -142,17 +143,17 @@ escalation, not a workaround.
 - Registry shape: this plan commits to a single immutable, ordered mapping
   (`name -> entry-point function name`) in `names.py`, plus a derived
   `COMMAND_NAMES` tuple for callers needing only the names. If review prefers a
-  different container (for example a `tuple` of `dataclass`/`NamedTuple` records,
-  or deriving names by importing `[project.scripts]` at runtime), that is a
-  **materially different** design; do not switch mid-implementation. Stop and
-  escalate so the module and its consumers are rewritten coherently.
-- Direction of truth: this plan makes the Python registry the source of truth and
-  asserts `[project.scripts]` against it. The build backend still reads the TOML
-  table at install time (it must). If review prefers `[project.scripts]` to be
-  the sole source and the registry to be *derived from* it at runtime (parsing
-  TOML inside the package), stop and escalate — that inverts the dependency
-  direction, adds an import-time TOML read to the package, and changes the test's
-  meaning.
+  different container (for example a `tuple` of `dataclass`/`NamedTuple`
+  records, or deriving names by importing `[project.scripts]` at runtime), that
+  is a **materially different** design; do not switch mid-implementation. Stop
+  and escalate so the module and its consumers are rewritten coherently.
+- Direction of truth: this plan makes the Python registry the source of truth
+  and asserts `[project.scripts]` against it. The build backend still reads the
+  TOML table at install time (it must). If review prefers `[project.scripts]`
+  to be the sole source and the registry to be *derived from* it at runtime
+  (parsing TOML inside the package), stop and escalate — that inverts the
+  dependency direction, adds an import-time TOML read to the package, and
+  changes the test's meaning.
 - Iterations: if `make all` (or `make markdownlint` / `make nixie`) still fails
   after 3 focused fix attempts on the same gate, stop and escalate.
 
@@ -185,8 +186,8 @@ escalation, not a workaround.
     registry, removing the inline string duplication without hiding the functions.
     The new gate asserts each `[project.scripts]` target (`...:novel_state`, …)
     resolves to a callable on the stub module, so a broken binding fails loudly.
-- Risk: importing the registry at module top of `tests/test_console_scripts_e2e.py`
-  perturbs that POSIX-only, slow test.
+- Risk: importing the registry at module top of
+  `tests/test_console_scripts_e2e.py` perturbs that POSIX-only, slow test.
   - Severity: low. Likelihood: very low.
   - Mitigation: the import is a pure-Python constant import with no side effects
     and no cuprum/subprocess interaction; the test's `pytestmark` skip guard, the
@@ -196,12 +197,13 @@ escalation, not a workaround.
 ## Progress
 
 - [x] Work item 1: Add the registry module
-  `novel_ralph_skill/commands/names.py` (the single source of truth) and the new
-  gate `tests/test_command_names_registry.py` asserting it matches
-  `pyproject.toml [project.scripts]` and resolves to callables. (done — registry
-  is a frozen `MappingProxyType` over an ordered dict plus a derived
-  `COMMAND_NAMES` and `project_scripts_table()`; four gate tests pass; `make all`,
-  `make markdownlint`, `make nixie` green; CodeRabbit run 1 actioned.)
+  `novel_ralph_skill/commands/names.py` (the single source of truth) and the
+  new gate `tests/test_command_names_registry.py` asserting it matches
+  `pyproject.toml [project.scripts]` and resolves to callables. (done —
+  registry is a frozen `MappingProxyType` over an ordered dict plus a derived
+  `COMMAND_NAMES` and `project_scripts_table()`; four gate tests pass;
+  `make all`, `make markdownlint`, `make nixie` green; CodeRabbit run 1
+  actioned.)
 - [x] Work item 2: Derive the five `stub.py` entry-point functions and the stub
   unit tests' `COMMAND_NAMES`/`ENTRY_POINTS` from the registry. (done — stub.py
   builds a pre-computed `_NAME_FOR` reverse map from the registry and each
@@ -210,12 +212,13 @@ escalation, not a workaround.
   `ENTRY_POINTS` via `getattr(stub, func)`. `make all` green; CodeRabbit run 2
   returned 0 findings.)
 - [x] Work item 3: Replace the duplicated name lists in
-  `tests/test_console_scripts_e2e.py` and `tests/test_pyproject_scripts.py` with
-  the shared registry, and add the developers'-guide cross-reference. (done — the
-  e2e imports `COMMAND_NAMES`; `test_pyproject_scripts.py` derives its expectation
-  from `names.project_scripts_table()`; the developers' guide points contributors
-  at `names.py` as the single edit point. `make all`, `make markdownlint`,
-  `make nixie` green; CodeRabbit run 3 returned 0 findings.)
+  `tests/test_console_scripts_e2e.py` and `tests/test_pyproject_scripts.py`
+  with the shared registry, and add the developers'-guide cross-reference.
+  (done — the e2e imports `COMMAND_NAMES`; `test_pyproject_scripts.py` derives
+  its expectation from `names.project_scripts_table()`; the developers' guide
+  points contributors at `names.py` as the single edit point. `make all`,
+  `make markdownlint`, `make nixie` green; CodeRabbit run 3 returned 0
+  findings.)
 
 ## Surprises & discoveries
 
@@ -269,14 +272,17 @@ escalation, not a workaround.
     `[project.scripts]` target is derived, not duplicated.
   - Date/Author: 2026-06-22, planning agent.
 - Decision: keep the five entry-point functions as named module-level `def`s in
-  `stub.py`; only their console-script *name* argument is read from the registry.
-  - Rationale: the build backend resolves `module:func`, so the functions must be
+  `stub.py`; only their console-script *name* argument is read from the
+  registry.
+  - Rationale: the build backend resolves `module:func`, so the functions must
+    be
     real, importable symbols; generating them dynamically (for example via
     `setattr` in a loop) would hide them from `ty`/Pylint and from `module:func`
     resolution. Reading only the name string from the registry removes the
     duplication the audit flagged while keeping the functions statically visible.
   - Date/Author: 2026-06-22, planning agent.
-- Decision: add **no** snapshot (syrupy) or property (hypothesis/CrossHair) suite.
+- Decision: add **no** snapshot (syrupy) or property (hypothesis/CrossHair)
+  suite.
   - Rationale: per `python-verification`, the change is example-based — a fixed
     mapping asserted by equality and a callable-resolution check — with no
     generated-input invariant and no multivariant output format. Adding syrupy or
@@ -287,7 +293,7 @@ escalation, not a workaround.
   `slow`/`timeout` markers in `tests/test_console_scripts_e2e.py`.
   - Rationale: those are task 1.2.3's settled contract (ADR 006); 1.2.4 only
     replaces the inline `COMMAND_NAMES` tuple with the shared import. The cuprum
-    0.1.0 API (`ProgramCatalogue`, `ProjectSettings`, `Program`, `sh.make(...)
+    0.1.0 API (`ProgramCatalogue`, `ProjectSettings`, `Program`, `sh.make(…)
     .run_sync(capture=True)`) is unchanged and re-verified against the `v0.1.0`
     tag of `/data/leynos/Projects/cuprum` (`cuprum/program.py`,
     `cuprum/catalogue.py`, `cuprum/sh.py`).
@@ -314,11 +320,11 @@ CodeRabbit findings and their disposition; and confirmation that `make all`,
   `_PROJECT_ROOT: Path` annotation and the bare-assert "add a message" findings
   to stay consistent with the established repo test style (`tests/`
   `test_pyproject_scripts.py` and `test_command_stubs.py` use bare asserts and
-  leave `_PROJECT_ROOT`/`STUB_EXIT_CODE` unannotated; `ty` passes). Actioned all
-  four trivial plan findings: clarified the "two data sources" constraint as an
-  end-state (not per-commit) invariant; recommended the pre-computed reverse-map
-  shape for work item 2; and added docstring caveats to the illustrative code
-  blocks.
+  leave `_PROJECT_ROOT`/`STUB_EXIT_CODE` unannotated; `ty` passes). Actioned
+  all four trivial plan findings: clarified the "two data sources" constraint
+  as an end-state (not per-commit) invariant; recommended the pre-computed
+  reverse-map shape for work item 2; and added docstring caveats to the
+  illustrative code blocks.
 - `make all`, `make markdownlint`, and `make nixie` green at HEAD.
 
 ### Work item 2 (stub + stub tests)
@@ -338,13 +344,13 @@ CodeRabbit findings and their disposition; and confirmation that `make all`,
 - `test_console_scripts_e2e.py` dropped its inline `COMMAND_NAMES` tuple and
   imports the shared one; the cuprum run-loop, the POSIX skip guard, and the
   `slow`/`timeout(180)` markers are untouched.
-- `test_pyproject_scripts.py` dropped its hand-written `EXPECTED_SCRIPTS` mapping
-  and now asserts the parsed `[project.scripts]` equals
+- `test_pyproject_scripts.py` dropped its hand-written `EXPECTED_SCRIPTS`
+  mapping and now asserts the parsed `[project.scripts]` equals
   `names.project_scripts_table()`. It stays complementary to the dedicated
   registry gate (which additionally pins order, callable resolution, and the
   five-name invariant); both are kept per the audit's "a … registry … tests".
-- `docs/developers-guide.md` "The five commands" section gained a cross-reference
-  naming `names.py` as the single edit point.
+- `docs/developers-guide.md` "The five commands" section gained a
+  cross-reference naming `names.py` as the single edit point.
 - CodeRabbit run 3 returned 0 findings. `make all`, `make markdownlint`, and
   `make nixie` green at HEAD.
 
@@ -355,49 +361,49 @@ CodeRabbit findings and their disposition; and confirmation that `make all`,
   `tests/test_command_names_registry.py`; edits to
   `novel_ralph_skill/commands/stub.py`, `tests/test_command_stubs.py`,
   `tests/test_console_scripts_e2e.py`, `tests/test_pyproject_scripts.py`, and
-  `docs/developers-guide.md`; this execplan and its review note. Net effect: the
-  five names are written as data in exactly one place; every other reference is
-  derived or gated. The registry-versus-`[project.scripts]` gate found no
-  pre-existing mismatch. Three CodeRabbit runs (8 findings on run 1, 0 on runs 2
-  and 3); all actionable findings actioned, the rest skipped with the rationale
-  recorded above. `make all`, `make markdownlint`, and `make nixie` green at
-  every commit's HEAD.
+  `docs/developers-guide.md`; this execplan and its review note. Net effect:
+  the five names are written as data in exactly one place; every other
+  reference is derived or gated. The registry-versus-`[project.scripts]` gate
+  found no pre-existing mismatch. Three CodeRabbit runs (8 findings on run 1, 0
+  on runs 2 and 3); all actionable findings actioned, the rest skipped with the
+  rationale recorded above. `make all`, `make markdownlint`, and `make nixie`
+  green at every commit's HEAD.
 
 ## Context and orientation
 
-The repository is the Python package skeleton becoming the deterministic spine of
-the novel-ralph harness. Orient with these files; all paths are relative to the
-worktree root
+The repository is the Python package skeleton becoming the deterministic spine
+of the novel-ralph harness. Orient with these files; all paths are relative to
+the worktree root
 `/data/leynos/Projects/novel-ralph-skill.worktrees/roadmap-1-2-4`:
 
-- `novel_ralph_skill/commands/stub.py` — the shared `make_stub_app(name)` factory
-  (`STUB_EXIT_CODE = 2`) and the five entry-point functions `novel_state`,
-  `novel_done`, `novel_compile`, `desloppify`, `wordcount`, each calling
-  `make_stub_app("<name>")()` with the console-script name spelt inline (the
-  duplication this task removes from the package side).
-- `novel_ralph_skill/commands/__init__.py` — the `commands` subpackage docstring;
-  the new `names.py` lives beside it.
+- `novel_ralph_skill/commands/stub.py` — the shared `make_stub_app(name)`
+  factory (`STUB_EXIT_CODE = 2`) and the five entry-point functions
+  `novel_state`, `novel_done`, `novel_compile`, `desloppify`, `wordcount`, each
+  calling `make_stub_app("<name>")()` with the console-script name spelt inline
+  (the duplication this task removes from the package side).
+- `novel_ralph_skill/commands/__init__.py` — the `commands` subpackage
+  docstring; the new `names.py` lives beside it.
 - `pyproject.toml` — `[project.scripts]` (lines 10-15) maps the five names to
-  `novel_ralph_skill.commands.stub:<func>`; `requires-python = ">=3.14"`
-  (line 6); `[tool.pytest.ini_options]` sets `timeout = 30`,
-  `testpaths = ["tests"]`, and the `slow` marker (lines 305-309).
-- `tests/test_command_stubs.py` — `COMMAND_NAMES` (lines 23-29) and `ENTRY_POINTS`
-  (lines 31-37) tuples driving the parametrized stub unit tests.
+  `novel_ralph_skill.commands.stub:<func>`; `requires-python = ">=3.14"` (line
+  6); `[tool.pytest.ini_options]` sets `timeout = 30`, `testpaths = ["tests"]`,
+  and the `slow` marker (lines 305-309).
+- `tests/test_command_stubs.py` — `COMMAND_NAMES` (lines 23-29) and
+  `ENTRY_POINTS` (lines 31-37) tuples driving the parametrized stub unit tests.
 - `tests/test_console_scripts_e2e.py` — a second `COMMAND_NAMES` tuple (lines
   60-66); POSIX-only (`pytestmark` skip), `slow`, `timeout(180)`; runs the
   installed scripts through a cuprum catalogue keyed on their absolute paths.
 - `tests/test_pyproject_scripts.py` — the fast gate that parses
   `[project.scripts]` with `tomllib` and asserts it equals `EXPECTED_SCRIPTS`
   (lines 17-23): the natural home/sibling for the new registry gate.
-- `uv.lock` — pins `cuprum 0.1.0`, `cyclopts 4.18.0`; does **not** contain syrupy
-  or hypothesis.
+- `uv.lock` — pins `cuprum 0.1.0`, `cyclopts 4.18.0`; does **not** contain
+  syrupy or hypothesis.
 - `Makefile` — `make all` is `build check-fmt lint typecheck test` (line 28);
   `make test` is `uv run pytest -v -n auto`; `make lint` runs Ruff,
   `interrogate --fail-under 100`, and PyPy-backed Pylint over
-  `PYTHON_TARGETS = novel_ralph_skill tests`; `make markdownlint` and `make nixie`
-  gate Markdown and Mermaid.
-- `docs/roadmap.md` lines 112-117 — this task; lines 104-111 — the adjacent 1.2.3
-  (the e2e POSIX policy, already done).
+  `PYTHON_TARGETS = novel_ralph_skill tests`; `make markdownlint` and
+  `make nixie` gate Markdown and Mermaid.
+- `docs/roadmap.md` lines 112-117 — this task; lines 104-111 — the adjacent
+  1.2.3 (the e2e POSIX policy, already done).
 - `docs/adr-005-command-surface-five-scripts.md` — fixes the five names and the
   five-script (not multiplexer) shape.
 - `docs/adr-004-distribution-console-scripts.md` — fixes installed
@@ -410,15 +416,15 @@ worktree root
   conventions (unchanged here; the registry shells out to nothing).
 - The locked cuprum sources, pinned at the `v0.1.0` tag of
   `/data/leynos/Projects/cuprum`: `cuprum/program.py` (`Program` newtype),
-  `cuprum/catalogue.py` (`ProgramCatalogue`, `ProjectSettings`),
-  `cuprum/sh.py` (`make`, `SafeCmd.run_sync`, `CommandResult`) — relevant only
-  because the e2e consuming the registry runs through them; this task makes no
-  new cuprum call.
+  `cuprum/catalogue.py` (`ProgramCatalogue`, `ProjectSettings`), `cuprum/sh.py`
+  (`make`, `SafeCmd.run_sync`, `CommandResult`) — relevant only because the e2e
+  consuming the registry runs through them; this task makes no new cuprum call.
 
 Terms of art, defined so the plan is self-contained:
 
 - **Console-script.** A command installed onto `PATH` from a package's
-  `[project.scripts]` entry points. On POSIX it is a launcher in the venv `bin/`.
+  `[project.scripts]` entry points. On POSIX it is a launcher in the venv
+  `bin/`.
 - **Entry-point target.** The `"module:function"` string a `[project.scripts]`
   value holds; the build backend imports `module` and binds `function` as the
   command. Here, `"novel_ralph_skill.commands.stub:novel_state"` and so on.
@@ -435,9 +441,9 @@ worktree standing rules):
   `Mapping[str, str]` via `types.MappingProxyType`, plus a derived
   `COMMAND_NAMES` tuple; the entry-point *module* as one shared constant so the
   full target is derived not duplicated).
-- `python-testing` for the test shape (a fast `tomllib`-driven gate; parametrized
-  stub tests fed from the shared registry; preserving the e2e's `slow`/`timeout`
-  markers and skip guard).
+- `python-testing` for the test shape (a fast `tomllib`-driven gate;
+  parametrized stub tests fed from the shared registry; preserving the e2e's
+  `slow`/ `timeout` markers and skip guard).
 - `python-verification` only to confirm that **no** Hypothesis/CrossHair/mutmut
   suite belongs here (example-based fixed-mapping assertion, not a generative
   contract); `hypothesis`, `crosshair`, and `mutmut` are not loaded or used.
@@ -471,8 +477,8 @@ on it (3). Each commit leaves the suite green.
 
 ### Work item 1 — Add the registry module and its gate
 
-Implements: roadmap task 1.2.4 ("a package registry consumed by the entry points
-and tests, asserted against `[project.scripts]`");
+Implements: roadmap task 1.2.4 ("a package registry consumed by the entry
+points and tests, asserted against `[project.scripts]`");
 `docs/adr-005-command-surface-five-scripts.md` (the five fixed names);
 `docs/adr-004-distribution-console-scripts.md` (the entry-point targets bind to
 `novel_ralph_skill.commands.stub`).
@@ -518,8 +524,8 @@ Add `novel_ralph_skill/commands/names.py`, the single source of truth:
   ```
 
   (Exact form pinned by the implementer against `.rules/python-typing.md` and
-  `.rules/python-return.md`; `MappingProxyType` gives an immutable, ordered view
-  with no dependency.)
+  `.rules/python-return.md`; `MappingProxyType` gives an immutable, ordered
+  view with no dependency.)
 
 Add `tests/test_command_names_registry.py`, the gate that ties the registry to
 the runtime table:
@@ -537,26 +543,27 @@ the runtime table:
    005 set, so the source of truth itself is pinned (a stray sixth entry fails
    here, not only at the TOML gate).
 
-Read first: `docs/roadmap.md` lines 112-117; `docs/adr-005-command-surface-five-scripts.md`;
+Read first: `docs/roadmap.md` lines 112-117;
+`docs/adr-005-command-surface-five-scripts.md`;
 `docs/adr-004-distribution-console-scripts.md`; `.rules/python-typing.md`,
-`.rules/python-return.md`, `.rules/python-00.md`; `tests/test_pyproject_scripts.py`
-(the `tomllib` pattern to mirror).
+`.rules/python-return.md`, `.rules/python-00.md`;
+`tests/test_pyproject_scripts.py` (the `tomllib` pattern to mirror).
 
-Skills: `python-router`, then `python-data-shapes` (the frozen ordered mapping),
-then `python-testing` (the `tomllib` gate). `python-verification` only to
-reconfirm no property/snapshot suite belongs here.
+Skills: `python-router`, then `python-data-shapes` (the frozen ordered
+mapping), then `python-testing` (the `tomllib` gate). `python-verification`
+only to reconfirm no property/snapshot suite belongs here.
 
 Tests added/updated:
 
 - `tests/test_command_names_registry.py` (new) — the registry-versus-
   `[project.scripts]` equality gate, the order check, the callable-resolution
-  check, and the five-name pin. This is the load-bearing new gate that makes the
-  single source of truth enforceable.
+  check, and the five-name pin. This is the load-bearing new gate that makes
+  the single source of truth enforceable.
 
 Validation: `make test` passes (the new gate is green against the unchanged
-`[project.scripts]`); `make lint` (Ruff, `interrogate --fail-under 100`, Pylint),
-`make check-fmt`, `make typecheck` pass over the new module and test; `make all`
-is green.
+`[project.scripts]`); `make lint` (Ruff, `interrogate --fail-under 100`,
+Pylint), `make check-fmt`, `make typecheck` pass over the new module and test;
+`make all` is green.
 
 ### Work item 2 — Derive the stub entry points and stub unit tests from the registry
 
@@ -565,12 +572,13 @@ points"); removes the package-side and stub-test name duplication.
 
 In `novel_ralph_skill/commands/stub.py`:
 
-- Import the registry: `from novel_ralph_skill.commands.names import COMMAND_ENTRY_POINTS`
-  (or the names tuple, as needed).
+- Import the registry:
+  `from novel_ralph_skill.commands.names import COMMAND_ENTRY_POINTS` (or the
+  names tuple, as needed).
 - Keep the five entry-point functions as **named module-level `def`s** (so
-  `module:func` resolution and static analysis still see them), but have each one
-  read its console-script name from the registry rather than spelling it inline,
-  for example:
+  `module:func` resolution and static analysis still see them), but have each
+  one read its console-script name from the registry rather than spelling it
+  inline, for example:
 
   ```python
   def novel_state() -> None:
@@ -595,9 +603,10 @@ In `tests/test_command_stubs.py`:
   `from novel_ralph_skill.commands.names import COMMAND_NAMES`.
 - Derive `ENTRY_POINTS` from the registry by pairing each name with
   `getattr(stub, COMMAND_ENTRY_POINTS[name])`, so the `(name, callable)` pairs
-  are no longer hand-listed. All parametrized cases (`test_command_result_exits_two`,
-  `test_unknown_option_exits_one`, `test_meta_flags_exit_zero`,
-  `test_entry_point_callable_exits_two`) keep their current assertions.
+  are no longer hand-listed. All parametrized cases
+  (`test_command_result_exits_two`, `test_unknown_option_exits_one`,
+  `test_meta_flags_exit_zero`, `test_entry_point_callable_exits_two`) keep
+  their current assertions.
 
 Read first: `novel_ralph_skill/commands/stub.py`; `tests/test_command_stubs.py`;
 `.rules/python-00.md`, `.rules/python-return.md`; the new
@@ -616,8 +625,8 @@ Tests added/updated:
 
 Validation: `make test` passes (the stub tests are green off the shared
 registry, and the work-item-1 gate still passes since the `[project.scripts]`
-targets and the registry agree); `make lint` reports no unused import; `make all`
-is green.
+targets and the registry agree); `make lint` reports no unused import;
+`make all` is green.
 
 ### Work item 3 — Converge the e2e and pyproject tests on the registry, and document it
 
@@ -628,24 +637,24 @@ In `tests/test_console_scripts_e2e.py`:
 
 - Replace the inline `COMMAND_NAMES` tuple (lines 60-66) with
   `from novel_ralph_skill.commands.names import COMMAND_NAMES`. The cuprum
-  run-loop, the `pytestmark` POSIX skip guard, the `slow`/`timeout(180)` markers,
-  the venv resolver, and every assertion (exit `2`, no `Traceback`, name in
-  stderr) are unchanged.
+  run-loop, the `pytestmark` POSIX skip guard, the `slow`/`timeout(180)`
+  markers, the venv resolver, and every assertion (exit `2`, no `Traceback`,
+  name in stderr) are unchanged.
 
 In `tests/test_pyproject_scripts.py`:
 
 - Replace the hand-written `EXPECTED_SCRIPTS` mapping (lines 17-23) with
-  `names.project_scripts_table()` so this gate, too, derives its expectation from
-  the registry rather than re-declaring it. The test's behaviour (assert the
-  parsed `[project.scripts]` equals the expected table) is preserved; its
+  `names.project_scripts_table()` so this gate, too, derives its expectation
+  from the registry rather than re-declaring it. The test's behaviour (assert
+  the parsed `[project.scripts]` equals the expected table) is preserved; its
   expectation now comes from the single source of truth. (This makes
   `test_pyproject_scripts.py` and the new `test_command_names_registry.py`
-  complementary: the former proves the TOML matches the registry by the existing
-  fast path; the latter additionally pins order, callable resolution, and the
-  five-name invariant. If review judges the two redundant, fold the order/callable
-  checks into `test_pyproject_scripts.py` and drop the new file — but default to
-  keeping the dedicated registry gate, as the audit names "a … registry … tests"
-  explicitly.)
+  complementary: the former proves the TOML matches the registry by the
+  existing fast path; the latter additionally pins order, callable resolution,
+  and the five-name invariant. If review judges the two redundant, fold the
+  order/callable checks into `test_pyproject_scripts.py` and drop the new file
+  — but default to keeping the dedicated registry gate, as the audit names "a …
+  registry … tests" explicitly.)
 
 In `docs/developers-guide.md`:
 
@@ -654,12 +663,12 @@ In `docs/developers-guide.md`:
   `novel_ralph_skill/commands/names.py`, consumed by the entry points and the
   tests and asserted against `[project.scripts]`, so the names cannot drift.
 
-Read first: `tests/test_console_scripts_e2e.py`; `tests/test_pyproject_scripts.py`;
-`docs/developers-guide.md` lines 53-87; `docs/documentation-style-guide.md`;
-AGENTS.md "Markdown guidance".
+Read first: `tests/test_console_scripts_e2e.py`;
+`tests/test_pyproject_scripts.py`; `docs/developers-guide.md` lines 53-87;
+`docs/documentation-style-guide.md`; AGENTS.md "Markdown guidance".
 
-Skills: `python-router`, then `python-testing` (the import swaps); `en-gb-oxendict`
-for the developers'-guide prose.
+Skills: `python-router`, then `python-testing` (the import swaps);
+`en-gb-oxendict` for the developers'-guide prose.
 
 Tests added/updated:
 
@@ -723,32 +732,33 @@ $ make test
 Acceptance, phrased as observable behaviour:
 
 - A single registry, `novel_ralph_skill/commands/names.py`, records each of the
-  five console-script names exactly once, with its entry-point function name and
-  the shared stub module.
-- `tests/test_command_names_registry.py` parses `pyproject.toml [project.scripts]`
-  and asserts it equals the registry-derived table (names, targets, order), that
-  each entry-point function resolves to a callable on the stub module, and that
-  there are exactly the five ADR-005 names.
+  five console-script names exactly once, with its entry-point function name
+  and the shared stub module.
+- `tests/test_command_names_registry.py` parses
+  `pyproject.toml [project.scripts]` and asserts it equals the registry-derived
+  table (names, targets, order), that each entry-point function resolves to a
+  callable on the stub module, and that there are exactly the five ADR-005
+  names.
 - `novel_ralph_skill/commands/stub.py`'s five entry-point functions no longer
-  spell their console-script names inline; they read them from the registry, and
-  remain named module-level `def`s for `module:func` resolution.
+  spell their console-script names inline; they read them from the registry,
+  and remain named module-level `def`s for `module:func` resolution.
 - `tests/test_command_stubs.py`, `tests/test_console_scripts_e2e.py`, and
   `tests/test_pyproject_scripts.py` all derive their command-name (and
   entry-point) data from the registry; none re-declares the list.
 - The externally observable contract is unchanged: a wheel build installs all
-  five console-scripts, each resolves on `PATH` and exits `2` with the
-  "not yet implemented" message (proved by the unchanged e2e on POSIX).
+  five console-scripts, each resolves on `PATH` and exits `2` with the "not yet
+  implemented" message (proved by the unchanged e2e on POSIX).
 - `docs/developers-guide.md` points contributors at the registry as the single
   place to edit a command name.
 
 Quality criteria (what "done" means):
 
-- Tests: `make test` passes; `tests/test_command_names_registry.py` is present and
-  green; the stub, e2e, and pyproject tests pass off the shared registry; all
-  pre-existing assertions still hold.
+- Tests: `make test` passes; `tests/test_command_names_registry.py` is present
+  and green; the stub, e2e, and pyproject tests pass off the shared registry;
+  all pre-existing assertions still hold.
 - Lint/typecheck: `make lint` (Ruff, `interrogate --fail-under 100`, Pylint),
-  `make check-fmt` (`ruff format --check`), and `make typecheck` (`ty check`) all
-  pass; no unused import; the new module and test carry full docstrings.
+  `make check-fmt` (`ruff format --check`), and `make typecheck` (`ty check`)
+  all pass; no unused import; the new module and test carry full docstrings.
 - Markdown/Mermaid: `make markdownlint` and `make nixie` pass over the edited
   developers' guide.
 - Aggregate: `make all` is green at each code work item's commit.
@@ -764,10 +774,10 @@ edit in work item 3.
 - The new gate and the updated tests are pure and re-runnable; the e2e still
   writes only into its own `tmp_path` and touches no tracked file or `working/`
   state.
-- The edits are in-place and additive (one new module, one new test, import swaps
-  in three tests, a one-line stub-body change per function, a one-line doc
-  cross-reference); re-running `make all` rebuilds the venv and re-runs the suite
-  from a clean state.
+- The edits are in-place and additive (one new module, one new test, import
+  swaps in three tests, a one-line stub-body change per function, a one-line
+  doc cross-reference); re-running `make all` rebuilds the venv and re-runs the
+  suite from a clean state.
 - If a Markdown gate fails, re-wrap the developers'-guide line to 80 columns and
   re-run `make markdownlint`.
 - If `make build` leaves a partial environment, `make clean` then `make build`
@@ -780,18 +790,19 @@ edit in work item 3.
 - Locked versions, verified: `cuprum 0.1.0`, `cyclopts 4.18.0` (`uv.lock`);
   syrupy and hypothesis are **not** locked, so no snapshot or property suite is
   added.
-- `tomllib` is standard-library on Python 3.14 (`requires-python = ">=3.14"`) and
-  is already used by `tests/test_pyproject_scripts.py`; the new gate reuses that
-  pattern with no new dependency.
+- `tomllib` is standard-library on Python 3.14 (`requires-python = ">=3.14"`)
+  and is already used by `tests/test_pyproject_scripts.py`; the new gate reuses
+  that pattern with no new dependency.
 - The build backend is hatchling (`pyproject.toml [build-system]`); it installs
   console-scripts from `[project.scripts]` only, so the registry is the
-  asserted-against source of truth, not a runtime replacement for the TOML table.
+  asserted-against source of truth, not a runtime replacement for the TOML
+  table.
 - cuprum 0.1.0 API re-confirmed at the `v0.1.0` tag of
   `/data/leynos/Projects/cuprum`: `cuprum/program.py`
   (`Program = typ.NewType("Program", str)`), `cuprum/catalogue.py`
   (`ProgramCatalogue`, `ProjectSettings`), `cuprum/sh.py` (`make`,
-  `SafeCmd.run_sync(capture=True)` → `CommandResult`). This task makes **no** new
-  cuprum call; the e2e's existing run-loop is untouched.
+  `SafeCmd.run_sync(capture=True)` → `CommandResult`). This task makes **no**
+  new cuprum call; the e2e's existing run-loop is untouched.
 - Scope fences restated: this task does **not** change any command body, the
   `make_stub_app` factory logic, the cuprum run-loop, the venv resolver, the
   `slow`/`timeout` markers, or the `[project.scripts]` targets; it does **not**
@@ -873,28 +884,30 @@ def test_registry_has_exactly_five_names() -> None:
     )
 ```
 
-Out of scope (do not build here): any command body or `make_stub_app` change; any
-`[project.scripts]` target change; a rename/add/remove of a command; the JSON
-envelope or `--human` switch (step 1.3); any cuprum, venv-resolver, or marker
-change in the e2e; any snapshot (syrupy) or property (hypothesis/CrossHair) suite.
+Out of scope (do not build here): any command body or `make_stub_app` change;
+any `[project.scripts]` target change; a rename/add/remove of a command; the
+JSON envelope or `--human` switch (step 1.3); any cuprum, venv-resolver, or
+marker change in the e2e; any snapshot (syrupy) or property
+(hypothesis/CrossHair) suite.
 
 ## Revision note
 
 - 2026-06-22 (planning round 1): Authored the self-contained plan against the
   locked toolchain. Catalogued the five-place duplication (`stub.py`,
-  `pyproject.toml`, and three test modules) the task 1.2.1 audit flagged. Pinned
-  the design to a single package registry (`names.py`: a frozen, ordered
+  `pyproject.toml`, and three test modules) the task 1.2.1 audit flagged.
+  Pinned the design to a single package registry (`names.py`: a frozen, ordered
   `MappingProxyType` of name → entry-point function, plus a derived
   `COMMAND_NAMES` and a `project_scripts_table()` helper) consumed by the entry
   points and tests and asserted against `[project.scripts]` via a new
   `tomllib`-driven gate. Verified that the build backend (hatchling) reads
-  `[project.scripts]` and cannot consume a Python constant, so the registry is the
-  asserted-against source of truth rather than a runtime replacement. Confirmed
-  `tomllib` is stdlib on Python 3.14 and already used by
+  `[project.scripts]` and cannot consume a Python constant, so the registry is
+  the asserted-against source of truth rather than a runtime replacement.
+  Confirmed `tomllib` is stdlib on Python 3.14 and already used by
   `tests/test_pyproject_scripts.py`, so no dependency is added. Confirmed via
-  `python-verification` that no snapshot or property suite is warranted (a fixed
-  five-entry mapping asserted by equality; syrupy/hypothesis unlocked). Re-pinned
-  the cuprum 0.1.0 API at the `v0.1.0` tag and confirmed the e2e's run-loop is
-  untouched. Decomposed into three atomic work items (registry+gate; stub +
-  stub-tests; e2e/pyproject tests + developers' guide) and fenced out the JSON
-  envelope, command bodies, and any rename. The plan remains DRAFT pending review.
+  `python-verification` that no snapshot or property suite is warranted (a
+  fixed five-entry mapping asserted by equality; syrupy/hypothesis unlocked).
+  Re-pinned the cuprum 0.1.0 API at the `v0.1.0` tag and confirmed the e2e's
+  run-loop is untouched. Decomposed into three atomic work items
+  (registry+gate; stub + stub-tests; e2e/pyproject tests + developers' guide)
+  and fenced out the JSON envelope, command bodies, and any rename. The plan
+  remains DRAFT pending review.

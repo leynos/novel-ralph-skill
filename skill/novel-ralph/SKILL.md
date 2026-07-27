@@ -47,8 +47,8 @@ agent always exercises the installed contract.
 
 A `uv tool`-installed `novel` binary does **not** auto-update, so the on-`PATH`
 executable can lag the contract this skill documents. Before a dogfood session,
-guarantee currency by reinstalling with `--force`, which overwrites the existing
-executable, or by pinning a version:
+guarantee currency by reinstalling with `--force`, which overwrites the
+existing executable, or by pinning a version:
 
 ```bash
 # Reinstall from the local checkout, overwriting the existing executable:
@@ -104,26 +104,26 @@ clause table rather than re-listing the clauses.
 The harness branches on the process exit code without parsing JSON. The five
 codes are a convenience restatement of ADR-003 Table 2:
 
-| Code | Meaning                                      | Agent response                              |
-| ---- | -------------------------------------------- | ------------------------------------------- |
-| 0    | Success; checker satisfied, mutator applied  | proceed                                     |
-| 1    | Benign negative; predicate not yet satisfied | continue the loop, no fix needed            |
-| 2    | Usage error; the invocation is wrong         | stop-and-fix; correct the invocation        |
-| 3    | State or input error                         | stop-and-fix; recover state, then re-run    |
-| 4    | Actionable finding a detector surfaced       | stop-and-fix; adjudicate or repair, re-run  |
+| Code | Meaning                                      | Agent response                             |
+| ---- | -------------------------------------------- | ------------------------------------------ |
+| 0    | Success; checker satisfied, mutator applied  | proceed                                    |
+| 1    | Benign negative; predicate not yet satisfied | continue the loop, no fix needed           |
+| 2    | Usage error; the invocation is wrong         | stop-and-fix; correct the invocation       |
+| 3    | State or input error                         | stop-and-fix; recover state, then re-run   |
+| 4    | Actionable finding a detector surfaced       | stop-and-fix; adjudicate or repair, re-run |
 
 *Table: the disambiguated exit-code table (restated from ADR-003 Table 2).*
 
 The 1-versus-4 distinction is load-bearing. Code 1 is the steady-state "not
 finished yet" the loop expects on most turns; code 4 signals that a
-deterministic detector found something only the model can resolve. An agent that
-cannot tell them apart will either halt on every benign turn or ship an
+deterministic detector found something only the model can resolve. An agent
+that cannot tell them apart will either halt on every benign turn or ship an
 unresolved finding.
 
 ### Envelope schema
 
-Each body-producing invocation emits the same six-field envelope, in this order,
-a convenience restatement of design §3.1:
+Each body-producing invocation emits the same six-field envelope, in this
+order, a convenience restatement of design §3.1:
 
 ```json
 {
@@ -139,9 +139,9 @@ a convenience restatement of design §3.1:
 - `command` names the invoked command.
 - `schema_version` stamps the envelope contract version the command emitted.
 - `ok` is `true` if and only if the exit code is 0, so it mirrors success(0)
-  alone and collapses exits 1, 2, 3, and 4 to a single `false`. Because of
-  this, `ok` does **not** carry the 1-versus-4 distinction; the exit code does.
-  Gate on the exit code, not on `ok` (see "Invocation discipline" below).
+  alone and collapses exits 1, 2, 3, and 4 to a single `false`. Because of this,
+  `ok` does **not** carry the 1-versus-4 distinction; the exit code does. Gate
+  on the exit code, not on `ok` (see "Invocation discipline" below).
 - `working_dir` is the fixed `working` constant.
 - `result` carries every machine-actionable datum the harness reads — failed
   clause names, rule ids and hit counts, divergent chapters, reconciliation
@@ -166,8 +166,8 @@ each command it runs.
 2. **Gate on the process exit code; it is the authoritative signal.** The exit
    code is the only signal that carries the load-bearing 1-versus-4 distinction
    (benign negative versus actionable finding). The envelope `ok` field is
-   `true` if and only if the exit code is 0, so it collapses the five codes to a
-   single success(0)-versus-not-success(1/2/3/4) bit. `ok` is a useful
+   `true` if and only if the exit code is 0, so it collapses the five codes to
+   a single success(0)-versus-not-success(1/2/3/4) bit. `ok` is a useful
    cross-check that the envelope agrees with the exit status, but it must
    **not** be the sole gate: it cannot tell a benign exit 1 apart from a
    stop-and-fix exit 4. Branch on the exit code, never on `ok` alone.
@@ -176,8 +176,9 @@ each command it runs.
    example `novel done` reporting the novel is not finished yet, which emits
    `ok: false`. Exits 2, 3, and 4 are stop-and-fix: halt, adjudicate or repair
    per the table, then re-run; never assume success. Exit 1 and exits 2, 3, 4
-   all share `ok: false`, which is precisely why gating on `ok` alone would halt
-   the loop on every benign turn — the failure the Ralph loop exists to avoid.
+   all share `ok: false`, which is precisely why gating on `ok` alone would
+   halt the loop on every benign turn — the failure the Ralph loop exists to
+   avoid.
 4. **The help/version carve-out.** `--help` and `--version` (and a bare
    `novel`) exit 0 with **no envelope** by design, so the "parse the envelope
    `ok`" step applies only to body-producing invocations and the usage/state
@@ -445,9 +446,9 @@ For each chapter (typically 20–35 for a novel of 80–100k words), record:
 - **Target word count.**
 
 Once the outline is complete, record the planned chapters in `[chapters]` by
-running `novel state set-chapters` — **never** by hand-editing `state.toml`. Pass
-the whole plan as one single-quoted JSON array so a ~35-chapter plan quotes
-cleanly:
+running `novel state set-chapters` — **never** by hand-editing `state.toml`.
+Pass the whole plan as one single-quoted JSON array so a ~35-chapter plan
+quotes cleanly:
 
 ```bash
 novel state set-chapters --chapters '[
@@ -461,11 +462,10 @@ identifier, stored verbatim; unique), `title`, and `target_words` (at least 1).
 The command populates `[chapters]`, creates the
 `working/manuscript/chapter-NN/` directories, and exits `0`; an incoherent plan
 (a gap, a duplicate number or slug, a non-positive target) or an
-already-populated manifest is refused with exit `3`
-and writes nothing, and a malformed `--chapters` argument exits `2`. If the
-command is interrupted mid-write, recover by running `novel state reconcile`
-(which completes the torn turn) — never by re-running `set-chapters` or editing
-the tree by hand.
+already-populated manifest is refused with exit `3` and writes nothing, and a
+malformed `--chapters` argument exits `2`. If the command is interrupted
+mid-write, recover by running `novel state reconcile` (which completes the torn
+turn) — never by re-running `set-chapters` or editing the tree by hand.
 
 **Exit:** chapter-outline.md exists; every STC beat is covered by at least one
 chapter; every chapter has a non-trivial outcome; and `[chapters]` is populated
@@ -527,25 +527,24 @@ When all chapters have done.flag and all three knitting passes are
 done, advance to Phase 9.
 ```
 
-The expand-to-target sub-step (d) exists because the
-drafting-plus-desloppify loop is net-deflationary. Desloppification removes
-more than it adds — "if the chapter loses 10–20% of its word count to
-desloppification, that is normal" (`references/desloppify-checklist.md`) — and
-the spiteful critic cuts further. Without an explicit expand step the book
-finishes short of target. Because the expand step runs *before* those
-destructive passes, it must budget for their cut: expanding only to the band now
-would land the chapter 15–25% short once e–f trim it, firing the log-and-advance
-escalation on nearly every chapter and deferring the deflation Phase 8 exists to
-fix back onto Phase 9. So the step over-expands the pre-cut draft above the
-chapter target by roughly the expected loss, targeting the band *after* the cuts,
-not before them. The freshly written material is still cleaned and critiqued by
-the existing desloppify and critic machinery rather than smuggled past the
-quality gate. It reads the delta from `novel wordcount` and never
-hand-computes word totals (the model adjudicates; the script reports), it
-expands only the current chapter so the cumulative drafted ratio stays
-monotonic and a late expansion cannot cross a knitting gate out of sequence, and
-it leaves the target unchanged — the draft is grown toward the honest target,
-not the target shrunk toward the draft.
+The expand-to-target sub-step (d) exists because the drafting-plus-desloppify
+loop is net-deflationary. Desloppification removes more than it adds — "if the
+chapter loses 10–20% of its word count to desloppification, that is normal"
+(`references/desloppify-checklist.md`) — and the spiteful critic cuts further.
+Without an explicit expand step the book finishes short of target. Because the
+expand step runs *before* those destructive passes, it must budget for their
+cut: expanding only to the band now would land the chapter 15–25% short once
+e–f trim it, firing the log-and-advance escalation on nearly every chapter and
+deferring the deflation Phase 8 exists to fix back onto Phase 9. So the step
+over-expands the pre-cut draft above the chapter target by roughly the expected
+loss, targeting the band *after* the cuts, not before them. The freshly written
+material is still cleaned and critiqued by the existing desloppify and critic
+machinery rather than smuggled past the quality gate. It reads the delta from
+`novel wordcount` and never hand-computes word totals (the model adjudicates;
+the script reports), it expands only the current chapter so the cumulative
+drafted ratio stays monotonic and a late expansion cannot cross a knitting gate
+out of sequence, and it leaves the target unchanged — the draft is grown toward
+the honest target, not the target shrunk toward the draft.
 
 #### Spiteful critic loop (within a chapter)
 
@@ -579,9 +578,9 @@ knitting circle pass.
 **The critic's findings reset each pass.** The previous pass's critic-notes.md
 is overwritten. What matters is the current state of the chapter.
 
-Record the current pass number by running `novel state set-critic-pass --pass N`
-(passes are numbered from 1) — **never** by hand-editing `drafting.critic.pass`.
-It refuses a pass below 1 with exit 3.
+Record the current pass number by running
+`novel state set-critic-pass --pass N` (passes are numbered from 1) — **never**
+by hand-editing `drafting.critic.pass`. It refuses a pass below 1 with exit 3.
 
 #### Fangirl pass (within a chapter)
 
@@ -626,10 +625,10 @@ knitting pass just made; the `compiled.md` assembled before the pass is now
 stale. Then run `novel compile` (or `novel state recount`) so the drafted ratio
 reflects the integrated drafts, and set the corresponding gate by running
 `novel state set-gate --knitting-30` (or `--knitting-50`/`--knitting-80`) —
-**never** by hand-editing `state.gates.knitting.done_30`. The gate flips true only
-once the drafted ratio has crossed the threshold, so `set-gate` is the repair that
-asserts the value the ratio now mandates; it refuses with exit 3 if the ratio has
-not crossed. Then continue drafting.
+**never** by hand-editing `state.gates.knitting.done_30`. The gate flips true
+only once the drafted ratio has crossed the threshold, so `set-gate` is the
+repair that asserts the value the ratio now mandates; it refuses with exit 3 if
+the ratio has not crossed. Then continue drafting.
 
 ### Phase 9 — Final pass
 
@@ -647,15 +646,15 @@ one final assembly:
 4. Expand to target: run `novel wordcount` over the assembled `compiled.md` and
    read the cumulative total against the novel target. The Phase 9 acceptance
    band is the cumulative total sitting at **97–103% of the novel target**
-   (within 3%). This is deliberately tighter than the STC beat-sheet's ± 10% sum
-   check (Phase 6 exit; `references/stc-beat-sheet.md`): that ± 10% is the
-   allowance for the *planned* beat targets to sum near the novel target, whereas
-   this 3% band is the *finished* manuscript's tolerance against that same fixed
-   target. The plan may sum up to 10% off; the delivered book must land within
-   3%. The two are not in tension because they measure different things (the plan
-   versus the draft) against one unchanged target. If the book is below this
-   band, run a final expand-to-target pass across the weakest chapters
-   (identified by their `novel wordcount` deltas), writing substantive
+   (within 3%). This is deliberately tighter than the STC beat-sheet's ± 10%
+   sum check (Phase 6 exit; `references/stc-beat-sheet.md`): that ± 10% is the
+   allowance for the *planned* beat targets to sum near the novel target,
+   whereas this 3% band is the *finished* manuscript's tolerance against that
+   same fixed target. The plan may sum up to 10% off; the delivered book must
+   land within 3%. The two are not in tension because they measure different
+   things (the plan versus the draft) against one unchanged target. If the book
+   is below this band, run a final expand-to-target pass across the weakest
+   chapters (identified by their `novel wordcount` deltas), writing substantive
    material — never padding — into their `chapter-NN/draft.md` files. This step
    runs **after** the destructive desloppify (step 2) and the structural-only
    critic (step 3), so nothing destructive follows it to re-open the gap. The
@@ -664,18 +663,20 @@ one final assembly:
    desloppify discipline as it writes. Because expansion edits the per-chapter
    drafts that `novel wordcount` reads from disk, the `compiled.md` from step 1
    is now stale: regenerate it with `novel compile` (mirroring the knitting
-   pass's recompile discipline), then run `novel wordcount` once more to confirm
-   the cumulative total now sits within the band. If still short after the pass,
-   escalate — do not silently ship a short book. This is the deflation-
-   compensation safety net: the net-deflationary loop (see Phase 8) can leave a
-   residual deficit, and this final pass closes it against the unchanged target.
+   pass's recompile discipline), then run `novel wordcount` once more to
+   confirm the cumulative total now sits within the band. If still short after
+   the pass, escalate — do not silently ship a short book. This is the
+   deflation- compensation safety net: the net-deflationary loop (see Phase 8)
+   can leave a residual deficit, and this final pass closes it against the
+   unchanged target.
 5. Verify the final image matches the planned final image from the
    treatment. If not, decide whether the novel earned the new ending or the new
    ending is a drift artefact.
 
 6. Record the completed final pass by running `novel state complete-final-pass`
-   (the argument-free verb that flips `gates.final.final_pass_complete` true; it
-   is idempotent) — **never** by hand-editing `gates.final.final_pass_complete`.
+   (the argument-free verb that flips `gates.final.final_pass_complete` true;
+   it is idempotent) — **never** by hand-editing
+   `gates.final.final_pass_complete`.
 
 **Exit:** `working/manuscript/compiled.md` exists; `novel done` exits 0.
 

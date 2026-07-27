@@ -1,8 +1,8 @@
 # Post-merge audit — roadmap task 7.3.5
 
-Audit of the codebase after roadmap task 7.3.5 ("Collapse the
-`novel.main`/`stub._drive` entry-point duplication into one shared drive seam")
-merged to `main` at commit `ed0c0bd`. The slice lifts the
+Audit of the codebase after roadmap task 7.3.5 ("Collapse the `novel.main`/
+`stub._drive` entry-point duplication into one shared drive seam") merged to
+`main` at commit `ed0c0bd`. The slice lifts the
 build-`RunContext`-then-call-`run` plumbing out of the `novel` multiplexer
 entry point and into a new contract-level
 [`drive`](../../novel_ralph_skill/contract/runner.py) seam, re-exports it from
@@ -19,16 +19,15 @@ and a contract-to-commands layering guard
 ([`tests/test_contract_layering.py`](../../tests/test_contract_layering.py)),
 and refreshes the developers' guide.
 
-The slice is sound and discharges its success criterion: the
-parse-`--human`/resolve-name/drive-via-`run` plumbing lives in one
-contract-level seam parametrized by already-resolved scalars, `novel.main`
-delegates rather than re-spelling it, the contract -> commands layering is held
-statically, and the import-laziness profile is preserved. The docstrings on the
-new seam are exemplary, and the layering and single-home guards are unusually
-careful (they read source statically rather than importing the runner at
-collection time). The findings below are tidy-ups across duplication,
-ergonomics, and coverage; none is a blocking defect, and none weakens the new
-seam or its guards.
+The slice is sound and discharges its success criterion: the parse-`--human`
+/resolve-name/drive-via-`run` plumbing lives in one contract-level seam
+parametrized by already-resolved scalars, `novel.main` delegates rather than
+re-spelling it, the contract -> commands layering is held statically, and the
+import-laziness profile is preserved. The docstrings on the new seam are
+exemplary, and the layering and single-home guards are unusually careful (they
+read source statically rather than importing the runner at collection time).
+The findings below are tidy-ups across duplication, ergonomics, and coverage;
+none is a blocking defect, and none weakens the new seam or its guards.
 
 This audit reviews the merged state at `origin/main` (commit `ed0c0bd`) for
 refactoring opportunities, duplication, complex conditionals, ergonomic
@@ -56,27 +55,25 @@ The two guard modules the slice adds each carry their own copy of the same
 AST-walk primitives. `_callee_name` — return an `ast.Call`'s simple callee name
 (`Name.id` or `Attribute.attr`, else `None`) — is byte-for-byte identical in
 both files, docstring included. Both also re-implement the
-"walk-the-tree-but-prune-at-nested-scope-boundaries" loop: `test_contract_layering`
-prunes at `FunctionDef`/`AsyncFunctionDef`/`Lambda` to find module-scope
-imports, and `test_entry_point_single_home` prunes at the same set plus
-`ClassDef` to find a function body's direct calls. The pruning rationale (a
-nested scope's body does not run in the parent's frame) is spelled out twice in
-near-identical prose. The repo already establishes the shared-scanner-helper
-pattern for non-AST guards
-([`tests/_skill_contract_scanner.py`](../../tests/_skill_contract_scanner.py),
-[`tests/_state_layout_scanner.py`](../../tests/_state_layout_scanner.py)), so
-this is a divergence from an existing convention, not a new abstraction.
+"walk-the-tree-but-prune-at-nested-scope-boundaries" loop:
+`test_contract_layering` prunes at `FunctionDef`/`AsyncFunctionDef`/`Lambda` to
+find module-scope imports, and `test_entry_point_single_home` prunes at the
+same set plus `ClassDef` to find a function body's direct calls. The pruning
+rationale (a nested scope's body does not run in the parent's frame) is spelled
+out twice in near-identical prose. The repo already establishes the
+shared-scanner-helper pattern for non-AST guards
+([`tests/_skill_contract_scanner.py`](../../tests/_skill_contract_scanner.py), [`tests/_state_layout_scanner.py`](../../tests/_state_layout_scanner.py)),
+so this is a divergence from an existing convention, not a new abstraction.
 
 Proposed fix: extract the shared primitives into a `tests/_ast_scan.py` support
 module — `callee_name(call)`, a `nested_scope` predicate (or the
-`_NESTED_SCOPES` tuple), and a `module_scope_calls`/`scope_local_calls`
-walker that takes the prune set — and have both guard modules import them.
-Keep the import-resolution logic (`_resolve_import_from`,
-`_resolve_dynamic_import`) in the same module since it is the layering guard's
-substantive payload. This removes the duplicate `_callee_name` and the
-twice-told prune loop, and gives the next AST guard (there will be one —
-`test_state_sourcing_home` and the mount-table laziness guard already parse
-source) a single home to build on.
+`_NESTED_SCOPES` tuple), and a `module_scope_calls`/`scope_local_calls` walker
+that takes the prune set — and have both guard modules import them. Keep the
+import-resolution logic (`_resolve_import_from`, `_resolve_dynamic_import`) in
+the same module since it is the layering guard's substantive payload. This
+removes the duplicate `_callee_name` and the twice-told prune loop, and gives
+the next AST guard (there will be one — `test_state_sourcing_home` and the
+mount-table laziness guard already parse source) a single home to build on.
 
 ## Finding 2 — `drive` decomposes then immediately rebuilds a `RunContext`, forcing a lint suppression
 
@@ -89,14 +86,14 @@ source) a single home to build on.
 
 `drive(app, argv, *, command, working_dir, human)` takes the three scalars
 `RunContext` already bundles, then its one-line body reconstructs a
-`RunContext(command=command, working_dir=working_dir, human=human)` and forwards
-to `run`. The decomposition pushes the signature to five parameters, which trips
-`PLR0913` and needs a dual `noqa`/`pylint: disable` suppression — the only such
-double-barrelled argument-count suppression the slice introduces. The execplan
-justifies keeping name/dir resolution in the caller for the contract -> commands
-layering, which is correct, but that argument is about *resolution*, not about
-*how the resolved trio is passed*: a caller that already holds the three values
-could equally pass a `RunContext`.
+`RunContext(command=command, working_dir=working_dir, human=human)` and
+forwards to `run`. The decomposition pushes the signature to five parameters,
+which trips `PLR0913` and needs a dual `noqa`/`pylint: disable` suppression —
+the only such double-barrelled argument-count suppression the slice introduces.
+The execplan justifies keeping name/dir resolution in the caller for the
+contract -> commands layering, which is correct, but that argument is about
+*resolution*, not about *how the resolved trio is passed*: a caller that
+already holds the three values could equally pass a `RunContext`.
 
 Proposed fix: consider `drive(app, argv, context)` taking the already-built
 `RunContext` (the sole production caller, `novel.main`, constructs it inline at
@@ -150,9 +147,9 @@ The slice's `drive` and the multiplexer both lean on `make_contract_app(name)`
 to stamp the four-flag contract. The factory's docstring promises the returned
 app carries the four flags *and* `name`, but the existing app-factory coverage
 ([`tests/test_contract_app_factory.py`](../../tests/test_contract_app_factory.py))
-pins the four flags; the `name` round-trip (the value passed in is the value the
-app exposes) is not asserted directly. Since `build_multiplexer` now relies on
-`make_contract_app(MULTIPLEXER_NAME)` to set the parent app's name correctly
+pins the four flags; the `name` round-trip (the value passed in is the value
+the app exposes) is not asserted directly. Since `build_multiplexer` now relies
+on `make_contract_app(MULTIPLEXER_NAME)` to set the parent app's name correctly
 (and the envelope `command` stamping rides on it), a silent regression in the
 name argument would surface only obliquely.
 
@@ -197,8 +194,8 @@ developers' guide now implies. No code change.
   `tests/test_contract_app_centralisation.py::test_novel_entry_point_routes_through_the_shared_seam`.
 
 The `main -> drive -> run` invariant is now pinned by three tests in three
-modules: the entry-point *half* (`main` routes through `drive`, no inline
-`run`/`RunContext`) in `test_entry_point_single_home`, the seam *half* (`drive`
+modules: the entry-point *half* (`main` routes through `drive`, no inline `run`/
+`RunContext`) in `test_entry_point_single_home`, the seam *half* (`drive`
 forwards to `run` under a faithful context) in `test_contract_drive_seam`, and
 the end-to-end routing tripwire in `test_contract_app_centralisation`. Each
 module's docstring cross-references the others, which is good discipline, but
@@ -207,22 +204,23 @@ invariant, and a future reader cannot tell from any one file that it is one
 third of a contract. The cross-references are accurate today but are prose, so
 they drift silently if a module is renamed.
 
-Proposed fix: this is a deliberate and defensible split (seam unit vs entry-point
-structure vs end-to-end behaviour), so the recommendation is documentation, not
-consolidation: add a one-line "transitive invariant" note to the developers'
-guide entry-point subsection naming all three guards and the half each owns, so
-the single authoritative index lives in the guide rather than being reconstructed
-from three test docstrings. Optionally co-locate the two new guard modules'
-shared framing by giving them a common docstring stem.
+Proposed fix: this is a deliberate and defensible split (seam unit vs
+entry-point structure vs end-to-end behaviour), so the recommendation is
+documentation, not consolidation: add a one-line "transitive invariant" note to
+the developers' guide entry-point subsection naming all three guards and the
+half each owns, so the single authoritative index lives in the guide rather
+than being reconstructed from three test docstrings. Optionally co-locate the
+two new guard modules' shared framing by giving them a common docstring stem.
 
 ## Summary
 
-Task 7.3.5 is a clean, well-guarded refactor: the entry-point drive plumbing now
-has one contract-level home, the contract -> commands layering and the
+Task 7.3.5 is a clean, well-guarded refactor: the entry-point drive plumbing
+now has one contract-level home, the contract -> commands layering and the
 import-laziness profile are held by static guards, and the new seam is
-generously documented. No finding blocks. The highest-value follow-up is Finding
-1 (extract the duplicated AST-scanner helpers into a shared `tests/_ast_scan.py`
-support module, matching the repo's existing scanner-helper convention), since
-the duplication will only grow as more structural guards are added. Findings 2–6
-are ergonomic and coverage tidy-ups that harden the seam's contract and close
-small gaps between docstring promises and verified behaviour.
+generously documented. No finding blocks. The highest-value follow-up is
+Finding 1 (extract the duplicated AST-scanner helpers into a shared
+`tests/_ast_scan.py` support module, matching the repo's existing
+scanner-helper convention), since the duplication will only grow as more
+structural guards are added. Findings 2–6 are ergonomic and coverage tidy-ups
+that harden the seam's contract and close small gaps between docstring promises
+and verified behaviour.

@@ -18,19 +18,20 @@ against the worktree source and matches exactly. No new blocking defect found.
   `_novel_done.py:128,173`, `compile_model.py:105`); after WI3 only the
   `compile_model.py` seam survives.
 - **Defect 2 (MATCHES observable overclaimed 7.1.2 prose) — RESOLVED.** Purpose
-  now scopes to `is CompiledComparison.MATCHES` (plan lines 68-74) and disclaims
-  the `:attr:` docstring refs. Verified: the `is`-prefixed form hits only the
-  two routing sites (`_compile.py:221`, `done_predicate.py:263`); the bare
-  docstring refs at `_compile.py:184` and `done_predicate.py:229` survive as
-  intended 7.1.2 prose.
+  now scopes to `is CompiledComparison.MATCHES` (plan lines 68-74) and
+  disclaims the `:attr:` docstring refs. Verified: the `is`-prefixed form hits
+  only the two routing sites (`_compile.py:221`, `done_predicate.py:263`); the
+  bare docstring refs at `_compile.py:184` and `done_predicate.py:229` survive
+  as intended 7.1.2 prose.
 - **Advisory (WI3 step 3 phantom import block) — ACTIONED.** WI3 step 3
   (plan lines 543-551) now says to add a new
   `from novel_ralph_skill.state import compiled_manuscript_path` statement.
   Verified: `_novel_done.py` has no existing `compile_model`/state import (its
-  only `state` import is `from ...state.done_predicate import DoneClauses,
-  evaluate_done`, line 51); `Path` is imported only under `TYPE_CHECKING`
-  (line 53-54) with `from __future__ import annotations`, but the new import is
-  a runtime call (`.exists()`), so a runtime import is required and correct.
+  only `state` import is
+  `from ...state.done_predicate import DoneClauses, evaluate_done`, line 51);
+  `Path` is imported only under `TYPE_CHECKING` (line 53-54) with
+  `from __future__ import annotations`, but the new import is a runtime call
+  (`.exists()`), so a runtime import is required and correct.
 - **Advisory (red-first evidence) — ACTIONED.** WI2/Progress (plan lines
   250-257) now records the remove-member→red→restore→green dance into
   `Surprises & discoveries` so the proof survives compaction.
@@ -48,10 +49,11 @@ against the worktree source and matches exactly. No new blocking defect found.
   (write), `_novel_done.py:128,173` (`.exists()`), `compile_model.py:105`
   (internal read). All four are in the plan's routing set.
 - The plan's combined "intended 7.1.2 prose remains" list
-  (`_compile.py:5,110,184`, `_novel_done.py:164`, `done_predicate.py:86,217,229`)
-  is the *exact* union of the loose path-form hits (`_compile.py:5,110`,
-  `_novel_done.py:164`, `done_predicate.py:86,217`) and the loose MATCHES-form
-  hits (`_compile.py:184`, `done_predicate.py:229`). No stray, no omission.
+  (`_compile.py:5,110,184`, `_novel_done.py:164`,
+  `done_predicate.py:86,217,229`) is the *exact* union of the loose path-form
+  hits (`_compile.py:5,110`, `_novel_done.py:164`, `done_predicate.py:86,217`)
+  and the loose MATCHES-form hits (`_compile.py:184`, `done_predicate.py:229`).
+  No stray, no omission.
 - Detector polarity untouched: `disk_evidence.py:209`
   `is not CompiledComparison.DIVERGES` — correctly excluded (non-goal).
 - `working_dir()` returns the bare `working/` segment
@@ -62,7 +64,8 @@ against the worktree source and matches exactly. No new blocking defect found.
   `test_compile_unit.py:114`, `contract_drive_support.py:90`
   (`DETERMINISTIC_PATH_TOKEN`), the BDD feature/steps, and the snapshot suites
   (`test_command_surface_matrix.ambr`, `test_compile_check_snapshots.ambr`,
-  `test_compile_snapshots.ambr`, `cross_command_contract/.../test_error_channels.ambr`).
+  `test_compile_snapshots.ambr`,
+  `cross_command_contract/.../test_error_channels.ambr`).
 - Export pattern: `state/__init__.py` import block 30-36 and `__all__`
   (`CompiledComparison` line 120, `compiled_matches_drafts` line 141) — adding
   three names mirrors the established pattern.
@@ -102,8 +105,7 @@ against the worktree source and matches exactly. No new blocking defect found.
   no `result` key, message string, exit code, or token byte moves; the
   snapshot, BDD, and e2e suites are the contract net and stay unedited. The new
   public symbols (`compile_is_current`, `compiled_manuscript_path`,
-  `COMPILED_REL`) are
-  additive exports with stable signatures pinned by WI2. 🟢
+  `COMPILED_REL`) are additive exports with stable signatures pinned by WI2. 🟢
 - 🐶 **Doggylump (failure modes).** The r1 pre-mortem hazard — an auditor runs a
   loose grep, sees docstring hits, and "fixes" them into 7.1.2 territory — is
   now neutralized at the source: the plan's stated observables match the actual
@@ -122,9 +124,9 @@ forms and the intended-prose-remains state is enumerated verbatim and matched
 against source. The genuine residual structural hazard — the working-prefix
 asymmetry producing a doubled `working/` and moving a snapshot — is defended by
 (a) two distinct seam members, (b) WI2's assertion that
-`compiled_manuscript_path(Path("working")).as_posix() == COMPILED_REL`, and
-(c) the snapshot suites as a loud backstop (Tolerance: any snapshot move →
-stop and escalate). No mitigation gap remains.
+`compiled_manuscript_path(Path("working")).as_posix() == COMPILED_REL`, and (c)
+the snapshot suites as a loud backstop (Tolerance: any snapshot move → stop and
+escalate). No mitigation gap remains.
 
 ## Conditions
 

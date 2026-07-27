@@ -239,8 +239,8 @@ escalation, not a workaround.
   1 skipped; format, ruff, pylint-pypy, and `ty` clean).
 - [x] Work item 3: Documentation — ticked roadmap 6.2.7, updated this ExecPlan's
   living sections, and ran `make markdownlint` and `make nixie` (both clean);
-  prose formatting is covered by the `check-fmt` stage of `make all`. During the
-  implementing agent's gate pass, `make markdownlint` flagged two MD013
+  prose formatting is covered by the `check-fmt` stage of `make all`. During
+  the implementing agent's gate pass, `make markdownlint` flagged two MD013
   line-length findings in this plan (the inline `run(...)` example and the
   rolled-back `detail` string, both single-token spans over 80 columns); both
   were lifted into fenced code blocks (which the repo config allows up to 120
@@ -336,9 +336,9 @@ escalation, not a workaround.
   both are single, unbreakable identifiers that cannot be hyphenated or wrapped
   mid-token, and the repo markdownlint config grants fenced code blocks a
   120-column budget (`code_block_line_length: 120`) while holding inline prose
-  to 80 (`.markdownlint-cli2.jsonc`). Lifting them into fenced blocks clears the
-  MD013 gate without truncating the load-bearing tokens or reflowing them into a
-  misleading shape. Date/Author: 2026-06-25, implementing agent.
+  to 80 (`.markdownlint-cli2.jsonc`). Lifting them into fenced blocks clears
+  the MD013 gate without truncating the load-bearing tokens or reflowing them
+  into a misleading shape. Date/Author: 2026-06-25, implementing agent.
 
 - Decision: D-DUP — Keep the new BDD steps self-contained rather than
   extracting a shared command-driver from
@@ -842,6 +842,6 @@ gates, and a merge. The roadmap carries the matching nested sub-task.
   created during rollback. Tighten the assertion so the after-set difference is
   limited to `{state.toml, log.md}`, catching a fabrication regression.
   Delivered: the `rollback_preserves_files` then-step in
-  `tests/steps/torn_turn_rollback_steps.py` now computes
-  `after - files_before` and asserts it is a subset of `{state.toml, log.md}`,
-  failing loudly if the rollback fabricates any other `working/` file.
+  `tests/steps/torn_turn_rollback_steps.py` now computes `after - files_before`
+  and asserts it is a subset of `{state.toml, log.md}`, failing loudly if the
+  rollback fabricates any other `working/` file.

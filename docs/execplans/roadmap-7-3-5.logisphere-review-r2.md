@@ -9,13 +9,13 @@ the design.
 
 Trail followed: `logisphere-design-review` skill; round-1 review
 (`docs/execplans/roadmap-7-3-5.logisphere-review-r1.md`); roadmap task 7.3.5
-(`docs/roadmap.md:3040-3066`); real source for `novel.py`,
-`contract/runner.py`, `contract/__init__.py`; the tripwire
+(`docs/roadmap.md:3040-3066`); real source for `novel.py`, `contract/runner.py`,
+`contract/__init__.py`; the tripwire
 (`tests/test_contract_app_centralisation.py`); the scanner exemplars
 (`tests/_state_layout_scanner.py`, `tests/test_multiplexer_mount_table.py`,
 `tests/test_loaderkit_scan.py`, `tests/test_state_sourcing_home.py`); legacy
-guards (`tests/test_legacy_surface_retired.py`, `tests/conftest.py`);
-`uv.lock` for cuprum/Cyclopts; `Makefile`.
+guards (`tests/test_legacy_surface_retired.py`, `tests/conftest.py`); `uv.lock`
+for cuprum/Cyclopts; `Makefile`.
 
 ## Round-1 defects — all closed
 
@@ -31,9 +31,9 @@ guards (`tests/test_legacy_surface_retired.py`, `tests/conftest.py`);
   direct run/RunContext Call") describe the same post-extraction surface.
 - **B3 (caller enumeration wrong).** Closed. `grep -rln 'novel\.main()' tests/`
   returns exactly 12 files; the plan's 1 plumbing-asserting / 10 pure-behaviour
-  / 1 source-scan classification is correct. Independently confirmed none of the
-  8 e2e suites patch `run`/`drive`/`RunContext` on `novel`, so they genuinely
-  route `main → drive → run` unchanged.
+  / 1 source-scan classification is correct. Independently confirmed none of
+  the 8 e2e suites patch `run`/`drive`/`RunContext` on `novel`, so they
+  genuinely route `main → drive → run` unchanged.
 - **B4 (duplicate pyproject guard).** Closed. Decision D7 drops the fresh
   pyproject parser and references the existing
   `test_pyproject_scripts_is_novel_only` / `test_script_table_is_novel_only`
@@ -49,9 +49,8 @@ guards (`tests/test_legacy_surface_retired.py`, `tests/conftest.py`);
 ## What verifies (independent of round 1)
 
 - `runner.py` is 250 lines (D3 fallback moot); `run` is `typ.NoReturn`;
-  `RunContext` is a `frozen, kw_only` dataclass with exactly
-  `command`/`working_dir`/`human`. The D2 seam body type-checks against the
-  real symbols.
+  `RunContext` is a `frozen, kw_only` dataclass with exactly `command`/
+  `working_dir`/`human`. The D2 seam body type-checks against the real symbols.
 - `contract/__init__.py` carries `__all__` and a module-docstring surface list,
   so the `drive` re-export has a defined home.
 - `runner.py` imports no `commands` module today, so the WI4 layering guard
@@ -74,13 +73,13 @@ guards (`tests/test_legacy_surface_retired.py`, `tests/conftest.py`);
   Neither file uses `ast`: `_state_layout_scanner.py` is a regex markdown
   scanner, and `test_multiplexer_mount_table.py` uses `inspect.getsource` plus
   substring matching. The genuine in-repo ast exemplars are
-  `tests/test_loaderkit_scan.py::test_loaderkit_scan_imports_no_pack_domain`
-  (a module-scope `ast.parse` + `ast.walk` over `Import`/`ImportFrom` — the
-  exact shape Work item 4's layering guard needs) and
-  `tests/test_state_sourcing_home.py` (`_seam_imports_from_novel_state`,
-  another `ast.walk` import scan). Re-point the "Read first" / "mirror"
-  references at these two files. The prescribed *technique* (ast walk) is sound
-  and achievable; only the cited exemplars are wrong.
+  `tests/test_loaderkit_scan.py::test_loaderkit_scan_imports_no_pack_domain` (a
+  module-scope `ast.parse` + `ast.walk` over `Import`/`ImportFrom` — the exact
+  shape Work item 4's layering guard needs) and
+  `tests/test_state_sourcing_home.py` (`_seam_imports_from_novel_state`, another
+  `ast.walk` import scan). Re-point the "Read first" / "mirror" references at
+  these two files. The prescribed *technique* (ast walk) is sound and
+  achievable; only the cited exemplars are wrong.
 
 ## Pre-mortem (Doggylump)
 
@@ -88,8 +87,8 @@ The round-1 incident path (implementer deletes the tripwire assertion instead
 of migrating it) is now designed out: Constraints forbid deletion, Work item 2
 specifies the exact migration, and Risks rates it high/medium with the
 mitigation pinned at both joints (`main → drive` and `drive → run`). The
-residual 03:00 risk is minor: an implementer who follows the misattributed
-A4 exemplars writes a substring-based guard instead of an ast guard, which the
+residual 03:00 risk is minor: an implementer who follows the misattributed A4
+exemplars writes a substring-based guard instead of an ast guard, which the
 plan's own Risk ("structural guard test is brittle") already flags. Fixing A4
 removes that foot-gun.
 

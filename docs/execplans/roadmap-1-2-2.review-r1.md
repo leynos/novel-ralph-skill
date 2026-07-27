@@ -4,8 +4,9 @@ Verdict: REVISE. One blocking defect (B1) plus several advisory items.
 
 ## Verified empirically (plan claims that hold)
 
-- `tomlkit` is declared in `pyproject.toml` `[project.dependencies] =
-  ["cyclopts", "tomlkit"]` and locked to `0.15.0` in `uv.lock` (lines 639-640).
+- `tomlkit` is declared in `pyproject.toml`
+  `[project.dependencies] = ["cyclopts", "tomlkit"]` and locked to `0.15.0` in
+  `uv.lock` (lines 639-640).
 - Synced env imports `tomlkit` and reports `__version__ == "0.15.0"`;
   `tomlkit.__version__` is a valid attribute.
 - The round-trip behaviour the test asserts is real against the locked
@@ -28,11 +29,11 @@ Verdict: REVISE. One blocking defect (B1) plus several advisory items.
 ### B1 — Work Item 2 invents a false cross-reference; 6.2.3 does **not** own the snippet removal
 
 The plan's Constraints, Decision Log, Surprises, and Work Item 2 all assert
-that "design §8 explicitly assigns the `state-layout.md` prose corrections /
-the `tomli_w` snippet removal to roadmap task 6.2.3". This is false.
+that "design §8 explicitly assigns the `state-layout.md` prose corrections / the
+`tomli_w` snippet removal to roadmap task 6.2.3". This is false.
 
-Design §8 (lines 644-664) enumerates exactly three defects owned by 6.2.3:
-the `SKILL.md:107` phase mislabel, the two-source done predicate, and the dead
+Design §8 (lines 644-664) enumerates exactly three defects owned by 6.2.3: the
+`SKILL.md:107` phase mislabel, the two-source done predicate, and the dead
 `state-layout.md:38` `plan.md` spec. Roadmap task 6.2.3 (lines 424-432) lists
 the same three and nothing else. The `tomli_w` snippet removal is assigned to
 6.2.3 nowhere in `docs/` (`grep -rn tomli_w docs/` confirms: every other hit is

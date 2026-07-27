@@ -92,15 +92,13 @@ longer mislabels a state-document fault.
   `compiled_matches_drafts(state, working_dir())`. The implementer must pass
   `working_dir()` there.
 - A3: Parity (Work item 5 step 2). The existing parity test asserts
-  byte-for-byte
-  identity because both load boundaries report the **same** cwd. The draft-read
-  boundaries pass **different** `reported_dir` values and the message names the
-  directory, so byte-for-byte identity holds only under fixed-cwd fixtures.
-  Commit to the formatter-owned-remedy-substring parity instead of implying
-  byte-for-byte identity across boundaries.
+  byte-for-byte identity because both load boundaries report the **same** cwd.
+  The draft-read boundaries pass **different** `reported_dir` values and the
+  message names the directory, so byte-for-byte identity holds only under
+  fixed-cwd fixtures. Commit to the formatter-owned-remedy-substring parity
+  instead of implying byte-for-byte identity across boundaries.
 - A4: If B3 is resolved by keeping a single draft-read formatter that also
-  serves
-  the structurally-incomplete case, the formatter name `_draft_read_error` and
-  its docstring should be generalized (e.g. `_present_but_faulted_error`) so
-  the vocabulary does not lie about what it covers (Pandalump: names describe
-  intent).
+  serves the structurally-incomplete case, the formatter name
+  `_draft_read_error` and its docstring should be generalized (e.g.
+  `_present_but_faulted_error`) so the vocabulary does not lie about what it
+  covers (Pandalump: names describe intent).

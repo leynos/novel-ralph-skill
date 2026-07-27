@@ -199,29 +199,29 @@ escalation (see `Decision Log`), not a workaround.
 - [x] WI1: Remove the dead `tomli_w` code block from `state-layout.md`, rewrite
   line 224's colon lead-in into a self-contained library-neutral step-3
   sentence, and renumber line 240's step to `4.` so the four-item ordered list
-  stays contiguous. Done 2026-06-22: fenced block and its blank lead-in removed,
-  step 3 folded into a library-neutral temp-file-then-atomic-rename sentence,
-  step 4 renumbered; the list renders `1. 2. 3. 4.`. `grep tomli_w` on the
-  reference is empty; `make all`, `make markdownlint`, `make nixie` green.
-  Note: `make fmt` (`mdformat-all`) reflowed many *unrelated* tracked docs and
-  introduced two pre-existing markdownlint defects in files outwith scope
-  (`roadmap-1-2-1.md`, `audit-1.2.4.md`); those spurious mutations were reverted
-  so the commit stays surgical. The authoritative gate `make markdownlint`
-  (over `**/*.md`) is clean.
+  stays contiguous. Done 2026-06-22: fenced block and its blank lead-in
+  removed, step 3 folded into a library-neutral temp-file-then-atomic-rename
+  sentence, step 4 renumbered; the list renders `1. 2. 3. 4.`. `grep tomli_w`
+  on the reference is empty; `make all`, `make markdownlint`, `make nixie`
+  green. Note: `make fmt` (`mdformat-all`) reflowed many *unrelated* tracked
+  docs and introduced two pre-existing markdownlint defects in files outwith
+  scope (`roadmap-1-2-1.md`, `audit-1.2.4.md`); those spurious mutations were
+  reverted so the commit stays surgical. The authoritative gate
+  `make markdownlint` (over `**/*.md`) is clean.
 - [x] WI2: Reconcile the design §5.3 and ADR-002 wording (lines 22 and 77).
-  Done 2026-06-22: ADR-002 line 22 changed from present "even carries … does not
-  round-trip" to past "even carried … did not round-trip"; line 77's "is removed"
-  left as-is (now true). Design §5.3 line 466 tightened "in the current reference
-  is removed" to "in the reference is removed", dropping the now-stale "current"
-  framing. All three surviving `tomli_w` mentions are truthful; gates green;
-  coderabbit returned no findings.
+  Done 2026-06-22: ADR-002 line 22 changed from present "even carries … does
+  not round-trip" to past "even carried … did not round-trip"; line 77's "is
+  removed" left as-is (now true). Design §5.3 line 466 tightened "in the
+  current reference is removed" to "in the reference is removed", dropping the
+  now-stale "current" framing. All three surviving `tomli_w` mentions are
+  truthful; gates green; coderabbit returned no findings.
 - [x] WI3: Add a guard test pinning the absence of `tomli_w` from the reference.
   Done 2026-06-22: added `tests/test_state_layout_reference.py` mirroring
-  `tests/test_interrogate_gate.py` (stdlib `pathlib`, no shelling out, numpy-ish
-  docstrings, 100% interrogate coverage). Two tests: the bare `tomli_w` token is
-  absent, and neither the comma-form import sentinel (`tomllib, tomli_w`) nor the
-  `tomli_w.dump(` call site reappears. `make all` rose from 45 to 47 passing
-  tests. Coderabbit returned no findings.
+  `tests/test_interrogate_gate.py` (stdlib `pathlib`, no shelling out,
+  numpy-ish docstrings, 100% interrogate coverage). Two tests: the bare
+  `tomli_w` token is absent, and neither the comma-form import sentinel
+  (`tomllib, tomli_w`) nor the `tomli_w.dump(` call site reappears. `make all`
+  rose from 45 to 47 passing tests. Coderabbit returned no findings.
 
 ## Surprises & discoveries
 
@@ -296,21 +296,22 @@ Completed 2026-06-22. Compared against Purpose: the three documents now agree.
   temp-file-then-atomic-rename sentence (no `tomllib`/`tomli_w`/`tomlkit` code,
   no `novel-state` forward reference — both owned by task 6.2.3).
 - ADR-002 line 22 is past tense ("even carried … did not round-trip"); line 77
-  and design §5.3 keep "is removed", now truthful. The three surviving `tomli_w`
-  mentions are all truthful references, exactly as the two-part Purpose gate
-  predicted (skill empty; design/ADR truthful).
+  and design §5.3 keep "is removed", now truthful. The three surviving
+  `tomli_w` mentions are all truthful references, exactly as the two-part
+  Purpose gate predicted (skill empty; design/ADR truthful).
 - `tests/test_state_layout_reference.py` guards the absence; it was shown RED
   against the original snippet fixture and is GREEN on the final tree
   (`make all`: 45 → 47 tests).
-- Gates: `make all`, `make markdownlint`, and `make nixie` green at every commit.
+- Gates: `make all`, `make markdownlint`, and `make nixie` green at every
+  commit.
 
 Deviation worth noting for the next agent: `make fmt` (`mdformat-all`) reflows
 *all* tracked Markdown and, on this tree, introduces two pre-existing
 markdownlint defects in files outwith scope (`docs/execplans/roadmap-1-2-1.md`,
 `docs/issues/audit-1.2.4.md`). The authoritative gate is `make markdownlint`
-(over `**/*.md`), which is clean; the spurious `make fmt` mutations to unrelated
-docs were reverted to keep each commit surgical. Run `make markdownlint`, not
-`make fmt`, when validating an isolated doc edit here.
+(over `**/*.md`), which is clean; the spurious `make fmt` mutations to
+unrelated docs were reverted to keep each commit surgical. Run
+`make markdownlint`, not `make fmt`, when validating an isolated doc edit here.
 
 ## Context and orientation
 
@@ -696,9 +697,9 @@ with `tomli_w.dump`, and `os.replace`-ing it) plus its blank lead-in were
 deleted; step 3 was folded into a self-contained library-neutral sentence and
 the trailing step renumbered to `4.`.
 
-WI2: ADR-002 line 22 "even **carries** … **does not** round-trip" →
-"even **carried** … **did not** round-trip"; design §5.3 "in the current
-reference is removed" → "in the reference is removed".
+WI2: ADR-002 line 22 "even **carries** … **does not** round-trip" → "even
+**carried** … **did not** round-trip"; design §5.3 "in the current reference is
+removed" → "in the reference is removed".
 
 WI3 red→green transcript — the guard's three assertions evaluated against the
 original snippet text (RED) and against the post-removal tree (GREEN):

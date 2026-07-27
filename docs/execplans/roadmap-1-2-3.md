@@ -1,9 +1,8 @@
 # Decide and enforce a cross-platform policy for the console-scripts e2e test
 
-This ExecPlan (execution plan) is a living document. The sections
-`Constraints`, `Tolerances`, `Risks`, `Progress`, `Surprises & Discoveries`,
-`Decision Log`, and `Outcomes & Retrospective` must be kept up to date as work
-proceeds.
+This ExecPlan (execution plan) is a living document. The sections `Constraints`,
+`Tolerances`, `Risks`, `Progress`, `Surprises & Discoveries`, `Decision Log`,
+and `Outcomes & Retrospective` must be kept up to date as work proceeds.
 
 Status: DONE
 
@@ -16,9 +15,9 @@ Windows. Its `_venv_scripts_dir` helper resolves the venv scripts directory
 through the `nt_user` sysconfig scheme on `win32` (a roaming per-user path,
 **not** the venv `Scripts/` directory `uv venv` creates) and then looks up
 `scripts_dir / command_name` with **no `.exe` suffix**, so the test would not
-find the installed console-scripts on Windows even though it pretends to support
-that platform. The roadmap directs the work to "either commit to Linux-only
-execution or make the lookup truly portable".
+find the installed console-scripts on Windows even though it pretends to
+support that platform. The roadmap directs the work to "either commit to
+Linux-only execution or make the lookup truly portable".
 
 The deliverable is a **decision, enforced in code and recorded in an ADR**, not
 a menu. After research (see Decision Log and Surprises) this plan commits to
@@ -29,9 +28,9 @@ the test does run on. The policy matches reality: the only environment that runs
 `make test` — and therefore this test — is `ubuntu-latest`
 (`.github/workflows/ci.yml` line 10; the Windows and macOS entries in
 `.github/workflows/build-wheels.yml` only build wheels with `cibuildwheel` and
-never invoke `pytest`). A test that branches on `win32` but is never executed on
-Windows is dead, untested, and — as verified — wrong; committing to POSIX-only
-makes the contract honest.
+never invoke `pytest`). A test that branches on `win32` but is never executed
+on Windows is dead, untested, and — as verified — wrong; committing to
+POSIX-only makes the contract honest.
 
 A second, independently valuable correction rides on the same research. The
 test's module docstring asserts that the installed scripts must be run by a raw
@@ -72,38 +71,39 @@ Hard invariants that must hold throughout implementation. Violation requires
 escalation, not a workaround.
 
 - All work must stay exclusively inside the worktree at
-  `/data/leynos/Projects/novel-ralph-skill.worktrees/roadmap-1-2-3`. Files in the
-  root/control worktree must not be edited.
+  `/data/leynos/Projects/novel-ralph-skill.worktrees/roadmap-1-2-3`. Files in
+  the root/control worktree must not be edited.
 - The locked cuprum version is **0.1.0** (`uv.lock`). The plan must use only the
   cuprum 0.1.0 public API: `ProgramCatalogue(projects=...)`, `ProjectSettings`,
   `cuprum.program.Program`, `sh.make(program, catalogue=...)`, and
   `SafeCmd.run_sync(capture=..., context=ExecutionContext(...))` returning a
   `CommandResult` with `.exit_code`, `.stdout`, `.stderr` (verified against the
-  `v0.1.0` tag of `/data/leynos/Projects/cuprum`:
-  `cuprum/catalogue.py`, `cuprum/program.py`, `cuprum/sh.py`). Do **not** use
+  `v0.1.0` tag of `/data/leynos/Projects/cuprum`: `cuprum/catalogue.py`,
+  `cuprum/program.py`, `cuprum/sh.py`). Do **not** use
   `Catalogue.from_programs`, `sh.scoped`, or any helper shown only in the
   scripting-standards reference snippet — those names do not exist in 0.1.0
   (verified: `cuprum/__init__.py` `__all__` at the `v0.1.0` tag).
 - External programs run through a curated cuprum catalogue, never through
   `subprocess` (`docs/scripting-standards.md`). This task **removes** the raw
-  `subprocess.run`, its `import subprocess`, and the `# noqa: S404`/`# noqa: S603`
-  suppressions; it must not add any new `subprocess` use or new `noqa`.
+  `subprocess.run`, its `import subprocess`, and the `# noqa: S404`/
+  `# noqa: S603` suppressions; it must not add any new `subprocess` use or new
+  `noqa`.
 - The test's externally observable contract is unchanged: a wheel is built,
   installed into a fresh `uv venv`, and each of the five console-scripts
   (`novel-state`, `novel-done`, `novel-compile`, `desloppify`, `wordcount`) is
-  resolved on disk and run with no arguments, asserting exit `2`, no `Traceback`
-  in stderr, and the command name echoed in stderr. These assertions must not be
-  weakened.
+  resolved on disk and run with no arguments, asserting exit `2`, no
+  `Traceback` in stderr, and the command name echoed in stderr. These
+  assertions must not be weakened.
 - This task does **not** change any command body, the stub factory
   (`novel_ralph_skill/commands/stub.py`), the entry-point table
   (`pyproject.toml [project.scripts]`), or any other test's behaviour. It does
   **not** add a single source of truth for the command names — that is roadmap
-  task 1.2.4 (`docs/roadmap.md` lines 112-117); the `COMMAND_NAMES` tuple in this
-  test stays as-is.
+  task 1.2.4 (`docs/roadmap.md` lines 112-117); the `COMMAND_NAMES` tuple in
+  this test stays as-is.
 - The `slow` marker and the per-test `@pytest.mark.timeout(180)` override stay.
   pytest-timeout 2.4.0 documents that a per-test `@pytest.mark.timeout`
-  overrides the project-wide `timeout = 30` (`pyproject.toml` line 307), and the
-  override is applied per item in each xdist worker (verified against the
+  overrides the project-wide `timeout = 30` (`pyproject.toml` line 307), and
+  the override is applied per item in each xdist worker (verified against the
   official pytest-timeout 2.4.0 documentation — see Decision Log).
 - Prose, comments, ADR, and commit messages use en-GB Oxford spelling
   ("-ize"/"-yse"/"-our"), per AGENTS.md and the `en-gb-oxendict` convention.
@@ -112,9 +112,9 @@ escalation, not a workaround.
   400 lines (AGENTS.md).
 - Tests live in the top-level `tests/` tree, never inside the package
   (AGENTS.md, "Python verification and testing").
-- Markdown prose wraps at 80 columns; code blocks at 120; tables and headings are
-  not wrapped; list bullets use `-`; Mermaid is validated by nixie (AGENTS.md
-  "Markdown guidance").
+- Markdown prose wraps at 80 columns; code blocks at 120; tables and headings
+  are not wrapped; list bullets use `-`; Mermaid is validated by nixie
+  (AGENTS.md "Markdown guidance").
 
 ## Tolerances (exception triggers)
 
@@ -124,8 +124,8 @@ escalation, not a workaround.
   a new `tests/test_venv_scripts_dir.py` (focused unit test for the resolver),
   `docs/adr-006-console-scripts-e2e-posix-policy.md` (new ADR), and one or two
   one-line cross-reference additions to `docs/novel-ralph-harness-design.md` and
-  `docs/developers-guide.md`. If any **command body**, `pyproject.toml`, or the
-  stub factory must change, stop and escalate — that is outside 1.2.3.
+  `docs/developers-guide.md`. If any **command body**, `pyproject.toml`, or
+  the stub factory must change, stop and escalate — that is outside 1.2.3.
 - Dependencies: this task adds **no** new runtime or dev dependency. cuprum,
   cyclopts, pytest-timeout, and pytest-xdist are already locked. If running the
   installed scripts through cuprum appears to require a new dependency or a
@@ -188,26 +188,27 @@ escalation, not a workaround.
   new `test_venv_scripts_dir.py`; the `win32` `python.exe` conditional dropped;
   `make all` green at 38 passed. remaining: none.)
 - [x] Work item 2: Replace the raw `subprocess.run` loop with a cuprum catalogue
-  keyed on the installed scripts' absolute paths; remove `import subprocess` and
-  the `# noqa: S404`/`# noqa: S603` suppressions; rewrite the module docstring to
-  drop the false cuprum claim and state the POSIX-only policy. (completed: each
-  installed script now runs through a per-script `ProgramCatalogue` keyed on its
-  absolute path via `sh.make(prog, catalogue=...)().run_sync(capture=True)`;
-  `import subprocess` and both `noqa` suppressions removed; the docstring no
-  longer claims cuprum "exposes no API to execute an absolute path" and now
-  states the POSIX-only policy and the `uv run` rationale. Assertions preserved
-  one-to-one on `result.exit_code`/`result.stderr`. `make all` green at 38
-  passed; CodeRabbit clean (0 findings). remaining: none.)
+  keyed on the installed scripts' absolute paths; remove `import subprocess`
+  and the `# noqa: S404`/`# noqa: S603` suppressions; rewrite the module
+  docstring to drop the false cuprum claim and state the POSIX-only policy.
+  (completed: each installed script now runs through a per-script
+  `ProgramCatalogue` keyed on its absolute path via
+  `sh.make(prog, catalogue=...)().run_sync(capture=True)`; `import subprocess`
+  and both `noqa` suppressions removed; the docstring no longer claims cuprum
+  "exposes no API to execute an absolute path" and now states the POSIX-only
+  policy and the `uv run` rationale. Assertions preserved one-to-one on
+  `result.exit_code`/`result.stderr`. `make all` green at 38 passed; CodeRabbit
+  clean (0 findings). remaining: none.)
 - [x] Work item 3: Author and accept
   `docs/adr-006-console-scripts-e2e-posix-policy.md`; add a one-line
-  cross-reference from
-  `docs/novel-ralph-harness-design.md` (§4) and from `docs/developers-guide.md`
-  (the e2e paragraph). Gate Markdown with `make markdownlint` and `make nixie`.
-  (completed: ADR 006 authored following the ADR-004/005 template, marked
-  Accepted, recording the POSIX-only-vs-truly-portable trade and the `venv`
-  scheme / cuprum-by-absolute-path enforcement; cross-referenced from design §4
-  and the developers' guide e2e paragraph. `make markdownlint`, `make nixie`,
-  and `make all` green; CodeRabbit clean (0 findings). remaining: none.)
+  cross-reference from `docs/novel-ralph-harness-design.md` (§4) and from
+  `docs/developers-guide.md` (the e2e paragraph). Gate Markdown with
+  `make markdownlint` and `make nixie`. (completed: ADR 006 authored following
+  the ADR-004/005 template, marked Accepted, recording the
+  POSIX-only-vs-truly-portable trade and the `venv` scheme /
+  cuprum-by-absolute-path enforcement; cross-referenced from design §4 and the
+  developers' guide e2e paragraph. `make markdownlint`, `make nixie`, and
+  `make all` green; CodeRabbit clean (0 findings). remaining: none.)
 
 CodeRabbit notes (work item 1): applied — reworded the Constraints and
 Tolerances imperatives and the first-person prose to impersonal phrasing;
@@ -237,7 +238,7 @@ rules — it is the canonical worktree, not portable example text).
     `asyncio.create_subprocess_exec(*execution.cmd.argv_with_program, ...)`,
     which accepts an absolute path as `argv[0]`. Verified empirically in the
     synced environment: a `ProgramCatalogue` keyed on `Program("/usr/sbin/echo")`
-    reported `is_allowed == True`, and `sh.make(prog, catalogue=...)("hello")
+    reported `is_allowed == True`, and `sh.make(prog, catalogue=…)("hello")
     .run_sync()` returned `exit_code == 0` with `stdout == "hello-from-abs\n"`.
   - Impact: the raw `subprocess.run` (and its `# noqa: S404`/`# noqa: S603`) is
     unnecessary; Work item 2 runs the installed scripts through cuprum by
@@ -259,7 +260,8 @@ rules — it is the canonical worktree, not portable example text).
     CI lane would ever exercise the Windows path (Decision Log).
 - Observation: Python 3.14 provides a dedicated `venv` sysconfig scheme and uses
   it by default; the current helper's `posix_prefix` happens to work but is not
-  the canonical scheme, and its `nt_user` Windows arm is simply the wrong scheme.
+  the canonical scheme, and its `nt_user` Windows arm is simply the wrong
+  scheme.
   - Evidence: locally, `sysconfig.get_scheme_names()` includes `venv`,
     `nt_venv`, `posix_venv`; `sysconfig.get_default_scheme() == "venv"`;
     `sysconfig.get_path("scripts", "venv", vars={"base": <uv venv>})` returns the
@@ -281,8 +283,8 @@ rules — it is the canonical worktree, not portable example text).
     enforceable contract; the roadmap explicitly offers this option
     ("commit to Linux-only execution"). Recorded in `adr-006`.
   - Date/Author: 2026-06-21, planning agent.
-- Decision: run the installed console-scripts through a cuprum catalogue keyed on
-  their **absolute paths**, removing the raw `subprocess.run`.
+- Decision: run the installed console-scripts through a cuprum catalogue keyed
+  on their **absolute paths**, removing the raw `subprocess.run`.
   - Rationale: cuprum 0.1.0 supports allowlisting and executing an absolute-path
     `Program` (verified — Surprises), and the scripting standards require
     external programs to run through a curated cuprum catalogue, not
@@ -317,13 +319,13 @@ rules — it is the canonical worktree, not portable example text).
 
 ## Outcomes & retrospective
 
-All three work items landed as planned, in three atomic commits, with `make all`
-green at each commit's HEAD. Measured against the purpose:
+All three work items landed as planned, in three atomic commits, with
+`make all` green at each commit's HEAD. Measured against the purpose:
 
 - The e2e test remains a true wheel-build-and-install proof on Linux: it builds
-  the wheel, creates a fresh `uv venv`, installs the wheel, and asserts all five
-  console-scripts resolve on disk and exit `2`. The five-script contract is
-  unchanged.
+  the wheel, creates a fresh `uv venv`, installs the wheel, and asserts all
+  five console-scripts resolve on disk and exit `2`. The five-script contract
+  is unchanged.
 - The installed scripts now run through a cuprum `ProgramCatalogue` keyed on
   their absolute paths, with no `import subprocess` and no `# noqa: S404/S603`.
   The false docstring claim that cuprum "exposes no API to execute an absolute
@@ -347,8 +349,8 @@ CodeRabbit cost: work item 1 took four review rounds (it cycled through prose
 and Markdown nits on the planning document — imperative voice, first-person
 pronouns, two genuinely broken inline code spans, a class grouping, and a dead
 assertion clause; all genuine defects fixed, subjective/scope-bound suggestions
-declined with reason in the Progress note). Work items 2 and 3 were clean on the
-first review (0 findings each).
+declined with reason in the Progress note). Work items 2 and 3 were clean on
+the first review (0 findings each).
 
 Gates at HEAD: `make all`, `make markdownlint`, and `make nixie` all green.
 
@@ -360,12 +362,13 @@ the worktree root
 `/data/leynos/Projects/novel-ralph-skill.worktrees/roadmap-1-2-3`:
 
 - `tests/test_console_scripts_e2e.py` — the subject of this task. Builds a wheel
-  with `uv build --wheel`, creates a `uv venv`, `uv pip install`s the wheel, then
-  resolves each of the five console-scripts on disk and runs it. The `uv` steps
-  go through a local cuprum `ProgramCatalogue` allowlisting `Program("uv")`; the
-  installed scripts are (currently) run by a raw `subprocess.run` with
-  `# noqa: S404`/`# noqa: S603`. `_venv_scripts_dir` (lines 63-67) picks the
-  sysconfig scheme `nt_user` on `win32` and `posix_prefix` otherwise — the bug.
+  with `uv build --wheel`, creates a `uv venv`, `uv pip install`s the wheel,
+  then resolves each of the five console-scripts on disk and runs it. The `uv`
+  steps go through a local cuprum `ProgramCatalogue` allowlisting
+  `Program("uv")`; the installed scripts are (currently) run by a raw
+  `subprocess.run` with `# noqa: S404`/`# noqa: S603`. `_venv_scripts_dir`
+  (lines 63-67) picks the sysconfig scheme `nt_user` on `win32` and
+  `posix_prefix` otherwise — the bug.
 - `pyproject.toml` — `requires-python = ">=3.14"` (line 6);
   `[project.dependencies] = ["cyclopts", "tomlkit"]`; dev group includes
   `pytest-timeout`, `pytest-xdist`, `cuprum`; `[tool.pytest.ini_options]` sets
@@ -385,8 +388,8 @@ the worktree root
   command-name single-source-of-truth, out of scope here).
 - `docs/novel-ralph-harness-design.md` §4 — the five-console-script command
   surface (the ADR cross-reference target).
-- `docs/developers-guide.md` lines 76-86 — the paragraph describing the stubs and
-  pointing at `tests/test_console_scripts_e2e.py` (the second ADR
+- `docs/developers-guide.md` lines 76-86 — the paragraph describing the stubs
+  and pointing at `tests/test_console_scripts_e2e.py` (the second ADR
   cross-reference target).
 - `docs/scripting-standards.md` "Cyclopts + cuprum + pathlib together" and
   "Notes and gotchas" — the requirement that external programs run through a
@@ -405,29 +408,31 @@ the worktree root
 Terms of art, defined so the plan is self-contained:
 
 - **Console-script.** A command installed onto `PATH` from a Python package's
-  `[project.scripts]` entry points. On POSIX it is a small executable launcher in
-  the venv `bin/`; on Windows it is a `<name>.exe` in the venv `Scripts/`.
+  `[project.scripts]` entry points. On POSIX it is a small executable launcher
+  in the venv `bin/`; on Windows it is a `<name>.exe` in the venv `Scripts/`.
 - **sysconfig scheme.** A named set of installation paths Python uses to locate
   things like the scripts directory. `venv` (and its `posix_venv`/`nt_venv`
   aliases) is the scheme describing a virtual environment's layout; `nt_user`
   describes a Windows per-user (roaming) install, which is **not** a venv.
-- **cuprum catalogue / allowlist.** `cuprum` only executes programs registered in
-  a `ProgramCatalogue`; an unregistered program raises `UnknownProgramError`. A
-  `Program` is any string, so an absolute path is a valid, allowlistable program.
+- **cuprum catalogue / allowlist.** `cuprum` only executes programs registered
+  in a `ProgramCatalogue`; an unregistered program raises
+  `UnknownProgramError`. A `Program` is any string, so an absolute path is a
+  valid, allowlistable program.
 - **POSIX-only policy.** The decision that this e2e test runs only where
-  `os.name == "posix"`, skipping elsewhere with a recorded reason. It matches the
-  Linux-only CI test lane.
+  `os.name == "posix"`, skipping elsewhere with a recorded reason. It matches
+  the Linux-only CI test lane.
 
 Skills to load before touching code (per the global agent instructions and the
 worktree standing rules):
 
 - `python-router` first, to route to the smaller skills below.
 - `python-testing` for the test rewrite shape (a focused unit test for the
-  resolver; a skip-marked, cuprum-driven e2e; direct semantic assertions; no new
-  snapshot; the existing `slow`/`timeout` markers preserved).
-- `python-verification` only to confirm that **no** property/Hypothesis/CrossHair
-  suite belongs here (this is an example-based portability fix, not a generative
-  contract); `hypothesis`, `crosshair`, and `mutmut` are not loaded or used.
+  resolver; a skip-marked, cuprum-driven e2e; direct semantic assertions; no
+  new snapshot; the existing `slow`/`timeout` markers preserved).
+- `python-verification` only to confirm that **no**
+  property/Hypothesis/CrossHair suite belongs here (this is an example-based
+  portability fix, not a generative contract); `hypothesis`, `crosshair`, and
+  `mutmut` are not loaded or used.
 - `leta` for navigating the package and test tree; `sem` for history.
 
 Authoritative sources to read before editing:
@@ -454,8 +459,8 @@ Markdown-touching work item also runs `make markdownlint` and `make nixie`.
 Work item 1 fixes the resolver and adds the platform guard (the "decide and
 enforce" core); work item 2 removes the `subprocess` dependency by routing
 through cuprum (the scripting-standards alignment the research unlocked); work
-item 3 records the decision as an ADR and links it. The items are ordered so the
-test is correct and green (1), then idiomatic (2), then documented (3).
+item 3 records the decision as an ADR and links it. The items are ordered so
+the test is correct and green (1), then idiomatic (2), then documented (3).
 
 ### Work item 1 — Fix the venv-scripts resolver and enforce the POSIX-only guard
 
@@ -514,9 +519,9 @@ belongs here.
 Tests added/updated:
 
 - `tests/test_venv_scripts_dir.py` (new) — two unit tests proving the resolver
-  returns the `uv venv` bin directory and is POSIX-shaped. These fail against the
-  current `nt_user`/`posix_prefix` helper only on Windows, so to make the red
-  state observable on Linux the resolver test asserts the **`venv`-scheme**
+  returns the `uv venv` bin directory and is POSIX-shaped. These fail against
+  the current `nt_user`/`posix_prefix` helper only on Windows, so to make the
+  red state observable on Linux the resolver test asserts the **`venv`-scheme**
   behaviour the new helper must provide (it exercises the helper after the fix;
   before the fix the second test still passes on Linux because `posix_prefix`
   also yields `bin`, so the load-bearing red signal is the Windows-path removal
@@ -552,16 +557,16 @@ In `tests/test_console_scripts_e2e.py`:
   `command_name in (result.stderr or "")`, preserving the existing contract.
 - Remove `import subprocess` and the `# noqa: S404`/`# noqa: S603` comments.
 - Rewrite the module docstring: drop the false claim that cuprum "exposes no API
-  to execute an absolute path"; state instead that the installed scripts are run
-  through a cuprum catalogue keyed on their absolute paths (cuprum 0.1.0
+  to execute an absolute path"; state instead that the installed scripts are
+  run through a cuprum catalogue keyed on their absolute paths (cuprum 0.1.0
   allowlists any `Program`, including a path), and that the test is POSIX-only
   per ADR 006. Keep the explanation that `uv run` is avoided because it would
   resolve against the project environment rather than the freshly built wheel.
 
 Read first: the cuprum `v0.1.0` sources (`cuprum/sh.py` `make`,
 `SafeCmd.run_sync`, `ExecutionContext`, `CommandResult`; `cuprum/catalogue.py`
-`ProgramCatalogue`, `ProjectSettings`); `docs/scripting-standards.md` "Notes and
-gotchas"; `.rules/python-00.md`.
+`ProgramCatalogue`, `ProjectSettings`); `docs/scripting-standards.md` "Notes
+and gotchas"; `.rules/python-00.md`.
 
 Skills: `python-router`, then `python-testing`.
 
@@ -578,8 +583,8 @@ Validation: `make test` passes on Linux with the e2e green through cuprum;
 ### Work item 3 — Record the POSIX-only policy as an ADR and link it
 
 Implements: AGENTS.md ("Record substantive decisions in the relevant design
-document; for major decisions, capture an ADR"); roadmap task 1.2.3 ("decide and
-enforce" — the ADR is the durable record of the decision).
+document; for major decisions, capture an ADR"); roadmap task 1.2.3 ("decide
+and enforce" — the ADR is the durable record of the decision).
 
 - Create `docs/adr-006-console-scripts-e2e-posix-policy.md` following the
   template of `docs/adr-004-distribution-console-scripts.md` (Status, Date,
@@ -588,13 +593,13 @@ enforce" — the ADR is the durable record of the decision).
   (commit to POSIX-only vs. make the lookup truly portable on Windows); the
   decision to go POSIX-only because the test suite runs only on `ubuntu-latest`
   (`ci.yml`) while the Windows/macOS matrix builds wheels only
-  (`build-wheels.yml`); the enforcement (the non-POSIX skip guard and the `venv`
-  scheme); and the note that cuprum 0.1.0 runs the installed scripts by absolute
-  path. Mark it Accepted, dated 2026-06-21.
+  (`build-wheels.yml`); the enforcement (the non-POSIX skip guard and the
+  `venv` scheme); and the note that cuprum 0.1.0 runs the installed scripts by
+  absolute path. Mark it Accepted, dated 2026-06-21.
 - Add a one-line cross-reference to the ADR from
-  `docs/novel-ralph-harness-design.md` §4 (the command-surface section) and from
-  the `docs/developers-guide.md` e2e paragraph (lines 76-86), so the policy is
-  discoverable from both the design and the contributor docs.
+  `docs/novel-ralph-harness-design.md` §4 (the command-surface section) and
+  from the `docs/developers-guide.md` e2e paragraph (lines 76-86), so the
+  policy is discoverable from both the design and the contributor docs.
 
 Read first: `docs/adr-004-distribution-console-scripts.md` and
 `docs/adr-005-command-surface-five-scripts.md` (template and tone);
@@ -672,7 +677,8 @@ Acceptance, phrased as observable behaviour:
 - The e2e test imports no `subprocess` and carries no `# noqa: S404`/`S603`
   suppression; `make lint` is clean.
 - `_venv_scripts_dir` resolves through the `venv` sysconfig scheme; the new
-  `tests/test_venv_scripts_dir.py` proves it returns the `uv venv` bin directory.
+  `tests/test_venv_scripts_dir.py` proves it returns the `uv venv` bin
+  directory.
 - On a non-POSIX platform the e2e test reports `SKIPPED` with a reason naming
   ADR 006, instead of executing a broken Windows path.
 - `docs/adr-006-console-scripts-e2e-posix-policy.md` exists, is Accepted, and is
@@ -707,8 +713,9 @@ work item.
   restores a known state (the Makefile `clean` target removes `.venv`,
   `.uv-cache`, caches, and build artefacts).
 - No step is destructive to tracked files beyond the intended edits
-  (`tests/test_console_scripts_e2e.py`, the new `tests/test_venv_scripts_dir.py`,
-  the new ADR, and the two doc cross-references) and updates to this execplan.
+  (`tests/test_console_scripts_e2e.py`, the new
+  `tests/test_venv_scripts_dir.py`, the new ADR, and the two doc
+  cross-references) and updates to this execplan.
 
 ## Artefacts and notes
 
@@ -724,21 +731,21 @@ work item.
     with no bare-name restriction.
   - `cuprum/sh.py`: `make(program, *, catalogue=DEFAULT_CATALOGUE)` →
     `SafeCmdBuilder`; `SafeCmd.run_sync(*, capture=True, echo=False,
-    context=None)` → `CommandResult(exit_code, stdout, stderr, ...)`;
+    context=None)` → `CommandResult(exit_code, stdout, stderr, …)`;
     `SafeCmd.argv_with_program` is `(str(program), *argv)` and
     `_spawn_subprocess` calls `asyncio.create_subprocess_exec`, accepting an
     absolute path as `argv[0]`.
 - Verified empirically (synced env): allowlisting `Program("/usr/sbin/echo")`
-  and running it via cuprum returned `exit_code == 0`, `stdout ==
-  "hello-from-abs\n"`; the `venv` sysconfig scheme resolves a real `uv venv`'s
-  `bin/` directory containing the `python` launcher.
+  and running it via cuprum returned `exit_code == 0`,
+  `stdout == "hello-from-abs\n"`; the `venv` sysconfig scheme resolves a real
+  `uv venv`'s `bin/` directory containing the `python` launcher.
 - pytest-timeout 2.4.0 (official docs): a per-test `@pytest.mark.timeout`
   overrides the `--timeout`/ini global; the per-item marker is applied in each
   xdist worker. The e2e's `@pytest.mark.timeout(180)` over `timeout = 30` is
   documented behaviour and is retained.
 - Scope fences restated: this task does **not** add a command-name single source
-  of truth (task 1.2.4), does **not** touch any command body or the stub factory,
-  and does **not** add a Hypothesis/CrossHair property suite.
+  of truth (task 1.2.4), does **not** touch any command body or the stub
+  factory, and does **not** add a Hypothesis/CrossHair property suite.
 
 ## Interfaces and dependencies
 
@@ -787,10 +794,10 @@ for command_name in COMMAND_NAMES:
     assert command_name in stderr
 ```
 
-Out of scope (do not build here): a single source of truth for the command names
-(task 1.2.4); any command body or stub-factory change; any `pyproject.toml`
-entry-point change; a real Windows `Scripts/` + `.exe` lookup (explicitly
-rejected by ADR 006); any property/Hypothesis/CrossHair suite.
+Out of scope (do not build here): a single source of truth for the command
+names (task 1.2.4); any command body or stub-factory change; any
+`pyproject.toml` entry-point change; a real Windows `Scripts/` + `.exe` lookup
+(explicitly rejected by ADR 006); any property/Hypothesis/CrossHair suite.
 
 ## Revision note
 
@@ -799,22 +806,23 @@ rejected by ADR 006); any property/Hypothesis/CrossHair suite.
   commits ahead and modifies the relevant files) and verified empirically that
   cuprum 0.1.0 allowlists and executes an absolute-path `Program`, refuting the
   e2e test's docstring claim and unlocking the `subprocess`-removal work item.
-  Verified that CI runs the test suite only on `ubuntu-latest`
-  (`ci.yml`), with the Windows/macOS matrix building wheels only
-  (`build-wheels.yml`), grounding the POSIX-only decision. Verified that the
-  current `nt_user`/missing-`.exe` Windows branch is both dead and wrong, and
-  that the canonical `venv` sysconfig scheme resolves the `uv venv` bin directory
-  on POSIX. Confirmed against the official pytest-timeout 2.4.0 documentation
-  that the per-test `@pytest.mark.timeout(180)` overrides the ini `timeout = 30`
-  and is honoured per item under xdist. Decomposed into three atomic work items
+  Verified that CI runs the test suite only on `ubuntu-latest` (`ci.yml`), with
+  the Windows/macOS matrix building wheels only (`build-wheels.yml`), grounding
+  the POSIX-only decision. Verified that the current `nt_user`/missing-`.exe`
+  Windows branch is both dead and wrong, and that the canonical `venv`
+  sysconfig scheme resolves the `uv venv` bin directory on POSIX. Confirmed
+  against the official pytest-timeout 2.4.0 documentation that the per-test
+  `@pytest.mark.timeout(180)` overrides the ini `timeout = 30` and is honoured
+  per item under xdist. Decomposed into three atomic work items
   (resolver+guard, cuprum run-loop, ADR) and kept the command-name dedup out of
   scope (task 1.2.4). The plan remains DRAFT pending review.
 - 2026-06-22 (implementation): Executed all three work items in order, each an
   atomic commit gated by `make all` (and `make markdownlint`/`make nixie` for
-  Markdown). Re-verified the load-bearing cuprum-absolute-path and `venv`-scheme
-  facts on the target machine before relying on them. Reworded the Constraints,
-  Tolerances, and prose to impersonal phrasing and repaired broken inline code
-  spans in response to CodeRabbit. Status moved DRAFT → DONE; Outcomes filled in.
+  Markdown). Re-verified the load-bearing cuprum-absolute-path and
+  `venv`-scheme facts on the target machine before relying on them. Reworded
+  the Constraints, Tolerances, and prose to impersonal phrasing and repaired
+  broken inline code spans in response to CodeRabbit. Status moved DRAFT →
+  DONE; Outcomes filled in.
 
 ## Addenda (post-merge follow-ups)
 
@@ -825,7 +833,7 @@ and `make nixie` for Markdown), `coderabbit review --agent`, commit, and tick
 the matching roadmap sub-task on merge.
 
 - [x] 1.2.3.1 — Index ADR 006 and the `docs/issues/` and `docs/execplans/` sets
-  in `docs/contents.md` (from audit:1.2.6, low). The documentation map omits the
-  POSIX console-scripts ADR and the growing audit-trail and per-task plan sets,
-  leaving them undiscoverable. Docs-only change; gate with `make markdownlint`
-  and `make nixie`.
+  in `docs/contents.md` (from audit:1.2.6, low). The documentation map omits
+  the POSIX console-scripts ADR and the growing audit-trail and per-task plan
+  sets, leaving them undiscoverable. Docs-only change; gate with
+  `make markdownlint` and `make nixie`.

@@ -47,21 +47,22 @@ That now holds for the envelope `working_dir` field and for `init`'s
 `result.working_dir`. But every *message* that names the working tree still
 embeds a cwd-relative path:
 
-- `_disk_evidence_or_state_error` raises `f"cannot read disk evidence under
-  {working_dir}: …"` where `working_dir` is `working_dir()` (relative
-  `working`).
-- `_novel_done`'s clause wrapper raises `f"cannot evaluate the done predicate
-  under {root}: …"` where `root = working_dir()` (relative).
+- `_disk_evidence_or_state_error` raises
+  `f"cannot read disk evidence under {working_dir}: …"` where `working_dir` is
+  `working_dir()` (relative `working`).
+- `_novel_done`'s clause wrapper raises
+  `f"cannot evaluate the done predicate under {root}: …"` where
+  `root = working_dir()` (relative).
 - `_init` raises `f"refusing to overwrite existing {path}"` and emits
   `messages=[f"initialised {path}"]` where `path = state_path()` (relative
   `working/state.toml`).
 - `_state_input_error`'s corrupt-file arm names `{path}` (relative).
 
 An operator who reads the exit-3 message (rather than parsing the JSON field)
-sees the bare relative token, so the very footgun 6.3.4 set out to surface stays
-silent in the message channel. The split is starkest *inside* `_init`: the same
-`CommandOutcome` carries `result.working_dir` as the absolute resolved path and
-a `messages` line as the relative path — visible in
+sees the bare relative token, so the very footgun 6.3.4 set out to surface
+stays silent in the message channel. The split is starkest *inside* `_init`:
+the same `CommandOutcome` carries `result.working_dir` as the absolute resolved
+path and a `messages` line as the relative path — visible in
 `tests/__snapshots__/test_novel_state_mutator_snapshots.ambr:22`, where
 `result.working_dir` is `<working-dir>` (a redacted absolute path) while the
 message is `initialised working/state.toml`.
@@ -116,12 +117,13 @@ docstring acknowledges this: "Mirrors `_reconcile._append_recovery_entry`". The
 RFC 3339 UTC timestamp construction is repeated a third time in
 `novel_state._init:253` (`created_at`).
 
-- **Proposed fix:** Extract one `_append_log_receipt(working_dir, operation,
-  line)` helper (and optionally a `_utc_timestamp()` seam) into a dependency-free
-  leaf shared by the mutators — `_state_load.py` is the natural home, mirroring
-  how the state-load boundary was already carved out there. Route both call
-  sites and `_init`'s `created_at` through the shared timestamp seam. This is
-  consolidation hygiene, so it belongs in phase 7 ("single-source the duplicated
+- **Proposed fix:** Extract one
+  `_append_log_receipt(working_dir, operation, line)` helper (and optionally a
+  `_utc_timestamp()` seam) into a dependency-free leaf shared by the mutators —
+  `_state_load.py` is the natural home, mirroring how the state-load boundary
+  was already carved out there. Route both call sites and `_init`'s
+  `created_at` through the shared timestamp seam. This is consolidation
+  hygiene, so it belongs in phase 7 ("single-source the duplicated
   implementations") rather than as a new step. No behavioural change.
 
 ## 4. The draft-read state-error wrapping idiom remains duplicated and now spans nine sites
@@ -135,11 +137,12 @@ RFC 3339 UTC timestamp construction is repeated a third time in
 
 This is a recurrence, not a new finding: audit-6.3.3 already documented the
 `try: <reader> / except STATE_INPUT_ERRORS as exc: raise StateInputError(f"…:
-{exc}") from exc` idiom repeated across eight command bodies. The
-disk-evidence wrapper in `novel_state.py` is the ninth instance of the same
-shape, and 6.3.4 left it untouched. The sites differ only in the reader called
-and the context phrase. Recording it here keeps the recurring debt visible at
-the 6.3.4 step boundary so it is not lost between audits.
+{exc}") from exc`
+idiom repeated across eight command bodies. The disk-evidence wrapper in
+`novel_state.py` is the ninth instance of the same shape, and 6.3.4 left it
+untouched. The sites differ only in the reader called and the context phrase.
+Recording it here keeps the recurring debt visible at the 6.3.4 step boundary
+so it is not lost between audits.
 
 - **Proposed fix:** As proposed in audit-6.3.3, extract one
   `read_or_state_error(reader, *, context)` wrapper (or a decorator) into the
@@ -147,8 +150,8 @@ the 6.3.4 step boundary so it is not lost between audits.
   translation through one place; the context phrase becomes the one varying
   argument. Fold into the phase 7 consolidation step alongside finding 3 so the
   two `working/`-tree DRY moves land together. If finding 1 chooses the
-  resolved-path polarity for messages, this shared wrapper is the single point at
-  which to apply it to the read-fault arms.
+  resolved-path polarity for messages, this shared wrapper is the single point
+  at which to apply it to the read-fault arms.
 
 ## 5. `resolved_working_dir`'s docstring duplicates the resolution rule by line number, which will drift
 
@@ -163,12 +166,13 @@ developers' guide all point at the cwd-relative resolution rule by *source line
 number* ("the rule at `_state_load.py:32-48`"). Line-number cross-references
 inside docstrings are brittle: any edit above line 48 in `_state_load.py`
 silently invalidates three references, and there is no guard that catches the
-drift. The `working_dir()` docstring and the `WORKING_DIR_NAME` comment likewise
-cite "design line 151", which has the same fragility against design-doc edits.
+drift. The `working_dir()` docstring and the `WORKING_DIR_NAME` comment
+likewise cite "design line 151", which has the same fragility against
+design-doc edits.
 
 - **Proposed fix:** Replace the intra-file line-number citations with a named
-  anchor — point at `working_dir` (the symbol) or a short named paragraph
-  ("the cwd-relative resolution rule documented on `working_dir`") rather than a
+  anchor — point at `working_dir` (the symbol) or a short named paragraph ("the
+  cwd-relative resolution rule documented on `working_dir`") rather than a
   numeric span. This is the lowest-severity finding and is best folded into the
   phase 7 documentation-reconciliation leg rather than actioned standalone.
 
@@ -179,8 +183,8 @@ absolute `working_dir` *field*). The one material gap is a polarity
 inconsistency the change introduced: the JSON field is now absolute while every
 human-readable message that names the same directory stays cwd-relative —
 including two channels within a single `init` envelope — so the "misresolution
-is visible" goal holds for the field but not for the prose, and no test pins the
-message channel either way (findings 1 and 2). The remaining findings are
+is visible" goal holds for the field but not for the prose, and no test pins
+the message channel either way (findings 1 and 2). The remaining findings are
 pre-existing `working/`-tree duplication (findings 3 and 4, the latter a
 recurrence from audit-6.3.3) and brittle line-number doc cross-references
 (finding 5), all of which belong in the phase 7 consolidation step rather than

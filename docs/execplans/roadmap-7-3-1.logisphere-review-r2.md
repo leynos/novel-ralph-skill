@@ -51,8 +51,7 @@ module-boundary refactor; no behaviour change). cuprum confirmed off-path
   `grep -rn 'novel_state\._' novel_ralph_skill/`: exact match, nothing missed
   on the production side.
 - **B2:** D6 pins `test_state_load_actionable_parity.py` to the private
-  formatter
-  set, not the public seam. Correct.
+  formatter set, not the public seam. Correct.
 - **B3:** D7 records the grep proving the developers-guide formatter-count prose
   is unguarded; "Five" stays, only the module token at 620 moves. Correct.
 - Consumer import-block citations for WI3 spot-checked (`_desloppify.py:46-52`,
@@ -72,12 +71,12 @@ plan's clean-up-3 list matches this. But two test files import *dropped*
 symbols from `novel_state`:
 
 1. `tests/multiplexer_support.py:25` —
-   `from … novel_state import WORKING_DIR_NAME`.
-   `multiplexer_support` is a conftest-registered plugin
-   (`tests/conftest.py:64`) imported by `test_multiplexer_dispatch.py`,
-   `test_multiplexer_behaviour.py`, and `test_legacy_surface_retired.py`. After
-   WI5 drops `WORKING_DIR_NAME` from `novel_state`, the multiplexer suite fails
-   **at collection** with ImportError.
+   `from … novel_state import WORKING_DIR_NAME`. `multiplexer_support` is a
+   conftest-registered plugin (`tests/conftest.py:64`) imported by
+   `test_multiplexer_dispatch.py`, `test_multiplexer_behaviour.py`, and
+   `test_legacy_surface_retired.py`. After WI5 drops `WORKING_DIR_NAME` from
+   `novel_state`, the multiplexer suite fails **at collection** with
+   ImportError.
 2. `tests/test_state_input_message_unit.py:22` — imports
    `_load_or_state_error, _state_input_error, state_path, working_dir` from
    `novel_state`. `_state_input_error` is dropped → ImportError.
@@ -216,14 +215,13 @@ single-home property cleanly. Recording for calibration.
 ## Recommended next steps (ordered)
 
 1. **B4** — name `multiplexer_support.py:25` and
-   `test_state_input_message_unit.py:22`
-   in WI4; repoint before WI5 drops the re-exports, so each commit stays green.
+   `test_state_input_message_unit.py:22` in WI4; repoint before WI5 drops the
+   re-exports, so each commit stays green.
 2. **B5** — add the four test docstring `:func:` roles to WI5 clean-up 2 and
    **broaden the hard gate** to a `novel_state\._<formatter>` form.
 3. **B6** — enumerate `test_compile_unit.py:30`,
-   `test_validate_state_corpus.py:30`,
-   `test_draft_read_message_unit.py:25` in WI4 so its stated validation can
-   pass.
+   `test_validate_state_corpus.py:30`, `test_draft_read_message_unit.py:25` in
+   WI4 so its stated validation can pass.
 4. **A1/A2** — fold the cohort into one WI4 table and generalize the
    private-formatter exception to all three such files.
 

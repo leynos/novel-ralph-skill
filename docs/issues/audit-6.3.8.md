@@ -22,8 +22,8 @@ actionable" (line 619), the ADRs (ADR-001 deterministic/judgemental boundary,
 ADR-003 shared interface contract, ADR-005 command surface), `AGENTS.md`
 (quality gates, the 400-line file cap, CQS, en-GB Oxford spelling), the
 `python-router` skill (routing to `python-errors-and-logging` and
-`python-testing`), and `leta`/`sem` for navigation and history. Files
-inspected: `novel_ralph_skill/commands/_state_load.py`,
+`python-testing`), and `leta`/`sem` for navigation and history. Files inspected:
+`novel_ralph_skill/commands/_state_load.py`,
 `novel_ralph_skill/commands/_compile.py`,
 `novel_ralph_skill/commands/_desloppify.py`,
 `novel_ralph_skill/commands/_desloppify_ledger.py`,
@@ -34,9 +34,9 @@ inspected: `novel_ralph_skill/commands/_state_load.py`,
 `pyproject.toml`, and `docs/developers-guide.md`.
 
 The merged change is high quality. The leak-removal is genuine (verified by the
-parity tripwire and the per-arm e2e tests, all of which assert the artefact path
-is named, the operator-facing flag is present, and no `Errno`, class name, or
-`str(exc)` repr leaks), the import direction avoids the `_state_mutators` →
+parity tripwire and the per-arm e2e tests, all of which assert the artefact
+path is named, the operator-facing flag is present, and no `Errno`, class name,
+or `str(exc)` repr leaks), the import direction avoids the `_state_mutators` →
 `novel_state` cycle as the module docstring claims, and the file stays inside
 the 400-line cap. The findings below are at the ergonomics, similarity, and
 documentation-narrative layer; none is a correctness defect.
@@ -50,17 +50,17 @@ documentation-narrative layer; none is a correctness defect.
   `_compile_write_error`, `_rule_pack_read_error`, `_device_ledger_read_error`)
 
 Each of the five formatters accepts `exc: Exception` (or the typed equivalent)
-but never reads it: the only use of a caught exception anywhere in the module is
-the `raise … from exc` chaining performed by the *caller* and by
+but never reads it: the only use of a caught exception anywhere in the module
+is the `raise … from exc` chaining performed by the *caller* and by
 `_load_or_state_error` (`:338-339`). The parameter is a deliberate convenience
-— it lets `tests/test_state_load_actionable_parity.py` drive all five formatters
-through one `(path, exc)` call signature — but on the production call sites it
-reads as if the exception influences the message, which is exactly the coupling
-6.3.8 set out to remove. The docstrings even have to spend a paragraph each
-explaining that `exc` is *not* consulted ("the caller chains `exc` via `from`
-for debugging while `exc.messages` carries only the actionable prose"). Note
-that `ARG` (flake8-unused-arguments) is **not** in the `pyproject.toml` ruff
-`select` list, so the dead parameter passes lint silently.
+— it lets `tests/test_state_load_actionable_parity.py` drive all five
+formatters through one `(path, exc)` call signature — but on the production
+call sites it reads as if the exception influences the message, which is
+exactly the coupling 6.3.8 set out to remove. The docstrings even have to spend
+a paragraph each explaining that `exc` is *not* consulted ("the caller chains
+`exc` via `from` for debugging while `exc.messages` carries only the actionable
+prose"). Note that `ARG` (flake8-unused-arguments) is **not** in the
+`pyproject.toml` ruff `select` list, so the dead parameter passes lint silently.
 
 **Proposed fix:** drop the `exc` parameter from the four file/write-fault
 formatters whose body is path-only (`_draft_read_error`, `_compile_write_error`,
@@ -69,12 +69,13 @@ formatters whose body is path-only (`_draft_read_error`, `_compile_write_error`,
 `raise _draft_read_error(root) from exc` — the `from exc` chaining is unchanged
 and stays the single source of the debugging link. Update the parity test to
 build the formatter args by `label` (it already parametrizes by label) rather
-than assuming a uniform two-arg signature, or keep `exc` only where a future arm
-genuinely needs to branch on the exception. `_state_input_error` may keep `exc`
-if a future arm is expected to branch on exception type, but should then say so;
-otherwise drop it too. As a cheaper alternative, add `ARG` to the ruff `select`
-set so any future dead argument is caught, and annotate the intentional ones
-with `del exc` or a `# noqa: ARG001` carrying the parity-signature rationale.
+than assuming a uniform two-arg signature, or keep `exc` only where a future
+arm genuinely needs to branch on the exception. `_state_input_error` may keep
+`exc` if a future arm is expected to branch on exception type, but should then
+say so; otherwise drop it too. As a cheaper alternative, add `ARG` to the ruff
+`select` set so any future dead argument is caught, and annotate the
+intentional ones with `del exc` or a `# noqa: ARG001` carrying the
+parity-signature rationale.
 
 ## Finding 2 — the four file-fault formatters are near-identical single-arm builders
 
@@ -91,18 +92,19 @@ drafts under", "rule pack", "device ledger", "write {target}") and the remedy
 clause. Each also carries a ~25-line docstring that re-states the same
 invariants (single arm, never advises `init`, no `Errno`/`{exc}`/traceback
 leak), so the bulk of `_state_load.py`'s growth from 6.3.5 to 6.3.8 is
-copy-adapted prose. This is acceptable for five arms but will not scale: a sixth
-file-fault arm means a sixth copy of the same scaffold and docstring.
+copy-adapted prose. This is acceptable for five arms but will not scale: a
+sixth file-fault arm means a sixth copy of the same scaffold and docstring.
 
 **Proposed fix:** factor the common shape into one private builder, e.g.
 `_file_fault_error(message: str) -> StateInputError` that wraps the
 `StateInputError(message)` construction and hosts the shared "no-raw-leak"
 contract docstring once, leaving each named formatter as a thin
-artefact-and-remedy wrapper (`return _file_fault_error(f"cannot read rule pack
-{pack_path}; …")`). The named wrappers stay the public seam the parity test and
-call sites import, the per-arm docstrings shrink to the artefact/remedy
-specifics, and the shared invariant is documented in exactly one place. This
-also makes Finding 1 a one-line change (the shared builder takes no `exc`).
+artefact-and-remedy wrapper
+(`return _file_fault_error(f"cannot read rule pack {pack_path}; …")`). The
+named wrappers stay the public seam the parity test and call sites import, the
+per-arm docstrings shrink to the artefact/remedy specifics, and the shared
+invariant is documented in exactly one place. This also makes Finding 1 a
+one-line change (the shared builder takes no `exc`).
 
 ## Finding 3 — duplicated content-vs-file exception-routing in the desloppify modes
 
@@ -113,25 +115,27 @@ also makes Finding 1 a one-line change (the shared builder takes no `exc`).
   (ledger load)
 
 The `--pack` and `--ledger` load boundaries implement the same two-arm routing
-verbatim: catch the *content* error (`RulePackError` / `LedgerError`) and return
-an exit-2 `CommandOutcome`, then catch the *file* error (`RulePackFileError` /
-`LedgerFileError`) and `raise _<artefact>_read_error(path, exc) from exc` for
-exit 3. The structure, the comments, and the `messages=list(exc.messages) or
-[str(exc)]` projection are duplicated between the two modes. The two artefact
-families (`rulepack` and `ledger`) are genuinely distinct domains, so the catch
-*types* differ, but the load-and-route *policy* ("malformed content → exit 2;
-unreadable file → exit 3 actionable") is one rule expressed twice.
+verbatim: catch the *content* error (`RulePackError` / `LedgerError`) and
+return an exit-2 `CommandOutcome`, then catch the *file* error
+(`RulePackFileError` / `LedgerFileError`) and
+`raise _<artefact>_read_error(path, exc) from exc` for exit 3. The structure,
+the comments, and the `messages=list(exc.messages) or [str(exc)]` projection
+are duplicated between the two modes. The two artefact families (`rulepack` and
+`ledger`) are genuinely distinct domains, so the catch *types* differ, but the
+load-and-route *policy* ("malformed content → exit 2; unreadable file → exit 3
+actionable") is one rule expressed twice.
 
 **Proposed fix:** introduce a small shared helper that takes the loader, the
-path, the content-error type, the file-error type, and the file-fault formatter,
-and applies the two-arm policy once — for example
+path, the content-error type, the file-error type, and the file-fault
+formatter, and applies the two-arm policy once — for example
 `load_or_route(loader, path, content_error=…, file_error=…,
-file_formatter=…) -> Resource | CommandOutcome` returning either the loaded
-resource or the exit-2 outcome and raising the exit-3 `StateInputError`. The two
-call sites collapse to one line each, and a future third rationing input
-inherits the policy for free. Keep the domain-specific catch types as
-parameters so the rulepack→contract and ledger→contract couplings stay out of
-the shared seam (the existing rationale for catching them locally).
+file_formatter=…) -> Resource | CommandOutcome`
+returning either the loaded resource or the exit-2 outcome and raising the
+exit-3 `StateInputError`. The two call sites collapse to one line each, and a
+future third rationing input inherits the policy for free. Keep the
+domain-specific catch types as parameters so the rulepack→contract and
+ledger→contract couplings stay out of the shared seam (the existing rationale
+for catching them locally).
 
 ## Finding 4 — the `list(exc.messages) or [str(exc)]` idiom is repeated four times
 
@@ -143,18 +147,19 @@ the shared seam (the existing rationale for catching them locally).
 
 The "project a usage error onto an exit-2 `CommandOutcome`, falling back to the
 stringified exception when `messages` is empty" idiom appears at four sites
-across three modules with identical text. It is a single decision — *how a typed
-usage error becomes a `CommandOutcome`* — copied rather than named, so a change
-to the fallback policy (or a future requirement to strip a trailing newline,
-say) must be made in four places.
+across three modules with identical text. It is a single decision — *how a
+typed usage error becomes a `CommandOutcome`* — copied rather than named, so a
+change to the fallback policy (or a future requirement to strip a trailing
+newline, say) must be made in four places.
 
 **Proposed fix:** add one constructor on the contract layer, e.g.
 `CommandOutcome.usage_error(exc)` or a free helper
-`usage_outcome(exc) -> CommandOutcome` in `novel_ralph_skill/contract/runner.py`
-that owns the `code=ExitCode.USAGE_ERROR, messages=list(exc.messages) or
-[str(exc)]` projection, and route the four sites through it. This pairs
-naturally with the Finding 3 helper (the shared loader can return
-`usage_outcome(exc)` on the content arm).
+`usage_outcome(exc) -> CommandOutcome` in
+`novel_ralph_skill/contract/runner.py` that owns the
+`code=ExitCode.USAGE_ERROR, messages=list(exc.messages) or [str(exc)]`
+projection, and route the four sites through it. This pairs naturally with the
+Finding 3 helper (the shared loader can return `usage_outcome(exc)` on the
+content arm).
 
 ## Finding 5 — the developer guide still describes "two sibling formatters"
 
@@ -162,26 +167,27 @@ naturally with the Finding 3 helper (the shared loader can return
 - **Severity:** medium
 - **Location:** `docs/developers-guide.md:619-636`
 
-The exit-3 section opens "The exit-3 messages are actionable, never raw OS text.
-**Two** sibling formatters in the dependency-free leaf module `_state_load` own
-the prose." After 6.3.8 there are **five** formatters. `_state_input_error` and
-`_draft_read_error` are described in full, but the three 6.3.8 additions are
-compressed into a single trailing sentence — "The `novel compile`
-atomic-*write* tail and the desloppify rule-pack/device-ledger faults keep their
-own write- and file-shaped messages" — without naming `_compile_write_error`,
-`_rule_pack_read_error`, or `_device_ledger_read_error` or stating their
-remedies (re-create `working/manuscript/`; check or omit `--pack`; check
-`--ledger`). A developer reading the guide would under-count the formatters and
-miss where the new prose lives. This is the only finding that touches a stated
-source of truth (the developers' guide) and so carries the higher severity.
+The exit-3 section opens "The exit-3 messages are actionable, never raw OS
+text. **Two** sibling formatters in the dependency-free leaf module
+`_state_load` own the prose." After 6.3.8 there are **five** formatters.
+`_state_input_error` and `_draft_read_error` are described in full, but the
+three 6.3.8 additions are compressed into a single trailing sentence — "The
+`novel compile` atomic-*write* tail and the desloppify rule-pack/device-ledger
+faults keep their own write- and file-shaped messages" — without naming
+`_compile_write_error`, `_rule_pack_read_error`, or `_device_ledger_read_error`
+or stating their remedies (re-create `working/manuscript/`; check or omit
+`--pack`; check `--ledger`). A developer reading the guide would under-count
+the formatters and miss where the new prose lives. This is the only finding
+that touches a stated source of truth (the developers' guide) and so carries
+the higher severity.
 
 **Proposed fix:** update the sentence at line 619 to say "Five sibling
 formatters" and add a short paragraph (or bullet list) naming the three 6.3.8
 formatters, the artefact each names, and the write-/file-shaped remedy each
 offers, mirroring the existing treatment of `_state_input_error` and
 `_draft_read_error`. Cross-reference roadmap §6.3.8 as the existing prose does
-for §6.3.1 and §6.3.5. Confirm the `users-guide.md` exit-code narrative needs no
-change (the operator sees the rendered message, not the formatter names).
+for §6.3.1 and §6.3.5. Confirm the `users-guide.md` exit-code narrative needs
+no change (the operator sees the rendered message, not the formatter names).
 
 ## Finding 6 — the file-fault remedy wording is unpinned by any test
 

@@ -6,11 +6,11 @@
 (2026-06-25).** Originally Accepted, 2026-06-21: the deterministic spine was to
 ship as five separately named console-scripts — `novel-state`, `novel-done`,
 `novel-compile`, `desloppify`, `wordcount`. ADR 007 reverses this to a single
-`novel` multiplexer with subcommands, because the surface had already grown into
-a partial multiplexer (`novel-state` carries six subcommands), because
+`novel` multiplexer with subcommands, because the surface had already grown
+into a partial multiplexer (`novel-state` carries six subcommands), because
 `desloppify`/`wordcount` are generic names that pollute `PATH`, and because the
-rename cost this ADR cited against the multiplexer is at its lowest pre-dogfood.
-The reasoning below is retained for the historical trade.
+rename cost this ADR cited against the multiplexer is at its lowest
+pre-dogfood. The reasoning below is retained for the historical trade.
 
 ## Date
 

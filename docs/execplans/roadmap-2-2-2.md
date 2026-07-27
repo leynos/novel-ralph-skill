@@ -229,8 +229,7 @@ Stop and escalate when any of these is breached rather than working around it.
   feed `validate_state`. The document is the write source; `State` is the
   validation view. A round-trip/comment-preservation assertion guards this.
 - Risk: append round-trip. `advance-phase` appends to `phase.completed`, which
-  on
-  a freshly-`init`-ed tree is an *empty* `completed = []` array. The 2.2.1
+  on a freshly-`init`-ed tree is an *empty* `completed = []` array. The 2.2.1
   empirical probe verified value edits, not specifically append-to-empty-array.
   Severity: low. Likelihood: low. Mitigation: work item 4 adds a
   round-trip/comment-preservation assertion for the *append-to-array* sub-case
@@ -255,12 +254,11 @@ Stop and escalate when any of these is breached rather than working around it.
   so it does **not** need the bracket. `init` writes one state file plus an
   empty `log.md`; the `state.toml` write precedes and is independent of the
   `log.md` write, so the realizable partial `init` is (state present, log
-  absent). That partial is reconciled by task 2.3.4 (`init` itself still refuses
-  whenever `state.toml` exists), so no bracket is required. The plan records this
-  scoping decision (Decision Log D3) so a reviewer does not read the absent
-  bracket as a gap; the `pending_turn`
-  helper remains available to the genuinely multi-file mutators (`recount`,
-  `reconcile`).
+  absent). That partial is reconciled by task 2.3.4 (`init` itself still
+  refuses whenever `state.toml` exists), so no bracket is required. The plan
+  records this scoping decision (Decision Log D3) so a reviewer does not read
+  the absent bracket as a gap; the `pending_turn` helper remains available to
+  the genuinely multi-file mutators (`recount`, `reconcile`).
 - Risk: an `init` slug/title with characters that break the filesystem-safe
   contract. Severity: low. Likelihood: low. Mitigation: `init` stores the slug
   and title verbatim into `[novel]` exactly as supplied (the corpus and schema
@@ -270,102 +268,103 @@ Stop and escalate when any of these is breached rather than working around it.
 ## Progress
 
 - [x] Work item 1: add the failing command-contract tests for the three
-  mutators (red), scaffolded against not-yet-registered subcommands.
-  Done 2026-06-23: `tests/test_novel_state_mutators.py` drives `init`,
-  `set-cursor`, and `advance-phase` through `run`; bodies are `xfail(strict)`
-  until each command lands. A `populated_chapter_planning_tree` fixture was
-  added to `tests/corpus_fixtures.py` to keep the into-`drafting` success test
-  within the argument-count gate (bundling the three corpus constructors into
-  one fixture, mirroring `compile_probe`). `make all` green (295 passed, 17
+  mutators (red), scaffolded against not-yet-registered subcommands. Done
+  2026-06-23: `tests/test_novel_state_mutators.py` drives `init`, `set-cursor`,
+  and `advance-phase` through `run`; bodies are `xfail(strict)` until each
+  command lands. A `populated_chapter_planning_tree` fixture was added to
+  `tests/corpus_fixtures.py` to keep the into-`drafting` success test within
+  the argument-count gate (bundling the three corpus constructors into one
+  fixture, mirroring `compile_probe`). `make all` green (295 passed, 17
   xfailed); coderabbit `--agent` reported 0 findings.
 - [x] Work item 2: implement `init` (the initial-state builder plus the `init`
-  subcommand) green, with the full-table-set parse assertion.
-  Done 2026-06-23: `novel_ralph_skill/state/initial.py` exposes
-  `build_initial_document`, re-exported from `state/__init__.py`. The `init`
-  subcommand (`novel_state.py` `_init` plus the `@app.command`) refuses an
-  existing `state.toml` with exit `3`, creates the six-directory skeleton plus
-  `log.md`, and writes through `write_document_atomically`. Unit tests in
-  `tests/test_state_initial.py` assert `parse_state(...)` **succeeds** before any
-  field assertion (B1), then the initial fields, then `validate_state` is empty.
-  `datetime` is aliased `dt` (ruff ICN), and `validate_state(...) == ()` became
+  subcommand) green, with the full-table-set parse assertion. Done 2026-06-23:
+  `novel_ralph_skill/state/initial.py` exposes `build_initial_document`,
+  re-exported from `state/__init__.py`. The `init` subcommand (`novel_state.py`
+  `_init` plus the `@app.command`) refuses an existing `state.toml` with exit
+  `3`, creates the six-directory skeleton plus `log.md`, and writes through
+  `write_document_atomically`. Unit tests in `tests/test_state_initial.py`
+  assert `parse_state(...)` **succeeds** before any field assertion (B1), then
+  the initial fields, then `validate_state` is empty. `datetime` is aliased
+  `dt` (ruff ICN), and `validate_state(...) == ()` became
   `not validate_state(...)` (pylint C1803). `make all` green (302 passed, 14
   xfailed); coderabbit `--agent` reported 0 findings.
 - [x] Work item 3: implement `set-cursor` (load via `load_document`;
   validate-before-persist; refuse with exit `3`) green, with the document-load
-  fault-translation helper.
-  Done 2026-06-23: the two helpers (`_load_document_or_state_error`,
-  `_state_view_or_state_error`) plus the `set_cursor` body live in a new
+  fault-translation helper. Done 2026-06-23: the two helpers
+  (`_load_document_or_state_error`, `_state_view_or_state_error`) plus the
+  `set_cursor` body live in a new
   `novel_ralph_skill/commands/_state_mutators.py` (extracted per Risk "module
-  size" so `novel_state.py` stays under 400 lines; the deviation from the plan's
-  "helpers in novel_state.py" is recorded in the Decision Log). `set-cursor` is
-  registered on `build_app`. Unit tests pin the fault-subclass facts and both
-  helpers; a Hypothesis property pins the "accepts exactly the coherent cursors"
-  equivalence to `validate_state`. `make all` green (315 passed, 8 xfailed);
-  coderabbit `--agent` reported 0 findings.
+  size" so `novel_state.py` stays under 400 lines; the deviation from the
+  plan's "helpers in novel_state.py" is recorded in the Decision Log).
+  `set-cursor` is registered on `build_app`. Unit tests pin the fault-subclass
+  facts and both helpers; a Hypothesis property pins the "accepts exactly the
+  coherent cursors" equivalence to `validate_state`. `make all` green (315
+  passed, 8 xfailed); coderabbit `--agent` reported 0 findings.
 - [x] Work item 4: implement `advance-phase` (next-member march; refuse skips,
   out-of-order, terminal, and empty-manifest-into-drafting with exit `3`)
-  green, with the behavioural refusal scenario on the named corpus tree.
-  Done 2026-06-23: the `advance_phase` body (in `_state_mutators.py`) refuses an
+  green, with the behavioural refusal scenario on the named corpus tree. Done
+  2026-06-23: the `advance_phase` body (in `_state_mutators.py`) refuses an
   already-incoherent prior (the only out-of-order refusal possible, D7), the
-  terminal `done` (no successor in `PHASE_ORDER`), and `chapter-planning →
-  drafting` with an empty manifest, then appends the left phase and sets the
-  successor before validating and writing. The `pytest-bdd` scenario
-  (`tests/features/advance_phase_refusal.feature` plus its step module and
-  binder) proves the out-of-order refusal on `INCOHERENT_VARIANTS[
-  "completed-prefix-gap"]`. An append-round-trip unit test pins that only the two
-  touched `[phase]` keys change. All mutator xfails are gone. `make all` green
-  (325 passed); coderabbit `--agent` reported 0 findings.
+  terminal `done` (no successor in `PHASE_ORDER`), and
+  `chapter-planning → drafting` with an empty manifest, then appends the left
+  phase and sets the successor before validating and writing. The `pytest-bdd`
+  scenario (`tests/features/advance_phase_refusal.feature` plus its step module
+  and binder) proves the out-of-order refusal on
+  `INCOHERENT_VARIANTS[ "completed-prefix-gap"]`. An append-round-trip unit
+  test pins that only the two touched `[phase]` keys change. All mutator xfails
+  are gone. `make all` green (325 passed); coderabbit `--agent` reported 0
+  findings.
 - [x] Work item 5: re-export any new public surface, snapshot the three
   envelopes, document the mutators in the developers' guide, and run the full
-  gate.
-  Done 2026-06-23: `build_initial_document` is re-exported and pinned in a
-  public-surface test. `tests/test_novel_state_mutator_snapshots.py` snapshots
-  the `init` success, `set-cursor` refusal, and `advance-phase` refusal
-  envelopes (timestamp normalized), each paired with a semantic exit-code/`ok`
-  assertion. A
-  "State mutators" subsection was added to `docs/developers-guide.md` (the
-  validate-before-persist discipline, the exit-`3` refusal, the two-helper load
-  path, `init` create-not-overwrite, and the prior-state-only out-of-order
-  refusal mechanism, AR2-1). The `novel_state.py` and `state/__init__.py`
-  docstrings were refreshed. `make all`, `make markdownlint`, and `make nixie`
-  all green (329 passed); coderabbit `--agent` reported 0 findings.
+  gate. Done 2026-06-23: `build_initial_document` is re-exported and pinned in
+  a public-surface test. `tests/test_novel_state_mutator_snapshots.py`
+  snapshots the `init` success, `set-cursor` refusal, and `advance-phase`
+  refusal envelopes (timestamp normalized), each paired with a semantic
+  exit-code/`ok` assertion. A "State mutators" subsection was added to
+  `docs/developers-guide.md` (the validate-before-persist discipline, the
+  exit-`3` refusal, the two-helper load path, `init` create-not-overwrite, and
+  the prior-state-only out-of-order refusal mechanism, AR2-1). The
+  `novel_state.py` and `state/__init__.py` docstrings were refreshed.
+  `make all`, `make markdownlint`, and `make nixie` all green (329 passed);
+  coderabbit `--agent` reported 0 findings.
 
 ## Surprises & discoveries
 
 - Observation: the exit-`3` `run` arm emits only `messages` (no `result`), so a
   refused mutator cannot name the breached invariant in `result.violations` the
-  way `check`'s exit-`4` path does. Evidence: `contract/runner.py:run` builds the
-  refusal `CommandOutcome` with only `messages=list(exc.messages)` and a default
-  empty `result`; changing `run` is a Tolerance escalation. Impact: the refusal
-  message names the breached invariant(s) first in `messages` (via
-  `_refuse_if_incoherent`), and the work-item-1 `set-cursor` refusal test asserts
-  `cursor-coherent` appears in `messages`, not `result`.
+  way `check`'s exit-`4` path does. Evidence: `contract/runner.py:run` builds
+  the refusal `CommandOutcome` with only `messages=list(exc.messages)` and a
+  default empty `result`; changing `run` is a Tolerance escalation. Impact: the
+  refusal message names the breached invariant(s) first in `messages` (via
+  `_refuse_if_incoherent`), and the work-item-1 `set-cursor` refusal test
+  asserts `cursor-coherent` appears in `messages`, not `result`.
 - Observation: `set-cursor` must derive the typed view (proving structural
   completeness) *before* mutating `document["drafting"]`. Evidence: editing
   `document["drafting"]` on a valid-but-incomplete document (e.g.
-  `schema_version = 1`) raises `NonExistentKey` uncaught → exit `1`. Impact: the
-  body calls `_state_view_or_state_error(document)` first (discarding the view),
-  then mutates, then re-derives the proposed view for validation; this keeps the
-  incomplete-document case on the exit-`3` channel (BR2-1).
+  `schema_version = 1`) raises `NonExistentKey` uncaught → exit `1`. Impact:
+  the body calls `_state_view_or_state_error(document)` first (discarding the
+  view), then mutates, then re-derives the proposed view for validation; this
+  keeps the incomplete-document case on the exit-`3` channel (BR2-1).
 - Observation: a fixture bundling the three corpus constructors
-  (`populated_chapter_planning_tree`) was needed to keep both the into-`drafting`
-  success test and the `set-cursor` Hypothesis property within the
-  argument-count gate. Evidence: pylint R0913/R0917 fired at five parameters.
-  Impact: the corpus construction lives in `tests/corpus_fixtures.py`, not inline.
+  (`populated_chapter_planning_tree`) was needed to keep both the
+  into-`drafting` success test and the `set-cursor` Hypothesis property within
+  the argument-count gate. Evidence: pylint R0913/R0917 fired at five
+  parameters. Impact: the corpus construction lives in
+  `tests/corpus_fixtures.py`, not inline.
 
 ## Decision log
 
 - Decision (implementation deviation): the two document-load helpers and the
   `set-cursor`/`advance-phase` bodies live in a new
-  `novel_ralph_skill/commands/_state_mutators.py`, not in `novel_state.py` as the
-  plan's interface sketch suggested. Rationale: `novel_state.py` already held
-  `check`, `init`, the shared constants, and `_load_or_state_error`; adding two
-  more mutator bodies plus helpers would breach the 400-line cap (AGENTS.md). The
-  plan's Risk "module size" explicitly sanctioned this extraction. The sibling
-  imports `STATE_INPUT_ERRORS`/`WORKING_DIR_NAME` from `novel_state.py`, and
-  `build_app` imports the sibling lazily (inside the builder) to avoid a circular
-  import. No public surface changed. Date/Author: 2026-06-23, implementation
-  agent.
+  `novel_ralph_skill/commands/_state_mutators.py`, not in `novel_state.py` as
+  the plan's interface sketch suggested. Rationale: `novel_state.py` already
+  held `check`, `init`, the shared constants, and `_load_or_state_error`;
+  adding two more mutator bodies plus helpers would breach the 400-line cap
+  (AGENTS.md). The plan's Risk "module size" explicitly sanctioned this
+  extraction. The sibling imports `STATE_INPUT_ERRORS`/`WORKING_DIR_NAME` from
+  `novel_state.py`, and `build_app` imports the sibling lazily (inside the
+  builder) to avoid a circular import. No public surface changed. Date/Author:
+  2026-06-23, implementation agent.
 - Decision: `init` refuses (exit `3`) when `working/state.toml` already exists
   rather than overwriting. Rationale: the design §4.1 `init` row says "Create …
   an initial `state.toml`" and state-layout.md "Initialization" frames it as
@@ -382,8 +381,7 @@ Stop and escalate when any of these is breached rather than working around it.
   write source; `State` is the validation view. Date/Author: 2026-06-23,
   planning agent.
 - Decision: `set-cursor`, `advance-phase`, and `init` write only `state.toml`
-  (and
-  `init` an empty `log.md`), single files, so they use
+  (and `init` an empty `log.md`), single files, so they use
   `write_document_atomically` directly and do **not** open a `[pending_turn]`
   bracket. Rationale: design §3.4 scopes the bracket to a *multi-file* turn; a
   single `Path.replace` is already atomic. The bracket belongs to the
@@ -414,8 +412,8 @@ Stop and escalate when any of these is breached rather than working around it.
   2026-06-23, planning agent.
 - Decision: a **second** new helper,
   `_state_view_or_state_error(document) -> State`, wraps
-  `document_to_state(document)` under the same `STATE_INPUT_ERRORS`
-  tuple, and the mutators call it everywhere they previously called bare
+  `document_to_state(document)` under the same `STATE_INPUT_ERRORS` tuple, and
+  the mutators call it everywhere they previously called bare
   `document_to_state`. Rationale: `contract/runner.py:run` catches only
   `CycloptsError` and `StateInputError`; any other exception exits `1`, not the
   contract's `3`. A `state.toml` that is valid TOML but structurally incomplete
@@ -501,9 +499,9 @@ Stop and escalate when any of these is breached rather than working around it.
 ## Outcomes & retrospective
 
 Task closed 2026-06-23. All five work items landed as five atomic, gated
-commits; `make all` is green at HEAD (329 passed) and `make markdownlint`/`make
-nixie` pass for the Markdown changes. Each work item passed `coderabbit
---agent` with 0 findings.
+commits; `make all` is green at HEAD (329 passed) and `make markdownlint`/
+`make nixie` pass for the Markdown changes. Each work item passed
+`coderabbit --agent` with 0 findings.
 
 Confirmed against the acceptance criteria:
 
@@ -523,13 +521,13 @@ Deviations from the plan (all recorded in the Decision Log / Surprises):
 
 - The mutator bodies and the two load helpers live in a new
   `commands/_state_mutators.py`, not in `novel_state.py` (Risk "module size";
-  the plan sanctioned this). `build_app` imports the sibling lazily to avoid the
-  circular import the sibling's `STATE_INPUT_ERRORS`/`WORKING_DIR_NAME` import
-  creates.
+  the plan sanctioned this). `build_app` imports the sibling lazily to avoid
+  the circular import the sibling's `STATE_INPUT_ERRORS`/`WORKING_DIR_NAME`
+  import creates.
 - Refusals name the breached invariant(s) in the envelope's `messages`, not
   `result.violations`: the exit-`3` `run` arm emits only `messages`, and
-  changing `run` is a Tolerance escalation. The work-item-1 `set-cursor` refusal
-  test asserts on `messages` accordingly.
+  changing `run` is a Tolerance escalation. The work-item-1 `set-cursor`
+  refusal test asserts on `messages` accordingly.
 - `set-cursor` derives the typed view *before* mutating `[drafting]` so a
   valid-but-incomplete document cannot make the scalar edit raise
   `NonExistentKey` uncaught (exit `1`).
@@ -538,9 +536,9 @@ Gaps the `recount`/`reconcile` tasks (2.3.x) must absorb: these single-file
 mutators deliberately open no `[pending_turn]` bracket (Decision Log D3); the
 multi-file mutators own that producer/consumer flow. The `advance-phase` detail
 message reprs `Phase` members (e.g. `<Phase.PREMISE: 'premise'>`) because the
-§5.2 validator's `completed-prefix` detail uses `{tuple(...)!r}`; if a later task
-wants kebab strings in operator-facing detail, that is a `validate.py` change
-outwith this task's scope.
+§5.2 validator's `completed-prefix` detail uses `{tuple(...)!r}`; if a later
+task wants kebab strings in operator-facing detail, that is a `validate.py`
+change outwith this task's scope.
 
 ## Context and orientation
 
@@ -594,20 +592,19 @@ Files that already exist and that this task builds on (all DONE):
   `done`). A member *is* its kebab-case string.
 - `novel_ralph_skill/state/validate.py` —
   `validate_state(State) -> tuple[Violation, ...]` enforcing the §5.2
-  *pure-state* invariants
-  (`phase-in-enum`, `completed-prefix`, `by-chapter-sum`, the three convergence
-  sub-rules, `cursor-coherent` inv 6 in its pure-state form,
-  `gate-ratio-consistent`). An empty tuple means coherent. **It owns no
-  empty-manifest-into-drafting check**; that precondition (design §4.1 line
+  *pure-state* invariants (`phase-in-enum`, `completed-prefix`,
+  `by-chapter-sum`, the three convergence sub-rules, `cursor-coherent` inv 6 in
+  its pure-state form, `gate-ratio-consistent`). An empty tuple means coherent.
+  **It owns no empty-manifest-into-drafting check**; that precondition (design
+  §4.1 line
   266) is the `advance-phase` command body's, enforced explicitly. This is the
   validator the mutators apply to the *proposed* state before writing.
 - `novel_ralph_skill/contract/runner.py` —
   `CommandOutcome(code, result, messages)` (the value a body returns),
-  `StateInputError` (raise to signal exit
-  `3`), `RunContext`, `run(app, argv, context)` (drives the app, maps a
-  `CycloptsError` to exit `2`, a `StateInputError` to exit `3`, and a body
-  `CommandOutcome` to its `code`), and
-  `parse_global_flags(argv) -> (human, residual)`.
+  `StateInputError` (raise to signal exit `3`), `RunContext`,
+  `run(app, argv, context)` (drives the app, maps a `CycloptsError` to exit
+  `2`, a `StateInputError` to exit `3`, and a body `CommandOutcome` to its
+  `code`), and `parse_global_flags(argv) -> (human, residual)`.
 - `novel_ralph_skill/contract/exit_codes.py` — the `ExitCode` enum:
   `SUCCESS=0`, `BENIGN_NEGATIVE=1`, `USAGE_ERROR=2`, `STATE_ERROR=3`,
   `ACTIONABLE_FINDING=4`. Mutator success is `SUCCESS`; refusal is
@@ -696,9 +693,8 @@ subcommands through `run` (mirroring `tests/test_novel_state_check.py`'s
   `phase.current == "premise"`, `phase.completed == []`, empty `[chapters]`, and
   `[novel].target_word_count == 80000`.
 - `init` refusal: when `working/state.toml` already exists (from
-  `baseline_tree`,
-  `monkeypatch.chdir(working.parent)`), `init` exits `3` and leaves the
-  existing state byte-for-byte unchanged.
+  `baseline_tree`, `monkeypatch.chdir(working.parent)`), `init` exits `3` and
+  leaves the existing state byte-for-byte unchanged.
 - `set-cursor` success: on a `drafting`-phase tree with a populated manifest
   (`phase_state_tree("drafting")`, three chapters), set the cursor to an
   explicitly pinned in-range value — `chapter=2, scene=0, beat=0` (a chapter
@@ -794,8 +790,7 @@ mirroring the corpus `_build_state_document`
   - `[drafting.fangirl]`: **`last_chapter_passed = 0`** (`_drafting` reads
     `_table(raw, "fangirl")["last_chapter_passed"]`).
 - `[gates.knitting]`: **`done_30 = false`, `done_50 = false`, `done_80 = false`
-  **
-  (all three read by `_gates`).
+  ** (all three read by `_gates`).
 - `[gates.final]`: **`final_pass_complete = false`**.
 - `[word_counts]`: `target = target_word_count`, **`current = 0`**, and a
   **present (empty)** `by_chapter` inline table (`_word_counts` subscripts
@@ -940,8 +935,7 @@ kebab mapping at implementation time and pin it with a test). The body:
    missing/unparseable).
 3. Mutate the live document's `[drafting]` scalars:
    `document["drafting"] ["current_chapter"] = chapter`,
-   `["current_scene"] = scene`,
-   `["current_beat"] = beat`.
+   `["current_scene"] = scene`, `["current_beat"] = beat`.
 4. `proposed = _state_view_or_state_error(document)` (exit `3` on a
    structurally-incomplete-but-valid-TOML document — **never** bare
    `document_to_state`, which would exit `1`; BR2-1);
@@ -993,9 +987,9 @@ Add the `advance-phase` subcommand to `build_app`: signature `advance_phase()`
    `document_to_state`, which would exit `1`; BR2-1).
 2. **Refuse an already-incoherent prior state**:
    `if validate_state(prior): raise StateInputError(...)` (exit `3`, no write).
-   This is the explicit guard that
-   makes "out-of-order completion" a refusal — an advance never launders a
-   broken prior into a coherent successor (Decision Log D7).
+   This is the explicit guard that makes "out-of-order completion" a refusal —
+   an advance never launders a broken prior into a coherent successor (Decision
+   Log D7).
 3. Compute the successor: `index = PHASE_ORDER.index(prior.phase.current)`; if
    `index + 1 >= len(PHASE_ORDER)` (current is `done`, the terminal), refuse
    with exit `3` ("no phase after `done`").
@@ -1063,10 +1057,9 @@ with `phase_current="chapter-planning"`, `phase_completed=PHASE_ORDER[:7]` (i.e.
 `draft_words=0`, `has_done_flag=False`), `target_words=80000`,
 `consecutive_clean=0`, `convergence_target=1`, `current_chapter=0`; it builds
 the tree with `build_working_tree(spec, tmp_path)`. Advancing into `drafting`
-exits `0`, and the
-advanced state stays coherent (cursor at chapter 0 with a populated manifest is
-coherent, `by_chapter` sums to `0 == current`, gates all false against the
-`0.0` ratio — confirmed in the Verified Facts section).
+exits `0`, and the advanced state stays coherent (cursor at chapter 0 with a
+populated manifest is coherent, `by_chapter` sums to `0 == current`, gates all
+false against the `0.0` ratio — confirmed in the Verified Facts section).
 `PHASE_STATES["chapter-planning"]` (i.e.
 `phase_state_tree("chapter-planning")`) is **not** usable here — it has an
 empty manifest and hits the empty-manifest refusal, which is the *separate*
@@ -1244,11 +1237,10 @@ Acceptance is behaviour a human can verify:
   and write nothing. The out-of-order refusal is also proven by a `pytest-bdd`
   scenario (the roadmap success criterion; design §9, §3.2).
 - **Missing/unparseable/incomplete state exits `3`.** `set-cursor`/
-  `advance-phase`
-  against a cwd with no `working/state.toml`, against an unparseable one, **and
-  against a valid-TOML-but-structurally-incomplete one** (e.g.
-  `working/state.toml = "schema_version = 1\n"`) each exit `3` — the first two
-  through `_load_document_or_state_error`, the third through
+  `advance-phase` against a cwd with no `working/state.toml`, against an
+  unparseable one, **and against a valid-TOML-but-structurally-incomplete one**
+  (e.g. `working/state.toml = "schema_version = 1\n"`) each exit `3` — the
+  first two through `_load_document_or_state_error`, the third through
   `_state_view_or_state_error` — never exit `1` (BR2-1). Pinned by contract
   tests driving both subcommands against the incomplete file, by the
   `_state_view_or_state_error` unit test, and by the fault-subclass unit test
@@ -1291,9 +1283,9 @@ library behaviours were confirmed empirically with `uv run python` against the
 locked versions in this worktree (round 2).
 
 - **Cyclopts 4.18.0** (`uv.lock`). Subcommands are registered with
-  `@app.command`
-  on the app `build_app` returns; the existing `check` subcommand proves the
-  pattern (`commands/novel_state.py`). The app is configured
+  `@app.command` on the app `build_app` returns; the existing `check`
+  subcommand proves the pattern (`commands/novel_state.py`). The app is
+  configured
   `result_action="return_value", exit_on_error=False, print_error=False, help_on_error=False`
   so the shared `run` owns exits — the new subcommands inherit this. `--help`/
   `--version` are handled by Cyclopts and yield a non-`CommandOutcome` return
@@ -1323,9 +1315,8 @@ locked versions in this worktree (round 2).
   raises `NonExistentKey`. A bad phase string raises a plain `ValueError`, and
   `path.read_text` raises `OSError`. Therefore the **existing**
   `STATE_INPUT_ERRORS` tuple (`OSError`, `tomllib.TOMLDecodeError`, `KeyError`,
-  `ValueError`, `TypeError`)
-  already subsumes every fault the document load path raises; the new
-  `_load_document_or_state_error` reuses it unchanged, and
+  `ValueError`, `TypeError`) already subsumes every fault the document load
+  path raises; the new `_load_document_or_state_error` reuses it unchanged, and
   `tomllib.TOMLDecodeError` is simply inert there. A unit test re-pins the two
   `issubclass` facts so a future bump cannot silently regress the exit-`3`
   contract.
@@ -1347,20 +1338,20 @@ locked versions in this worktree (round 2).
   field-by-field against `state/parse.py`: `parse_state` reads
   `raw["schema_version"]`; `[novel]` `title`/`slug`/`target_word_count`/
   `created_at`; `[phase]` `current`/`completed`; `[drafting]` `current_chapter`/
-  `current_scene`/`current_beat`, `[drafting.critic]` `pass`/`consecutive_clean`
-  /`convergence_target`/`last_finding_counts` (`{blocker,major,minor,taste}`),
-  `[drafting.fangirl].last_chapter_passed`; `[gates.knitting]` `done_30`/
-  `done_50`/`done_80`, `[gates.final].final_pass_complete`; `[word_counts]`
-  `target`/`current`/`by_chapter`; and `raw["chapters"]`. Every one is read by
-  subscription with no default, so all must be present. This is the exact set
-  the corpus `_build_state_document` emits
-  (`tests/working_corpus/ _builder.py`), confirming the shape.
+  `current_scene`/`current_beat`, `[drafting.critic]` `pass`/
+  `consecutive_clean` /`convergence_target`/`last_finding_counts`
+  (`{blocker,major,minor,taste}`), `[drafting.fangirl].last_chapter_passed`;
+  `[gates.knitting]` `done_30`/ `done_50`/`done_80`,
+  `[gates.final].final_pass_complete`; `[word_counts]` `target`/`current`/
+  `by_chapter`; and `raw["chapters"]`. Every one is read by subscription with
+  no default, so all must be present. This is the exact set the corpus
+  `_build_state_document` emits (`tests/working_corpus/ _builder.py`),
+  confirming the shape.
 - **`advance-phase` into `drafting` success tree (B4 pin).** Verified
-  empirically
-  in this worktree: a `WorkingTreeSpec` with `phase_current="chapter-planning"`,
-  `phase_completed=PHASE_ORDER[:7]`, three `ChapterSpec` entries with
-  `draft_words=0`/`has_done_flag=False`, `current_chapter=0`,
-  `consecutive_clean=0`, `convergence_target=1`, built with
+  empirically in this worktree: a `WorkingTreeSpec` with
+  `phase_current="chapter-planning"`, `phase_completed=PHASE_ORDER[:7]`, three
+  `ChapterSpec` entries with `draft_words=0`/`has_done_flag=False`,
+  `current_chapter=0`, `consecutive_clean=0`, `convergence_target=1`, built with
   `build_working_tree`, is coherent (`validate_state` empty); appending
   `chapter-planning` to `completed` and setting `current="drafting"` yields a
   state that is **also** coherent (`validate_state` empty) with three manifest
@@ -1570,12 +1561,12 @@ design review (round 3).
 Lightweight addendum work items folded back onto this completed task from the
 post-merge audit (`docs/issues/audit-2.2.2.md`). Execute each as a small
 addendum pass — no plan or design-review cycle: make the change, run `make all`
-(plus `make markdownlint`/`make nixie` for Markdown), `coderabbit review
---agent`, commit, and tick the matching roadmap sub-task on merge. The
-substantial, cross-cutting findings were re-routed off this task: the mutator
-success-result vocabulary (audit Finding 2) to roadmap step 1.3 (task 1.3.5),
-and the partial-`init` bootstrap recovery (review:2.2.2) to step 2.3
-(task 2.3.4); the doc gap below is the small fix.
+(plus `make markdownlint`/`make nixie` for Markdown),
+`coderabbit review --agent`, commit, and tick the matching roadmap sub-task on
+merge. The substantial, cross-cutting findings were re-routed off this task:
+the mutator success-result vocabulary (audit Finding 2) to roadmap step 1.3
+(task 1.3.5), and the partial-`init` bootstrap recovery (review:2.2.2) to step
+2.3 (task 2.3.4); the doc gap below is the small fix.
 
 - [x] 2.2.2.1 — Document the `init`, `set-cursor`, and `advance-phase`
   subcommands in the users' guide (from audit:2.2.2, high). Task 2.2.2 promoted
@@ -1585,25 +1576,26 @@ and the partial-`init` bootstrap recovery (review:2.2.2) to step 2.3
   `init` (its `--title`/`--slug`/`--target-word-count` options, the directory
   skeleton it creates, and the exit-`3` refusal to overwrite an existing
   `state.toml`), `set-cursor` (its three integer options and the
-  `cursor-coherent` refusal), and `advance-phase` (its zero-argument advance, the
-  terminal-`done` refusal, and the empty-manifest-into-`drafting` refusal). State
-  the shared validate-before-persist, exit-`3` refusal, write-nothing contract
-  once and reference it from each. Gate with `make markdownlint` and `make
-  nixie`.
+  `cursor-coherent` refusal), and `advance-phase` (its zero-argument advance,
+  the terminal-`done` refusal, and the empty-manifest-into-`drafting` refusal).
+  State the shared validate-before-persist, exit-`3` refusal, write-nothing
+  contract once and reference it from each. Gate with `make markdownlint` and
+  `make nixie`.
 - [x] 2.2.2.2 — Route `_check`, `init`, and the two mutators through a single
   `working/state.toml` path accessor (from audit:1.3.5, low; re-surfaced from
   audit:2.2.2 Finding 3). The canonical path is constructed in three places —
-  `commands/novel_state.py` `_check` (`pathlib.Path(WORKING_DIR_NAME) /
-  "state.toml"`) and `init` (`working / "state.toml"`), and
-  `commands/_state_mutators.py` `_state_path` — so promote one accessor (reusing
-  the existing `_state_path` or a shared `WORKING_DIR_NAME`-anchored helper) and
-  route all four call sites through it, removing the triplicated path
-  construction without changing behaviour. Gate with `make all`.
+  `commands/novel_state.py` `_check`
+  (`pathlib.Path(WORKING_DIR_NAME) / "state.toml"`) and `init`
+  (`working / "state.toml"`), and `commands/_state_mutators.py` `_state_path` —
+  so promote one accessor (reusing the existing `_state_path` or a shared
+  `WORKING_DIR_NAME`-anchored helper) and route all four call sites through it,
+  removing the triplicated path construction without changing behaviour. Gate
+  with `make all`.
 - [x] 2.2.2.3 — Correct the partial-`init` direction in this plan's Decision Log
   D3 (from review:2.3.4, low). D3 describes the realizable partial-`init` as
-  `log.md` present and `state.toml` absent, but `init` writes `state.toml` first,
-  so the realizable case is the inverse (`state.toml` present, `log.md` absent),
-  the direction task 2.3.4 actually targets and reconciles. D3 was intentionally
-  left untouched as out of scope when 2.3.4 landed; correct the stale D3 prose
-  here so this plan's Decision Log agrees with the implemented direction. Gate
-  with `make markdownlint` and `make nixie`.
+  `log.md` present and `state.toml` absent, but `init` writes `state.toml`
+  first, so the realizable case is the inverse (`state.toml` present, `log.md`
+  absent), the direction task 2.3.4 actually targets and reconciles. D3 was
+  intentionally left untouched as out of scope when 2.3.4 landed; correct the
+  stale D3 prose here so this plan's Decision Log agrees with the implemented
+  direction. Gate with `make markdownlint` and `make nixie`.

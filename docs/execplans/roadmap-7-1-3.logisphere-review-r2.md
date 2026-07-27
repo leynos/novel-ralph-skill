@@ -5,9 +5,9 @@ Subject: `docs/execplans/roadmap-7-1-3.md` — "Single-source the
 
 Verdict: **Proceed with conditions.** The round-1 blocking defect (B1, the
 mischaracterised refuse snapshot) is fully and correctly resolved — every
-corrected claim was re-verified against source and is accurate. The design
-(one `reconciliation_payload` projection, four arms routed, dict-not-envelope,
-no behaviour change) is sound and unchanged. Round 2 surfaces two **new**
+corrected claim was re-verified against source and is accurate. The design (one
+`reconciliation_payload` projection, four arms routed, dict-not-envelope, no
+behaviour change) is sound and unchanged. Round 2 surfaces two **new**
 implementation-accuracy defects the round-1 review did not catch, both about
 guidance that would actively mislead the implementer. Neither is a design flaw;
 both are addressable with prose.
@@ -21,8 +21,8 @@ confirmed against source:
   `json.dumps(env, sort_keys=True) == snapshot` (keys SORTED). Confirmed.
 - The stored `test_reconcile_refuse.ambr` `result` reads
   `{"action", "detail", "discrepancies"}` — alphabetical, NOT the code's
-  `{action, discrepancies, detail}` insertion order. Confirmed by inspecting
-  the `.ambr`.
+  `{action, discrepancies, detail}` insertion order. Confirmed by inspecting the
+  `.ambr`.
 - `render_machine` (`contract/envelope.py:151`) is `json.dumps(ordered)` with
   **no** `sort_keys`; `test_novel_state_check_disk.py:234,248` assert
   `raw == snapshot`. The stored `check_disk` `reconciliation` blocks read
@@ -52,8 +52,8 @@ blocks in that file:
 
 - the **runtime** block at `novel_state.py:80` imports
   `build_initial_document, check_disk_evidence, derive_reconciliation,
-  validate_state, write_document_atomically` — and does **NOT** import
-  `Reconciliation`;
+  validate_state, write_document_atomically` —
+  and does **NOT** import `Reconciliation`;
 - the **TYPE_CHECKING-only** block at `novel_state.py:108`
   (`if typ.TYPE_CHECKING:`) imports `Reconciliation, State, Violation`.
 
@@ -69,13 +69,13 @@ which yields a `NameError` at runtime. `make all` would catch it, but the plan
 must not direct the implementer to the wrong block.
 
 Required fix (prose only): change the `novel_state.py` guidance to "add
-`reconciliation_payload` to the **runtime** `from novel_ralph_skill.state
-import (...)` block at line 80 that already imports `derive_reconciliation`
-(NOT the `TYPE_CHECKING` block at line 108 that imports `Reconciliation` — the
-file uses `from __future__ import annotations`, so the projection, a
-runtime-called symbol, needs a runtime import)." The `_reconcile.py` guidance
-(line 55 block, which imports both `Reconciliation` and `derive_reconciliation`
-at runtime) is correct as written and needs no change.
+`reconciliation_payload` to the **runtime**
+`from novel_ralph_skill.state import (...)` block at line 80 that already
+imports `derive_reconciliation` (NOT the `TYPE_CHECKING` block at line 108 that
+imports `Reconciliation` — the file uses `from __future__ import annotations`,
+so the projection, a runtime-called symbol, needs a runtime import)." The
+`_reconcile.py` guidance (line 55 block, which imports both `Reconciliation` and
+`derive_reconciliation` at runtime) is correct as written and needs no change.
 
 ### B3 — The byte-identity claim for `_write_outcome` rests on an unstated invariant (`action == reconciliation.action`) the plan never pins
 
@@ -87,9 +87,10 @@ self-evident — they already key off `reconciliation.action` (or, for `NONE`,
 
 `_write_outcome` is the exception. Its current body builds
 `"action": str(action)` from its **parameter** `action`
-(`_reconcile.py:216,225`), not from `reconciliation.action`. The projection
-the plan installs uses `str(reconciliation.action)`. These are byte-identical
-**only if** every `_write_outcome` caller passes `action == reconciliation.action`.
+(`_reconcile.py:216,225`), not from `reconciliation.action`. The projection the
+plan installs uses `str(reconciliation.action)`. These are byte-identical
+**only if** every `_write_outcome` caller passes
+`action == reconciliation.action`.
 
 Verified that they do — today:
 
@@ -101,25 +102,25 @@ Verified that they do — today:
   `action=ReconcileAction.RECREATE_LOG` (`reconcile.py:332-333`). Equal.
 - `test_reconcile.py:262` (`result["action"] == "recreate-log"`) exercises the
   `:313` path through the routed projection, so the existing regression net
-  catches a divergence on the one caller where the parameter could in
-  principle differ from `reconciliation.action`.
+  catches a divergence on the one caller where the parameter could in principle
+  differ from `reconciliation.action`.
 
 So the substitution is genuinely behaviour-preserving and the existing suite
 covers it. But the plan presents `_write_outcome` as trivially byte-identical
 ("byte-identical dict body to `_render_reconciliation`") and never names the
 `action` (parameter) versus `reconciliation.action` distinction, nor the
-invariant the substitution depends on. An implementer who notices the
-mismatch mid-edit has no guidance that it is intended and covered; one who does
-not notice has been told something subtly false (the bodies are NOT textually
+invariant the substitution depends on. An implementer who notices the mismatch
+mid-edit has no guidance that it is intended and covered; one who does not
+notice has been told something subtly false (the bodies are NOT textually
 identical — one reads `str(action)`, the other `str(reconciliation.action)`).
 
 Required fix (prose only, no design change): in Work Item 3's `_write_outcome`
 step, state that `_write_outcome` currently serializes its `action`
 **parameter** (`str(action)`), whereas the projection serializes
 `str(reconciliation.action)`; that this is byte-identical because both
-`_write_outcome` call sites (`:313`, `:322`) pass `action ==
-reconciliation.action` (the `:313` RECREATE_LOG case is the one where they are
-nominally distinct symbols but equal in value, pinned by
+`_write_outcome` call sites (`:313`, `:322`) pass
+`action == reconciliation.action` (the `:313` RECREATE_LOG case is the one
+where they are nominally distinct symbols but equal in value, pinned by
 `test_reconcile.py:262`); and that this caller invariant is what makes the
 substitution safe. Add it to the "Verified external facts" so the next agent
 need not re-derive it.
@@ -167,8 +168,7 @@ consistent with the current plan. No further action.
 2. **Second failure (carried):** a future field is added to `Reconciliation`
    and the projection is reordered, with the implementer trusting the refuse
    snapshot to catch it. Mitigation: already addressed — the `items()` pin is
-   now the named primary order pin and the refuse snapshot's sort is
-   documented.
+   now the named primary order pin and the refuse snapshot's sort is documented.
 3. **Third failure (carried):** the inlined `NONE` arm is left hand-built.
    Mitigation: the `git grep '"action": str('`-returns-one-hit observable in
    WI3 catches it; already in the plan.
@@ -191,14 +191,14 @@ ground.
 - `reconciliation_payload` / `to_payload` pre-exist nowhere in
   `novel_ralph_skill/` or `tests/`. Symbol is new.
 - `reconcile.py` is **341** lines; +~24 → ~365, under the 400 cap
-  (`pyproject.toml [tool.pylint] max-module-lines = 400`; `interrogate
-  fail-under = 100`; Ruff `line-length = 88`).
+  (`pyproject.toml [tool.pylint] max-module-lines = 400`;
+  `interrogate fail-under = 100`; Ruff `line-length = 88`).
 - The four arms and their exact bodies: `_render_reconciliation`
   (`novel_state.py:138-146`, `str(reconciliation.action)`), `_write_outcome`
   (`_reconcile.py:224-231`, `str(action)` — parameter), `_refuse_outcome`
   (`_reconcile.py:250-254`, `str(reconciliation.action)`, base three), `NONE`
-  arm (`_reconcile.py:296-300`, `str(action)` with `action =
-  reconciliation.action`, `discrepancies: []`).
+  arm (`_reconcile.py:296-300`, `str(action)` with
+  `action = reconciliation.action`, `discrepancies: []`).
 - `_write_outcome` callers: `_reconcile.py:313`
   (`ReconcileAction.RECREATE_LOG`, equals `reconciliation.action` per
   `reconcile.py:332-333`) and `:322` (`action`, equals `reconciliation.action`
@@ -208,9 +208,9 @@ ground.
   `json.dumps(env, sort_keys=True)` (sorted; field set only);
   `test_novel_state_check_disk.py:234,248` `raw == snapshot` against unsorted
   `render_machine` (insertion order, READ path).
-- `state/__init__.py` re-exports `ReconcileAction, Reconciliation,
-  derive_reconciliation` (import `:62-66`, `__all__` `:136-149`); adding one
-  name is the established pattern.
+- `state/__init__.py` re-exports
+  `ReconcileAction, Reconciliation, derive_reconciliation` (import `:62-66`,
+  `__all__` `:136-149`); adding one name is the established pattern.
 - Both command modules have `from __future__ import annotations`
   (`novel_state.py:41`, `_reconcile.py:40`); `Reconciliation` is a
   TYPE_CHECKING-only import in `novel_state.py:108`, a runtime import in

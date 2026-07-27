@@ -539,26 +539,26 @@ escalation, not a workaround.
 
 Completed 2026-06-25. All five work items landed as five atomic, gate-passing
 commits; every deterministic gate (`make all`) and, for the markdown change,
-`make markdownlint`/`make nixie` are green at HEAD; coderabbit returned 0 findings
-on the delivered test/doc changes across all five reviews.
+`make markdownlint`/`make nixie` are green at HEAD; coderabbit returned 0
+findings on the delivered test/doc changes across all five reviews.
 
-Against the roadmap success criterion ("the `command x output-mode x phase` matrix
-is covered, with the knowingly carried gaps documented rather than silently
-omitted"): the matrix delivers 55 machine-mode snapshot cells, 55 human-mode
-presence cells, and five per-command semantic branch tests, all pinned to the
-verified per-phase envelopes captured in-process over the real corpus. The carried
-gaps are documented in code (the module's `Carried gaps` docstring) and in the
-developers-guide, not in prose alone. The regression-catching property holds:
-deleting a command's phase branch (e.g. making `novel-done`'s `phase_is_done`
-ignore the phase) fails a named test.
+Against the roadmap success criterion ("the `command x output-mode x phase`
+matrix is covered, with the knowingly carried gaps documented rather than
+silently omitted"): the matrix delivers 55 machine-mode snapshot cells, 55
+human-mode presence cells, and five per-command semantic branch tests, all
+pinned to the verified per-phase envelopes captured in-process over the real
+corpus. The carried gaps are documented in code (the module's `Carried gaps`
+docstring) and in the developers-guide, not in prose alone. The
+regression-catching property holds: deleting a command's phase branch (e.g.
+making `novel-done`'s `phase_is_done` ignore the phase) fails a named test.
 
-No production code or corpus file changed (tests-only, as constrained). No design
-clause was found under-specified; every pinned value reproduced the design's §4.2
-/ §4.5 / §10 behaviour exactly. Two implementation lessons worth carrying forward
-(recorded in Surprises): the reused volatile-field guard needed a one-token
-exemption for the deterministic `working/manuscript/compiled.md` path, and `make
-fmt` must be avoided in favour of `uv run ruff format` because `mdformat-all`
-reflows every repo markdown file.
+No production code or corpus file changed (tests-only, as constrained). No
+design clause was found under-specified; every pinned value reproduced the
+design's §4.2 / §4.5 / §10 behaviour exactly. Two implementation lessons worth
+carrying forward (recorded in Surprises): the reused volatile-field guard
+needed a one-token exemption for the deterministic
+`working/manuscript/compiled.md` path, and `make fmt` must be avoided in favour
+of `uv run ruff format` because `mdformat-all` reflows every repo markdown file.
 
 ## Context and orientation
 
@@ -750,8 +750,8 @@ across the relevant phases, for the three genuinely phase-sensitive commands:
   `knitting_gates_passed`, and `compile_consistent` (compiled.md missing) —
   **not** `all_chapters_flagged`, which is **True** on these trees because it
   holds **vacuously** over the empty manifest (`done_predicate.py` line 182,
-  "An empty manifest holds vacuously"); the captured pre-drafting `messages`
-  are `["phase_is_done is false", "final_pass_complete is false",
+  "An empty manifest holds vacuously"); the captured pre-drafting `messages` are
+  `["phase_is_done is false", "final_pass_complete is false",
   "knitting_gates_passed is false",
   "compile_consistent is false (compiled.md missing)"]`.
   Do **not** attribute the pre-drafting failure to `all_chapters_flagged` —
@@ -794,8 +794,7 @@ across the relevant phases, for the three genuinely phase-sensitive commands:
   the oracle, so it is not a duplicate of `tests/test_validate_state_corpus.py`
   (review advisory A2; Risk 3).
 - `test_wordcount_branch_across_phases`: drive `wordcount` (argv `[]`) across
-  all
-  eleven phases; assert the **two verified branches** (§4.5; the gate
+  all eleven phases; assert the **two verified branches** (§4.5; the gate
   geometry's totality guard at `_wordcount_report._gate_geometry` and
   `validate.py:261`):
   - the eight pre-drafting phases plus `chapter-planning` (empty manifest)
@@ -857,8 +856,7 @@ Progress and compare against the 600-line tolerance.
 ### Work item 5 — documented carried-gaps note and developers-guide pointer
 
 - Add a module-level `# Carried gaps:` docstring section enumerating exactly
-  what
-  the matrix does **not** cover and why: mutator × phase cross-products
+  what the matrix does **not** cover and why: mutator × phase cross-products
   (command/query segregation, §3.3; covered by 6.2.2/6.2.5), the exhaustive
   eleven-phase cross-product for the manifest-sensitive commands
   (`novel-compile --check`, `desloppify` collapse to their manifest branches,
@@ -1091,10 +1089,11 @@ after the task landed (`roadmap-6-2-1` fix round 1):
   the round-2/3/4 review sidecars and this ExecPlan carried over-long inline
   JSON literals (MD013) and a hyphen-led prose line parsed as a list (MD032).
   The long literals were wrapped across lines (keeping the established
-  wrapped-inline-code-span style in the ExecPlan, fenced `text`/`json` blocks in
-  the review sidecars where that file's first code block already sets a fenced
-  convention) and the stray list line was reflowed. No semantic content changed;
-  every captured value is byte-for-byte the same as before, only re-wrapped.
+  wrapped-inline-code-span style in the ExecPlan, fenced `text`/`json` blocks
+  in the review sidecars where that file's first code block already sets a
+  fenced convention) and the stray list line was reflowed. No semantic content
+  changed; every captured value is byte-for-byte the same as before, only
+  re-wrapped.
 
 Round-4 revision (2026-06-25). Resolves the single residual blocking defect
 (B5) in `roadmap-6-2-1.review-r3.md`, a B4-class error in the *pre-drafting*

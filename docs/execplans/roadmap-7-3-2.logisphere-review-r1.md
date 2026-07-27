@@ -1,8 +1,8 @@
 # Logisphere design review — roadmap 7.3.2 — Round 1
 
-Adversarial pre-implementation review of
-`docs/execplans/roadmap-7-3-2.md` (Collapse the multiplexer mount lines onto a
-registry-driven construction table).
+Adversarial pre-implementation review of `docs/execplans/roadmap-7-3-2.md`
+(Collapse the multiplexer mount lines onto a registry-driven construction
+table).
 
 Verdict: **Proceed with conditions.** The plan's structural thesis, its
 load-bearing reinterpretation of the stale roadmap text, and its single
@@ -21,23 +21,23 @@ without relaxing any design constraint.
   `pyproject.toml` read directly.)
 - **D1 reinterpretation is correct and necessary.** `docs/roadmap.md`
   lines 2849–2871 do say "four entry-point functions" and "keyed off
-  `COMMAND_ENTRY_POINTS`"; both are retired. `tests/test_legacy_surface_retired.py`
-  line 66 asserts `not hasattr(names, "COMMAND_ENTRY_POINTS")`. The literal
-  reading is impossible; the plan's reroute onto a `SUBCOMMAND_NAMES`-keyed
-  table is the faithful interpretation.
+  `COMMAND_ENTRY_POINTS`"; both are retired.
+  `tests/test_legacy_surface_retired.py` line 66 asserts
+  `not hasattr(names, "COMMAND_ENTRY_POINTS")`. The literal reading is
+  impossible; the plan's reroute onto a `SUBCOMMAND_NAMES`-keyed table is the
+  faithful interpretation.
 - **Cyclopts 4.18.0 mount semantics — VERIFIED AGAINST REAL SOURCE, claim is
   true.** `App.command()` for an `App` child calls
   `_apply_parent_defaults_to_app(app, self)`, which mutates only
   `_group_commands`, `_group_parameters`, `_group_arguments`, and `version`
-  (and only when unset). It does **not** touch `result_action`,
-  `exit_on_error`, `print_error`, or `help_on_error`. The four-flag contract on
-  each mounted leaf is preserved. (Read from the locked 4.18.0 wheel:
-  `cyclopts/core.py` `command()` at line 1296 and
-  `_apply_parent_defaults_to_app` at line 135.) The plan's claim "mounting
-  copies only the child's group and version defaults, never its contract flags"
-  is accurate, and the developers guide already documents the same policy
-  (lines ~447–449). The loop calls the identical
-  `app.command(build_app(), name=…)` API, so behaviour is unchanged.
+  (and only when unset). It does **not** touch `result_action`, `exit_on_error`,
+  `print_error`, or `help_on_error`. The four-flag contract on each mounted
+  leaf is preserved. (Read from the locked 4.18.0 wheel: `cyclopts/core.py`
+  `command()` at line 1296 and `_apply_parent_defaults_to_app` at line 135.)
+  The plan's claim "mounting copies only the child's group and version
+  defaults, never its contract flags" is accurate, and the developers guide
+  already documents the same policy (lines ~447–449). The loop calls the
+  identical `app.command(build_app(), name=…)` API, so behaviour is unchanged.
 - **cuprum is correctly scoped out.** Verified against the read-only sibling
   `/data/leynos/Projects/cuprum/cuprum/catalogue.py`: `ProgramCatalogue` is
   `projects=`-constructed (line 62) with an `allowlist` property (line 70),
@@ -66,8 +66,8 @@ modules are inside `PYTHON_TARGETS` and may not use bare `assert`" and must use
 (the assert rule) is **ignored for test files**. The existing
 `tests/test_multiplexer_dispatch.py` (lines 47, 58, 69, 99, 121, 144) and
 `tests/test_legacy_surface_retired.py` (line 66) use bare `assert` freely and
-pass lint. The new `test_multiplexer_mount_table.py` is a `test_*.py` module and
-inherits the same ignore.
+pass lint. The new `test_multiplexer_mount_table.py` is a `test_*.py` module
+and inherits the same ignore.
 
 Impact: the false constraint pushes the implementer to write contorted
 helper-based assertions that diverge from the house style of the very suites
@@ -98,20 +98,20 @@ Impact: the primary instruction sends the implementer hunting for an idiom that
 does not exist, against the Shared-test-scaffolding rule's "reuse, don't
 duplicate" framing. There is a deeper trap the plan half-sees: the same module
 (`test_multiplexer_mount_table.py`) imports the five leaf modules at module
-scope for the Work-item-1 identity tests
-(`... is novel_state.build_app`), so by the time any test in that module runs,
-the leaves are already in the process's `sys.modules`. An **in-process**
-`sys.modules`-absence check is therefore structurally impossible in this module;
-the guard *must* run in a child process with a clean interpreter, or fall back
-to the `inspect.getsource` textual check the plan offers as a downgrade.
+scope for the Work-item-1 identity tests (`... is novel_state.build_app`), so
+by the time any test in that module runs, the leaves are already in the
+process's `sys.modules`. An **in-process** `sys.modules`-absence check is
+therefore structurally impossible in this module; the guard *must* run in a
+child process with a clean interpreter, or fall back to the `inspect.getsource`
+textual check the plan offers as a downgrade.
 
-Required fix: the plan must either (a) specify the actual subprocess/`importlib`
-mechanism to spawn a clean interpreter and inspect its `sys.modules` (spelling
-it out, since no reusable idiom exists), with the leaf-import-at-module-scope
-collision called out and handled; or (b) make the `inspect.getsource` in-process
-guard the *primary* mechanism (not a fallback) and drop the false claim that a
-sanctioned fresh-import idiom can be reused. As written, the primary path is
-unimplementable as described.
+Required fix: the plan must either (a) specify the actual subprocess/
+`importlib` mechanism to spawn a clean interpreter and inspect its
+`sys.modules` (spelling it out, since no reusable idiom exists), with the
+leaf-import-at-module-scope collision called out and handled; or (b) make the
+`inspect.getsource` in-process guard the *primary* mechanism (not a fallback)
+and drop the false claim that a sanctioned fresh-import idiom can be reused. As
+written, the primary path is unimplementable as described.
 
 ## Advisory (non-blocking)
 
@@ -121,21 +121,21 @@ unimplementable as described.
   convention in `test_multiplexer_dispatch.py`, so it is acceptable — but note
   the contract being pinned (verb-set == registry, value identity == leaf
   `build_app`) is a *structural* contract on a private symbol; if a later step
-  inlines the table back into `build_multiplexer`, three tests break. The plan's
-  D1/D2 record makes that an intentional tripwire, which is fine; just be aware
-  the test couples to an implementation seam, not a public surface.
+  inlines the table back into `build_multiplexer`, three tests break. The
+  plan's D1/D2 record makes that an intentional tripwire, which is fine; just
+  be aware the test couples to an implementation seam, not a public surface.
 - A2 (Dinolump): Work item 1 leaves `test_multiplexer_mount_table.py` failing
   at *collection* (import-time `AttributeError`), not at *assertion*. Under
   `pytest -n auto` a collection error in one module is reported distinctly from
-  a failed test; the plan's "fails to collect (red)" expectation is correct, but
-  the implementer should confirm the rest of the suite still runs green
-  (collection errors can, in some pytest configs, be escalated). Low risk; worth
-  an explicit check in the Work-item-1 validation step.
+  a failed test; the plan's "fails to collect (red)" expectation is correct,
+  but the implementer should confirm the rest of the suite still runs green
+  (collection errors can, in some pytest configs, be escalated). Low risk;
+  worth an explicit check in the Work-item-1 validation step.
 - A3 (Pandalump): the plan slightly misquotes developers-guide line 420
   ("spaced subcommand names live once as data" vs the actual "The spaced
   subcommand names live once, as data, in a single registry"). Substance is
-  faithful; tidy the quote when the guide note is added so the new prose matches
-  the source it cites.
+  faithful; tidy the quote when the guide note is added so the new prose
+  matches the source it cites.
 - A4 (Buzzy Bee / scaling): non-issue, recorded for completeness. The table is
   rebuilt on every `build_multiplexer()` call (fresh dict + five attribute
   lookups). `build_multiplexer()` is called once per `main()` invocation, so
@@ -145,11 +145,12 @@ unimplementable as described.
 
 1. **Most likely failure:** the laziness-guard test (B2) is written in-process,
    silently passes because some *other* test module already imported a leaf into
-   `sys.modules`, or silently passes because the assertion is inverted — giving
-   false confidence that laziness holds while a future module-level hoist of the
-   table goes uncaught. Mitigation: resolve B2 by mandating a clean-interpreter
-   subprocess or the explicit `inspect.getsource` guard, and have the test prove
-   itself by *failing* against a deliberately-hoisted table during authoring.
+   `sys.modules`, or silently passes because the assertion is inverted —
+   giving false confidence that laziness holds while a future module-level
+   hoist of the table goes uncaught. Mitigation: resolve B2 by mandating a
+   clean-interpreter subprocess or the explicit `inspect.getsource` guard, and
+   have the test prove itself by *failing* against a deliberately-hoisted table
+   during authoring.
 2. **Second failure:** the implementer, following B1's false constraint, writes
    helper-based assertions, trips PLR/naming rules the helpers introduce, burns
    the 3-iteration tolerance, and escalates on a self-inflicted lint problem.
@@ -176,8 +177,8 @@ adopted.
 
 ## Bottom line
 
-The design is sound and the hard verifications (Cyclopts, cuprum, D1) pass.
-Fix B1 and B2 in the plan text — both are test-infrastructure premises that are
-demonstrably false against this repo — then this is implementable as written. Do
-not relax any design constraint to clear them; the fixes are corrections to the
-plan's description of the test harness, not to the design.
+The design is sound and the hard verifications (Cyclopts, cuprum, D1) pass. Fix
+B1 and B2 in the plan text — both are test-infrastructure premises that are
+demonstrably false against this repo — then this is implementable as written.
+Do not relax any design constraint to clear them; the fixes are corrections to
+the plan's description of the test harness, not to the design.

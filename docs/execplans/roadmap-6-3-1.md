@@ -85,8 +85,7 @@ escalation, not a workaround.
   and escalate — the design points at exactly two producer call-sites plus one
   helper.
 - Interface: the shared helper is a new internal (underscore-prefixed) symbol;
-  if
-  satisfying the task appears to require changing a **public** signature
+  if satisfying the task appears to require changing a **public** signature
   (`StateInputError`, `CommandOutcome`, `run`, or any command body's public
   surface), stop and escalate.
 - Dependencies: if any work item appears to need a new external dependency, stop
@@ -148,7 +147,8 @@ escalation, not a workaround.
 - [x] Work item 2 — routed `_load_document_or_state_error` through the shared
       helper and proved byte-for-byte parity with the reader boundary
       (`tests/test_state_input_message_parity.py`).
-- [x] Work item 3 — refreshed the in-process matrix `_STATE_ARM` prefix and added
+- [x] Work item 3 — refreshed the in-process matrix `_STATE_ARM` prefix and
+      added
       the cross-class pytest-bdd scenario (mutator/checker/reader) proving exit
       3, identical actionable prose, and no `Errno` or traceback.
 - [x] Work item 4 — refreshed the installed-binary error-arm e2e `_STATE_ARM`
@@ -219,46 +219,49 @@ escalation, not a workaround.
   the worktree venv (see Surprises). No new cuprum call is introduced; only the
   asserted message prefix changes. Date/Author: 2026-06-26, planner.
 - Decision (D6, deviation): adding the ~50-line shared helper plus its expanded
-  docstrings pushed `novel_state.py` from 399 to 451 lines, over the 400-line cap
-  (AGENTS.md). Rather than gut the load-bearing rationale from the docstrings, the
-  load boundary and its accessors (`WORKING_DIR_NAME`, `working_dir`, `state_path`,
-  `STATE_INPUT_ERRORS`, `_state_input_error`, `_load_or_state_error`) were extracted
-  into a new dependency-free leaf module `novel_ralph_skill/commands/_state_load.py`
-  and re-exported from `novel_state` via `__all__`. This honours the Constraint
-  "the helper's home must not create an import cycle": `_state_load` imports only
-  from `state` and `contract.runner`, never from `novel_state`, so the
-  `_state_mutators` → `novel_state` direction is preserved and every existing
-  importer keeps importing from `novel_state` unchanged. It mirrors the prior
+  docstrings pushed `novel_state.py` from 399 to 451 lines, over the 400-line
+  cap (AGENTS.md). Rather than gut the load-bearing rationale from the
+  docstrings, the load boundary and its accessors (`WORKING_DIR_NAME`,
+  `working_dir`, `state_path`, `STATE_INPUT_ERRORS`, `_state_input_error`,
+  `_load_or_state_error`) were extracted into a new dependency-free leaf module
+  `novel_ralph_skill/commands/_state_load.py` and re-exported from
+  `novel_state` via `__all__`. This honours the Constraint "the helper's home
+  must not create an import cycle": `_state_load` imports only from `state` and
+  `contract.runner`, never from `novel_state`, so the `_state_mutators` →
+  `novel_state` direction is preserved and every existing importer keeps
+  importing from `novel_state` unchanged. It mirrors the prior
   `_state_mutators` carve-out, which was itself split off for the same cap. Net
-  source files touched: 3 production + 6 test/doc, within the Tolerance bound of
-  6 source files. Date/Author: 2026-06-26, implementer.
+  source files touched: 3 production + 6 test/doc, within the Tolerance bound
+  of 6 source files. Date/Author: 2026-06-26, implementer.
 - Decision (D7): no Hypothesis property test was added. The example-based unit
   tests already pin both call shapes and both remedy arms, and the input domain
   (a `pathlib.Path` plus a caught `STATE_INPUT_ERRORS` member) is too narrow to
-  earn a property test that would only restate the unit logic (AGENTS.md line 162;
-  `python-verification`). Date/Author: 2026-06-26, implementer.
+  earn a property test that would only restate the unit logic (AGENTS.md line
+  162; `python-verification`). Date/Author: 2026-06-26, implementer.
 - Decision (D8): `_state_view_or_state_error` in `_state_mutators.py` is **not**
-  routed through the shared `_state_input_error` helper and is not a producer of
-  the `cannot load …`/`unreadable or corrupt` message. Rationale: it reports a
-  *parsed-but-structurally-incomplete* document — a `state.toml` that parsed as
-  TOML but failed `document_to_state` (a missing table or key, or a bad phase
-  string) — not a failed *load*. Its remedy ("the state is structurally
+  routed through the shared `_state_input_error` helper and is not a producer
+  of the `cannot load …`/`unreadable or corrupt` message. Rationale: it reports
+  a *parsed-but-structurally-incomplete* document — a `state.toml` that parsed
+  as TOML but failed `document_to_state` (a missing table or key, or a bad
+  phase string) — not a failed *load*. Its remedy ("the state is structurally
   incomplete") differs from the load boundary's ("run from the novel root" or
   "inspect and repair"), so sharing the load helper would mislead. It is an
   out-of-scope, non-producer boundary for §6.3.1, deliberately left distinct. A
   future reviewer must not mistake it for a third producer of the load message,
-  route it through `_state_input_error`, or flag a false drift. This records the
-  entry Work item 2 step 3 directed; the code already cites "Decision Log D8".
-  Date/Author: 2026-06-26, implementer (addendum 6.3.1.1).
+  route it through `_state_input_error`, or flag a false drift. This records
+  the entry Work item 2 step 3 directed; the code already cites "Decision Log
+  D8". Date/Author: 2026-06-26, implementer (addendum 6.3.1.1).
 
 ## Outcomes & retrospective
 
 Delivered. The shipped missing-case message matches the Purpose verbatim:
 `no novel working/ found in <cwd>; run from the novel root, or run 'novel state
-init' to create one`. The present-but-corrupt arm emits a distinct repair message
+init' to create one`.
+The present-but-corrupt arm emits a distinct repair message
 (`<path> is unreadable or corrupt; inspect and repair it, or restore it from a
-known-good copy`) that deliberately omits the `init` remedy (Decision D2). The
-cross-class pytest-bdd scenario proves a mutator, a checker, and a reader emit
+known-good copy`)
+that deliberately omits the `init` remedy (Decision D2). The cross-class
+pytest-bdd scenario proves a mutator, a checker, and a reader emit
 byte-for-byte identical actionable prose with no `Errno`/traceback, and the
 `grep -rn "cannot load"` sweep over `novel_ralph_skill/` and `tests/` returns
 nothing. The one deviation from the plan as drafted is the `_state_load` module
@@ -415,9 +418,9 @@ the import direction and every mutator call-site); `en-gb-oxendict`.
 What to do:
 
 1. In `novel_ralph_skill/commands/_state_mutators.py`, import the shared helper
-   from `novel_state` (alongside the existing `STATE_INPUT_ERRORS`/`working_dir`
-   / `state_path` imports at lines 35-43; respect the `__all__` re-export
-   pattern if the symbol needs forwarding). Rewrite
+   from `novel_state` (alongside the existing `STATE_INPUT_ERRORS`/
+   `working_dir` / `state_path` imports at lines 35-43; respect the `__all__`
+   re-export pattern if the symbol needs forwarding). Rewrite
    `_load_document_or_state_error`'s `except STATE_INPUT_ERRORS as exc:` arm
    (lines 104-106) to delegate: `raise _state_input_error(path, exc)`. Keep the
    caught tuple unchanged.
@@ -596,14 +599,12 @@ Run everything from the worktree root
 Quality criteria (what "done" means):
 
 - Tests: `make all` passes (`pytest -v -n …`, plus build/lint/typecheck). The
-  new
-  unit test, the helper-parity unit test, the cross-class behavioural scenario,
-  and the refreshed matrix/e2e arms all pass; each fails before its
+  new unit test, the helper-parity unit test, the cross-class behavioural
+  scenario, and the refreshed matrix/e2e arms all pass; each fails before its
   corresponding production change and passes after.
 - Behaviour: running `novel state check`, `novel wordcount`, and
   `novel state recount` from a directory with no `working/` each exits 3 and
-  prints an
-  envelope whose `messages` contains the actionable, cwd-naming,
+  prints an envelope whose `messages` contains the actionable, cwd-naming,
   `novel state init`-suggesting text, with no `Errno` and no traceback, and the
   text is identical across the three commands.
 - Lint/typecheck: `make lint` and `make typecheck` pass (en-GB comments, 100%
@@ -635,8 +636,8 @@ The load-bearing facts pinned during research:
 - The shared vocabulary tuple: `novel_state.py:130-136` `STATE_INPUT_ERRORS`.
 - The locked cuprum 0.1.0 e2e surface (verified in the worktree venv):
   `SafeCmd.run_sync(*, capture=True, echo=False, context=ExecutionContext)`,
-  `ExecutionContext` carries `cwd`, `CommandResult` carries `exit_code`/`stdout`
-  /`stderr`, `sh.make(program, catalogue=…)`,
+  `ExecutionContext` carries `cwd`, `CommandResult` carries `exit_code`/
+  `stdout` /`stderr`, `sh.make(program, catalogue=…)`,
   `ProgramCatalogue(projects=(ProjectSettings(name, programs, …),))`.
 
 ## Interfaces and dependencies
@@ -659,12 +660,13 @@ Both producers — `_load_or_state_error` (same module) and
 
 ## Addenda
 
-- [x] 6.3.1.1 (from review:6.3.1; low). Record the omitted Decision Log entry that
+- [x] 6.3.1.1 (from review:6.3.1; low). Record the omitted Decision Log entry
+      that
   Work item 2 step 3 directed: `_state_view_or_state_error` in
   `_state_mutators.py` reports a *parsed-but-structurally-incomplete* document,
   not a failed load, so it is an out-of-scope, non-producer boundary for §6.3.1
-  and is deliberately not routed through the shared `_state_input_error` helper.
-  A future reviewer must not mistake it for a third producer of the
+  and is deliberately not routed through the shared `_state_input_error`
+  helper. A future reviewer must not mistake it for a third producer of the
   `cannot load …` message and over-refactor it or flag a false drift. Pure
   documentation; no code change. Lightweight addendum pass.
 - [x] 6.3.1.2 (from review:6.3.1; low). Add a corrupt-arm parity assertion to

@@ -14,9 +14,8 @@ not a rewrite.
 - Cyclopts 4.18.0 `pathlib.Path | None = None` keyword — proven in-repo by the
   live `--pack` flag (`_desloppify.py` `build_app._scan`).
 - pytest-timeout per-test `@pytest.mark.timeout(180)` superseding the 30s
-  default
-  under xdist — pinned by the working `tests/test_desloppify_e2e.py` running
-  under `make test`'s `-n` xdist invocation; not a memory claim.
+  default under xdist — pinned by the working `tests/test_desloppify_e2e.py`
+  running under `make test`'s `-n` xdist invocation; not a memory claim.
 - Error/exit routing (`EnvelopeMessagesError`, `StateInputError` → exit 3,
   `RulePackError` caught and mapped to exit-2 `CommandOutcome` locally) —
   matches `_desloppify.py` and `contract/runner.py`.

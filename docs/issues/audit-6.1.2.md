@@ -26,8 +26,8 @@ names as the source of truth. The remaining items are a self-acknowledged
 ordering/insertion-point test gap, a minor inconsistency between the two
 finished-tolerance bands, and the usual fragile-prose-coupling note.
 
-Trail followed: created a `git worktree` off `origin/main`; explored with
-`leta` (`leta files`, `leta grep`, `leta show`) over `tests/conftest.py`,
+Trail followed: created a `git worktree` off `origin/main`; explored with `leta`
+(`leta files`, `leta grep`, `leta show`) over `tests/conftest.py`,
 `commands/_wordcount.py`, and `commands/_wordcount_report.py`; traced history
 with `git show b41e957 --stat` and `sem`. Source of truth consulted:
 `docs/novel-ralph-harness-design.md` §4.5 and §5, `docs/users-guide.md`,
@@ -69,13 +69,13 @@ change has nowhere to be recorded but the prompt itself.
 
 Proposed fix: add a short subsection to the design doc — most naturally
 extending §4.5 (`novel wordcount`), since the bands are read off the figures
-`wordcount` already reports — that records (a) the net-deflationary finding from
-beta testing, (b) the chosen compensation (expand the draft, hold the target
-fixed), and (c) the three bands with their rationale (why 115–125% pre-cut, why
-the finished tolerance is tighter than the planning ±10%). `SKILL.md` then
-becomes the operational rendering of a design-doc-anchored policy rather than
-its sole source. Cross-reference the new subsection from the `SKILL.md` Phase 8
-rationale paragraph.
+`wordcount` already reports — that records (a) the net-deflationary finding
+from beta testing, (b) the chosen compensation (expand the draft, hold the
+target fixed), and (c) the three bands with their rationale (why 115–125%
+pre-cut, why the finished tolerance is tighter than the planning ±10%).
+`SKILL.md` then becomes the operational rendering of a design-doc-anchored
+policy rather than its sole source. Cross-reference the new subsection from the
+`SKILL.md` Phase 8 rationale paragraph.
 
 ## Finding 2 — Guard cannot pin the load-bearing ordering or insertion point of the expand step
 
@@ -103,12 +103,12 @@ deliver.
 Proposed fix: add two ordering assertions that operate on offsets within the
 already-sliced regions — in Phase 8, assert the first index of "expand to
 target" precedes the first index of "desloppify"; in Phase 9, assert the
-"expand to target" index follows the "spiteful critic" (or "structural")
-index. These remain substring-level (no parsing of the prose) and stay within
-the file-text discipline the module already uses, but they convert the
-load-bearing ordering from "human review only" into a pinned property. The
-module docstring should then be narrowed to note that only the *fine* placement
-(e.g. which lettered sub-step) remains human-verified.
+"expand to target" index follows the "spiteful critic" (or "structural") index.
+These remain substring-level (no parsing of the prose) and stay within the
+file-text discipline the module already uses, but they convert the load-bearing
+ordering from "human review only" into a pinned property. The module docstring
+should then be narrowed to note that only the *fine* placement (e.g. which
+lettered sub-step) remains human-verified.
 
 ## Finding 3 — Two finished-tolerance bands (5% chapter, 3% novel) coexist without a stated relationship
 
@@ -117,7 +117,7 @@ module docstring should then be narrowed to note that only the *fine* placement
 - Location:
   [`skill/novel-ralph/SKILL.md`](../../skill/novel-ralph/SKILL.md) Phase 8
   sub-step `d` ("within 5% of its target") and Phase 9 step `4` ("97–103% of
-  the novel target ... within 3%").
+  the novel target … within 3%").
 
 The slice introduces two distinct finished-tolerance bands: each chapter must
 land within 5% of its chapter target after cuts, while the assembled novel must
@@ -128,35 +128,36 @@ the two are in mild arithmetic tension: a set of chapters each sitting at the
 edge of their individual 5% bands need not sum to within 3% of the novel total
 (systematic bias in one direction would breach the tighter aggregate band even
 when every chapter is "in band"). The reader is left to infer whether the 5%
-chapter band is deliberately looser because Phase 9 is the backstop that tightens
-the aggregate, or whether the mismatch is incidental.
+chapter band is deliberately looser because Phase 9 is the backstop that
+tightens the aggregate, or whether the mismatch is incidental.
 
-Proposed fix: add one sentence to the Phase 8 sub-step `d` (or to the design-doc
-subsection proposed in Finding 1) stating the relationship explicitly — i.e.
-that the per-chapter 5% band is the loose, per-chapter contract and the Phase 9
-3% band is the tighter aggregate backstop that catches any systematic
-per-chapter bias the looser band admits, which is *why* the Phase 9 final expand
-pass exists. This closes the inference gap without changing either number.
+Proposed fix: add one sentence to the Phase 8 sub-step `d` (or to the
+design-doc subsection proposed in Finding 1) stating the relationship
+explicitly — i.e. that the per-chapter 5% band is the loose, per-chapter
+contract and the Phase 9 3% band is the tighter aggregate backstop that catches
+any systematic per-chapter bias the looser band admits, which is *why* the
+Phase 9 final expand pass exists. This closes the inference gap without
+changing either number.
 
 ## Finding 4 — Phase-loop steps are coupled by hand-maintained letter cross-references
 
 - Category: ergonomics
 - Severity: low
 - Location:
-  [`skill/novel-ralph/SKILL.md`](../../skill/novel-ralph/SKILL.md) Phase 8 loop,
-  sub-step `d` ("Steps e–f are destructive", "run wordcount AGAIN at step g",
-  "After steps e–f have run") and sub-step `g` ("see termination rule in step
-  d").
+  [`skill/novel-ralph/SKILL.md`](../../skill/novel-ralph/SKILL.md) Phase 8
+  loop, sub-step `d` ("Steps e–f are destructive", "run wordcount AGAIN at step
+  g", "After steps e–f have run") and sub-step `g` ("see termination rule in
+  step d").
 
 Inserting the new expand step re-lettered the Phase 8 loop from `a–g` to `a–h`,
 and the new prose now cross-references sibling steps by letter four times
 (`e–f`, `step g`, `step d`). The references are correct as written (verified:
-`e` desloppify and `f` critic are the destructive pair, `g` is the fangirl-plus-
-re-measure step, `d` carries the termination rule). But letter coupling is
-brittle: any future insertion or removal of a step shifts the letters and
-silently invalidates every reference, and the substring guard (Finding 2) does
-not check them. This is a pre-existing house style for the loop, not a 6.1.2
-regression, so it is noted lightly.
+`e` desloppify and `f` critic are the destructive pair, `g` is the
+fangirl-plus- re-measure step, `d` carries the termination rule). But letter
+coupling is brittle: any future insertion or removal of a step shifts the
+letters and silently invalidates every reference, and the substring guard
+(Finding 2) does not check them. This is a pre-existing house style for the
+loop, not a 6.1.2 regression, so it is noted lightly.
 
 Proposed fix: when this loop is next edited, prefer naming the referenced steps
 by their role ("the destructive desloppify and critic passes", "the fangirl
@@ -169,20 +170,21 @@ re-lettering. Apply opportunistically rather than as a standalone change.
 - Severity: low
 - Location:
   [`docs/users-guide.md`](../../docs/users-guide.md) (the `novel wordcount` and
-  drafting-loop sections); [`docs/developers-guide.md`](../../docs/developers-guide.md).
+  drafting-loop sections);
+  [`docs/developers-guide.md`](../../docs/developers-guide.md).
 
 Both guides describe `novel wordcount` as the read-only reporter (words,
 percentage, deltas, gate distances) and the drafting commands, but neither
 mentions that the agent now reads those deltas to drive an explicit
 expand-to-target step, nor the deflation finding that motivates it. This is
-defensible — the guides are scoped to the *command surface*, and the
-expand step is agent behaviour driven from `SKILL.md`, not a new verb or flag —
-so it is genuinely low severity. It is recorded only because a reader of the
-users' guide who sees `wordcount` report a large negative chapter delta has no
-pointer to what the harness does about it.
+defensible — the guides are scoped to the *command surface*, and the expand
+step is agent behaviour driven from `SKILL.md`, not a new verb or flag — so it
+is genuinely low severity. It is recorded only because a reader of the users'
+guide who sees `wordcount` report a large negative chapter delta has no pointer
+to what the harness does about it.
 
 Proposed fix: if Finding 1 is actioned (a design-doc subsection on deflation
 compensation), add a one-line cross-reference from the users' guide `wordcount`
-section noting that the harness uses the reported delta to expand short chapters
-toward target during drafting, pointing at the design subsection and `SKILL.md`
-Phase 8. No command-surface documentation changes are needed.
+section noting that the harness uses the reported delta to expand short
+chapters toward target during drafting, pointing at the design subsection and
+`SKILL.md` Phase 8. No command-surface documentation changes are needed.

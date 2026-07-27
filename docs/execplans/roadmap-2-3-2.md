@@ -646,34 +646,35 @@ Stop and escalate — do not work around — when any of these is reached:
   action assertion. CodeRabbit (1 run, 0 findings).
 - [x] Work item 6 — `check`/`reconcile` cross-check, idempotence, self-recovery,
   and reconcile e2e; documentation updates including the **gating** §5.4
-  design-doc note (D-DESIGN-NOTE). `tests/test_reconcile_integration.py` pins the
-  cross-check (check's reported action equals reconcile's enacted action on every
-  materializing variant; D-SHARED), idempotence (a second reconcile is a `none`
-  byte-identical no-op), and self-recovery (an interruption after the receipt but
-  before the clear leaves a recoverable `operation="reconcile"` record, and
-  repeated reconcile converges the tree). `tests/test_reconcile_e2e.py` adds a fast
-  entry-point reachability check and the slow POSIX wheel-build install e2e
-  (reusing `_build_and_install_novel_state` verbatim, D-CUPRUM). Docs:
-  developers-guide reclassifies the disk-evidence set as **six** invariants and
-  records the §3.4-line-237 receipt-ordering deviation; users-guide documents
-  disk-aware `check` and the `reconcile` subcommand; the design doc §5.4 carries
-  the **gating** D-DESIGN-NOTE (v1 recount-only scope, deferred reconstruction,
-  the A2 `cursor-plan-present` → refuse interpretation); roadmap 2.3.2 ticked.
+  design-doc note (D-DESIGN-NOTE). `tests/test_reconcile_integration.py` pins
+  the cross-check (check's reported action equals reconcile's enacted action on
+  every materializing variant; D-SHARED), idempotence (a second reconcile is a
+  `none` byte-identical no-op), and self-recovery (an interruption after the
+  receipt but before the clear leaves a recoverable `operation="reconcile"`
+  record, and repeated reconcile converges the tree).
+  `tests/test_reconcile_e2e.py` adds a fast entry-point reachability check and
+  the slow POSIX wheel-build install e2e (reusing
+  `_build_and_install_novel_state` verbatim, D-CUPRUM). Docs: developers-guide
+  reclassifies the disk-evidence set as **six** invariants and records the
+  §3.4-line-237 receipt-ordering deviation; users-guide documents disk-aware
+  `check` and the `reconcile` subcommand; the design doc §5.4 carries the
+  **gating** D-DESIGN-NOTE (v1 recount-only scope, deferred reconstruction, the
+  A2 `cursor-plan-present` → refuse interpretation); roadmap 2.3.2 ticked.
   `test_owned_names_equal_corpus_vocabulary` extended to pin the six-name
   disk-evidence vocabulary. CodeRabbit (1 run, 1 trivial): added assertion
-  messages.
-  **Decision (D-SELF-CONVERGES):** an interrupted `RECOUNT` converges in two
-  recovery passes — the first clears the leftover `operation="reconcile"` record
-  (a COMPLETE since `state.toml`/`log.md` exist), the second re-applies the
-  still-pending recount. This is consistent with the harness re-entry model
-  (idempotent reconcile until `check` is clean); the self-recovery test asserts
-  convergence, not single-pass repair.
-  **Surprise (D-CHURN):** the worktree arrived carrying ~80 unrelated uncommitted
-  doc modifications (the recurring "spurious make-fmt mdformat churn" the repo's
-  stash history documents) that broke `make markdownlint` on files whose committed
-  versions are clean. Set aside via `git stash` (Safety Net blocked a raw
-  `git checkout --`), leaving only this task's five intentional doc edits;
-  `make markdownlint` and `make nixie` then pass clean over the touched docs.
+  messages. **Decision (D-SELF-CONVERGES):** an interrupted `RECOUNT` converges
+  in two recovery passes — the first clears the leftover
+  `operation="reconcile"` record (a COMPLETE since `state.toml`/`log.md`
+  exist), the second re-applies the still-pending recount. This is consistent
+  with the harness re-entry model (idempotent reconcile until `check` is
+  clean); the self-recovery test asserts convergence, not single-pass repair.
+  **Surprise (D-CHURN):** the worktree arrived carrying ~80 unrelated
+  uncommitted doc modifications (the recurring "spurious make-fmt mdformat
+  churn" the repo's stash history documents) that broke `make markdownlint` on
+  files whose committed versions are clean. Set aside via `git stash` (Safety
+  Net blocked a raw `git checkout --`), leaving only this task's five
+  intentional doc edits; `make markdownlint` and `make nixie` then pass clean
+  over the touched docs.
 
 ## Surprises & discoveries
 
@@ -940,27 +941,28 @@ Stop and escalate — do not work around — when any of these is reached:
 **Complete (2026-06-24).** All six work items landed, each gated by `make all`
 (plus `make markdownlint`/`make nixie` over the touched docs) and a CodeRabbit
 pass, committed as one atomic commit per work item. Against the Purpose: a user
-runs `novel-state check` on a stale tree and sees the reconciliation reported at
-exit `4` (`check` writing nothing), runs `novel-state reconcile` to enact it at
-exit `0` with a logged recovery receipt and no `working/` file removed, and a
-follow-up `check` is coherent at exit `0` — proven end-to-end by the BDD scenario
-(`tests/features/reconcile.feature`) and the wheel-install e2e
+runs `novel-state check` on a stale tree and sees the reconciliation reported
+at exit `4` (`check` writing nothing), runs `novel-state reconcile` to enact it
+at exit `0` with a logged recovery receipt and no `working/` file removed, and
+a follow-up `check` is coherent at exit `0` — proven end-to-end by the BDD
+scenario (`tests/features/reconcile.feature`) and the wheel-install e2e
 (`tests/test_reconcile_e2e.py`). A contradictory or plan-less tree is refused
 loudly by both commands at exit `4`, with `reconcile` leaving `state.toml`
 byte-for-byte unchanged and logging the refusal. The roadmap's done-claim
 headline is delivered as the steady-state stale-`[word_counts]` divergence
 (D-SCOPE/D-WORDCOUNT), held sub-threshold so the recount stays
-`gate-ratio-consistent`-clean (D-GATES), and the §5.4 worked under-count case is
-tested directly. The §5.4 recount-only narrowing is recorded as a gating
+`gate-ratio-consistent`-clean (D-GATES), and the §5.4 worked under-count case
+is tested directly. The §5.4 recount-only narrowing is recorded as a gating
 design-doc note (D-DESIGN-NOTE).
 
 Deviations from the plan, all recorded above with rationale: D-SCAFFOLD-XFAIL
 (the red baseline rendered as a green-gating xfail), D-WC-BY-CHAPTER-ONLY /
-D-WC-SHARED-KEYS (the word-count predicate compares the per-chapter mapping over
-shared keys only, keeping it orthogonal to `by-chapter-sum` and the bijection),
-D-SELF-CONVERGES (an interrupted recount converges in two recovery passes), and
-D-CHURN (pre-existing spurious mdformat doc churn set aside via `git stash`). No
-Tolerance was breached; no new state field or external dependency was introduced.
+D-WC-SHARED-KEYS (the word-count predicate compares the per-chapter mapping
+over shared keys only, keeping it orthogonal to `by-chapter-sum` and the
+bijection), D-SELF-CONVERGES (an interrupted recount converges in two recovery
+passes), and D-CHURN (pre-existing spurious mdformat doc churn set aside via
+`git stash`). No Tolerance was breached; no new state field or external
+dependency was introduced.
 
 ## Context and orientation
 
@@ -1881,8 +1883,9 @@ design's worked example is tested.
 
 Lightweight addendum work items surfaced by a test-quality benchmark of the
 reconcile behavioural suite. Execute each as a small addendum pass — no plan or
-design-review cycle: make the change, run `make all`, `coderabbit review
---agent`, commit, and tick the matching roadmap sub-task on merge.
+design-review cycle: make the change, run `make all`,
+`coderabbit review --agent`, commit, and tick the matching roadmap sub-task on
+merge.
 
 - [x] 2.3.2.1 — Strengthen the reconcile log-receipt assertion from the
   substring `"recount" in log` to a structured receipt that pins the operation
@@ -1893,11 +1896,11 @@ design-review cycle: make the change, run `make all`, `coderabbit review
   pinned, not draft byte-integrity; only `state.toml`/`log.md` should change).
   Test-only change; gate with `make all`.
 - [x] 2.3.2.3 — Correct the `_reconcile.py` module docstring's helper-reuse
-  attribution (from review:7.2.1; low). The docstring claims `reconcile` "reuses
-  that module's [`_recount`'s] load/refuse helpers", but
+  attribution (from review:7.2.1; low). The docstring claims `reconcile`
+  "reuses that module's [`_recount`'s] load/refuse helpers", but
   `_load_document_or_state_error` and `_refuse_if_incoherent` are imported from
-  `_state_mutators`, not `_recount` — and after roadmap 7.2.1 routed `_reconcile`
-  through `build_inline_table`, the module imports nothing from `_recount` at
-  module level, making the inaccuracy more visible. Re-attribute the helpers to
-  `_state_mutators` (keep the "lives beside `_recount`" sibling note if accurate).
-  Doc-only; gate with `make all`.
+  `_state_mutators`, not `_recount` — and after roadmap 7.2.1 routed
+  `_reconcile` through `build_inline_table`, the module imports nothing from
+  `_recount` at module level, making the inaccuracy more visible. Re-attribute
+  the helpers to `_state_mutators` (keep the "lives beside `_recount`" sibling
+  note if accurate). Doc-only; gate with `make all`.

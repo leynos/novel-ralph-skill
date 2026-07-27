@@ -1,24 +1,25 @@
 # Logisphere adversarial design review — roadmap 6.2.2, round 1
 
-Reviewed: `docs/execplans/roadmap-6-2-2.md` (read from disk).
-Verdict: **Revise** — one blocking structural defect; the plan is otherwise
-exceptionally well-grounded (nearly every behavioural claim verified against real
-source).
+Reviewed: `docs/execplans/roadmap-6-2-2.md` (read from disk). Verdict:
+**Revise** — one blocking structural defect; the plan is otherwise
+exceptionally well-grounded (nearly every behavioural claim verified against
+real source).
 
 ## Method / trail followed
 
 - Skill: `logisphere-design-review` (full crew + pre-mortem + alternatives).
 - Docs of record: `docs/roadmap.md` (6.2.2 entry, lines ~1293-1300);
   `docs/novel-ralph-harness-design.md` §7.2, §9, §4.5, §4.2/§4.3, §10;
-  `docs/developers-guide.md` (installed-binary + matrix subsections);
-  ADR-003, ADR-006; `AGENTS.md` gates.
+  `docs/developers-guide.md` (installed-binary + matrix subsections); ADR-003,
+  ADR-006; `AGENTS.md` gates.
 - Source verified: `novel_ralph_skill/commands/_wordcount_report.py`,
   `_wordcount.py`, `_compile.py`, `_novel_done.py`, `novel_state.py`;
   `tests/working_corpus/_done_predicate_specs.py` (lines 51-272);
-  `tests/steps/torn_turn_recovery_steps.py`, `tests/steps/advance_phase_steps.py`;
-  `tests/installed_binary_fixtures.py`, `tests/test_console_scripts_e2e.py`,
-  `tests/test_recount_e2e.py`, `tests/conftest.py`, `pyproject.toml`, `Makefile`,
-  every `tests/test_*_bdd.py` binder.
+  `tests/steps/torn_turn_recovery_steps.py`,
+  `tests/steps/advance_phase_steps.py`; `tests/installed_binary_fixtures.py`,
+  `tests/test_console_scripts_e2e.py`, `tests/test_recount_e2e.py`,
+  `tests/conftest.py`, `pyproject.toml`, `Makefile`, every
+  `tests/test_*_bdd.py` binder.
 - cuprum (read-only sibling `/data/leynos/Projects/cuprum`): `cuprum/sh.py`
   (`ExecutionContext.cwd`, `run_sync`, `.exit_code/.stdout/.stderr`).
 - Locked-library docs firecrawled: pytest-timeout 2.4.0 (PyPI),
@@ -26,12 +27,13 @@ source).
 
 ## What is solid (verified, not taken on trust)
 
-- Corpus claims hold exactly: `DONE_PREDICATE_ALL_HOLD` is phase `done`, all three
-  gates crossed, `compiled=COMPILED_AUTO`; `_DRAFTED_WORDS=(24000,24000,20800)`
-  sum 68800; `_TARGET_WORDS=80000`; ratio 0.86 ≥ 0.80 so all gates trigger and
-  `next_gate_threshold` is `None`. `DONE_PREDICATE_SOLE_STALE_COMPILE` is the
-  count-coincident byte-divergent carve-out. `INCOHERENT_VARIANTS["completed-prefix-gap"]`
-  is the out-of-order tree, asserted byte-identical by the existing step module.
+- Corpus claims hold exactly: `DONE_PREDICATE_ALL_HOLD` is phase `done`, all
+  three gates crossed, `compiled=COMPILED_AUTO`;
+  `_DRAFTED_WORDS=(24000,24000,20800)` sum 68800; `_TARGET_WORDS=80000`; ratio
+  0.86 ≥ 0.80 so all gates trigger and `next_gate_threshold` is `None`.
+  `DONE_PREDICATE_SOLE_STALE_COMPILE` is the count-coincident byte-divergent
+  carve-out. `INCOHERENT_VARIANTS["completed-prefix-gap"]` is the out-of-order
+  tree, asserted byte-identical by the existing step module.
 - Envelope key paths verified: `wordcount` result nests
   `result["cumulative"]["gate_triggered_30/50/80"]` and `result["chapters"]`;
   `novel-compile --check` carries `result["diverged"]`; `novel-done` exposes
@@ -78,7 +80,8 @@ inherits none of that wiring automatically.
 
 This contradicts the plan's own Tolerances claim that it "carries **no**
 undecided step." The implementer cannot proceed without inventing an
-unvalidated pattern. Resolve by specifying one concrete, working mechanism, e.g.:
+unvalidated pattern. Resolve by specifying one concrete, working mechanism,
+e.g.:
 
   (a) put the installed scenario in its **own** feature file and its **own**
       binder module, bound with `@scenario(...)` on a function decorated with
@@ -99,16 +102,18 @@ Until B1 is pinned to a real mechanism the plan is not implementable as written.
   `from tests.steps.per_chapter_loop_steps import *`. The repo convention is
   `from steps.<module> import *` (every existing `*_bdd.py`; `pyproject.toml`
   `testpaths = ["tests"]`, no `tests` package import root). `tests.steps...`
-  will `ModuleNotFoundError`. Correct the import to `from steps.per_chapter_loop_steps`.
+  will `ModuleNotFoundError`. Correct the import to
+  `from steps.per_chapter_loop_steps`.
 - A3 (Pandalump). `_run_capturing` in `torn_turn_recovery_steps.py` (the cited
   model) takes a single `command` string and a module-fixed `build_app()` /
   `_COMMAND`. The clean-pass scenario must drive **five different** `build_app`
   factories with different argv (`["recount"]`, `[]`, `["--check"]`,
-  `["check"]`/`advance-phase`). The plan's proposed signature
-  `_run_capturing(working, argv, monkeypatch)` is the right shape but is **not**
-  a copy of the cited helper — it must also select the matching `build_app` and
-  pass the matching `RunContext(command=...)`. State this explicitly so the
-  implementer does not mirror the single-command helper verbatim.
+  `["check"]` /`advance-phase`). The plan's proposed signature
+  `_run_capturing(working, argv, monkeypatch)` is the right shape but is
+  **not** a copy of the cited helper — it must also select the matching
+  `build_app` and pass the matching `RunContext(command=...)`. State this
+  explicitly so the implementer does not mirror the single-command helper
+  verbatim.
 - A4 (Doggylump). `make all` → `make test` runs `pytest -n auto` with **no**
   `-m "not slow"` deselection, so the installed scenario builds a wheel on
   **every** commit gate, not only when run with `-m slow`. The plan's Concrete
@@ -123,22 +128,23 @@ Until B1 is pinned to a real mechanism the plan is not implementable as written.
 
 ## Pre-mortem (Doggylump)
 
-Most likely six-months-out failure: the installed BDD scenario silently lost its
-180s timeout and/or POSIX skip because the marker bundle was wired by a fragile
-ad-hoc mechanism (B1 unaddressed), so on a CI runner the wheel build either ran
-on a non-POSIX leg (hard error) or tripped the global 30s timeout and was
-quarantined/`xfail`-ed, eroding the very installed-boundary confidence §9
-demands — the loss invisible because no test asserts the marker is present.
+Most likely six-months-out failure: the installed BDD scenario silently lost
+its 180s timeout and/or POSIX skip because the marker bundle was wired by a
+fragile ad-hoc mechanism (B1 unaddressed), so on a CI runner the wheel build
+either ran on a non-POSIX leg (hard error) or tripped the global 30s timeout
+and was quarantined/`xfail`-ed, eroding the very installed-boundary confidence
+§9 demands — the loss invisible because no test asserts the marker is present.
 Mitigation: pin B1's mechanism now and add a guard (e.g. assert the scenario
-carries the timeout/skip via `item.iter_markers`) or keep the installed scenario
-in a dedicated, plainly-decorated binder where the marks are visually obvious.
+carries the timeout/skip via `item.iter_markers`) or keep the installed
+scenario in a dedicated, plainly-decorated binder where the marks are visually
+obvious.
 
 ## Alternatives checkpoint (Wafflecat)
 
 Strongest alternative: **split the installed scenario into its own
 feature+binder file** rather than co-housing all five in one feature. Trades
-away the "one scripted pass reads as one file" narrative the roadmap success line
-evokes; gains a clean, repo-idiomatic marker surface (plain `@scenario` +
+away the "one scripted pass reads as one file" narrative the roadmap success
+line evokes; gains a clean, repo-idiomatic marker surface (plain `@scenario` +
 function decorators, exactly as the existing installed e2es), eliminating B1
 entirely and most of A3/A4's ambiguity. Given that the installed scenario is
 already a *separate* drive (different runner, different fixtures, different

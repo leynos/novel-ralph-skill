@@ -162,10 +162,11 @@ escalation, not a workaround.
 - Iterations: if `make all` still fails after 3 fix attempts on a work item,
   stop and escalate.
 - Scope creep into the schema-specific logic: the `_resolve_basis`,
-  `_resolve_page_words`, and `_rule` glue (rulepack) and the `_rationing_fields`
-  / `_window`/`_window_offenders` glue (ledger) are **schema-specific**, not
-  duplicated, and stay in their packages. If unifying tempts the implementer to
-  fold any of these into the shared module, stop — that is outwith this task.
+  `_resolve_page_words`, and `_rule` glue (rulepack) and the
+  `_rationing_fields` / `_window`/`_window_offenders` glue (ledger) are
+  **schema-specific**, not duplicated, and stay in their packages. If unifying
+  tempts the implementer to fold any of these into the shared module, stop —
+  that is outwith this task.
 - Scope creep into moving `ScannedChapter`/`LineHit`: if the scan-primitive work
   tempts a move of these shapes out of `rulepack/detect.py`, stop and escalate
   (a wider re-layering, not this task).
@@ -569,27 +570,30 @@ Completed 2026-06-27. Outcome against Purpose:
   `scan_pattern` in `scan.py`. The structure greps confirm no `re.compile(`,
   `tomllib.load(`, or `.splitlines()` survives in `rulepack`/`ledger` code; the
   former per-package bodies are gone (the reroutes net-removed ~570 lines).
-- **Both packages consume them.** `rulepack` and `ledger` each import `loaderkit`
-  in their `_coerce.py` binding, `parse.py`, and `detect.py`; the bindings build
-  one `CoercionErrors` bundle each and re-export the terse underscore wrappers.
+- **Both packages consume them.** `rulepack` and `ledger` each import
+  `loaderkit` in their `_coerce.py` binding, `parse.py`, and `detect.py`; the
+  bindings build one `CoercionErrors` bundle each and re-export the terse
+  underscore wrappers.
 - **Every typed error, exit-code mapping, and operator message unchanged.** No
   rule-pack or ledger test assertion was edited and no snapshot regenerated
-  (`test_ledger_snapshots.ambr` stayed byte-identical); their staying green is the
-  contract-preservation proof. The `RulePackError`/`LedgerError` types,
+  (`test_ledger_snapshots.ambr` stayed byte-identical); their staying green is
+  the contract-preservation proof. The `RulePackError`/`LedgerError` types,
   `rule_id`/`device_id` payloads, and message prose are reproduced verbatim.
 - **New tests pin the parameterization seam.** `tests/test_loaderkit_coerce.py`,
-  `tests/test_loaderkit_load.py`, and `tests/test_loaderkit_scan.py` (1460 passed
-  overall) pin the sentinel-bundle contract, both `where` noun pairs, the full
-  verbatim entries/duplicate-id messages for both noun sets, first-duplicate-wins,
-  the `load_toml` noun + `__cause__` chaining, and the scan line-attribution
-  invariant (a `hypothesis` property), so the primitives cannot silently re-fork.
+  `tests/test_loaderkit_load.py`, and `tests/test_loaderkit_scan.py` (1460
+  passed overall) pin the sentinel-bundle contract, both `where` noun pairs,
+  the full verbatim entries/duplicate-id messages for both noun sets,
+  first-duplicate-wins, the `load_toml` noun + `__cause__` chaining, and the
+  scan line-attribution invariant (a `hypothesis` property), so the primitives
+  cannot silently re-fork.
 
-Deviations: none of substance. The `coerce.py` merge landed ~250 lines (under the
-~320 split threshold), so no split was needed. The `scan_pattern` `splitlines()`
-body was deliberately **kept** (CodeRabbit suggested `split("\n")`; rejected to
-preserve the frozen detector behaviour). The recurring `make fmt` markdown-reflow
-churn was parked to a stash rather than committed, and the two markdown docs were
-edited directly per the standing churn-trap guidance.
+Deviations: none of substance. The `coerce.py` merge landed ~250 lines (under
+the ~320 split threshold), so no split was needed. The `scan_pattern`
+`splitlines()` body was deliberately **kept** (CodeRabbit suggested
+`split("\n")`; rejected to preserve the frozen detector behaviour). The
+recurring `make fmt` markdown-reflow churn was parked to a stash rather than
+committed, and the two markdown docs were edited directly per the standing
+churn-trap guidance.
 
 Surprise: CodeRabbit repeatedly flagged first-person voice in the frozen
 `roadmap-7-2-2.review-r1/r2.md` planning artefacts. Those are historical review
@@ -633,8 +637,7 @@ removes (line numbers are the worktree state on 2026-06-27):
    array key (`"rule"`/`"device"`), the noun, and the error type.
 3. **`_compile_pattern`** — `rulepack/parse.py` lines 110-138 and
    `ledger/ parse.py` lines 110-139: `re.compile(pattern)` wrapped to raise the
-   package's
-   error naming the offending id on `re.error`.
+   package's error naming the offending id on `re.error`.
 4. **`_reject_duplicate_ids`** — `rulepack/parse.py` lines 272-295 and
    `ledger/ parse.py` lines 192-215: reject a repeated `id` naming the
    duplicate.
@@ -1057,10 +1060,11 @@ Edits:
    used by `_resolve_basis`-adjacent code and the `re.Pattern` return
    annotation; `tomllib` likely goes once `load_toml` owns the decode.
 3. In `novel_ralph_skill/rulepack/detect.py`: replace `_scan_rule`'s body with a
-   call to `loaderkit.scan_pattern(rule.compiled, chapters, line_hit=...)`, where
-   the `line_hit` is `lambda chapter, line: LineHit(chapter=chapter, line=line)`
-   (keep `_scan_rule` as a one-line wrapper if `detect` reads cleaner, or
-   inline the call at the single call site in `detect`). Add the module-level
+   call to `loaderkit.scan_pattern(rule.compiled, chapters, line_hit=...)`,
+   where the `line_hit` is
+   `lambda chapter, line: LineHit(chapter=chapter, line=line)` (keep
+   `_scan_rule` as a one-line wrapper if `detect` reads cleaner, or inline the
+   call at the single call site in `detect`). Add the module-level
    `from novel_ralph_skill.loaderkit.scan import scan_pattern` import (the
    decided mechanism from work item 3 / D-SCANTYPES needs no function-local
    import; the import is acyclic because `loaderkit.scan` references the shapes
@@ -1123,8 +1127,8 @@ Edits, mirroring work item 4 with the ledger's error channel and nouns:
    sites are unaffected.
 4. In `novel_ralph_skill/ledger/detect.py`: reroute `_scan_device` onto
    `loaderkit.scan_pattern(device.compiled, chapters, line_hit=...)`, with the
-   same `lambda chapter, line: LineHit(chapter=chapter, line=line)` constructor,
-   and add the module-level
+   same `lambda chapter, line: LineHit(chapter=chapter, line=line)`
+   constructor, and add the module-level
    `from novel_ralph_skill.loaderkit.scan import scan_pattern` import (the
    decided D-SCANTYPES mechanism; no function-local import). `ledger/detect.py`
    already imports `LineHit` from `rulepack.detect` at runtime (line 34), so the
@@ -1216,13 +1220,12 @@ Quality criteria (what "done" means):
 - Tests: `make test` passes; the new `loaderkit` unit tests
   (`tests/test_ loaderkit_coerce.py`, `tests/test_loaderkit_load.py` if split,
   `tests/test_ loaderkit_scan.py`) fail before their primitives exist and pass
-  after; **every
-  existing rule-pack and ledger suite stays green with no assertion edit and no
-  snapshot regeneration** (`tests/test_rulepack_loader.py`,
-  `test_rulepack_ schema.py`, `test_rulepack_properties.py`,
-  `test_rulepack_detect.py`, `tests/test_ledger_command.py`,
-  `test_ledger_detect.py`, `test_ledger_ properties.py`,
-  `test_ledger_snapshots.py`).
+  after; **every existing rule-pack and ledger suite stays green with no
+  assertion edit and no snapshot regeneration**
+  (`tests/test_rulepack_loader.py`, `test_rulepack_ schema.py`,
+  `test_rulepack_properties.py`, `test_rulepack_detect.py`,
+  `tests/test_ledger_command.py`, `test_ledger_detect.py`,
+  `test_ledger_ properties.py`, `test_ledger_snapshots.py`).
 - Lint/typecheck/format: `make check-fmt`, `make lint` (Ruff + 100%
   `interrogate` + Pylint), and `make typecheck` (`ty check`) all pass.
 - Audit: `make audit` (`pip-audit`) passes (no new dependency added).
@@ -1241,10 +1244,10 @@ Quality method (how we check) — mechanically checkable, not eyeballed:
         rg -n 'def scan_pattern\(' novel_ralph_skill/loaderkit
 
 2. The per-package private copies no longer carry a body. In each former copy
-   the
-   helper either is gone or is a one-line forwarder to `loaderkit`; assert the
-   substantive logic moved by confirming the `re.compile(`, `tomllib.load(`, and
-   `splitlines()` calls live in `loaderkit`, not duplicated:
+   the helper either is gone or is a one-line forwarder to `loaderkit`; assert
+   the substantive logic moved by confirming the `re.compile(`,
+   `tomllib.load(`, and `splitlines()` calls live in `loaderkit`, not
+   duplicated:
 
         rg -n 're\.compile\(' novel_ralph_skill/rulepack novel_ralph_skill/ledger
 
@@ -1474,10 +1477,9 @@ Logisphere review (`docs/execplans/roadmap-7-2-2.review-r1.md`).
   both noun sets; recorded the missing-coverage finding in Surprises &
   discoveries and Constraints.
 - B4 (two live scan mechanisms; the chosen one unproven against `ty`): picked
-  the
-  single TYPE_CHECKING-only-import + `line_hit`-callable mechanism, removed the
-  function-local-import fallback, and **proved** it type-checks by spiking a
-  module of the exact shape under `novel_ralph_skill/loaderkit/` and running
+  the single TYPE_CHECKING-only-import + `line_hit`-callable mechanism, removed
+  the function-local-import fallback, and **proved** it type-checks by spiking
+  a module of the exact shape under `novel_ralph_skill/loaderkit/` and running
   `make typecheck` (`ty 0.0.51`, `All checks passed!`), then removing the
   spike. Recorded in D-SCANTYPES, Surprises & discoveries, and work items 3/4/5.
 
@@ -1500,8 +1502,8 @@ sub-task on the roadmap under task 7.2.2.
   line-model oracle (from review:7.2.2; low). The Hypothesis property added by
   this task recomputes the expected per-line hits with `splitlines()`, the same
   call `scan_pattern` uses, so it cannot catch a class of line-splitting
-  regressions (a future move to `split("\n")` or a universal-newline edge case).
-  Add a second property that derives the expected hits from an independent
-  newline model, leaving the existing freeze property in place, so the
-  line-attribution contract is pinned against the implementation's own splitting
-  choice rather than merely echoing it.
+  regressions (a future move to `split("\n")` or a universal-newline edge
+  case). Add a second property that derives the expected hits from an
+  independent newline model, leaving the existing freeze property in place, so
+  the line-attribution contract is pinned against the implementation's own
+  splitting choice rather than merely echoing it.

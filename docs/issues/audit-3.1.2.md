@@ -1,9 +1,9 @@
 # Post-merge audit — roadmap task 3.1.2
 
 Audit of the codebase after roadmap task 3.1.2 ("Implement the shared
-compile-and-hash routine and the compile-divergence clause") merged to `main` at
-commit `4c578e3`. The slice swaps the `compile_consistent` done clause from an
-existence-only check to a content comparison driven by the shared
+compile-and-hash routine and the compile-divergence clause") merged to `main`
+at commit `4c578e3`. The slice swaps the `compile_consistent` done clause from
+an existence-only check to a content comparison driven by the shared
 [`compile_model`](../../novel_ralph_skill/state/compile_model.py)
 (`present_draft_bodies` + `concatenate_drafts`), adds a conservative exit-`4`
 (`ACTIONABLE_FINDING`) carve-out to
@@ -20,9 +20,9 @@ exit `1` with a "missing" message) each carry a behavioural or unit test, and a
 byte-perturbation property gate guards the content comparison. The findings
 below are tidy-up opportunities, not blocking defects.
 
-One theme dominates: the implementation deliberately performs a **direct
-byte comparison** (ExecPlan decision D-BYTE-COMPARE, "not a digest"), but the
-design document and one developers'-guide sentence still describe a
+One theme dominates: the implementation deliberately performs a **direct byte
+comparison** (ExecPlan decision D-BYTE-COMPARE, "not a digest"), but the design
+document and one developers'-guide sentence still describe a
 **compile-and-*hash*** routine that "hashes" drafts. The code and the docs now
 disagree on what the routine does.
 
@@ -55,11 +55,12 @@ The implementation does no hashing. `compile_consistent`
 ([`done_predicate.py`](../../novel_ralph_skill/state/done_predicate.py) lines
 266–270) and the detector
 ([`disk_evidence.py`](../../novel_ralph_skill/state/disk_evidence.py) lines
-179–184) both do `compiled.read_text(...) == concatenate_drafts(present_draft_bodies(...))`
-— an in-memory byte comparison of two strings. The clause's own docstring
-(`done_predicate.py` lines 233–235) explicitly justifies this: "The verdict is a
-direct byte comparison, not a digest (ExecPlan D-BYTE-COMPARE) … a boolean over
-two in-memory strings needs no `hashlib`." `concatenate_drafts`
+179–184) both do
+`compiled.read_text(...) == concatenate_drafts(present_draft_bodies(...))` — an
+in-memory byte comparison of two strings. The clause's own docstring
+(`done_predicate.py` lines 233–235) explicitly justifies this: "The verdict is
+a direct byte comparison, not a digest (ExecPlan D-BYTE-COMPARE) … a boolean
+over two in-memory strings needs no `hashlib`." `concatenate_drafts`
 ([`compile_model.py`](../../novel_ralph_skill/state/compile_model.py)) imports
 no `hashlib` and computes no digest. The §4.2 claim that the routine computes
 "per-chapter hashes … internally" is now simply false: there is no per-chapter
@@ -74,23 +75,23 @@ decision, leaving the document internally and externally inconsistent.
   than a hashing one. Replace "compile-and-hash routine" with "compile-and-
   compare routine"; rewrite the §4.2 paragraph (lines 353–364) to say
   `novel-done` recomputes the ordered concatenation of the drafts and compares
-  it **byte-for-byte** against `compiled.md`, dropping the "hash each draft" and
-  "per-chapter hashes it computed internally" language; and rewrite §4.3 lines
-  387–390 to "concatenating drafts in index order" without "and hashing the
-  result". Keep the bounded-`result` point (the clause reports one boolean, not
-  the concatenated body) — that property holds for a byte comparison too. If a
-  digest is genuinely wanted at a future scale (e.g. to avoid holding both bodies
-  in memory for a hundred-chapter novel), record that as a separate, dated design
-  note rather than describing it as the current behaviour.
+  it **byte-for-byte** against `compiled.md`, dropping the "hash each draft"
+  and "per-chapter hashes it computed internally" language; and rewrite §4.3
+  lines 387–390 to "concatenating drafts in index order" without "and hashing
+  the result". Keep the bounded-`result` point (the clause reports one boolean,
+  not the concatenated body) — that property holds for a byte comparison too.
+  If a digest is genuinely wanted at a future scale (e.g. to avoid holding both
+  bodies in memory for a hundred-chapter novel), record that as a separate,
+  dated design note rather than describing it as the current behaviour.
 
 ## Finding 2 — developers' guide contradicts itself: "compile-and-hash" vs "not a digest"
 
 - **Category:** inconsistency
 - **Severity:** low
 
-`docs/developers-guide.md` line 324 says `novel-done` and `novel-compile`
-"call the same compile-and-**hash** routine (roadmap tasks 4.1.2 and 3.1.2)",
-yet lines 575–583 of the same document say the verdict "is a direct byte
+`docs/developers-guide.md` line 324 says `novel-done` and `novel-compile` "call
+the same compile-and-**hash** routine (roadmap tasks 4.1.2 and 3.1.2)", yet
+lines 575–583 of the same document say the verdict "is a direct byte
 comparison, **not a digest** (D-BYTE-COMPARE) … the comparison is over bytes,
 not counts." A reader cannot tell from the guide alone whether the routine
 hashes or compares bytes.
@@ -129,13 +130,13 @@ in five spots, and the `_COMPILED_REL` string can diverge from the joined-path
 form silently.
 
 - **Proposed fix:** Add a `_compiled_path(working_dir: Path) -> Path` helper to
-  [`_disk_paths.py`](../../novel_ralph_skill/state/_disk_paths.py) (its existing
-  home for manuscript-layout joins) returning
+  [`_disk_paths.py`](../../novel_ralph_skill/state/_disk_paths.py) (its
+  existing home for manuscript-layout joins) returning
   `working_dir / "manuscript" / "compiled.md"`, and route all four joined-path
   sites through it. Derive `_COMPILED_REL` from the same helper relative to the
-  working root, or replace it with the helper's `Path` rendered relative to cwd,
-  so the human-message string and the filesystem path cannot drift. This is a
-  small, mechanical refactor that the 3.1.3 unification (which moves the
+  working root, or replace it with the helper's `Path` rendered relative to
+  cwd, so the human-message string and the filesystem path cannot drift. This
+  is a small, mechanical refactor that the 3.1.3 unification (which moves the
   *comparison* into `compile_model`) does not itself cover — 3.1.3 shares the
   verdict, not the path.
 
@@ -148,31 +149,31 @@ Within a single `_novel_done` invocation, `compiled.md`'s existence is queried
 independently by `compile_consistent`
 ([`done_predicate.py`](../../novel_ralph_skill/state/done_predicate.py) line
 267), by `_sole_stale_compile`
-([`_novel_done.py`](../../novel_ralph_skill/commands/_novel_done.py) line 171),
-and by `_failed_clause_message`
-([`_novel_done.py`](../../novel_ralph_skill/commands/_novel_done.py) line 126).
-Each call is a fresh `Path.exists()` stat. The three stats also encode the same
-"is the compile present?" question three times, which is why the carve-out
-docstring has to keep re-explaining that `DoneClauses` "carries only the six
-booleans and cannot say *why* `compile_consistent` is false."
+([`_novel_done.py`](../../novel_ralph_skill/commands/_novel_done.py) line
+171), and by `_failed_clause_message`
+([`_novel_done.py`](../../novel_ralph_skill/commands/_novel_done.py) line
+126). Each call is a fresh `Path.exists()` stat. The three stats also encode
+the same "is the compile present?" question three times, which is why the
+carve-out docstring has to keep re-explaining that `DoneClauses` "carries only
+the six booleans and cannot say *why* `compile_consistent` is false."
 
 The redundant stats are cheap and the TOCTOU window is benign for a read-only
 checker, so this is an ergonomics/altitude finding, not a correctness one. But
 the repeated "stat again to recover the reason" pattern is a smell: the command
-layer keeps reaching back to disk to reconstruct information the predicate layer
-already had.
+layer keeps reaching back to disk to reconstruct information the predicate
+layer already had.
 
 - **Proposed fix:** Have the predicate layer surface *why* `compile_consistent`
   is false once, rather than the command layer re-deriving it. The lightest
   option is a small enum or `present: bool` carried alongside the clause result
-  (e.g. extend `DoneClauses` with a `compiled_present: bool` companion, or return
-  a `CompileVerdict` with `consistent`/`present` fields), so `_sole_stale_compile`
-  and `_failed_clause_message` read a field instead of re-statting. This pairs
-  naturally with the 3.1.3 shared-helper work, which already touches the
-  comparison both sides consume; fold the "present?" signal into that helper's
-  return rather than three independent `exists()` calls. If the extra field is
-  judged not worth it, at minimum stat once in `_novel_done` and thread the
-  boolean to both helpers.
+  (e.g. extend `DoneClauses` with a `compiled_present: bool` companion, or
+  return a `CompileVerdict` with `consistent`/`present` fields), so
+  `_sole_stale_compile` and `_failed_clause_message` read a field instead of
+  re-statting. This pairs naturally with the 3.1.3 shared-helper work, which
+  already touches the comparison both sides consume; fold the "present?" signal
+  into that helper's return rather than three independent `exists()` calls. If
+  the extra field is judged not worth it, at minimum stat once in `_novel_done`
+  and thread the boolean to both helpers.
 
 ## Finding 5 — `compile_model` module docstring under-describes its three production consumers
 
@@ -184,12 +185,12 @@ docstring (lines 1–17) frames the module solely around the §5.4 disk-evidence
 detector ("the `compiled-matches-drafts` disk-evidence invariant (roadmap task
 2.3.2) … needs only the *divergence verdict*") and says "the full
 compile-and-hash command is roadmap task 4.1.1's". As of 3.1.2 the module has
-three production consumers, not one: the detector, the `compile_consistent` done
-clause, **and** the `novel-compile` write path
+three production consumers, not one: the detector, the `compile_consistent`
+done clause, **and** the `novel-compile` write path
 ([`_compile.py`](../../novel_ralph_skill/commands/_compile.py) lines 106–110)
 already imports and uses `present_draft_bodies` / `concatenate_drafts`. The
-docstring's "task 4.1.1's" deferral now reads as stale: the write path landed and
-consumes this module today. The module-level docstring also still says
+docstring's "task 4.1.1's" deferral now reads as stale: the write path landed
+and consumes this module today. The module-level docstring also still says
 "compile-and-hash", inheriting Finding 1's terminology.
 
 - **Proposed fix:** Update the `compile_model.py` module docstring to name all
@@ -207,7 +208,8 @@ appears in both `done_predicate.compile_consistent` and
 `disk_evidence._check_compiled_matches_drafts`, differing only in the
 absent-file polarity (the clause returns `False`, the detector returns "no
 violation"). This is genuine duplication, but it is **already owned by roadmap
-task 3.1.3**, which schedules a shared `compiled_matches_drafts(state,
-working_dir)` helper in `compile_model.py` that both sides consume, each
-supplying its own absent-file polarity. It is recorded here only so the root
-agent does not double-book it; no new roadmap item is proposed for it.
+task 3.1.3**, which schedules a shared
+`compiled_matches_drafts(state, working_dir)` helper in `compile_model.py` that
+both sides consume, each supplying its own absent-file polarity. It is recorded
+here only so the root agent does not double-book it; no new roadmap item is
+proposed for it.

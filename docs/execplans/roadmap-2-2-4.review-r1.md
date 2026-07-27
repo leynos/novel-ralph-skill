@@ -12,12 +12,10 @@ fixed before implementation.
 - Cyclopts `bool | None = None` tri-state yields `--flag`/`--no-flag` and a
   default of "untouched" — verified live against locked Cyclopts 4.18.0.
 - `set_critic_pass(*, pass_: int)` maps to `--pass`; non-integer →
-  `CoercionError`
-  → exit 2 — verified live.
+  `CoercionError` → exit 2 — verified live.
 - cuprum 0.1.0 `SafeCmd.run_sync(*, capture, echo, context)` — signature
-  confirmed
-  against the wheel `uv` resolves; the local `/data/leynos/Projects/cuprum`
-  checkout has drifted (Surprise S1 is correct).
+  confirmed against the wheel `uv` resolves; the local
+  `/data/leynos/Projects/cuprum` checkout has drifted (Surprise S1 is correct).
 - Runner routing: `CycloptsError` → exit 2, `StateInputError` → exit 3
   (`contract/runner.py:225,233`). Correct.
 - D3 (single-file mutators open no `[pending_turn]` and append no `log.md`
@@ -131,10 +129,9 @@ and an e2e assertion depends on it.
 ## Pre-mortem (Doggylump)
 
 1. **Most likely failure:** the implementer writes the WI1 happy-path test
-   against
-   `COHERENT_BASELINE` (the only named tree), discovers `done_30` is already
-   true, and either (a) silently weakens the assertion to a no-op, or (b)
-   constructs an incoherent prior without realizing it has changed the
+   against `COHERENT_BASELINE` (the only named tree), discovers `done_30` is
+   already true, and either (a) silently weakens the assertion to a no-op, or
+   (b) constructs an incoherent prior without realizing it has changed the
    contract's meaning. Both ship a `set-gate` whose behaviour nobody clearly
    specified. Mitigation: B1 + B2 force the prior's coherence status and the
    fixture recipe to be decided in the plan, before code.

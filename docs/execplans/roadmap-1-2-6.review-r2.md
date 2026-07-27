@@ -32,17 +32,15 @@ line-number claim against the real files (`state-layout.md`, `adr-002`, design
 ## Advisory (non-blocking)
 
 - Design §5.3 "is removed" verb sits on line **467**; the sentence begins on
-  466.
-  The plan's "§5.3 line 466-467" (WI2) spans the sentence correctly, and its
-  note reconciling the audit's `:464` is fair. No change required, but
+  1. The plan's "§5.3 line 466-467" (WI2) spans the sentence correctly, and
+  its note reconciling the audit's `:464` is fair. No change required, but
   "466-467" is the right citation throughout (the Context block at line 284
   says "line 466", which is the sentence start — acceptable).
 - The WI3 guard reads only `state-layout.md`; the optional ADR-002
-  cross-document
-  assertion is sound and appropriately tolerant. Keeping the guard
-  substring-specific to `tomli_w` is justified by scope; the residual-risk note
-  (a future `tomlkit` hand-edit passing green) is honestly recorded and
-  correctly deferred to 6.2.3.
+  cross-document assertion is sound and appropriately tolerant. Keeping the
+  guard substring-specific to `tomli_w` is justified by scope; the
+  residual-risk note (a future `tomlkit` hand-edit passing green) is honestly
+  recorded and correctly deferred to 6.2.3.
 
 ## What checks out (no action)
 
@@ -53,11 +51,10 @@ line-number claim against the real files (`state-layout.md`, `adr-002`, design
   eliminates direct editing of `state.toml`; a `tomlkit` rewrite would
   re-demonstrate the forbidden pattern.
 - Line facts verified: snippet at 226-238, `import tomli_w` at 229,
-  `tomli_w.dump`
-  at 235; lines 224/240 carry no `state.toml.new` token; line 61 is the sole
-  preserved `state.toml.new` mention; the four-item renumber to `1. 2. 3. 4.`
-  is the only coherent post-deletion list. The round-2 fix of the round-1
-  BLOCKING preserve-vs-rewrite contradiction is genuine and correct.
+  `tomli_w.dump` at 235; lines 224/240 carry no `state.toml.new` token; line 61
+  is the sole preserved `state.toml.new` mention; the four-item renumber to
+  `1. 2. 3. 4.` is the only coherent post-deletion list. The round-2 fix of the
+  round-1 BLOCKING preserve-vs-rewrite contradiction is genuine and correct.
 - No locked-library memory claims: the Decision Log correctly records no cuprum
   API (verified against design §4 lines 240-241 — cuprum only where a command
   shells out; none in v1) and no new dependency. The guard test is pure

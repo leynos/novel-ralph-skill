@@ -1,9 +1,8 @@
 # Extend the command-surface matrix to a minimal error-mode slice
 
-This ExecPlan (execution plan) is a living document. The sections
-`Constraints`, `Tolerances`, `Risks`, `Progress`, `Surprises & Discoveries`,
-`Decision Log`, and `Outcomes & Retrospective` must be kept up to date as work
-proceeds.
+This ExecPlan (execution plan) is a living document. The sections `Constraints`,
+`Tolerances`, `Risks`, `Progress`, `Surprises & Discoveries`, `Decision Log`,
+and `Outcomes & Retrospective` must be kept up to date as work proceeds.
 
 Status: COMPLETE
 
@@ -13,32 +12,32 @@ Roadmap task 6.2.8 closes the last documented gap in the combinatorial
 command-surface matrix
 ([`tests/test_command_surface_matrix.py`](../../tests/test_command_surface_matrix.py)).
 The matrix proves the five read console-scripts behave correctly across the
-`command x output-mode x phase` surface, but it only ever crosses *body-produced*
-envelopes — exit 0/1/4. It never crosses the two **command-agnostic diagnostic
-arms** the shared runner stamps *before any command body runs*: the usage-error
-(exit 2, `CycloptsError`) arm and the state-error (exit 3, `StateInputError`)
-arm in
+`command x output-mode x phase` surface, but it only ever crosses
+*body-produced* envelopes — exit 0/1/4. It never crosses the two
+**command-agnostic diagnostic arms** the shared runner stamps *before any
+command body runs*: the usage-error (exit 2, `CycloptsError`) arm and the
+state-error (exit 3, `StateInputError`) arm in
 [`novel_ralph_skill/contract/runner.py`](../../novel_ralph_skill/contract/runner.py)
-(lines 223–239). These are the arms the harness gates on per the §3.2 exit-code
-table, and they are exactly where the `--human` selection is stamped into an
-envelope the command body never produced (the reason `parse_global_flags` runs
-*before* `run`; runner.py lines 84–96).
+(lines 223–239). These are the arms the harness gates on per the §3.2
+exit-code table, and they are exactly where the `--human` selection is stamped
+into an envelope the command body never produced (the reason
+`parse_global_flags` runs *before* `run`; runner.py lines 84–96).
 
-Post-merge audit `audit-6.2.1.md` Finding 5 records this gap and offers a binary
-choice grounded in design §9's "carried knowingly rather than silently"
+Post-merge audit `audit-6.2.1.md` Finding 5 records this gap and offers a
+binary choice grounded in design §9's "carried knowingly rather than silently"
 principle: either add a minimal exit-2/exit-3 slice to the matrix, **or** name
 the omission in the module's `Carried gaps` section. This plan takes the first
-option — **add the slice** — because verification (see `Surprises &
-Discoveries`) confirms both arms are uniform and command-agnostic across all
-five commands, so a small slice is cheap, high-value, and closes the gap rather
-than documenting it as carried.
+option — **add the slice** — because verification (see
+`Surprises & Discoveries`) confirms both arms are uniform and command-agnostic
+across all five commands, so a small slice is cheap, high-value, and closes the
+gap rather than documenting it as carried.
 
 After this change, a maintainer can run the matrix suite and see, for each of
 the five read commands, that an empty argv-fault (unknown option) lands the
 exit-2 usage envelope and a missing `working/` lands the exit-3 state envelope,
 both in machine *and* human mode, with the `--human` stamp and the envelope
-skeleton (`command`, `ok: false`, `working_dir`, empty `result`) pinned, and the
-diagnostic message asserted by stable prefix. The developers' guide and the
+skeleton (`command`, `ok: false`, `working_dir`, empty `result`) pinned, and
+the diagnostic message asserted by stable prefix. The developers' guide and the
 module's `Carried gaps` section are updated so the surface description matches
 what the matrix now covers.
 
@@ -48,8 +47,8 @@ You can observe success by running, from the worktree root:
 make test
 ```
 
-and seeing the two new parametrized error-mode tests pass (10 cells each:
-five commands x two arms), and:
+and seeing the two new parametrized error-mode tests pass (10 cells each: five
+commands x two arms), and:
 
 ```plaintext
 make markdownlint
@@ -83,33 +82,36 @@ Hard invariants that must hold throughout implementation.
   module** as the rest of the matrix (developers' guide: "the single home for
   the `command x output-mode x phase` matrix"), not in a new file.
 - Prose, comments, and commit messages use en-GB Oxford spelling
-  (`-ize`/`-yse`/`-our`); Markdown paragraphs wrap at 80 columns, code blocks at
-  120 (AGENTS.md "Markdown guidance").
+  (`-ize`/`-yse`/`-our`); Markdown paragraphs wrap at 80 columns, code blocks
+  at 120 (AGENTS.md "Markdown guidance").
 - The module already carries a `pylint: disable=too-many-lines` relaxation
   (lines 60–67). The added slice must not breach any *other* gate
-  (`too-many-arguments`, `too-many-locals`). **The Pylint argument-count gate is
-  live and not silenced by Ruff.** `pyproject.toml` disables `too-many-arguments`
-  in the `[tool.pylint."messages control"]` `disable` block (line 186) but the
-  sibling `enable` block (line 192) re-enables `too-many-arguments` (line 297),
-  `too-many-locals` (line 301), and `too-many-positional-arguments` (line 303);
-  `[tool.pylint.design]` sets `max-args = 4` and `max-positional-arguments = 4`
-  (lines 180, 183). The Makefile runs this PyPy-backed Pylint over `tests/`
-  (`PYLINT_TARGETS = PYTHON_TARGETS = novel_ralph_skill tests`, lines 15–17), and
-  the Ruff per-file-ignore of `PLR0913`/`PLR0917` for `test_*.py`
+  (`too-many-arguments`, `too-many-locals`). **The Pylint argument-count gate
+  is live and not silenced by Ruff.** `pyproject.toml` disables
+  `too-many-arguments` in the `[tool.pylint."messages control"]` `disable`
+  block (line 186) but the sibling `enable` block (line 192) re-enables
+  `too-many-arguments` (line 297), `too-many-locals` (line 301), and
+  `too-many-positional-arguments` (line 303); `[tool.pylint.design]` sets
+  `max-args = 4` and `max-positional-arguments = 4` (lines 180, 183). The
+  Makefile runs this PyPy-backed Pylint over `tests/`
+  (`PYLINT_TARGETS = PYTHON_TARGETS = novel_ralph_skill tests`, lines 15–17),
+  and the Ruff per-file-ignore of `PLR0913`/`PLR0917` for `test_*.py`
   (`pyproject.toml` line 97) does **not** silence this separate Pylint pass.
-  Pylint counts keyword-only parameters toward `max-args`, so a helper with four
-  positional parameters plus one keyword-only `human` totals five and trips R0913
-  (`Too many arguments (5/4)`) — **empirically reproduced** with the project
-  runner (`uv tool run --python pypy --from
+  Pylint counts keyword-only parameters toward `max-args`, so a helper with
+  four positional parameters plus one keyword-only `human` totals five and
+  trips R0913 (`Too many arguments (5/4)`) — **empirically reproduced** with
+  the project runner
+  (`uv tool run --python pypy --from
   git+https://github.com/leynos/pylint-pypy-shim.git@726d09f9 pylint-pypy
-  --rcfile=pyproject.toml`); a three-positional-plus-one-keyword-only helper
-  totals four and is clean (also reproduced). Therefore **every new helper and
-  test signature must total at most four parameters** (positional + keyword-only
-  combined). Achieve this by bundling `(command, arm)` into a single parametrize
-  cell, exactly as the existing matrix bundles `(command, phase)` into
-  `_CELLS: tuple[tuple[_ReadCommand, str], ...]` and unpacks `command, phase =
-  cell` — reuse the existing `_ReadCommand` NamedTuple and `drive` fixture, as the
-  existing tests do.
+  --rcfile=pyproject.toml`);
+  a three-positional-plus-one-keyword-only helper totals four and is clean
+  (also reproduced). Therefore **every new helper and test signature must total
+  at most four parameters** (positional + keyword-only combined). Achieve this
+  by bundling `(command, arm)` into a single parametrize cell, exactly as the
+  existing matrix bundles `(command, phase)` into
+  `_CELLS: tuple[tuple[_ReadCommand, str], ...]` and unpacks
+  `command, phase = cell` — reuse the existing `_ReadCommand` NamedTuple and
+  `drive` fixture, as the existing tests do.
 
 ## Tolerances (exception triggers)
 
@@ -135,39 +137,32 @@ Hard invariants that must hold throughout implementation.
 
 - Risk: the exit-2 diagnostic message varies by command (`novel-compile --check`
   appends a "Did you mean --no-check?" suggestion to "Unknown option:
-  --nope.").
-  Severity: medium
-  Likelihood: certain (observed; see `Surprises & Discoveries`)
-  Mitigation: redact `messages` from the snapshot and assert the message
-  *prefix* (`"Unknown option:"`) semantically, so the command-varying suffix
-  does not churn a shared snapshot.
+  --nope."). Severity: medium Likelihood: certain (observed; see
+  `Surprises & Discoveries`) Mitigation: redact `messages` from the snapshot
+  and assert the message *prefix* (`"Unknown option:"`) semantically, so the
+  command-varying suffix does not churn a shared snapshot.
 
-- Risk: the exit-3 message embeds the OS `strerror` text (`[Errno 2] No such
-  file or directory: ...`), which is locale- and platform-dependent.
-  Severity: medium
-  Likelihood: high (off the development locale/OS)
-  Mitigation: drive the **absent-`working/`** variant (not the unparseable
-  variant, whose tomlkit message carries a churn-prone line/column), redact
-  `messages` from the snapshot, and assert the message prefix
-  (`"cannot load working/state.toml"`) semantically — that prefix is
+- Risk: the exit-3 message embeds the OS `strerror` text
+  (`[Errno 2] No such file or directory: ...`), which is locale- and
+  platform-dependent. Severity: medium Likelihood: high (off the development
+  locale/OS) Mitigation: drive the **absent-`working/`** variant (not the
+  unparseable variant, whose tomlkit message carries a churn-prone
+  line/column), redact `messages` from the snapshot, and assert the message
+  prefix (`"cannot load working/state.toml"`) semantically — that prefix is
   command-body-owned constant text, identical across all five commands
   (verified).
 
 - Risk: a future Cyclopts upgrade changes the usage-error message wording,
-  churning a prefix assertion.
-  Severity: low
-  Likelihood: low (locked at cyclopts 4.18.0 in `uv.lock`)
-  Mitigation: assert on the exit *code* (2) and the redacted envelope skeleton
-  as the primary contract; the message-prefix assertion is secondary and
-  narrow.
+  churning a prefix assertion. Severity: low Likelihood: low (locked at
+  cyclopts 4.18.0 in `uv.lock`) Mitigation: assert on the exit *code* (2) and
+  the redacted envelope skeleton as the primary contract; the message-prefix
+  assertion is secondary and narrow.
 
 - Risk: adding more cells pushes the module further over the 400-line cap and
-  trips a different size gate.
-  Severity: low
-  Likelihood: low (cap already relaxed via `too-many-lines`)
-  Mitigation: reuse the `_ReadCommand` registry, the `drive` fixture, and a
-  single redaction helper; keep the slice compact (one error-arm record table
-  plus two parametrized tests).
+  trips a different size gate. Severity: low Likelihood: low (cap already
+  relaxed via `too-many-lines`) Mitigation: reuse the `_ReadCommand` registry,
+  the `drive` fixture, and a single redaction helper; keep the slice compact
+  (one error-arm record table plus two parametrized tests).
 
 ## Progress
 
@@ -184,177 +179,175 @@ Hard invariants that must hold throughout implementation.
   `Carried gaps` docstring so the surface description matches the new coverage.
   **Done**. Added a covered-surface paragraph to the module docstring (before
   `Carried gaps`) and a matching paragraph to the developers' guide matrix
-  section describing the exit-2/exit-3 error-mode coverage. No carried-gap bullet
-  understated coverage; error-mode-by-command appears only as a covered-surface
-  statement, never as a carried gap (matching audit-6.2.1 Finding 5's
-  documentation half). `make markdownlint`, `make nixie`, and `make all` all
-  green.
+  section describing the exit-2/exit-3 error-mode coverage. No carried-gap
+  bullet understated coverage; error-mode-by-command appears only as a
+  covered-surface statement, never as a carried gap (matching audit-6.2.1
+  Finding 5's documentation half). `make markdownlint`, `make nixie`, and
+  `make all` all green.
 
 ### Implementation findings (coderabbit, both work items)
 
-Across both work-item reviews, every coderabbit finding landed on the **planning
-artefacts** — `docs/execplans/roadmap-6-2-8.md` and the historical review notes
-`roadmap-6-2-8.review-r1.md`/`.review-r2.md` — and none on the test code, the
-snapshot, the module docstring, or the developers' guide that this task touched.
-All were `minor` severity: second-/first-person voice and 80-column reflow in the
-plan/review prose, plus an advisory that the round-2 A1 note implied removing a
-non-existent carried-gap bullet. These are recorded here rather than actioned:
-the review notes are immutable historical records, and the main plan's Work item
-2 guidance already says "(not a carried-gap bullet)" and only ever adds a
-covered-surface statement, so the implementation is correct as shipped. The
-plan's established narrative voice is left intact to preserve meaning; the
-voice/reflow observations are carried as cosmetic, non-blocking advisories.
+Across both work-item reviews, every coderabbit finding landed on the
+**planning artefacts** — `docs/execplans/roadmap-6-2-8.md` and the historical
+review notes `roadmap-6-2-8.review-r1.md`/`.review-r2.md` — and none on the
+test code, the snapshot, the module docstring, or the developers' guide that
+this task touched. All were `minor` severity: second-/first-person voice and
+80-column reflow in the plan/review prose, plus an advisory that the round-2 A1
+note implied removing a non-existent carried-gap bullet. These are recorded
+here rather than actioned: the review notes are immutable historical records,
+and the main plan's Work item 2 guidance already says "(not a carried-gap
+bullet)" and only ever adds a covered-surface statement, so the implementation
+is correct as shipped. The plan's established narrative voice is left intact to
+preserve meaning; the voice/reflow observations are carried as cosmetic,
+non-blocking advisories.
 
 ## Surprises & discoveries
 
 - Observation: both diagnostic arms are uniform and command-agnostic across all
-  five read commands when driven through `run`.
-  Evidence: an in-process drive (worktree root, empty cwd) over
+  five read commands when driven through `run`. Evidence: an in-process drive
+  (worktree root, empty cwd) over
   `[novel-state check, novel-done, wordcount, novel-compile --check, desloppify]`
   produced, for an absent `working/`: exit 3, `ok: false`, `result: {}`,
-  `messages == ["cannot load working/state.toml: [Errno 2] No such file or
-  directory: 'working/state.toml'"]` — byte-identical across all five. For an
-  appended unknown option (`--nope`): exit 2, `ok: false`, `result: {}`,
-  message `"Unknown option: --nope."` for four commands and `"Unknown option:
-  --nope. Did you mean --no-check?"` for `novel-compile --check`.
-  Impact: a single shared error-arm record drives all five commands; the
-  snapshot must redact `messages` (the exit-3 errno text and the exit-2 suffix
-  are the only variable parts); the rest of the envelope is a stable shared
-  skeleton.
+  messages == ["cannot load working/state.toml: [Errno 2] No such file or
+  directory: 'working/state.toml'"] — byte-identical across all five. For an
+  appended unknown option (`--nope`): exit 2, `ok: false`, `result: {}`, message
+  `"Unknown option: --nope."` for four commands and
+  `"Unknown option: --nope. Did you mean --no-check?"` for
+  `novel-compile --check`. Impact: a single shared error-arm record drives all
+  five commands; the snapshot must redact `messages` (the exit-3 errno text and
+  the exit-2 suffix are the only variable parts); the rest of the envelope is a
+  stable shared skeleton.
 
 - Observation: human mode stamps the command name on both arms.
   Evidence: the same drive in `human=True` produced exit 3 with first line
-  `command: novel-state` (etc.) for every command — the `--human` stamp the §3.2
-  arms must carry is present.
-  Impact: the human-presence assertion (`rendered.strip()` non-empty and
-  `command.name in rendered`) used elsewhere in the module works unchanged for
-  the error arms.
+  `command: novel-state` (etc.) for every command — the `--human` stamp the
+  §3.2 arms must carry is present. Impact: the human-presence assertion
+  (`rendered.strip()` non-empty and `command.name in rendered`) used elsewhere
+  in the module works unchanged for the error arms.
 
 - Observation: the unparseable-`state.toml` exit-3 variant carries a
-  tomlkit parse message with a line/column (`Expected '=' ... at line 1, column
-  6`).
-  Evidence: writing invalid TOML to `working/state.toml` and driving `wordcount`
-  produced exit 3 with that message.
-  Impact: prefer the absent-`working/` variant for the snapshot slice (cleaner,
-  command-identical message); the unparseable variant is already covered
-  per-command (e.g. `tests/test_state_mutators_unit.py`,
+  tomlkit parse message with a line/column
+  (`Expected '=' ... at line 1, column 6`). Evidence: writing invalid TOML to
+  `working/state.toml` and driving `wordcount` produced exit 3 with that
+  message. Impact: prefer the absent-`working/` variant for the snapshot slice
+  (cleaner, command-identical message); the unparseable variant is already
+  covered per-command (e.g. `tests/test_state_mutators_unit.py`,
   `tests/test_desloppify_sourcing.py`) and need not be re-crossed here.
 
 - Observation: cuprum is not involved in this task.
   Evidence: module docstring line 31 ("consume cuprum nowhere"); the slice is
   in-process through `run`. No cuprum API is relied upon, so no cuprum-version
-  pinning is required for this plan.
-  Impact: the cuprum-research obligation is satisfied by exclusion; the only
-  external library whose behaviour is load-bearing is Cyclopts, verified
-  empirically against the locked `cyclopts 4.18.0`.
+  pinning is required for this plan. Impact: the cuprum-research obligation is
+  satisfied by exclusion; the only external library whose behaviour is
+  load-bearing is Cyclopts, verified empirically against the locked
+  `cyclopts 4.18.0`.
 
 ## Decision log
 
 - Decision: take the "add the slice" fork of the audit Finding 5 binary, not the
-  "document the gap" fork.
-  Rationale: verification shows both arms are command-agnostic and uniform, so
-  the slice is small (one record + two tests, ~80 net lines) and closes the gap
-  rather than carrying it. The success clause is satisfied either way, but
-  closing beats carrying when the cost is this low.
-  Date/Author: 2026-06-25, planning agent.
+  "document the gap" fork. Rationale: verification shows both arms are
+  command-agnostic and uniform, so the slice is small (one record + two tests,
+  ~80 net lines) and closes the gap rather than carrying it. The success clause
+  is satisfied either way, but closing beats carrying when the cost is this
+  low. Date/Author: 2026-06-25, planning agent.
 
 - Decision: redact `messages` from the error-mode snapshot and assert message
-  content by stable prefix instead.
-  Rationale: the exit-3 message embeds locale/OS `strerror` text and the exit-2
-  message has a command-varying suggestion suffix; both would churn a shared
-  snapshot. The contract worth pinning is the envelope *skeleton* (`command`,
-  `ok: false`, `working_dir`, `result: {}`) plus the *code*; the message is
-  pinned semantically by its command-body-owned prefix. This matches AGENTS.md
-  ("Redact or normalize nondeterministic fields ... before snapshotting") and
-  design §9 (normalize volatile fields so a failure is a real contract change).
-  Date/Author: 2026-06-25, planning agent.
+  content by stable prefix instead. Rationale: the exit-3 message embeds
+  locale/OS `strerror` text and the exit-2 message has a command-varying
+  suggestion suffix; both would churn a shared snapshot. The contract worth
+  pinning is the envelope *skeleton* (`command`, `ok: false`, `working_dir`,
+  `result: {}`) plus the *code*; the message is pinned semantically by its
+  command-body-owned prefix. This matches AGENTS.md ("Redact or normalize
+  nondeterministic fields … before snapshotting") and design §9 (normalize
+  volatile fields so a failure is a real contract change). Date/Author:
+  2026-06-25, planning agent.
 
 - Decision: use the absent-`working/` tree for the exit-3 cell, not an
-  unparseable `state.toml`.
-  Rationale: the absent variant yields a command-identical, line/column-free
-  message; the unparseable variant's tomlkit message is churn-prone and already
-  covered per-command. The §3.2 table lists "working dir absent" as a first-class
-  exit-3 trigger, so the absent variant is contract-faithful.
-  Date/Author: 2026-06-25, planning agent.
+  unparseable `state.toml`. Rationale: the absent variant yields a
+  command-identical, line/column-free message; the unparseable variant's
+  tomlkit message is churn-prone and already covered per-command. The §3.2
+  table lists "working dir absent" as a first-class exit-3 trigger, so the
+  absent variant is contract-faithful. Date/Author: 2026-06-25, planning agent.
 
 - Decision: trigger the exit-2 arm with an unknown option appended to each
   command's existing read argv (`command.argv + ["--nope"]`), reusing the
-  `_READ_REGISTRY`.
-  Rationale: an unknown option raises `CycloptsError` uniformly for both the
-  command-group surface (`novel-state`) and the default-callback surfaces, so it
-  is the one command-agnostic exit-2 trigger (a bare positional does *not* fault
-  uniformly — default-callback commands may accept or differently reject it).
-  Verified across all five. The design §9 names "unknown subcommand or bad
-  arguments -> exit 2"; an unknown option is the "bad arguments" case.
-  Date/Author: 2026-06-25, planning agent.
+  `_READ_REGISTRY`. Rationale: an unknown option raises `CycloptsError`
+  uniformly for both the command-group surface (`novel-state`) and the
+  default-callback surfaces, so it is the one command-agnostic exit-2 trigger
+  (a bare positional does *not* fault uniformly — default-callback commands may
+  accept or differently reject it). Verified across all five. The design §9
+  names "unknown subcommand or bad arguments -> exit 2"; an unknown option is
+  the "bad arguments" case. Date/Author: 2026-06-25, planning agent.
 
 - Decision: bundle `(command, arm)` into a single `_ERROR_CELLS` parametrize
   cell and have `_drive_error_cell` take `(cell, tmp_path, drive, *, human)`,
-  rather than passing `command` and `arm` as separate parameters.
-  Rationale: the project's PyPy-backed Pylint pass enforces `max-args = 4` /
+  rather than passing `command` and `arm` as separate parameters. Rationale:
+  the project's PyPy-backed Pylint pass enforces `max-args = 4` /
   `max-positional-arguments = 4` over `tests/` and counts keyword-only
-  parameters, so a `(command, arm, tmp_path, drive, *, human)` helper totals five
-  and trips `R0913 (5/4)` — empirically reproduced with the project runner during
-  round-2 planning. Bundling the cell drops the helper to four parameters and the
-  machine/human tests to four/three, matching the existing `_CELLS`-based
-  `test_machine_envelope_matrix`. This resolves round-1 review blocker B1; the
-  four-parameter form was empirically confirmed clean under the same runner.
-  Date/Author: 2026-06-25, planning agent (round 2).
+  parameters, so a `(command, arm, tmp_path, drive, *, human)` helper totals
+  five and trips `R0913 (5/4)` — empirically reproduced with the project runner
+  during round-2 planning. Bundling the cell drops the helper to four
+  parameters and the machine/human tests to four/three, matching the existing
+  `_CELLS`-based `test_machine_envelope_matrix`. This resolves round-1 review
+  blocker B1; the four-parameter form was empirically confirmed clean under the
+  same runner. Date/Author: 2026-06-25, planning agent (round 2).
 
 - Decision: assert `len(messages) == 1` in the machine test, not merely a
-  non-empty `messages` list.
-  Rationale: the snapshot redacts `messages` to `["<redacted>"]`, which collapses
-  the message-count signal; pinning the count restores it so a future arm that
-  accidentally emits multiple message lines is caught (round-1 advisory A1).
-  Date/Author: 2026-06-25, planning agent (round 2).
+  non-empty `messages` list. Rationale: the snapshot redacts `messages` to
+  `["<redacted>"]`, which collapses the message-count signal; pinning the count
+  restores it so a future arm that accidentally emits multiple message lines is
+  caught (round-1 advisory A1). Date/Author: 2026-06-25, planning agent (round
+  2).
 
 ## Round-2 review resolution
 
 Round-1 (`roadmap-6-2-8.review-r1.md`) verdict was REVISE with one blocking
 defect, B1, plus three non-blocking advisories.
 
-- **B1 (resolved).** The proposed `_drive_error_arm(command, arm, tmp_path,
-  drive, *, human)` helper had five parameters and tripped Pylint `R0913 (5/4)`,
-  failing `make lint`/`make all`. Fixed by bundling `(command, arm)` into a
-  single `_ERROR_CELLS` cell (mirroring the existing `_CELLS` pattern) so the
-  helper is now `_drive_error_cell(cell, tmp_path, drive, *, human)` — four
-  parameters — and the machine/human tests are four/three parameters. The
-  argument-count gate's mechanics (the `enable` block re-enabling
-  `too-many-arguments`/`too-many-positional-arguments`, `max-args = 4`, Pylint
-  counting keyword-only params, the Ruff ignore not silencing Pylint) are now
-  pinned in Constraints, and both the failing five-parameter form and the passing
-  four-parameter form were empirically reproduced with the project's PyPy-backed
-  pylint runner during round-2 planning. See the new Constraints bullet, the
-  rewritten Work item 1 steps 1–5, and the round-2 Decision Log entries.
+- **B1 (resolved).** The proposed
+  `_drive_error_arm(command, arm, tmp_path, drive, *, human)` helper had five
+  parameters and tripped Pylint `R0913 (5/4)`, failing `make lint`/`make all`.
+  Fixed by bundling `(command, arm)` into a single `_ERROR_CELLS` cell
+  (mirroring the existing `_CELLS` pattern) so the helper is now
+  `_drive_error_cell(cell, tmp_path, drive, *, human)` — four parameters — and
+  the machine/human tests are four/three parameters. The argument-count gate's
+  mechanics (the `enable` block re-enabling `too-many-arguments`/
+  `too-many-positional-arguments`, `max-args = 4`, Pylint counting keyword-only
+  params, the Ruff ignore not silencing Pylint) are now pinned in Constraints,
+  and both the failing five-parameter form and the passing four-parameter form
+  were empirically reproduced with the project's PyPy-backed pylint runner
+  during round-2 planning. See the new Constraints bullet, the rewritten Work
+  item 1 steps 1–5, and the round-2 Decision Log entries.
 - **A1 (adopted).** The machine test now asserts `len(messages) == 1` (Decision
   Log) so the redaction does not hide a multi-line-message regression.
 - **A2 (acknowledged, no change).** The `"Unknown option:"` prefix assertion is
-  kept deliberately narrow; exit code 2 and the redacted envelope skeleton remain
-  the primary contract (already in Risks, severity low/likelihood low).
-- **A3 (no change).** The close-the-gap-versus-carry-the-gap fork was rated sound
-  by the reviewer; it stays as decided (close the gap).
+  kept deliberately narrow; exit code 2 and the redacted envelope skeleton
+  remain the primary contract (already in Risks, severity low/likelihood low).
+- **A3 (no change).** The close-the-gap-versus-carry-the-gap fork was rated
+  sound by the reviewer; it stays as decided (close the gap).
 
 ## Outcomes & retrospective
 
 Outcome: the purpose is met. The matrix now crosses the exit-2 (usage) and
 exit-3 (state) command-agnostic arms for all five read commands in both output
 modes (10 machine + 10 human cells). The machine cells pin the envelope skeleton
-(`command`, `ok: false`, `working_dir: "working"`, `result: {}`) and the message
-count in a redacted snapshot, with the message asserted by its
-command-body-owned prefix; the human cells prove the `--human` stamp reaches the
-body-less arms. The developers' guide matrix section and the module docstring
-both describe the new coverage, and neither lists error-mode-by-command as a
-carried gap. `make all`, `make markdownlint`, and `make nixie` are all green at
-HEAD.
+(`command`, `ok: false`, `working_dir: "working"`, `result: {}`) and the
+message count in a redacted snapshot, with the message asserted by its
+command-body-owned prefix; the human cells prove the `--human` stamp reaches
+the body-less arms. The developers' guide matrix section and the module
+docstring both describe the new coverage, and neither lists
+error-mode-by-command as a carried gap. `make all`, `make markdownlint`, and
+`make nixie` are all green at HEAD.
 
 Retrospective: the plan's round-2 fix (bundling `(command, arm)` into a single
 `_ERROR_CELLS` cell to stay within the four-parameter Pylint gate) held exactly
 as predicted — the helper and tests passed `make lint` with no `R0913`. The one
-deviation was cosmetic: Ruff format collapsed `_ERROR_CELL_IDS` to a single-line
-comprehension where the plan draft showed a multi-line form. Verification of both
-arms' command-agnostic uniformity (recorded in `Surprises & Discoveries`) proved
-accurate: a single shared `_ErrorArm` record drove all five commands with no
-per-command branching, so the slice was as cheap as the Decision Log anticipated.
+deviation was cosmetic: Ruff format collapsed `_ERROR_CELL_IDS` to a
+single-line comprehension where the plan draft showed a multi-line form.
+Verification of both arms' command-agnostic uniformity (recorded in
+`Surprises & Discoveries`) proved accurate: a single shared `_ErrorArm` record
+drove all five commands with no per-command branching, so the slice was as
+cheap as the Decision Log anticipated.
 
 ## Context and orientation
 
@@ -367,14 +360,14 @@ The harness ships five **read** console-scripts (`novel-state check`,
 single shared wrapper, `run`, in
 [`novel_ralph_skill/contract/runner.py`](../../novel_ralph_skill/contract/runner.py).
 `run` owns every `sys.exit` and every envelope emission. Crucially for this
-task, `run` has two `except` arms (runner.py lines 225–239) that fire *before or
-instead of* a command body returning a value:
+task, `run` has two `except` arms (runner.py lines 225–239) that fire *before
+or instead of* a command body returning a value:
 
 - `except CycloptsError` -> emits an envelope with `ExitCode.USAGE_ERROR` (2)
   and exits 2. This is the "unknown subcommand or bad arguments" arm.
 - `except StateInputError` -> emits an envelope with `ExitCode.STATE_ERROR` (3)
-  and exits 3. A command body raises `StateInputError` when `working/state.toml`
-  is missing/unparseable or the working dir is absent.
+  and exits 3. A command body raises `StateInputError` when
+  `working/state.toml` is missing/unparseable or the working dir is absent.
 
 Both arms call the same `_emit` (runner.py lines 169–187), which renders human
 or machine per `RunContext.human`. So the `--human` selection is stamped onto
@@ -393,12 +386,12 @@ Read its module docstring (lines 1–58) and the `Carried gaps` section (lines
 - `_ReadCommand` (lines 96–107): a NamedTuple of `(name, build_app, argv)`.
 - `_READ_REGISTRY` (lines 112–118): the five read commands and their read argv.
 - `_BY_NAME` (lines 145–147): name -> `_ReadCommand` lookup.
-- the `drive` fixture (lines 195–235): an in-process driver that `monkeypatch.chdir`s
-  to `working.parent`, calls `run(...)`, catches `SystemExit`, and returns
-  `(code, out)`. **Note:** the existing `drive` chdirs to `working.parent`, where
-  `working` is a *built* phase tree. For the error arms you need a directory with
-  **no** `working/`, so you will chdir to a bare `tmp_path` — see Work item 1 for
-  how to do this without a phase tree.
+- the `drive` fixture (lines 195–235): an in-process driver that
+  `monkeypatch.chdir`s to `working.parent`, calls `run(...)`, catches
+  `SystemExit`, and returns `(code, out)`. **Note:** the existing `drive`
+  chdirs to `working.parent`, where `working` is a *built* phase tree. For the
+  error arms you need a directory with **no** `working/`, so you will chdir to
+  a bare `tmp_path` — see Work item 1 for how to do this without a phase tree.
 - `_assert_no_volatile_fields` (lines 238–258): the volatile-token guard.
 - `_DETERMINISTIC_PATH_TOKEN` (line 143): the one allowed working-relative path.
 
@@ -415,8 +408,8 @@ coverage.
 
 Key terms: an **envelope** is the JSON object every command prints (`command`,
 `schema_version`, `ok`, `working_dir`, `result`, `messages`). **Machine mode**
-prints it as JSON; **human mode** prints a line-oriented rendering. A **cell** is
-one `(command, variant)` combination the matrix parametrizes over.
+prints it as JSON; **human mode** prints a line-oriented rendering. A **cell**
+is one `(command, variant)` combination the matrix parametrizes over.
 
 ## Plan of work
 
@@ -431,10 +424,10 @@ Implements: design §2.3 (lines 125–129, the `command x output-mode x phase`
 surface and its machine-snapshot / human-presence / semantic-branch strategy);
 design §3.2 (lines 203–230, the exit-2 and exit-3 rows of the code table);
 design §9 (lines 822–826, the "CLI error-path tests" strategy — "unknown
-subcommand or bad arguments -> exit 2" and "missing or unparseable `state.toml`,
-absent working dir -> exit 3"); ADR-003 §3.1 (the command-agnostic `--human`
-splitter the arms depend on); audit `audit-6.2.1.md` Finding 5 (the gap and the
-add-the-slice option). Closes the Finding-5 gap.
+subcommand or bad arguments -> exit 2" and "missing or unparseable
+`state.toml`, absent working dir -> exit 3"); ADR-003 §3.1 (the command-agnostic
+`--human` splitter the arms depend on); audit `audit-6.2.1.md` Finding 5 (the
+gap and the add-the-slice option). Closes the Finding-5 gap.
 
 Documentation to read first:
 
@@ -536,11 +529,11 @@ Concrete edits to `tests/test_command_surface_matrix.py`:
        return drive(command._replace(argv=argv), working, human=human)
    ```
 
-   This reuses `drive` unchanged (it only reads `working.parent` and never
-   stats `working` itself). Choose any coherent phase for the usage arm
-   (`drafting` is fine — the body never runs, the usage error fires at parse).
-   Re-verify the helper signature against the project pylint runner (not merely
-   Ruff): `make lint` must report no `too-many-arguments`/
+   This reuses `drive` unchanged (it only reads `working.parent` and never stats
+   `working` itself). Choose any coherent phase for the usage arm (`drafting`
+   is fine — the body never runs, the usage error fires at parse). Re-verify
+   the helper signature against the project pylint runner (not merely Ruff):
+   `make lint` must report no `too-many-arguments`/
    `too-many-positional-arguments` on the module (empirically confirmed clean
    for the four-parameter form during planning).
 
@@ -592,8 +585,9 @@ Concrete edits to `tests/test_command_surface_matrix.py`:
      proving the `--human` stamp reaches the body-less arms (the §3.2 /
      ADR-003 §3.1 point).
 
-5. The `ids=_ERROR_CELL_IDS` argument (built from `f"{command.name}-{arm.label}"`)
-   already names each failing cell, so no further id wiring is needed.
+5. The `ids=_ERROR_CELL_IDS` argument (built from
+   `f"{command.name}-{arm.label}"`) already names each failing cell, so no
+   further id wiring is needed.
 
 Tests this work item adds (per AGENTS.md testing rules):
 
@@ -601,9 +595,9 @@ Tests this work item adds (per AGENTS.md testing rules):
   `messages` redacted, **paired** with the semantic assertions above (no
   snapshot-only coverage; AGENTS.md). 10 new snapshot cells.
 - Unit/semantic tests: the exit-code, `ok`, `working_dir`, `result == {}`,
-  `len(messages) == 1`, and message-prefix assertions per cell (machine), and the
-  presence assertions per cell (human). These are the "unhappy path" coverage
-  AGENTS.md requires.
+  `len(messages) == 1`, and message-prefix assertions per cell (machine), and
+  the presence assertions per cell (human). These are the "unhappy path"
+  coverage AGENTS.md requires.
 - No property, behavioural (`pytest-bdd`), or e2e test is added: the arms are
   finite and exact (no range invariant -> no `hypothesis`/`crosshair`), the
   in-process matrix is unit/snapshot by design (behavioural composition is task
@@ -626,18 +620,18 @@ pre-existing matrix tests are untouched and still pass. `make all` (build,
 check-fmt, lint, typecheck, test) is green. Commit message (file-based, en-GB):
 "Cross the exit-2/exit-3 error arms in the command-surface matrix".
 
-Acceptance: `make all` passes; `uv run pytest
-tests/test_command_surface_matrix.py -k error` reports 20 passed (10 machine +
-10 human); the snapshot file gains 10 redacted error-arm entries whose
-`messages` is `["<redacted>"]`.
+Acceptance: `make all` passes;
+`uv run pytest tests/test_command_surface_matrix.py -k error` reports 20 passed
+(10 machine + 10 human); the snapshot file gains 10 redacted error-arm entries
+whose `messages` is `["<redacted>"]`.
 
 ### Work item 2 — Update the developers' guide and the `Carried gaps` docstring
 
-Implements: design §9 (lines 817–821, "carried knowingly rather than silently");
-audit `audit-6.2.1.md` Finding 5 (the documentation half — the surface
-description must match coverage); ADR-005 (the five-script command surface the
-guide describes). Keeps living documentation truthful per the project's
-docs-as-source-of-truth rule.
+Implements: design §9 (lines 817–821, "carried knowingly rather than
+silently"); audit `audit-6.2.1.md` Finding 5 (the documentation half — the
+surface description must match coverage); ADR-005 (the five-script command
+surface the guide describes). Keeps living documentation truthful per the
+project's docs-as-source-of-truth rule.
 
 Documentation to read first:
 
@@ -672,11 +666,11 @@ Concrete edits:
    sentences stating the matrix now also crosses the runner's command-agnostic
    exit-2 (usage) and exit-3 (state) arms — the envelopes that stamp `--human`
    before the body runs — for each read command in both output modes, with the
-   message redacted and the envelope skeleton pinned, citing design §3.2 and §9.
-   Keep paragraphs wrapped at 80 columns.
+   message redacted and the envelope skeleton pinned, citing design §3.2 and
+   §9. Keep paragraphs wrapped at 80 columns.
 
-Tests this work item adds: none (docs-only). The behaviour the prose describes is
-already pinned by Work item 1's tests.
+Tests this work item adds: none (docs-only). The behaviour the prose describes
+is already pinned by Work item 1's tests.
 
 Validation:
 
@@ -708,7 +702,8 @@ Run everything from the worktree root
    git -C /data/leynos/Projects/novel-ralph-skill.worktrees/roadmap-6-2-8 status
    ```
 
-   Expect branch `roadmap-6-2-8` and a clean working tree (this plan file aside).
+   Expect branch `roadmap-6-2-8` and a clean working tree (this plan file
+   aside).
 
 2. Work item 1: edit `tests/test_command_surface_matrix.py` per the plan, then:
 
@@ -739,9 +734,9 @@ Run everything from the worktree root
 
 Quality criteria (what "done" means):
 
-- Tests: `uv run pytest tests/test_command_surface_matrix.py` passes; the two new
-  error-mode tests report 20 passed total (10 machine + 10 human); they fail
-  before the slice is added (no snapshot, no assertions) and pass after.
+- Tests: `uv run pytest tests/test_command_surface_matrix.py` passes; the two
+  new error-mode tests report 20 passed total (10 machine + 10 human); they
+  fail before the slice is added (no snapshot, no assertions) and pass after.
 - Lint/typecheck/format/test: `make all` is green.
 - Markdown: `make markdownlint` and `make nixie` pass over the updated guide.
 - Snapshot hygiene: the 10 new `.ambr` entries carry `messages: ["<redacted>"]`
@@ -752,8 +747,8 @@ Quality method (how we check):
 - Run `make all` after Work item 1 and again after Work item 2.
 - Run `make markdownlint` and `make nixie` after Work item 2.
 - Inspect the new snapshot entries to confirm `messages` is redacted and the
-  envelope skeleton (`command`, `ok: false`, `working_dir: "working"`, `result:
-  {}`) is pinned.
+  envelope skeleton (`command`, `ok: false`, `working_dir: "working"`,
+  `result: {}`) is pinned.
 
 Behavioural acceptance a human can verify: from a directory with no `working/`,
 each of the five read commands run through `run` exits 3 and prints an envelope
@@ -776,7 +771,8 @@ modes.
 ## Interfaces and dependencies
 
 - Test framework: `pytest` with `syrupy` `5.3.2` (`SnapshotAssertion`), the
-  `drive` fixture, and the `_ReadCommand`/`_READ_REGISTRY` already in the module.
+  `drive` fixture, and the `_ReadCommand`/`_READ_REGISTRY` already in the
+  module.
 - Runner under test: `novel_ralph_skill.contract.runner.run`,
   `RunContext`, and `ExitCode` (`USAGE_ERROR == 2`, `STATE_ERROR == 3`),
   unchanged.
@@ -805,6 +801,6 @@ gates, and a merge. The roadmap carries the matching nested sub-task.
   command-surface matrix** (from audit:6.2.8; severity: low). The ten
   `test_error_arm_machine_envelope` snapshots redact the only command-variable
   field, leaving each differing solely by a `command` string the test body
-  already asserts field-by-field, so they re-pin a skeleton with no added signal.
-  Replace the ten `.ambr` blocks with one in-code expected-skeleton assertion
-  templated on `command.name`/`working_dir`.
+  already asserts field-by-field, so they re-pin a skeleton with no added
+  signal. Replace the ten `.ambr` blocks with one in-code expected-skeleton
+  assertion templated on `command.name`/`working_dir`.

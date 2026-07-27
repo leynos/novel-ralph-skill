@@ -30,9 +30,9 @@ preparing to dogfood the harness:
 
 The maintainer's stated preference is the single-command shape; namespaced
 separate scripts (`novel-desloppify`, `novel-wordcount`) were noted as an
-acceptable fallback. This ADR settles the surface before the
-chapter-manifest work (roadmap 2.2.3) and before dogfooding, so the first real
-use exercises the final shape.
+acceptable fallback. This ADR settles the surface before the chapter-manifest
+work (roadmap 2.2.3) and before dogfooding, so the first real use exercises the
+final shape.
 
 ## Decision drivers
 
@@ -49,15 +49,15 @@ use exercises the final shape.
 
 Rename `desloppify` → `novel-desloppify` and `wordcount` → `novel-wordcount`,
 keeping five separate console-scripts. Smallest change; fixes `PATH` hygiene.
-Leaves the structural asymmetry (one script, `novel-state`, carries subcommands;
-the other four do not) and keeps five binaries on `PATH`.
+Leaves the structural asymmetry (one script, `novel-state`, carries
+subcommands; the other four do not) and keeps five binaries on `PATH`.
 
 ### Option B: A single `novel` multiplexer
 
 One entry point dispatches to a `state` subgroup and four leaf verbs. One
 process emits one envelope by construction; `novel --help` lists everything;
-only `novel` reaches `PATH`. Costs a one-time rename of every `novel-x` reference
-to `novel x` across code, tests, the design, and the skill.
+only `novel` reaches `PATH`. Costs a one-time rename of every `novel-x`
+reference to `novel x` across code, tests, the design, and the skill.
 
 | Topic                 | A: namespace two scripts   | B: `novel` multiplexer     |
 | --------------------- | -------------------------- | -------------------------- |
@@ -71,16 +71,16 @@ _Table 1: Comparison of options._
 
 ## Decision outcome
 
-Adopt **Option B: a single `novel` multiplexer**. ADR 005's pro-five reasons have
-weakened: its headline argument was "avoid renaming every reference", but the two
-generic names must be renamed regardless, the surface has already become a
-partial multiplexer, and the rename churn is cheapest now. The multiplexer's
-"trade-offs" that ADR 005 cited against it — independent per-command versioning
-and subset installation — are equally unwanted under five scripts, so they no
-longer favour five. Against a residual cost (a mechanical, test-covered rename),
-the multiplexer delivers a uniform structure, a clean single-name `PATH`
-footprint, a discoverable `novel --help`, and matches the maintainer's
-preference.
+Adopt **Option B: a single `novel` multiplexer**. ADR 005's pro-five reasons
+have weakened: its headline argument was "avoid renaming every reference", but
+the two generic names must be renamed regardless, the surface has already
+become a partial multiplexer, and the rename churn is cheapest now. The
+multiplexer's "trade-offs" that ADR 005 cited against it — independent
+per-command versioning and subset installation — are equally unwanted under
+five scripts, so they no longer favour five. Against a residual cost (a
+mechanical, test-covered rename), the multiplexer delivers a uniform structure,
+a clean single-name `PATH` footprint, a discoverable `novel --help`, and
+matches the maintainer's preference.
 
 This is an honest close call: Option A would also resolve the maintainer's
 literal `PATH` concern at lower cost. Option B is chosen for the better
@@ -107,7 +107,8 @@ entry, `novel`, instead of five.
   - One uniform, discoverable command surface under a single `novel` namespace.
   - Remove generic unprefixed names from `PATH`.
 - Non-goals:
-  - The shared contract itself (ADR 003) or the distribution mechanism (ADR 004).
+  - The shared contract itself (ADR 003) or the distribution mechanism (ADR
+    004).
   - Independent per-command versioning or subset installation (not wanted).
 
 ## Migration plan
@@ -117,10 +118,10 @@ entries to a single `novel` entry dispatching into the existing Cyclopts apps
 (the `state` subgroup plus four leaf verbs), updates the command-name single
 source of truth (`novel_ralph_skill/commands/names.py`), migrates the
 installed-binary e2e tests and the contract suite to invoke `novel <sub>`,
-sweeps the design prose and diagrams and `SKILL.md` (including its Setup section
-and every bare-command reference) from `novel-x` to `novel x`, and removes the
-four generic entry points. The shared scaffolding, exit-code policy, and
-envelope are unchanged.
+sweeps the design prose and diagrams and `SKILL.md` (including its Setup
+section and every bare-command reference) from `novel-x` to `novel x`, and
+removes the four generic entry points. The shared scaffolding, exit-code
+policy, and envelope are unchanged.
 
 ## Known risks and limitations
 

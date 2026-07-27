@@ -14,8 +14,8 @@ documentation set.
 - [Development roadmap](roadmap.md) sequences the rebuild into phases,
   steps, and tasks.
 - [Execution plans](execplans/) hold the self-contained per-task plans
-  (`roadmap-<step>-<task>.md`) and their review rounds that drive each
-  roadmap task to completion.
+  (`roadmap-<step>-<task>.md`) and their review rounds that drive each roadmap
+  task to completion.
 - [Post-merge audits](issues/) hold the per-task audit notes
   (`audit-<step>.<task>.md`) recording the codebase review after each task
   merged to `main`.
@@ -44,15 +44,16 @@ documentation set.
   recovery precedence.
 - [ADR 009: the phase-gated drafting bijection relaxation](adr-009-drafting-bijection-relaxation.md)
   records that during drafting `novel-state check` relaxes the manifest-to-disk
-  bijection to disk-subset-of-manifest behind a default-strict flag, leaving the
-  orphan and contiguity directions firing, `reconcile` strict, and the exact
-  bijection re-tightening at `final-pass` and `done`.
+  bijection to disk-subset-of-manifest behind a default-strict flag, leaving
+  the orphan and contiguity directions firing, `reconcile` strict, and the
+  exact bijection re-tightening at `final-pass` and `done`.
 - [ADR 010: the gate and drafting sub-state mutators](adr-010-gate-drafting-mutators.md)
   records `novel-state set-gate`, `complete-final-pass`, `set-fangirl`, and
-  `set-critic-pass`: their input shapes, the exit-2/exit-3 split, the gate-ratio
-  binding that makes `set-gate` the repair mutator for a gate that lags its ratio,
-  the write-time preconditions for the §5.2-unconstrained fields, and the
-  registrar pattern that keeps `novel_state.py` under the 400-line cap.
+  `set-critic-pass`: their input shapes, the exit-2/exit-3 split, the
+  gate-ratio binding that makes `set-gate` the repair mutator for a gate that
+  lags its ratio, the write-time preconditions for the §5.2-unconstrained
+  fields, and the registrar pattern that keeps `novel_state.py` under the
+  400-line cap.
 
 ## Project guides
 

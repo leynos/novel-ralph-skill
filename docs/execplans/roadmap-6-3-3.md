@@ -39,8 +39,8 @@ Concretely, three things become true of `SKILL.md`:
    binary matches the contract this skill documents.
 
 You can observe success by reading the edited `SKILL.md` and by running the two
-Markdown gates the roadmap names: `make markdownlint` and `make nixie` both pass
-on the edited skill, and `make all` stays green (no Python changed, so the
+Markdown gates the roadmap names: `make markdownlint` and `make nixie` both
+pass on the edited skill, and `make all` stays green (no Python changed, so the
 Python suite is unaffected; the gate proves the edit broke nothing). The
 roadmap's success criterion is met when `SKILL.md` documents the exit-code
 table, the envelope schema, and the run-from-root / check-exit-code discipline
@@ -50,8 +50,8 @@ This is roadmap task 6.3.3 (`docs/roadmap.md` lines 2164-2178). It is the
 documentation capstone of step 6.3 ("Make the command contract uniform,
 actionable, and self-documenting"): tasks 6.3.1 and 6.3.2 made the contract
 actionable and pinned its cross-command identity in tests; 6.3.3 makes it
-**self-documenting** in the skill the agent actually reads. It implements design
-§3 (the shared interface contract) and §8 (the skill defects the rebuild
+**self-documenting** in the skill the agent actually reads. It implements
+design §3 (the shared interface contract) and §8 (the skill defects the rebuild
 corrects), and ADR-003 (the shared envelope and disambiguated exit-code table).
 
 ## Constraints
@@ -64,9 +64,9 @@ escalation, not a workaround.
   read-modify-write any file in the root/control worktree; it is off-limits for
   edits.
 - This is a **documentation-only** task. The files this plan edits are
-  `skill/novel-ralph/SKILL.md` (Work items 1-3), a single-line lint precondition
-  in `docs/developers-guide.md` (Work item 0 — see below), and, if and only if a
-  new internal convention warrants it, a one-paragraph note in
+  `skill/novel-ralph/SKILL.md` (Work items 1-3), a single-line lint
+  precondition in `docs/developers-guide.md` (Work item 0 — see below), and, if
+  and only if a new internal convention warrants it, a one-paragraph note in
   `docs/developers-guide.md` (Work item 4 is conditional — see its note). Do
   **not** touch any file under `novel_ralph_skill/` (production source) or
   `tests/`. If documenting the contract surfaces a genuine production or test
@@ -81,15 +81,14 @@ escalation, not a workaround.
   via `git show HEAD:docs/developers-guide.md` and a live `make markdownlint`
   run on 2026-06-26 reporting exactly one error). The only untracked file is
   this execplan. Because every later Work item's validation and the acceptance
-  criterion rest on `make markdownlint` passing on `**/*.md`, the gate cannot go
-  green until this pre-existing violation is fixed. Work item 0 therefore
+  criterion rest on `make markdownlint` passing on `**/*.md`, the gate cannot
+  go green until this pre-existing violation is fixed. Work item 0 therefore
   removes exactly **one** of the two consecutive blank lines, leaving a single
   blank line before the heading, as a scoped precondition. The edit is bounded
-  to that one blank line in
-  `docs/developers-guide.md`; it changes no prose, no heading text, and no other
-  line. Do not "fix" any other markdownlint finding under cover of this item —
-  the baseline reports exactly one error, and that is the entire scope of Work
-  item 0.
+  to that one blank line in `docs/developers-guide.md`; it changes no prose, no
+  heading text, and no other line. Do not "fix" any other markdownlint finding
+  under cover of this item — the baseline reports exactly one error, and that
+  is the entire scope of Work item 0.
 - The exit-code table and envelope schema documented in `SKILL.md` must match,
   verbatim in meaning, the authoritative sources and must not introduce a
   fourth, drifting copy:
@@ -140,12 +139,12 @@ escalation, not a workaround.
 - The `--help`/`--version` carve-out is load-bearing and verified in source:
   `novel_ralph_skill/contract/runner.py` lines 16-18 ("`--help`/`--version` are
   handled by Cyclopts … it exits `0` with no envelope") and
-  `novel_ralph_skill/commands/novel.py` lines 18-20 ("`--help`/`--version` and a
-  bare `novel` return `None`, which `run` treats as the help/version path (exit
-  `0`, no envelope)"). The check-exit/check-`ok` discipline must name this carve-
-  out so the agent does not parse a non-existent envelope on the help/version
-  arms; the discipline applies to body-producing invocations and the
-  diagnostic (usage/state) arms.
+  `novel_ralph_skill/commands/novel.py` lines 18-20 ("`--help`/`--version` and
+  a bare `novel` return `None`, which `run` treats as the help/version path
+  (exit `0`, no envelope)"). The check-exit/check-`ok` discipline must name
+  this carve- out so the agent does not parse a non-existent envelope on the
+  help/version arms; the discipline applies to body-producing invocations and
+  the diagnostic (usage/state) arms.
 - All prose uses en-GB Oxford spelling ("-ize"/"-yse"/"-our"), per AGENTS.md and
   the `en-gb-oxendict` skill. External API names (`uv tool`, `--force`,
   Cyclopts, `schema_version`) are quoted verbatim. Follow
@@ -158,19 +157,19 @@ escalation, not a workaround.
   (`.markdownlint-cli2.jsonc`) set MD013 `line_length: 80` with `tables: false`
   and `headings: false`, so **prose must wrap at 80 columns** while table rows
   and headings are exempt; MD004 dash bullets; MD048 backtick fences; MD029
-  ordered list style. `make nixie` validates Mermaid; `SKILL.md` adds no Mermaid,
-  so nixie is a no-op pass to be confirmed, not a content target.
+  ordered list style. `make nixie` validates Mermaid; `SKILL.md` adds no
+  Mermaid, so nixie is a no-op pass to be confirmed, not a content target.
 - `SKILL.md` carries YAML front matter (lines 1-17: `name`, `description`). Do
   not disturb the front matter; the skill loader depends on it. Add the new
   content as ordinary body sections.
 
 ## Tolerances (exception triggers)
 
-- Scope: the permitted edit surface is `SKILL.md` plus `docs/developers-guide.md`
-  (the single-blank-line lint precondition of Work item 0, and at most the
-  conditional one-paragraph note of Work item 4). If delivering the
-  documentation requires editing any *other* file, or editing any file under
-  `novel_ralph_skill/` or `tests/`, stop and escalate.
+- Scope: the permitted edit surface is `SKILL.md` plus
+  `docs/developers-guide.md` (the single-blank-line lint precondition of Work
+  item 0, and at most the conditional one-paragraph note of Work item 4). If
+  delivering the documentation requires editing any *other* file, or editing
+  any file under `novel_ralph_skill/` or `tests/`, stop and escalate.
 - Lint precondition: Work item 0 must change exactly one blank line in
   `docs/developers-guide.md` and nothing else. If, before any edit, a live
   `make markdownlint` reports anything other than the single expected
@@ -188,9 +187,9 @@ escalation, not a workaround.
   behave as design §3 / ADR-003 states, stop and escalate; do not "document
   around" a real divergence.
 - Install semantics: if the verified `uv tool` behaviour contradicts the
-  roadmap's stated remedy (reinstall with `--force`, or pin a version) such that
-  the note cannot be written truthfully, stop and present the corrected remedy
-  before writing it.
+  roadmap's stated remedy (reinstall with `--force`, or pin a version) such
+  that the note cannot be written truthfully, stop and present the corrected
+  remedy before writing it.
 - Iterations: if `make markdownlint` or `make nixie` still fails after 4 focused
   attempts to satisfy the rule it reports (line length, table delimiter,
   caption, fence language) on the content **this task adds or edits**, stop and
@@ -552,11 +551,12 @@ success(0)-versus-not-success (Work item 2, "Invocation discipline"), the
 help/version exit-0-no-envelope carve-out, and the install-currency note pinned
 to the verified `uv tool` semantics (Work item 3). No drifting fourth copy was
 introduced. Work item 4 was skipped as no new cross-document convention arose.
-`make markdownlint` passes on the whole tree (278 files, 0 errors, including the
-Work item 0 fix), `make nixie` passes (no Mermaid added), and `make all` stays
-green (1301 passed, 1 skipped; the Python suite is unaffected by the prose-only
-change). coderabbit returned zero findings on the SKILL.md and developers-guide
-deliverables; its execplan-only findings were triaged in the Decision Log.
+`make markdownlint` passes on the whole tree (278 files, 0 errors, including
+the Work item 0 fix), `make nixie` passes (no Mermaid added), and `make all`
+stays green (1301 passed, 1 skipped; the Python suite is unaffected by the
+prose-only change). coderabbit returned zero findings on the SKILL.md and
+developers-guide deliverables; its execplan-only findings were triaged in the
+Decision Log.
 
 ## Context and orientation
 
@@ -571,18 +571,18 @@ Read the following before editing; they are the source of truth this task
 documents and must not contradict.
 
 - `docs/roadmap.md` lines 2116-2178 — step 6.3 and tasks 6.3.1-6.3.3. Task
-  6.3.3 (lines 2164-2178) is this plan; its predecessors 6.3.1 (actionable exit-
-  3 messages) and 6.3.2 (cross-command contract suite) are complete.
+  6.3.3 (lines 2164-2178) is this plan; its predecessors 6.3.1 (actionable
+  exit- 3 messages) and 6.3.2 (cross-command contract suite) are complete.
 - `docs/adr-003-shared-interface-contract.md` — the shared envelope (lines
-  45-46), the disambiguated five-code exit table (Table 2, lines 85-95), and the
-  four-flag Cyclopts construction contract (Table 3). This is the contract this
-  task documents.
+  45-46), the disambiguated five-code exit table (Table 2, lines 85-95), and
+  the four-flag Cyclopts construction contract (Table 3). This is the contract
+  this task documents.
 - `docs/novel-ralph-harness-design.md` §3 (lines 131-264) — the same contract in
   narrative form: §3.1 the envelope and output modes (lines 137-201), §3.2 the
   exit codes (lines 203-233), §3.3 command/query segregation (lines 235-243),
-  §3.4 atomic writes (lines 245-264). §8 (lines 816-836) — the skill defects the
-  rebuild corrects, including the single-source done-predicate discipline this
-  task extends to the contract.
+  §3.4 atomic writes (lines 245-264). §8 (lines 816-836) — the skill defects
+  the rebuild corrects, including the single-source done-predicate discipline
+  this task extends to the contract.
 - `docs/developers-guide.md` "The shared JSON envelope" (lines 522-570) and
   "Disambiguated exit codes" (lines 572-593) — the developer-facing restatement
   of the contract and the canonical reference SKILL.md will point at. "The
@@ -590,17 +590,19 @@ documents and must not contradict.
   6.3.2 suite that pins exactly the identity SKILL.md now describes in prose,
   including the help/version carve-out the discipline must name.
 - `docs/documentation-style-guide.md` — sentence-case headings, ordered heading
-  levels, fenced-block language identifiers, table delimiter rows, caption every
-  table (lines 35-65), the en-GB Oxford spelling rules.
+  levels, fenced-block language identifiers, table delimiter rows, caption
+  every table (lines 35-65), the en-GB Oxford spelling rules.
 - `AGENTS.md` — the quality gates and the Markdown rules: `make markdownlint`
-  (lines 96-98, 169), `make nixie` (line 172), and the Documentation-maintenance
-  rule that user-facing and skill prose stay current (lines 37-57).
+  (lines 96-98, 169), `make nixie` (line 172), and the
+  Documentation-maintenance rule that user-facing and skill prose stay current
+  (lines 37-57).
 
-Key source files (read-only for this task; cited so the documented carve-out and
-exit codes are pinned to real behaviour, not memory):
+Key source files (read-only for this task; cited so the documented carve-out
+and exit codes are pinned to real behaviour, not memory):
 
 - `novel_ralph_skill/contract/runner.py` lines 16-18, 242 — `run` owns every
-  `sys.exit` and envelope emission; `--help`/`--version` exit 0 with no envelope.
+  `sys.exit` and envelope emission; `--help`/`--version` exit 0 with no
+  envelope.
 - `novel_ralph_skill/commands/novel.py` lines 18-20 — the multiplexer's
   help/version/bare-`novel` arm returns `None` (exit 0, no envelope).
 - `novel_ralph_skill/contract/exit_codes.py` line 55 — `is_ok` returns
@@ -612,11 +614,11 @@ exit codes are pinned to real behaviour, not memory):
 Key file to edit:
 
 - `skill/novel-ralph/SKILL.md` — the skill. Existing sections relevant here:
-  "Setup" (lines 26-46, the `uv tool install` instructions Work item 3 augments),
-  "Harness contract" (lines 48-65, the four turn requirements the invocation
-  discipline complements), and "Done predicate (short form)" (lines 590-600, the
-  single-source pointer pattern Work item 1 mirrors). The YAML front matter
-  (lines 1-17) must not be disturbed.
+  "Setup" (lines 26-46, the `uv tool install` instructions Work item 3
+  augments), "Harness contract" (lines 48-65, the four turn requirements the
+  invocation discipline complements), and "Done predicate (short form)" (lines
+  590-600, the single-source pointer pattern Work item 1 mirrors). The YAML
+  front matter (lines 1-17) must not be disturbed.
 
 Terms (defined here so the skill's new prose can use them precisely):
 
@@ -625,18 +627,18 @@ Terms (defined here so the skill's new prose can use them precisely):
 - "Exit code" — the process exit status the harness branches on without parsing
   JSON; the five-code table (design §3.2, ADR-003 Table 2).
 - "Body-producing invocation" — a command run that executes its body and emits
-  an envelope, as distinct from the `--help`/`--version` arm, which exits 0 with
-  no envelope.
+  an envelope, as distinct from the `--help`/`--version` arm, which exits 0
+  with no envelope.
 - "Stop-and-fix" — the agent's required response to exit code 2, 3, or 4: halt
   the loop, adjudicate or repair, and re-run, never treat it as success. The
-  agent decides this on the **exit code**, not on `ok`: exits 1, 2, 3, and 4 all
-  carry `ok: false` (because `ok` is `true` iff the exit code is 0), so `ok`
-  cannot distinguish the benign exit 1 — on which the loop **continues** without
-  a fix — from a stop-and-fix exit 2/3/4. The help/version arm (exit 0, no
-  envelope) is the further carve-out.
-- "Install currency" — the property that the on-`PATH` `novel` binary matches the
-  contract version this skill documents; not guaranteed automatically because
-  `uv tool` does not auto-update an installed tool.
+  agent decides this on the **exit code**, not on `ok`: exits 1, 2, 3, and 4
+  all carry `ok: false` (because `ok` is `true` iff the exit code is 0), so
+  `ok` cannot distinguish the benign exit 1 — on which the loop **continues**
+  without a fix — from a stop-and-fix exit 2/3/4. The help/version arm (exit 0,
+  no envelope) is the further carve-out.
+- "Install currency" — the property that the on-`PATH` `novel` binary matches
+  the contract version this skill documents; not guaranteed automatically
+  because `uv tool` does not auto-update an installed tool.
 
 ## Plan of work
 
@@ -665,24 +667,24 @@ reports exactly one error:
     docs/developers-guide.md:149 error MD012/no-multiple-blanks Multiple
     consecutive blank lines [Expected: 1; Actual: 2]
 
-The two consecutive blank lines are at `docs/developers-guide.md` lines 148-149,
-immediately before the heading `### The cross-command envelope-and-exit-code
-identity proof`, and are committed at HEAD (introduced by the 6.3.2 commit;
-confirmed with `git show HEAD:docs/developers-guide.md`). Remove **one** of the
-two blanks so a single blank line separates the preceding paragraph from the
-heading, satisfying MD012. Change nothing else: no prose, no heading text, no
-other line.
+The two consecutive blank lines are at `docs/developers-guide.md` lines
+148-149, immediately before the heading
+`### The cross-command envelope-and-exit-code identity proof`, and are
+committed at HEAD (introduced by the 6.3.2 commit; confirmed with
+`git show HEAD:docs/developers-guide.md`). Remove **one** of the two blanks so
+a single blank line separates the preceding paragraph from the heading,
+satisfying MD012. Change nothing else: no prose, no heading text, no other line.
 
 Before editing, run `make markdownlint` and confirm it reports *only* the single
 `docs/developers-guide.md:149 MD012` error. If it reports anything else, the
 baseline has drifted from this plan's analysis — stop and escalate
-(Lint-precondition tolerance). After the one-line edit, `make markdownlint` must
-pass on `**/*.md`.
+(Lint-precondition tolerance). After the one-line edit, `make markdownlint`
+must pass on `**/*.md`.
 
 Docs to read for this item: AGENTS.md "Quality gates" (the `make markdownlint`
 rule); `.markdownlint-cli2.jsonc` (the active rules, to confirm MD012 is the
-default and is not relaxed). Skills to load: none beyond a careful read; this is
-a whitespace deletion, not a prose change.
+default and is not relaxed). Skills to load: none beyond a careful read; this
+is a whitespace deletion, not a prose change.
 
 Tests added: none (whitespace-only lint fix; no behaviour change). Validation:
 `make markdownlint` (now green), `make nixie`, `make all`. Commit this item
@@ -691,65 +693,66 @@ first and separately so the green baseline is captured before any content edit.
 ### Work item 1: Unified contract section in SKILL.md
 
 Implements ADR-003 (envelope and Table 2), design §3.1-§3.2, and §8 (single-
-source discipline). Add a new top-level section to `skill/novel-ralph/SKILL.md`
-— place it after "Harness contract" (the natural home for the contract an agent
-gates on) — titled, in sentence case, e.g. "Command contract". The section
-documents two things once:
+source discipline). Add a new top-level section to
+`skill/novel-ralph/SKILL.md` — place it after "Harness contract" (the natural
+home for the contract an agent gates on) — titled, in sentence case, e.g.
+"Command contract". The section documents two things once:
 
 1. The exit-code table: 0 success (proceed); 1 benign negative — predicate not
    yet satisfied, loop continues without a fix; 2 usage error — the invocation
    is wrong, stop; 3 state or input error — recover state, stop; 4 actionable
    finding — a deterministic detector surfaced something only the model can
-   resolve, adjudicate or repair then re-run. Render it as a Markdown table with
-   a header delimiter row and a caption (style guide lines 51, 65). State the
-   load-bearing 1-versus-4 distinction in one sentence, matching design §3.2
-   lines 222-225 and developers' guide lines 585-588.
+   resolve, adjudicate or repair then re-run. Render it as a Markdown table
+   with a header delimiter row and a caption (style guide lines 51, 65). State
+   the load-bearing 1-versus-4 distinction in one sentence, matching design
+   §3.2 lines 222-225 and developers' guide lines 585-588.
 2. The envelope schema: the six fields `command`, `schema_version`, `ok`,
    `working_dir`, `result`, `messages`, in that order; `ok` is `true` if and
    only if the exit code is 0; `result` carries machine-actionable data the
    harness reads; `messages` carries human-only prose the harness never parses.
-   A short fenced `json` block showing the skeleton (mirroring design §3.1 lines
-   146-155) plus one sentence per field is sufficient. State, alongside `ok`,
-   that because `ok` is `true` iff the exit code is 0, `ok` only reports
+   A short fenced `json` block showing the skeleton (mirroring design §3.1
+   lines 146-155) plus one sentence per field is sufficient. State, alongside
+   `ok`, that because `ok` is `true` iff the exit code is 0, `ok` only reports
    success(0)-versus-not-success(1/2/3/4) and the **exit code** remains the
    signal that carries the 1-versus-4 distinction — so the gating discipline
-   (Work item 2) branches on the exit code, not on `ok`. This keeps the contract
-   section and the discipline section internally consistent.
+   (Work item 2) branches on the exit code, not on `ok`. This keeps the
+   contract section and the discipline section internally consistent.
 
-Mark both the table and the schema explicitly as the agent-facing restatement of
-the canonical sources, and add a single pointer: "The canonical contract is
+Mark both the table and the schema explicitly as the agent-facing restatement
+of the canonical sources, and add a single pointer: "The canonical contract is
 `docs/adr-003-shared-interface-contract.md` and the developers' guide sections
 'The shared JSON envelope' and 'Disambiguated exit codes'; this skill restates
-it for the agent at the point of use." This mirrors the existing "Done predicate
-(short form)" pointer (SKILL.md lines 590-600) and is the §8 single-source
-discipline applied to the contract, so no per-command prose copy can drift.
+it for the agent at the point of use." This mirrors the existing "Done
+predicate (short form)" pointer (SKILL.md lines 590-600) and is the §8
+single-source discipline applied to the contract, so no per-command prose copy
+can drift.
 
-Do not restate the four-flag Cyclopts construction contract (ADR-003 Table 3) or
-the command/query segregation table — those are developer-internal, not the
+Do not restate the four-flag Cyclopts construction contract (ADR-003 Table 3)
+or the command/query segregation table — those are developer-internal, not the
 agent-facing gating contract; a pointer at ADR-003 covers them.
 
-Docs to read for this item: ADR-003 (Decision outcome, Table 2; envelope fields);
-design §3.1, §3.2, §8; developers' guide "The shared JSON envelope" and
-"Disambiguated exit codes"; `docs/documentation-style-guide.md` (headings,
+Docs to read for this item: ADR-003 (Decision outcome, Table 2; envelope
+fields); design §3.1, §3.2, §8; developers' guide "The shared JSON envelope"
+and "Disambiguated exit codes"; `docs/documentation-style-guide.md` (headings,
 tables, captions, fences). Skills to load: `en-gb-oxendict` for the prose
 (Oxford spelling, sentence-case headings).
 
 Tests added: none (documentation-only; no behaviour change — AGENTS.md "Quality
-gates" require tests for behaviour changes, of which there are none). Validation:
-`make markdownlint` and `make nixie` (Markdown changed), then `make all` to prove
-the edit broke nothing.
+gates" require tests for behaviour changes, of which there are none).
+Validation: `make markdownlint` and `make nixie` (Markdown changed), then
+`make all` to prove the edit broke nothing.
 
 ### Work item 2: Command-invocation discipline in SKILL.md
 
 Implements design §3 (the contract the harness gates on) and the roadmap's
-explicit invocation-discipline requirement (lines 2168-2172). Add the discipline
-to `skill/novel-ralph/SKILL.md`, either as a subsection of the Work item 1
-"Command contract" section or as a short adjacent section (e.g. "Invocation
-discipline"). It states, in plain prose:
+explicit invocation-discipline requirement (lines 2168-2172). Add the
+discipline to `skill/novel-ralph/SKILL.md`, either as a subsection of the Work
+item 1 "Command contract" section or as a short adjacent section (e.g.
+"Invocation discipline"). It states, in plain prose:
 
 1. Run every command from the novel root — the directory whose `working/`
-   subtree holds the state — because the commands resolve `working/` relative to
-   the current directory (SKILL.md "Setup" already says "run them from the
+   subtree holds the state — because the commands resolve `working/` relative
+   to the current directory (SKILL.md "Setup" already says "run them from the
    novel's root"; this section makes the *why* — wrong-directory invocation is
    the dogfooding failure 6.3 was surfaced by, roadmap lines 2122-2125).
 2. After each invocation, gate on the **process exit code** — it is the
@@ -760,24 +763,25 @@ discipline"). It states, in plain prose:
    `novel_ralph_skill/contract/exit_codes.py` line 55; the envelope sets
    `ok=is_ok(code)`, `envelope.py` line 119), so `ok` collapses the five codes
    to a single success(0)-versus-not-success(1/2/3/4) bit. `ok` is a useful
-   sanity cross-check that the envelope agrees with the exit status, but it must
-   **not** be used as the sole gate: it cannot tell a benign exit 1 apart from a
-   stop-and-fix exit 4. Do **not** write "gate on either"; the agent must branch
-   on the exit code.
+   sanity cross-check that the envelope agrees with the exit status, but it
+   must **not** be used as the sole gate: it cannot tell a benign exit 1 apart
+   from a stop-and-fix exit 4. Do **not** write "gate on either"; the agent
+   must branch on the exit code.
 3. Branch on the exit code per the Work item 1 table: exit 0 is success
    (proceed); exit 1 is the benign negative on which the loop **continues**
    without a fix (e.g. `novel done` reporting "not finished yet", which emits
-   `ok: false`); exits 2, 3, and 4 are stop-and-fix — halt, adjudicate or repair
-   per the table, and re-run; never assume success. Make explicit that exit 1
-   and exits 2/3/4 all share `ok: false`, which is precisely why gating on `ok`
-   alone would halt the loop on every benign turn — the failure the Ralph loop
-   exists to avoid. Tie this back to the Work item 1 table so the agent reads
-   one contract, not two.
+   `ok: false`); exits 2, 3, and 4 are stop-and-fix — halt, adjudicate or
+   repair per the table, and re-run; never assume success. Make explicit that
+   exit 1 and exits 2/3/4 all share `ok: false`, which is precisely why gating
+   on `ok` alone would halt the loop on every benign turn — the failure the
+   Ralph loop exists to avoid. Tie this back to the Work item 1 table so the
+   agent reads one contract, not two.
 4. The carve-out: `--help` and `--version` (and a bare `novel`) exit 0 with **no
    envelope**, so the "parse the envelope `ok`" step applies to body-producing
-   invocations and the usage/state diagnostic arms, not to the help/version arm.
-   Cite that this is by design (runner and multiplexer behaviour). This prevents
-   an agent from trying to parse a non-existent envelope on help/version.
+   invocations and the usage/state diagnostic arms, not to the help/version
+   arm. Cite that this is by design (runner and multiplexer behaviour). This
+   prevents an agent from trying to parse a non-existent envelope on
+   help/version.
 
 Frame this as the complement to the existing "Harness contract" four
 requirements (SKILL.md lines 48-65): those govern how the agent *persists* work
@@ -787,11 +791,11 @@ runs.
 Docs to read: design §3.2 (the harness-response column); developers' guide
 "Disambiguated exit codes" ("The 1-versus-4 distinction is load-bearing");
 roadmap lines 2122-2125 and 2168-2172 (the dogfooding origin and the discipline
-text); `novel_ralph_skill/contract/exit_codes.py` line 55
-(`is_ok` returns `code is ExitCode.SUCCESS`) and
-`novel_ralph_skill/contract/envelope.py` line 119 (`ok=is_ok(code)`) — the
-source proof that `ok` is `true` iff exit 0 and so does not carry the 1-versus-4
-distinction; `novel_ralph_skill/contract/runner.py` lines 16-18 and
+text); `novel_ralph_skill/contract/exit_codes.py` line 55 (`is_ok` returns
+`code is ExitCode.SUCCESS`) and `novel_ralph_skill/contract/envelope.py` line
+119 (`ok=is_ok(code)`) — the source proof that `ok` is `true` iff exit 0 and so
+does not carry the 1-versus-4 distinction;
+`novel_ralph_skill/contract/runner.py` lines 16-18 and
 `novel_ralph_skill/commands/novel.py` lines 18-20 (the help/version carve-out);
 developers' guide "The cross-command envelope-and-exit-code identity proof"
 (the suite that pins this contract). Skills to load: `en-gb-oxendict`.
@@ -806,11 +810,12 @@ design §8 (skill-currency discipline). Augment the existing "Setup" section of
 `skill/novel-ralph/SKILL.md` (lines 26-46) with a short note: the `uv tool`-
 installed `novel` binary does **not** auto-update, so the on-`PATH` binary can
 lag the contract this skill documents. Before a dogfood session, guarantee
-currency by reinstalling with `uv tool install --force --from . novel-ralph-skill`
-(the local-checkout form Setup already uses, with `--force` to overwrite the
-existing executable) or by pinning a version (`novel-ralph-skill==<version>` or
-the `@<version>` specifier). Optionally mention `uv tool upgrade novel-ralph-skill`
-as the constraint-respecting alternative. Confirm the install resolves with
+currency by reinstalling with
+`uv tool install --force --from . novel-ralph-skill` (the local-checkout form
+Setup already uses, with `--force` to overwrite the existing executable) or by
+pinning a version (`novel-ralph-skill==<version>` or the `@<version>`
+specifier). Optionally mention `uv tool upgrade novel-ralph-skill` as the
+constraint-respecting alternative. Confirm the install resolves with
 `novel --version` (already shown in Setup) — and note that `novel --version`
 itself exits 0 with no envelope, consistent with the Work item 2 carve-out.
 
@@ -821,25 +826,25 @@ claim a plain `uv tool install` re-run upgrades an already-installed tool — it
 does not; `--force` (overwrite) or `uv tool upgrade` (within constraints) is
 required.
 
-Docs to read: roadmap lines 2172-2174; the uv tools docs above; SKILL.md "Setup"
-(lines 26-46). Skills to load: `en-gb-oxendict`.
+Docs to read: roadmap lines 2172-2174; the uv tools docs above; SKILL.md
+"Setup" (lines 26-46). Skills to load: `en-gb-oxendict`.
 
 Tests added: none. Validation: `make markdownlint`, `make nixie`, `make all`.
 
 ### Work item 4 (conditional): Developers'-guide cross-reference note
 
 Implements the AGENTS.md "Documentation maintenance" rule (record internal
-conventions in the developers' guide, lines 53-55). This item is **conditional**:
-only undertake it if Work item 1 establishes a *new* cross-document convention
-worth recording for developers — for example, a note that SKILL.md now single-
-sources the contract from the developers' guide, so future contract edits must
-update the developers' guide (the canonical copy) and not SKILL.md's
-restatement. If no such new convention arises (the more likely case, since the
-done-predicate pointer pattern already exists), **skip this item** and record the
-skip in the Decision Log. If undertaken, add at most one paragraph to
-`docs/developers-guide.md` beside "The shared JSON envelope" or "Disambiguated
-exit codes" naming SKILL.md as the agent-facing restatement and the developers'
-guide as canonical. Do not duplicate the table or schema.
+conventions in the developers' guide, lines 53-55). This item is
+**conditional**: only undertake it if Work item 1 establishes a *new*
+cross-document convention worth recording for developers — for example, a note
+that SKILL.md now single- sources the contract from the developers' guide, so
+future contract edits must update the developers' guide (the canonical copy)
+and not SKILL.md's restatement. If no such new convention arises (the more
+likely case, since the done-predicate pointer pattern already exists), **skip
+this item** and record the skip in the Decision Log. If undertaken, add at most
+one paragraph to `docs/developers-guide.md` beside "The shared JSON envelope"
+or "Disambiguated exit codes" naming SKILL.md as the agent-facing restatement
+and the developers' guide as canonical. Do not duplicate the table or schema.
 
 Docs to read: `docs/developers-guide.md` ("The shared JSON envelope",
 "Disambiguated exit codes"); `docs/documentation-style-guide.md` (developer's-
@@ -867,10 +872,9 @@ Run everything from the worktree root
    `docs/developers-guide.md:149 MD012/no-multiple-blanks`. If markdownlint
    reports anything else, stop and escalate (Lint-precondition tolerance) — the
    baseline differs from this plan's analysis. Then perform **Work item 0**:
-   delete one of the two consecutive blank lines at
-   `docs/developers-guide.md` lines 148-149 (delete line 148), re-run
-   `make markdownlint`, and expect it to pass on `**/*.md`. Commit Work item 0
-   first and separately.
+   delete one of the two consecutive blank lines at `docs/developers-guide.md`
+   lines 148-149 (delete line 148), re-run `make markdownlint`, and expect it
+   to pass on `**/*.md`. Commit Work item 0 first and separately.
 
 3. For each remaining Work item, edit `skill/novel-ralph/SKILL.md` (Work item 4
    edits `docs/developers-guide.md`), wrapping prose at 80 columns, captioning
@@ -889,9 +893,9 @@ Run everything from the worktree root
    clean summary; any MD013/MD058/caption failure names the file and line — fix
    at source.
 
-5. Before committing each Work item, diff the working tree and stage **only** the
-   intended hunks, guarding against spurious `make fmt`/`mdformat` reflow in
-   other docs (Risks):
+5. Before committing each Work item, diff the working tree and stage **only**
+   the intended hunks, guarding against spurious `make fmt`/`mdformat` reflow
+   in other docs (Risks):
 
        git diff -- skill/novel-ralph/SKILL.md docs/developers-guide.md
 
@@ -900,8 +904,8 @@ Run everything from the worktree root
 
 6. Commit each Work item separately with an en-GB Oxford-spelling message in the
    imperative mood, using the `commit-message` skill (file-based message, never
-   `-m`). Keep `docs/execplans/roadmap-6-3-3.md` updated (Progress, Decision Log)
-   as each item lands.
+   `-m`). Keep `docs/execplans/roadmap-6-3-3.md` updated (Progress, Decision
+   Log) as each item lands.
 
 ## Validation and acceptance
 
@@ -912,20 +916,21 @@ Quality criteria (what "done" means):
 
 - Documentation: `skill/novel-ralph/SKILL.md` documents, once, the exit-code
   table, the envelope schema, the run-from-root / check-exit-code discipline
-  (with the `--help`/`--version` exit-0-no-envelope carve-out), and the install-
-  currency note, each consistent with and pointing at the canonical sources
-  (ADR-003, design §3, developers' guide), introducing no drifting fourth copy.
+  (with the `--help`/`--version` exit-0-no-envelope carve-out), and the
+  install- currency note, each consistent with and pointing at the canonical
+  sources (ADR-003, design §3, developers' guide), introducing no drifting
+  fourth copy.
 - Gating discipline: SKILL.md states that the **exit code** is the authoritative
   gating signal and that `ok` only reports success(0)-versus-not-success
   (1/2/3/4); it never tells the agent it "may gate on either", because `ok`
   cannot tell a benign exit 1 from a stop-and-fix exit 4 (verified:
   `exit_codes.py` line 55, `envelope.py` line 119). The benign exit-1 carve-out
   is honoured by branching on the exit code, not on `ok`.
-- Lint: `make markdownlint` passes on the whole tree (`**/*.md`), **including the
-  Work item 0 fix of the pre-existing `docs/developers-guide.md:149 MD012`
-  baseline failure**. The gate cannot go green without that precondition fix, so
-  acceptance includes it; a clean run reports zero errors over all 278 Markdown
-  files.
+- Lint: `make markdownlint` passes on the whole tree (`**/*.md`), **including
+  the Work item 0 fix of the pre-existing `docs/developers-guide.md:149 MD012`
+  baseline failure**. The gate cannot go green without that precondition fix,
+  so acceptance includes it; a clean run reports zero errors over all 278
+  Markdown files.
 - Mermaid: `make nixie` passes (no Mermaid added; a clean no-op pass).
 - Full gate: `make all` stays green (no Python changed; the gate proves the edit
   broke nothing).
@@ -945,9 +950,9 @@ Quality method (how we check):
 Every step is a re-runnable Markdown edit; re-running an edit or a gate is safe
 and non-destructive. If a gate fails, fix the named file/line and re-run the
 gate; no state is mutated outside the edited Markdown. If spurious reflow churn
-is staged, `git restore` the affected docs to HEAD and re-apply only the intended
-hunks. No production source, tests, or on-disk novel state are touched, so there
-is nothing to roll back beyond the Markdown edits themselves.
+is staged, `git restore` the affected docs to HEAD and re-apply only the
+intended hunks. No production source, tests, or on-disk novel state are
+touched, so there is nothing to roll back beyond the Markdown edits themselves.
 
 ## Artefacts and notes
 
@@ -980,11 +985,12 @@ single-sourcing the exit-code table and envelope schema in SKILL.md against
 ADR-003 / design §3 / the developers' guide, adding the run-from-root /
 check-exit-code discipline with the verified `--help`/`--version` exit-0-no-
 envelope carve-out, and adding the install-currency note pinned to the verified
-`uv tool` semantics (no auto-update; reinstall with `--force` or pin a version).
-Every load-bearing behavioural claim is cited to a source line range or the uv
-docs; no undecided forks remain (the inline-versus-pointer contract-description
-choice is decided in favour of a concise inline restatement plus a single
-canonical pointer, with the pure-pointer fallback bounded in the Decision Log).
+`uv tool` semantics (no auto-update; reinstall with `--force` or pin a
+version). Every load-bearing behavioural claim is cited to a source line range
+or the uv docs; no undecided forks remain (the inline-versus-pointer
+contract-description choice is decided in favour of a concise inline
+restatement plus a single canonical pointer, with the pure-pointer fallback
+bounded in the Decision Log).
 
 Round 2 (2026-06-26). Revised to resolve the two design-review round-1 blocking
 points; what changed and why:
@@ -995,15 +1001,15 @@ points; what changed and why:
    blank lines at lines 148-149 before the `### The cross-command...` heading),
    committed at HEAD by the 6.3.2 commit. Because every Work item's validation
    and the acceptance criterion rest on markdownlint passing on `**/*.md`, the
-   gate could not go green. Added **Work item 0**, a scoped one-line precondition
-   that deletes one of the two blanks, ahead of the content items; scoped it in
-   Constraints (Lint-baseline precondition) and Tolerances (Lint precondition;
-   iteration trigger amended to exclude this baseline failure); restated the
-   acceptance criterion as "make markdownlint passes on the whole tree,
-   including this pre-existing fix"; and added a Risk, a Surprises entry, a
-   Decision Log entry, a Progress line, and an explicit baseline-check Concrete
-   step. If the live baseline shows any other error, the implementer escalates
-   rather than expanding scope.
+   gate could not go green. Added **Work item 0**, a scoped one-line
+   precondition that deletes one of the two blanks, ahead of the content items;
+   scoped it in Constraints (Lint-baseline precondition) and Tolerances (Lint
+   precondition; iteration trigger amended to exclude this baseline failure);
+   restated the acceptance criterion as "make markdownlint passes on the whole
+   tree, including this pre-existing fix"; and added a Risk, a Surprises entry,
+   a Decision Log entry, a Progress line, and an explicit baseline-check
+   Concrete step. If the live baseline shows any other error, the implementer
+   escalates rather than expanding scope.
 
 2. Blocking point 2 (gate-on-`ok` contradiction). Verified against source that
    `is_ok` returns `code is ExitCode.SUCCESS` (`exit_codes.py` line 55) and the
@@ -1012,8 +1018,8 @@ points; what changed and why:
    load-bearing 1-versus-4 distinction. Removed the round-1 "the agent may gate
    on either" wording. Work item 2, the Purpose, the Constraints, the Terms
    "Stop-and-fix" definition, the Work item 1 envelope-schema instruction, the
-   acceptance criteria, and a new Risk and Decision Log entry now all state that
-   the **exit code** is the authoritative gating signal for the
+   acceptance criteria, and a new Risk and Decision Log entry now all state
+   that the **exit code** is the authoritative gating signal for the
    continue-versus-stop-and-fix decision, with `ok` framed only as the coarse
    success(0)-versus-not-success(1/2/3/4) bit and explicitly not a substitute
    for branching on the code. Work item 2's docs-to-read now cites the
@@ -1026,6 +1032,6 @@ points; what changed and why:
   (the lines instructing that `ok:false` be treated as a stop-and-fix), which
   the shipped SKILL.md and the source deliberately override: `ok` is true iff
   exit 0, so gating on `ok:false` would halt the Ralph loop on every benign
-  exit-1 turn. Reword the roadmap §6.3.3 entry to gate on the **exit code** so a
-  future reader does not re-introduce the corrected-away bug. Lightweight
+  exit-1 turn. Reword the roadmap §6.3.3 entry to gate on the **exit code** so
+  a future reader does not re-introduce the corrected-away bug. Lightweight
   addendum pass.

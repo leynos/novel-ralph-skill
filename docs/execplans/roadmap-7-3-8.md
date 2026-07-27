@@ -1,9 +1,8 @@
 # Hoist the spaced-name-to-verb derivation into the name registry
 
-This ExecPlan (execution plan) is a living document. The sections
-`Constraints`, `Tolerances`, `Risks`, `Progress`, `Surprises & Discoveries`,
-`Decision Log`, and `Outcomes & Retrospective` must be kept up to date as work
-proceeds.
+This ExecPlan (execution plan) is a living document. The sections `Constraints`,
+`Tolerances`, `Risks`, `Progress`, `Surprises & Discoveries`, `Decision Log`,
+and `Outcomes & Retrospective` must be kept up to date as work proceeds.
 
 Status: DELIVERED
 
@@ -20,17 +19,16 @@ independent places today:
 - `tests/test_console_scripts_e2e.py:123` — the per-subcommand run loop.
 
 The command-name registry is documented as the single source of truth for the
-command-name vocabulary, yet this derivation — a true piece of that vocabulary —
-lives outside it and is re-spelled by every consumer. Two prior audits flagged
-this (`audit:1.2.13` Finding 3, `audit:1.2.15` Finding 1), and `1.2.15`
+command-name vocabulary, yet this derivation — a true piece of that vocabulary
+— lives outside it and is re-spelled by every consumer. Two prior audits
+flagged this (`audit:1.2.13` Finding 3, `audit:1.2.15` Finding 1), and `1.2.15`
 reproduced the idiom rather than consolidating it, so the debt has persisted
 across two tasks.
 
 After this change a reader can observe that:
 
 - the registry exposes a public `SUBCOMMAND_VERBS: tuple[str, ...]` and a
-  `verb_for(spaced: str) -> str` accessor, derived once from
-  `SUBCOMMAND_NAMES`;
+  `verb_for(spaced: str) -> str` accessor, derived once from `SUBCOMMAND_NAMES`;
 - `novel.py` builds `_VERB_FOR_SUBCOMMAND` from the registry accessor rather
   than re-spelling the split;
 - `tests/test_console_scripts_e2e.py` imports the registry accessor instead of
@@ -69,14 +67,15 @@ escalation, not a workaround.
 - **No second copy of the vocabulary.** `commands.names.SUBCOMMAND_VERBS` must
   be the *same object* as `contract.names.SUBCOMMAND_VERBS` (re-export, not a
   fork), mirroring the identity guards already in
-  `tests/test_contract_names_home.py` and `tests/test_command_names_registry.py`.
+  `tests/test_contract_names_home.py` and
+  `tests/test_command_names_registry.py`.
 - **No cross-module test imports of private symbols.** Tests must consume the
   *public* registry accessor (`commands.names` re-export), never `novel.py`'s
   private `_VERB_FOR_SUBCOMMAND` / `_SUBCOMMAND_FOR_VERB`.
 - **cuprum invocation chain untouched.** The e2e's external-process chain
-  (`Program` -> `single_program_catalogue` -> `sh.make(...).run_sync(
-  context=ExecutionContext(cwd=...), capture=True)`) must not change; only the
-  verb-derivation expressions inside it are replaced.
+  (`Program` -> `single_program_catalogue` ->
+  `sh.make(...).run_sync( context=ExecutionContext(cwd=...), capture=True)`)
+  must not change; only the verb-derivation expressions inside it are replaced.
 - **File-length and docstring gates.** No touched file may exceed 400 lines
   (AGENTS.md "Keep file size manageable"); 100% docstring coverage
   (`interrogate`) must hold for every new public symbol.
@@ -249,24 +248,27 @@ dispatcher's `_VERB_FOR_SUBCOMMAND` and the two e2e split sites — are routed
 through it; no live split idiom survives outside the single registry definition
 (the WI4 guard and the acceptance grep both confirm one occurrence in
 `contract/names.py`); and the multiplexer, console-scripts, registry, and
-contract suites stay green. No behaviour changed: the five spaced names, the five
-mount verbs, every envelope, and the installed-script run sequence are unchanged.
+contract suites stay green. No behaviour changed: the five spaced names, the
+five mount verbs, every envelope, and the installed-script run sequence are
+unchanged.
 
 Deviations from the plan, all minor:
 
 - The WI4 guard's idiom counter could not simply drop string/comment tokens
-  because the idiom embeds a `" "` string literal; coderabbit flagged the initial
-  regex-only stripping as too coarse, so the guard now scans token *offsets* and
-  counts only matches whose first character falls outside any string/comment/
-  f-string span. This is the one place a string-literal copy of the idiom (the
-  guard's own `_SPLIT_IDIOM`) coexists with a live occurrence elsewhere, so the
-  offset approach was necessary for correctness.
-- The WI2 registry-driven map assertion needed `expected ==
-  novel._VERB_FOR_SUBCOMMAND` ordering to satisfy Ruff's yoda-conditions rule.
-- Three coderabbit findings against this ExecPlan document (first-person wording,
-  code-block-indented lists, and file length) were triaged: the wording was
-  fixed; the indentation and length were kept as the established, gate-passing
-  ExecPlan format (the 400-line gate governs source files, not planning docs).
+  because the idiom embeds a `" "` string literal; coderabbit flagged the
+  initial regex-only stripping as too coarse, so the guard now scans token
+  *offsets* and counts only matches whose first character falls outside any
+  string/comment/ f-string span. This is the one place a string-literal copy of
+  the idiom (the guard's own `_SPLIT_IDIOM`) coexists with a live occurrence
+  elsewhere, so the offset approach was necessary for correctness.
+- The WI2 registry-driven map assertion needed
+  `expected == novel._VERB_FOR_SUBCOMMAND` ordering to satisfy Ruff's
+  yoda-conditions rule.
+- Three coderabbit findings against this ExecPlan document (first-person
+  wording, code-block-indented lists, and file length) were triaged: the
+  wording was fixed; the indentation and length were kept as the established,
+  gate-passing ExecPlan format (the 400-line gate governs source files, not
+  planning docs).
 
 Tolerances respected: 6 files touched (two production modules, three test
 modules, one doc), well within scope; the only new public symbols are
@@ -275,11 +277,11 @@ two fix attempts.
 
 ## Context and orientation
 
-This repository packages the `novel` Ralph-loop harness as
-`novel_ralph_skill`. The deterministic command surface is a single `novel`
-multiplexer with five operations (`state`, `done`, `compile`, `desloppify`,
-`wordcount`), fixed by `docs/adr-007-command-surface-novel-multiplexer.md` and
-described in `docs/novel-ralph-harness-design.md` §4.
+This repository packages the `novel` Ralph-loop harness as `novel_ralph_skill`.
+The deterministic command surface is a single `novel` multiplexer with five
+operations (`state`, `done`, `compile`, `desloppify`, `wordcount`), fixed by
+`docs/adr-007-command-surface-novel-multiplexer.md` and described in
+`docs/novel-ralph-harness-design.md` §4.
 
 Key terms:
 
@@ -307,24 +309,27 @@ Files this plan touches:
   registry accessor (lines 49-51 today).
 - `tests/test_console_scripts_e2e.py` — replace the two `split(" ", 1)[1]`
   spellings (lines 69, 123).
-- `tests/test_command_names_registry.py` (or `tests/test_contract_names_home.py`)
-  — add unit + identity tests for the new accessor.
+- `tests/test_command_names_registry.py` (or
+  `tests/test_contract_names_home.py`) — add unit + identity tests for the new
+  accessor.
 - `tests/test_contract_properties.py` (existing Hypothesis home) — add the
   round-trip property.
 - A new or existing regression-guard module — add the surviving-idiom scan
   (WI4).
 
 The mechanism is verified against the locked **cuprum 0.1.0** and **Cyclopts
-4.18.0** (see Interfaces and dependencies). This task does not change the cuprum
-invocation chain or any Cyclopts behaviour; it only consolidates a string
-derivation, so no external-library behavioural claim is load-bearing beyond
-"the existing e2e chain still runs unchanged", which the unchanged e2e proves.
+4.18.0** (see Interfaces and dependencies). This task does not change the
+cuprum invocation chain or any Cyclopts behaviour; it only consolidates a
+string derivation, so no external-library behavioural claim is load-bearing
+beyond "the existing e2e chain still runs unchanged", which the unchanged e2e
+proves.
 
 ## Plan of work
 
-Staged, each work item independently committable and gate-passable (`make all`).
-Red-before-green: each new test is added and shown failing against the pre-edit
-source before the production edit lands, in the same work item.
+Staged, each work item independently committable and gate-passable
+(`make all`). Red-before-green: each new test is added and shown failing
+against the pre-edit source before the production edit lands, in the same work
+item.
 
 ### WI1 — Add the registry accessor (define in contract, re-export in commands)
 
@@ -332,8 +337,8 @@ Docs to read: `docs/adr-003-shared-interface-contract.md`;
 `docs/novel-ralph-harness-design.md` §4; `docs/execplans/roadmap-7-3-6.md`
 (Decision Log D1, the vocabulary-relocation pattern this mirrors);
 `docs/issues/audit-1.2.15.md` Finding 1 (the proposed `SUBCOMMAND_VERBS` /
-`verb_for` shape); `AGENTS.md` "Python verification and testing", "Abstraction /
-port / helper policy".
+`verb_for` shape); `AGENTS.md` "Python verification and testing", "Abstraction
+/ port / helper policy".
 
 Skills to load: `python-router` -> `python-types-and-apis` (public function
 signature, `tuple[str, ...]` shape), `python-errors-and-logging` (the loud
@@ -366,18 +371,19 @@ Edits:
            """Return the bare mount verb for a spaced subcommand name.
 
            Parameters
-           ----------
+
+______________________________________________________________________
            spaced : str
                A spaced subcommand name from :data:`SUBCOMMAND_NAMES`, e.g.
                ``"novel state"``.
 
            Returns
-           -------
+______________________________________________________________________
            str
                The bare mount verb, e.g. ``"state"``.
 
            Raises
-           ------
+______________________________________________________________________
            KeyError
                If ``spaced`` is not a registered subcommand name. The lookup
                makes the registry the sole authority: only registry-known names
@@ -385,17 +391,17 @@ Edits:
                than being silently split.
 
            Examples
-           --------
+______________________________________________________________________
            >>> verb_for("novel desloppify")
            'desloppify'
            """
            return _VERB_BY_SUBCOMMAND[spaced]
 
-   Add `"SUBCOMMAND_VERBS"` and `"verb_for"` to `contract/names.py`'s `__all__`.
-   The single surviving `split(" ", 1)[1]` lives here, in the `SUBCOMMAND_VERBS`
-   definition; WI4 pins that it is the only one.
+   Add `"SUBCOMMAND_VERBS"` and `"verb_for"` to `contract/names.py`'s
+   `__all__`. The single surviving `split(" ", 1)[1]` lives here, in the
+   `SUBCOMMAND_VERBS` definition; WI4 pins that it is the only one.
 
-2. In `novel_ralph_skill/commands/names.py`, extend the existing re-export
+1. In `novel_ralph_skill/commands/names.py`, extend the existing re-export
    import and `__all__`:
 
        # commands/names.py
@@ -443,8 +449,8 @@ symbol) before adding the production symbols, then green after. Commit.
 ### WI2 — Route the dispatcher through the registry accessor
 
 Docs to read: `docs/adr-007-command-surface-novel-multiplexer.md`;
-`docs/novel-ralph-harness-design.md` §4;
-`novel_ralph_skill/commands/novel.py` (Decision Log D4 comment at lines 46-56).
+`docs/novel-ralph-harness-design.md` §4; `novel_ralph_skill/commands/novel.py`
+(Decision Log D4 comment at lines 46-56).
 
 Skills to load: `python-router` -> `python-data-shapes` (dict-comprehension
 provenance), `python-iterators-and-generators`; `leta` (`refs SUBCOMMAND_NAMES`,
@@ -470,21 +476,22 @@ Edits in `novel_ralph_skill/commands/novel.py`:
        }
 
    Update the surrounding comment (lines 46-48) so it states the verb is
-   resolved through the registry accessor (`verb_for`), keeping the Decision Log
-   D4 "never re-spells the verbs inline" intent and en-GB spelling. The
-   downstream `_SUBCOMMAND_FOR_VERB`, `_build_mount_table`, `build_multiplexer`,
-   and `_command_name_for` are unchanged.
+   resolved through the registry accessor (`verb_for`), keeping the Decision
+   Log D4 "never re-spells the verbs inline" intent and en-GB spelling. The
+   downstream `_SUBCOMMAND_FOR_VERB`, `_build_mount_table`,
+   `build_multiplexer`, and `_command_name_for` are unchanged.
 
 Tests: no new production behaviour, so the existing
 `tests/test_multiplexer_dispatch.py` (registers-five-subcommands,
 `_command_name_for` mapping, registry-not-literals) is the behavioural oracle
 and must stay green unchanged. Add one focused assertion to
 `tests/test_multiplexer_dispatch.py` (or assert in WI4's guard) that
-`novel._VERB_FOR_SUBCOMMAND` equals `{name: verb_for(name) for name in
-SUBCOMMAND_NAMES}`, pinning that the dispatcher's private map is registry-driven
-(it derives from the accessor, so a future inline re-spelling diverges and
-fails). Keep it a value assertion, not an import of internals beyond the already
-imported `novel` module within its own test home.
+`novel._VERB_FOR_SUBCOMMAND` equals
+`{name: verb_for(name) for name in SUBCOMMAND_NAMES}`, pinning that the
+dispatcher's private map is registry-driven (it derives from the accessor, so a
+future inline re-spelling diverges and fails). Keep it a value assertion, not
+an import of internals beyond the already imported `novel` module within its
+own test home.
 
 Validation: `make all`. The dispatch suite proves no behaviour change. Commit.
 
@@ -521,9 +528,9 @@ Edits in `tests/test_console_scripts_e2e.py`:
            argv = (verb, *_REAL_PATH_ARGV.get(verb, ()))
            ...
 
-   (Import `verb_for` alongside `SUBCOMMAND_VERBS`; the loop keeps `spaced_name`
-   for the existing failure messages.) The cuprum chain
-   (`Program`/`single_program_catalogue`/`sh.make`/`run_sync`) is unchanged.
+   (Import `verb_for` alongside `SUBCOMMAND_VERBS`; the loop keeps
+   `spaced_name` for the existing failure messages.) The cuprum chain
+   (`Program` /`single_program_catalogue`/`sh.make`/`run_sync`) is unchanged.
 
 Tests: this *is* the e2e; it is `slow`-marked with a 180s per-test timeout. Run
 collection-only first to confirm the import-time guard still passes, then run
@@ -540,9 +547,9 @@ Validation: `make all`. Commit.
 ### WI4 — Durable guard: no split idiom survives outside the registry
 
 Docs to read: `docs/issues/audit-1.2.15.md` Finding 1 (the persistence across
-two tasks this guard prevents recurring); `tests/test_legacy_surface_retired.py`
-(the source-scan guard pattern to mirror); `AGENTS.md` "Python verification and
-testing".
+two tasks this guard prevents recurring);
+`tests/test_legacy_surface_retired.py` (the source-scan guard pattern to
+mirror); `AGENTS.md` "Python verification and testing".
 
 Skills to load: `python-router` -> `python-testing`; `leta`.
 
@@ -550,8 +557,9 @@ Edit: add a regression test — either a new `tests/test_verb_derivation_home.py
 or a case appended to `tests/test_command_names_registry.py` — that walks the
 production and test trees and asserts the `split(" ", 1)[1]` (and the broader
 `.split(" "` spaced-verb) idiom appears in exactly one place: the
-`SUBCOMMAND_VERBS` definition in `novel_ralph_skill/contract/names.py`. Model it
-on `tests/test_legacy_surface_retired.py::test_no_legacy_command_literals_in_idiom_sources`:
+`SUBCOMMAND_VERBS` definition in `novel_ralph_skill/contract/names.py`. Model
+it on
+`tests/test_legacy_surface_retired.py::test_no_legacy_command_literals_in_idiom_sources`:
 read each file's source via `project_root`, count occurrences, and assert the
 total across `novel_ralph_skill/` and `tests/` is exactly one and lives in
 `contract/names.py`. Exclude this guard module itself (its own string literal)
@@ -584,8 +592,9 @@ Edits:
    description so the derivation's new home is documented (AGENTS.md "Document
    internally facing interfaces / conventions"). Keep en-GB Oxford spelling and
    80-column prose wrapping.
-2. Update this ExecPlan's `Progress`, `Surprises & Discoveries`, `Decision
-   Log`, and `Outcomes & Retrospective` to reflect the delivered state.
+2. Update this ExecPlan's `Progress`, `Surprises & Discoveries`,
+   `Decision Log`, and `Outcomes & Retrospective` to reflect the delivered
+   state.
 
 Tests / validation: `make markdownlint` and `make nixie` for every Markdown
 file touched (this plan and any guide edit), then a final `make all`. Commit.
@@ -671,20 +680,20 @@ Quality method (how it is checked): run `make all` after every work item; run
 acceptance grep showing a single surviving split occurrence in
 `contract/names.py`.
 
-Acceptance is behavioural and observable: after the change, building and running
-the installed `novel` script under a cwd with no `working/` still exits `3` for
-every subcommand (the e2e), the multiplexer still mounts exactly the five verbs
-and stamps the five spaced names (the dispatch suite), and the verb derivation
-exists in exactly one place (the acceptance grep and the WI4 guard).
+Acceptance is behavioural and observable: after the change, building and
+running the installed `novel` script under a cwd with no `working/` still exits
+`3` for every subcommand (the e2e), the multiplexer still mounts exactly the
+five verbs and stamps the five spaced names (the dispatch suite), and the verb
+derivation exists in exactly one place (the acceptance grep and the WI4 guard).
 
 ## Idempotence and recovery
 
-Every step is a content edit plus a gated commit; re-running `make all` is
-safe and side-effect-free. If a work item's gate fails, fix forward or
-`git restore`/`git reset --soft` the uncommitted edit and retry — no step is
-destructive and nothing writes outside the repository. The e2e builds into a
-`tmp_path`, so repeated runs leave no residue. If WI1's re-export accidentally
-forks the object (identity test fails), the fix is to import the symbol from
+Every step is a content edit plus a gated commit; re-running `make all` is safe
+and side-effect-free. If a work item's gate fails, fix forward or `git restore`/
+`git reset --soft` the uncommitted edit and retry — no step is destructive and
+nothing writes outside the repository. The e2e builds into a `tmp_path`, so
+repeated runs leave no residue. If WI1's re-export accidentally forks the
+object (identity test fails), the fix is to import the symbol from
 `contract.names` rather than redefining it — revert and re-import.
 
 ## Artefacts and notes
@@ -703,8 +712,8 @@ The acceptance grep proving consolidation:
 
 ## Interfaces and dependencies
 
-New public interface, in `novel_ralph_skill/contract/names.py`, re-exported
-from `novel_ralph_skill/commands/names.py`:
+New public interface, in `novel_ralph_skill/contract/names.py`, re-exported from
+`novel_ralph_skill/commands/names.py`:
 
     # novel_ralph_skill/contract/names.py
     SUBCOMMAND_VERBS: tuple[str, ...]            # ("state", "done", "compile",
@@ -728,15 +737,15 @@ source — no behavioural fork is introduced by this task):
   - `cuprum.sh.ExecutionContext` (`cuprum/sh.py:169`) and the builder's
     `run_sync(...)` (`cuprum/sh.py:441,509`) with `context=` and `capture=True`
     — the cwd-scoped, output-capturing run the e2e already performs.
-  This task touches none of these calls; it replaces only the `split(" ", 1)[1]`
-  expressions that compute the argv verb, so no new cuprum behaviour is relied
-  upon. (If any of these calls *did* change, the e2e would fail at run time;
-  they do not.)
+  This task touches none of these calls; it replaces only the
+  `split(" ", 1)[1]` expressions that compute the argv verb, so no new cuprum
+  behaviour is relied upon. (If any of these calls *did* change, the e2e would
+  fail at run time; they do not.)
 - **Cyclopts 4.18.0** (`uv.lock` line 137-148). The multiplexer's mounting and
-  dispatch behaviour is unchanged; `_VERB_FOR_SUBCOMMAND` only changes *how* the
-  verb string is computed (registry accessor vs inline split), not the verbs
-  themselves, so the locked Cyclopts mounting semantics (`parent.command(child,
-  name=…)`, verified under 7.3.5/1.2.12 and pinned by
+  dispatch behaviour is unchanged; `_VERB_FOR_SUBCOMMAND` only changes *how*
+  the verb string is computed (registry accessor vs inline split), not the
+  verbs themselves, so the locked Cyclopts mounting semantics
+  (`parent.command(child, name=…)`, verified under 7.3.5/1.2.12 and pinned by
   `tests/test_multiplexer_dispatch.py`) are not re-derived here. No firecrawl
   re-confirmation is needed because no Cyclopts `--help`/`--version`/usage
   behaviour is exercised by this change.
@@ -744,9 +753,10 @@ source — no behavioural fork is introduced by this task):
   `tests/test_contract_properties.py`; `st.sampled_from(SUBCOMMAND_NAMES)` over
   the fixed five-element registry (no filtering trap), per the `hypothesis`
   skill.
-- **pytest / pytest-xdist / pytest-timeout** — the e2e's `@pytest.mark.timeout(
-  180)` per-test override (superseding the 30s default under `-n auto`) is
-  unchanged by this task; no timeout or xdist behaviour is altered.
+- **pytest / pytest-xdist / pytest-timeout** — the e2e's
+  `@pytest.mark.timeout( 180)` per-test override (superseding the 30s default
+  under `-n auto`) is unchanged by this task; no timeout or xdist behaviour is
+  altered.
 
 ## Revision note (required when editing an ExecPlan)
 
@@ -759,24 +769,27 @@ relies on as verified-unchanged. No remaining undecided forks.
 
 ## Addenda
 
-Lightweight, post-completion corrections folded onto this task. Each is a small,
-surgical fix run as a no-plan, no-review pass; none changes the task's outcome.
+Lightweight, post-completion corrections folded onto this task. Each is a
+small, surgical fix run as a no-plan, no-review pass; none changes the task's
+outcome.
 
 - [ ] A1 (from review:7.3.8; low). Correct this execplan's grep-based acceptance
   wording to reference the live-code count. The plan documents an observable
-  acceptance ("grep … expect: exactly one hit") that is literally false — the raw
-  grep returns ten hits and only the live-code count is one — so a future agent
-  running the documented command is misled. Re-word the acceptance to point at the
-  WI4 tokenizer guard / live-code count, or scope the grep to exclude comments and
-  strings. Doc-only fix to this execplan record. Mirrors roadmap sub-task 7.3.8.1.
+  acceptance ("grep … expect: exactly one hit") that is literally false — the
+  raw grep returns ten hits and only the live-code count is one — so a future
+  agent running the documented command is misled. Re-word the acceptance to
+  point at the WI4 tokenizer guard / live-code count, or scope the grep to
+  exclude comments and strings. Doc-only fix to this execplan record. Mirrors
+  roadmap sub-task 7.3.8.1.
 
-- [ ] A2 (from audit:7.3.8; low). Build the multiplexer verb map from the registry
+- [ ] A2 (from audit:7.3.8; low). Build the multiplexer verb map from the
+      registry
   rather than one `verb_for` call at a time. `novel.py` rebuilds
   `_VERB_FOR_SUBCOMMAND` one `verb_for()` call at a time, reconstructing the
   relation the contract already holds. Build it from
   `dict(zip(SUBCOMMAND_NAMES, SUBCOMMAND_VERBS, strict=True))` — or expose a
-  registry `verb_map()` accessor — so the spaced-name-to-verb map is owned in one
-  place, serving the same single-source intent 7.3.8 established for the scalar
-  split. Behaviour-preserving. Scope: `novel_ralph_skill/commands/novel.py` (and
-  `contract/names.py` if a `verb_map()` accessor is added). Mirrors roadmap
-  sub-task 7.3.8.2.
+  registry `verb_map()` accessor — so the spaced-name-to-verb map is owned in
+  one place, serving the same single-source intent 7.3.8 established for the
+  scalar split. Behaviour-preserving. Scope:
+  `novel_ralph_skill/commands/novel.py` (and `contract/names.py` if a
+  `verb_map()` accessor is added). Mirrors roadmap sub-task 7.3.8.2.

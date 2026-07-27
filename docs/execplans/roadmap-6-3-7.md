@@ -1,9 +1,8 @@
 # Pin the SKILL.md command-contract restatement to the code with a drift-guard test
 
-This ExecPlan (execution plan) is a living document. The sections
-`Constraints`, `Tolerances`, `Risks`, `Progress`, `Surprises & Discoveries`,
-`Decision Log`, and `Outcomes & Retrospective` must be kept up to date as work
-proceeds.
+This ExecPlan (execution plan) is a living document. The sections `Constraints`,
+`Tolerances`, `Risks`, `Progress`, `Surprises & Discoveries`, `Decision Log`,
+and `Outcomes & Retrospective` must be kept up to date as work proceeds.
 
 Status: COMPLETE (implemented round 2)
 
@@ -17,12 +16,13 @@ the harness design (`docs/novel-ralph-harness-design.md` §3.1 envelope and §3.
 exit codes), the developers' guide, and the agent-facing skill
 (`skill/novel-ralph/SKILL.md`). Three of these are either the canonical source
 or already pinned; the `SKILL.md` exit-code table and envelope skeleton are the
-one copy that no test pins. A change to the
-`ExitCode` enum, the envelope field set, or `ENVELOPE_SCHEMA_VERSION` would
-silently stale the table the dogfooding agent reads — the exact per-command
-drift that roadmap step §6.3 exists to close.
+one copy that no test pins. A change to the `ExitCode` enum, the envelope field
+set, or `ENVELOPE_SCHEMA_VERSION` would silently stale the table the dogfooding
+agent reads — the exact per-command drift that roadmap step §6.3 exists to
+close.
 
-After this change, a developer who edits `novel_ralph_skill/contract/exit_codes.py`,
+After this change, a developer who edits
+`novel_ralph_skill/contract/exit_codes.py`,
 `novel_ralph_skill/contract/envelope.py`, or the `SKILL.md` restatement without
 keeping them in lockstep gets a failing test naming the divergence, rather than
 discovering the staleness in production. Success is observable by running the
@@ -73,8 +73,7 @@ escalation, not a workaround.
   module of pure functions, as `tests/_state_layout_scanner.py` does.
 - en-GB Oxford spelling ("-ize"/"-yse"/"-our") in all prose, comments,
   docstrings, and the commit message. 100% docstring coverage is enforced by
-  `make lint`; every new module, class, function, and fixture needs a
-  docstring.
+  `make lint`; every new module, class, function, and fixture needs a docstring.
 - The integration branch is `main`; treat `origin/main` as canonical. Each work
   item is independently committable and must pass the full gate before commit.
 
@@ -95,8 +94,7 @@ escalation, not a workaround.
   new dependency is expected; `syrupy` (snapshots), `pytest`, and `hypothesis`
   are already in the test toolchain.
 - Iterations: if the new test still fails against the live, unplanted `SKILL.md`
-  after 3 attempts to correct the *guard* (not the contract), stop and
-  escalate.
+  after 3 attempts to correct the *guard* (not the contract), stop and escalate.
 - Ambiguity: if a load-bearing behavioural claim cannot be verified against the
   code or a cited document, stop and present options rather than guessing.
 
@@ -407,16 +405,16 @@ The four restatement sites, by full path:
 
 - `docs/adr-003-shared-interface-contract.md` — Table 2 (the markdown table at
   lines 90-96, three columns: Code, Meaning, Harness response) is the exit-code
-  policy; the `result`/`messages`/`schema_version` prose (lines 100-106) defines
-  the envelope semantics. This ADR is the documented source of truth the SKILL
-  section names.
+  policy; the `result`/`messages`/`schema_version` prose (lines 100-106)
+  defines the envelope semantics. This ADR is the documented source of truth
+  the SKILL section names.
 - `docs/novel-ralph-harness-design.md` §3.1 "Output modes" (heading at line 137)
   carries the six-field envelope skeleton at lines 146-155 (the FIRST ```json
-  fence; a SECOND, five-field `novel done` example lives at line 365, in §4, and
-  must be excluded — see B1). §3.2 "Exit codes" (heading at line 212) carries
-  the exit-code table at lines 221-227 (FOUR columns: Code, Meaning, Harness
-  response, Example). The §3.1 region runs from its heading (line 137) to the
-  §3.2 heading (line 212).
+  fence; a SECOND, five-field `novel done` example lives at line 365, in §4,
+  and must be excluded — see B1). §3.2 "Exit codes" (heading at line 212)
+  carries the exit-code table at lines 221-227 (FOUR columns: Code, Meaning,
+  Harness response, Example). The §3.1 region runs from its heading (line 137)
+  to the §3.2 heading (line 212).
 - `docs/developers-guide.md` — the "The shared JSON envelope" and
   "Disambiguated exit codes" sections (already the developer-facing single
   source SKILL points at; not re-pinned here beyond cross-reference).
@@ -436,9 +434,9 @@ The established prose-guard pattern this plan copies:
   `_slice_between` / `_require_index` (which fail loudly on a missing anchor),
   and asserts small stable *mechanism* substrings within each region.
 - `tests/test_state_layout_reference.py` + `tests/_state_layout_scanner.py`
-  show the helper-extraction discipline: a pure scanner module of functions over
-  markdown text, unit-tested by the guard module, keeping each file under the
-  400-line cap.
+  show the helper-extraction discipline: a pure scanner module of functions
+  over markdown text, unit-tested by the guard module, keeping each file under
+  the 400-line cap.
 - `tests/test_contract_envelope_snapshots.py` shows that importing the contract
   module (`ExitCode`, `build_envelope`, `render_machine`) directly from a test
   is the sanctioned way to tie a test to the code, and that `working_dir` is
@@ -470,9 +468,9 @@ module `tests/test_skill_contract_drift_guard.py`, with table/JSON parsing
 helpers in a sibling pure module `tests/_skill_contract_scanner.py` so both
 files stay under the 400-line cap and the parser is independently unit-tested.
 This mirrors the `test_state_layout_reference.py` + `_state_layout_scanner.py`
-split exactly. (If, while implementing, the guard module lands comfortably under
-~300 lines including parsing, the parser may stay inline; record that choice in
-the Decision Log. The default is extraction.)
+split exactly. (If, while implementing, the guard module lands comfortably
+under ~300 lines including parsing, the parser may stay inline; record that
+choice in the Decision Log. The default is extraction.)
 
 - Stage A (Work item 1): scaffolding and a red test.
 - Stage B (Work items 2-3): the two guard halves.
@@ -505,9 +503,9 @@ Create `tests/test_skill_contract_drift_guard.py` with:
 
 - A module docstring stating it pins the `SKILL.md` command-contract restatement
   (the "## Command contract" exit-code table and envelope skeleton) to
-  `ExitCode`, the `Envelope` field set, and `ENVELOPE_SCHEMA_VERSION`, following
-  the prose-guard pattern of `test_skill_deflation_guard.py`, and naming the
-  working_dir example-value carve-out (Decision Log).
+  `ExitCode`, the `Envelope` field set, and `ENVELOPE_SCHEMA_VERSION`,
+  following the prose-guard pattern of `test_skill_deflation_guard.py`, and
+  naming the working_dir example-value carve-out (Decision Log).
 - A `_SKILL_PARTS = ("skill", "novel-ralph", "SKILL.md")` constant and a
   `skill_text` fixture over `read_repo_text`, copied from the deflation guard.
 - One *placeholder* assertion that intentionally fails (e.g. asserting a
@@ -524,19 +522,19 @@ fixture resolves). Then run the gate:
     make all
 
 Expected: the only failure is the planted placeholder in the new module. Commit
-is deferred until the placeholder is replaced; if committing this stage, replace
-the placeholder with an xfail-marked stub so the gate is green — record the
-choice in the Decision Log. Preferred path: fold Work item 1 into Work item 2's
-commit so no broken commit lands. (Decision recorded below: ship Work items 1+2
-as one commit to keep every commit gate-green.)
+is deferred until the placeholder is replaced; if committing this stage,
+replace the placeholder with an xfail-marked stub so the gate is green — record
+the choice in the Decision Log. Preferred path: fold Work item 1 into Work item
+2's commit so no broken commit lands. (Decision recorded below: ship Work items
+1+2 as one commit to keep every commit gate-green.)
 
 ### Work item 2 — Exit-code-table drift guard (Stage B)
 
 Implements: roadmap 6.3.7 ("fails if the SKILL.md exit-code table … diverges
-from ADR-003 Table 2 / design §3.2 or from the ExitCode … source");
-ADR-003 Table 2 (`docs/adr-003-shared-interface-contract.md` table at lines
-90-96, three columns); design §3.2 (`docs/novel-ralph-harness-design.md` table
-at lines 221-227, four columns); `novel_ralph_skill/contract/exit_codes.py`.
+from ADR-003 Table 2 / design §3.2 or from the ExitCode … source"); ADR-003
+Table 2 (`docs/adr-003-shared-interface-contract.md` table at lines 90-96,
+three columns); design §3.2 (`docs/novel-ralph-harness-design.md` table at
+lines 221-227, four columns); `novel_ralph_skill/contract/exit_codes.py`.
 
 Docs to read first: ADR-003 Table 2 and the surrounding "Decision outcome"
 prose (lines 86-106); design §3.2 (heading line 212, table 221-227 — note the
@@ -548,31 +546,34 @@ If extracting (default), create `tests/_skill_contract_scanner.py` with pure
 functions:
 
 - `parse_markdown_table(region: str) -> list[tuple[str, ...]]` — splits a
-  GitHub-flavoured markdown table region into stripped cell tuples, skipping the
-  header separator (`---`) row. Docstring explains it tolerates optional leading
-  and trailing pipes and collapses padding whitespace, and that each returned
-  tuple has the column count of its source table (which differs by table).
+  GitHub-flavoured markdown table region into stripped cell tuples, skipping
+  the header separator (`---`) row. Docstring explains it tolerates optional
+  leading and trailing pipes and collapses padding whitespace, and that each
+  returned tuple has the column count of its source table (which differs by
+  table).
 - `extract_exit_code_meanings(rows: list[tuple[str, ...]]) -> dict[int, str]` —
-  maps each numeric code (column 0) to its Meaning cell (column 1) ONLY, ignoring
-  every later column. **B2 fix**: this replaces the round-1
+  maps each numeric code (column 0) to its Meaning cell (column 1) ONLY,
+  ignoring every later column. **B2 fix**: this replaces the round-1
   `extract_exit_code_rows -> dict[int, tuple[str, str]]`, which assumed exactly
   two non-code cells and shifted by one on design §3.2's four-column rows. The
-  docstring states explicitly that only the Meaning column is load-bearing across
-  the three tables (column counts: ADR-003 = 3, design §3.2 = 4, SKILL = 3), and
-  that the extractor is column-count tolerant: it reads columns 0 and 1 and
-  discards the rest. Rows whose column-0 cell is not an integer (e.g. a stray
-  blank line) are skipped, so a malformed region cannot silently corrupt the map.
+  docstring states explicitly that only the Meaning column is load-bearing
+  across the three tables (column counts: ADR-003 = 3, design §3.2 = 4, SKILL =
+  3), and that the extractor is column-count tolerant: it reads columns 0 and 1
+  and discards the rest. Rows whose column-0 cell is not an integer (e.g. a
+  stray blank line) are skipped, so a malformed region cannot silently corrupt
+  the map.
 - `slice_doc_region(text: str, start: str, end: str, *, source: str) -> str` —
   the generalized, source-labelled region slicer (Decision Log). Mirrors the
-  deflation guard's `_slice_between` (loud failure when either anchor is missing)
-  but names `source` in the message, so a missing `### 3.2` in the design doc
-  does not report "not found in SKILL.md".
+  deflation guard's `_slice_between` (loud failure when either anchor is
+  missing) but names `source` in the message, so a missing `### 3.2` in the
+  design doc does not report "not found in SKILL.md".
 
 In `tests/test_skill_contract_drift_guard.py` add:
 
 - A `_EXIT_TABLE_HEADING = "### Exit-code table"` anchor and an
   `_ENVELOPE_HEADING = "### Envelope schema"` anchor; an `exit_table_region`
-  fixture slicing SKILL.md between them via `slice_doc_region(skill_text,
+  fixture slicing SKILL.md between them via
+  `slice_doc_region(skill_text,
   _EXIT_TABLE_HEADING, _ENVELOPE_HEADING, source="SKILL.md")`.
 - `_CODE_KEYWORDS: dict[ExitCode, tuple[str, ...]]` derived from the enum:
   `SUCCESS → ("success",)`, `BENIGN_NEGATIVE → ("benign",)`,
@@ -588,29 +589,30 @@ In `tests/test_skill_contract_drift_guard.py` add:
   Meaning cell for that code. Pin keywords, not whole sentences (Risks:
   brittleness).
 - `test_skill_exit_table_agrees_with_adr003_and_design`: read ADR-003 Table 2
-  (slice between "Adopt Option A. The exit-code table is:" / `_Table 2:` anchors,
-  or the heading `## Decision outcome` to the next `_Table`) and design §3.2's
-  table (slice via `slice_doc_region(design_text, "### 3.2", "### 3.3",
-  source="design")`) through `read_repo_text`, parse both with
-  `extract_exit_code_meanings`, and assert that for every `ExitCode` the Meaning
-  cell in each document contains the same per-code keyword as SKILL's. **B2 fix**:
-  compare by per-code keyword presence, NOT exact Meaning string — verified that
-  the wording differs across tables (SKILL "Usage error; the invocation is wrong"
-  vs ADR/design "Usage error"; SKILL "Actionable finding a detector surfaced" vs
-  ADR/design "Actionable findings requiring agent intervention"). This pins the
-  "matches ADR-003 Table 2 / design §3.2" clause against the canonical
-  *documents*, complementing the enum coupling above, and survives the
-  four-column design table because only columns 0 and 1 are read.
+  (slice between "Adopt Option A. The exit-code table is:" / `_Table 2:`
+  anchors, or the heading `## Decision outcome` to the next `_Table`) and
+  design §3.2's table (slice via
+  `slice_doc_region(design_text, "### 3.2", "### 3.3", source="design")`)
+  through `read_repo_text`, parse both with `extract_exit_code_meanings`, and
+  assert that for every `ExitCode` the Meaning cell in each document contains
+  the same per-code keyword as SKILL's. **B2 fix**: compare by per-code keyword
+  presence, NOT exact Meaning string — verified that the wording differs across
+  tables (SKILL "Usage error; the invocation is wrong" vs ADR/design "Usage
+  error"; SKILL "Actionable finding a detector surfaced" vs ADR/design
+  "Actionable findings requiring agent intervention"). This pins the "matches
+  ADR-003 Table 2 / design §3.2" clause against the canonical *documents*,
+  complementing the enum coupling above, and survives the four-column design
+  table because only columns 0 and 1 are read.
 
 Tests to add/update (per AGENTS.md): the above are unit/prose-guard tests in
 `tests/`. If `tests/_skill_contract_scanner.py` is created, add a small unit
-test class `TestSkillContractScanner` in the guard module that drives the parser
-over a *planted* in-string table fixture (a multi-line literal, not a file) to
-prove it skips the separator row, tolerates padding, and rejects a malformed
-row — mirroring how `test_state_layout_reference.py` unit-tests its scanner with
-planted recipes. No snapshot test is warranted here: the guard asserts
-semantic equality, and AGENTS.md says to avoid snapshot-only coverage for logic
-assertable directly. No property test is warranted: there is no
+test class `TestSkillContractScanner` in the guard module that drives the
+parser over a *planted* in-string table fixture (a multi-line literal, not a
+file) to prove it skips the separator row, tolerates padding, and rejects a
+malformed row — mirroring how `test_state_layout_reference.py` unit-tests its
+scanner with planted recipes. No snapshot test is warranted here: the guard
+asserts semantic equality, and AGENTS.md says to avoid snapshot-only coverage
+for logic assertable directly. No property test is warranted: there is no
 generative-input surface — the inputs are three fixed in-repo documents.
 
 Validation:
@@ -640,41 +642,41 @@ Docs to read first: design §3.1 (heading 137; note the working_dir
 absolute-path bullet, lines 158-166; note the SECOND, five-field ```json
 example at line 365 in §4 — B1); SKILL.md "### Envelope schema" (heading line
 123, skeleton 128-137, bullets 139-150); `envelope.py` (field order in the
-dataclass and in `render_machine`). Skills: `python-router` →
-`python-testing`, `python-data-shapes` (dataclass field introspection via
-`dataclasses.fields`).
+dataclass and in `render_machine`). Skills: `python-router` → `python-testing`,
+`python-data-shapes` (dataclass field introspection via `dataclasses.fields`).
 
 Add to `tests/test_skill_contract_drift_guard.py` (and the scanner module if
 extracting):
 
 - `extract_fenced_json(region: str, fence_lang: str = "json") -> str` in the
   scanner — pulls the FIRST ```` ```json ```` fenced block out of the region it
-  is given, failing loudly if absent (vacuous-pass guard). Because it operates on
-  whatever region the caller passes, the caller MUST narrow the design text to
-  the §3.1 slice first (see the design fixture below); otherwise the file-level
-  first fence is still the §3.1 one, but a region passed too wide risks pulling
-  the wrong fence — B1.
-- An `_ENVELOPE_END = "### Invocation discipline"` anchor and an `envelope_region`
-  fixture: `slice_doc_region(skill_text, _ENVELOPE_HEADING, _ENVELOPE_END,
-  source="SKILL.md")`, capturing the skeleton (128-137) AND the field bullets
-  (139-150) up to the next H3. (Verified: `### Invocation discipline` is the next
-  H3, at line 155.)
+  is given, failing loudly if absent (vacuous-pass guard). Because it operates
+  on whatever region the caller passes, the caller MUST narrow the design text
+  to the §3.1 slice first (see the design fixture below); otherwise the
+  file-level first fence is still the §3.1 one, but a region passed too wide
+  risks pulling the wrong fence — B1.
+- An `_ENVELOPE_END = "### Invocation discipline"` anchor and an
+  `envelope_region` fixture:
+  `slice_doc_region(skill_text, _ENVELOPE_HEADING, _ENVELOPE_END, source="SKILL.md")`,
+  capturing the skeleton (128-137) AND the field bullets (139-150) up to the
+  next H3. (Verified: `### Invocation discipline` is the next H3, at line 155.)
 - A `_DESIGN_PARTS = ("docs", "novel-ralph-harness-design.md")` constant and a
   `design_envelope_skeleton` fixture: read the design doc, slice it to the §3.1
-  region with `slice_doc_region(design_text, "### 3.1", "### 3.2",
-  source="novel-ralph-harness-design.md")` (heading 137 → 212, verified), then
-  `extract_fenced_json` the first fence WITHIN that slice (line 146). **B1 fix**:
-  this is the explicit design-side region bound the round-1 plan omitted; it
-  excludes the line-365 five-field `novel done` example in §4. The fixture
-  asserts `"working_dir" in skeleton` before returning, so a future doc reshuffle
-  that pulls the five-field example (or drops working_dir) fails loudly here
-  rather than silently false-failing the order comparison downstream.
+  region with
+  `slice_doc_region(design_text, "### 3.1", "### 3.2", source="novel-ralph-harness-design.md")`
+  (heading 137 → 212, verified), then `extract_fenced_json` the first fence
+  WITHIN that slice (line 146). **B1 fix**: this is the explicit design-side
+  region bound the round-1 plan omitted; it excludes the line-365 five-field
+  `novel done` example in §4. The fixture asserts `"working_dir" in skeleton`
+  before returning, so a future doc reshuffle that pulls the five-field example
+  (or drops working_dir) fails loudly here rather than silently false-failing
+  the order comparison downstream.
 - `test_skill_envelope_fields_match_dataclass`: parse the SKILL fenced JSON,
   assert `list(parsed.keys())` equals
   `[f.name for f in dataclasses.fields(Envelope)]` — i.e.
   `["command", "schema_version", "ok", "working_dir", "result", "messages"]`.
-  This pins the field set **and order** to the code (the contract field order is
-  load-bearing; `render_machine` asserts it too).
+  This pins the field set **and order** to the code (the contract field order
+  is load-bearing; `render_machine` asserts it too).
 - `test_skill_envelope_schema_version_matches_constant`: assert the parsed
   `schema_version` value equals `ENVELOPE_SCHEMA_VERSION` (1). This is the
   `schema_version` coupling named in the success criterion.
@@ -684,20 +686,20 @@ extracting):
   *order/set* only — do **not** assert `working_dir`'s example value (SKILL's
   `"working"` vs design's absolute path), and document that carve-out in the
   test docstring. **B1 fix**: also assert `"working_dir" in design_keys`
-  positively, so the test fails loudly (not silently 5-vs-6) if the design region
-  ever yields the working_dir-less example.
+  positively, so the test fails loudly (not silently 5-vs-6) if the design
+  region ever yields the working_dir-less example.
 - `test_skill_envelope_bullets_name_every_field`: assert each of the six field
   names appears as a documented bullet in the envelope region (the
   `- \`command\` …` bullets, 139-150), so a field added to the skeleton without
-  prose, or prose left behind after a field removal, fails. Keyword presence, not
-  sentence text.
+  prose, or prose left behind after a field removal, fails. Keyword presence,
+  not sentence text.
 
 Tests to add (per AGENTS.md): unit/prose-guard tests as above. Extend
-`TestSkillContractScanner` with planted fixtures proving (a) `extract_fenced_json`
-returns the block and raises on a missing fence, and (b) on a planted region
-holding TWO `json` fences, the FIRST is returned (the B1 ordering contract made
-testable in isolation). No snapshot/property test warranted (same reasoning as
-Work item 2).
+`TestSkillContractScanner` with planted fixtures proving (a)
+`extract_fenced_json` returns the block and raises on a missing fence, and (b)
+on a planted region holding TWO `json` fences, the FIRST is returned (the B1
+ordering contract made testable in isolation). No snapshot/property test
+warranted (same reasoning as Work item 2).
 
 Validation: same command quartet as Work item 2; all green. Commit referencing
 roadmap 6.3.7.
@@ -723,17 +725,17 @@ Steps:
    vacuously. Add an explicit `test_regions_are_non_empty` that asserts the
    SKILL exit-table region, the SKILL envelope region, AND the design §3.1
    skeleton each contain their expected marker (`| 0 |`, `"schema_version"`, and
-   `"working_dir"` respectively), so a future heading rename or wrong-fence pull
-   (B1) cannot silently neuter the guard.
+   `"working_dir"` respectively), so a future heading rename or wrong-fence
+   pull (B1) cannot silently neuter the guard.
 2. Prove the guard is genuinely red on divergence, *without committing a broken
    SKILL.md*. Do this with a transient local edit during development:
    temporarily change SKILL.md's `schema_version` cell to `2`, run
    `uv run pytest -q tests/test_skill_contract_drift_guard.py`, observe
    `test_skill_envelope_schema_version_matches_constant` fail, then revert the
    edit. Likewise temporarily delete the `| 4 | … |` row and observe
-   `test_skill_exit_codes_cover_exactly_the_enum` fail, then revert. Record both
-   transcripts in `Artifacts and notes`. (These edits are never committed; they
-   are the red-test evidence the execplans skill and AGENTS.md require.)
+   `test_skill_exit_codes_cover_exactly_the_enum` fail, then revert. Record
+   both transcripts in `Artifacts and notes`. (These edits are never committed;
+   they are the red-test evidence the execplans skill and AGENTS.md require.)
 3. **B3 (resolved): no inventory or test-count update is needed.** The round-1
    plan's "update `_KNOWN_SKILL_MARKDOWN` if it references the new test module"
    step was dead: `_KNOWN_SKILL_MARKDOWN` in
@@ -743,13 +745,14 @@ Steps:
    351); a `tests/` module can never appear in it. This planning round also
    searched the whole `tests/` tree and confirmed there is NO collected-test-
    module-count assertion, NO `tests/`-directory inventory frozenset, and NO
-   `pytest_collect*`/`pytest_collection*` hook that a new module would trip (the
-   only `tests/` references are a directory-existence check in
+   `pytest_collect*`/`pytest_collection*` hook that a new module would trip
+   (the only `tests/` references are a directory-existence check in
    `tests/test_conftest_helpers.py` line 29 and a docstring note in
-   `tests/test_per_chapter_loop_bdd.py`). Adding the new module therefore breaks
-   no commit gate; the implementer adds nothing here. If, contrary to this check,
-   a collection-count guard is somehow encountered, that is a Tolerance breach
-   (unexpected pre-existing tripwire) — stop and escalate rather than editing it.
+   `tests/test_per_chapter_loop_bdd.py`). Adding the new module therefore
+   breaks no commit gate; the implementer adds nothing here. If, contrary to
+   this check, a collection-count guard is somehow encountered, that is a
+   Tolerance breach (unexpected pre-existing tripwire) — stop and escalate
+   rather than editing it.
 4. Final docs gate, since the guard is docs-adjacent and the work item may touch
    wording: run the full quartet.
 
@@ -768,20 +771,20 @@ Expected: all green; the new module's tests pass against the live, reverted
 Quality criteria (what "done" means):
 
 - Tests: the new `tests/test_skill_contract_drift_guard.py` passes against the
-  live `SKILL.md`; it fails (demonstrated transiently) when the SKILL
-  exit-code table loses/gains a code, when an envelope field is renamed,
-  reordered, added, or dropped, and when the SKILL `schema_version` value
-  diverges from `ENVELOPE_SCHEMA_VERSION`. The contract suite
-  (`tests/test_contract_*`) and the existing skill-guard suite
-  (`tests/test_skill_deflation_guard.py`) stay green.
+  live `SKILL.md`; it fails (demonstrated transiently) when the SKILL exit-code
+  table loses/gains a code, when an envelope field is renamed, reordered,
+  added, or dropped, and when the SKILL `schema_version` value diverges from
+  `ENVELOPE_SCHEMA_VERSION`. The contract suite (`tests/test_contract_*`) and
+  the existing skill-guard suite (`tests/test_skill_deflation_guard.py`) stay
+  green.
 - Lint/typecheck: `make lint` passes (Ruff, 100% docstring coverage, pyright/ty
   as configured). `make all` is green end to end.
 - Markdown: `make markdownlint` and `make nixie` pass (no Mermaid added; run to
   confirm the gate, per AGENTS.md lines 169-172).
 - No production source under `novel_ralph_skill/` changed (verify with
-  `git diff --name-only`; expected paths are only under `tests/` and, at most, a
-  whitespace-neutral `skill/novel-ralph/SKILL.md` clarification recorded in the
-  Decision Log).
+  `git diff --name-only`; expected paths are only under `tests/` and, at most,
+  a whitespace-neutral `skill/novel-ralph/SKILL.md` clarification recorded in
+  the Decision Log).
 
 Quality method (how we check):
 
@@ -799,8 +802,9 @@ Quality method (how we check):
 - All steps are re-runnable. The guard reads files; it writes only new test
   files. Re-running `make all` is safe.
 - The Work item 4 red-test demonstration uses transient, never-committed edits
-  to `SKILL.md`; if interrupted mid-edit, `git checkout -- skill/novel-ralph/SKILL.md`
-  restores it. Confirm `git status` is clean of `SKILL.md` before committing.
+  to `SKILL.md`; if interrupted mid-edit,
+  `git checkout -- skill/novel-ralph/SKILL.md` restores it. Confirm
+  `git status` is clean of `SKILL.md` before committing.
 - If the guard reveals a *real* pre-existing drift between `SKILL.md` and the
   live contract (a Tolerance breach), stop, do not "fix" it by editing the
   contract or the table, and escalate per the Tolerances section.
@@ -819,7 +823,8 @@ reverted; `git status` confirmed `SKILL.md` clean before each commit):
   Reverted.
 - Green against the reverted, live `SKILL.md`: `16 passed` for the guard
   module; `1332 passed, 1 skipped` for the full `make all`.
-- Change surface (`git diff --name-only main`): `tests/_skill_contract_scanner.py`,
+- Change surface (`git diff --name-only main`):
+  `tests/_skill_contract_scanner.py`,
   `tests/test_skill_contract_drift_guard.py`, and
   `docs/execplans/roadmap-6-3-7.md`. No file under `novel_ralph_skill/` and no
   `skill/novel-ralph/SKILL.md` content change.
@@ -842,8 +847,8 @@ Libraries/modules to use and why:
 - The same `read_repo_text` fixture also reads
   `docs/adr-003-shared-interface-contract.md` and
   `docs/novel-ralph-harness-design.md` for the cross-document agreement checks
-  (WI2 ADR/design tables; WI3 design §3.1 skeleton). No new dependency: it is the
-  same in-process reader, just pointed at two more in-repo docs.
+  (WI2 ADR/design tables; WI3 design §3.1 skeleton). No new dependency: it is
+  the same in-process reader, just pointed at two more in-repo docs.
 
 Symbols that must exist at the end of the milestone, in
 `tests/test_skill_contract_drift_guard.py` (and, if extracted,
@@ -866,8 +871,8 @@ Symbols that must exist at the end of the milestone, in
     class TestSkillContractScanner: ...           # parser unit tests (WI2/WI3)
     class TestSkillContractGuardNonVacuous: ...   # WI4
 
-No new external dependency is introduced. No public API in
-`novel_ralph_skill/` changes.
+No new external dependency is introduced. No public API in `novel_ralph_skill/`
+changes.
 
 ## Revision note
 
@@ -880,9 +885,9 @@ Log), since the task is an in-process docs drift-guard. Pinned the working_dir
 example-value carve-out between SKILL.md and design §3.1 as a verified
 divergence the guard must not false-fail on.
 
-Round-2 revision (2026-06-26), resolving the three round-1 logisphere
-blockers. (B1) The design-side fence is now explicitly anchored: WI3 slices the
-design doc to the §3.1 region (`### 3.1` → `### 3.2`, heading 137 → 212) BEFORE
+Round-2 revision (2026-06-26), resolving the three round-1 logisphere blockers.
+(B1) The design-side fence is now explicitly anchored: WI3 slices the design
+doc to the §3.1 region (`### 3.1` → `### 3.2`, heading 137 → 212) BEFORE
 extracting the first ```json fence (line 146), excluding the five-field
 `novel done` example at line 365; a positive `working_dir`-present assertion in
 the fixture and in `test_skill_envelope_matches_design_field_order`, plus an
@@ -899,11 +904,11 @@ enumerates `skill/novel-ralph/**/*.md` documents and can never reference a
 `tests/` module — and this round searched the suite and confirmed NO
 test-collection-count guard, `tests/` inventory, or `pytest_collect*` hook
 exists, so the new module breaks no commit gate; the step is rewritten as a
-no-op with that evidence. Advisories also actioned: stale line numbers corrected
-or replaced by heading anchors (A1), the §3.1/§3.2 exit-table slip fixed
-throughout (A2), the envelope-region end anchor pinned to `### Invocation
-discipline` line 155 (A3), and the WI1→WI2 fold reaffirmed (A4). A new
-Decision-Log entry keeps both the code-coupling and the ADR/design
+no-op with that evidence. Advisories also actioned: stale line numbers
+corrected or replaced by heading anchors (A1), the §3.1/§3.2 exit-table slip
+fixed throughout (A2), the envelope-region end anchor pinned to
+`### Invocation discipline` line 155 (A3), and the WI1→WI2 fold reaffirmed
+(A4). A new Decision-Log entry keeps both the code-coupling and the ADR/design
 cross-document checks (Wafflecat calibration): the roadmap clause names the
 ADR/design agreement, so it is not dropped, but B1/B2 keep the parser surface
 small. A further Decision-Log entry introduces the source-labelled
@@ -917,13 +922,14 @@ review of step 6.3 settled. Each runs as a no-review lightweight pass.
 
 - [x] **6.3.7.1 (from review:6.3.7; low).** Extend this task's drift-guard with
   one assertion that the design §3.1 and ADR-003 `schema_version` values match
-  `ENVELOPE_SCHEMA_VERSION`. The guard pins `SKILL.md`'s `schema_version` to the
-  code and pins the SKILL-vs-design field order, but the design §3.1 and ADR-003
-  copies' own `schema_version` value is not asserted against the code constant,
-  so a drift introduced in design §3.1 alone (e.g. `schema_version: 2`) would
-  slip past every existing guard. Closing this completes the §6.3 "documented
-  once without per-command drift" hypothesis for the `schema_version` datum
-  across all copies. Scope: one assertion added to the existing drift-guard test.
-  Implementation note: ADR-003 carries the `schema_version` field only in prose
-  with no literal envelope value, so the single assertion pins the design §3.1
-  numeral; there is no ADR-003 numeral to assert.
+  `ENVELOPE_SCHEMA_VERSION`. The guard pins `SKILL.md`'s `schema_version` to
+  the code and pins the SKILL-vs-design field order, but the design §3.1 and
+  ADR-003 copies' own `schema_version` value is not asserted against the code
+  constant, so a drift introduced in design §3.1 alone (e.g.
+  `schema_version: 2`) would slip past every existing guard. Closing this
+  completes the §6.3 "documented once without per-command drift" hypothesis for
+  the `schema_version` datum across all copies. Scope: one assertion added to
+  the existing drift-guard test. Implementation note: ADR-003 carries the
+  `schema_version` field only in prose with no literal envelope value, so the
+  single assertion pins the design §3.1 numeral; there is no ADR-003 numeral to
+  assert.

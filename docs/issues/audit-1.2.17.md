@@ -38,9 +38,9 @@ noun-form `desloppify` (which names the *desloppification operation*) stays,
 but a retired console-script *invocation* (a flag-bearing command line) must
 flip to `novel desloppify`. The sweep applied that rule to `state-layout.md`,
 `done-conditions.md`, and `critic-personas.md` — but `desloppify-checklist.md`,
-a sibling reference file in the very same directory, was outside the
-three-file scope and was never swept. It still carries two flag-bearing
-invocations of the retired script:
+a sibling reference file in the very same directory, was outside the three-file
+scope and was never swept. It still carries two flag-bearing invocations of the
+retired script:
 
 - Line 294: `desloppify --pack <ai-isms.toml>` "to scan a chapter against it"
   (the full path is `novel_ralph_skill/rulepack/packs/ai-isms.toml`).
@@ -49,16 +49,16 @@ invocations of the retired script:
 These are command invocations, not the noun form: each carries a flag and is
 presented as a command an operator runs. Under ADR 007 the only shipped surface
 is `novel desloppify`, so a reader following this checklist runs a command that
-no longer resolves on `PATH`. The `developers-guide.md` already uses the
-correct `novel desloppify` spelling consistently (lines 102, 307, 336, 1170,
-1227 and elsewhere), so the skill reference is now internally inconsistent with
-the rest of the swept documentation.
+no longer resolves on `PATH`. The `developers-guide.md` already uses the correct
+`novel desloppify` spelling consistently (lines 102, 307, 336, 1170, 1227 and
+elsewhere), so the skill reference is now internally inconsistent with the rest
+of the swept documentation.
 
 **Proposed fix:** flip both invocations to the multiplexer surface —
-`novel desloppify --pack …` (line 294) and `novel desloppify --ledger …`
-(line 302) — leaving every noun-form mention of the desloppify *operation*
-untouched, exactly as 1.2.17 handled the three swept files. This closes the
-last flag-bearing retired invocation in the live skill surface.
+`novel desloppify --pack …` (line 294) and `novel desloppify --ledger …` (line
+302) — leaving every noun-form mention of the desloppify *operation* untouched,
+exactly as 1.2.17 handled the three swept files. This closes the last
+flag-bearing retired invocation in the live skill surface.
 
 ## 2. Later ADRs (008, 009, 010) and `contents.md` retain the retired surface
 
@@ -71,10 +71,10 @@ last flag-bearing retired invocation in the live skill surface.
 
 ADRs 008, 009, and 010 were authored against the `novel-state` surface and
 still name it inline. ADR 008 goes further: line 52 presents a fenced bash
-example, `novel-state set-chapters --chapters '[…]'`, as a runnable
-invocation — not as period history. `contents.md`, the documentation index,
-then echoes those names when summarizing what each ADR records (`novel-state
-set-chapters`, `novel-state check`, `novel-state set-gate`).
+example, `novel-state set-chapters --chapters '[…]'`, as a runnable invocation
+— not as period history. `contents.md`, the documentation index, then echoes
+those names when summarizing what each ADR records (`novel-state set-chapters`,
+`novel-state check`, `novel-state set-gate`).
 
 This is the same surface defect the 1.2.14/1.2.16/1.2.17 lineage exists to
 close, on a surface none of those tasks scoped. ADR 007's own migration plan
@@ -94,9 +94,9 @@ index entries in `contents.md` to the `novel <sub>` surface (e.g. ADR 008 line
 52 → `novel state set-chapters …`), preserving each ADR's decision narrative.
 Alternatively, if the project's convention is that ADRs are immutable, add a
 short "surface note" to each of ADRs 008-010 pointing at ADR 007 and stating
-that the inline `novel-state …` invocations now read `novel state …`. Either
-way `contents.md`, being a live index rather than a historical record, should
-name the current surface.
+that the inline `novel-state …` invocations now read `novel state …`. Either way
+`contents.md`, being a live index rather than a historical record, should name
+the current surface.
 
 ## 3. Five state mutators repeat a verbatim load/edit/validate/write skeleton
 
@@ -104,8 +104,8 @@ name the current surface.
 - **Severity:** low
 - **Location:** `novel_ralph_skill/commands/_state_mutators.py` (`set_cursor`,
   lines 234-256), `novel_ralph_skill/commands/_gate_drafting_mutators.py`
-  (`_set_gate` 168-183, `_complete_final_pass` 242-253, `_set_fangirl`
-  278-300, `_set_critic_pass` 327-342)
+  (`_set_gate` 168-183, `_complete_final_pass` 242-253, `_set_fangirl` 278-300,
+  `_set_critic_pass` 327-342)
 
 Five mutator bodies share an identical orchestration skeleton, differing only
 in the edit step and the result/message shape:
@@ -133,10 +133,10 @@ check between view and edit, but otherwise follow the same arc.
 
 **Proposed fix:** extract a single higher-order helper in `_state_mutators.py`,
 e.g. `apply_state_mutation(*, context, edit, build_result, message)` (or a
-small context-manager that yields the loaded document and runs the
-load → structural-proof … re-view → refuse → write sentinel around the caller's
-edit), so each mutator supplies only its edit closure and write-shaped result.
-This removes the five-way structural duplication and gives the
+small context-manager that yields the loaded document and runs the load →
+structural-proof … re-view → refuse → write sentinel around the caller's edit),
+so each mutator supplies only its edit closure and write-shaped result. This
+removes the five-way structural duplication and gives the
 structural-completeness proof and the validate-before-persist ordering a single
 home, so a future change to the refusal contract touches one site, not five.
 Keep the per-mutator precondition checks (fangirl range, critic `pass >= 1`) as
@@ -152,21 +152,21 @@ messages.
   `skill/novel-ralph/references/state-layout.md`, `done-conditions.md`,
   `critic-personas.md`
 
-The 1.2.14/1.2.16/1.2.17 sweep lineage has flipped four documentation
-surfaces by hand, and each subsequent audit has had to re-discover by grep that
-a sibling surface was missed (this audit's findings 1 and 2 are exactly that).
-Nothing in the test suite asserts that the swept surfaces *stay* swept: a future
-edit could reintroduce `novel-state init` into `state-layout.md` and no gate
-would catch it.
+The 1.2.14/1.2.16/1.2.17 sweep lineage has flipped four documentation surfaces
+by hand, and each subsequent audit has had to re-discover by grep that a
+sibling surface was missed (this audit's findings 1 and 2 are exactly that).
+Nothing in the test suite asserts that the swept surfaces *stay* swept: a
+future edit could reintroduce `novel-state init` into `state-layout.md` and no
+gate would catch it.
 
 **Proposed fix:** add a lightweight documentation guard test (a simple
 content-scan over the skill reference files and the live guides) asserting that
 no retired console-script *invocation* — a `novel-state`, `novel-done`, or
 `novel-compile` verb, and a flag-bearing `desloppify`/`wordcount` — survives,
-while explicitly allowing the noun-form `desloppify` and the superseded ADR 005.
-This converts the manual grep each audit performs into a standing regression
-gate and makes "the sweep is complete" a checkable property rather than an
-audit-time observation.
+while explicitly allowing the noun-form `desloppify` and the superseded ADR
+005. This converts the manual grep each audit performs into a standing
+regression gate and makes "the sweep is complete" a checkable property rather
+than an audit-time observation.
 
 ## 5. `desloppify --ledger PATH` invocation in the terms of reference
 
@@ -181,6 +181,6 @@ reference in finding 1, but it is still a flag-bearing invocation of a command
 that no longer ships.
 
 **Proposed fix:** flip to `novel desloppify --ledger PATH` if the ToR is
-treated as a maintained reference, or leave it and rely on a dated note that the
-command surface was later unified under ADR 007. Bundle this with finding 1 if a
-broader retired-invocation sweep is scheduled.
+treated as a maintained reference, or leave it and rely on a dated note that
+the command surface was later unified under ADR 007. Bundle this with finding 1
+if a broader retired-invocation sweep is scheduled.

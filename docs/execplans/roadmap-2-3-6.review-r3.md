@@ -38,19 +38,20 @@ remain (all comment/doc drift, none gate `make all`).
   symmetric-difference keys are an uncovered gap. Verified.
 - Reconcile precedence at `reconcile.py` lines 234-242 is refuse-class →
   pending-turn → recount(`WORD_COUNTS_MATCH_DRAFTS`) → none. Adding
-  `WORD_COUNTS_COVER_DRAFTS` to the recount trigger *after* the earlier branches
-  preserves precedence. Verified.
+  `WORD_COUNTS_COVER_DRAFTS` to the recount trigger *after* the earlier
+  branches preserves precedence. Verified.
 - `gate-ratio-consistent` reads the honest `draft_words` total
-  (`_oracle.py:_check_gate_ratio_consistent`, `drafted = sum(chapter.draft_words
-  …)` — actual line **220**, plan cites 219; trivial drift). A `by_chapter` /
-  `current` override cannot flip a gate. Risk #2 and the B2 correction are
-  factually right. Verified.
+  (`_oracle.py:_check_gate_ratio_consistent`,
+  `drafted = sum(chapter.draft_words …)` — actual line **220**, plan cites 219;
+  trivial drift). A `by_chapter` / `current` override cannot flip a gate. Risk
+  #2 and the B2 correction are factually right. Verified.
 - The vocabulary test `test_owned_disk_evidence_names_equal_corpus_subset`
   (`test_disk_evidence.py` lines 62-87) uses **set algebra**
-  (`corpus_names - pure_state`), not a hardcoded count, so it passes with **no**
-  edit to `pure_state` once the name is appended to both name tuples. B1's
-  correction stands. The sibling assertion in `test_validate_state_corpus.py`
-  lines 80-87 is also pure set algebra and passes unedited. Verified.
+  (`corpus_names - pure_state`), not a hardcoded count, so it passes with
+  **no** edit to `pure_state` once the name is appended to both name tuples.
+  B1's correction stands. The sibling assertion in
+  `test_validate_state_corpus.py` lines 80-87 is also pure set algebra and
+  passes unedited. Verified.
 - `_VARIANT_ACTIONS` (`test_reconcile_derivation.py:47`) is an explicit dict
   parametrized over its own items — a manual enrolment point, silent if a
   variant is omitted (advisory A2 correctly captured). The disk-aware
@@ -75,15 +76,16 @@ remain (all comment/doc drift, none gate `make all`).
 Adding `word-counts-cover-drafts` makes the disk-evidence family **seven**.
 Live (non-execplan) sites that hardcode "six" in prose will become stale:
 
-- `tests/working_corpus/_oracle.py:15` — "The six §5.4 disk-evidence predicates".
+- `tests/working_corpus/_oracle.py:15` — "The six §5.4 disk-evidence
+  predicates".
 - `tests/test_disk_evidence.py:8` and `:65` — "the six owned name constants".
 - `tests/test_validate_state_corpus.py:83` — "owns exactly the six deferred
   names" (the *assertion* still passes; the comment goes stale).
 - `docs/developers-guide.md:439` — "all six §5.4 disk-evidence invariants
   (manifest-disk-bijection, …, word-counts-match-drafts)" — this enumerates the
-  six by name and must become seven, adding the new name. The plan's work item 4
-  says "add … to the disk-evidence invariant enumeration", which *should* catch
-  this, but the plan does not flag that the **count word** also changes.
+  six by name and must become seven, adding the new name. The plan's work item
+  4 says "add … to the disk-evidence invariant enumeration", which *should*
+  catch this, but the plan does not flag that the **count word** also changes.
 - `docs/novel-ralph-harness-design.md` §5.4 enumeration (per the 2.3.3 execplan,
   lines 336-348 describe the disk-evidence invariants) may also count them.
 
@@ -118,7 +120,8 @@ used by predicates that **stay** in `_oracle.py` (`_check_by_chapter_sum`,
 `corpus_check` itself (line 389). The alias must therefore be **defined in both
 modules** (or re-exported), not moved. The correct mechanic — each module
 defines its own `type State = dict[str, typ.Any]` — is trivial and acyclic;
-just don't let "travels with" be read as "moves out of `_oracle.py`". (Pandalump.)
+just don't let "travels with" be read as "moves out of `_oracle.py`".
+(Pandalump.)
 
 ### A4 — Line-citation drift
 
@@ -135,19 +138,19 @@ runtime failure: a future reader trusts the un-corrected
 prose (A1), and either re-derives a wrong ownership map or adds a redundant
 check. Blast radius: documentation/onboarding, not production. Signal missed:
 the comment drift is invisible to `make all`. Prevention designed-in: fold A1
-and A2 into work items 2 and 4 as explicit edits rather than leaving them to the
-implementer's discretion. The second-most-plausible failure — a double-fire
-receipt — is already neutralized by the single-invariant isolation self-test and
-the `DISK_EVIDENCE_INVARIANT_NAMES`-ordered `recount_names` filter (advisory A4
-from round 1, folded in).
+and A2 into work items 2 and 4 as explicit edits rather than leaving them to
+the implementer's discretion. The second-most-plausible failure — a double-fire
+receipt — is already neutralized by the single-invariant isolation self-test
+and the `DISK_EVIDENCE_INVARIANT_NAMES`-ordered `recount_names` filter
+(advisory A4 from round 1, folded in).
 
 ## Alternatives checkpoint (Wafflecat)
 
 Unchanged from round 1: the only credible alternative — folding coverage into
-`word-counts-match-drafts` — trades away the one-invariant-per-variant isolation
-the roadmap and twin discipline demand, and mutates an existing predicate's
-contract. The two-predicate decomposition remains the right call. No reason to
-prefer the alternative.
+`word-counts-match-drafts` — trades away the one-invariant-per-variant
+isolation the roadmap and twin discipline demand, and mutates an existing
+predicate's contract. The two-predicate decomposition remains the right call.
+No reason to prefer the alternative.
 
 ## Bottom line
 

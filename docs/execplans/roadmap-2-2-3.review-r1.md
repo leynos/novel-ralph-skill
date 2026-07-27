@@ -11,12 +11,12 @@ documentation/gate inaccuracy remain. No structural rework is required.
 ## What was verified against real source (not the planner's summary)
 
 - **Multi-file mutator precedent (reconcile).**
-  `_reconcile.py::_run_reconcile_bracket`
-  drives the exact `open_pending_turn` + write → edit → `log.md` append →
-  `clear_pending_turn` + write order the plan copies (WI3). The plan's claim
-  that the receipt lands *before* the clear, and that the context-manager
-  `pending_turn` is unsuitable (it clears on `__exit__` with no receipt hook),
-  is correct — `document.py::pending_turn` confirms it.
+  `_reconcile.py::_run_reconcile_bracket` drives the exact `open_pending_turn`
+  - write → edit → `log.md` append → `clear_pending_turn` + write order the
+  plan copies (WI3). The plan's claim that the receipt lands *before* the
+  clear, and that the context-manager `pending_turn` is unsuitable (it clears on
+  `__exit__` with no receipt hook), is correct — `document.py::pending_turn`
+  confirms it.
 - **Validate-before-persist seam.** `_state_mutators.py` exposes
   `_load_document_or_state_error`, `_state_view_or_state_error`,
   `_refuse_if_incoherent` exactly as the plan describes; the exit-3 routing of

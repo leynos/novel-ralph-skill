@@ -112,9 +112,8 @@ escalated, not absorbed.
 ## Constraints
 
 - Do not modify any production module under `novel_ralph_skill/`. This task is
-  an
-  acceptance clause over the task-2.1.2 validator; the validator's behaviour is
-  locked. (Design §5.2; developers-guide "Invariant validation".)
+  an acceptance clause over the task-2.1.2 validator; the validator's behaviour
+  is locked. (Design §5.2; developers-guide "Invariant validation".)
 - Do not modify the §1.3.2 corpus data or builder
   (`tests/working_corpus/_specs.py`, `_library.py`, `_variants.py`,
   `_builder.py`) and do not change the existing spec-keyed `corpus_check` or
@@ -163,10 +162,9 @@ escalated, not absorbed.
   expected to be roughly 90-180 lines; if it exceeds ~260 net lines, stop and
   reconsider the decomposition.
 - Production change: if making the live-draft agreement pass requires **any**
-  edit
-  under `novel_ralph_skill/`, stop and escalate — that means the validator and
-  the live drafts disagree on a materialized tree, which is a real finding (a
-  validator bug or a corpus-builder bug), not a test to be bent. Record the
+  edit under `novel_ralph_skill/`, stop and escalate — that means the validator
+  and the live drafts disagree on a materialized tree, which is a real finding
+  (a validator bug or a corpus-builder bug), not a test to be bent. Record the
   tree, the validator verdict, and the live-draft oracle verdict in
   `Decision Log` before escalating.
 - Vocabulary drift: if the eight owned validator names and the oracle's matching
@@ -183,8 +181,7 @@ escalated, not absorbed.
   bases) — stop and escalate: the corpus builder and the `draft_body` token
   model have drifted, which is a 1.3.2 concern.
 - Iterations: if the new test still fails after 3 honest attempts that do not
-  edit
-  production code, stop and escalate (likely a genuine validator/corpus
+  edit production code, stop and escalate (likely a genuine validator/corpus
   disagreement).
 
 ## Risks
@@ -475,19 +472,18 @@ Completed (2026-06-23, implementation agent):
 - The live-draft agreement test `test_live_draft_agreement_over_whole_corpus`
   covers every coherent tree (baseline plus eleven phase states) and every
   incoherent variant (parse-rejection-aware, owned-restricted). The self-test
-  `test_live_draft_counts_equal_honest_draft_bases` and the proxy-decoupling test
-  `test_live_draft_oracle_agrees_with_validator_on_proxy_decoupling` round out the
-  module.
+  `test_live_draft_counts_equal_honest_draft_bases` and the proxy-decoupling
+  test `test_live_draft_oracle_agrees_with_validator_on_proxy_decoupling` round
+  out the module.
 - The live-draft oracle reads only the `draft.md` bodies for both its
   drafted-words total and its drafted-chapters count (via `live_draft_counts`);
-  it reads `[word_counts]` only for the table-internal `by-chapter-sum` coherence
-  and
-  `[gates.knitting]` / `[drafting.critic].consecutive_clean` for the booleans and
-  counter it reconciles — never to derive either live quantity. Both proxies
-  (`gate-ratio-consistent` against the live words ratio,
-  `consecutive-clean-within-drafted` against the live chapter count) are reconciled
-  against the live drafts; the self-test pins both live numbers to the honest-draft
-  bases.
+  it reads `[word_counts]` only for the table-internal `by-chapter-sum`
+  coherence and `[gates.knitting]` / `[drafting.critic].consecutive_clean` for
+  the booleans and counter it reconciles — never to derive either live
+  quantity. Both proxies (`gate-ratio-consistent` against the live words ratio,
+  `consecutive-clean-within-drafted` against the live chapter count) are
+  reconciled against the live drafts; the self-test pins both live numbers to
+  the honest-draft bases.
 - No table-versus-draft discrepancy surfaced on either proxy: the validator and
   the live-draft oracle agree on every corpus tree, as expected with
   2.1.2/2.1.4/1.3.2 merged.
@@ -499,55 +495,57 @@ Deviation: the live oracle was placed in a **new** sibling module
 Appending breached the 400-line module cap (`_oracle.py` reached 444 lines,
 tripping `pylint C0302`). The plan's preferred corpus-package path is otherwise
 honoured: `live_draft_owned`/`live_draft_counts` are re-exported from the
-package `__init__` and fixtured in `corpus_fixtures.py`. The shared parse helpers
-moved to `tests/_state_corpus_support.py` (the Risks-section sibling-module
-prescription).
+package `__init__` and fixtured in `corpus_fixtures.py`. The shared parse
+helpers moved to `tests/_state_corpus_support.py` (the Risks-section
+sibling-module prescription).
 
-Process note: `make fmt`'s `mdformat-all` step reflowed every Markdown file under
-`docs/`; that spurious churn was stashed aside and excluded from both commits, as
-prior tasks on this repo recorded doing.
+Process note: `make fmt`'s `mdformat-all` step reflowed every Markdown file
+under `docs/`; that spurious churn was stashed aside and excluded from both
+commits, as prior tasks on this repo recorded doing.
 
 ### Fix round 1 (2026-06-23, fix agent) — discriminating divergent-table tree
 
 The dual review returned one BLOCKER (Telefono + Doggylump): the live-draft
 oracle was live in its *code* but no test discriminated a live `draft.md` read
 from a `[word_counts]`-table read. A mutation probe replacing the body of
-`live_draft_counts` with a table-based read (`sum(by_chapter.values())`, count of
-`by_chapter` entries `> 0`) left all three tests green, because no §1.3.2 corpus
-tree sets `by_chapter_override`, so on every corpus tree the table and the drafts
-are numerically equal and `live == table-based` for both proxy bases. The
-`test_live_draft_counts_equal_honest_draft_bases` self-test also failed to
-discriminate, since `sum(draft_words) == sum(by_chapter)` on every coherent tree.
-The guard the plan's Risks section and Decision Log foresaw was therefore inert:
-no delivered tree constructed the table-versus-drafts divergence that would
-surface it.
+`live_draft_counts` with a table-based read (`sum(by_chapter.values())`, count
+of `by_chapter` entries `> 0`) left all three tests green, because no §1.3.2
+corpus tree sets `by_chapter_override`, so on every corpus tree the table and
+the drafts are numerically equal and `live == table-based` for both proxy
+bases. The `test_live_draft_counts_equal_honest_draft_bases` self-test also
+failed to discriminate, since `sum(draft_words) == sum(by_chapter)` on every
+coherent tree. The guard the plan's Risks section and Decision Log foresaw was
+therefore inert: no delivered tree constructed the table-versus-drafts
+divergence that would surface it.
 
 Fix (test-only, in scope — no production code touched):
 
 - Added a module-local `divergent_table_tree` fixture in
   `tests/test_validate_state_live_draft.py` that builds the one tree the corpus
   lacks: two chapters drafted at 4000 words each (live: 8000 words, two drafted
-  chapters) against an 80000 target, with `by_chapter_override={"01": 30000,
-  "02": 30000, "03": 30000}` (table: 90000 words, three entries `> 0`) and
-  `current_words_override=90000` so `sum(by_chapter) == current` keeps
-  `by-chapter-sum` silent. All three knitting gates are `True` and
-  `consecutive_clean=3` with `convergence_target=3`. The tree is built through
-  the existing corpus constructor and builder fixtures (`make_chapter_spec`,
-  `make_working_tree_spec`, `build_tree`, `phase_names`), so the corpus is still
-  consumed by fixture name and never by a runtime value import. The three
+  chapters) against an 80000 target, with
+  `by_chapter_override={"01": 30000, "02": 30000, "03": 30000}` (table: 90000
+  words, three entries `> 0`) and `current_words_override=90000` so
+  `sum(by_chapter) == current` keeps `by-chapter-sum` silent. All three
+  knitting gates are `True` and `consecutive_clean=3` with
+  `convergence_target=3`. The tree is built through the existing corpus
+  constructor and builder fixtures (`make_chapter_spec`,
+  `make_working_tree_spec`, `build_tree`, `phase_names`), so the corpus is
+  still consumed by fixture name and never by a runtime value import. The three
   constructor/builder callables are bundled through a `corpus_builders` fixture
   to keep the fixture's parameter list within the four-argument lint gate
   (mirroring the existing `compile_probe` bundling precedent).
 - Added `test_live_draft_discriminates_table_from_drafts` asserting (a)
-  `live_draft_counts(working_dir) == (8000, 2)` — the **draft**-derived numbers,
-  never the table-derived `(90000, 3)` — and (b) the live-draft oracle and the
-  table-reading §5.2 validator **disagree** on both perturbed proxies: the live
-  oracle names `{gate-ratio-consistent, consecutive-clean-within-drafted}` (the
-  live 0.10 ratio contradicts the all-`True` gates; `consecutive_clean=3`
-  exceeds the two live drafted chapters), while the validator, reading the
-  table's 1.125 ratio and three drafted entries, names neither.
-- Verified the mutation is now killed: re-applying the review's table-based mutant
-  to `live_draft_counts` turns the new test RED
+  `live_draft_counts(working_dir) == (8000, 2)` — the **draft**-derived
+  numbers, never the table-derived `(90000, 3)` — and (b) the live-draft oracle
+  and the table-reading §5.2 validator **disagree** on both perturbed proxies:
+  the live oracle names
+  `{gate-ratio-consistent, consecutive-clean-within-drafted}` (the live 0.10
+  ratio contradicts the all-`True` gates; `consecutive_clean=3` exceeds the two
+  live drafted chapters), while the validator, reading the table's 1.125 ratio
+  and three drafted entries, names neither.
+- Verified the mutation is now killed: re-applying the review's table-based
+  mutant to `live_draft_counts` turns the new test RED
   (`assert (90000, 3) == (8000, 2)`); the source was restored unchanged
   afterwards.
 - Updated the module docstring to record that no corpus tree sets
@@ -556,9 +554,9 @@ Fix (test-only, in scope — no production code touched):
 
 `make all` is green (299 passed, up from 298 by the new test). The fixture was
 deliberately kept module-local rather than added to `tests/corpus_fixtures.py`,
-because adding it there pushed that plugin to 438 lines and tripped the 400-line
-module cap (`pylint C0302`); module-locality also matches the fixture's single
-consumer (one test) per the pytest fixture-locality principle.
+because adding it there pushed that plugin to 438 lines and tripped the
+400-line module cap (`pylint C0302`); module-locality also matches the
+fixture's single consumer (one test) per the pytest fixture-locality principle.
 
 ## Context and orientation
 
@@ -674,9 +672,8 @@ gate-passing commit. No production code changes.
   `CORPUS_INVARIANT_NAMES` and the coherent-tree pin. Author Work items 1 and 2
   so they pass together, and commit them in **one green commit**.
 - Stage C (Work item 3): correct the developers' guide so its "reconcile the
-  proxy
-  against a live draft count" sentence describes the delivered live-draft test,
-  and run the full Markdown gates.
+  proxy against a live draft count" sentence describes the delivered live-draft
+  test, and run the full Markdown gates.
 
 Each stage ends with validation; do not proceed past a failing stage. Stages A
 and B share a single commit (see Work item 2's "Commit").
@@ -703,10 +700,9 @@ Docs to read first:
 - `docs/novel-ralph-harness-design.md` §5.2 (lines 430-456) and §9 (lines
   671-711).
 - `tests/working_corpus/_oracle.py` — `_check_by_chapter_sum` (lines 108-119,
-  the
-  table read of invariant 3), `_check_gate_ratio_consistent` (lines 190-203,
-  the honest-draft drafted-words numerator the live oracle reproduces from
-  disk), `_check_consecutive_clean_within_drafted` (lines 142-149, the
+  the table read of invariant 3), `_check_gate_ratio_consistent` (lines
+  190-203, the honest-draft drafted-words numerator the live oracle reproduces
+  from disk), `_check_consecutive_clean_within_drafted` (lines 142-149, the
   honest-draft drafted-chapters ceiling the live oracle reproduces from disk),
   and `corpus_check` (lines 288-312, the `(spec, working_dir)` entry point the
   live oracle reuses for the five non-disk-derived owned invariants).
@@ -719,9 +715,9 @@ Docs to read first:
   (lines 157-178) — so the live oracle reads the right files and reproduces the
   token count exactly.
 - `skill/novel-ralph/references/state-layout.md` lines 38-39, 54-56, 115,
-  174-177
-  — the on-disk `chapter-NN/draft.md` layout, the `[word_counts].by_chapter`
-  string-key form, and the `[gates.knitting]` threshold layout.
+  174-177 — the on-disk `chapter-NN/draft.md` layout, the
+  `[word_counts].by_chapter` string-key form, and the `[gates.knitting]`
+  threshold layout.
 
 Skills to load:
 
@@ -784,8 +780,7 @@ Either way, the live oracle:
    `(words_total, chapters_count)`) so both the oracle and the self-test read
    disk through one path and cannot diverge;
 3. names `by-chapter-sum` when `sum(by_chapter.values()) != current` (the
-   table's
-   internal invariant-3 consistency — the same comparison the existing
+   table's internal invariant-3 consistency — the same comparison the existing
    `_check_by_chapter_sum` makes; this is the table-coherence half, which has
    no "live" analogue — invariant 3 is table-internal — and is kept distinct
    from the two live cross-checks below);
@@ -964,10 +959,9 @@ test. The edited prose must:
   (`tests/test_validate_state_corpus.py::test_live_draft_agreement_over_whole_corpus`
   or its sibling-module location);
 - state that the cross-check recomputes **both** live quantities from the
-  on-disk
-  `draft.md` bodies (the drafted-words total and the drafted-chapters count,
-  both independent of the `[word_counts]` table) and reconciles **both** proxy
-  invariants against them: `gate-ratio-consistent` against the live
+  on-disk `draft.md` bodies (the drafted-words total and the drafted-chapters
+  count, both independent of the `[word_counts]` table) and reconciles **both**
+  proxy invariants against them: `gate-ratio-consistent` against the live
   drafted-words ratio, and the `consecutive-clean-within-drafted` ceiling
   against the live drafted-chapters count. This wording is now accurate because
   both proxies are reconciled (round-2 review B1-r2 corrected); do not write
@@ -1046,21 +1040,18 @@ Acceptance is behavioural over the test suite:
 - For every coherent tree, both the validator's owned verdict and the live-draft
   oracle's owned verdict are empty.
 - For every incoherent variant whose label is an owned name, the validator's
-  owned
-  verdict, the live-draft oracle's owned verdict, and `{expected}` are the same
-  single-name set; for a variant whose label is a disk-evidence name, both
-  owned verdicts are empty; for the parse-enforced `phase-not-in-enum` variant,
-  the tree is parse-rejected and the oracle's owned label is the parse-enforced
-  `phase-in-enum`.
+  owned verdict, the live-draft oracle's owned verdict, and `{expected}` are
+  the same single-name set; for a variant whose label is a disk-evidence name,
+  both owned verdicts are empty; for the parse-enforced `phase-not-in-enum`
+  variant, the tree is parse-rejected and the oracle's owned label is the
+  parse-enforced `phase-in-enum`.
 - The `by-chapter-sum-mismatch` variant is named exactly `{by-chapter-sum}` by
-  the
-  live-draft oracle (not `gate-ratio-consistent`, not
+  the live-draft oracle (not `gate-ratio-consistent`, not
   `consecutive-clean-within-drafted`) — the table-versus-draft decoupling guard
   for both proxies.
 - `test_live_draft_counts_equal_honest_draft_bases` passes: on every coherent
-  tree
-  the live drafted-words total equals `sum(chapter.draft_words)` and the live
-  drafted-chapters count equals
+  tree the live drafted-words total equals `sum(chapter.draft_words)` and the
+  live drafted-chapters count equals
   `sum(1 for chapter in spec.chapters if chapter.draft_words > 0)`.
 
 Quality criteria (what "done" means):
@@ -1228,32 +1219,33 @@ live-draft cross-check above.
 Lightweight addendum work items folded back onto this completed task from the
 post-merge audit (`docs/issues/audit-2.1.3.md`). Execute each as a small
 addendum pass — no plan or design-review cycle: make the change, run `make all`
-(plus `make markdownlint`/`make nixie` for Markdown), `coderabbit review
---agent`, commit, and tick the matching roadmap sub-task on merge. The
-substantial, cross-cutting follow-ups were re-routed off this task: the
-first-class `by_chapter_override` corpus divergence variant (review:2.1.3 /
-audit:2.1.3) to roadmap step 2.1 (task 2.1.5, because it adds §1.3.2 corpus data
-and hardens the validator cross-check that proves the step-2.1 hypothesis), and
-the lane-wide `mutmut` run (review:2.1.3) to roadmap step 7.6 (a deferred
-verification-hardening extension); the three below are the small, localized
-fixes. Audit Finding 5 (the inline owned-name restriction) and Finding 6 (the
-users'-guide verdict vocabulary) are not folded here: Finding 6's vocabulary
-enumeration already shipped in task 2.1.2.7, with its residual operator-meaning
-prose deferred to the broader users-guide update in task 2.2.2.1.
+(plus `make markdownlint`/`make nixie` for Markdown),
+`coderabbit review --agent`, commit, and tick the matching roadmap sub-task on
+merge. The substantial, cross-cutting follow-ups were re-routed off this task:
+the first-class `by_chapter_override` corpus divergence variant (review:2.1.3 /
+audit:2.1.3) to roadmap step 2.1 (task 2.1.5, because it adds §1.3.2 corpus
+data and hardens the validator cross-check that proves the step-2.1
+hypothesis), and the lane-wide `mutmut` run (review:2.1.3) to roadmap step 7.6
+(a deferred verification-hardening extension); the three below are the small,
+localized fixes. Audit Finding 5 (the inline owned-name restriction) and
+Finding 6 (the users'-guide verdict vocabulary) are not folded here: Finding
+6's vocabulary enumeration already shipped in task 2.1.2.7, with its residual
+operator-meaning prose deferred to the broader users-guide update in task
+2.2.2.1.
 
 - [x] 2.1.3.1 — Consolidate the live-draft oracle's repeated `state.toml`
   parsing and drop the third `by-chapter-sum` predicate twin (from audit:2.1.3,
   medium; Findings 1 and 3). In `tests/working_corpus/_live_draft.py`, parse
-  `state.toml` once in `live_draft_owned` and pass the decoded
-  `[word_counts]`/`[gates]`/`[drafting]` tables into the three `_check_*_live`
-  predicates, turning them into pure functions over already-decoded data; then
-  drop `_check_by_chapter_sum_live` in favour of the `by-chapter-sum` verdict
+  `state.toml` once in `live_draft_owned` and pass the decoded `[word_counts]`/
+  `[gates]`/`[drafting]` tables into the three `_check_*_live` predicates,
+  turning them into pure functions over already-decoded data; then drop
+  `_check_by_chapter_sum_live` in favour of the `by-chapter-sum` verdict
   `corpus_check(spec, working_dir)` already returns (line 184), so the
   table-internal read is no longer a third hand-copied twin. Test-only. Gate
   with `make all`.
 - [x] 2.1.3.2 — Lift the shared disk-evidence invariant-name set into one home
-  for both agreement suites (from audit:2.1.3, medium; Finding 2). The identical
-  five-element frozensets `_DISK_EVIDENCE_NAMES`
+  for both agreement suites (from audit:2.1.3, medium; Finding 2). The
+  identical five-element frozensets `_DISK_EVIDENCE_NAMES`
   (`tests/test_validate_state_live_draft.py`) and `_DEFERRED_INVARIANT_NAMES`
   (`tests/test_validate_state_corpus.py`) are hard-coded in two modules with
   nothing pinning them equal. Define the set once in

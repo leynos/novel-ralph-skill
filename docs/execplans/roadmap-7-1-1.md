@@ -1,9 +1,8 @@
 # Single-source the compile-currency projection and the `compiled.md` path
 
-This ExecPlan (execution plan) is a living document. The sections
-`Constraints`, `Tolerances`, `Risks`, `Progress`, `Surprises & Discoveries`,
-`Decision Log`, and `Outcomes & Retrospective` must be kept up to date as work
-proceeds.
+This ExecPlan (execution plan) is a living document. The sections `Constraints`,
+`Tolerances`, `Risks`, `Progress`, `Surprises & Discoveries`, `Decision Log`,
+and `Outcomes & Retrospective` must be kept up to date as work proceeds.
 
 Status: DELIVERED
 
@@ -20,11 +19,9 @@ Two specific duplications exist:
 
 1. The *content-polarity projection* — "only `CompiledComparison.MATCHES`
    means the compile is current; `ABSENT` and `DIVERGES` are not" — is
-   hand-written at two sites:
-   `done_predicate.compile_consistent`
+   hand-written at two sites: `done_predicate.compile_consistent`
    (`novel_ralph_skill/state/done_predicate.py:263`,
-   `... is CompiledComparison.MATCHES`) and
-   `commands._compile.check_compiled`
+   `... is CompiledComparison.MATCHES`) and `commands._compile.check_compiled`
    (`novel_ralph_skill/commands/_compile.py:221`,
    `if verdict is CompiledComparison.MATCHES:`). A future decision to treat,
    say, `ABSENT` differently in one consumer but not the other would silently
@@ -32,33 +29,35 @@ Two specific duplications exist:
    pins (audit-4.1.2 Finding 1).
 
 2. The *`compiled.md` path* is constructed independently in at least four
-   places: the working-relative envelope token `_COMPILED_REL =
-   "working/manuscript/compiled.md"` and the write path `root / "manuscript" /
-   "compiled.md"` in `commands/_compile.py`; the read path `working_dir /
-   "manuscript" / "compiled.md"` in `state/compile_model.py`; and `(root /
-   "manuscript" / "compiled.md").exists()` twice in
+   places: the working-relative envelope token
+   `_COMPILED_REL = "working/manuscript/compiled.md"` and the write path
+   `root / "manuscript" / "compiled.md"` in `commands/_compile.py`; the read
+   path `working_dir / "manuscript" / "compiled.md"` in
+   `state/compile_model.py`; and
+   `(root / "manuscript" / "compiled.md").exists()` twice in
    `commands/_novel_done.py`. They cannot drift today only because all four
-   hard-code the same `"manuscript"`/`"compiled.md"` literals
-   (audit-4.1.2 Finding 2).
+   hard-code the same `"manuscript"`/`"compiled.md"` literals (audit-4.1.2
+   Finding 2).
 
 After this change `compile_model.py` owns one named predicate
 `compile_is_current(verdict)` and one path seam — a
 `compiled_manuscript_path(working_dir)` join plus a `COMPILED_REL`
 working-relative token constant — and the four consumers route through them.
 The "the command-line `--check` surface and the `novel-done` clause agree on
-whether `compiled.md` is current" invariant becomes structurally enforced
-(one predicate) rather than only test-pinned, and the manuscript's on-disk
-location has one definition.
+whether `compiled.md` is current" invariant becomes structurally enforced (one
+predicate) rather than only test-pinned, and the manuscript's on-disk location
+has one definition.
 
 You can observe success three ways. The first two observables are scoped to
 **executable code** — the *projection form* `is CompiledComparison.MATCHES` and
 the *code-join form* `"manuscript" / "compiled.md"`. They deliberately exclude
-docstring prose (the bare `:attr:` `CompiledComparison.MATCHES` cross-references
-and the slash-form `manuscript/compiled.md` path mentions), because the
-absent-file projection *prose* consolidation is roadmap task **7.1.2**, a
-separate doc-only follow-up that this task must not pre-empt. An auditor who
-narrows the grep to these executable forms sees a clean end state; a looser grep
-that also matches docstrings (e.g. `git grep -n 'manuscript/compiled.md'` or
+docstring prose (the bare `:attr:` `CompiledComparison.MATCHES`
+cross-references and the slash-form `manuscript/compiled.md` path mentions),
+because the absent-file projection *prose* consolidation is roadmap task
+**7.1.2**, a separate doc-only follow-up that this task must not pre-empt. An
+auditor who narrows the grep to these executable forms sees a clean end state;
+a looser grep that also matches docstrings (e.g.
+`git grep -n 'manuscript/compiled.md'` or
 `git grep -n 'CompiledComparison.MATCHES'` without the leading `is` token) will
 still show the untouched 7.1.2 prose hits at `_compile.py:5,110,184`,
 `_novel_done.py:164`, and `done_predicate.py:86,217,229`, and that is **the
@@ -110,13 +109,13 @@ In scope (roadmap 7.1.1):
 Explicit non-goals (other roadmap tasks own these; do **not** touch them):
 
 - The *opposite* polarity in the §5.4 detector —
-  `disk_evidence._check_compiled_matches_drafts` uses `... is not
-  CompiledComparison.DIVERGES` (absent = vacuously satisfied). audit-4.1.2
-  Finding 1 explicitly says to **leave the detector's opposite polarity as its
-  own predicate or inline**, because it is a genuinely different projection. It
-  is **not** routed through `compile_is_current`. (Roadmap 7.1.1 names exactly
-  three predicate consumers — `check_compiled`, `compile_consistent`, the
-  `novel-done` compile clause — not the detector.)
+  `disk_evidence._check_compiled_matches_drafts` uses
+  `... is not CompiledComparison.DIVERGES` (absent = vacuously satisfied).
+  audit-4.1.2 Finding 1 explicitly says to **leave the detector's opposite
+  polarity as its own predicate or inline**, because it is a genuinely
+  different projection. It is **not** routed through `compile_is_current`.
+  (Roadmap 7.1.1 names exactly three predicate consumers — `check_compiled`,
+  `compile_consistent`, the `novel-done` compile clause — not the detector.)
 - The absent-file projection **prose** consolidation across the four
   docstrings — that is roadmap task 7.1.2, a separate doc-only follow-up.
 - The exists/read race window in `compiled_matches_drafts` (audit-4.1.2
@@ -150,12 +149,12 @@ escalation, not a workaround.
   filesystem join `compiled_manuscript_path(working_dir())` resolves
   `working_dir()` (already the `working/` segment, `_state_load.py:39`) and
   yields a `Path` *without* a doubled `working/`. The seam therefore exposes
-  two distinct things — a `Path` join and a string token — not one
-  interchanged value.
+  two distinct things — a `Path` join and a string token — not one interchanged
+  value.
 - **`compile_is_current` lives in `compile_model.py`**, beside
   `compiled_matches_drafts` and `CompiledComparison`, the module the audit and
-  roadmap name as the owner of the join rule and the verdict
-  (audit-4.1.2 Finding 1 "Add a single named predicate beside the helper in
+  roadmap name as the owner of the join rule and the verdict (audit-4.1.2
+  Finding 1 "Add a single named predicate beside the helper in
   `compile_model.py`"; roadmap 7.1.1).
 - **The detector's opposite polarity is untouched** (see non-goals).
   `_check_compiled_matches_drafts` keeps `is not CompiledComparison.DIVERGES`.
@@ -176,10 +175,10 @@ escalation, not a workaround.
   edited to keep green, stop and escalate — that means the seam moved behaviour
   (Constraints "No behaviour change").
 - **Scope:** if the refactor requires editing any module beyond
-  `state/compile_model.py`, `state/done_predicate.py`,
-  `commands/_compile.py`, `commands/_novel_done.py`, and
-  `state/__init__.py` (plus adding/extending one test file), stop and
-  escalate — it has drifted beyond the four named consumers.
+  `state/compile_model.py`, `state/done_predicate.py`, `commands/_compile.py`,
+  `commands/_novel_done.py`, and `state/__init__.py` (plus adding/extending one
+  test file), stop and escalate — it has drifted beyond the four named
+  consumers.
 - **Detector contamination:** if it appears the §5.4 detector
   (`disk_evidence.py`) should also route through `compile_is_current`, stop and
   escalate — the audit explicitly excludes it (non-goals).
@@ -388,8 +387,8 @@ Read these before starting. They are the source of truth.
   polarity). These establish *why* the projection and the path are shared
   facts, and why the detector's polarity is deliberately the opposite.
 - `docs/issues/audit-4.1.2.md` — the originating audit. Finding 1 (the content
-  polarity is duplicated; add `compile_is_current` beside the helper), Finding
-  2 (`compiled.md`'s path has no single source across four modules; promote a
+  polarity is duplicated; add `compile_is_current` beside the helper), Finding 2
+  (`compiled.md`'s path has no single source across four modules; promote a
   `compiled_manuscript_path` + `COMPILED_REL` to `compile_model.py`). Finding 3
   (docstring prose) is roadmap 7.1.2, **not** this task; Finding 4 (the race
   window) is out of scope.
@@ -408,20 +407,21 @@ Key code, by full path:
   `CompiledComparison`, `compiled_matches_drafts`, `present_draft_bodies`,
   `concatenate_drafts`. The new `compile_is_current`,
   `compiled_manuscript_path`, and `COMPILED_REL` land here. The read path it
-  already builds (`compiled = working_dir / "manuscript" / "compiled.md"`,
-  line 105) is the first internal call site to route through
+  already builds (`compiled = working_dir / "manuscript" / "compiled.md"`, line
+  105) is the first internal call site to route through
   `compiled_manuscript_path`.
 - `novel_ralph_skill/state/done_predicate.py` — `compile_consistent`
-  (line 213-263) returns `compiled_matches_drafts(...) is
-  CompiledComparison.MATCHES`; route it through `compile_is_current`.
+  (line 213-263) returns
+  `compiled_matches_drafts(...) is CompiledComparison.MATCHES`; route it through
+  `compile_is_current`.
 - `novel_ralph_skill/commands/_compile.py` — holds `_COMPILED_REL`
   (line 74), the write join `root / "manuscript" / "compiled.md"` (line 147),
-  `check_compiled` (line 169) with `if verdict is
-  CompiledComparison.MATCHES:` (line 221). Route the predicate and the path
-  seam; replace `_COMPILED_REL` with the imported `COMPILED_REL`.
+  `check_compiled` (line 169) with `if verdict is CompiledComparison.MATCHES:`
+  (line 221). Route the predicate and the path seam; replace `_COMPILED_REL`
+  with the imported `COMPILED_REL`.
 - `novel_ralph_skill/commands/_novel_done.py` — `_failed_clause_message`
-  (line 117) and `_sole_stale_compile` (line 159) each build `(root /
-  "manuscript" / "compiled.md").exists()`; route through
+  (line 117) and `_sole_stale_compile` (line 159) each build
+  `(root / "manuscript" / "compiled.md").exists()`; route through
   `compiled_manuscript_path`.
 - `novel_ralph_skill/state/__init__.py` — re-exports the `compile_model`
   symbols (import block line 30-35, `__all__` line ~107-151). Add the three new
@@ -471,9 +471,9 @@ Terms defined:
   `tests/__snapshots__/test_command_surface_matrix.ambr`. (Verified by
   `git grep`.) `COMPILED_REL` must equal this string exactly.
 - The state package already re-exports the `compile_model` surface
-  (`novel_ralph_skill/state/__init__.py:30-35` import,
-  `:107-151` `__all__`), so adding three names there is the established
-  pattern, not a new mechanism. (Verified by inspection.)
+  (`novel_ralph_skill/state/__init__.py:30-35` import, `:107-151` `__all__`),
+  so adding three names there is the established pattern, not a new mechanism.
+  (Verified by inspection.)
 
 ## Plan of work
 
@@ -516,21 +516,22 @@ Export all three from `novel_ralph_skill/state/__init__.py`: add them to the
 
 Validation:
 
-- `uv run python -c "from novel_ralph_skill.state import compile_is_current,
-  compiled_manuscript_path, COMPILED_REL, CompiledComparison; from pathlib
-  import Path; print(COMPILED_REL); print(compiled_manuscript_path(Path('working')));
-  print(compile_is_current(CompiledComparison.MATCHES),
-  compile_is_current(CompiledComparison.ABSENT))"` prints
-  `working/manuscript/compiled.md`, `working/manuscript/compiled.md`, and
-  `True False`.
+- Run:
+
+      uv run python -c "from novel_ralph_skill.state import compile_is_current, compiled_manuscript_path, COMPILED_REL,
+      CompiledComparison; from pathlib import Path; print(COMPILED_REL); print(compiled_manuscript_path(Path('working')));
+      print(compile_is_current(CompiledComparison.MATCHES),
+
+  compile_is_current(CompiledComparison.ABSENT))"` prints `working
+  /manuscript/compiled.md`,`working/manuscript/compiled.md`, and`True False`.
 - `make all` green; commit (gate first).
 
 Docs to read: design §4.3, §5.4; `audit-4.1.2.md` Findings 1 and 2;
 `compile_model.py` as the structural template (mirror its docstring style and
-the `CompiledComparison` cross-references).
-Skills to load: `python-router` → `python-types-and-apis` (the predicate and
-path-join signatures, the `Path` parameter typing) and `python-data-shapes`
-(the `enum`-projecting predicate shape).
+the `CompiledComparison` cross-references). Skills to load: `python-router` →
+`python-types-and-apis` (the predicate and path-join signatures, the `Path`
+parameter typing) and `python-data-shapes` (the `enum`-projecting predicate
+shape).
 
 ### Work Item 2 — pin the seam with a focused unit test (Stage B, red first)
 
@@ -539,8 +540,7 @@ Add the seam's pins to a new `tests/test_compile_model_seam.py` (or extend
 prefer the dedicated file for a clean boundary). It must:
 
 - Assert the predicate truth table exhaustively over all three
-  `CompiledComparison` members:
-  `compile_is_current(MATCHES) is True`;
+  `CompiledComparison` members: `compile_is_current(MATCHES) is True`;
   `compile_is_current(ABSENT) is False`;
   `compile_is_current(DIVERGES) is False`. (Parametrize over
   `CompiledComparison` so a future fourth member forces a decision — AGENTS.md
@@ -549,11 +549,13 @@ prefer the dedicated file for a clean boundary). It must:
 - Assert `COMPILED_REL == "working/manuscript/compiled.md"` (the byte-exact
   token; this is the same string the snapshot suites pin, restated at the seam
   so a hand-edit to the constant is red here, not only in a snapshot).
-- Assert `compiled_manuscript_path(Path("working")) == Path("working") /
-  "manuscript" / "compiled.md"`, and that `str(compiled_manuscript_path(
-  Path("working")).as_posix()) == COMPILED_REL` — pinning the
-  working-prefix asymmetry (the join of the `working/` directory reproduces the
-  envelope token exactly, with no doubled prefix).
+- Assert
+  `compiled_manuscript_path(Path("working")) == Path("working") / "manuscript" /
+  "compiled.md"`,
+  and that
+  `str(compiled_manuscript_path(Path("working")).as_posix()) == COMPILED_REL` —
+  pinning the working-prefix asymmetry (the join of the `working/` directory
+  reproduces the envelope token exactly, with no doubled prefix).
 
 These are unit/example tests over pure functions — no `working/` tree, no
 subprocess, no snapshot. Write them **red first** against the not-yet-added
@@ -576,20 +578,21 @@ and the logic is a one-line projection).
 
 ### Work Item 3 — route the four consumers through the seam (Stage C)
 
-Behaviour-preserving substitution. After this, no `is
-CompiledComparison.MATCHES` and no inline `"manuscript" / "compiled.md"` join
-remains outside `compile_model.py`.
+Behaviour-preserving substitution. After this, no
+`is CompiledComparison.MATCHES` and no inline `"manuscript" / "compiled.md"`
+join remains outside `compile_model.py`.
 
 1. `novel_ralph_skill/state/done_predicate.py:263` — replace
    `return compiled_matches_drafts(state, working_dir) is
-   CompiledComparison.MATCHES` with
-   `return compile_is_current(compiled_matches_drafts(state, working_dir))`.
-   Add `compile_is_current` to the existing `compile_model` import block
-   (line 50-51) and drop the now-unused `CompiledComparison` import **iff** no
-   other reference to it remains in the module (check; the docstring references
-   are textual, not imports). Trim the docstring's MATCHES explanation to a
-   one-sentence "current iff `compile_is_current` holds" pointer (a light
-   touch — the full prose consolidation is 7.1.2, so keep this minimal).
+   CompiledComparison.MATCHES`
+   with
+   `return compile_is_current(compiled_matches_drafts(state, working_dir))`. Add
+   `compile_is_current` to the existing `compile_model` import block (line
+   50-51) and drop the now-unused `CompiledComparison` import **iff** no other
+   reference to it remains in the module (check; the docstring references are
+   textual, not imports). Trim the docstring's MATCHES explanation to a
+   one-sentence "current iff `compile_is_current` holds" pointer (a light touch
+   — the full prose consolidation is 7.1.2, so keep this minimal).
 2. `novel_ralph_skill/commands/_compile.py` —
    - Replace the module constant `_COMPILED_REL =
      "working/manuscript/compiled.md"` (line 74) with the imported
@@ -625,19 +628,21 @@ Validation:
 - `git grep -n '"manuscript" / "compiled.md"' novel_ralph_skill/` returns hits
   only inside `compile_model.py` (`compiled_manuscript_path`).
 - `git grep -n '_COMPILED_REL' novel_ralph_skill/` returns nothing.
-- `uv run pytest tests/test_compile_check_agreement.py
-  tests/test_compile_check_unit.py tests/test_compile_unit.py
-  tests/test_done_predicate.py tests/test_disk_evidence.py
+- Run:
+
+      uv run pytest tests/test_compile_check_agreement.py tests/test_compile_check_unit.py tests/test_compile_unit.py
+      tests/test_done_predicate.py tests/test_disk_evidence.py
+
   tests/test_novel_done_command.py -q` passes unchanged.
 - `make all` green (full suite, including the snapshot, BDD, and e2e suites,
   all unedited); commit.
 
 Docs to read: `audit-4.1.2.md` Findings 1 and 2; design §4.2 (the carve-out the
 `_novel_done.py` sites guard); `tests/test_compile_check_agreement.py` (the
-agreement invariant the predicate now structurally enforces).
-Skills to load: `python-router` → `python-errors-and-logging` is **not** needed
-(no error paths change); load `python-testing` only to confirm the existing
-suites are the right regression net. Use `leta refs CompiledComparison` /
+agreement invariant the predicate now structurally enforces). Skills to load:
+`python-router` → `python-errors-and-logging` is **not** needed (no error paths
+change); load `python-testing` only to confirm the existing suites are the
+right regression net. Use `leta refs CompiledComparison` /
 `leta refs compiled_matches_drafts` to confirm every MATCHES projection site is
 accounted for before editing, and `leta` for the import-pruning checks.
 
@@ -717,10 +722,10 @@ Quality method (how we check):
   (the only Markdown this task touches). No Mermaid is added; `make nixie` is
   run per the workflow rule for Markdown changes.
 - Behaviour acceptance: the agreement test
-  `tests/test_compile_check_agreement.py` still passes, proving `novel compile
-  --check` and `compile_consistent` agree on every corpus fixture — now backed
-  by one shared `compile_is_current` predicate rather than two hand-written
-  projections.
+  `tests/test_compile_check_agreement.py` still passes, proving
+  `novel compile --check` and `compile_consistent` agree on every corpus
+  fixture — now backed by one shared `compile_is_current` predicate rather than
+  two hand-written projections.
 
 ## Idempotence and recovery
 
@@ -732,8 +737,8 @@ Quality method (how we check):
   If a snapshot moves (it must not), treat it as a Tolerance breach (behaviour
   drift) — stop and escalate rather than re-recording the snapshot.
 - The new test file is additive; deleting it leaves the tree buildable. The
-  routing edits are reversible by restoring the inline `is
-  CompiledComparison.MATCHES` / literal joins, but there is no reason to.
+  routing edits are reversible by restoring the inline
+  `is CompiledComparison.MATCHES` / literal joins, but there is no reason to.
 
 ## Interfaces and dependencies
 
@@ -780,8 +785,8 @@ Quality method (how we check):
   `'"manuscript" / "compiled.md"'`, and (2) restricted the MATCHES observable
   to the `is CompiledComparison.MATCHES` projection form rather than all
   `CompiledComparison.MATCHES` references. Both observables are now explicitly
-  scoped to executable code and disclaim the docstring-prose hits that belong to
-  roadmap 7.1.2 (verified by `git grep` that those prose hits survive at
+  scoped to executable code and disclaim the docstring-prose hits that belong
+  to roadmap 7.1.2 (verified by `git grep` that those prose hits survive at
   `_compile.py:5,110,184`, `_novel_done.py:164`, `done_predicate.py:86,217,229`
   and are the intended end state, not a failure). Also actioned the round-1
   advisories: reworded WI3 step 3 to add a new

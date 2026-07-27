@@ -392,21 +392,21 @@ Risks differ from Surprises: risks are anticipated; surprises are not.
 Delivered the `word-counts-cover-drafts` disk-evidence invariant end to end, as
 the Purpose described: `novel-state check` now exits 4 with the named invariant
 and a `recount` reconciliation on either coverage-divergence direction, and
-`novel-state reconcile` repairs both by re-keying `by_chapter` off the manifest;
-a re-`check` then exits 0 (pinned by the entry-point e2e). `make all` is green at
-HEAD with 605 tests passing.
+`novel-state reconcile` repairs both by re-keying `by_chapter` off the
+manifest; a re-`check` then exits 0 (pinned by the entry-point e2e). `make all`
+is green at HEAD with 605 tests passing.
 
 Deviations from the plan, all recorded above:
 
 - The naive `set(disk) == set(table)` predicate double-fired with
-  `manifest-disk-bijection` on the existing structural variants; both twins grew
-  a bijection guard so the cover check defers when the manifest and disk
-  directories disagree (Surprises). This keeps the orthogonality the Constraints
-  demand and isolates the hand-edited-table signal.
+  `manifest-disk-bijection` on the existing structural variants; both twins
+  grew a bijection guard so the cover check defers when the manifest and disk
+  directories disagree (Surprises). This keeps the orthogonality the
+  Constraints demand and isolates the hand-edited-table signal.
 - Plan Risk #2 was wrong that no gate-band tuning was needed: the *pure-state
-  validator's* `gate-ratio-consistent` reads the table sum (not draft_words), so
-  the coverage variants had to keep the table sum in the all-gates-`True` band
-  (Decision Log, implementation entry).
+  validator's* `gate-ratio-consistent` reads the table sum (not draft_words),
+  so the coverage variants had to keep the table sum in the all-gates-`True`
+  band (Decision Log, implementation entry).
 - The over/under-counting `DIVERGENT_TABLE_VARIANTS` genuinely carry a key-count
   gap, so the cover predicate legitimately co-fires with the value predicate
   there; their self-test expectations were updated (Risk #3 anticipated the
@@ -415,8 +415,9 @@ Deviations from the plan, all recorded above:
   `make all` (the agreement suite is red between adding the corpus name and the
   production predicate).
 - A `make fmt` run reformatted ~109 unrelated markdown files as a side effect;
-  the churn was reverted so each task commit stays scoped. Use targeted `ruff
-  format <files>` rather than `make fmt` on tasks that touch only a few files.
+  the churn was reverted so each task commit stays scoped. Use targeted
+  `ruff format <files>` rather than `make fmt` on tasks that touch only a few
+  files.
 
 ## Context and orientation
 
@@ -440,27 +441,26 @@ Define the terms used below.
   `[word_counts].by_chapter`.
 - **Recount** —
   `novel_ralph_skill.state.wordcount.recount_words(working_dir, chapters)`:
-  reads each *manifest* chapter's `draft.md`, returns
-  `(current, by_chapter)` where `by_chapter` has exactly one entry per manifest
-  chapter (`0` for an absent/empty draft). Wrapped for disk-evidence callers by
+  reads each *manifest* chapter's `draft.md`, returns `(current, by_chapter)`
+  where `by_chapter` has exactly one entry per manifest chapter (`0` for an
+  absent/empty draft). Wrapped for disk-evidence callers by
   `novel_ralph_skill.state.disk_evidence.disk_word_counts(state, working_dir)`.
 - **Disk-evidence invariant** — a §5.4 check that compares `state.toml` against
   the on-disk `working/` tree, as opposed to a §5.2 pure-state invariant the
   `validate_state` validator decides from `state.toml` alone. The disk-evidence
-  detector is `check_disk_evidence(state, working_dir) -> tuple[Violation, ...]`
-  in `novel_ralph_skill.state.disk_evidence`. Its owned names are listed in
+  detector is
+  `check_disk_evidence(state, working_dir) -> tuple[Violation, ...]` in
+  `novel_ralph_skill.state.disk_evidence`. Its owned names are listed in
   `DISK_EVIDENCE_INVARIANT_NAMES`.
 - **Corpus oracle** —
   `tests/working_corpus/_oracle.py:corpus_check(spec, working_dir)`. An
-  independent re-implementation of the same invariants used to
-  cross-check the production detector. Its disk-evidence predicates read the
-  materialized `working/` tree (disk-vs-disk twins of the production
-  predicates).
+  independent re-implementation of the same invariants used to cross-check the
+  production detector. Its disk-evidence predicates read the materialized
+  `working/` tree (disk-vs-disk twins of the production predicates).
 - **`INCOHERENT_VARIANTS`** — `tests/working_corpus/_variants.py`: a mapping
-  from
-  a variant name to `(WorkingTreeSpec, expected-invariant-name)`. Each spec is
-  a minimal mutation of the coherent baseline that breaks exactly one named
-  invariant; the corpus self-test proves the isolation.
+  from a variant name to `(WorkingTreeSpec, expected-invariant-name)`. Each
+  spec is a minimal mutation of the coherent baseline that breaks exactly one
+  named invariant; the corpus self-test proves the isolation.
 - **`Reconciliation` / `derive_reconciliation`** —
   `novel_ralph_skill/state/reconcile.py`. The one pure
   `(State, working_dir) -> Reconciliation` both `check` (read-only) and
@@ -556,11 +556,12 @@ Steps:
             _check_word_counts_match_drafts,
         )
 
-  (The implementation re-exports only the three symbols `_oracle.py` itself uses;
-  the `_disk_*` helpers had no external `._oracle` consumers, so re-exporting
-  them would have tripped F401.) Keep `CORPUS_INVARIANT_NAMES`, `corpus_check`,
-  and all non-word-count predicates in `_oracle.py`. `corpus_check` still
-  references the re-exported twins, so its body is unchanged.
+  (The implementation re-exports only the three symbols `_oracle.py` itself
+  uses; the `_disk_*` helpers had no external `._oracle` consumers, so
+  re-exporting them would have tripped F401.) Keep `CORPUS_INVARIANT_NAMES`,
+  `corpus_check`, and all non-word-count predicates in `_oracle.py`.
+  `corpus_check` still references the re-exported twins, so its body is
+  unchanged.
 - Confirm with `leta refs` that `WORD_COUNTS_MATCH_DRAFTS` and `corpus_check`
   still resolve from `._oracle` for `__init__.py`, `_variants.py`,
   `_live_draft.py`, and `test_disk_evidence.py`. Do **not** rewrite those call
@@ -614,8 +615,7 @@ Add to `tests/working_corpus/_oracle_wordcounts.py` (the sibling module, **not**
 Add to `tests/working_corpus/_oracle.py`:
 
 - re-export `WORD_COUNTS_COVER_DRAFTS` and `_check_word_counts_cover_drafts`
-  from
-  `._oracle_wordcounts` (extend the existing work-item-0 re-export line);
+  from `._oracle_wordcounts` (extend the existing work-item-0 re-export line);
 - append `WORD_COUNTS_COVER_DRAFTS` to `CORPUS_INVARIANT_NAMES` (which stays
   defined in `_oracle.py`);
 - wire the re-exported `_check_word_counts_cover_drafts` into `corpus_check`
@@ -737,12 +737,11 @@ Tests this work item adds/updates:
   automatically; confirm it stays green.
 - Property (consider): a Hypothesis property over small random
   `(manifest, table-key-set)` pairs asserting the predicate fires iff the key
-  sets differ,
-  *and* that it never fires when the key sets are equal regardless of values
-  (the orthogonality boundary). Use the `hypothesis` skill if adopted; if the
-  parametrized corpus variants already pin both directions and the silent-on-
-  equal-keys case, record in the Decision Log that example-based coverage is
-  sufficient and a property adds no adversary here (decide via
+  sets differ, *and* that it never fires when the key sets are equal regardless
+  of values (the orthogonality boundary). Use the `hypothesis` skill if
+  adopted; if the parametrized corpus variants already pin both directions and
+  the silent-on- equal-keys case, record in the Decision Log that example-based
+  coverage is sufficient and a property adds no adversary here (decide via
   `python-verification`).
 
 Acceptance: `make all` green. The new predicate fires on exactly the two new
@@ -795,9 +794,8 @@ Tests this work item adds/updates:
   `recounted_by_chapter` that *includes* the previously-missing manifest key
   (the repair supplies it) and excludes any orphan table key.
 - Totality: `test_derivation_is_total_and_never_yields_none_on_a_violation`
-  flows
-  the new variants in via fixtures; confirm it stays green (no violation falls
-  through to `NONE`).
+  flows the new variants in via fixtures; confirm it stays green (no violation
+  falls through to `NONE`).
 - Refuse precedence: confirm `tests/test_reconcile_refuse.py` stays green — a
   tree that carries both a refuse-class contradiction and a coverage gap still
   yields `REFUSE` (precedence preserved).
@@ -960,8 +958,7 @@ Load-bearing facts verified during research:
   (`shared = set(by_chapter) & set(table)`): `disk_evidence.py` lines ~298-306.
   The symmetric-difference keys are the uncovered gap.
 - The corpus builder writes `by_chapter_override` verbatim (so a variant can
-  omit
-  a manifest key or add an orphan key) and writes drafts independently from
+  omit a manifest key or add an orphan key) and writes drafts independently from
   `draft_words`/`write_draft`:
   `tests/working_corpus/_builder.py:_word_counts_table` via `derive_by_chapter`
   (`_specs.py`).
@@ -1055,8 +1052,7 @@ folded in the four advisories.
 - A2: Work item 3 marks `_VARIANT_ACTIONS` enrolment as mandatory (silent gap if
   omitted).
 - A3: Work item 2's twin-equality bullet now explicitly enumerates the
-  value-only
-  divergence trees (including the non-`INCOHERENT_VARIANTS`
+  value-only divergence trees (including the non-`INCOHERENT_VARIANTS`
   `DIVERGENT_TABLE_ VARIANTS`) in the silent set.
 - A4: Work item 3 and the Interfaces snippet order the recount discrepancies by
   `DISK_EVIDENCE_INVARIANT_NAMES` for deterministic double-fire receipts.
@@ -1095,13 +1091,13 @@ unaddressed 400-line file-size cap breach in `tests/working_corpus/_oracle.py`.
 
 Lightweight addendum work items folded back onto this completed task from the
 reviews and audits of step 2.3's tasks. Execute each as a small addendum pass —
-no plan or design-review cycle: make the change, run `make all` (plus `make
-markdownlint`/`make nixie` for Markdown), `coderabbit review --agent`, commit,
-and tick the matching roadmap sub-task on merge. The substantial robustness
-finding (audit-2.3.6 Findings 1-2: the redundant draft-tree read and the latent
-bijection contiguity double-fire) is cross-cutting hardening that does not serve
-step 2.3's disk-re-derivation hypothesis, so it is re-routed to roadmap step
-7.15 rather than filed here.
+no plan or design-review cycle: make the change, run `make all` (plus
+`make markdownlint`/`make nixie` for Markdown), `coderabbit review --agent`,
+commit, and tick the matching roadmap sub-task on merge. The substantial
+robustness finding (audit-2.3.6 Findings 1-2: the redundant draft-tree read and
+the latent bijection contiguity double-fire) is cross-cutting hardening that
+does not serve step 2.3's disk-re-derivation hypothesis, so it is re-routed to
+roadmap step 7.15 rather than filed here.
 
 - [x] 2.3.6.1 — Add an entry-point e2e for the orphan-key (extra-table-key)
   reconcile direction (from review:2.3.6, low). The omit-drafted-chapter

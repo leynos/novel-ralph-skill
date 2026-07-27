@@ -16,8 +16,8 @@ under-specified. These go back to the planner.
   Confirmed.
 - Atomic-write pattern
   (`tempfile.NamedTemporaryFile("w", delete=False, dir=parent, ...)` then
-  `Path.replace`) matches `docs/scripting-standards.md`
-  §"Reading / writing files and atomic updates" lines 409-414 exactly.
+  `Path.replace`) matches `docs/scripting-standards.md` §"Reading / writing
+  files and atomic updates" lines 409-414 exactly.
 - `PendingTurn` schema fields are `operation: str` and `paths: tuple[str, ...]`
   (`state/schema.py` 264-280). Plan's `open_pending_turn(operation, paths)`
   matches.
@@ -144,11 +144,11 @@ signpost the boundary.
 The corpus fixtures (`phase_state_tree`, `baseline_tree`) are **factory
 callables** returning the `working/` directory path; `coherent_oracle_cases`
 returns `(spec, working_dir)` pairs (`corpus_fixtures.py` 125-203). The plan's
-prose ("a tree fixture materializes a `working/` directory … with
-`state.toml` at its root") is close but elides that these are callables and
-that the state file is at `working_dir / "state.toml"`. Minor, but the
-implementer should not expect a bare `Path` fixture; tighten the wording so the
-test reads `(working_dir / "state.toml").read_text()` from the factory's return.
+prose ("a tree fixture materializes a `working/` directory … with `state.toml`
+at its root") is close but elides that these are callables and that the state
+file is at `working_dir / "state.toml"`. Minor, but the implementer should not
+expect a bare `Path` fixture; tighten the wording so the test reads
+`(working_dir / "state.toml").read_text()` from the factory's return.
 
 ## Pre-mortem (Doggylump leads)
 

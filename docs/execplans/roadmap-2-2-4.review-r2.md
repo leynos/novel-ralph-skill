@@ -11,15 +11,14 @@ on landing.
 ## Round-1 resolutions — verified against source (do not re-litigate)
 
 - **B1 resolved (set-gate identity).** `set_cursor`
-  (`_state_mutators.py:176-234`)
-  does **not** call `_refuse_if_incoherent(prior, ...)`; it derives the view
-  only to prove structural completeness, edits, then validates the *proposed*
-  state. `advance_phase` (line 306) **does** refuse the prior. Confirmed by
-  reading both bodies. The repair-mutator framing (D4) is therefore
-  structurally sound: an incoherent gate-lags-ratio prior is accepted, the gate
-  is asserted to its ratio-mandated value, and the now-coherent proposed state
-  writes. The Purpose, Constraint, D4, and WI1 fixtures are mutually consistent
-  on this.
+  (`_state_mutators.py:176-234`) does **not** call
+  `_refuse_if_incoherent(prior, ...)`; it derives the view only to prove
+  structural completeness, edits, then validates the *proposed* state.
+  `advance_phase` (line 306) **does** refuse the prior. Confirmed by reading
+  both bodies. The repair-mutator framing (D4) is therefore structurally sound:
+  an incoherent gate-lags-ratio prior is accepted, the gate is asserted to its
+  ratio-mandated value, and the now-coherent proposed state writes. The
+  Purpose, Constraint, D4, and WI1 fixtures are mutually consistent on this.
 - **B2 resolved (fixtures).** `COHERENT_BASELINE`/`PHASE_STATES["drafting"]` is
   68800/80000 = 0.86 with all three gates `true`
   (`_library.py:39-42,60-64,79-97`) — confirmed it cannot show an observable
@@ -48,8 +47,7 @@ on landing.
 - **A2 resolved.** `pass_number` is pinned end to end with
   `Annotated[int, Parameter(name="--pass")]`; no name translation.
 - **A3 resolved.** The Constraint forbids editing the validator to match the
-  stale
-  `current`-vs-`by_chapter` doc prose. Verified: `validate.py:263` uses
+  stale `current`-vs-`by_chapter` doc prose. Verified: `validate.py:263` uses
   `sum(by_chapter)`, the design §5.2 / state-layout prose says `current`.
 - **A4 resolved (mechanism verified live).** Cyclopts 4.18.0 exposes
   `ValidationError` as a `CycloptsError` subclass. A no-flag `set-gate` parses
@@ -64,13 +62,12 @@ on landing.
 
 - cuprum 0.1.0 (locked, `uv.lock`):
   `SafeCmd.run_sync(*, capture=True, echo=False, context=None)` confirmed via
-  `uv run python -c "inspect.signature(...)"`. The
-  local `/data/leynos/Projects/cuprum` checkout has the drifted `output=` form;
+  `uv run python -c "inspect.signature(...)"`. The local
+  `/data/leynos/Projects/cuprum` checkout has the drifted `output=` form;
   Surprise S1 is correct to pin the locked wheel.
 - Cyclopts 4.18.0 (locked): `bool | None = None` yields `--flag`/`--no-flag`
-  and a
-  no-flag default of untouched — verified live. `ValidationError` propagation —
-  verified live (above).
+  and a no-flag default of untouched — verified live. `ValidationError`
+  propagation — verified live (above).
 - pytest-timeout 2.4.0, tomlkit 0.15.0 — versions confirmed in `uv.lock`. The
   per-test marker-override claim is cited to the official docs; acceptable.
 
@@ -90,8 +87,7 @@ subcommands. Measured against the existing wrappers (`set-chapters` 392-397 is
 - `complete-final-pass`: ~5 lines;
 - `set-fangirl`: ~5 lines;
 - `set-critic-pass` (`Annotated[int, Parameter(name="--pass")]` + import +
-  call):
-  ~6-7 lines;
+  call): ~6-7 lines;
 - two docstring expansions naming four more subcommands: ~4-6 lines;
 - possibly a new `typing`/`cyclopts.Parameter` import at module top.
 
@@ -154,8 +150,7 @@ and de-risks WI5.
    all four mutators depend on it, so a stalled WI5 blocks the acceptance proof
    for the whole task.
 3. **Missed signal (carried from r1, now mitigated):** the WI1 Hypothesis
-   property
-   passing vacuously. D8's `event()`/`target` anti-vacuity requirement
+   property passing vacuously. D8's `event()`/`target` anti-vacuity requirement
    addresses it; keep that requirement non-negotiable in implementation.
 
 ## Strongest alternative (Wafflecat)

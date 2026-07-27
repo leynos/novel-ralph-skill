@@ -1,8 +1,8 @@
 # Logisphere design review — roadmap 1.2.1 (round 1)
 
 Reviewer: adversarial design panel (Pandalump, Wafflecat, Buzzy Bee, Telefono,
-Doggylump, Dinolump) plus pre-mortem and alternatives checkpoint.
-Date: 2026-06-21.
+Doggylump, Dinolump) plus pre-mortem and alternatives checkpoint. Date:
+2026-06-21.
 
 Verdict: PROCEED WITH CONDITIONS (no blocking defects; advisories below).
 
@@ -22,22 +22,23 @@ Verdict: PROCEED WITH CONDITIONS (no blocking defects; advisories below).
   a smaller project `timeout` under `-n auto`; a marked test passes while an
   unmarked sibling is killed by the project default. Risk 3 mitigation holds.
 - cuprum source (read-only sibling): `ProgramCatalogue(projects=...)`,
-  `ProjectSettings(name, programs, documentation_locations, noise_rules)` (frozen
-  dataclass, all four fields required), `Program = NewType("Program", str)`,
-  `sh.make(program, *, catalogue=...)`, `CommandResult.exit_code/.stdout/.stderr/
-  .ok`. The scripting-standards `Catalogue.from_programs`/`sh.scoped` API does not
-  exist. The plan's Decision Log is accurate.
+  `ProjectSettings(name, programs, documentation_locations, noise_rules)`
+  (frozen dataclass, all four fields required),
+  `Program = NewType("Program", str)`, `sh.make(program, *, catalogue=...)`,
+  `CommandResult.exit_code/.stdout/.stderr/ .ok`. The scripting-standards
+  `Catalogue.from_programs`/`sh.scoped` API does not exist. The plan's Decision
+  Log is accurate.
 - uv 0.9.21 (matches the plan's `--no-project` claim).
-- Makefile: `test` is `uv run pytest -v -n auto`; `all = build check-fmt lint
-  typecheck test`; `audit` is separate; `typecheck` is `ty check`;
-  `PYTHON_TARGETS = novel_ralph_skill tests`. Plan accurate.
-- Design/ADR boundary: design §3.2 code table (2 = usage error, "bad arguments");
-  roadmap 1.2.1 success = bare invocation exits 2 without crashing; roadmap 1.3.1
-  success explicitly = "a malformed invocation yields code 2"; ADR-003 line 117
-  and ADR-005 lines 50-51 = the envelope and exit-code helper are built in 1.3.1
-  and enforced by the shared scaffolding. The plan's deferral of unknown-option
-  -> 2 to 1.3.1, and its stub emitting human prose with no envelope, are
-  design-conformant, not violations.
+- Makefile: `test` is `uv run pytest -v -n auto`;
+  `all = build check-fmt lint typecheck test`; `audit` is separate; `typecheck`
+  is `ty check`; `PYTHON_TARGETS = novel_ralph_skill tests`. Plan accurate.
+- Design/ADR boundary: design §3.2 code table (2 = usage error, "bad
+  arguments"); roadmap 1.2.1 success = bare invocation exits 2 without
+  crashing; roadmap 1.3.1 success explicitly = "a malformed invocation yields
+  code 2"; ADR-003 line 117 and ADR-005 lines 50-51 = the envelope and
+  exit-code helper are built in 1.3.1 and enforced by the shared scaffolding.
+  The plan's deferral of unknown-option -> 2 to 1.3.1, and its stub emitting
+  human prose with no envelope, are design-conformant, not violations.
 - developers-guide has the "The five commands" section; users-guide has no
   command-install section yet (work item 4 adds one). Both targets exist.
 
@@ -64,25 +65,25 @@ Verdict: PROCEED WITH CONDITIONS (no blocking defects; advisories below).
    adjustment on the locked version. No change required, just noted.
 
 4. (Wafflecat — alternatives checkpoint) Strongest alternative: skip the cuprum
-   catalogue in the e2e test and run **all** steps (uv build/venv/install and the
-   five scripts) via a single scoped subprocess, since the test already takes
-   one justified raw-subprocess exception for the absolute-path scripts.
-   Trade-off: it
-   would drop the cuprum dev-dependency and simplify the test, but it abandons the
-   scripting-standards mandate to route bare program names (`uv`) through cuprum.
-   The plan's split (cuprum for `uv`, subprocess for absolute paths) is the more
-   standards-conformant choice and is correctly justified. Alternative rejected;
-   the plan is on solid ground here.
+   catalogue in the e2e test and run **all** steps (uv build/venv/install and
+   the five scripts) via a single scoped subprocess, since the test already
+   takes one justified raw-subprocess exception for the absolute-path scripts.
+   Trade-off: it would drop the cuprum dev-dependency and simplify the test,
+   but it abandons the scripting-standards mandate to route bare program names
+   (`uv`) through cuprum. The plan's split (cuprum for `uv`, subprocess for
+   absolute paths) is the more standards-conformant choice and is correctly
+   justified. Alternative rejected; the plan is on solid ground here.
 
 ## Pre-mortem (six months on)
 
 - Most likely failure: the e2e test flakes or times out on a cold cache when the
-  whole suite runs `-n auto`, because build+venv+install lands on the same worker
-  as other slow work. Mitigation already in plan (180s per-test override, verified)
-  plus the `slow` mark; advisory 1 (explicit build path) further de-risks.
+  whole suite runs `-n auto`, because build+venv+install lands on the same
+  worker as other slow work. Mitigation already in plan (180s per-test
+  override, verified) plus the `slow` mark; advisory 1 (explicit build path)
+  further de-risks.
 - Second: a future agent "fixes" the exit-1 unknown-option assertion to 2 inside
-  1.2.1 and re-implements parser behaviour, violating the deterministic boundary.
-  Mitigation: advisory 2 (mark the assertion provisional, cite 1.3.1).
+  1.2.1 and re-implements parser behaviour, violating the deterministic
+  boundary. Mitigation: advisory 2 (mark the assertion provisional, cite 1.3.1).
 - Third: cuprum's locked version drifts from the sibling checkout and the symbol
   names move. Mitigation already in plan (implementer re-reads catalogue.py/
   program.py/sh.py before relying on symbols; invariant fixed).
@@ -91,7 +92,7 @@ Verdict: PROCEED WITH CONDITIONS (no blocking defects; advisories below).
 
 No blocking defects. Every load-bearing external claim (cyclopts exit codes,
 pytest-timeout-under-xdist, cuprum API, uv behaviour) was verified against the
-real source or runtime, not memory. The design/ADR boundary is honoured. The four
-work items are atomic, ordered, testable, and complete. Address the advisories at
-the implementer's discretion; advisory 2 (provisional test marker) is the most
-valuable for preventing a future boundary violation.
+real source or runtime, not memory. The design/ADR boundary is honoured. The
+four work items are atomic, ordered, testable, and complete. Address the
+advisories at the implementer's discretion; advisory 2 (provisional test
+marker) is the most valuable for preventing a future boundary violation.

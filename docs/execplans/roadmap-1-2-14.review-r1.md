@@ -88,23 +88,24 @@ noun** that escaped review: the design now reads as though `desloppify` is
 invoked everywhere it is merely named, the merged docs drift from the 1.2.17
 reference-file discipline, and no gate ever flagged it because converted forms
 are subtracted before survivors print (B3). Mitigation: the preserve-noun count
-gate in B3. Secondary failure: an implementer trusts work item 2's section list,
-misses §2.3/§3.1 (B1), the gate fails, and the "atomic, ordered" promise of the
-two commits is broken mid-stream — mitigated by B1.
+gate in B3. Secondary failure: an implementer trusts work item 2's section
+list, misses §2.3/§3.1 (B1), the gate fails, and the "atomic, ordered" promise
+of the two commits is broken mid-stream — mitigated by B1.
 
 ## Alternatives checkpoint (Wafflecat)
 
 The plan's file-by-file, gate-behind-each-commit structure is the right shape
-for a documentation sweep; no structurally different alternative improves on it.
-The one worth noting: rather than human-classify every bare noun, derive the
-preserve set mechanically from the merged 1.2.16/1.2.17 outputs (the guides and
-reference files already encode the noun-vs-script verdict for the same tokens),
-then diff. This trades a little setup for a reproducible oracle and directly
-supplies the count baseline B3 needs. Not required, but it strengthens the gate.
+for a documentation sweep; no structurally different alternative improves on
+it. The one worth noting: rather than human-classify every bare noun, derive
+the preserve set mechanically from the merged 1.2.16/1.2.17 outputs (the guides
+and reference files already encode the noun-vs-script verdict for the same
+tokens), then diff. This trades a little setup for a reproducible oracle and
+directly supplies the count baseline B3 needs. Not required, but it strengthens
+the gate.
 
 ## Library / locked-dependency check
 
 No cuprum, Cyclopts, pytest-timeout, pytest-xdist, or uv API is exercised — the
-task touches no Python. The only library-behaviour claim
-(`novel --version` → exit 0, no envelope) was verified live, not from memory.
-No uncited memory-based claim remains. ✓
+task touches no Python. The only library-behaviour claim (`novel --version` →
+exit 0, no envelope) was verified live, not from memory. No uncited
+memory-based claim remains. ✓

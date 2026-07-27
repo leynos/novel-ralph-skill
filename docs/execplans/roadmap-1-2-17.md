@@ -15,22 +15,24 @@ ships **exactly one** `[project.scripts]` entry — `novel` — dispatching into
 `novel desloppify`, `novel wordcount`). Verified in the worktree:
 `novel_ralph_skill/commands/names.py` defines `SUBCOMMAND_NAMES` as
 `("novel state", "novel done", "novel compile", "novel desloppify",
-"novel wordcount")` and `project_scripts_table()` returns `{"novel": …}`.
+"novel wordcount")`
+and `project_scripts_table()` returns `{"novel": …}`.
 
-Tasks 1.2.14 (design document and `SKILL.md`) and 1.2.16 (users' and developers'
-guides) swept the prose that those success criteria named. The three skill
-**reference** files under `skill/novel-ralph/references/` fell outside both
-criteria, so they still invoke the retired hyphenated console-scripts directly:
+Tasks 1.2.14 (design document and `SKILL.md`) and 1.2.16 (users' and
+developers' guides) swept the prose that those success criteria named. The
+three skill **reference** files under `skill/novel-ralph/references/` fell
+outside both criteria, so they still invoke the retired hyphenated
+console-scripts directly:
 
 1. `state-layout.md` — 15 `novel-state` invocations across 14 lines (line 230
-   carries two `novel-state` tokens) plus one `novel-compile` reference
-   (line 239). That makes 16 convertible tokens in this file. Line 239 is a
-   two-token line carrying both `novel-state set-chapters` and `novel-compile`.
-   These name commands the harness types — `novel-state set-critic-pass
-   --pass N`, `novel-state check`, `novel-state recount`, `novel-state set-gate
-   --knitting-30`, `novel-state set-chapters`, `novel-state init`,
-   `novel-state reconcile`, `novel-state complete-final-pass`, and the
-   `novel-compile` index follower.
+   carries two `novel-state` tokens) plus one `novel-compile` reference (line
+   239). That makes 16 convertible tokens in this file. Line 239 is a two-token
+   line carrying both `novel-state set-chapters` and `novel-compile`. These
+   name commands the harness types — `novel-state set-critic-pass --pass N`,
+   `novel-state check`, `novel-state recount`,
+   `novel-state set-gate --knitting-30`, `novel-state set-chapters`,
+   `novel-state init`, `novel-state reconcile`,
+   `novel-state complete-final-pass`, and the `novel-compile` index follower.
 2. `done-conditions.md` — 5 `novel-done` references (lines 17, 18, 141, 144,
    145), all naming the done-predicate command the agent runs each turn.
 3. `critic-personas.md` — 2 `novel-done` references (lines 131, 133) naming the
@@ -61,18 +63,18 @@ no `wordcount` reference exists in any of the three files at all.** So the
 roadmap's "no retired `desloppify`/`wordcount` console-script reference
 survives" criterion is satisfied by leaving every `desloppify` noun form
 untouched; there is nothing to flip there, and flipping a noun form to
-`novel desloppify` would *introduce* the error the task warns against. This plan
-converts only `novel-state`, `novel-compile`, and `novel-done`.
+`novel desloppify` would *introduce* the error the task warns against. This
+plan converts only `novel-state`, `novel-compile`, and `novel-done`.
 
 The work is a **documentation-only** sweep of three Markdown files. It touches
 no Python, no test, and no command behaviour. `make all` stays green because no
 test asserts on the *command spelling* inside these reference bodies: the body
 guards in `tests/test_state_layout_reference.py` and
 `tests/test_state_layout_schema_guard.py` scan for forbidden `state.toml`-write
-**recipes** and parse the **phase-enum text block**, neither of which involves a
-command name (see `Surprises & Discoveries`). Success is observable by grep (no
-`novel-state`/`novel-done`/`novel-compile` survives; the `desloppify` noun-form
-count is unchanged) and by the Markdown gates (`make markdownlint` and
+**recipes** and parse the **phase-enum text block**, neither of which involves
+a command name (see `Surprises & Discoveries`). Success is observable by grep
+(no `novel-state`/`novel-done`/`novel-compile` survives; the `desloppify`
+noun-form count is unchanged) and by the Markdown gates (`make markdownlint` and
 `make nixie` pass).
 
 ## Constraints
@@ -94,8 +96,8 @@ workaround.
   `novel done`. The surface vocabulary is fixed by
   [ADR 007](../adr-007-command-surface-novel-multiplexer.md) and
   `novel_ralph_skill/commands/names.py` `SUBCOMMAND_NAMES`; use exactly these
-  spaced forms. Do **not** invent `novel-desloppify`-style hyphenated namespacing
-  (Option A, which ADR 007 rejected).
+  spaced forms. Do **not** invent `novel-desloppify`-style hyphenated
+  namespacing (Option A, which ADR 007 rejected).
 - **Preserve every `desloppify` noun form verbatim.** Each occurrence in the
   three files is the operation noun in running prose, not the retired
   console-script (see the enumeration in `Purpose`). Do NOT rewrite "run
@@ -104,8 +106,9 @@ workaround.
   reference and no `desloppify`/`novel-desloppify` console-script invocation in
   any of the three files; do not add one.
 - Do **not** alter the negative-test fixture
-  `novel-state set-cursor --chapter 7` or any `novel-state`/`novel-done` literal
-  that lives in **test code** (`tests/test_state_layout_reference.py:252`,
+  `novel-state set-cursor --chapter 7` or any `novel-state`/`novel-done`
+  literal that lives in **test code**
+  (`tests/test_state_layout_reference.py:252`,
   `tests/test_state_layout_schema_guard.py`, the `tests/working_corpus/`
   docstrings, etc.). Those are owned by sibling roadmap task **1.2.8.5**, whose
   addendum explicitly places them "outside the `skill/novel-ralph/references/`
@@ -113,8 +116,8 @@ workaround.
 - Do not change the substance of any sentence — the `state.toml`-write
   discipline, the ADR-001/ADR-008/ADR-010 cross-references, the exit-code
   contracts, the gate-ratio binding, the blocker-resolution convention. The
-  only change is the command-name literal and any minimal re-flow needed to keep
-  the surrounding sentence reading truthfully and within 80 columns.
+  only change is the command-name literal and any minimal re-flow needed to
+  keep the surrounding sentence reading truthfully and within 80 columns.
 - Do not introduce a copy-pasteable `state.toml`-write recipe. The body guard
   `tests/test_state_layout_reference.py::TestSkillReferenceGuard` scans these
   files; a converted sentence that still points at `novel state` (not a raw
@@ -129,8 +132,8 @@ workaround.
   require editing a fourth file, stop and escalate (it likely belongs to a
   sibling task such as 1.2.8.5).
 - Noun-form boundary: if you find yourself about to change a `desloppify`
-  occurrence, stop and re-confirm it is a retired console-script invocation
-  (it is not — every occurrence in these three files is the noun form). Do not
+  occurrence, stop and re-confirm it is a retired console-script invocation (it
+  is not — every occurrence in these three files is the noun form). Do not
   convert it.
 - Ambiguity: if a sentence cannot be made truthful by a mechanical literal swap
   — for example if it asserts a behaviour the spaced surface does not actually
@@ -138,8 +141,9 @@ workaround.
 - Gate iterations: if `make markdownlint` still fails after 3 fix attempts on a
   single work item, stop and escalate.
 - Test breakage: if `make all` goes red after a sweep, stop and escalate — that
-  would mean a test does assert on a command spelling in a reference body, which
-  contradicts the Work-item-0 finding and must be reconciled, not worked around.
+  would mean a test does assert on a command spelling in a reference body,
+  which contradicts the Work-item-0 finding and must be reconciled, not worked
+  around.
 
 ## Risks
 
@@ -387,27 +391,28 @@ Lessons learned:
 - The planning enumeration was accurate apart from a single off-by-one count
   word ("six" preserved noun forms where the live count is five). The token
   count, not the line count, is the trustworthy figure
-  (`grep -ohE 'desloppify' | wc -l`). CodeRabbit caught this on the first review.
+  (`grep -ohE 'desloppify' | wc -l`). CodeRabbit caught this on the first
+  review.
 - The literal swap is genuinely length-preserving, so the file-level diffs are
   minimal (14 / 5 / 2 changed lines) and `make markdownlint` stayed clean
-  without any re-wrap. The pre-existing over-80 lines in the references were left
-  untouched, in keeping with the substance-preservation constraint; they are
-  within markdownlint's MD013 inline-code tolerance.
+  without any re-wrap. The pre-existing over-80 lines in the references were
+  left untouched, in keeping with the substance-preservation constraint; they
+  are within markdownlint's MD013 inline-code tolerance.
 - The `grep 'novel desloppify'` mis-sweep gate has a benign false positive on
   "full-novel desloppify"; anchor the check on backticks (a real command is
   always code-spanned) or read it against the diff.
 - The repo's `check-fmt` gate covers only Python (ruff), so Markdown formatting
   is enforced solely by `make markdownlint` plus the optional `make fmt`. The
-  tree-wide `make fmt` is unsafe here (it would churn ~250 unrelated files); the
-  scoped substitute is the right tool when a re-wrap is genuinely needed.
+  tree-wide `make fmt` is unsafe here (it would churn ~250 unrelated files);
+  the scoped substitute is the right tool when a re-wrap is genuinely needed.
 
 ## Context and orientation
 
 A novice should read these before touching anything:
 
 - [docs/roadmap.md](../roadmap.md), task 1.2.17 (the step-task paragraph and its
-  success criterion) and its parent step 1.2 — the source of truth for scope and
-  acceptance. Read also task 1.2.8.5 (the test-literal sweep that owns the
+  success criterion) and its parent step 1.2 — the source of truth for scope
+  and acceptance. Read also task 1.2.8.5 (the test-literal sweep that owns the
   `tests/` `novel-state` literals this task must NOT touch) and tasks 1.2.14 /
   1.2.16 (the design/`SKILL.md` and guide sweeps this task extends).
 - [docs/adr-007-command-surface-novel-multiplexer.md](../adr-007-command-surface-novel-multiplexer.md)
@@ -416,8 +421,8 @@ A novice should read these before touching anything:
   `novel state init | set-cursor | advance-phase | recount | check | reconcile`,
   `novel done`, `novel compile [--check]`, `novel desloppify [...]`,
   `novel wordcount`. Its "Decision drivers" (line 40, "avoid generic global
-  names (`wordcount`, `desloppify`)") is why the *console-script* was namespaced
-  under `novel` — but the operation *noun* is unaffected.
+  names (`wordcount`, `desloppify`)") is why the *console-script* was
+  namespaced under `novel` — but the operation *noun* is unaffected.
 - [docs/novel-ralph-harness-design.md](../novel-ralph-harness-design.md) §4
   ("The deterministic commands") and §4.1-§4.5 — the authoritative description
   of each operation's behaviour. **Caveat:** §4's *command literals* in body
@@ -436,15 +441,15 @@ A novice should read these before touching anything:
   style the references already follow.
 - [docs/execplans/roadmap-1-2-16.md](roadmap-1-2-16.md) — the immediately prior
   sibling sweep (the two guides). Its Decision Log records the `make fmt`
-  tree-wide-churn finding and the spaced-surface vocabulary discipline this plan
-  reuses.
+  tree-wide-churn finding and the spaced-surface vocabulary discipline this
+  plan reuses.
 
 The single, authoritative source of the surface vocabulary is
 [`novel_ralph_skill/commands/names.py`](../../novel_ralph_skill/commands/names.py)
 together with ADR 007: `SUBCOMMAND_NAMES` is exactly
-`("novel state", "novel done", "novel compile", "novel desloppify",
-"novel wordcount")` and `project_scripts_table()` returns `{"novel": …}`. Every
-command form written into a reference must match this file.
+`("novel state", "novel done", "novel compile", "novel desloppify", "novel wordcount")`
+and `project_scripts_table()` returns `{"novel": …}`. Every command form
+written into a reference must match this file.
 
 Terms used in this plan:
 
@@ -457,16 +462,17 @@ Terms used in this plan:
 - **Test literal**: a `novel-state`/`novel-done` token inside `tests/` (a
   fixture or docstring). Owned by task 1.2.8.5; out of scope here.
 
-Library-API note (verification, not a change): no cuprum API and no other locked
-external library is exercised by this task; it is a Markdown sweep. See the
-Decision Log entry. Locked cuprum is 0.1.0 (`uv.lock` lines 113-114).
+Library-API note (verification, not a change): no cuprum API and no other
+locked external library is exercised by this task; it is a Markdown sweep. See
+the Decision Log entry. Locked cuprum is 0.1.0 (`uv.lock` lines 113-114).
 
 ## Plan of work
 
 The sweep proceeds file by file, each behind its own Markdown gate, so a
-stopping point never leaves a half-converted reference. Stage A (Work items 0-1)
-understands and enumerates without editing; Stage B (Work items 2-4) sweeps each
-reference; Stage C (Work item 5) proves the whole end-state and runs `make all`.
+stopping point never leaves a half-converted reference. Stage A (Work items
+0-1) understands and enumerates without editing; Stage B (Work items 2-4)
+sweeps each reference; Stage C (Work item 5) proves the whole end-state and runs
+`make all`.
 
 ### Work item 0 — Orientation and reference grep (no edits)
 
@@ -475,8 +481,8 @@ test-body-safety finding.
 
 Read, in order: roadmap 1.2.17 (and 1.2.8.5, 1.2.14, 1.2.16 for scope
 boundaries), ADR 007 (Decision outcome + Decision drivers), design §4-§4.5,
-AGENTS.md Markdown sections, and the three reference files end to end. No file is
-edited in this item.
+AGENTS.md Markdown sections, and the three reference files end to end. No file
+is edited in this item.
 
 Re-confirm live that no test asserts on a command spelling in these reference
 bodies, so `make all` cannot break:
@@ -499,8 +505,8 @@ and `grepai search` for navigation rather than ad-hoc reads.
 
 Tests: none (no behaviour change). Validation: confirm the spaced forms in ADR
 007 / design §4 headings match `SUBCOMMAND_NAMES` in
-`novel_ralph_skill/commands/names.py`, and confirm the live `tests/` grep matches
-the Work-item-0 expectation.
+`novel_ralph_skill/commands/names.py`, and confirm the live `tests/` grep
+matches the Work-item-0 expectation.
 
 ### Work item 1 — Record the per-file convert/preserve enumeration
 
@@ -531,11 +537,11 @@ Commands (run from the worktree root):
 Expected (from the planning run; re-confirm live):
 
 - `state-layout.md` convert: 15 `novel-state` hits across 14 lines — 118, 181,
-  190, 201, 211, 214, 217, 223, 230 (×2: `complete-final-pass` + `set-gate
-  --final`), 237, 239, 256, 257, 260 — plus one `novel-compile` at line 239.
-  That is 16 convertible tokens. Line 239 is a two-token line carrying BOTH
-  `novel-state set-chapters` AND `novel-compile`. Verify the count live:
-  `grep -oE 'novel-state' state-layout.md | wc -l` returns 15.
+  190, 201, 211, 214, 217, 223, 230 (×2: `complete-final-pass` +
+  `set-gate --final`), 237, 239, 256, 257, 260 — plus one `novel-compile` at
+  line 239. That is 16 convertible tokens. Line 239 is a two-token line
+  carrying BOTH `novel-state set-chapters` AND `novel-compile`. Verify the
+  count live: `grep -oE 'novel-state' state-layout.md | wc -l` returns 15.
 - `done-conditions.md` convert: `novel-done` at lines 17, 18, 141, 144, 145.
 - `critic-personas.md` convert: `novel-done` at lines 131, 133.
 - preserve: `desloppify` noun at `state-layout.md` 167-168, `done-conditions.md`
@@ -547,8 +553,8 @@ Docs to read: this plan's Constraints and Risks.
 Skills to load: `leta` (resolve any ambiguous token with `leta show` to confirm
 it is a doc reference, not a code symbol, before bucketing).
 
-Tests: none. Validation: the enumeration is recorded in this plan and every grep
-hit appears in exactly one bucket.
+Tests: none. Validation: the enumeration is recorded in this plan and every
+grep hit appears in exactly one bucket.
 
 ### Work item 2 — Sweep `state-layout.md` to the `novel` surface
 
@@ -558,15 +564,15 @@ Decision outcome; design §4.1, §4.3.
 Independently committable. Edit only
 `skill/novel-ralph/references/state-layout.md`. Apply the Work-item-1 convert
 bucket: flip every `novel-state <verb>` → `novel state <verb>` and the one
-`novel-compile` → `novel compile`, preserving each surrounding sentence verbatim
-apart from the command literal. Specifically:
+`novel-compile` → `novel compile`, preserving each surrounding sentence
+verbatim apart from the command literal. Specifically:
 
 - `novel-state set-chapters` → `novel state set-chapters` (lines 118, 239).
-- `novel-state set-critic-pass --pass N` → `novel state set-critic-pass --pass N`
-  (line 181).
+- `novel-state set-critic-pass --pass N` →
+  `novel state set-critic-pass --pass N` (line 181).
 - `novel-state check` → `novel state check` (lines 190, 214, 237, 256, 257).
-- `novel-state set-fangirl --last-chapter N` → `novel state set-fangirl
-  --last-chapter N` (line 201).
+- `novel-state set-fangirl --last-chapter N` →
+  `novel state set-fangirl --last-chapter N` (line 201).
 - `novel-state set-gate --knitting-30` (and `--knitting-NN`/`--final`) →
   `novel state set-gate …` (lines 211, 223, 230).
 - `novel-state recount` → `novel state recount` (line 217).
@@ -578,9 +584,9 @@ apart from the command literal. Specifically:
 
 **Preserve verbatim**: the `desloppify` noun form at lines 167-168 ("run
 desloppify", "If desloppify is run"). Do not touch them. Do not alter the
-`state.toml`-write discipline prose, the ADR-001/ADR-008/ADR-010 references, the
-exit-code-3 contracts, the gate-ratio binding wording, or the `[pending_turn]`
-reconciliation paragraph — only the command literal changes.
+`state.toml`-write discipline prose, the ADR-001/ADR-008/ADR-010 references,
+the exit-code-3 contracts, the gate-ratio binding wording, or the
+`[pending_turn]` reconciliation paragraph — only the command literal changes.
 
 Docs to read: design §4.1 (`novel state` behaviour) and §4.3 (`novel compile`
 index follower) — behaviour only; take the spaced spelling from `names.py`
@@ -591,16 +597,16 @@ Skills to load: `en-gb-oxendict` (every reworded clause stays en-GB Oxford
 spelling), `leta`/`grepai` for navigation.
 
 Tests: none — documentation. Per the AGENTS.md testing rules, a
-documentation-only change that alters no externally observable behaviour adds no
-unit, behavioural, property, snapshot, or e2e test; the Markdown gates plus the
-existing body guards (`test_state_layout_reference.py`, unchanged and still
+documentation-only change that alters no externally observable behaviour adds
+no unit, behavioural, property, snapshot, or e2e test; the Markdown gates plus
+the existing body guards (`test_state_layout_reference.py`, unchanged and still
 green because the command-name flip does not introduce a write recipe) are the
 verification.
 
 Validation: run `make markdownlint` (expect clean) and confirm
 `grep -nE 'novel-state|novel-compile' state-layout.md` returns nothing, then
-commit with an imperative subject (for example, "Sweep state-layout reference to
-the novel surface"). Final whole-tree proof is Work item 5.
+commit with an imperative subject (for example, "Sweep state-layout reference
+to the novel surface"). Final whole-tree proof is Work item 5.
 
 ### Work item 3 — Sweep `done-conditions.md` to the `novel` surface
 
@@ -610,10 +616,9 @@ design §4.2.
 Independently committable. Edit only
 `skill/novel-ralph/references/done-conditions.md`. Flip every `novel-done` →
 `novel done` (lines 17, 18, 141, 144, 145), preserving each sentence — the
-"single source of truth for the novel-level predicate" framing, the
-six-clauses/`done_predicate.py` cross-reference, and the
-`contains_unresolved_blocker` convention — verbatim apart from the command
-literal.
+"single source of truth for the novel-level predicate" framing, the six-clauses/
+`done_predicate.py` cross-reference, and the `contains_unresolved_blocker`
+convention — verbatim apart from the command literal.
 
 **Preserve verbatim**: the `desloppify` noun form at line 110 ("One full-novel
 desloppify pass logged") and line 191 ("each step (desloppify, spiteful, image
@@ -690,15 +695,14 @@ Run, from the worktree root:
 Acceptance: `make markdownlint` and `make nixie` exit 0; the surface grep
 returns nothing (no `novel-state`/`novel-compile`/`novel-done` survives); the
 `desloppify` grep returns exactly the five preserved noun-form lines from Work
-item 1 (count unchanged); the `novel desloppify` and `wordcount|novel-desloppify`
-greps return nothing (no noun form mis-swept, no console-script reference
-introduced); and `make all` is green.
+item 1 (count unchanged); the `novel desloppify` and
+`wordcount|novel-desloppify` greps return nothing (no noun form mis-swept, no
+console-script reference introduced); and `make all` is green.
 
 If any gate fails, fix within tolerance (Risk 2 mitigation: scoped format or
 re-wrap at 80 columns on the edited references; avoid tree-wide `make fmt`) and
-re-run before the final commit. Record the
-final transcript in `Outcomes & Retrospective` and flip the plan Status to
-COMPLETE.
+re-run before the final commit. Record the final transcript in
+`Outcomes & Retrospective` and flip the plan Status to COMPLETE.
 
 ## Validation and acceptance
 
@@ -760,32 +764,34 @@ written into the three references. No new dependency is introduced.
   count from `novel-state ×17` to the verified `novel-state ×15` (across 14
   lines, line 230 carrying two `novel-state` tokens) plus `novel-compile ×1`,
   for 16 convertible tokens total. Annotated line 239 as a two-token cross-type
-  line carrying BOTH `novel-state set-chapters` AND `novel-compile`. The fix was
-  applied in all three places the enumeration appears — the Purpose paragraph,
-  Work item 1's expected output (now with a live `grep -oE 'novel-state' … | wc
-  -l` → 15 check), and the Artefacts enumeration — and in Risk 3's "15
-  occurrences" phrasing. This resolves design-review blocking points B1
-  (off-by-two count) and B2 (line-239 under-count) so Work item 1's contract and
-  Work item 5's count audit reconcile against the live file. No edit
-  instruction, gate command, scope boundary, or noun-form preserve list changed;
-  Work item 2's per-edit list already converted both tokens on line 239
-  correctly. The per-file convert/preserve sweep is otherwise unchanged.
+  line carrying BOTH `novel-state set-chapters` AND `novel-compile`. The fix
+  was applied in all three places the enumeration appears — the Purpose
+  paragraph, Work item 1's expected output (now with a live
+  `grep -oE 'novel-state' … | wc -l` → 15 check), and the Artefacts enumeration
+  — and in Risk 3's "15 occurrences" phrasing. This resolves design-review
+  blocking points B1 (off-by-two count) and B2 (line-239 under-count) so Work
+  item 1's contract and Work item 5's count audit reconcile against the live
+  file. No edit instruction, gate command, scope boundary, or noun-form
+  preserve list changed; Work item 2's per-edit list already converted both
+  tokens on line 239 correctly. The per-file convert/preserve sweep is
+  otherwise unchanged.
 - 2026-06-26 (review fix round 1): Rebased the branch onto `origin/main` to
   resolve the dual review's sole blocking item. After this branch forked at
   `b89373c`, sibling task 1.2.8.5 landed as `d2932f0`, sweeping the residual
-  `novel-state` literals in `tests/test_state_layout_reference.py` to `novel
-  state` and ticking roadmap 1.2.8.5 to `[x]`. Because the branch lacked
+  `novel-state` literals in `tests/test_state_layout_reference.py` to
+  `novel state` and ticking roadmap 1.2.8.5 to `[x]`. Because the branch lacked
   `d2932f0`, `git diff origin/main..HEAD` falsely showed it reverting that
   landed work (the test file flipping `novel state` back to `novel-state`, and
   `docs/roadmap.md` plus `docs/execplans/roadmap-1-2-8.md` flipping 1.2.8.5 from
   `[x]` to `[ ]`); none of the four 1.2.17 commits touch those files, so the
   apparent reversion was pure staleness. The rebase was pre-verified
-  conflict-free (`git merge-tree --write-tree origin/main HEAD` exited 0 with no
-  conflict marker) and replayed the four sweep commits cleanly onto `d2932f0`.
-  The diff now reduces to the three reference-file sweeps plus the two execplan
-  files, with the test-file and 1.2.8.5 reversions gone. Deterministic gates
-  (`make all`, `make markdownlint`, `make nixie`) re-run green after the rebase.
-  No sweep edit, gate command, or scope boundary changed.
+  conflict-free (`git merge-tree --write-tree origin/main HEAD` exited 0 with
+  no conflict marker) and replayed the four sweep commits cleanly onto
+  `d2932f0`. The diff now reduces to the three reference-file sweeps plus the
+  two execplan files, with the test-file and 1.2.8.5 reversions gone.
+  Deterministic gates (`make all`, `make markdownlint`, `make nixie`) re-run
+  green after the rebase. No sweep edit, gate command, or scope boundary
+  changed.
 
 ## Addenda
 

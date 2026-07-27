@@ -197,8 +197,8 @@ Stop and escalate (do not work around) when any threshold is reached:
 Work item 1 progress (2026-06-24): `recount_words` landed in
 `novel_ralph_skill/state/wordcount.py` and is re-exported from the `state`
 package. The unit + property tests in `tests/test_state_wordcount.py` pass;
-red-before-green was confirmed by temporarily replacing `len(text.split())`
-with `len(text.splitlines())` (the property and the example test both went red,
+red-before-green was confirmed by temporarily replacing `len(text.split())` with
+`len(text.splitlines())` (the property and the example test both went red,
 then reverted). `make all` green at HEAD; one coderabbit run returned two
 trivial findings — added assertion messages to the unit tests, and kept the
 `cabc.Mapping` return annotation (the plan's pinned signature; the read-only
@@ -223,32 +223,33 @@ violations-ownership extension drives `recount` through the app and so needs it
 registered. The fault routing uses a `_recount_or_state_error` wrapper mirroring
 `_load_document_or_state_error`. `make all` green at HEAD (352 passed);
 red-before-green confirmed by mutating the `current` write to `current + 1`
-(three tests went red, then reverted). One coderabbit run returned two findings,
-both skipped with reason: (a) a "major" 80-column wrap finding against
-`roadmap-2-3-1.review-r1.md` — a planning-phase review artefact this task did not
-author and does not edit; (b) a "trivial" architectural-dependency finding on
-importing `STATE_INPUT_ERRORS` from `novel_state` — this is the *established*
-pattern (`_state_mutators.py` already imports it the same way), so following it
-keeps the codebase consistent; relocating the constant to a contract module
-would touch the public `novel_state`/`_state_mutators` surface and the corpus
-parse-error pin, an out-of-scope refactor (Interface tolerance). Committed as
-f202dd8.
+(three tests went red, then reverted). One coderabbit run returned two
+findings, both skipped with reason: (a) a "major" 80-column wrap finding against
+`roadmap-2-3-1.review-r1.md` — a planning-phase review artefact this task did
+not author and does not edit; (b) a "trivial" architectural-dependency finding
+on importing `STATE_INPUT_ERRORS` from `novel_state` — this is the
+*established* pattern (`_state_mutators.py` already imports it the same way),
+so following it keeps the codebase consistent; relocating the constant to a
+contract module would touch the public `novel_state`/`_state_mutators` surface
+and the corpus parse-error pin, an out-of-scope refactor (Interface tolerance).
+Committed as f202dd8.
 
 Work item 3 progress (2026-06-24): the BDD scenario
 (`tests/features/recount.feature` + `tests/steps/recount_steps.py` +
 `tests/test_recount_bdd.py`), the `recount` success-envelope snapshot, and the
-two guide corrections landed. Registration was already done in WI2, so WI3
-step 1 was a no-op. **Deviation (justified):** the plan suggested putting the e2e
-reachability check in `test_console_scripts_e2e.py` or `test_novel_state_check.py`;
-adding it to the latter pushed that file to 416 lines (over the 400-line cap), so
-the fast entry-point reachability test lives in a new `tests/test_recount_e2e.py`
-instead. Both developers'-guide mis-listings (the "Checker/mutator segregation"
-paragraph and the single-file-write paragraph) were corrected and a grep for
-`recount` confirmed no remaining sentence implies it is multi-file or bracketed.
-`make all` green (355 passed); `make markdownlint` and `make nixie` pass over the
-two edited guides (no Mermaid added). One coderabbit run returned a single
-trivial finding — added `slots=True` to the private `_Outcome` step dataclass —
-applied; `make all` stayed green. Committed as 18b4e3b.
+two guide corrections landed. Registration was already done in WI2, so WI3 step
+1 was a no-op. **Deviation (justified):** the plan suggested putting the e2e
+reachability check in `test_console_scripts_e2e.py` or
+`test_novel_state_check.py`; adding it to the latter pushed that file to 416
+lines (over the 400-line cap), so the fast entry-point reachability test lives
+in a new `tests/test_recount_e2e.py` instead. Both developers'-guide
+mis-listings (the "Checker/mutator segregation" paragraph and the
+single-file-write paragraph) were corrected and a grep for `recount` confirmed
+no remaining sentence implies it is multi-file or bracketed. `make all` green
+(355 passed); `make markdownlint` and `make nixie` pass over the two edited
+guides (no Mermaid added). One coderabbit run returned a single trivial finding
+— added `slots=True` to the private `_Outcome` step dataclass — applied;
+`make all` stayed green. Committed as 18b4e3b.
 
 ## Surprises & discoveries
 
@@ -262,22 +263,22 @@ applied; `make all` stayed green. Committed as 18b4e3b.
   be pinned equal to it rather than guessed.
 
 - Observation: `recount` writes only `state.toml`, yet
-  `docs/developers-guide.md`
-  mis-lists it among the "genuinely multi-file mutators" in *two* places.
-  Evidence: design §4.1 line 271 ("Re-derive `word_counts.current` and
-  `by_chapter`") names only `state.toml` fields; design §3.4 lines 240-241 name
-  "a recount" as *one write among several in a turn*, not the command writing
-  several files. `docs/developers-guide.md:465-468` reserves the
-  `[pending_turn]` bracket for "genuinely multi-file" writes but then
-  erroneously includes `recount` in that list (lines 467-468). Separately, the
-  "Checker/mutator segregation" paragraph at lines 202-206 lumps `init`/
-  `set-cursor`/`advance-phase`/`recount` in with `reconcile`/ `novel-compile`
-  and claims they are all "bracketed by a `[pending_turn]` intent record so a
-  torn multi-file turn is recoverable". Impact: `recount` follows the
-  `set-cursor`/`advance-phase` single-file pattern (no `[pending_turn]`), not
-  the bracketed pattern. Pinned in Decision Log D-PT. *Both* guide passages
-  (467-468 and 202-206) are documentation defects this plan corrects in Work
-  item 3 step 5 (Round-1 blocking point 1; Round-2 blocking point A).
+  `docs/developers-guide.md` mis-lists it among the "genuinely multi-file
+  mutators" in *two* places. Evidence: design §4.1 line 271 ("Re-derive
+  `word_counts.current` and `by_chapter`") names only `state.toml` fields;
+  design §3.4 lines 240-241 name "a recount" as *one write among several in a
+  turn*, not the command writing several files.
+  `docs/developers-guide.md:465-468` reserves the `[pending_turn]` bracket for
+  "genuinely multi-file" writes but then erroneously includes `recount` in that
+  list (lines 467-468). Separately, the "Checker/mutator segregation" paragraph
+  at lines 202-206 lumps `init`/ `set-cursor`/`advance-phase`/`recount` in with
+  `reconcile`/ `novel-compile` and claims they are all "bracketed by a
+  `[pending_turn]` intent record so a torn multi-file turn is recoverable".
+  Impact: `recount` follows the `set-cursor`/`advance-phase` single-file
+  pattern (no `[pending_turn]`), not the bracketed pattern. Pinned in Decision
+  Log D-PT. *Both* guide passages (467-468 and 202-206) are documentation
+  defects this plan corrects in Work item 3 step 5 (Round-1 blocking point 1;
+  Round-2 blocking point A).
 
 ## Decision log
 
@@ -423,8 +424,7 @@ Definitions:
 - **`by_chapter`**: `[word_counts].by_chapter`, a TOML inline table keyed by the
   zero-padded two-digit chapter string, value the chapter's word count.
 - **Exit `3`**: the state/input-error exit code (ADR-003; design §3.2), raised
-  by
-  `StateInputError`; distinct from the benign `1` the harness loops on.
+  by `StateInputError`; distinct from the benign `1` the harness loops on.
 
 ## Plan of work
 
@@ -455,8 +455,8 @@ CrossHair). Use `leta` for navigation
 Edits:
 
 1. Create `novel_ralph_skill/state/wordcount.py` defining a pure function
-   `recount_words` (the full signature is pinned in "Signatures that must exist"
-   below), that for each manifest chapter reads
+   `recount_words` (the full signature is pinned in "Signatures that must
+   exist" below), that for each manifest chapter reads
    `working_dir / "manuscript" / f"chapter-{number:02d}" / "draft.md"`, counts
    `len(text.split())`, and returns the total and an ordered `by_chapter`
    mapping keyed by `f"{number:02d}"`. Keep it under the 400-line cap (it will
@@ -472,9 +472,9 @@ Edits:
        count = 0
    ```
 
-   Catch **only** `FileNotFoundError` and treat it as `0` (an undrafted
-   chapter contributes nothing — D-KEY). Do **not** catch a broad `OSError` and
-   do **not** catch `UnicodeDecodeError`: a `PermissionError`, an
+   Catch **only** `FileNotFoundError` and treat it as `0` (an undrafted chapter
+   contributes nothing — D-KEY). Do **not** catch a broad `OSError` and do
+   **not** catch `UnicodeDecodeError`: a `PermissionError`, an
    `IsADirectoryError`, or an undecodable body must propagate out of
    `recount_words` unchanged, so the `recount` body can route them to exit `3`
    (Work item 2 step 2). A broad `except OSError` here would (a) turn an absent
@@ -932,14 +932,14 @@ property test's oracle scope. No production-code or test-shape change.
 
 Lightweight addendum work items folded back onto this completed task from the
 reviews and audits of step 2.3's tasks. Execute each as a small addendum pass —
-no plan or design-review cycle: make the change, run `make all` (plus `make
-markdownlint`/`make nixie` for Markdown), `coderabbit review --agent`, commit,
-and tick the matching roadmap sub-task on merge.
+no plan or design-review cycle: make the change, run `make all` (plus
+`make markdownlint`/`make nixie` for Markdown), `coderabbit review --agent`,
+commit, and tick the matching roadmap sub-task on merge.
 
 - [x] 2.3.1.1 — Clear the pre-existing ty `possibly-missing-submodule` warning
   on `commands/_recount.py` (from review:2.3.4, low). `make typecheck` is not
-  fully clean: ty warns that `tomlkit.items.InlineTable` — the return annotation
-  of `_inline_by_chapter` — relies on a submodule that may not have been
-  imported. Add a single explicit `import tomlkit.items` so the typecheck gate is
-  restored to clean. The warning is pre-existing (present on origin/main) and was
-  out of task 2.3.4's scope. Gate with `make all`.
+  fully clean: ty warns that `tomlkit.items.InlineTable` — the return
+  annotation of `_inline_by_chapter` — relies on a submodule that may not have
+  been imported. Add a single explicit `import tomlkit.items` so the typecheck
+  gate is restored to clean. The warning is pre-existing (present on
+  origin/main) and was out of task 2.3.4's scope. Gate with `make all`.

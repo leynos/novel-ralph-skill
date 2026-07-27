@@ -453,41 +453,42 @@ Hard invariants; violation requires escalation, not a workaround.
   fixed-length tuple from `_crossed_gates` and passing them by explicit name,
   which `ty` checks precisely.
 - Work item 2: the phase enum block in `state-layout.md` carries inline `#`
-  comments on some lines (e.g. `drafting   # contains the inner Ralph loop`), so
-  the reference parser takes the leading whitespace-delimited token per line
+  comments on some lines (e.g. `drafting   # contains the inner Ralph loop`),
+  so the reference parser takes the leading whitespace-delimited token per line
   rather than the whole line. The phase order is parsed from the reference (not
   re-typed) so it stays the single source of truth.
 - Work item 3: adding the corpus fixtures pushed `tests/conftest.py` past the
   400-line module cap (it reached 481). The corpus fixtures moved into a
   registered pytest plugin module `tests/corpus_fixtures.py`
-  (`pytest_plugins = ("corpus_fixtures",)` in `conftest`), which is the corpus's
-  single runtime importer of `working_corpus`; `conftest` keeps only the
-  spec-type `TYPE_CHECKING` re-export for the `from conftest import
-  WorkingTreeSpec` carve-out. Every fixture is still available by name exactly
-  as a `conftest` fixture would be, and no test module value-imports the corpus.
-  Recorded as a Decision below.
+  (`pytest_plugins = ("corpus_fixtures",)` in `conftest`), which is the
+  corpus's single runtime importer of `working_corpus`; `conftest` keeps only
+  the spec-type `TYPE_CHECKING` re-export for the
+  `from conftest import WorkingTreeSpec` carve-out. Every fixture is still
+  available by name exactly as a `conftest` fixture would be, and no test
+  module value-imports the corpus. Recorded as a Decision below.
 - Work item 3: the torn-turn `[pending_turn]` case needed a detectable oracle
   signal, so the oracle vocabulary gained a tenth invariant name
-  `pending-turn-cleared` (an uncleared `[pending_turn]` is a §3.4 torn turn). The
-  plan's vocabulary listed nine names; the tenth is the structural label for the
-  torn-turn variant the plan already required, recorded as a Decision.
+  `pending-turn-cleared` (an uncleared `[pending_turn]` is a §3.4 torn turn).
+  The plan's vocabulary listed nine names; the tenth is the structural label
+  for the torn-turn variant the plan already required, recorded as a Decision.
 - Work item 3: building several variants under one `tmp_path` left a previous
   variant's `compiled.md` in place and produced a spurious second violation, so
   the `incoherent_tree`, `phase_state_tree`, and `coherent_oracle_cases`
   factories each build in a per-name/per-phase subdirectory of `tmp_path`.
 - Work item 3: the invariant-2 (`completed-prefix`) and invariant-7
-  (`gate-ratio-consistent`) checks had to be decoupled from sibling invariants so
-  each variant breaks exactly one name: `completed-prefix` passes when
+  (`gate-ratio-consistent`) checks had to be decoupled from sibling invariants
+  so each variant breaks exactly one name: `completed-prefix` passes when
   `phase.current` is outside the enum (that is invariant 1's concern), and
-  `gate-ratio-consistent` computes its ratio from the honest on-disk draft total
-  rather than from a `by_chapter_override`. The `_with_chapters` helper also
-  re-derives consistent gate booleans from the mutated chapter set so a
+  `gate-ratio-consistent` computes its ratio from the honest on-disk draft
+  total rather than from a `by_chapter_override`. The `_with_chapters` helper
+  also re-derives consistent gate booleans from the mutated chapter set so a
   draft-word mutation does not incidentally break invariant 7.
-- Work item 4: adding the permutation tests pushed `tests/test_working_corpus.py`
-  past the 400-line module cap, so the `done.flag` permutation self-tests live in
-  a sibling module `tests/test_working_corpus_done_flags.py`. The
-  `done_flag_tree` factory returns `(spec, working_dir)` so the test runs the
-  oracle to confirm each permutation is coherent.
+- Work item 4: adding the permutation tests pushed
+  `tests/test_working_corpus.py` past the 400-line module cap, so the
+  `done.flag` permutation self-tests live in a sibling module
+  `tests/test_working_corpus_done_flags.py`. The `done_flag_tree` factory
+  returns `(spec, working_dir)` so the test runs the oracle to confirm each
+  permutation is coherent.
 
 ## Decision log
 
@@ -590,68 +591,71 @@ Hard invariants; violation requires escalation, not a workaround.
   is now mandatory, not conditional, because the no-value-import resolution
   above requires a dedicated non-`test_*` data module; finalize nothing else in
   Work item 1.)
-- Decision (Work item 1): `working_corpus` is a *package* (`tests/working_corpus/`)
-  rather than a single `tests/working_corpus.py` module, because the corpus data
-  plus builder, oracle, and variant library exceed the 400-line file cap
-  (AGENTS.md lines 24-27). The package splits into `_specs.py` (dataclasses,
-  constants, helpers), `_builder.py` (`build_working_tree` and the `tomlkit`
-  document construction), and — in later items — `_library.py`, `_oracle.py`,
-  and `_variants.py`; `__init__.py` re-exports the public surface. The
-  consumption contract is unchanged: `from working_corpus import WorkingTreeSpec`
-  resolves through the package `__init__` exactly as for a module, `conftest`
-  remains the single runtime importer, and no `test_*` module value-imports the
-  corpus. Rationale: a package is the standard way to keep each file under the
-  cap while preserving one import name; the plan's `tests/working_corpus.py`
-  spelling was indicative of the import *name*, which the package preserves.
-  Date/Author: 2026-06-22, implementation agent.
+- Decision (Work item 1): `working_corpus` is a *package*
+  (`tests/working_corpus/`) rather than a single `tests/working_corpus.py`
+  module, because the corpus data plus builder, oracle, and variant library
+  exceed the 400-line file cap (AGENTS.md lines 24-27). The package splits into
+  `_specs.py` (dataclasses, constants, helpers), `_builder.py`
+  (`build_working_tree` and the `tomlkit` document construction), and — in
+  later items — `_library.py`, `_oracle.py`, and `_variants.py`; `__init__.py`
+  re-exports the public surface. The consumption contract is unchanged:
+  `from working_corpus import WorkingTreeSpec` resolves through the package
+  `__init__` exactly as for a module, `conftest` remains the single runtime
+  importer, and no `test_*` module value-imports the corpus. Rationale: a
+  package is the standard way to keep each file under the cap while preserving
+  one import name; the plan's `tests/working_corpus.py` spelling was indicative
+  of the import *name*, which the package preserves. Date/Author: 2026-06-22,
+  implementation agent.
 - Decision (Work item 1): the `AUTO` compile sentinel is named once as the
   `COMPILED_AUTO` constant in `_specs.py` (resolves a CodeRabbit minor: a bare
   `"AUTO"` string is ambiguous with file content). Date/Author: 2026-06-22,
   implementation agent.
 - Decision (Work item 3): the corpus fixtures live in a registered pytest plugin
   module `tests/corpus_fixtures.py` (`pytest_plugins = ("corpus_fixtures",)` in
-  `conftest`) rather than in `conftest` itself, because adding them to `conftest`
-  pushed it past the 400-line module cap (AGENTS.md lines 24-27). The plugin is
-  the single runtime importer of `working_corpus` and exposes every datum by
-  fixture name; `conftest` retains only the spec-type `TYPE_CHECKING` re-export
-  for the `from conftest import WorkingTreeSpec` carve-out. The plan named
-  `conftest` the single importer, but a registered plugin is `conftest`-equivalent
-  scaffolding (pytest treats both identically for fixture resolution), and the
-  load-bearing contract — no test-module value imports, types via `from conftest
-  import` — is fully preserved. The split is a hard-cap necessity, not a contract
-  relaxation. Date/Author: 2026-06-22, implementation agent.
+  `conftest`) rather than in `conftest` itself, because adding them to
+  `conftest` pushed it past the 400-line module cap (AGENTS.md lines 24-27).
+  The plugin is the single runtime importer of `working_corpus` and exposes
+  every datum by fixture name; `conftest` retains only the spec-type
+  `TYPE_CHECKING` re-export for the `from conftest import WorkingTreeSpec`
+  carve-out. The plan named `conftest` the single importer, but a registered
+  plugin is `conftest`-equivalent scaffolding (pytest treats both identically
+  for fixture resolution), and the load-bearing contract — no test-module value
+  imports, types via `from conftest import` — is fully preserved. The split is
+  a hard-cap necessity, not a contract relaxation. Date/Author: 2026-06-22,
+  implementation agent.
 - Decision (Work item 3): the oracle vocabulary carries a tenth invariant name,
   `pending-turn-cleared`, for the §3.4 torn-turn case (an uncleared
-  `[pending_turn]`). The plan's nine-name list covered the seven §5.2 structural
-  invariants plus the two §5.4 disk cases but gave the torn-turn variant no
-  detectable oracle label; the tenth name supplies it without inventing a new
-  case (the variant was already required). Task 2.1.2 keys its cross-check on the
-  full ten-name vocabulary. Date/Author: 2026-06-22, implementation agent.
+  `[pending_turn]`). The plan's nine-name list covered the seven §5.2
+  structural invariants plus the two §5.4 disk cases but gave the torn-turn
+  variant no detectable oracle label; the tenth name supplies it without
+  inventing a new case (the variant was already required). Task 2.1.2 keys its
+  cross-check on the full ten-name vocabulary. Date/Author: 2026-06-22,
+  implementation agent.
 - Decision (fix round 1): make design §5.2 invariant 3 genuinely reachable on
   disk. The original `by-chapter-sum-mismatch` variant used a
   `by_chapter_override`, but the builder computed `word_counts.current` as
   `sum(by_chapter.values())` unconditionally, so the materialized `state.toml`
-  always satisfied `sum(by_chapter) == current` — the real invariant 3 was never
-  violated, and the oracle's `_check_by_chapter_sum` instead compared the
+  always satisfied `sum(by_chapter) == current` — the real invariant 3 was
+  never violated, and the oracle's `_check_by_chapter_sum` instead compared the
   override against the chapters' `draft_words` (a corpus-internal property, not
   invariant 3). Task 2.1.2's real validator would therefore have found the tree
   coherent for invariant 3 while the corpus labelled it `by-chapter-sum`,
   breaking the cross-check this corpus exists to serve. Fix: `WorkingTreeSpec`
   gains an independent `current_words_override: int | None`, and the builder
-  writes `word_counts.current` via a new `derive_current` helper that returns the
-  override verbatim while `by_chapter` still derives from the drafts — so the
-  variant's on-disk state now has `sum(by_chapter) != current`, a genuine
+  writes `word_counts.current` via a new `derive_current` helper that returns
+  the override verbatim while `by_chapter` still derives from the drafts — so
+  the variant's on-disk state now has `sum(by_chapter) != current`, a genuine
   invariant-3 violation. The oracle's `_check_by_chapter_sum` now reads the
-  materialized `state.toml` and compares the written `sum(by_chapter)` against the
-  written `current`, i.e. the exact disk evidence task 2.1.2's validator will see,
-  so the corpus label and the real validator agree. The `by-chapter-sum-mismatch`
-  variant switches to `current_words_override=1`. A new self-test
-  (`test_current_words_override_breaks_invariant_3_on_disk`) pins both the
-  coherent default (`sum(by_chapter) == current`) and the override violation. No
-  design field or invariant changed; the only new spec dimension models a state
-  the design already permits (`state-layout.md` line 113: `current` is "words in
-  compiled.md (or sum of drafts)", an independently written value). Date/Author:
-  2026-06-22, implementation agent.
+  materialized `state.toml` and compares the written `sum(by_chapter)` against
+  the written `current`, i.e. the exact disk evidence task 2.1.2's validator
+  will see, so the corpus label and the real validator agree. The
+  `by-chapter-sum-mismatch` variant switches to `current_words_override=1`. A
+  new self-test (`test_current_words_override_breaks_invariant_3_on_disk`) pins
+  both the coherent default (`sum(by_chapter) == current`) and the override
+  violation. No design field or invariant changed; the only new spec dimension
+  models a state the design already permits (`state-layout.md` line 113:
+  `current` is "words in compiled.md (or sum of drafts)", an independently
+  written value). Date/Author: 2026-06-22, implementation agent.
 
 ## Outcomes & retrospective
 
@@ -661,13 +665,13 @@ Work items 1 and 2 had only minor/trivial findings, all addressed). The
 markdown gates (`make markdownlint`, `make nixie`) are green for the touched
 documents.
 
-The corpus is delivered as the `tests/working_corpus` package
-(`_specs`/`_builder`/`_library`/`_oracle`/`_variants`, re-exported from
-`__init__`), consumed through the registered pytest plugin
-`tests/corpus_fixtures.py`, with the spec types re-exported from `conftest`
-under `TYPE_CHECKING`. The self-tests live in `tests/test_working_corpus.py`
-and `tests/test_working_corpus_done_flags.py`. Every datum is consumed by
-fixture parameter name; no test module value-imports the corpus.
+The corpus is delivered as the `tests/working_corpus` package (`_specs`/
+`_builder`/`_library`/`_oracle`/`_variants`, re-exported from `__init__`),
+consumed through the registered pytest plugin `tests/corpus_fixtures.py`, with
+the spec types re-exported from `conftest` under `TYPE_CHECKING`. The
+self-tests live in `tests/test_working_corpus.py` and
+`tests/test_working_corpus_done_flags.py`. Every datum is consumed by fixture
+parameter name; no test module value-imports the corpus.
 
 Deviations from the plan, all recorded as Decisions above:
 
@@ -680,13 +684,13 @@ Deviations from the plan, all recorded as Decisions above:
   the structural label for the torn-turn variant the plan already required.
 
 No Tolerance was triggered: the change stays within the ~6-file / ~700-line
-ceiling for the corpus and its tests (the package and two test modules), adds no
-dependency, pulls no phase-2 schema work forward, and changes no design field or
-invariant. The `gate-ratio-consistent` check derives its ratio from the honest
-on-disk draft total so a `by_chapter_override` cannot perturb invariant 7, and
-the `completed-prefix` check defers an out-of-enum phase to invariant 1, so each
-incoherent variant breaks exactly one named invariant (proved by the split
-self-test).
+ceiling for the corpus and its tests (the package and two test modules), adds
+no dependency, pulls no phase-2 schema work forward, and changes no design
+field or invariant. The `gate-ratio-consistent` check derives its ratio from
+the honest on-disk draft total so a `by_chapter_override` cannot perturb
+invariant 7, and the `completed-prefix` check defers an out-of-enum phase to
+invariant 1, so each incoherent variant breaks exactly one named invariant
+(proved by the split self-test).
 
 ## Documentation to read, and skills to load, before starting
 
@@ -788,11 +792,11 @@ New code (in `tests/working_corpus.py` if the line-count split is taken, else in
   `by_chapter` from the chapter draft words; a value injects a deliberate
   current/by-chapter mismatch), `consecutive_clean: int`,
   `convergence_target: int`, gate booleans (`done_30`/`done_50`/`done_80`,
-  `final_pass_complete`), the drafting cursor (`current_chapter`/`current_scene`
-  /`current_beat`), `compiled: str | None` (None means no `compiled.md`; the
-  sentinel `AUTO` writes the hash-equal `concatenate_drafts` of the present
-  drafts — the coherent compile; any other string writes exactly that content —
-  the stale/contradictory compile used by the
+  `final_pass_complete`), the drafting cursor (`current_chapter`/
+  `current_scene` /`current_beat`), `compiled: str | None` (None means no
+  `compiled.md`; the sentinel `AUTO` writes the hash-equal `concatenate_drafts`
+  of the present drafts — the coherent compile; any other string writes exactly
+  that content — the stale/contradictory compile used by the
   `compiled-not-concatenation-of-drafts` variant), and
   `pending_turn: Mapping[str, object] | None` (the two-key `operation`/`paths`
   marker for the torn-turn variant).
@@ -849,8 +853,7 @@ Tests to add (`tests/test_working_corpus.py`):
   `[gates.final]`) with the builder's fixed defaults present, so a "parse
   without loss" consumer hits no absent field.
 - Unit: a coherent `compiled=AUTO` spec writes a
-  `working/manuscript/compiled.md`
-  whose bytes equal
+  `working/manuscript/compiled.md` whose bytes equal
   `concatenate_drafts([...present draft bodies in zero-padded order...])`, and
   a non-`AUTO` string writes exactly those bytes (the stale-compile case),
   confirming the corpus's compile model is the §4.3 concatenation, not a parsed
@@ -950,12 +953,11 @@ Edits/new code (in `tests/working_corpus.py`):
   cross-check on the same strings (resolves advisory A5).
 - The `"done-flag-without-draft"` branch (design §5.4) keys on **
   `has_done_flag and draft_words == 0`** — a `done.flag` beside an empty
-  `draft.md` — not on
-  `has_done_flag` alone. This is the precise boundary against Work item 4's
-  coherent `DONE_FLAG_PERMUTATIONS`, where flagged chapters always carry
-  `draft_words > 0`: those permutations must return the empty tuple, while a
-  flagged zero-word draft returns `"done-flag-without-draft"`. (Resolves
-  round-2 advisory A4.)
+  `draft.md` — not on `has_done_flag` alone. This is the precise boundary
+  against Work item 4's coherent `DONE_FLAG_PERMUTATIONS`, where flagged
+  chapters always carry `draft_words > 0`: those permutations must return the
+  empty tuple, while a flagged zero-word draft returns
+  `"done-flag-without-draft"`. (Resolves round-2 advisory A4.)
 - The compile contradiction is checked by the design's hash model, not by name
   parsing: the `"compiled-matches-drafts"` branch recomputes
   `concatenate_drafts([...present drafts...])` (the `CORPUS_SEPARATOR` helper
@@ -1366,23 +1368,23 @@ No work item count changed (still five). The variant set grows by one
 ## Addenda (post-merge follow-ups)
 
 Lightweight addendum work items folded back onto this completed task. Execute
-each as a small addendum pass — no plan or design-review cycle: make the change,
-run `make all`, `coderabbit review --agent`, commit, and tick the roadmap
-sub-task on merge.
+each as a small addendum pass — no plan or design-review cycle: make the
+change, run `make all`, `coderabbit review --agent`, commit, and tick the
+roadmap sub-task on merge.
 
 - [x] 1.3.2.1 — Disambiguate the three consecutive-clean sub-rules in the oracle
   vocabulary (from audit:1.3.2, low). Design §5.2 invariant 4 bundles three
   sub-rules (`consecutive_clean ≥ 0`, `consecutive_clean ≤ convergence_target`,
   `consecutive_clean ≤ chapters drafted`) that the oracle collapses onto the
   single `consecutive-clean-bound` name, so the set-equality self-test cannot
-  tell the three targeting variants
-  (`consecutive-clean-over-target`, `convergence-target-below-one`,
-  `consecutive-clean-over-chapters-drafted`) apart and two of the three
-  sub-rules could silently stop being exercised. Split the oracle into three
-  named checks (or add a minimality self-test that pins which sub-rule each
-  variant breaks) so the corpus vocabulary mirrors the design's distinct
-  sub-rules and strengthens task 2.1.2's cross-check. Test-only; the
-  `CORPUS_INVARIANT_NAMES` vocabulary and the variant set are the surface.
+  tell the three targeting variants (`consecutive-clean-over-target`,
+  `convergence-target-below-one`, `consecutive-clean-over-chapters-drafted`)
+  apart and two of the three sub-rules could silently stop being exercised.
+  Split the oracle into three named checks (or add a minimality self-test that
+  pins which sub-rule each variant breaks) so the corpus vocabulary mirrors the
+  design's distinct sub-rules and strengthens task 2.1.2's cross-check.
+  Test-only; the `CORPUS_INVARIANT_NAMES` vocabulary and the variant set are
+  the surface.
 - [x] 1.3.2.2 — Model a `done.flag` beside an *absent* `draft.md` in the corpus
   builder (from review:1.3.2, low). Design §5.4 names the absent-draft
   contradiction ("a `done.flag` beside an empty *or absent* `draft.md`"), but
@@ -1391,7 +1393,7 @@ sub-task on merge.
   This is the scoped builder addition "What this task does NOT do" anticipates:
   give `ChapterSpec` (or the builder) a way to suppress the `draft.md` write
   when a `done.flag` is present, add a `done-flag-absent-draft` variant keyed on
-  `done-flag-without-draft`, and confirm the oracle already flags it (its branch
-  keys on `has_done_flag and draft_words == 0`, which the absent case must also
-  satisfy). Keeps the §5.4 contradiction set complete for the 2.3.2
+  `done-flag-without-draft`, and confirm the oracle already flags it (its
+  branch keys on `has_done_flag and draft_words == 0`, which the absent case
+  must also satisfy). Keeps the §5.4 contradiction set complete for the 2.3.2
   check/reconcile consumer. Builder/test-only; no design field changes.

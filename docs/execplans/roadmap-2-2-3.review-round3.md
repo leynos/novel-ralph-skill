@@ -11,8 +11,7 @@ design-conformant as written. Residual findings are advisory only.
 - **Reconcile precedence (S5 corrected; the B1 fix is genuinely necessary).**
   `state/reconcile.py::derive_reconciliation` lines 256-265 evaluate
   `refuse = [name for name in fired if name in _REFUSE_CLASS]` then
-  `if refuse: return _refuse(refuse)`
-  **before** the
+  `if refuse: return _refuse(refuse)` **before** the
   `state.pending_turn is not None and PENDING_TURN_CLEARED in fired` branch.
   `_REFUSE_CLASS` (lines 78-83) contains `MANIFEST_DISK_BIJECTION`. So a
   partial-directory torn `set-chapters` turn REFUSEs before
@@ -30,9 +29,8 @@ design-conformant as written. Residual findings are advisory only.
   the manifest-only alternative would leave `check` at exit 4 the instant the
   command returns.
 - **`_pending_turn_edit` needs the mkdir branch (WI3a extension point is
-  real).**
-  `commands/_reconcile.py::_pending_turn_edit` (lines 150-183) only re-derives
-  `[word_counts]` when `state.toml` is a missing declared path; the
+  real).** `commands/_reconcile.py::_pending_turn_edit` (lines 150-183) only
+  re-derives `[word_counts]` when `state.toml` is a missing declared path; the
   COMPLETE/ROLLBACK dispatch (lines 288-292) funnels both through it. For a
   `set-chapters` COMPLETE, `state.toml` is present (not missing), so
   `writes_state` is False and no word-count re-derive runs — the branch must add
@@ -92,8 +90,7 @@ design-conformant as written. Residual findings are advisory only.
   explicitly rejected in D9 on roadmap-mandate (lines 715-719) plus
   firm-bijection (§5.1/§5.2) grounds — both verified.
 - **Dinolump (viability):** the precedence change is scoped and ADR-recorded;
-  the
-  escalation trigger in Tolerances is narrowed to shape/signature changes.
+  the escalation trigger in Tolerances is narrowed to shape/signature changes.
 
 ## Advisory (non-blocking; do not block on these)
 

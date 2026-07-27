@@ -1,40 +1,40 @@
 # Relax the manifest-disk bijection during drafting
 
-This ExecPlan (execution plan) is a living document. The sections
-`Constraints`, `Tolerances`, `Risks`, `Progress`, `Surprises & Discoveries`,
-`Decision Log`, and `Outcomes & Retrospective` must be kept up to date as work
-proceeds.
+This ExecPlan (execution plan) is a living document. The sections `Constraints`,
+`Tolerances`, `Risks`, `Progress`, `Surprises & Discoveries`, `Decision Log`,
+and `Outcomes & Retrospective` must be kept up to date as work proceeds.
 
 Status: DONE
 
 ## Purpose / big picture
 
 Today `novel-state check` enforces an exact bijection between the `[chapters]`
-manifest in `working/state.toml` and the on-disk `working/manuscript/chapter-NN/`
-directories: every manifest entry must have a directory and every directory must
-have a manifest entry (design §5.2 invariant 5, implemented by
-`_check_manifest_disk_bijection` in
+manifest in `working/state.toml` and the on-disk
+`working/manuscript/chapter-NN/` directories: every manifest entry must have a
+directory and every directory must have a manifest entry (design §5.2 invariant
+5, implemented by `_check_manifest_disk_bijection` in
 `novel_ralph_skill/state/disk_evidence.py`). Beta testing found this makes
-`check` unusable for the entire drafting phase: the manifest holds every planned
-chapter the instant chapter planning finishes, but during drafting only the
-chapters drafted so far need have a populated directory, so `check` exits 4 on
-`manifest-disk-bijection` for the whole drafting run.
+`check` unusable for the entire drafting phase: the manifest holds every
+planned chapter the instant chapter planning finishes, but during drafting only
+the chapters drafted so far need have a populated directory, so `check` exits 4
+on `manifest-disk-bijection` for the whole drafting run.
 
 After this change, while `[phase].current == drafting`, `novel-state check`
-accepts a tree whose on-disk chapter set is a **subset** of the manifest — every
-on-disk chapter must still map to a manifest entry, but a manifest entry need not
-yet have a directory. The relaxation is one-directional and phase-gated: a draft
-on disk with **no** manifest entry (an orphan directory) is still a violation in
-every phase, and at `final-pass` and `done` the exact bijection is enforced
-again. An author can run `novel-state check` mid-draft and get a clean exit 0
-when the tree is honestly a drafting-in-progress tree, while a genuinely broken
-tree (an orphan directory, a manifest gap, an extra directory at final-pass) is
-still a loud exit 4.
+accepts a tree whose on-disk chapter set is a **subset** of the manifest —
+every on-disk chapter must still map to a manifest entry, but a manifest entry
+need not yet have a directory. The relaxation is one-directional and
+phase-gated: a draft on disk with **no** manifest entry (an orphan directory)
+is still a violation in every phase, and at `final-pass` and `done` the exact
+bijection is enforced again. An author can run `novel-state check` mid-draft
+and get a clean exit 0 when the tree is honestly a drafting-in-progress tree,
+while a genuinely broken tree (an orphan directory, a manifest gap, an extra
+directory at final-pass) is still a loud exit 4.
 
 You can observe success by building a mid-drafting tree whose manifest declares
-chapters 1..3 but whose disk holds only `chapter-01/`, running `novel-state
-check`, and seeing exit 0; then advancing the same tree to `final-pass` and
-seeing exit 4 with `manifest-disk-bijection` in `result.violations`.
+chapters 1..3 but whose disk holds only `chapter-01/`, running
+`novel-state check`, and seeing exit 0; then advancing the same tree to
+`final-pass` and seeing exit 4 with `manifest-disk-bijection` in
+`result.violations`.
 
 ## Constraints
 
@@ -48,8 +48,9 @@ Hard invariants that must hold throughout implementation.
   string, including an absolute path — verified in
   `/data/leynos/Projects/cuprum/cuprum/catalogue.py` `ProgramCatalogue` and
   exercised by that test's docstring at line 108), run via
-  `sh.make(prog, catalogue=...).run_sync(context=ExecutionContext(cwd=...),
-  capture=True)`. No new cuprum surface is introduced.
+  `sh.make(prog, catalogue=…).run_sync(context=ExecutionContext(cwd=…),
+  capture=True)`.
+  No new cuprum surface is introduced.
 - **The reconcile precedence must not change behaviour.**
   `novel_ralph_skill/state/reconcile.py::derive_reconciliation` drives the torn
   `set-chapters` COMPLETE path (ADR 008; design §5.4 item 2) off the **strict**
@@ -58,20 +59,21 @@ Hard invariants that must hold throughout implementation.
   `phase_current="drafting"`. The relaxation MUST NOT suppress the bijection
   signal `derive_reconciliation` reads (see Decision D1).
 - **The corpus agreement suite must stay green unchanged for the strict
-  detector.** `tests/test_novel_state_check_disk.py::
-  test_union_detector_agrees_with_corpus_oracle` and
-  `tests/test_disk_evidence.py` pin the production detector to the corpus oracle
-  twin (`tests/working_corpus/_oracle_disk.py`) under the **strict** call. The
-  default behaviour of `check_disk_evidence` must remain strict, so those tests
-  do not have to change semantics.
+  detector.**
+  `tests/test_novel_state_check_disk.py::
+  test_union_detector_agrees_with_corpus_oracle`
+  and `tests/test_disk_evidence.py` pin the production detector to the corpus
+  oracle twin (`tests/working_corpus/_oracle_disk.py`) under the **strict**
+  call. The default behaviour of `check_disk_evidence` must remain strict, so
+  those tests do not have to change semantics.
 - **Deliberate-twin discipline (developers' guide "Invariant validation").** Any
   production predicate change must be mirrored in its oracle twin, and the two
   must remain pinned to agree. The relaxation adds a parallel path; it does not
   let production and oracle drift on the strict path.
 - **One vocabulary.** The invariant name stays `manifest-disk-bijection`
   (`disk_evidence.MANIFEST_DISK_BIJECTION`), spelled identically in production
-  and oracle; no new public invariant name is introduced (the relaxation changes
-  *when* the existing name fires, not the name).
+  and oracle; no new public invariant name is introduced (the relaxation
+  changes *when* the existing name fires, not the name).
 - **`check` writes nothing on any path** (design §3.3). This is a checker change
   only.
 - **File-size cap.** Keep every touched module within the AGENTS.md 400-line cap
@@ -84,9 +86,9 @@ Hard invariants that must hold throughout implementation.
 - **Scope:** if the implementation requires changes to more than 12 files or
   more than ~350 net lines of code, stop and escalate.
 - **Interface:** the only sanctioned public-signature change is adding a
-  keyword-only, default-strict parameter to `check_disk_evidence` (Decision D1).
-  If any other public signature in `novel_ralph_skill/state/__init__.py` must
-  change, stop and escalate.
+  keyword-only, default-strict parameter to `check_disk_evidence` (Decision
+  D1). If any other public signature in `novel_ralph_skill/state/__init__.py`
+  must change, stop and escalate.
 - **Reconcile behaviour:** if making `check` relax forces any change to
   `derive_reconciliation`'s observable output on any existing reconcile test,
   stop and escalate — that means the strict/relaxed split (D1) has leaked.
@@ -376,16 +378,16 @@ Hard invariants that must hold throughout implementation.
 
 ## Outcomes & retrospective
 
-Outcome: achieved, all four acceptance behaviours proven by tests. A mid-drafting
-manifest subset exits 0 (unit, corpus, and installed-script e2e); an orphan
-directory and a non-contiguous manifest still exit 4 in every phase; the same
-subset at final-pass/done exits 4 with `manifest-disk-bijection`; the torn
-`set-chapters` drafting tree still derives COMPLETE_PENDING_TURN (reconcile reads
-the strict bijection, D1); the cover-drafts boundary (D6) is pinned (a drifted
-table on a relaxed subset still yields an empty relaxed verdict, the same tree
-firing only `manifest-disk-bijection` under strict); and the exit-0 e2e tree
-carries no `reconciliation` key. The strict corpus agreement suite
-(`test_union_detector_agrees_with_corpus_oracle`) and the strict
+Outcome: achieved, all four acceptance behaviours proven by tests. A
+mid-drafting manifest subset exits 0 (unit, corpus, and installed-script e2e);
+an orphan directory and a non-contiguous manifest still exit 4 in every phase;
+the same subset at final-pass/done exits 4 with `manifest-disk-bijection`; the
+torn `set-chapters` drafting tree still derives COMPLETE_PENDING_TURN
+(reconcile reads the strict bijection, D1); the cover-drafts boundary (D6) is
+pinned (a drifted table on a relaxed subset still yields an empty relaxed
+verdict, the same tree firing only `manifest-disk-bijection` under strict); and
+the exit-0 e2e tree carries no `reconciliation` key. The strict corpus
+agreement suite (`test_union_detector_agrees_with_corpus_oracle`) and the strict
 `derive_reconciliation` suites are unchanged because `check_disk_evidence`
 defaults to strict; only the user-facing `check` passes
 `relax_drafting_bijection=True`.
@@ -393,10 +395,11 @@ defaults to strict; only the user-facing `check` passes
 Deviations from the plan, all benign:
 
 - The ADR-009 predicate-level unit tests and the phase x tree-shape Hypothesis
-  property landed in a NEW module (`tests/test_drafting_bijection_relaxation.py`)
-  rather than extending `tests/test_disk_evidence.py`, because the additions
-  breached the AGENTS.md 400-line cap; `disk_evidence.py` itself stayed in place
-  (no sibling extraction needed — it sits at ~370 lines).
+  property landed in a NEW module
+  (`tests/test_drafting_bijection_relaxation.py`) rather than extending
+  `tests/test_disk_evidence.py`, because the additions breached the AGENTS.md
+  400-line cap; `disk_evidence.py` itself stayed in place (no sibling
+  extraction needed — it sits at ~370 lines).
 - The corpus-loop assets landed in a second new module
   (`tests/test_drafting_bijection_corpus.py`), and the e2e in a third
   (`tests/test_drafting_bijection_e2e.py`), reusing the module-scoped
@@ -407,15 +410,16 @@ Deviations from the plan, all benign:
   exits 0 via check while reconcile still REFUSEs); each gained a dedicated
   strict/relaxed split test. See Surprises & discoveries (WI2).
 - A new `ChapterSpec.write_directory` field (default True, byte-identical for
-  existing trees) was added so the positive corpus fixture models a REAL planned-
-  but-undrafted chapter absent on disk, as the plan's Work item 3 step 3 directed.
+  existing trees) was added so the positive corpus fixture models a REAL
+  planned- but-undrafted chapter absent on disk, as the plan's Work item 3 step
+  3 directed.
 
 ## Context and orientation
 
 The harness is a set of deterministic Python commands over a `working/` project
 tree. State lives in `working/state.toml`; the manuscript lives under
-`working/manuscript/chapter-NN/` (zero-padded), each holding `draft.md` and, when
-complete, `done.flag` (design §5.1). The compiled manuscript is
+`working/manuscript/chapter-NN/` (zero-padded), each holding `draft.md` and,
+when complete, `done.flag` (design §5.1). The compiled manuscript is
 `working/manuscript/compiled.md`.
 
 `novel-state check` runs two verdict producers and unions them
@@ -428,62 +432,66 @@ complete, `done.flag` (design §5.1). The compiled manuscript is
   invariants, comparing `state.toml` against the `working/` tree. It owns eight
   predicates assembled in `_PREDICATES` (lines 264-273) and returns an ordered
   `tuple[Violation, ...]`. The bijection predicate is
-  `_check_manifest_disk_bijection` (lines 112-133): it builds `manifest =
-  {chapter.number for chapter in state.chapters}` and `on_disk =
-  _on_disk_chapter_numbers(working_dir)`, then fires
+  `_check_manifest_disk_bijection` (lines 112-133): it builds
+  `manifest = {chapter.number for chapter in state.chapters}` and
+  `on_disk = _on_disk_chapter_numbers(working_dir)`, then fires
   `MANIFEST_DISK_BIJECTION` unless `manifest == on_disk` and the manifest is
   contiguous from 1.
 
-The phase enum lives in `novel_ralph_skill/state/phase.py`
-(`Phase`, a `StrEnum`); `Phase.DRAFTING == "drafting"`. The parsed phase is
-`state.phase.current` (`PhaseState.current`, `novel_ralph_skill/state/schema.py`).
+The phase enum lives in `novel_ralph_skill/state/phase.py` (`Phase`, a
+`StrEnum`); `Phase.DRAFTING == "drafting"`. The parsed phase is
+`state.phase.current` (`PhaseState.current`,
+`novel_ralph_skill/state/schema.py`).
 
 **Coupling with `word-counts-cover-drafts` (load-bearing — read before
 implementing).** One other disk-evidence predicate observes the manifest⇄disk
 relationship: `_check_word_counts_cover_drafts`
 (`novel_ralph_skill/state/_disk_word_counts.py` lines 102-143). Its first guard
-(lines 128-130) is `if manifest != _on_disk_chapter_numbers(working_dir): return
-None` — it **defers** (silently coherent) on any tree where the manifest and
-on-disk directory sets differ, because it recomputes `by_chapter` by keying off
-the manifest and a non-bijective manifest makes that recount untrustworthy (its
+(lines 128-130) is
+`if manifest != _on_disk_chapter_numbers(working_dir): return None` — it
+**defers** (silently coherent) on any tree where the manifest and on-disk
+directory sets differ, because it recomputes `by_chapter` by keying off the
+manifest and a non-bijective manifest makes that recount untrustworthy (its
 docstring, lines 119-127, says so explicitly: it defers to the bijection signal
 so the two predicates do not double-fire). A relaxed drafting **subset** has
 `manifest != on_disk` by definition, so cover-drafts already deferred on every
 such tree under the strict detector — it has never fired on a subset. The
 relaxation therefore does not silence a *firing* check; it removes the louder
-`manifest-disk-bijection` signal that previously sat in front of the already-silent
-cover-drafts deferral. The consequence is real and must be documented (ADR 009,
-D6): during a relaxed drafting subset the `by_chapter` key-set-coverage check is
-not enforced. It re-enforces the instant the tree returns to bijection (every
-drafted chapter has its directory) and at `final-pass`/`done` where the strict
-bijection is mandatory. The other six disk-evidence predicates
-(`cursor-plan-present`, `done-flag-without-draft`, `compiled-matches-drafts`,
-`pending-turn-cleared`, `word-counts-match-drafts`, `log-present`) do not read the
-manifest⇄disk equality and are genuinely unaffected — `word-counts-match-drafts`
-compares only **shared** chapter keys (`_disk_word_counts.py` lines 92-96), so it
-stays clean on a subset whose present drafts match the table.
+`manifest-disk-bijection` signal that previously sat in front of the
+already-silent cover-drafts deferral. The consequence is real and must be
+documented (ADR 009, D6): during a relaxed drafting subset the `by_chapter`
+key-set-coverage check is not enforced. It re-enforces the instant the tree
+returns to bijection (every drafted chapter has its directory) and at
+`final-pass`/`done` where the strict bijection is mandatory. The other six
+disk-evidence predicates (`cursor-plan-present`, `done-flag-without-draft`,
+`compiled-matches-drafts`, `pending-turn-cleared`, `word-counts-match-drafts`,
+`log-present`) do not read the manifest⇄disk equality and are genuinely
+unaffected — `word-counts-match-drafts` compares only **shared** chapter keys
+(`_disk_word_counts.py` lines 92-96), so it stays clean on a subset whose
+present drafts match the table.
 
 `novel_ralph_skill/state/reconcile.py::derive_reconciliation` (lines 323-382)
 also calls `check_disk_evidence(state, working_dir)` (line 345) and uses the
 `manifest-disk-bijection` firing to drive the scoped torn-`set-chapters`
 COMPLETE precedence (`_set_chapters_turn_explains_bijection`, lines 199-236;
 `_complete_set_chapters_turn`, lines 281+). ADR 008 records this. The decisive
-reconcile test (`tests/test_set_chapters_reconcile.py`) builds its torn tree with
-`phase_current="drafting"` (line 125), so the bijection MUST keep firing strictly
-for that caller.
+reconcile test (`tests/test_set_chapters_reconcile.py`) builds its torn tree
+with `phase_current="drafting"` (line 125), so the bijection MUST keep firing
+strictly for that caller.
 
 The corpus structural oracle (an **independent** re-implementation used as a
 cross-check) lives in `tests/working_corpus/`. Its bijection twin is
-`tests/working_corpus/_oracle_disk.py::_check_manifest_disk_bijection`
-(lines 73-85). The agreement test
+`tests/working_corpus/_oracle_disk.py::_check_manifest_disk_bijection` (lines
+73-85). The agreement test
 `tests/test_novel_state_check_disk.py::test_union_detector_agrees_with_corpus_oracle`
 pins production (strict) to the oracle (strict) on every corpus tree. Corpus
 variants are defined in `tests/working_corpus/_variants.py`; the relevant ones
-are `manifest-extra-entry` (a manifest entry without a directory, on the drafting
-`_BASE`) and `draft-without-manifest-entry` (an orphan directory). Coherent
-per-phase baselines come from `tests/working_corpus/_library.py`
-(`PHASE_STATES`, `COHERENT_BASELINE`); `_drafting_spec` produces the `final-pass`
-and `done` baselines with a fully-populated manifest and all directories present.
+are `manifest-extra-entry` (a manifest entry without a directory, on the
+drafting `_BASE`) and `draft-without-manifest-entry` (an orphan directory).
+Coherent per-phase baselines come from `tests/working_corpus/_library.py`
+(`PHASE_STATES`, `COHERENT_BASELINE`); `_drafting_spec` produces the
+`final-pass` and `done` baselines with a fully-populated manifest and all
+directories present.
 
 Terms used in this plan:
 
@@ -498,9 +506,9 @@ Terms used in this plan:
 
 ## Plan of work
 
-The work proceeds in four atomic, independently committable work items. Each ends
-with the validation in "Validation and acceptance". Do not proceed past a failing
-gate.
+The work proceeds in four atomic, independently committable work items. Each
+ends with the validation in "Validation and acceptance". Do not proceed past a
+failing gate.
 
 ### Work item 1 — ADR 009: phase-gated bijection relaxation
 
@@ -508,48 +516,49 @@ Documentation only; lands first so the code work items can cite it.
 
 Docs to read first: `docs/adr-008-chapter-manifest-mutator.md` (the format and
 the §5.4 precedence it established); design §5.2 invariant 5 and §5.4 (the
-disk-authoritative model and the §4.3 ordering guarantee the bijection protects);
-the roadmap 2.1.7 entry. Skills to load: none beyond en-GB prose discipline
-(`en-gb-oxendict`).
+disk-authoritative model and the §4.3 ordering guarantee the bijection
+protects); the roadmap 2.1.7 entry. Skills to load: none beyond en-GB prose
+discipline (`en-gb-oxendict`).
 
 Create `docs/adr-009-drafting-bijection-relaxation.md` following the ADR 008
 shape (Status, Date, Context and problem statement, Decision drivers, Decision,
 Consequences, References). It must state:
 
-- The problem: §5.2 invariant 5 requires exact bijection, but during drafting the
-  manifest leads the on-disk directory set, so `check` exits 4 for the whole
-  drafting phase (beta finding).
+- The problem: §5.2 invariant 5 requires exact bijection, but during drafting
+  the manifest leads the on-disk directory set, so `check` exits 4 for the
+  whole drafting phase (beta finding).
 - The decision: while `[phase].current == drafting`, `novel-state check` relaxes
   the bijection to **disk-subset-of-manifest** — the orphan direction and the
   manifest-contiguity check still fire; only the missing-directory direction is
-  suppressed. At every other phase, including `final-pass` and `done`, the exact
-  bijection is enforced.
+  suppressed. At every other phase, including `final-pass` and `done`, the
+  exact bijection is enforced.
 - The boundary with reconcile: the relaxation is scoped to the user-facing
   `check` verdict (`check_disk_evidence(..., relax_drafting_bijection=True)`).
   `reconcile` keeps the strict bijection (default flag), so the torn
-  `set-chapters` COMPLETE precedence (ADR 008) is unchanged even though that torn
-  tree carries `phase=drafting` (cite the existing test). Record this as the
-  controlling reason the relaxation is a flag, not an unconditional predicate
-  change.
-- The §4.3 consequence: the manifest⇄directory ordering guarantee `novel-compile`
-  depends on holds again at final-pass before any final compile, so relaxing
-  during drafting does not weaken compile ordering (compile runs after the
-  bijection re-tightens).
+  `set-chapters` COMPLETE precedence (ADR 008) is unchanged even though that
+  torn tree carries `phase=drafting` (cite the existing test). Record this as
+  the controlling reason the relaxation is a flag, not an unconditional
+  predicate change.
+- The §4.3 consequence: the manifest⇄directory ordering guarantee
+  `novel-compile` depends on holds again at final-pass before any final
+  compile, so relaxing during drafting does not weaken compile ordering
+  (compile runs after the bijection re-tightens).
 - **The full blast radius (mandatory — enumerate every invariant whose
   enforcement changes, not just the bijection).** State that the relaxation
   changes the enforcement of exactly two disk-evidence invariants during
-  drafting: (1) `manifest-disk-bijection` itself, relaxed to disk-subset-of-manifest
-  (orphan and contiguity directions still fire); and (2)
-  `word-counts-cover-drafts`, which is **not enforced** during a relaxed subset.
-  Explain why (2) is a consequence and not a regression: cover-drafts
+  drafting: (1) `manifest-disk-bijection` itself, relaxed to
+  disk-subset-of-manifest (orphan and contiguity directions still fire); and (2)
+  `word-counts-cover-drafts`, which is **not enforced** during a relaxed
+  subset. Explain why (2) is a consequence and not a regression: cover-drafts
   (`_disk_word_counts.py` lines 128-130) already defers on any tree where
-  `manifest != on_disk`, so it never fired on a subset under the strict detector;
-  the relaxation only removes the bijection signal that previously sat in front
-  of that deferral. cover-drafts re-enforces once the tree returns to bijection
-  and at `final-pass`/`done`. State explicitly that the remaining six disk-evidence
-  predicates do not read the manifest⇄disk equality and are unchanged. This
-  enumeration is the controlling record so a future reader understands the
-  relaxation's true scope (review r1 blocking item 1; pre-mortem prevention).
+  `manifest != on_disk`, so it never fired on a subset under the strict
+  detector; the relaxation only removes the bijection signal that previously
+  sat in front of that deferral. cover-drafts re-enforces once the tree returns
+  to bijection and at `final-pass`/`done`. State explicitly that the remaining
+  six disk-evidence predicates do not read the manifest⇄disk equality and are
+  unchanged. This enumeration is the controlling record so a future reader
+  understands the relaxation's true scope (review r1 blocking item 1;
+  pre-mortem prevention).
 
 Append `docs/adr-009-drafting-bijection-relaxation.md` to `docs/contents.md` in
 the ADR list (the abstraction-recording rule, AGENTS.md "Abstraction / port /
@@ -561,8 +570,8 @@ changes).
 
 ### Work item 2 — split the bijection verdict and add the phase-gated relaxation
 
-Implements design §5.2 invariant 5's relaxation under ADR 009 / Decision D1, D2,
-D3.
+Implements design §5.2 invariant 5's relaxation under ADR 009 / Decision D1,
+D2, D3.
 
 Docs to read first: design §5.2 (invariant 5) and §5.4; ADR 009 (work item 1);
 the `disk_evidence.py` module docstring (the deliberate-twin and totality
@@ -574,29 +583,32 @@ default-valued parameter and the `Phase` identity comparison).
 Steps:
 
 1. In `novel_ralph_skill/state/disk_evidence.py`, refactor
-   `_check_manifest_disk_bijection(state, working_dir)` so its verdict is computed
-   from the two directions explicitly: `orphans = on_disk - manifest` (the orphan
-   direction), `missing = manifest - on_disk` (the missing-directory direction),
-   and `contiguous = sorted(manifest) == list(range(1, len(manifest) + 1))`. The
-   strict verdict fires `MANIFEST_DISK_BIJECTION` when `orphans or missing or not
-   contiguous` — byte-for-byte equivalent to today's `manifest == on_disk and
-   contiguous`. Keep the existing detail message wording for the strict path so
-   no snapshot churns.
+   `_check_manifest_disk_bijection(state, working_dir)` so its verdict is
+   computed from the two directions explicitly: `orphans = on_disk - manifest`
+   (the orphan direction), `missing = manifest - on_disk` (the
+   missing-directory direction), and
+   `contiguous = sorted(manifest) == list(range(1, len(manifest) + 1))`. The
+   strict verdict fires `MANIFEST_DISK_BIJECTION` when
+   `orphans or missing or not contiguous` — byte-for-byte equivalent to today's
+   `manifest == on_disk and contiguous`. Keep the existing detail message
+   wording for the strict path so no snapshot churns.
 2. Give the bijection predicate a widened, keyword-only signature
-   `_check_manifest_disk_bijection(state, working_dir, *, relax_drafting:
-   bool = False)`. When `relax_drafting and state.phase.current ==
-   Phase.DRAFTING`, a verdict whose **only** broken direction is `missing` (i.e.
+   `_check_manifest_disk_bijection(state, working_dir, *, relax_drafting: bool =
+   False)`.
+   When `relax_drafting and state.phase.current == Phase.DRAFTING`, a verdict
+   whose **only** broken direction is `missing` (i.e.
    `not orphans and contiguous and missing`) returns `None` (coherent). Orphans
    and a non-contiguous manifest still fire in every phase. Import `Phase` from
-   `novel_ralph_skill.state.phase`. The predicate already receives `state`, so it
-   reads `state.phase.current` directly.
+   `novel_ralph_skill.state.phase`. The predicate already receives `state`, so
+   it reads `state.phase.current` directly.
 3. **Wiring mechanism (resolves the `_PREDICATES`-uniformity conflict).** The
-   `_PREDICATES` loop is a uniform `tuple[Callable[[State, Path], Violation |
-   None], ...]` (`disk_evidence.py` lines 264-273), so a per-predicate kwarg
-   cannot be threaded through it without widening every predicate. Do **not**
-   widen the loop. Instead, **lift the bijection predicate out of the loop** and
-   call it explicitly first, then run the remaining seven predicates through the
-   loop, concatenating in `DISK_EVIDENCE_INVARIANT_NAMES` order. Concretely:
+   `_PREDICATES` loop is a uniform
+   `tuple[Callable[[State, Path], Violation | None], ...]` (`disk_evidence.py`
+   lines 264-273), so a per-predicate kwarg cannot be threaded through it
+   without widening every predicate. Do **not** widen the loop. Instead, **lift
+   the bijection predicate out of the loop** and call it explicitly first, then
+   run the remaining seven predicates through the loop, concatenating in
+   `DISK_EVIDENCE_INVARIANT_NAMES` order. Concretely:
    - Define `_TAIL_PREDICATES` as the existing tuple **minus**
      `_check_manifest_disk_bijection` (the seven non-bijection predicates, in
      their current order: cursor-plan-present, done-flag-without-draft,
@@ -628,11 +640,11 @@ Steps:
    user-facing checker relaxes. Update the `_check` docstring to note the
    drafting-phase subset relaxation and cite ADR 009.
 5. Leave `derive_reconciliation` (reconcile.py line 345) calling
-   `check_disk_evidence(state, working_dir)` with the default — i.e. strict. Add
-   a one-line comment there citing D1/ADR 009: reconcile reads the strict
+   `check_disk_evidence(state, working_dir)` with the default — i.e. strict.
+   Add a one-line comment there citing D1/ADR 009: reconcile reads the strict
    bijection so the torn `set-chapters` precedence is unaffected.
-6. Update the `disk_evidence.py` module docstring to describe the new flag and the
-   strict-by-default contract.
+6. Update the `disk_evidence.py` module docstring to describe the new flag and
+   the strict-by-default contract.
 
 Interfaces at end of this work item:
 
@@ -649,8 +661,8 @@ def check_disk_evidence(
 Tests (add/extend `tests/test_disk_evidence.py`):
 
 - Unit: strict default — `manifest-extra-entry`-shaped tree at `phase=drafting`
-  still fires `manifest-disk-bijection` under the default flag (regression guard
-  for the corpus agreement suite and reconcile).
+  still fires `manifest-disk-bijection` under the default flag (regression
+  guard for the corpus agreement suite and reconcile).
 - Unit: relaxed flag at `phase=drafting` — the same subset tree returns no
   `manifest-disk-bijection` violation.
 - Unit: relaxed flag, orphan directory at `phase=drafting` — an on-disk chapter
@@ -663,15 +675,15 @@ Tests (add/extend `tests/test_disk_evidence.py`):
 - Unit (cover-drafts boundary, resolves review r1 blocking item 1): build a
   relaxed drafting subset whose `by_chapter` table key set has DRIFTED (e.g. a
   table key the manifest never declares, or a recount key the table omits) and
-  assert the **full relaxed verdict is empty** — i.e. `check_disk_evidence(...,
-  relax_drafting_bijection=True)` returns `()`. This pins the documented
-  boundary: cover-drafts does NOT fire on a relaxed subset because it already
-  defers when `manifest != on_disk`. Add a paired assertion that the SAME tree
-  under the **strict** flag fires `manifest-disk-bijection` (and still not
-  cover-drafts, proving cover-drafts was already silent), so the test records that
-  the relaxation removed only the bijection signal, not a cover-drafts signal
-  (D6). A docstring on the test must name D6 and state this is the intended
-  boundary, not an accident.
+  assert the **full relaxed verdict is empty** — i.e.
+  `check_disk_evidence(..., relax_drafting_bijection=True)` returns `()`. This
+  pins the documented boundary: cover-drafts does NOT fire on a relaxed subset
+  because it already defers when `manifest != on_disk`. Add a paired assertion
+  that the SAME tree under the **strict** flag fires `manifest-disk-bijection`
+  (and still not cover-drafts, proving cover-drafts was already silent), so the
+  test records that the relaxation removed only the bijection signal, not a
+  cover-drafts signal (D6). A docstring on the test must name D6 and state this
+  is the intended boundary, not an accident.
 - Unit (union order preserved, resolves review r1 blocking item 3): construct a
   tree that fires several disk-evidence invariants at once (including the
   bijection) under the strict flag and assert the returned invariant-name order
@@ -681,17 +693,17 @@ Tests (add/extend `tests/test_disk_evidence.py`):
 - Unit (reconcile regression): in `tests/test_set_chapters_reconcile.py`, assert
   the existing torn `set-chapters` drafting tree still derives
   `ReconcileAction.COMPLETE_PENDING_TURN` (the strict bijection still fires for
-  reconcile). If an equivalent assertion already exists, extend its docstring to
-  name D1 rather than duplicating.
+  reconcile). If an equivalent assertion already exists, extend its docstring
+  to name D1 rather than duplicating.
 - Property (Hypothesis; load the `hypothesis` skill): generate a phase from the
   `Phase` enum and a tree shape from `{exact, subset, orphan, non-contiguous}`,
   build the corresponding `(manifest, on_disk)` sets, and assert the relaxed
-  predicate's verdict equals the table:
-  `subset` → coherent iff `phase == drafting`; `exact` → always coherent;
-  `orphan` → always a violation; `non-contiguous` → always a violation. This pins
-  the phase × direction matrix the example tests sample. Keep the strategy
-  constructive (no `assume`-heavy filtering, per the `hypothesis` skill's
-  filtering-trap guidance).
+  predicate's verdict equals the table: `subset` → coherent iff
+  `phase == drafting`; `exact` → always coherent; `orphan` → always a violation;
+  `non-contiguous` → always a violation. This pins the phase × direction
+  matrix the example tests sample. Keep the strategy constructive (no
+  `assume`-heavy filtering, per the `hypothesis` skill's filtering-trap
+  guidance).
 
 Validation: `make all` (formatting, lint with 100% docstring coverage, ty
 typecheck, pytest, pip-audit). Confirm `tests/test_novel_state_check_disk.py`
@@ -699,35 +711,36 @@ and the reconcile suite stay green (strict default preserved).
 
 ### Work item 3 — corpus oracle twin + positive relaxed case
 
-Keeps the independent corpus oracle in lock-step with the relaxed production path
-and proves the relaxation through the corpus loop, satisfying the deliberate-twin
-discipline (developers' guide "Invariant validation").
+Keeps the independent corpus oracle in lock-step with the relaxed production
+path and proves the relaxation through the corpus loop, satisfying the
+deliberate-twin discipline (developers' guide "Invariant validation").
 
-Docs to read first: developers' guide "Invariant validation" (the twin policy and
-the agreement suite); `tests/working_corpus/_oracle_disk.py` and `_variants.py`
-(the oracle twin and the variant registry); design §5.2 invariant 5. Skills:
-`leta` (navigate the oracle twins and the variant registry); `python-testing`
-(corpus fixtures and parametrization).
+Docs to read first: developers' guide "Invariant validation" (the twin policy
+and the agreement suite); `tests/working_corpus/_oracle_disk.py` and
+`_variants.py` (the oracle twin and the variant registry); design §5.2
+invariant 5. Skills: `leta` (navigate the oracle twins and the variant
+registry); `python-testing` (corpus fixtures and parametrization).
 
 Steps:
 
 1. Mirror the production split in the oracle twin
-   `tests/working_corpus/_oracle_disk.py::_check_manifest_disk_bijection`: add an
-   optional `relax_drafting_bijection`-style path (reading the materialized
+   `tests/working_corpus/_oracle_disk.py::_check_manifest_disk_bijection`: add
+   an optional `relax_drafting_bijection`-style path (reading the materialized
    `state.toml` `[phase].current`) that relaxes the missing-directory direction
-   during drafting, exactly mirroring the production predicate. The **strict** twin
-   path remains the default the agreement suite calls, so
+   during drafting, exactly mirroring the production predicate. The **strict**
+   twin path remains the default the agreement suite calls, so
    `test_union_detector_agrees_with_corpus_oracle` is unchanged.
-2. Add a relaxed agreement assertion: a focused test that, for the drafting subset
-   tree and for the `final-pass`/`done` exact-bijection trees, the **relaxed**
-   production `check_disk_evidence(..., relax_drafting_bijection=True)` agrees with
-   the **relaxed** oracle twin. This is the relaxed analogue of the strict
+2. Add a relaxed agreement assertion: a focused test that, for the drafting
+   subset tree and for the `final-pass`/`done` exact-bijection trees, the
+   **relaxed** production
+   `check_disk_evidence(..., relax_drafting_bijection=True)` agrees with the
+   **relaxed** oracle twin. This is the relaxed analogue of the strict
    agreement suite, scoped to the bijection name so it stays small.
 3. Add a positive (coherent) drafting-subset corpus fixture and assert the
    **full relaxed verdict tuple is empty** — not merely that the bijection name
    is absent (resolves review r1 blocking item 2). A coherent subset must pass
-   every other disk-evidence predicate, so the fixture must be constructed so that
-   each is satisfied:
+   every other disk-evidence predicate, so the fixture must be constructed so
+   that each is satisfied:
    - **Exact fixture.** Start from `COHERENT_BASELINE` / `_BASE`
      (`PHASE_STATES["drafting"]`, three drafted chapters `{1,2,3}` all with
      matching `draft_words`, `current_chapter=3`). Produce a subset by marking the
@@ -775,8 +788,8 @@ Steps:
 Tests: the relaxed agreement test and the positive drafting-subset case above.
 Run alongside the existing strict agreement suite to prove no strict regression.
 
-Validation: `make all`. Confirm both the strict and relaxed agreement tests pass
-and the strict corpus suite is unchanged.
+Validation: `make all`. Confirm both the strict and relaxed agreement tests
+pass and the strict corpus suite is unchanged.
 
 ### Work item 4 — e2e proof and documentation
 
@@ -791,16 +804,16 @@ disk-evidence names and the disk-aware `check` description);
 disk-evidence list). Skills: `leta`; `en-gb-oxendict`; the `firecrawl` skill is
 **not** required here — no new external-library behaviour is leaned on (cuprum
 0.1.0's absolute-path allowlisting is already verified against
-`/data/leynos/Projects/cuprum/cuprum/catalogue.py` and exercised by the existing
-e2e test; Decision D5).
+`/data/leynos/Projects/cuprum/cuprum/catalogue.py` and exercised by the
+existing e2e test; Decision D5).
 
 Steps:
 
 1. Add an e2e scenario (extend the existing console-scripts e2e module or a new
-   `tests/test_drafting_bijection_e2e.py`) that builds a real `working/` tree with
-   a drafting-phase `state.toml` declaring chapters 1..3 and only `chapter-01/`
-   on disk, runs the installed `novel-state check` console-script **by absolute
-   path** through a cuprum `ProgramCatalogue`, and asserts exit 0.
+   `tests/test_drafting_bijection_e2e.py`) that builds a real `working/` tree
+   with a drafting-phase `state.toml` declaring chapters 1..3 and only
+   `chapter-01/` on disk, runs the installed `novel-state check` console-script
+   **by absolute path** through a cuprum `ProgramCatalogue`, and asserts exit 0.
    - **Exact invocation (resolves review r1 advisory).** `novel-state` is a
      command-group app: a bare invocation prints help and exits 0, so the
      subcommand argument `"check"` MUST be passed. Use the proven pattern from
@@ -833,18 +846,19 @@ Steps:
      implies no repair — and the test records it so the acceptance criteria
      account for the payload's absence.
 2. Update `docs/users-guide.md` `manifest-disk-bijection` bullet (line 171) to
-   note that during drafting `check` accepts a tree whose on-disk chapters are a
-   subset of the manifest (an orphan directory or a manifest gap still flags, and
-   the exact bijection returns at `final-pass`/`done`). Add a short worked example
-   under the disk-aware `check` section.
+   note that during drafting `check` accepts a tree whose on-disk chapters are
+   a subset of the manifest (an orphan directory or a manifest gap still flags,
+   and the exact bijection returns at `final-pass`/`done`). Add a short worked
+   example under the disk-aware `check` section.
 3. Update `docs/developers-guide.md` "Invariant validation": annotate the §5.2
-   invariant-5 row and the disk-evidence `manifest-disk-bijection` entry with the
-   drafting-phase relaxation, the `relax_drafting_bijection` flag, and the
-   strict/relaxed split between `check` and `reconcile`; cite ADR 009. Also note,
-   against the `word-counts-cover-drafts` entry, that it is not enforced during
-   a relaxed drafting subset (it defers on `manifest != on_disk`) and re-enforces
-   at bijection and at final-pass/done (D6), so the guide's invariant table records
-   the full relaxation blast radius, not just the bijection.
+   invariant-5 row and the disk-evidence `manifest-disk-bijection` entry with
+   the drafting-phase relaxation, the `relax_drafting_bijection` flag, and the
+   strict/relaxed split between `check` and `reconcile`; cite ADR 009. Also
+   note, against the `word-counts-cover-drafts` entry, that it is not enforced
+   during a relaxed drafting subset (it defers on `manifest != on_disk`) and
+   re-enforces at bijection and at final-pass/done (D6), so the guide's
+   invariant table records the full relaxation blast radius, not just the
+   bijection.
 
 Tests: the e2e cases above. Validation: `make all`, then `make markdownlint` and
 `make nixie` for the two guide changes.
@@ -906,17 +920,17 @@ Quality criteria (what "done" means):
   strict agreement suite and the reconcile suite pass **unchanged**.
 - **Lint/typecheck:** `make lint` and `make typecheck` pass; 100% docstring
   coverage holds (interrogate); no new lint suppression without a linked fix.
-- **Markdown:** `make markdownlint` and `make nixie` pass for the ADR and the two
-  guide edits.
+- **Markdown:** `make markdownlint` and `make nixie` pass for the ADR and the
+  two guide edits.
 
 Quality method (how we check): run `make all` (then `make markdownlint` and
-`make nixie` for markdown work items) at the end of each work item; do not commit
-a work item whose gates fail (AGENTS.md "Change quality and committing").
+`make nixie` for markdown work items) at the end of each work item; do not
+commit a work item whose gates fail (AGENTS.md "Change quality and committing").
 
 Acceptance, phrased as behaviour:
 
-- A drafting-phase tree with manifest `{1,2,3}` and on-disk `{1}` → `novel-state
-  check` exits 0 (was 4).
+- A drafting-phase tree with manifest `{1,2,3}` and on-disk `{1}` →
+  `novel-state check` exits 0 (was 4).
 - The same tree with an extra on-disk `chapter-09/` not in the manifest →
   `novel-state check` exits 4 with `manifest-disk-bijection`.
 - A drafting-phase tree with a manifest gap (`{1,3}`) → exits 4 with
@@ -927,8 +941,8 @@ Acceptance, phrased as behaviour:
   `complete-pending-turn` (reconcile unchanged).
 - A drafting-phase tree with manifest `{1,2,3}`, on-disk `{1}`, AND a drifted
   `by_chapter` table → `novel-state check` still exits 0 (cover-drafts is the
-  documented un-enforced boundary during a relaxed subset, D6); the same drift is
-  caught once the tree returns to bijection or reaches final-pass.
+  documented un-enforced boundary during a relaxed subset, D6); the same drift
+  is caught once the tree returns to bijection or reaches final-pass.
 - The exit-0 drafting-subset tree's `result` JSON carries no `reconciliation`
   key (an empty disk-evidence verdict attaches no reconciliation payload).
 
@@ -945,15 +959,17 @@ Key verified facts pinned for the implementer:
 
 - cuprum 0.1.0 (locked, `uv.lock` line 113) allowlists any `Program` string
   including an absolute path; the existing e2e harness
-  (`tests/test_console_scripts_e2e.py` lines 105-119) is the only cuprum surface
-  this task uses. Verified against `/data/leynos/Projects/cuprum/cuprum/
-  catalogue.py` (`ProgramCatalogue`) and the test's own docstring.
+  (`tests/test_console_scripts_e2e.py` lines 105-119) is the only cuprum
+  surface this task uses. Verified against
+  `/data/leynos/Projects/cuprum/cuprum/ catalogue.py` (`ProgramCatalogue`) and
+  the test's own docstring.
 - `_check_manifest_disk_bijection` today: `manifest == on_disk and contiguous`
-  (`disk_evidence.py` lines 122-126). The split into orphan/missing/contiguity is
-  behaviour-preserving for the strict path.
-- `derive_reconciliation` reads `check_disk_evidence(...)` (reconcile.py line 345)
-  and needs the strict bijection (torn `set-chapters` test at
-  `tests/test_set_chapters_reconcile.py` line 125 uses `phase_current="drafting"`).
+  (`disk_evidence.py` lines 122-126). The split into orphan/missing/contiguity
+  is behaviour-preserving for the strict path.
+- `derive_reconciliation` reads `check_disk_evidence(...)` (reconcile.py line
+  345) and needs the strict bijection (torn `set-chapters` test at
+  `tests/test_set_chapters_reconcile.py` line 125 uses
+  `phase_current="drafting"`).
 - `COHERENT_BASELINE` (`_BASE`) is the drafting baseline
   (`tests/working_corpus/_library.py` line 118), so `manifest-extra-entry` is
   already a drafting-phase tree.
@@ -961,18 +977,19 @@ Key verified facts pinned for the implementer:
   `manifest != _on_disk_chapter_numbers(working_dir)`
   (`novel_ralph_skill/state/_disk_word_counts.py` lines 128-130), so it never
   fires on a subset tree and is the second invariant whose enforcement the
-  relaxation changes (D6). `_check_word_counts_match_drafts` compares only shared
-  keys (same file, lines 92-96), so it stays clean on a subset.
-- The `_PREDICATES` loop is uniform `tuple[Callable[[State, Path], Violation |
-  None], ...]` (`disk_evidence.py` lines 264-273); the chosen wiring lifts
-  `_check_manifest_disk_bijection` out of the loop and calls it first with the
-  flag, then runs the seven tail predicates, preserving
-  `DISK_EVIDENCE_INVARIANT_NAMES` order (bijection is element 0, line 101).
+  relaxation changes (D6). `_check_word_counts_match_drafts` compares only
+  shared keys (same file, lines 92-96), so it stays clean on a subset.
+- The `_PREDICATES` loop is uniform
+  `tuple[Callable[[State, Path], Violation | None], ...]` (`disk_evidence.py`
+  lines 264-273); the chosen wiring lifts `_check_manifest_disk_bijection` out
+  of the loop and calls it first with the flag, then runs the seven tail
+  predicates, preserving `DISK_EVIDENCE_INVARIANT_NAMES` order (bijection is
+  element 0, line 101).
 - e2e invocation must pass the `"check"` subcommand:
   `sh.make(prog, catalogue=catalogue)("check").run_sync(...)`
-  (`tests/test_console_scripts_e2e.py` line 44 `_REAL_PATH_ARGV`, lines 113-119);
-  reuse `@pytest.mark.timeout(180)` + `@pytest.mark.slow`
-  (lines 127-128) over the global `timeout = 30` (`pyproject.toml` line 326).
+  (`tests/test_console_scripts_e2e.py` line 44 `_REAL_PATH_ARGV`, lines
+  113-119); reuse `@pytest.mark.timeout(180)` + `@pytest.mark.slow` (lines
+  127-128) over the global `timeout = 30` (`pyproject.toml` line 326).
 
 ## Revision note (round 2)
 
@@ -983,33 +1000,35 @@ What changed:
 
 - **Blocking item 1 (cover-drafts coupling).** Added Decision D6 analysing the
   relaxation's true blast radius: relaxing the missing-directory direction also
-  leaves `word-counts-cover-drafts` un-enforced during a relaxed subset, because
-  that predicate already defers on `manifest != on_disk` and so never fired on a
-  subset under the strict detector. Added the analysis to "Context and
-  orientation", a Risk entry, a cross-reference from D2, an enumeration
-  requirement to the ADR (Work item 1), and a cover-drafts boundary test to Work
-  item 2 (a drifted-`by_chapter` relaxed subset still yields an empty relaxed
-  verdict, with the same tree firing only `manifest-disk-bijection` under strict).
+  leaves `word-counts-cover-drafts` un-enforced during a relaxed subset,
+  because that predicate already defers on `manifest != on_disk` and so never
+  fired on a subset under the strict detector. Added the analysis to "Context
+  and orientation", a Risk entry, a cross-reference from D2, an enumeration
+  requirement to the ADR (Work item 1), and a cover-drafts boundary test to
+  Work item 2 (a drifted-`by_chapter` relaxed subset still yields an empty
+  relaxed verdict, with the same tree firing only `manifest-disk-bijection`
+  under strict).
 - **Blocking item 2 (positive fixture must prove full cleanliness).** Rewrote
-  Work item 3 step 3 to specify the exact coherent drafting-subset fixture (a real
-  drafted chapter present in the manifest but absent on disk, with cursor on a
-  present chapter and present-chapter table values matching disk) and to assert
-  the FULL relaxed verdict is `()`, not merely the absence of the bijection name;
-  paired with a strict-default assertion that the same tree fires only
-  `manifest-disk-bijection`.
+  Work item 3 step 3 to specify the exact coherent drafting-subset fixture (a
+  real drafted chapter present in the manifest but absent on disk, with cursor
+  on a present chapter and present-chapter table values matching disk) and to
+  assert the FULL relaxed verdict is `()`, not merely the absence of the
+  bijection name; paired with a strict-default assertion that the same tree
+  fires only `manifest-disk-bijection`.
 - **Blocking item 3 (flag-threading mechanism).** Committed to one explicit
-  wiring in Work item 2 step 3: lift `_check_manifest_disk_bijection` out of the
-  uniform `_PREDICATES` loop, call it first with the keyword-only flag, run the
-  seven tail predicates through the loop, and concatenate in
-  `DISK_EVIDENCE_INVARIANT_NAMES` order. Added a union-order test pinning that the
-  out-of-loop assembly reproduces the old single-loop order.
+  wiring in Work item 2 step 3: lift `_check_manifest_disk_bijection` out of
+  the uniform `_PREDICATES` loop, call it first with the keyword-only flag, run
+  the seven tail predicates through the loop, and concatenate in
+  `DISK_EVIDENCE_INVARIANT_NAMES` order. Added a union-order test pinning that
+  the out-of-loop assembly reproduces the old single-loop order.
 - **Advisories.** Fixed the e2e recipe to pass the `"check"` subcommand argv via
   the `(...)("check")` builder call; cited the `@pytest.mark.timeout(180)` /
-  global-`timeout = 30` precedent and reused 180s; added an acceptance assertion
-  and Work item 4 step that the relaxed-clean tree carries no `reconciliation`
-  key. Recorded Decision D7 explaining why the flag beat the command-layer-drop
-  alternative (the `Violation` detail is free text, so the command cannot
-  distinguish missing-direction-only breaks without re-deriving direction).
+  global-`timeout = 30` precedent and reused 180s; added an acceptance
+  assertion and Work item 4 step that the relaxed-clean tree carries no
+  `reconciliation` key. Recorded Decision D7 explaining why the flag beat the
+  command-layer-drop alternative (the `Violation` detail is free text, so the
+  command cannot distinguish missing-direction-only breaks without re-deriving
+  direction).
 
 How it affects remaining work: the spine (D1/D2/D3) is unchanged; the revisions
 tighten the wiring to one concrete mechanism, widen the documentation and test
@@ -1032,53 +1051,55 @@ def check_disk_evidence(
 
 `_check()` (`novel_ralph_skill/commands/novel_state.py`) calls it with
 `relax_drafting_bijection=True`; `derive_reconciliation`
-(`novel_ralph_skill/state/reconcile.py`) calls it with the default (strict). The
-invariant name `manifest-disk-bijection`
+(`novel_ralph_skill/state/reconcile.py`) calls it with the default (strict).
+The invariant name `manifest-disk-bijection`
 (`disk_evidence.MANIFEST_DISK_BIJECTION`) is unchanged. The oracle twin
-`tests/working_corpus/_oracle_disk.py::_check_manifest_disk_bijection` mirrors the
-production split and relaxation.
+`tests/working_corpus/_oracle_disk.py::_check_manifest_disk_bijection` mirrors
+the production split and relaxation.
 
 ## Addenda (post-merge follow-ups)
 
 Lightweight addendum work items folded back onto this completed task from the
-post-merge review and audit of step 2.1 (`review:2.1.7`, `audit:2.1.7`). Execute
-each as a small addendum pass — no plan or design-review cycle: make the change,
-run `make all` (plus `make markdownlint`/`make nixie` for Markdown),
+post-merge review and audit of step 2.1 (`review:2.1.7`, `audit:2.1.7`).
+Execute each as a small addendum pass — no plan or design-review cycle: make
+the change, run `make all` (plus `make markdownlint`/`make nixie` for Markdown),
 `coderabbit review --agent`, commit, and tick the matching roadmap sub-task on
 merge. The substantial, cross-cutting follow-up was re-routed off this task: the
 `word-counts-cover-drafts` detector redesign (review:2.1.7, two near-identical
 proposals merged), which ADR 009 explicitly defers, went to roadmap step 2.3
 (task 2.3.8), because it re-keys a disk-evidence coverage detector off the
-on-disk drafted subset and so serves the step-2.3 "state re-derivable from disk"
-hypothesis, not the step-2.1 schema hypothesis it was raised under. The two
-below are the small, localized follow-ups owned by this task.
+on-disk drafted subset and so serves the step-2.3 "state re-derivable from
+disk" hypothesis, not the step-2.1 schema hypothesis it was raised under. The
+two below are the small, localized follow-ups owned by this task.
 
 - [x] 2.1.7.1 — Extract a shared manifest-disk bijection classifier and name the
   broken direction in the violation detail (from audit:2.1.7 Findings 1 and 2,
-  low). The orphans/missing/contiguous/coherent-subset classification is computed
-  inline in both production sites
+  low). The orphans/missing/contiguous/coherent-subset classification is
+  computed inline in both production sites
   (`disk_evidence._check_manifest_disk_bijection` and
-  `reconcile._set_chapters_turn_explains_bijection`), with the contiguity-from-1
-  literal `sorted(manifest) == list(range(1, len(manifest) + 1))` byte-identical
-  across them; and `_check_manifest_disk_bijection` discards the direction it has
-  just classified when it builds the `Violation`, leaving the generic "not in
+  `reconcile._set_chapters_turn_explains_bijection`), with the
+  contiguity-from-1 literal
+  `sorted(manifest) == list(range(1, len(manifest) + 1))` byte-identical across
+  them; and `_check_manifest_disk_bijection` discards the direction it has just
+  classified when it builds the `Violation`, leaving the generic "not in
   bijection" summary. Extract a pure `_classify_bijection(manifest, on_disk)`
-  helper in `disk_evidence.py` returning a frozen break record (orphans, missing,
-  contiguous, a `coherent_subset` property, and a `describe()` method); have both
-  production sites consume it so the coherence notion lives once; leave the corpus
-  oracle twin (`tests/working_corpus/_oracle_disk.py`) a deliberate independent
-  reimplementation, adding a one-line mirror comment in each pointing at the
-  other. Enrich the bijection detail to append the broken direction(s) the
-  predicate computed (orphan directories, manifest entries without directories
-  where the relaxation did not suppress them, non-contiguous manifest), keeping
-  the existing summary line as the lead so snapshot churn is bounded to an
-  appended clause. Pure refactor with no behavioural change. Gate with `make all`.
+  helper in `disk_evidence.py` returning a frozen break record (orphans,
+  missing, contiguous, a `coherent_subset` property, and a `describe()`
+  method); have both production sites consume it so the coherence notion lives
+  once; leave the corpus oracle twin (`tests/working_corpus/_oracle_disk.py`) a
+  deliberate independent reimplementation, adding a one-line mirror comment in
+  each pointing at the other. Enrich the bijection detail to append the broken
+  direction(s) the predicate computed (orphan directories, manifest entries
+  without directories where the relaxation did not suppress them,
+  non-contiguous manifest), keeping the existing summary line as the lead so
+  snapshot churn is bounded to an appended clause. Pure refactor with no
+  behavioural change. Gate with `make all`.
 - [x] 2.1.7.2 — Extend the relaxed corpus agreement suite to a missing-directory
   subset at final-pass and done (from review:2.1.7, low). The relaxed
   production-vs-oracle agreement is asserted against coherent exact-bijection
-  trees at the terminal phases, not against a missing-directory subset that must
-  fire there; both predicates are byte-mirror twins so the risk is low. Add a
-  terminal-phase (`final-pass`/`done`) subset agreement row so the production
-  detector and the corpus oracle twin are pinned in lock-step on a tree where the
-  exact bijection must re-tighten, closing the last untested corner of the
-  relaxed twin. Test/corpus-only. Gate with `make all`.
+  trees at the terminal phases, not against a missing-directory subset that
+  must fire there; both predicates are byte-mirror twins so the risk is low.
+  Add a terminal-phase (`final-pass`/`done`) subset agreement row so the
+  production detector and the corpus oracle twin are pinned in lock-step on a
+  tree where the exact bijection must re-tighten, closing the last untested
+  corner of the relaxed twin. Test/corpus-only. Gate with `make all`.

@@ -1,7 +1,7 @@
 # Logisphere design review — roadmap 7.2.3 (round 2)
 
-Verdict: REVISE (one narrow, concrete defect). The round-1 blocker (B1, the Ruff
-TC001 lint gate) and both round-1 advisories (A1 AST-scoped guard, A2
+Verdict: REVISE (one narrow, concrete defect). The round-1 blocker (B1, the
+Ruff TC001 lint gate) and both round-1 advisories (A1 AST-scoped guard, A2
 docstring single-home meaning) are now correctly and exhaustively resolved and
 verified against source. One new defect remains: Work item 3's docstring
 acceptance grep is factually wrong and will report "fail" on a correct
@@ -12,8 +12,8 @@ implementation, risking out-of-scope churn. It is cheap to fix.
 - **B1 (TC001 on `ScannedChapter`) — RESOLVED.** Verified against source:
   after Work item 1 removes `class ScannedChapter` (`rulepack/detect.py:43`)
   and Work item 3 deletes `_scan_rule` (lines 149-178), `ScannedChapter`'s only
-  remaining reference in the module is the `detect` parameter annotation
-  (line 238) plus docstrings — all strings under
+  remaining reference in the module is the `detect` parameter annotation (line
+  238) plus docstrings — all strings under
   `from __future__ import annotations`, so TC001 fires. The plan now *mandates*
   the `# noqa: TC001 - runtime re-export for _desloppify` form (D-REEXPORT
   revised, Work item 1 step 3) and a committed module `__all__`. The precedent
@@ -31,11 +31,11 @@ implementation, risking out-of-scope churn. It is cheap to fix.
 
 - **A1 (AST-scoped guard) — RESOLVED.** D-GUARD (revised) now mandates an
   `ast.parse` walk inspecting only `ast.Import`/`ast.ImportFrom` nodes, with a
-  concrete en-GB test sketch
-  (`test_loaderkit_scan_imports_no_pack_domain`). This correctly avoids the
-  false positive from `scan_pattern`'s docstring, which legitimately
-  cross-references `:class:~novel_ralph_skill.rulepack.detect.LineHit`
-  (`scan.py:13`) and names `rule`/`device` in prose.
+  concrete en-GB test sketch (`test_loaderkit_scan_imports_no_pack_domain`).
+  This correctly avoids the false positive from `scan_pattern`'s docstring,
+  which legitimately cross-references
+  `:class:~novel_ralph_skill.rulepack.detect.LineHit` (`scan.py:13`) and names
+  `rule`/`device` in prose.
 
 - **A2 (docstring single-*home* vs single-*occurrence*) — PARTIALLY
   RESOLVED.** The plan now states "single-stated means a single *home module*,
@@ -50,20 +50,20 @@ implementation, risking out-of-scope churn. It is cheap to fix.
 
 Work item 3's acceptance check (plan lines 740-741) states:
 
-> `grep -rln "cannot cross" novel_ralph_skill/` ... returns **exactly one
+> `grep -rln "cannot cross" novel_ralph_skill/` … returns **exactly one
 > path** — `novel_ralph_skill/loaderkit/scan.py`
 
-This is factually false against the current tree. `grep -rln "cannot cross"
-novel_ralph_skill/` today returns **three** files; after Work item 3 trims the
-two detector module docstrings (`rulepack/detect.py:13`, `ledger/detect.py:13`)
-and deletes `_scan_device` (which carries "cannot cross" at
-`ledger/detect.py:115`), it returns **two**:
+This is factually false against the current tree.
+`grep -rln "cannot cross" novel_ralph_skill/` today returns **three** files;
+after Work item 3 trims the two detector module docstrings
+(`rulepack/detect.py:13`, `ledger/detect.py:13`) and deletes `_scan_device`
+(which carries "cannot cross" at `ledger/detect.py:115`), it returns **two**:
 
 - `novel_ralph_skill/loaderkit/scan.py` (intended — the single home), and
 - `novel_ralph_skill/loaderkit/load.py:139` — a wholly separate primitive
-  (`compile_pattern`, roadmap 5.1.1) whose docstring legitimately says
-  "no flags means `.` cannot cross `\n`". `load.py` is **not** in this plan's
-  edit scope (the plan names it only in orientation prose at line 395 as one of
+  (`compile_pattern`, roadmap 5.1.1) whose docstring legitimately says "no
+  flags means `.` cannot cross `\n`". `load.py` is **not** in this plan's edit
+  scope (the plan names it only in orientation prose at line 395 as one of
   loaderkit's modules).
 
 So an implementer who runs the literal acceptance check on a *correct*
@@ -78,14 +78,14 @@ Required fix (any one):
 
 - Scope the grep to the de-duplication target only, e.g.
   `grep -rln "cannot cross" novel_ralph_skill/rulepack/detect.py
-  novel_ralph_skill/ledger/detect.py` returns **nothing** (the rationale is
-  gone from both detector module docstrings), and separately assert
-  `loaderkit/scan.py` retains it; or
+  novel_ralph_skill/ledger/detect.py`
+  returns **nothing** (the rationale is gone from both detector module
+  docstrings), and separately assert `loaderkit/scan.py` retains it; or
 - Re-state the acceptance as: after Work item 3, neither `rulepack/detect.py`
   nor `ledger/detect.py` re-states the per-line rationale (each only references
-  `scan_pattern`), and `loaderkit/scan.py` remains the sole *detector-rationale*
-  home — explicitly acknowledging `load.py` carries the unrelated
-  *compile-time* phrasing of the same `.`/`\n` fact and is untouched.
+  `scan_pattern`), and `loaderkit/scan.py` remains the sole
+  *detector-rationale* home — explicitly acknowledging `load.py` carries the
+  unrelated *compile-time* phrasing of the same `.`/`\n` fact and is untouched.
 
 ## Crew notes
 
@@ -102,9 +102,9 @@ Required fix (any one):
   well-formed and matches `scan_pattern`'s actual two-loop structure
   (`scan.py:65-69`).
 - **Doggylump 🐶:** Pre-mortem failure path is the acceptance-check trap above,
-  not runtime — behaviour is provably unchanged (verbatim shape move, re-export,
-  and identical inlined lambda). No 03:00 page; the worst case is an implementer
-  misled by the bad grep into editing `load.py`.
+  not runtime — behaviour is provably unchanged (verbatim shape move,
+  re-export, and identical inlined lambda). No 03:00 page; the worst case is an
+  implementer misled by the bad grep into editing `load.py`.
 - **Wafflecat 🐈🧇:** Strongest alternative remains "repoint
   `commands/_desloppify.py` + the three rule-pack/ledger tests at
   `loaderkit.scan` directly and drop the re-export," which removes the seam and
@@ -123,8 +123,8 @@ D-NO-CUPRUM verified by reading every touched module: `loaderkit/scan.py`,
 `rulepack/detect.py`, `ledger/detect.py`, `rulepack/_coerce.py` — none builds a
 cuprum catalogue, spawns a subprocess, or parses CLI flags; the shapes are plain
 `dataclasses`. No Cyclopts/uv/pytest-timeout behaviour is in scope, so the
-"cite-or-pin locked-library claims" rule reduces to the single Ruff TC001 claim,
-which the plan cites (official docs URL) and anchors to a proven in-repo
+"cite-or-pin locked-library claims" rule reduces to the single Ruff TC001
+claim, which the plan cites (official docs URL) and anchors to a proven in-repo
 precedent. Ruff 0.15.18 / ty 0.0.51 pins confirmed in `uv.lock`. No
 memory-based locked-library claim survives uncited.
 

@@ -206,11 +206,11 @@ escalation, not a workaround.
 - [x] (done) WI3: repoint the seven command consumers to the neutral home.
   Commit `1d41cf4`. Repointed `_compile`, `_recount`, `_novel_done`,
   `_desloppify`, `_wordcount`, `_desloppify_ledger`, `_state_mutators` (3
-  blocks), and `novel.py`. Landed assertion 2 (AST no-`novel_state` dependency);
-  red-green verified by temporarily reverting `_recount` (test went red, then
-  green when restored). `grep -rn 'novel_state import' novel_ralph_skill/
-  commands/` returns nothing. `make all` green (1425 passed). Coderabbit: 0
-  findings.
+  blocks), and `novel.py`. Landed assertion 2 (AST no-`novel_state`
+  dependency); red-green verified by temporarily reverting `_recount` (test
+  went red, then green when restored).
+  `grep -rn 'novel_state import' novel_ralph_skill/ commands/` returns nothing.
+  `make all` green (1425 passed). Coderabbit: 0 findings.
 - [x] (done) WI4: repoint **every** test-suite seam-import site to the
   neutral home. Commit `d659984`. Repointed the six seam importers
   (`test_state_input_message_parity.py`, `test_state_input_message_unit.py`,
@@ -223,8 +223,8 @@ escalation, not a workaround.
   findings.
 - [x] (done) WI5: swept the stale-name trail and dropped the transitional
   re-export. Swept clean-up 1 (`_state_load` tokens: `state_sourcing.py:74`
-  self-citation re-anchored to `state_sourcing.py:52-67` after the WI1 docstring
-  growth shifted the cwd-relative rule; `novel.py:153` likewise;
+  self-citation re-anchored to `state_sourcing.py:52-67` after the WI1
+  docstring growth shifted the cwd-relative rule; `novel.py:153` likewise;
   `state/compile_model.py:73`; `_state_mutators.py:64-66` B7 home comment; the
   three devguide tokens at 620/976/1242 folded forward so the WI5 gate is
   clean), clean-up 2 (command-module `_load_or_state_error`/`novel_state._<…>`
@@ -233,38 +233,39 @@ escalation, not a workaround.
   `novel_state` re-export drop: import block trimmed to the six body-used seam
   symbols, `__all__` reduced to `["build_app"]`, comment rewritten to name
   `state_sourcing` as the home). Renamed the WI2 structural test function (it
-  embedded `_load_or_state_error` as a substring) to `test_loader_name_is_public`
-  to avoid an A1 false positive. All four
-  hard gates (1/2/3 + A1) return nothing; the Gate 3 eyeball backstop confirms
-  every residual `novel_state` mention in `commands/` is a genuine
-  command-surface reference (the pinned kept set). `make all` green (1425
-  passed); `make nixie` and `markdownlint docs/developers-guide.md` green.
-  Commit: pending coderabbit.
+  embedded `_load_or_state_error` as a substring) to
+  `test_loader_name_is_public` to avoid an A1 false positive. All four hard
+  gates (1/2/3 + A1) return nothing; the Gate 3 eyeball backstop confirms every
+  residual `novel_state` mention in `commands/` is a genuine command-surface
+  reference (the pinned kept set). `make all` green (1425 passed); `make nixie`
+  and `markdownlint docs/developers-guide.md` green. Commit: pending coderabbit.
 - [x] (done) WI6: updated the developers' guide. Confirmed the formatter
-  passage is unguarded (B3): `grep -n
+  passage is unguarded (B3):
+  `grep -n
   '_state_load\|formatter\|Five\|sibling\|state_sourcing'
-  tests/test_developers_guide_contract_drift_guard.py` matched only the word
-  "sibling" in an unrelated markdown-parsing comment (line 19) — neither the
-  "Five" count nor a module-name token is pinned, so the edit is safe. Added a
-  paragraph after the formatter section naming `state_sourcing` as the neutral
-  public home with the public `load_or_state_error`, consumed directly by every
-  command rather than re-exported through `novel_state`, and restating the
-  no-cycle import rule. The 620/976/1242 name tokens were already folded into
-  WI5 so all four gates stay green; WI6 adds the substantive home-naming prose.
-  `make all`, `make nixie`, and `markdownlint docs/developers-guide.md` green.
-  Design §4 and ADR-003 need no change (they describe behaviour and the
-  contract, not module layout) — confirmed, see Decision D11. Commit: pending
-  coderabbit.
+  tests/test_developers_guide_contract_drift_guard.py`
+  matched only the word "sibling" in an unrelated markdown-parsing comment
+  (line 19) — neither the "Five" count nor a module-name token is pinned, so
+  the edit is safe. Added a paragraph after the formatter section naming
+  `state_sourcing` as the neutral public home with the public
+  `load_or_state_error`, consumed directly by every command rather than
+  re-exported through `novel_state`, and restating the no-cycle import rule.
+  The 620/976/1242 name tokens were already folded into WI5 so all four gates
+  stay green; WI6 adds the substantive home-naming prose. `make all`,
+  `make nixie`, and `markdownlint docs/developers-guide.md` green. Design §4
+  and ADR-003 need no change (they describe behaviour and the contract, not
+  module layout) — confirmed, see Decision D11. Commit: pending coderabbit.
 - [x] (done, fix round 1) Repoint the one design-doc source-file citation the
   rename broke. Commit `2c1be38`. The dual review found
-  `docs/novel-ralph-harness-design.md:163` still cited `the _state_load.py
-  source comment` as where the cwd-relative working-directory rule lives, but
-  WI1 renamed `_state_load.py` to `state_sourcing.py`, so the named file no
-  longer exists; the rule comment now physically lives in
-  `state_sourcing.py:52-67` (`working_dir`/`WORKING_DIR_NAME`). This is a
-  module-layout citation (it names a source file), so D11's premise that the
-  design doc "describes behaviour... not module layout" is false **for this
-  line specifically** — see the D11 correction below. The WI5 Gate 1
+  `docs/novel-ralph-harness-design.md:163` still cited
+  `the _state_load.py source comment` as where the cwd-relative
+  working-directory rule lives, but WI1 renamed `_state_load.py` to
+  `state_sourcing.py`, so the named file no longer exists; the rule comment now
+  physically lives in `state_sourcing.py:52-67` (`working_dir`/
+  `WORKING_DIR_NAME`). This is a module-layout citation (it names a source
+  file), so D11's premise that the design doc "describes behaviour… not module
+  layout" is false **for this line specifically** — see the D11 correction
+  below. The WI5 Gate 1
   (`grep -rn '_state_load' novel_ralph_skill/ tests/ docs/developers-guide.md`)
   was scoped without the design doc, so it never saw this line: a blind spot
   for the one design-doc citation D11 assumed was safe. Fix: rewrote line 163
@@ -478,8 +479,9 @@ escalation, not a workaround.
   envelope, the exit-3 state-error channel, the single-enforcement-point
   discipline), not the command-layer module layout. This task moves no
   behaviour and changes no contract, so neither document mentions `_state_load`
-  or `novel_state`-as-seam-home, and no edit is warranted. Recorded here per the
-  plan rather than editing them. Date/Author: 2026-06-27, implementing agent.
+  or `novel_state`-as-seam-home, and no edit is warranted. Recorded here per
+  the plan rather than editing them. Date/Author: 2026-06-27, implementing
+  agent.
   - **Correction (fix round 1):** D11's premise is sound for §4 and ADR-003 but
     false for one specific design-doc line. `docs/novel-ralph-harness-design.md:163`
     is **not** behaviour/contract prose: it names the source file that hosts the
@@ -498,10 +500,10 @@ escalation, not a workaround.
 
 Result vs. purpose: achieved. The state-sourcing seam now lives in the neutral,
 public-named `novel_ralph_skill/commands/state_sourcing.py`; the public loader
-`load_or_state_error` is in the module's `__all__`; no command imports a seam from
-`novel_state` (it re-exports nothing it does not itself use, `__all__ =
-["build_app"]`); the structural test pins both the public home and the
-no-`novel_state`-dependency rule; and `make all` is green at every commit.
+`load_or_state_error` is in the module's `__all__`; no command imports a seam
+from `novel_state` (it re-exports nothing it does not itself use,
+`__all__ = ["build_app"]`); the structural test pins both the public home and
+the no-`novel_state`-dependency rule; and `make all` is green at every commit.
 
 Deviations from the plan, with rationale:
 
@@ -513,10 +515,10 @@ Deviations from the plan, with rationale:
   to be sure"); the citations were re-anchored to the verified current range.
 - An A1 false positive surfaced: the WI2 test function
   `test_load_or_state_error_is_public` embedded the historical
-  `_load_or_state_error` token as a substring, which the A1 insurance grep would
-  flag. Renamed it to `test_loader_name_is_public` in WI5. The plan did not
-  foresee this (the function was added in WI2, after the A1 grep was specified),
-  but the rename keeps A1 honest.
+  `_load_or_state_error` token as a substring, which the A1 insurance grep
+  would flag. Renamed it to `test_loader_name_is_public` in WI5. The plan did
+  not foresee this (the function was added in WI2, after the A1 grep was
+  specified), but the rename keeps A1 honest.
 - WI5 folded the three developers-guide name tokens (620/976/1242) forward so
   the WI5 hard gate — whose scope explicitly includes
   `docs/developers-guide.md` — returns nothing before WI5's commit, exactly as
@@ -812,10 +814,10 @@ symbol references; **neither touches free-text docstring prose, `:mod:` roles,
 or filename/line-number citations**. So after WI1's rename, a trail of stale
 `_state_load`-named and bare-`_load_or_state_error` references survives that no
 test guards — the projection drift-guard
-(`tests/test_projection_docstring_drift_guard.py`) pins only the `compile_model`
-/reconciliation projections, **not** the state-sourcing seam (it is silent on
-these references). WI5 sweeps all of them and then proves the sweep
-mechanically. Three clean-ups:
+(`tests/test_projection_docstring_drift_guard.py`) pins only the
+`compile_model` /reconciliation projections, **not** the state-sourcing seam
+(it is silent on these references). WI5 sweeps all of them and then proves the
+sweep mechanically. Three clean-ups:
 
 **1. Stale `_state_load` module-name / citation references.** After the rename
 none of these may name the dead `_state_load` module. This is the full,
@@ -1078,16 +1080,15 @@ today.
 Then make the edits:
 
 - `docs/developers-guide.md` **line 620** (within the 619-649 passage): the
-  count
-  word **"Five" stays** (this task does not change the formatter set), and only
-  the module-name token `_state_load` **moves** to `state_sourcing`. The result
-  reads "Five sibling formatters in the … module `state_sourcing`". Do **not**
-  leave the passage half-updated (name changed but count stale, or vice versa).
-  Add a sentence recording `state_sourcing` as the neutral public home for the
-  state-sourcing seam with a public `load_or_state_error`, consumed by the five
-  commands rather than re-exported through `novel_state`. (This line is also in
-  the WI5 hard-gate enumeration; whichever work item touches it must move the
-  name, and the WI5 gate proves it is not left stale.)
+  count word **"Five" stays** (this task does not change the formatter set),
+  and only the module-name token `_state_load` **moves** to `state_sourcing`.
+  The result reads "Five sibling formatters in the … module `state_sourcing`".
+  Do **not** leave the passage half-updated (name changed but count stale, or
+  vice versa). Add a sentence recording `state_sourcing` as the neutral public
+  home for the state-sourcing seam with a public `load_or_state_error`,
+  consumed by the five commands rather than re-exported through `novel_state`.
+  (This line is also in the WI5 hard-gate enumeration; whichever work item
+  touches it must move the name, and the WI5 gate proves it is not left stale.)
 - `docs/developers-guide.md` **lines 970-979** (line 976): update the
   `novel done` passage that names "`novel state`'s `working_dir`, `state_path`,
   `_load_or_state_error`, and `STATE_INPUT_ERRORS` seams" to name the neutral
@@ -1236,13 +1237,13 @@ Quality criteria (what "done" means):
 - **Docs:** `make markdownlint` and `make nixie` pass for the WI6 docs change.
 - **Structural acceptance:**
   `grep -rn 'novel_state import' novel_ralph_skill/commands/` returns no seam
-  import; the only `novel_state`
-  imports left are genuine command-surface ones (`build_app`). In `tests/`, the
-  same grep shows only `build_app` and `_render_reconciliation`; **no** test
-  imports a seam or formatter symbol (`WORKING_DIR_NAME`, `STATE_INPUT_ERRORS`,
-  `state_path`, `working_dir`, `resolved_working_dir`, `load_or_state_error`,
-  `_state_input_error`, `_draft_read_error`, `_compile_write_error`,
-  `_rule_pack_read_error`, `_device_ledger_read_error`) from `novel_state`.
+  import; the only `novel_state` imports left are genuine command-surface ones
+  (`build_app`). In `tests/`, the same grep shows only `build_app` and
+  `_render_reconciliation`; **no** test imports a seam or formatter symbol
+  (`WORKING_DIR_NAME`, `STATE_INPUT_ERRORS`, `state_path`, `working_dir`,
+  `resolved_working_dir`, `load_or_state_error`, `_state_input_error`,
+  `_draft_read_error`, `_compile_write_error`, `_rule_pack_read_error`,
+  `_device_ledger_read_error`) from `novel_state`.
   `from novel_ralph_skill.commands.state_sourcing import load_or_state_error`
   succeeds. **Gate 1**
   (`grep -rn '_state_load' novel_ralph_skill/ tests/ docs/developers-guide.md`)
@@ -1420,12 +1421,12 @@ broadening WI5's gate to the test side:
   `novel_state._render_reconciliation`). The renamed public re-export path
   `novel_state.load_or_state_error` has no leading underscore after the dot, so
   Gate 2 does **not** match it; the A1 insurance grep
-  (`grep -rn '_load_or_state_error'`) and the WI5 re-export drop together remove
-  any role naming the loader on the façade. Gate 2 must return nothing, catching
-  exactly the underscore-formatter roles the `_state_load` grep cannot see.
-  Verified against the tree: the pattern currently matches the ten pre-WI5 hits
-  and none of `build_app` or `_render_*`. Added the silent-rot risk to the Risks
-  section.
+  (`grep -rn '_load_or_state_error'`) and the WI5 re-export drop together
+  remove any role naming the loader on the façade. Gate 2 must return nothing,
+  catching exactly the underscore-formatter roles the `_state_load` grep cannot
+  see. Verified against the tree: the pattern currently matches the ten pre-WI5
+  hits and none of `build_app` or `_render_*`. Added the silent-rot risk to the
+  Risks section.
 - **B6 (three further test files import seam symbols from `novel_state` that
   WI4's own validation forbids).** Enumerated `tests/test_compile_unit.py:30`
   (`state_path`, `working_dir`), `tests/test_validate_state_corpus.py:30`
@@ -1472,32 +1473,33 @@ single round-3 blocking point:
 
 ## Addenda
 
-Lightweight, post-completion corrections folded onto this task. Each is a small,
-surgical fix run as a no-plan, no-review pass; none changes the task's outcome.
+Lightweight, post-completion corrections folded onto this task. Each is a
+small, surgical fix run as a no-plan, no-review pass; none changes the task's
+outcome.
 
 - [x] A2 (from review:7.3.1; trivial). Prefer symbol citations over source
   line-number ranges in the two surviving docstring citations. The
   `resolved_working_dir` docstring at `state_sourcing.py:74` and the
-  `main`-multiplexer docstring at `novel.py:153` both cite the cwd-relative rule
-  as the line range `state_sourcing.py:52-67`; any header edit or reflow can
-  silently invalidate the range and no test guards it — the same drift class
-  that broke the design-doc citation in fix round 1. Re-anchor both citations to
-  the stable symbol (`working_dir` / `WORKING_DIR_NAME`, or the cwd-relative
-  rule by name) so they survive renames and reflows. Doc-only; no behaviour
-  change. Scope: `novel_ralph_skill/commands/state_sourcing.py` (docstring at
-  `resolved_working_dir`) and `novel_ralph_skill/commands/novel.py` (docstring
-  at `main`).
+  `main`-multiplexer docstring at `novel.py:153` both cite the cwd-relative
+  rule as the line range `state_sourcing.py:52-67`; any header edit or reflow
+  can silently invalidate the range and no test guards it — the same drift
+  class that broke the design-doc citation in fix round 1. Re-anchor both
+  citations to the stable symbol (`working_dir` / `WORKING_DIR_NAME`, or the
+  cwd-relative rule by name) so they survive renames and reflows. Doc-only; no
+  behaviour change. Scope: `novel_ralph_skill/commands/state_sourcing.py`
+  (docstring at `resolved_working_dir`) and
+  `novel_ralph_skill/commands/novel.py` (docstring at `main`).
 
 - [x] A3 (from review:7.3.1; low). Correct Decision D9's Gate-2 wording in this
-  execplan record. D9 (and its WI5 narrative) lists `load_or_state_error` inside
-  the Gate-2 alternation and asserts Gate 2 "catches" the
+  execplan record. D9 (and its WI5 narrative) lists `load_or_state_error`
+  inside the Gate-2 alternation and asserts Gate 2 "catches" the
   `novel_state.load_or_state_error` re-export role, but the gate as implemented
   is `novel_state\._[a-z_]*error` (Stage F, the gate block): the `\._` anchor
-  matches only the dot-underscore form `novel_state._load_or_state_error`, never
-  the bare public `novel_state.load_or_state_error` (a `.l`, not `._`). The
-  bare-public façade role is in fact guarded by the A1 insurance grep
+  matches only the dot-underscore form `novel_state._load_or_state_error`,
+  never the bare public `novel_state.load_or_state_error` (a `.l`, not `._`).
+  The bare-public façade role is in fact guarded by the A1 insurance grep
   (`_load_or_state_error` must return nothing), not by Gate 2. Correct the D9
   prose to state that Gate 2 matches the dot-underscore `._<…>error` forms only
-  and that A1 closes the `load_or_state_error` gap, keeping the historical record
-  precise. Doc-only; no gate semantics change. Scope: this execplan's Decision
-  D9.
+  and that A1 closes the `load_or_state_error` gap, keeping the historical
+  record precise. Doc-only; no gate semantics change. Scope: this execplan's
+  Decision D9.

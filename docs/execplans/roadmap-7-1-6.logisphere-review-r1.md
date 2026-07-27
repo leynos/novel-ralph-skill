@@ -11,8 +11,7 @@ plan states. These go back to the planner.
 ## Core bets
 
 1. *Bet:* the only re-export-path cross-references in `_compile.py` are the six
-   at
-   lines 12/14/34/175/181/186. **Wrong.** There are eight; lines 104 and 106
+   at lines 12/14/34/175/181/186. **Wrong.** There are eight; lines 104 and 106
    (inside `compile_manuscript`'s docstring) also use the re-export path. (🔴
    B1)
 2. *Bet:* a consumer can be told apart from the authoritative docstring by
@@ -154,9 +153,8 @@ in the Decision Log rather than leaving WI3 with a heuristic that does not hold.
 ## Pre-mortem (Doggylump)
 
 1. **Most likely failure:** the implementer follows WI1 literally, normalizes
-   six
-   refs, runs `make all` green (no guard yet), commits — leaving lines 104/106
-   on the re-export path. WI3's guard then either (a) does not cover
+   six refs, runs `make all` green (no guard yet), commits — leaving lines
+   104/106 on the re-export path. WI3's guard then either (a) does not cover
    `compile_manuscript` and the inconsistency the task exists to close
    survives, or (b) does cover it and the positive case is red, forcing an
    unplanned WI1 re-open mid-stream. *Prevention:* fix B1 — enumerate all eight
@@ -213,6 +211,5 @@ guards) that demonstrably passes a `check_compiled`-shaped fixture.
   (drift-guard subsections).
 - Skill: `logisphere-design-review` (full crew + pre-mortem + alternatives).
 - cuprum read-only sibling at `/data/leynos/Projects/cuprum`: not exercised —
-  the
-  Decision Log's no-subprocess/no-cuprum scoping is correct, so no cuprum claim
-  required verification this round.
+  the Decision Log's no-subprocess/no-cuprum scoping is correct, so no cuprum
+  claim required verification this round.

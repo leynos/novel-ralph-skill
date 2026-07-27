@@ -15,8 +15,8 @@ membership of `ENVELOPE_COMMAND_NAMES`), the `ok`-iff-exit-0 mapping, the
 resolved-absolute `working_dir`, `result["violations"] == []`, and `str`-typed
 `messages`. The test reuses the existing `installed_novel_state`,
 `single_program_catalogue`, and `baseline_tree` fixtures, was extended in place
-to avoid a second module-scoped wheel build, carries the same
-`slow`/`timeout(180)`/POSIX-`skipif` marks as the other installed e2es, and the
+to avoid a second module-scoped wheel build, carries the same `slow`/
+`timeout(180)`/POSIX-`skipif` marks as the other installed e2es, and the
 developers-guide records the three-proof boundary (this test for the success
 arm, `test_console_scripts_error_arms_e2e.py` for the error arms, and
 `tests/cross_command_contract/` in-process). The work is correct, well-marked,
@@ -24,14 +24,14 @@ and well-documented.
 
 The findings below concern *how* the new test asserts the identity contract,
 not whether it asserts the right one. The cross-command suite already owns a
-canonical encoding of the skeleton-identity claim
-(`assert_envelope_skeleton`), reused at seven in-process sites, but the new
-installed mirror re-spells that claim inline rather than reusing the helper —
-so the two halves of the proof now state "the same contract" in two different
-sets of `assert` lines that can drift independently. A second, smaller finding
-records that the installed *success*-arm run-and-assert mechanics duplicate the
-shape that `assert_installed_state_error` already consolidated for the
-installed *error* arm.
+canonical encoding of the skeleton-identity claim (`assert_envelope_skeleton`),
+reused at seven in-process sites, but the new installed mirror re-spells that
+claim inline rather than reusing the helper — so the two halves of the proof
+now state "the same contract" in two different sets of `assert` lines that can
+drift independently. A second, smaller finding records that the installed
+*success*-arm run-and-assert mechanics duplicate the shape that
+`assert_installed_state_error` already consolidated for the installed *error*
+arm.
 
 ## Finding 1 — The installed identity mirror re-spells `assert_envelope_skeleton` inline instead of reusing the canonical helper
 
@@ -51,10 +51,11 @@ already reused at seven sites
 (`tests/cross_command_contract/test_envelope_shape.py` lines 67 and 100,
 `test_error_channels.py` lines 136/236/331/366, `test_mutator_identity.py`
 lines 127/162, and `tests/steps/cross_command_contract_steps.py`). It pins, in
-one place: the `ENVELOPE_KEY_ORDER` key tuple, `command` equality, `command in
-ENVELOPE_COMMAND_NAMES`, `schema_version == ENVELOPE_SCHEMA_VERSION`, `ok` is a
-`bool`, `ok is (code == ExitCode.SUCCESS)`, `result` is a mapping, and
-`messages` is a list of `str`.
+one place: the `ENVELOPE_KEY_ORDER` key tuple, `command` equality,
+`command in ENVELOPE_COMMAND_NAMES`,
+`schema_version == ENVELOPE_SCHEMA_VERSION`, `ok` is a `bool`,
+`ok is (code == ExitCode.SUCCESS)`, `result` is a mapping, and `messages` is a
+list of `str`.
 
 The new installed test, whose own docstring says it asserts "against the same
 constants the in-process cross-command suite uses, so the installed surface
@@ -84,9 +85,9 @@ contents are "asserted elsewhere".
   `assert_envelope_skeleton(envelope, command=_COMMAND,
   code=result.exit_code, working_dir=str((dest / "working").resolve()))`,
   keeping only the command-specific `result["violations"] == []` assertion
-  beside it. This makes the "same constants" claim structural — one helper,
-  one place to change — rather than parallel-by-convention. Proposed as a
-  roadmap item below; not applied here (this is a read-only audit step).
+  beside it. This makes the "same constants" claim structural — one helper, one
+  place to change — rather than parallel-by-convention. Proposed as a roadmap
+  item below; not applied here (this is a read-only audit step).
 
 ## Finding 2 — The installed success-arm run-and-assert duplicates the shape `assert_installed_state_error` consolidated for the error arm
 
@@ -95,11 +96,12 @@ contents are "asserted elsewhere".
 - **Location**:
   `tests/test_novel_state_check.py`
   (`test_installed_novel_state_check_exits_zero`, the
-  `sh.make(prog, catalogue=...)(...).run_sync(context=ExecutionContext(...),
-  capture=True)` drive and the subsequent `json.loads(result.stdout or "{}")`
-  parse, lines 350-380) versus
-  `tests/installed_binary_fixtures.py::assert_installed_state_error`
-  (lines 169-232).
+  `sh.make(prog, catalogue=…)(…).run_sync(context=ExecutionContext(…),
+  capture=True)`
+  drive and the subsequent `json.loads(result.stdout or "{}")` parse, lines
+  350-380) versus
+  `tests/installed_binary_fixtures.py::assert_installed_state_error` (lines
+  169-232).
 
 The installed *error* arm already has a shared asserter:
 `assert_installed_state_error` is a function-scoped fixture returning a
@@ -116,9 +118,9 @@ inlines the catalogue build, the `sh.make(...).run_sync(...)` drive, the
 `json.loads(result.stdout or "{}")` parse, and the no-`Traceback` guard
 directly in the test body — the same mechanics `assert_installed_state_error`
 consolidated for the error arm. Today there is a single installed success-arm
-site, so the duplication is latent rather than realized, and the wider
-"run an installed script and parse its envelope" idiom appears across roughly a
-dozen e2e modules (a separately scoped concern). But the asymmetry is worth
+site, so the duplication is latent rather than realized, and the wider "run an
+installed script and parse its envelope" idiom appears across roughly a dozen
+e2e modules (a separately scoped concern). But the asymmetry is worth
 recording: the error arm has a sanctioned shared run-and-assert harness while
 the success arm, added by the same family of work, does not, so the next
 installed success-arm proof has no helper to reuse and will hand-roll the same
@@ -126,15 +128,14 @@ shape again.
 
 - **Proposed fix**: When (and only when) a second installed success-arm proof
   is needed, promote a sibling `assert_installed_success_envelope` harness
-  beside `assert_installed_state_error` in
-  `tests/installed_binary_fixtures.py` that runs the script over `*argv` in a
-  `run_dir`, parses the envelope, asserts exit 0 and the shared skeleton
-  (delegating to the Finding 1 `assert_envelope_skeleton` helper for the
-  identity half), and returns the parsed envelope so the caller can assert its
-  command-specific `result` payload. Migrate
-  `test_installed_novel_state_check_exits_zero` onto it. Until a second
-  consumer exists, this stays a documented asymmetry rather than a refactor.
-  Proposed as a roadmap item below; not applied here.
+  beside `assert_installed_state_error` in `tests/installed_binary_fixtures.py`
+  that runs the script over `*argv` in a `run_dir`, parses the envelope,
+  asserts exit 0 and the shared skeleton (delegating to the Finding 1
+  `assert_envelope_skeleton` helper for the identity half), and returns the
+  parsed envelope so the caller can assert its command-specific `result`
+  payload. Migrate `test_installed_novel_state_check_exits_zero` onto it. Until
+  a second consumer exists, this stays a documented asymmetry rather than a
+  refactor. Proposed as a roadmap item below; not applied here.
 
 ## Proposed roadmap items (for the root agent only)
 
@@ -152,9 +153,8 @@ shape again.
   installed mirror exists to catch.
 
 - **Add a shared installed success-arm run-and-assert harness when a second
-  consumer arrives** (severity: low). Mirror
-  `assert_installed_state_error` with an
-  `assert_installed_success_envelope` harness in
+  consumer arrives** (severity: low). Mirror `assert_installed_state_error`
+  with an `assert_installed_success_envelope` harness in
   `tests/installed_binary_fixtures.py` and migrate
   `test_installed_novel_state_check_exits_zero` onto it once a second installed
   success-arm proof is needed. Rationale: the installed error arm already has a

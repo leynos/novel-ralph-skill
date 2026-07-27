@@ -178,8 +178,8 @@ Each sub-step is its own state transition, logged.
 Passes are numbered from 1, so a fresh `state.toml` and each new chapter seed
 `pass = 1` — the first pass, pending rather than run. It increments as the
 spiteful critic loop runs. Set it by running
-`novel state set-critic-pass --pass N` — never by a direct `state.toml` edit, per
-ADR-001 and ADR-010; the command refuses a pass below 1 with exit 3.
+`novel state set-critic-pass --pass N` — never by a direct `state.toml` edit,
+per ADR-001 and ADR-010; the command refuses a pass below 1 with exit 3.
 
 `consecutive_clean` is currently always 0 or 1 (one clean pass is sufficient
 for convergence). Reserved for future tightening if the loop turns out to be
@@ -196,10 +196,10 @@ and for deciding whether to re-run after edits.
 
 ### Fangirl sub-state
 
-`drafting.fangirl.last_chapter_passed` is the last chapter the parasocial fangirl
-pass ran on; `0` means no pass yet. Set it by running
-`novel state set-fangirl --last-chapter N` — never by a direct `state.toml` edit,
-per ADR-001 and ADR-010. The command refuses a chapter outside
+`drafting.fangirl.last_chapter_passed` is the last chapter the parasocial
+fangirl pass ran on; `0` means no pass yet. Set it by running
+`novel state set-fangirl --last-chapter N` — never by a direct `state.toml`
+edit, per ADR-001 and ADR-010. The command refuses a chapter outside
 `[0, number-of-manifest-chapters]` with exit 3.
 
 ### Gates
@@ -208,23 +208,22 @@ The knitting circle gates trigger when
 `word_counts.current / word_counts.target` crosses 0.30, 0.50, and 0.80
 respectively, and the corresponding gate is still false. After the pass is
 integrated and logged, flip the gate by running
-`novel state set-gate --knitting-30` (or `--knitting-50`/`--knitting-80`) — never
-by a direct `state.toml` edit, per ADR-001 and ADR-010. The command asserts the
-value the drafted ratio mandates and refuses with exit 3 if the ratio has not
-crossed the threshold (the gate-ratio binding; `novel state check` validates the
-gate against `sum(by_chapter) / target`).
+`novel state set-gate --knitting-30` (or `--knitting-50`/`--knitting-80`) —
+never by a direct `state.toml` edit, per ADR-001 and ADR-010. The command
+asserts the value the drafted ratio mandates and refuses with exit 3 if the
+ratio has not crossed the threshold (the gate-ratio binding;
+`novel state check` validates the gate against `sum(by_chapter) / target`).
 
 This binding couples `recount` to the gates. `novel state recount` re-derives
-`[word_counts]` from the drafts and never flips a gate — disk does not store the
-"pass integrated" fact, so the harness will not synthesize it. If a recount
+`[word_counts]` from the drafts and never flips a gate — disk does not store
+the "pass integrated" fact, so the harness will not synthesize it. If a recount
 refuses on `gate-ratio-consistent`, it is telling you the re-derived ratio
 crossed a knitting threshold the recorded gates do not yet reflect: integrate
 and log the pending knitting pass, then run
-`novel state set-gate --knitting-NN`.
-Do not hand-edit `[gates]` to silence it. (If instead the message says a gate is
-recorded true while drafting has dropped *below* its threshold, the recorded
-gate no longer matches the drafts — adjudicate by restoring the drafts or
-clearing the gate, then re-derive.)
+`novel state set-gate --knitting-NN`. Do not hand-edit `[gates]` to silence it.
+(If instead the message says a gate is recorded true while drafting has dropped
+*below* its threshold, the recorded gate no longer matches the drafts —
+adjudicate by restoring the drafts or clearing the gate, then re-derive.)
 
 `final_pass_complete` flips to true at the end of Phase 9. Flip it by running
 `novel state complete-final-pass` (or `novel state set-gate --final`), never by

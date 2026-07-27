@@ -1,9 +1,8 @@
 # Extend the installed-binary exit-3 coverage to `reconcile` and `wordcount`
 
-This ExecPlan (execution plan) is a living document. The sections
-`Constraints`, `Tolerances`, `Risks`, `Progress`, `Surprises & Discoveries`,
-`Decision Log`, and `Outcomes & Retrospective` must be kept up to date as work
-proceeds.
+This ExecPlan (execution plan) is a living document. The sections `Constraints`,
+`Tolerances`, `Risks`, `Progress`, `Surprises & Discoveries`, `Decision Log`,
+and `Outcomes & Retrospective` must be kept up to date as work proceeds.
 
 Status: DONE
 
@@ -12,29 +11,29 @@ Status: DONE
 Today only `novel-state recount` proves its exit-3 (state or input error) path
 against a real installed console-script over a built wheel. Roadmap task 6.2.4
 added that proof but left `novel-state reconcile` and the `wordcount`
-console-script with only happy-path installed proofs, even though both share the
-same `./working/state.toml` input boundary and the same exit-3 contract
-(`docs/novel-ralph-harness-design.md` §3.2; `docs/adr-003-shared-interface-contract.md`
-Table 2). The harness branches on the *installed* exit code for every command,
-so this asymmetry is a real gap in the packaging boundary the unattended gate
-trusts (`docs/issues/audit-6.2.4.md` Finding 6).
+console-script with only happy-path installed proofs, even though both share
+the same `./working/state.toml` input boundary and the same exit-3 contract
+(`docs/novel-ralph-harness-design.md` §3.2;
+`docs/adr-003-shared-interface-contract.md` Table 2). The harness branches on
+the *installed* exit code for every command, so this asymmetry is a real gap in
+the packaging boundary the unattended gate trusts (`docs/issues/audit-6.2.4.md`
+Finding 6).
 
 After this change a developer can run the test suite and observe two new
 `@slow` installed-binary e2e proofs:
 
 - the installed `novel-state reconcile`, run over a freshly built wheel against
   a `working/` directory with a missing or unparseable `state.toml`, exits `3`
-  with
-  an `ok: false` JSON envelope and no traceback on stderr; and
+  with an `ok: false` JSON envelope and no traceback on stderr; and
 - the installed `wordcount` console-script, run the same way, exits `3` with an
   `ok: false` envelope and no traceback.
 
 Both mirror the existing
 `test_installed_novel_state_recount_state_error_exits_three`
-(`tests/test_recount_e2e.py:150`). Success is the disappearance of the installed
-exit-3 asymmetry: each of `recount`, `reconcile`, and `wordcount` now asserts
-exit `3` on a bad `state.toml` against a real installed console-script, not only
-in-process.
+(`tests/test_recount_e2e.py:150`). Success is the disappearance of the
+installed exit-3 asymmetry: each of `recount`, `reconcile`, and `wordcount` now
+asserts exit `3` on a bad `state.toml` against a real installed console-script,
+not only in-process.
 
 This is purely additive test work. No production code changes, no public
 interface changes, and no changes to any source-of-truth document.
@@ -57,28 +56,31 @@ escalation, not a workaround.
   `cuprum==0.1.0` genuinely supports (see "Interfaces and dependencies"). All
   signatures below were re-derived against the locked 0.1.0 wheel itself
   (`uv.lock:113-118`, sha256 `b03e813…c984c3e72`; unpacked sources verified at
-  `cuprum/program.py`, `cuprum/catalogue.py`, `cuprum/sh.py` of that wheel — NOT
-  the post-0.1.0 sibling checkout at `/data/leynos/Projects/cuprum`, whose run
-  API has diverged): `Program` is `typ.NewType("Program", str)`
+  `cuprum/program.py`, `cuprum/catalogue.py`, `cuprum/sh.py` of that wheel —
+  NOT the post-0.1.0 sibling checkout at `/data/leynos/Projects/cuprum`, whose
+  run API has diverged): `Program` is `typ.NewType("Program", str)`
   (`cuprum/program.py:15`), so `Program(str(absolute_path))` is the supported
   way to name an absolute-path executable; `ProgramCatalogue(projects=(...,))`
-  built from `ProjectSettings(name, programs, documentation_locations,
-  noise_rules)` is the allowlist (`cuprum/catalogue.py:56` and `:30`);
+  built from
+  `ProjectSettings(name, programs, documentation_locations, noise_rules)` is
+  the allowlist (`cuprum/catalogue.py:56` and `:30`);
   `sh.make(program, catalogue=...)` raises `UnknownProgramError` on an
   unregistered program via `catalogue.lookup` (`cuprum/catalogue.py:76`,
-  `raise` at `:82`); `run_sync(*, capture=True, echo=False,
-  context=ExecutionContext(cwd=...)) -> CommandResult` (`cuprum/sh.py:450`)
-  returns a `CommandResult` (`cuprum/sh.py:89`) whose `exit_code`, `stdout`, and
-  `stderr` fields are the only ones read. `ExecutionContext` (with its `cwd`
-  field) is at `cuprum/sh.py:165`.
+  `raise` at `:82`);
+  `run_sync(*, capture=True, echo=False,
+  context=ExecutionContext(cwd=…)) -> CommandResult`
+  (`cuprum/sh.py:450`) returns a `CommandResult` (`cuprum/sh.py:89`) whose
+  `exit_code`, `stdout`, and `stderr` fields are the only ones read.
+  `ExecutionContext` (with its `cwd` field) is at `cuprum/sh.py:165`.
 - **POSIX-only e2e policy.** Console-script e2es are skipped off POSIX with
   `@pytest.mark.skipif(os.name != "posix", reason="console-script e2e is
-  POSIX-only; see ADR 006")`, exactly as every existing installed e2e does
+  POSIX-only; see ADR 006")`,
+  exactly as every existing installed e2e does
   (`docs/adr-006-console-scripts-e2e-posix-policy.md`).
 - **`@slow` and explicit timeout.** Each installed e2e carries
   `@pytest.mark.slow` and `@pytest.mark.timeout(180)`; the 180-second per-test
-  timeout supersedes the 30-second project default because the wheel build is the
-  slow part (`docs/novel-ralph-harness-design.md` §9).
+  timeout supersedes the 30-second project default because the wheel build is
+  the slow part (`docs/novel-ralph-harness-design.md` §9).
 - **Module and bare-`assert` policy.** Files under `PYTHON_TARGETS` (the package
   and `conftest.py` / `tests/installed_binary_fixtures.py`) must raise
   `AssertionError` directly and stay under the 400-line module cap (`AGENTS.md`
@@ -95,8 +97,8 @@ escalation, not a workaround.
 
 - **Scope.** If the change requires touching more than 3 files or more than
   roughly 120 net lines, stop and escalate. The expected footprint is two test
-  files (`tests/test_reconcile_e2e.py`, `tests/test_wordcount_e2e.py`) plus this
-  execplan.
+  files (`tests/test_reconcile_e2e.py`, `tests/test_wordcount_e2e.py`) plus
+  this execplan.
 - **Production code.** If any file under `novel_ralph_skill/` or `skill/` must
   change for a test to pass, stop and escalate (it would mean an undiscovered
   product defect, not a test gap).
@@ -114,47 +116,39 @@ escalation, not a workaround.
 ## Risks
 
 - Risk: the `wordcount` e2e module uses a *function-scoped* build helper
-  (`_build_and_install_wordcount`, `tests/test_wordcount_e2e.py:42`) rather than
-  the module-scoped `installed_novel_state` fixture, so a naive
-  copy of the recount proof (which depends on `installed_novel_state`) would not
-  apply to `wordcount`.
-  Severity: medium
-  Likelihood: medium
-  Mitigation: Work Item 2 reuses the module's own `_build_and_install_wordcount`
-  helper, building the wheel once and parametrizing the exit-3 cases off that one
-  install, mirroring how `test_installed_wordcount_reports_gate_triggers` already
-  calls the helper. No cross-module fixture import.
+  (`_build_and_install_wordcount`, `tests/test_wordcount_e2e.py:42`) rather
+  than the module-scoped `installed_novel_state` fixture, so a naive copy of
+  the recount proof (which depends on `installed_novel_state`) would not apply
+  to `wordcount`. Severity: medium Likelihood: medium Mitigation: Work Item 2
+  reuses the module's own `_build_and_install_wordcount` helper, building the
+  wheel once and parametrizing the exit-3 cases off that one install, mirroring
+  how `test_installed_wordcount_reports_gate_triggers` already calls the
+  helper. No cross-module fixture import.
 
 - Risk: a `working/` directory containing a `state.toml` but no `manuscript/`
   tree might exit on a code other than 3 (for example a different state fault),
-  weakening the proof.
-  Severity: low
-  Likelihood: low
-  Mitigation: the two fault shapes are exactly those the recount proof and the
-  in-process `wordcount` exit-3 tests already use and that exit 3:
-  `working/` present with no `state.toml` (`missing-state`), and `working/state.toml`
-  holding invalid TOML (`unparseable-state`). The in-process
-  `test_unparseable_state_exits_three` and `test_absent_working_dir_exits_three`
-  (`tests/test_wordcount_command.py:98,110`) confirm both shapes reach exit 3, so
-  the installed proof asserts the same boundary the in-process suite pins.
+  weakening the proof. Severity: low Likelihood: low Mitigation: the two fault
+  shapes are exactly those the recount proof and the in-process `wordcount`
+  exit-3 tests already use and that exit 3: `working/` present with no
+  `state.toml` (`missing-state`), and `working/state.toml` holding invalid TOML
+  (`unparseable-state`). The in-process `test_unparseable_state_exits_three` and
+  `test_absent_working_dir_exits_three`
+  (`tests/test_wordcount_command.py:98,110`) confirm both shapes reach exit 3,
+  so the installed proof asserts the same boundary the in-process suite pins.
 
 - Risk: building the wheel twice (once per new test module run) makes the suite
-  noticeably slower.
-  Severity: low
-  Likelihood: high
-  Mitigation: `reconcile` reuses the existing module-scoped `installed_novel_state`
-  fixture, so its module builds the wheel exactly once regardless of how many
-  cases run; `wordcount`'s function-scoped helper already rebuilds per test, so
-  Work Item 2 keeps that module's existing scope convention rather than widening
-  scope here (the scope consolidation is audit Finding 1/4 work, out of scope for
+  noticeably slower. Severity: low Likelihood: high Mitigation: `reconcile`
+  reuses the existing module-scoped `installed_novel_state` fixture, so its
+  module builds the wheel exactly once regardless of how many cases run;
+  `wordcount`'s function-scoped helper already rebuilds per test, so Work Item
+  2 keeps that module's existing scope convention rather than widening scope
+  here (the scope consolidation is audit Finding 1/4 work, out of scope for
   6.2.6). The 180s timeout accommodates the build.
 
 - Risk: a future reader cannot tell why `reconcile` uses a fixture but
-  `wordcount` uses a helper.
-  Severity: low
-  Likelihood: medium
-  Mitigation: each new test's docstring names the build mechanism it reuses and
-  why (the `novel-state` fixture vs. the `wordcount` helper), and the Decision Log
+  `wordcount` uses a helper. Severity: low Likelihood: medium Mitigation: each
+  new test's docstring names the build mechanism it reuses and why (the
+  `novel-state` fixture vs. the `wordcount` helper), and the Decision Log
   records the asymmetry as a deliberate match to each module's existing
   convention.
 
@@ -164,70 +158,66 @@ escalation, not a workaround.
   `tests/test_reconcile_e2e.py`. Added
   `test_installed_novel_state_reconcile_state_error_exits_three`, parametrized
   over `missing-state`/`unparseable-state`, mirroring the recount proof. Both
-  cases pass; flipping the asserted exit code to `0` makes both fail, proving the
-  assertion is load-bearing. `make all` green at this point.
+  cases pass; flipping the asserted exit code to `0` makes both fail, proving
+  the assertion is load-bearing. `make all` green at this point.
 - [x] (done) Work Item 2: add the installed `wordcount` exit-3 e2e to
   `tests/test_wordcount_e2e.py`. Added
   `test_installed_wordcount_state_error_exits_three`, parametrized over
   `missing-state`/`unparseable-state`, invoking the installed `wordcount` with
   the empty call `()` (no subcommand) and reusing the module's function-scoped
   `_build_and_install_wordcount` helper. Both cases pass; flipping the asserted
-  exit code to `0` makes both fail, proving the assertion is load-bearing. `make
-  all` green (913 passed, 1 skipped).
+  exit code to `0` makes both fail, proving the assertion is load-bearing.
+  `make all` green (913 passed, 1 skipped).
 - [x] (done) Final validation: `make all` green at both work-item commits; each
-  new test fails when its asserted exit code is flipped from `3` and passes when
-  restored. The installed exit-3 asymmetry audit Finding 6 named is closed:
-  `recount`, `reconcile`, and `wordcount` now each assert installed exit-3 on a
-  bad `state.toml`.
+  new test fails when its asserted exit code is flipped from `3` and passes
+  when restored. The installed exit-3 asymmetry audit Finding 6 named is closed:
+  `recount`, `reconcile`, and `wordcount` now each assert installed exit-3 on
+  a bad `state.toml`.
 
 ## Surprises & discoveries
 
 - Observation: `wordcount` is its own top-level console-script invoked with no
   subcommand (`sh.make(prog, catalogue=catalogue)()`), whereas `reconcile` is a
-  `novel-state` subcommand (`...("reconcile")`).
-  Evidence: `tests/test_wordcount_e2e.py:100` calls the program with no arguments;
-  `tests/test_reconcile_e2e.py:218` calls `("reconcile")`.
-  Impact: the two work items differ in the invocation shape and the build
-  mechanism (function-scoped helper for `wordcount`, module-scoped fixture for
-  `reconcile`). Captured upfront so the implementer does not conflate them.
+  `novel-state` subcommand (`...("reconcile")`). Evidence:
+  `tests/test_wordcount_e2e.py:100` calls the program with no arguments;
+  `tests/test_reconcile_e2e.py:218` calls `("reconcile")`. Impact: the two work
+  items differ in the invocation shape and the build mechanism (function-scoped
+  helper for `wordcount`, module-scoped fixture for `reconcile`). Captured
+  upfront so the implementer does not conflate them.
 
 ## Decision log
 
 - Decision: mirror `test_installed_novel_state_recount_state_error_exits_three`
   (`tests/test_recount_e2e.py:150`) rather than invent a new e2e shape.
   Rationale: the roadmap task and audit Finding 6 both say "mirroring the
-  `recount` proof 6.2.4 added"; reusing the proven shape (two parametrized fault
-  cases, assert exit 3 + `ok: false` + no traceback) keeps the surface uniform and
-  the diff minimal.
-  Date/Author: 2026-06-25, planning agent.
+  `recount` proof 6.2.4 added"; reusing the proven shape (two parametrized
+  fault cases, assert exit 3 + `ok: false` + no traceback) keeps the surface
+  uniform and the diff minimal. Date/Author: 2026-06-25, planning agent.
 
 - Decision: `reconcile` uses the existing module-scoped `installed_novel_state`
-  fixture; `wordcount` uses its own function-scoped `_build_and_install_wordcount`
-  helper.
-  Rationale: each module already adopts that mechanism for its happy-path
-  installed proof; matching it keeps each module internally consistent and avoids
-  a cross-module fixture import (forbidden by the developers-guide "Shared test
-  scaffolding" rule). Consolidating the two mechanisms is audit Finding 1/4 work,
-  explicitly out of scope for 6.2.6.
-  Date/Author: 2026-06-25, planning agent.
+  fixture; `wordcount` uses its own function-scoped
+  `_build_and_install_wordcount` helper. Rationale: each module already adopts
+  that mechanism for its happy-path installed proof; matching it keeps each
+  module internally consistent and avoids a cross-module fixture import
+  (forbidden by the developers-guide "Shared test scaffolding" rule).
+  Consolidating the two mechanisms is audit Finding 1/4 work, explicitly out of
+  scope for 6.2.6. Date/Author: 2026-06-25, planning agent.
 
-- Decision: assert exit `3`, `ok: false`, and absence of `"Traceback"` on stderr;
-  do not assert a specific message string.
-  Rationale: design §10 requires a message rather than a stack trace, and the
-  recount proof pins exactly this triple; pinning a message string would couple
-  the test to wording the contract does not fix.
-  Date/Author: 2026-06-25, planning agent.
+- Decision: assert exit `3`, `ok: false`, and absence of `"Traceback"` on
+  stderr; do not assert a specific message string. Rationale: design §10
+  requires a message rather than a stack trace, and the recount proof pins
+  exactly this triple; pinning a message string would couple the test to
+  wording the contract does not fix. Date/Author: 2026-06-25, planning agent.
 
 - Decision: action the two minor coderabbit findings raised on the Work Item 1
   commit before committing — convert the execplan's prose verb/adjective forms
   `parametrized`/`parametrizes` to en-GB `parametrised`/`parametrises` (the
-  literal `@pytest.mark.parametrize` decorator name stays unchanged), and rewrite
-  the first-person narration in `roadmap-6-2-6.review-r2.md` into impersonal
-  form.
-  Rationale: both are en-GB / docs-style requirements under `AGENTS.md` and the
-  `en-gb-oxendict` skill; the review artefacts are tracked and committed with the
-  task, so the style rule applies to them too. No test code changed.
-  Date/Author: 2026-06-25, implementation agent.
+  literal `@pytest.mark.parametrize` decorator name stays unchanged), and
+  rewrite the first-person narration in `roadmap-6-2-6.review-r2.md` into
+  impersonal form. Rationale: both are en-GB / docs-style requirements under
+  `AGENTS.md` and the `en-gb-oxendict` skill; the review artefacts are tracked
+  and committed with the task, so the style rule applies to them too. No test
+  code changed. Date/Author: 2026-06-25, implementation agent.
 
 ## Outcomes & retrospective
 
@@ -244,8 +234,8 @@ Done. Both work items landed as atomic commits, each gated on `make all`:
   only in-process, closing the asymmetry audit Finding 6 named.
 - Footprint stayed within tolerance: two test files plus this execplan and its
   review notes; no production-code, interface, or dependency change.
-- `reconcile` reused the module-scoped `installed_novel_state` fixture (one wheel
-  build per module); `wordcount` reused its function-scoped
+- `reconcile` reused the module-scoped `installed_novel_state` fixture (one
+  wheel build per module); `wordcount` reused its function-scoped
   `_build_and_install_wordcount` helper and the empty-call `()` invocation, as
   each module's existing convention dictated.
 - Coderabbit raised two minor en-GB / docs-style findings on the Work Item 1
@@ -256,20 +246,20 @@ Done. Both work items landed as atomic commits, each gated on `make all`:
 ## Context and orientation
 
 The repository is a Python skill harness. The package lives in
-`novel_ralph_skill/`; tests live in the top-level `tests/` tree (`AGENTS.md` line
-145). Five console-scripts are distributed in the wheel: `novel-state` (with
-subcommands `check`, `recount`, `reconcile`, `set-cursor`, `advance-phase`,
-`init`), `novel-compile`, `novel-done`, `wordcount`, and `desloppify`
-(`docs/adr-005-command-surface-five-scripts.md`).
+`novel_ralph_skill/`; tests live in the top-level `tests/` tree (`AGENTS.md`
+line 145). Five console-scripts are distributed in the wheel: `novel-state`
+(with subcommands `check`, `recount`, `reconcile`, `set-cursor`,
+`advance-phase`, `init`), `novel-compile`, `novel-done`, `wordcount`, and
+`desloppify` (`docs/adr-005-command-surface-five-scripts.md`).
 
 Key terms:
 
 - **Installed-binary e2e.** A test that builds a wheel with
   `uv build --wheel`, installs it into a throwaway `uv venv`, and runs the
-  resulting console-script *by its absolute path* through a cuprum catalogue that
-  allowlists that exact path. This proves the exit-code contract at the real
-  packaging boundary, not merely against the in-process entry-point body, because
-  the harness branches on the exit code of the *installed* script
+  resulting console-script *by its absolute path* through a cuprum catalogue
+  that allowlists that exact path. This proves the exit-code contract at the
+  real packaging boundary, not merely against the in-process entry-point body,
+  because the harness branches on the exit code of the *installed* script
   (`docs/novel-ralph-harness-design.md` §9;
   `docs/adr-006-console-scripts-e2e-posix-policy.md`).
 - **Exit-3 (state or input error).** The contract code for "state or input
@@ -303,12 +293,12 @@ Files this plan touches:
 Reference model (do not modify, only mirror):
 `tests/test_recount_e2e.py:139-186`
 (`test_installed_novel_state_recount_state_error_exits_three`) — the canonical
-two-case installed exit-3 proof. It parametrizes
-`state_bytes` over `[None, b"not = toml ="]` with ids `["missing-state",
-"unparseable-state"]`, creates `run_dir/working/`, writes the bad bytes when not
-`None`, runs the installed program with `ExecutionContext(cwd=run_dir)`, and
-asserts `exit_code == 3`, `json.loads(stdout)["ok"] is False`, and `"Traceback"
-not in stderr`.
+two-case installed exit-3 proof. It parametrizes `state_bytes` over
+`[None, b"not = toml ="]` with ids `["missing-state", "unparseable-state"]`,
+creates `run_dir/working/`, writes the bad bytes when not `None`, runs the
+installed program with `ExecutionContext(cwd=run_dir)`, and asserts
+`exit_code == 3`, `json.loads(stdout)["ok"] is False`, and
+`"Traceback" not in stderr`.
 
 In-process proofs already in place (so the installed proofs only re-assert the
 boundary at the packaging layer, never establishing new product behaviour):
@@ -328,10 +318,11 @@ validation fails.
 
 ### Work Item 1: installed `reconcile` exit-3 e2e
 
-Implements: `docs/novel-ralph-harness-design.md` §9 (installed-binary e2es prove
-the exit-code contract at the packaging boundary) and §3.2 (mutator-refusal-is-3;
-state-or-input-error exits 3); `docs/adr-003-shared-interface-contract.md` Table
-2 row 3; `docs/issues/audit-6.2.4.md` Finding 6; roadmap task 6.2.6.
+Implements: `docs/novel-ralph-harness-design.md` §9 (installed-binary e2es
+prove the exit-code contract at the packaging boundary) and §3.2
+(mutator-refusal-is-3; state-or-input-error exits 3);
+`docs/adr-003-shared-interface-contract.md` Table 2 row 3;
+`docs/issues/audit-6.2.4.md` Finding 6; roadmap task 6.2.6.
 
 Docs to read first: `docs/novel-ralph-harness-design.md` §3.2 and §9; §10
 (failure modes — a state fault yields a message, not a stack trace);
@@ -347,11 +338,13 @@ property/symbolic adversary is warranted — see "Tests this work item adds".
 Edit `tests/test_reconcile_e2e.py`. Add one new test function,
 `test_installed_novel_state_reconcile_state_error_exits_three`, after the two
 existing installed e2es. Decorate it with the same four markers the existing
-installed reconcile tests carry: `@pytest.mark.skipif(os.name != "posix",
-reason="console-script e2e is POSIX-only; see ADR 006")`, `@pytest.mark.slow`,
-`@pytest.mark.timeout(180)`, and a
+installed reconcile tests carry:
+`@pytest.mark.skipif(os.name != "posix",
+reason="console-script e2e is POSIX-only; see ADR 006")`,
+`@pytest.mark.slow`, `@pytest.mark.timeout(180)`, and a
 `@pytest.mark.parametrize("state_bytes", [None, b"not = toml ="],
-ids=["missing-state", "unparseable-state"])`. The test takes `state_bytes: bytes
+ids=["missing-state", "unparseable-state"])`.
+The test takes `state_bytes: bytes
 | None`, `tmp_path: Path`, `single_program_catalogue`, and `installed_novel_state`
 (the module-scoped fixture the module already uses). Its body, mirroring
 `tests/test_recount_e2e.py:172-185`:
@@ -363,8 +356,8 @@ ids=["missing-state", "unparseable-state"])`. The test takes `state_bytes: bytes
 3. `prog = Program(str(installed_novel_state))`;
    `catalogue = single_program_catalogue("novel-state-run", prog)` (the same
    project label the module's other installed tests use).
-4. `result = sh.make(prog, catalogue=catalogue)("reconcile").run_sync(
-   context=ExecutionContext(cwd=run_dir), capture=True)`.
+4. result = sh.make(prog, catalogue=catalogue)("reconcile").run_sync(
+   context=ExecutionContext(cwd=run_dir), capture=True).
 5. Assert `result.exit_code == 3, result.stderr`;
    `json.loads(result.stdout or "{}")["ok"] is False`;
    `"Traceback" not in (result.stderr or "")`.
@@ -376,18 +369,18 @@ reconcile exit-3 coverage already exists); notes the `installed_novel_state`
 fixture supplies the script path (built once per module); and notes the 180s
 timeout supersedes the 30s default. Use en-GB Oxford spelling.
 
-Update the module docstring's bullet list (`tests/test_reconcile_e2e.py:1-20`) to
-mention the new exit-3 installed proof alongside the existing exit-0 ones, and add
-roadmap `6.2.6` to the docstring's roadmap reference line.
+Update the module docstring's bullet list (`tests/test_reconcile_e2e.py:1-20`)
+to mention the new exit-3 installed proof alongside the existing exit-0 ones,
+and add roadmap `6.2.6` to the docstring's roadmap reference line.
 
 This stage ends with validation (see "Concrete steps").
 
 ### Work Item 2: installed `wordcount` exit-3 e2e
 
 Implements: the same design and ADR sections as Work Item 1; roadmap task 6.2.6;
-`docs/issues/audit-6.2.4.md` Finding 6. Note design §9 records that `wordcount`
-"covers its own gate-boundary envelope" but the installed exit-3 path was not
-yet anchored — this work item anchors it.
+`docs/issues/audit-6.2.4.md` Finding 6. Note design §9 records that
+`wordcount` "covers its own gate-boundary envelope" but the installed exit-3
+path was not yet anchored — this work item anchors it.
 
 Docs to read first: same set as Work Item 1, plus `docs/roadmap.md` task 6.1.1
 (the existing `wordcount` installed proof this sits beside).
@@ -398,32 +391,33 @@ Edit `tests/test_wordcount_e2e.py`. Add one new test function,
 `test_installed_wordcount_state_error_exits_three`, after
 `test_installed_wordcount_reports_gate_triggers`. Decorate it with
 `@pytest.mark.skipif(os.name != "posix", ...)`, `@pytest.mark.slow`,
-`@pytest.mark.timeout(180)`, and the same `@pytest.mark.parametrize("state_bytes",
-[None, b"not = toml ="], ids=["missing-state", "unparseable-state"])`. The test
-takes `state_bytes: bytes | None`, `tmp_path: Path`, `single_program_catalogue`,
-and `venv_scripts_dir` (the two function-scoped fixtures the module already
-uses). Its body:
+`@pytest.mark.timeout(180)`, and the same
+`@pytest.mark.parametrize("state_bytes", [None, b"not = toml ="],
+ids=["missing-state", "unparseable-state"])`.
+The test takes `state_bytes: bytes | None`, `tmp_path: Path`,
+`single_program_catalogue`, and `venv_scripts_dir` (the two function-scoped
+fixtures the module already uses). Its body:
 
-1. `script_path = _build_and_install_wordcount(tmp_path,
-   single_program_catalogue, venv_scripts_dir)` — reuse the module's existing
+1. script_path =_build_and_install_wordcount(tmp_path,
+   single_program_catalogue, venv_scripts_dir) — reuse the module's existing
    function-scoped build helper, exactly as
    `test_installed_wordcount_reports_gate_triggers` does (`:91`).
 2. Create `run_dir = tmp_path / "run-state-error"` and
    `working_dir = run_dir / "working"`; `working_dir.mkdir(parents=True)`.
 3. When `state_bytes is not None`, write it to `working_dir / "state.toml"`.
 4. `prog = Program(str(script_path))`;
-   `catalogue = single_program_catalogue("wordcount-run", prog)` (the same label
-   the happy-path test uses).
-5. `result = sh.make(prog, catalogue=catalogue)().run_sync(
-   context=ExecutionContext(cwd=run_dir), capture=True)` — note the empty call
+   `catalogue = single_program_catalogue("wordcount-run", prog)` (the same
+   label the happy-path test uses).
+5. result = sh.make(prog, catalogue=catalogue)().run_sync(
+   context=ExecutionContext(cwd=run_dir), capture=True) — note the empty call
    `()`, because `wordcount` takes no subcommand (unlike `reconcile`).
 6. Assert `result.exit_code == 3, result.stderr`;
    `json.loads(result.stdout or "{}")["ok"] is False`;
    `"Traceback" not in (result.stderr or "")`.
 
 Docstring requirements as in Work Item 1, adapted: name the build helper (not a
-fixture) and why (this module's existing convention), and state that `wordcount`
-is invoked with no subcommand. Use en-GB Oxford spelling.
+fixture) and why (this module's existing convention), and state that
+`wordcount` is invoked with no subcommand. Use en-GB Oxford spelling.
 
 Update the module docstring (`tests/test_wordcount_e2e.py:1-19`) to mention the
 new exit-3 installed proof and add roadmap `6.2.6` to its reference line.
@@ -487,11 +481,12 @@ Quality criteria (what "done" means):
 - Tests: `make test` passes. On POSIX the two new tests each contribute two
   passing parametrized cases:
   `tests/test_reconcile_e2e.py::test_installed_novel_state_reconcile_state_error_exits_three[missing-state]`
-  and `[unparseable-state]`, and the `wordcount` equivalents. Each fails if the
-  asserted exit code is changed from `3`, proving it is load-bearing.
+  and `[unparseable-state]`, and the `wordcount` equivalents. Each fails if
+  the asserted exit code is changed from `3`, proving it is load-bearing.
 - Lint/typecheck: `make lint` and `make typecheck` pass; the new test bodies
   satisfy `ruff` and `ty` (`make typecheck` runs `ty check $(PYTHON_TARGETS)`,
-  `Makefile:100`, `AGENTS.md:89`) under the existing `tests/` `per-file-ignores`.
+  `Makefile:100`, `AGENTS.md:89`) under the existing `tests/`
+  `per-file-ignores`.
 - Markdown: `make markdownlint` and `make nixie` pass over this execplan.
 - Performance: each installed test stays within the 180s per-test timeout. No
   new wheel build beyond the one the existing module mechanism already performs
@@ -503,23 +498,23 @@ Quality criteria (what "done" means):
 
 Quality method (how we check):
 
-- `make all` from the worktree root; the new tests fail before their bodies exist
-  (or when the asserted exit code is flipped) and pass after.
-- Acceptance, phrased as behaviour: running the installed `novel-state reconcile`
-  over a `working/` directory whose `state.toml` is missing or unparseable exits
-  `3` and emits `{"ok": false, ...}` on stdout with no `Traceback` on stderr; the
-  installed `wordcount` console-script does the same. Each is observed against a
-  real wheel installed into a fresh venv, not only in-process.
+- `make all` from the worktree root; the new tests fail before their bodies
+  exist (or when the asserted exit code is flipped) and pass after.
+- Acceptance, phrased as behaviour: running the installed
+  `novel-state reconcile` over a `working/` directory whose `state.toml` is
+  missing or unparseable exits `3` and emits `{"ok": false, ...}` on stdout
+  with no `Traceback` on stderr; the installed `wordcount` console-script does
+  the same. Each is observed against a real wheel installed into a fresh venv,
+  not only in-process.
 
 ## Idempotence and recovery
 
 The work is additive and re-runnable. Each test materializes its own throwaway
 `working/` tree under a per-test `tmp_path`, so cases are independent and leave
 no state behind. `tmp_path` and the `uv venv` are cleaned by pytest. If a
-stage's
-`make all` fails, fix the new test in place and re-run; nothing is destructive.
-Re-running the suite rebuilds the wheel cleanly. There is no migration, no schema
-change, and no rollback path needed.
+stage's `make all` fails, fix the new test in place and re-run; nothing is
+destructive. Re-running the suite rebuilds the wheel cleanly. There is no
+migration, no schema change, and no rollback path needed.
 
 ## Artefacts and notes
 
@@ -549,8 +544,8 @@ Work Item 1 changes `("recount")` to `("reconcile")`; Work Item 2 changes it to
 
 ## Interfaces and dependencies
 
-All cuprum calls were verified against the locked `cuprum==0.1.0` wheel itself
-— `uv.lock:113-118`, registry wheel sha256
+All cuprum calls were verified against the locked `cuprum==0.1.0` wheel itself —
+`uv.lock:113-118`, registry wheel sha256
 `b03e813bb56afe75f6cc38ec742091a0b1dc183480630abbaf8f205c984c3e72` — whose
 sources were unpacked and read directly. They were NOT verified against the
 sibling working tree at `/data/leynos/Projects/cuprum`: that checkout is at a
@@ -562,51 +557,52 @@ citation below resolves against the 0.1.0 wheel; an implementer who opens those
 files in the wheel will find exactly these signatures.
 
 - `cuprum.program.Program` — `typ.NewType("Program", str)`
-  (`cuprum/program.py:15`). `Program(str(absolute_path))` is the supported way to
-  name an absolute-path executable; equality is string equality, so the
+  (`cuprum/program.py:15`). `Program(str(absolute_path))` is the supported way
+  to name an absolute-path executable; equality is string equality, so the
   catalogue allowlist matches the exact path.
 - `cuprum.ProjectSettings(name, programs, documentation_locations, noise_rules)`
   (`cuprum/catalogue.py:30`) and `cuprum.ProgramCatalogue(projects=(...,))`
   (`cuprum/catalogue.py:56`). The `single_program_catalogue` conftest fixture
-  already wraps this (`tests/conftest.py:246`); the new tests reuse the fixture,
-  not the raw constructors.
+  already wraps this (`tests/conftest.py:246`); the new tests reuse the
+  fixture, not the raw constructors.
 - `cuprum.sh.make(program, catalogue=...)` (`cuprum/sh.py:529`) — builds a
   `SafeCmd`; `ProgramCatalogue.lookup` (`cuprum/catalogue.py:76`) raises
   `UnknownProgramError` for any unregistered program (`raise` at
   `cuprum/catalogue.py:82`), which is the execution gate that makes the
   catalogue allowlist load-bearing.
-- `SafeCmd.run_sync(*, capture: bool = True, echo: bool = False, context:
-  ExecutionContext | None = None) -> CommandResult` — `cuprum/sh.py:450`. In the
+- SafeCmd.run_sync(*, capture: bool = True, echo: bool = False, context:
+  ExecutionContext | None = None) -> CommandResult — `cuprum/sh.py:450`. In the
   locked 0.1.0 wheel `capture` is a **first-class keyword on `run_sync`** with
   default `True`; there is no `RunOutputOptions` routing on `run_sync` in 0.1.0
-  (that routing is a post-0.1.0 sibling refactor). The tests pass `capture=True`
-  explicitly to match the existing green installed e2es and to read the captured
-  envelope. `ExecutionContext` (`cuprum/sh.py:165`) carries the `cwd` field that
-  sets the subprocess working directory so the installed script resolves
-  `./working/state.toml`.
-- `CommandResult` (`cuprum/sh.py:89`) has fields `program, argv, exit_code, pid,
-  stdout, stderr`; the new tests read only `exit_code: int`, `stdout: str |
-  None`, and `stderr: str | None`. (`CommandResult.ok` is a derived property
-  `exit_code == 0`, `cuprum/sh.py:116`; the tests assert the JSON envelope's
-  `ok` field rather than this property, matching the recount proof.)
+  (that routing is a post-0.1.0 sibling refactor). The tests pass
+  `capture=True` explicitly to match the existing green installed e2es and to
+  read the captured envelope. `ExecutionContext` (`cuprum/sh.py:165`) carries
+  the `cwd` field that sets the subprocess working directory so the installed
+  script resolves `./working/state.toml`.
+- `CommandResult` (`cuprum/sh.py:89`) has fields
+  `program, argv, exit_code, pid, stdout, stderr`; the new tests read only
+  `exit_code: int`, `stdout: str | None`, and `stderr: str | None`.
+  (`CommandResult.ok` is a derived property `exit_code == 0`,
+  `cuprum/sh.py:116`; the tests assert the JSON envelope's `ok` field rather
+  than this property, matching the recount proof.)
 
-No cuprum API absent from `0.1.0` is required; the entire surface is the same one
-the existing installed e2es already exercise (those tests are green against the
-0.1.0 wheel, which independently pins the `capture=True` keyword). The plan
+No cuprum API absent from `0.1.0` is required; the entire surface is the same
+one the existing installed e2es already exercise (those tests are green against
+the 0.1.0 wheel, which independently pins the `capture=True` keyword). The plan
 therefore does not need any external-library research beyond cuprum:
-`pytest-timeout`'s per-test
-`@pytest.mark.timeout(180)` override and the `@pytest.mark.parametrize` /
-`@pytest.mark.skipif` / `@pytest.mark.slow` marks are already in use unchanged
-across `tests/test_recount_e2e.py`, so their behaviour is pinned by the existing
-green suite rather than asserted from memory.
+`pytest-timeout`'s per-test `@pytest.mark.timeout(180)` override and the
+`@pytest.mark.parametrize` / `@pytest.mark.skipif` / `@pytest.mark.slow` marks
+are already in use unchanged across `tests/test_recount_e2e.py`, so their
+behaviour is pinned by the existing green suite rather than asserted from
+memory.
 
 Fixtures depended upon (all pre-existing, no new fixtures):
 
 - `installed_novel_state` (module-scoped) —
   `tests/installed_binary_fixtures.py:92`, registered via `pytest_plugins` in
   `tests/conftest.py:55-60`. Used by Work Item 1.
-- `single_program_catalogue` (function-scoped) — `tests/conftest.py:246`. Used by
-  both work items.
+- `single_program_catalogue` (function-scoped) — `tests/conftest.py:246`. Used
+  by both work items.
 - `venv_scripts_dir` (function-scoped) — `tests/conftest.py:278`. Used by Work
   Item 2 via `_build_and_install_wordcount`.
 - `_build_and_install_wordcount` (module-local helper) —
@@ -616,33 +612,34 @@ Fixtures depended upon (all pre-existing, no new fixtures):
 
 Initial draft (2026-06-25). Decomposes roadmap task 6.2.6 into two atomic,
 independently committable installed-binary exit-3 e2e additions — one for
-`novel-state reconcile`, one for `wordcount` — each mirroring the `recount` proof
-6.2.4 added. No production code or source-of-truth doc changes.
+`novel-state reconcile`, one for `wordcount` — each mirroring the `recount`
+proof 6.2.4 added. No production code or source-of-truth doc changes.
 
 Round-2 revision (2026-06-25), in response to the round-1 Logisphere review
 (`docs/execplans/roadmap-6-2-6.review-r1.md`):
 
 - What changed: every cuprum citation was re-derived against the locked
-  `cuprum==0.1.0` wheel (registry sha256 `b03e813…c984c3e72`, `uv.lock:113-118`)
-  rather than the post-0.1.0 sibling checkout at `/data/leynos/Projects/cuprum`.
-  The Constraints and "Interfaces and dependencies" sections now cite the wheel's
-  line numbers (`CommandResult` `sh.py:89`, `ExecutionContext` `sh.py:165`,
-  `SafeCmd.run_sync` `sh.py:450`, `make` `sh.py:529`; `ProjectSettings`
-  `catalogue.py:30`, `ProgramCatalogue` `catalogue.py:56`, `lookup` `:76` /
-  `raise` `:82`; `Program` `program.py:15`). The false `RunOutputOptions`
-  sentence was corrected: in 0.1.0 `run_sync` takes `capture` as a first-class
-  keyword (default `True`) with no `RunOutputOptions` routing; that routing is a
-  post-0.1.0 sibling refactor. The two non-blocking advisories were also actioned
-  — the typecheck gate is named as `ty` (`make typecheck` → `ty check`,
-  `AGENTS.md:89`/`Makefile:100`), not `pyright`, and the `nixie` framing now
-  states it validates Mermaid only.
+  `cuprum==0.1.0` wheel (registry sha256 `b03e813…c984c3e72`,
+  `uv.lock:113-118`) rather than the post-0.1.0 sibling checkout at
+  `/data/leynos/Projects/cuprum`. The Constraints and "Interfaces and
+  dependencies" sections now cite the wheel's line numbers (`CommandResult`
+  `sh.py:89`, `ExecutionContext` `sh.py:165`, `SafeCmd.run_sync` `sh.py:450`,
+  `make` `sh.py:529`; `ProjectSettings` `catalogue.py:30`, `ProgramCatalogue`
+  `catalogue.py:56`, `lookup` `:76` / `raise` `:82`; `Program`
+  `program.py:15`). The false `RunOutputOptions` sentence was corrected: in
+  0.1.0 `run_sync` takes `capture` as a first-class keyword (default `True`)
+  with no `RunOutputOptions` routing; that routing is a post-0.1.0 sibling
+  refactor. The two non-blocking advisories were also actioned — the typecheck
+  gate is named as `ty` (`make typecheck` → `ty check`, `AGENTS.md:89`/
+  `Makefile:100`), not `pyright`, and the `nixie` framing now states it
+  validates Mermaid only.
 - Why it changed: the standing rule requires locked-library behaviour to be
-  verified and cited against the locked artefact. The round-1 trail pointed at a
-  diverged tree and carried one claim that was false for the wheel.
+  verified and cited against the locked artefact. The round-1 trail pointed at
+  a diverged tree and carried one claim that was false for the wheel.
 - Effect on remaining work: none to the prescribed test code, which already
-  matched the green existing tests and the wheel. Only the verification trail an
-  implementer follows was corrected, so following the citations now lands on the
-  exact `capture=True` API the tests use.
+  matched the green existing tests and the wheel. Only the verification trail
+  an implementer follows was corrected, so following the citations now lands on
+  the exact `capture=True` API the tests use.
 
 ## Addenda
 
@@ -650,19 +647,21 @@ Post-merge remediation items filed against this completed task. Each is a
 lightweight addendum pass: no plan or design-review cycle, just the change, the
 gates, and a merge. The roadmap carries the matching nested sub-task.
 
-- [x] **6.2.6.1 — Add a missing-state-only in-process exit-3 test for `wordcount`**
+- [x] **6.2.6.1 — Add a missing-state-only in-process exit-3 test for
+      `wordcount`**
   (from review:6.2.6; severity: low). The missing-state case (a `working/`
-  directory present but `state.toml` absent) is proven in-process for `wordcount`
-  only indirectly via the absent-working-dir and unparseable-state tests; the
-  precise present-working-dir-without-`state.toml` shape is pinned in-process for
-  `recount` but not directly for `wordcount`. Add a direct in-process assertion
-  so the installed proof's truth is self-contained per command rather than
-  resting on the shared boundary argument.
-- [x] **6.2.6.2 — Assert a non-empty human-facing message in the installed exit-3
-  envelopes across `recount`, `reconcile`, and `wordcount`** (from review:6.2.6;
-  severity: low). The installed exit-3 proofs assert exit 3 + `ok:false` + no
-  `Traceback` but pin no message content, yet design §10 requires a state fault
-  to yield a message, not a stack trace; a regression emitting an empty or
-  unhelpful operator message would pass today. Add a small shared assertion that
-  each installed exit-3 envelope carries a non-empty `messages` entry, extended
-  across the `recount` proof 6.2.4 added.
+  directory present but `state.toml` absent) is proven in-process for
+  `wordcount` only indirectly via the absent-working-dir and unparseable-state
+  tests; the precise present-working-dir-without-`state.toml` shape is pinned
+  in-process for `recount` but not directly for `wordcount`. Add a direct
+  in-process assertion so the installed proof's truth is self-contained per
+  command rather than resting on the shared boundary argument.
+- [x] **6.2.6.2 — Assert a non-empty human-facing message in the installed
+      exit-3
+  envelopes across `recount`, `reconcile`, and `wordcount`** (from
+  review:6.2.6; severity: low). The installed exit-3 proofs assert exit 3 +
+  `ok:false` + no `Traceback` but pin no message content, yet design §10
+  requires a state fault to yield a message, not a stack trace; a regression
+  emitting an empty or unhelpful operator message would pass today. Add a small
+  shared assertion that each installed exit-3 envelope carries a non-empty
+  `messages` entry, extended across the `recount` proof 6.2.4 added.

@@ -474,8 +474,7 @@ which conditions are unmet:
   compile, or a present-but-stale one that no longer matches the drafts, fails
   the clause.
 - `no_unresolved_blockers` — no chapter's `critic-notes.md` carries an
-  unresolved
-  BLOCKER (a line beginning `BLOCKER` without a `[resolved]` marker).
+  unresolved BLOCKER (a line beginning `BLOCKER` without a `[resolved]` marker).
 
 `novel done` uses the shared exit-code table:
 
@@ -485,9 +484,8 @@ which conditions are unmet:
   A sole failure caused by an *absent* `compiled.md` also exits `1` (an absent
   compile is not a regenerable stale one).
 - `3` — a state or input error: `./working/state.toml` is missing or
-  unparseable,
-  or a chapter artefact (such as `critic-notes.md`, `compiled.md`, or a
-  `draft.md`) is unreadable.
+  unparseable, or a chapter artefact (such as `critic-notes.md`, `compiled.md`,
+  or a `draft.md`) is unreadable.
 - `4` — every clause holds *except* `compile_consistent`, and `compiled.md` is
   present: the manuscript is otherwise complete and the only obstacle is a
   stale compile, which the harness regenerates (matching

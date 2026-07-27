@@ -18,12 +18,12 @@ code changes" held — verified: the commit touches no file under
 `novel_ralph_skill/`. The new scenario mirrors the established never-landed
 ROLLBACK sibling (6.2.7), drives recovery through the shared command runner
 rather than the bracket primitive, and produces the torn record through the
-real §3.4 `pending_turn` producer. The feature's `Given`/`Then`/`When`
-ordering (asserting the producer precondition before driving `check`) matches
-the sibling `tests/features/torn_turn_rollback.feature`, so it is a deliberate
-house pattern, not a Gherkin regression. No finding below is a defect in
-6.2.12's diff; the findings are pre-existing hygiene observations that 6.2.12
-extends or surfaces while reading the torn-turn behavioural-test family.
+real §3.4 `pending_turn` producer. The feature's `Given`/`Then`/`When` ordering
+(asserting the producer precondition before driving `check`) matches the sibling
+`tests/features/torn_turn_rollback.feature`, so it is a deliberate house
+pattern, not a Gherkin regression. No finding below is a defect in 6.2.12's
+diff; the findings are pre-existing hygiene observations that 6.2.12 extends or
+surfaces while reading the torn-turn behavioural-test family.
 
 Sources relied on: `docs/execplans/roadmap-6-2-12.md` (the task's plan, its
 `Decision Log D-DUP` deferring helper extraction, and `D-MECH`/`D-PARTIAL`);
@@ -32,13 +32,13 @@ shared-scaffolding tasks 7.23 / 7.23.3 at lines 1533, 3085, 3123, 3171);
 `docs/issues/audit-6.2.10.md` and `docs/issues/audit-6.1.1.md` (the prior
 duplication-by-copy-paste theme); `docs/developers-guide.md` (§"Shared test
 scaffolding"; the torn-turn behavioural-scenario note at lines 824-827);
-`docs/novel-ralph-harness-design.md` (§3.4 atomic writes and the `[pending_turn]`
-producer, §5.4 item 2 the leaves-partial-artefacts-in-place guarantee);
-`docs/scripting-standards.md` (§"Reading / writing files and atomic updates");
-and `AGENTS.md` (en-GB Oxford spelling, the single-source-of-truth stance).
-Code navigated with `leta`; history traced with `sem` / `git show` over commit
-`4969177`. Skills consulted: `leta`, `sem`, `python-router` (routing the BDD
-step-module review).
+`docs/novel-ralph-harness-design.md` (§3.4 atomic writes and the
+`[pending_turn]` producer, §5.4 item 2 the leaves-partial-artefacts-in-place
+guarantee); `docs/scripting-standards.md` (§"Reading / writing files and atomic
+updates"); and `AGENTS.md` (en-GB Oxford spelling, the single-source-of-truth
+stance). Code navigated with `leta`; history traced with `sem` / `git show`
+over commit `4969177`. Skills consulted: `leta`, `sem`, `python-router`
+(routing the BDD step-module review).
 
 ## Finding 1: Torn-turn BDD command-driver helpers are now duplicated four ways
 
@@ -47,8 +47,8 @@ step-module review).
 - **Location:** `tests/steps/torn_turn_rollback_partial_steps.py:106-150`
   (`_draft_bytes`, `_present_files`, `_run`, `_run_capturing`), duplicating
   `tests/steps/torn_turn_rollback_steps.py:89-133`,
-  `tests/steps/torn_turn_recovery_steps.py:89-133`, and (for the runner
-  helpers) `tests/steps/per_chapter_loop_steps.py`.
+  `tests/steps/torn_turn_recovery_steps.py:89-133`, and (for the runner helpers)
+  `tests/steps/per_chapter_loop_steps.py`.
 
 Task 6.2.12 adds a third byte-identical copy of the reconcile-family
 command-driving helpers. Verified by hashing the helper bodies (comments and
@@ -99,8 +99,8 @@ so the consolidation is overdue rather than speculative.
 The developers' guide describes the torn-turn behavioural coverage generically:
 "The torn-turn recovery flow is covered by the suite's first `pytest-bdd`
 behavioural scenario (`tests/features/torn_turn.feature` with steps under
-`tests/steps/`)". The suite now carries a *family* of torn-turn scenarios —
-the COMPLETE recovery (`torn_turn_recovery`), the never-landed ROLLBACK
+`tests/steps/`)". The suite now carries a *family* of torn-turn scenarios — the
+COMPLETE recovery (`torn_turn_recovery`), the never-landed ROLLBACK
 (`torn_turn_rollback`, task 6.2.7), and now the partial-landed ROLLBACK
 (`torn_turn_rollback_partial`, task 6.2.12) — each pinning a distinct half of
 the design §5.4 reconciliation surface (COMPLETE vs ROLLBACK; never-landed vs

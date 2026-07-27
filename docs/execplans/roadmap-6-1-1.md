@@ -37,8 +37,8 @@ and `state.toml`, derives the report, writes nothing to disk, and reports a
 finding without editing, judging, or mutating any state (design §4.5;
 `docs/developers-guide.md:177`). It shells out to nothing, so — like every v1
 command — it uses no `cuprum` at runtime (design §9 line 836: "v1 commands
-shell out to nothing"; `pyproject.toml:8` runtime deps are `["cyclopts",
-"tomlkit"]`, with `cuprum` under the dev group at `:27`).
+shell out to nothing"; `pyproject.toml:8` runtime deps are
+`["cyclopts", "tomlkit"]`, with `cuprum` under the dev group at `:27`).
 
 ## Constraints
 
@@ -205,34 +205,36 @@ escalation, not a workaround.
   non-negative; `target <= 0` short-circuits every percentage and the gate
   geometry to `None`. `_wordcount.py`'s body now calls `build_report` then
   `report_outcome`. Tests: `tests/test_wordcount_report.py` (pure aggregation),
-  `tests/test_wordcount_snapshots.py` (representative snapshot plus the exact-on-
-  gate, past-80%, `target == 0`, and trigger-versus-flag boundary examples) with
-  a committed `.ambr`. `make all` green; coderabbit run 2 addressed (snapshot
-  bare-assert messages; report triggers pinned to explicit expected tuples per
-  case rather than re-deriving `ratio >= gate`). Skipped: the class-grouping
-  findings (the repo convention is module-level test functions; adopting test
-  classes here would be inconsistent) and the review-r2 citation finding (that is
-  a review-record artefact, not the living plan).
+  `tests/test_wordcount_snapshots.py` (representative snapshot plus the
+  exact-on- gate, past-80%, `target == 0`, and trigger-versus-flag boundary
+  examples) with a committed `.ambr`. `make all` green; coderabbit run 2
+  addressed (snapshot bare-assert messages; report triggers pinned to explicit
+  expected tuples per case rather than re-deriving `ratio >= gate`). Skipped:
+  the class-grouping findings (the repo convention is module-level test
+  functions; adopting test classes here would be inconsistent) and the
+  review-r2 citation finding (that is a review-record artefact, not the living
+  plan).
 - [x] (done) WI3 — Promote `wordcount` to the real-command set, repurposing
   the two now-dead "still stubbed" tripwires into all-real-commands assertions,
   updating the users-guide stub note, and adding the installed-binary e2e.
-  `stub.wordcount()` now drives the real app via `_drive` (deferred `_wordcount`
-  import); the module docstring records all five entry points as real.
-  `tests/test_command_stubs.py` gained `"wordcount"` in `_REAL_COMMANDS` and a
-  repurposed `test_entry_point_callable_drives_real_app` (parametrized over all
-  entry points, guarded non-empty) asserting each callable takes the real exit-3
-  path under an absent `working/`. `tests/test_console_scripts_e2e.py` gained
-  `"wordcount"` and a repurposed `test_console_scripts_install_and_run_real`
-  asserting every installed script exits 3 with no `working/`. Both account for
-  `novel-state` being a command-group app via a small `_REAL_PATH_ARGV` map
-  (`novel-state` needs the `check` subcommand to reach its state-resolving path;
-  a deviation the plan's "bare argv exits 3" recipe missed — recorded in the
-  Decision Log below). Added `tests/test_wordcount_e2e.py` (slow, POSIX-only).
-  Updated `docs/users-guide.md`'s stub note to describe the real command. `make
-  all`, `make markdownlint` (users-guide and execplan clean), and `make nixie`
-  green; coderabbit run 3 returned one finding (the recurring review-r2
-  fabricated-citation), resolved by replacing the fabricated users-guide citation
-  in the living plan with `pyproject.toml:8`.
+  `stub.wordcount()` now drives the real app via `_drive` (deferred
+  `_wordcount` import); the module docstring records all five entry points as
+  real. `tests/test_command_stubs.py` gained `"wordcount"` in `_REAL_COMMANDS`
+  and a repurposed `test_entry_point_callable_drives_real_app` (parametrized
+  over all entry points, guarded non-empty) asserting each callable takes the
+  real exit-3 path under an absent `working/`.
+  `tests/test_console_scripts_e2e.py` gained `"wordcount"` and a repurposed
+  `test_console_scripts_install_and_run_real` asserting every installed script
+  exits 3 with no `working/`. Both account for `novel-state` being a
+  command-group app via a small `_REAL_PATH_ARGV` map (`novel-state` needs the
+  `check` subcommand to reach its state-resolving path; a deviation the plan's
+  "bare argv exits 3" recipe missed — recorded in the Decision Log below). Added
+  `tests/test_wordcount_e2e.py` (slow, POSIX-only). Updated
+  `docs/users-guide.md`'s stub note to describe the real command. `make all`,
+  `make markdownlint` (users-guide and execplan clean), and `make nixie` green;
+  coderabbit run 3 returned one finding (the recurring review-r2
+  fabricated-citation), resolved by replacing the fabricated users-guide
+  citation in the living plan with `pyproject.toml:8`.
 
 ## Surprises & discoveries
 
@@ -382,19 +384,19 @@ escalation, not a workaround.
   planning round 2 (resolves review A2).
 
 - Decision (D-GROUP, implementation deviation): the repurposed tripwires drive
-  `novel-state` with its read-only `check` subcommand, not a bare invocation. The
-  plan's D-TRIPWIRE recipe asserted that, under a clean argv and an absent
-  `working/`, *every* entry point "resolves `./working/state.toml` and raises the
-  exit-`3` state channel". That holds for the four commands with a `@app.default`
-  body (`desloppify`, `novel-compile`, `novel-done`, `wordcount`), but
-  `novel-state` is a Cyclopts command **group**: a bare invocation with no
-  subcommand prints help and exits `0`, never resolving `state.toml`. Both
-  repurposed tests therefore carry a small `_REAL_PATH_ARGV` map supplying the
-  `check` token for `novel-state` (empty for the others), so each command reaches
-  its state-resolving path and the all-real exit-`3` assertion holds for the whole
-  surface. This is the same `novel-state check` route
-  `tests/test_novel_state_check.py` already drives. Date/Author: 2026-06-24,
-  implementation (WI3).
+  `novel-state` with its read-only `check` subcommand, not a bare invocation.
+  The plan's D-TRIPWIRE recipe asserted that, under a clean argv and an absent
+  `working/`, *every* entry point "resolves `./working/state.toml` and raises
+  the exit-`3` state channel". That holds for the four commands with a
+  `@app.default` body (`desloppify`, `novel-compile`, `novel-done`,
+  `wordcount`), but `novel-state` is a Cyclopts command **group**: a bare
+  invocation with no subcommand prints help and exits `0`, never resolving
+  `state.toml`. Both repurposed tests therefore carry a small `_REAL_PATH_ARGV`
+  map supplying the `check` token for `novel-state` (empty for the others), so
+  each command reaches its state-resolving path and the all-real exit-`3`
+  assertion holds for the whole surface. This is the same `novel-state check`
+  route `tests/test_novel_state_check.py` already drives. Date/Author:
+  2026-06-24, implementation (WI3).
 
 ## Outcomes & retrospective
 
@@ -402,27 +404,28 @@ Completed across the three work items (2026-06-24). Against the Purpose:
 `wordcount` now reports per-chapter and cumulative words, the percentage of
 target, the next-gate distance, the chapter-target delta, and the 30/50/80%
 triggers, derived purely from the on-disk drafts and the shared
-`GATE_THRESHOLDS` constant, with a non-negative next-gate distance at every gate
-boundary and `null` past the final gate. The previously stubbed exit-`2`
-behaviour is gone: all five console-scripts drive real apps, the report exits `0`
-and a state/input fault exits `3`. No second counter or threshold literal was
-introduced; the command body and its report projection are split across two
+`GATE_THRESHOLDS` constant, with a non-negative next-gate distance at every
+gate boundary and `null` past the final gate. The previously stubbed exit-`2`
+behaviour is gone: all five console-scripts drive real apps, the report exits
+`0` and a state/input fault exits `3`. No second counter or threshold literal
+was introduced; the command body and its report projection are split across two
 modules, each well within the 400-line cap, and the runtime dependency set is
 unchanged.
 
-What went smoothly: the `recount_words` and `GATE_THRESHOLDS` reuse made WI2 pure
-aggregation, exactly as the Surprises foresaw; the snapshot was stable on first
-generation and carries no volatile field.
+What went smoothly: the `recount_words` and `GATE_THRESHOLDS` reuse made WI2
+pure aggregation, exactly as the Surprises foresaw; the snapshot was stable on
+first generation and carries no volatile field.
 
 What deviated: D-GROUP — the plan's "every entry point exits 3 on a bare argv"
-recipe did not hold for the `novel-state` command group, which needs a subcommand
-to reach its state-resolving path; both repurposed tripwires now supply `check`
-for `novel-state` via a small argv map. No other deviation; scope and interface
-stayed within tolerances (no shared-seam change, no new dependency).
+recipe did not hold for the `novel-state` command group, which needs a
+subcommand to reach its state-resolving path; both repurposed tripwires now
+supply `check` for `novel-state` via a small argv map. No other deviation;
+scope and interface stayed within tolerances (no shared-seam change, no new
+dependency).
 
-Tooling note: `make fmt` reflows unrelated Markdown across the whole `docs/` tree
-(a known recurring artefact); that churn was stashed and excluded from every
-commit, leaving each commit to exactly its work item's files.
+Tooling note: `make fmt` reflows unrelated Markdown across the whole `docs/`
+tree (a known recurring artefact); that churn was stashed and excluded from
+every commit, leaving each commit to exactly its work item's files.
 
 ## Context and orientation
 
@@ -541,9 +544,9 @@ Steps:
    routes to exit-`2` without a command-level error class.)
 
 2. For this work item the body returns a minimal `CommandOutcome` carrying
-   `code=SUCCESS`, a thin `result={"target": ..., "current": ...}`, and a single
-   message — a placeholder the report work item replaces. This proves the
-   four-flag wiring and the fault routing end-to-end.
+   `code=SUCCESS`, a thin `result={"target": ..., "current": ...}`, and a
+   single message — a placeholder the report work item replaces. This proves
+   the four-flag wiring and the fault routing end-to-end.
 
 3. Add `tests/test_wordcount_command.py`: drive the real app through `run` (the
    `_run_capture` pattern from `tests/test_desloppify_command.py`) and assert

@@ -373,36 +373,36 @@ Hard invariants that must hold throughout implementation.
 Delivered. The `tests/cross_command_contract/` package plus
 `tests/features/cross_command_contract.feature` form a single cross-command
 suite that fails on any per-command divergence from the shared envelope and
-exit-code table, including for the mutators §6.2.1 excluded. `make all` is green
-at HEAD (1296 passed, 1 skipped); `make markdownlint`/`make nixie` pass on the
-edited `developers-guide.md`. The Work item 1 teeth check confirmed the suite's
-bite: reordering `result`/`messages` in `render_machine` turned 10 cells red and
-reverting restored green (perturbation not committed).
+exit-code table, including for the mutators §6.2.1 excluded. `make all` is
+green at HEAD (1296 passed, 1 skipped); `make markdownlint`/`make nixie` pass
+on the edited `developers-guide.md`. The Work item 1 teeth check confirmed the
+suite's bite: reordering `result`/`messages` in `render_machine` turned 10
+cells red and reverting restored green (perturbation not committed).
 
 Findings recorded during implementation:
 
 - `Ruff TRY004` (`type-check-without-type-error`) flags the
   `isinstance(...)`-then-`raise AssertionError` shape in the non-`test_*` helper
-  `_identity_assertions.py`. The constraint requires `AssertionError` (not a bare
-  `assert`, and not `TypeError`, since an envelope skeleton breach is a contract
-  violation, not a type error), so the type checks are routed through one
-  `_require(condition, message)` helper that breaks the flagged shape while
+  `_identity_assertions.py`. The constraint requires `AssertionError` (not a
+  bare `assert`, and not `TypeError`, since an envelope skeleton breach is a
+  contract violation, not a type error), so the type checks are routed through
+  one `_require(condition, message)` helper that breaks the flagged shape while
   keeping the contract-assertion intent. Decision recorded below.
 - `init` with no `working/` exits **0** (it *creates* `working/`), so it is not
-  a state-arm cell; the mutator state-arm set is the other nine mutators. `init`'s
-  refusal is instead a pre-existing `state.toml` (exit 3).
+  a state-arm cell; the mutator state-arm set is the other nine mutators.
+  `init`'s refusal is instead a pre-existing `state.toml` (exit 3).
 - `reconcile` is exit 0/4 by design (§3.1): it never refuses an incoherent tree
-  with exit 3, so its identity refusal is the shared no-`working/` load fault, not
-  a content breach. Recorded in `_mutator_cases.py`.
+  with exit 3, so its identity refusal is the shared no-`working/` load fault,
+  not a content breach. Recorded in `_mutator_cases.py`.
 - `INCOHERENT_VARIANTS` maps each key to a `(spec, violation_name)` pair (the
   `incoherent_tree` fixture unpacks the same shape); the cell builders take the
   first element.
 - Pre-existing spurious `mdformat`/`make fmt` reflow churn was present in the
   worktree's tracked `docs/` files (a known recurring issue; the stash list is
-  full of "spurious make-fmt mdformat churn" entries). The Work item 6 commit was
-  scrubbed to carry **only** the two `developers-guide.md` additions (restored the
-  file to HEAD and re-applied the edits), so no unrelated reflow churn was
-  committed.
+  full of "spurious make-fmt mdformat churn" entries). The Work item 6 commit
+  was scrubbed to carry **only** the two `developers-guide.md` additions
+  (restored the file to HEAD and re-applied the edits), so no unrelated reflow
+  churn was committed.
 
 Open issue (resolved in fix round 1) — coderabbit review obtained. The original
 `coderabbit review --agent` run stalled in its "summarizing" phase across
@@ -418,46 +418,46 @@ appeared rate-limited/queued). In fix round 1 the review completed
 The dual review returned two blocking findings: `make all` was not reliably
 green. Both root causes were pre-existing on `main` (the
 `test_reconcile_derivation.py` property is unchanged on this branch), but per
-AGENTS.md the commit gate must pass deterministically before merge. Both are now
-resolved in commit `733cf33` (two `tests/`/build-tooling files; no production
-source touched, preserving the verification-only constraint).
+AGENTS.md the commit gate must pass deterministically before merge. Both are
+now resolved in commit `733cf33` (two `tests/`/build-tooling files; no
+production source touched, preserving the verification-only constraint).
 
 Finding 1 — flaky Hypothesis property
 `test_derivation_is_total_and_never_yields_none_on_a_violation` (~1 in 8 under
 `pytest -n auto`). Root cause: the property materializes a full corpus working
 tree via `build_working_tree` and parses `state.toml` per generated example, so
-under xdist I/O contention an example sporadically breaches Hypothesis's default
-200ms deadline and raises `DeadlineExceeded`. It carried no `@settings`, unlike
-every other filesystem-heavy property in the suite (for example
-`tests/test_done_predicate.py:236-240` documents this exact convention).
-Confirmed by profiling (≈16ms/example uncontended, but the single-process run is
-already ~45ms/example including Hypothesis overhead, so contention easily
-crosses 200ms) and by reproducing `DeadlineExceeded` under a tightened deadline
-plus simulated contention. Fix: add
-`@settings(max_examples=100, deadline=None)`, matching the suite convention; the
-strategy space (unique lists of 1-4 of six basenames) is small, so 100 examples
-retains the search strength. Verified by 40 consecutive `-n auto` runs of the
-single test (0 failures) and a full green `make all`.
+under xdist I/O contention an example sporadically breaches Hypothesis's
+default 200ms deadline and raises `DeadlineExceeded`. It carried no
+`@settings`, unlike every other filesystem-heavy property in the suite (for
+example `tests/test_done_predicate.py:236-240` documents this exact
+convention). Confirmed by profiling (≈16ms/example uncontended, but the
+single-process run is already ~45ms/example including Hypothesis overhead, so
+contention easily crosses 200ms) and by reproducing `DeadlineExceeded` under a
+tightened deadline plus simulated contention. Fix: add
+`@settings(max_examples=100, deadline=None)`, matching the suite convention;
+the strategy space (unique lists of 1-4 of six basenames) is small, so 100
+examples retains the search strength. Verified by 40 consecutive `-n auto` runs
+of the single test (0 failures) and a full green `make all`.
 
 Finding 2 — wide first-run envelope field-order failure (101 tests, `messages`
-before `result`) despite a statically `result`-then-`messages` `render_machine`.
-Root cause confirmed and reproduced deterministically: a stale,
-timestamp-validated `__pycache__/envelope.cpython-314.pyc` in the tracked tree
-whose embedded source mtime matches the current source (the exact condition git
-worktree/checkout/rebase creates, since git does not preserve content-correlated
-mtimes) makes CPython trust the old bytecode under the editable install. Staging
-such a stale `envelope.pyc` and stamping the restored good source to its
-embedded mtime reproduced the `messages`-before-`result` order on import;
-purging the cache restored the correct order. Fix: the `build` target now purges
-tracked-tree bytecode caches after `uv sync` (scoped to `$(PYTHON_TARGETS)`,
-never `.venv` or the uv cache) via the `PURGE_TREE_BYTECODE` macro, so `test`
-(which depends on `build`) always imports the editable source as written.
-Verified by re-staging the stale-pyc condition, running the purge, and
-confirming the import order is correct.
+before `result`) despite a statically `result`-then-`messages`
+`render_machine`. Root cause confirmed and reproduced deterministically: a
+stale, timestamp-validated `__pycache__/envelope.cpython-314.pyc` in the
+tracked tree whose embedded source mtime matches the current source (the exact
+condition git worktree/checkout/rebase creates, since git does not preserve
+content-correlated mtimes) makes CPython trust the old bytecode under the
+editable install. Staging such a stale `envelope.pyc` and stamping the restored
+good source to its embedded mtime reproduced the `messages`-before-`result`
+order on import; purging the cache restored the correct order. Fix: the `build`
+target now purges tracked-tree bytecode caches after `uv sync` (scoped to
+`$(PYTHON_TARGETS)`, never `.venv` or the uv cache) via the
+`PURGE_TREE_BYTECODE` macro, so `test` (which depends on `build`) always
+imports the editable source as written. Verified by re-staging the stale-pyc
+condition, running the purge, and confirming the import order is correct.
 
 Gate at fix-round-1 HEAD: `make all` green (1296 passed, 1 skipped);
-`coderabbit review` returned No findings. The edited Markdown (this execplan) is
-re-checked with `make markdownlint`/`make nixie` before the documentation
+`coderabbit review` returned No findings. The edited Markdown (this execplan)
+is re-checked with `make markdownlint`/`make nixie` before the documentation
 commit.
 
 ## Context and orientation
@@ -521,9 +521,8 @@ Key existing tests to model on (read before writing new ones):
 - `tests/test_contract_envelope_snapshots.py` — per-code envelope-helper
   snapshots. Work item 1's snapshots are the per-command analogue.
 - `tests/test_novel_state_mutator_snapshots.py` — the per-mutator
-  success/refusal
-  envelope snapshots and the `_normalise` timestamp redaction. Work item 5
-  reuses this redaction.
+  success/refusal envelope snapshots and the `_normalise` timestamp redaction.
+  Work item 5 reuses this redaction.
 - `tests/test_console_scripts_error_arms_e2e.py` and
   `tests/installed_binary_fixtures.py` — the installed error-arm boundary proof
   and the cuprum fixtures, for the optional installed tripwire only.
@@ -1131,12 +1130,12 @@ Round 2 revision (2026-06-26), resolving the Logisphere Round 1 review
   wrappers over `ChannelCell.build_app` in the cross-command suite (already
   typed `Callable[[], App]` on the `ChannelCell` NamedTuple), which `ty check`
   flags as redundant-cast warnings, and remove the now-unused `cabc`/`cyclopts`
-  `TYPE_CHECKING` references those casts justified, keeping the just-landed test
-  code free of dead annotations. Lightweight addendum pass.
+  `TYPE_CHECKING` references those casts justified, keeping the just-landed
+  test code free of dead annotations. Lightweight addendum pass.
 - 6.3.2.3 (from review:6.3.2; low). Correct the roadmap §6.3.2 entry wording so
-  the exit-code-to-`ok` mapping no longer reads `0/1 → benign, 2/3/4 →
-  ok:false`, which conflates the harness response class (loop vs stop) with the
-  envelope `ok` field. ADR-003 and design §3.1 fix `ok` as true iff code 0, so
-  benign-negative code 1 is `ok: false`; the shipped suite already pins the real
-  contract. A small editorial fix to the roadmap §6.3.2 prose removes the trap
-  at source. Lightweight addendum pass.
+  the exit-code-to-`ok` mapping no longer reads
+  `0/1 → benign, 2/3/4 → ok:false`, which conflates the harness response class
+  (loop vs stop) with the envelope `ok` field. ADR-003 and design §3.1 fix `ok`
+  as true iff code 0, so benign-negative code 1 is `ok: false`; the shipped
+  suite already pins the real contract. A small editorial fix to the roadmap
+  §6.3.2 prose removes the trap at source. Lightweight addendum pass.

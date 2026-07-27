@@ -16,13 +16,14 @@ false token-arithmetic premise and is, as specified, unrealisable.
     len(concatenate_drafts(bodies).split()) == sum(len(b.split()) for b in bodies)
 
 always — separator joins and trailing/leading whitespace never change the token
-count. Verified empirically across boundary cases. The plan asserts the opposite
-in Purpose (lines 17-20), Constraints, Risk #2/#3, the Decision Log, and the
-Work item 3 fixtures ("the difference arising from the `\n\n` separator join
-and/or trailing whitespace").
+count. Verified empirically across boundary cases. The plan asserts the
+opposite in Purpose (lines 17-20), Constraints, Risk #2/#3, the Decision Log,
+and the Work item 3 fixtures ("the difference arising from the `\n\n` separator
+join and/or trailing whitespace").
 
-`_check_compiled_matches_drafts` (`disk_evidence.py:173-191`) does a **byte-exact**
-compare: `compiled.read_text() == concatenate_drafts(present_bodies)`. The only
+`_check_compiled_matches_drafts` (`disk_evidence.py:173-191`) does a
+**byte-exact** compare:
+`compiled.read_text() == concatenate_drafts(present_bodies)`. The only
 `compiled.md` that does NOT fire that REFUSE is one byte-identical to the
 concatenation — whose token count provably equals the drafted sum.
 
@@ -31,8 +32,8 @@ concatenation — whose token count provably equals the drafted sum.
 Case 2 requires simultaneously: (a) `compiled.md` "absent or an exact
 `concatenate_drafts`" so `compiled-matches-drafts` does not REFUSE, and (b) the
 tree's "`compiled.md` token count diverges from the drafted sum." By B1 these
-are mutually exclusive. The plan's own Risk #3 says "If the orthogonality cannot
-be realized, escalate" — it cannot, as written. Case 2 can still test
+are mutually exclusive. The plan's own Risk #3 says "If the orthogonality
+cannot be realized, escalate" — it cannot, as written. Case 2 can still test
 recount==reconcile agreement, but the "compiled token count diverges" leg must
 be dropped from the case-2 tree (it belongs only to a tree with a deliberately
 non-concatenation `compiled.md`, which forces REFUSE and so cannot reach the
@@ -40,9 +41,9 @@ RECOUNT write — see B3).
 
 ### B3 (Pandalump): Work item 3 case 1 precondition assertion would error on arrange
 
-Case 1 instructs constructing a `compiled.md` whose token count differs from the
-drafted sum "from the `\n\n` separator join and/or trailing whitespace" and then
-"assert this precondition so the test cannot pass vacuously." With a
+Case 1 instructs constructing a `compiled.md` whose token count differs from
+the drafted sum "from the `\n\n` separator join and/or trailing whitespace" and
+then "assert this precondition so the test cannot pass vacuously." With a
 concatenation-derived `compiled.md` that precondition is FALSE, so the arrange
 assertion fails and the test errors. Case 1 is only salvageable by giving
 `compiled.md` an extra **non-whitespace** token (recount ignores `compiled.md`,
@@ -54,12 +55,13 @@ to the separator and state the real mechanism (an injected extra token).
 
 ### B4 (Wafflecat / structural): the plan does not name the actually-divergent quantity
 
-The genuine, design-faithful divergence is not token-count vs drafted-sum; it is
-that a **stale or hand-edited** `compiled.md` (different words, dropped/added
-content) has a token count unrelated to the drafts — and that is exactly the
-`compiled-matches-drafts` REFUSE case. The decision the task settles ("compiled
-tokens are never a `current` source") is sound and already implemented; but the
-test that "pins" it must be rebuilt around the real distinction:
+The genuine, design-faithful divergence is not token-count vs drafted-sum; it
+is that a **stale or hand-edited** `compiled.md` (different words,
+dropped/added content) has a token count unrelated to the drafts — and that is
+exactly the `compiled-matches-drafts` REFUSE case. The decision the task
+settles ("compiled tokens are never a `current` source") is sound and already
+implemented; but the test that "pins" it must be rebuilt around the real
+distinction:
 
 - recount/reconcile both write `sum(by_chapter)` regardless of `compiled.md`;
 - a `compiled.md` that diverges (in bytes) is surfaced as the
@@ -74,9 +76,9 @@ reconcile these two facts into a coherent, non-contradictory fixture matrix.
 
 1. Strike every claim that the `\n\n` separator join or trailing whitespace can
    make `len(compiled.split()) != sum(len(draft.split()))`. Replace with the
-   correct statement: for a byte-exact concatenation the token counts are equal;
-   divergence requires a `compiled.md` that is not the concatenation (extra or
-   altered non-whitespace content), which is precisely the
+   correct statement: for a byte-exact concatenation the token counts are
+   equal; divergence requires a `compiled.md` that is not the concatenation
+   (extra or altered non-whitespace content), which is precisely the
    `compiled-matches-drafts` REFUSE condition.
 2. Rewrite Work item 3 so case 1's "compiled token count" leg uses an injected
    non-whitespace token (and drop the false separator/whitespace precondition);
@@ -105,8 +107,8 @@ reconcile these two facts into a coherent, non-contradictory fixture matrix.
   behaviour is asserted, so cuprum source need not be cited. Correct.
 - D-NO-FIRECRAWL: the only external-library behaviour relied on is
   `str.split`/`tomlkit`/`pytest`, all standard and locked. No uncited
-  memory-based claim about Cyclopts, pytest-timeout/xdist, or uv is load-bearing
-  — verified none appears. Acceptable.
+  memory-based claim about Cyclopts, pytest-timeout/xdist, or uv is
+  load-bearing — verified none appears. Acceptable.
 - Completeness of the two-site reconciliation: the other "(or sum of drafts)"
   hits are execplan history and the roadmap task text quoting the old wording;
   leaving them is correct. The acceptance criterion correctly targets the two

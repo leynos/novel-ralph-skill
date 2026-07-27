@@ -1,8 +1,9 @@
 # Introduce `tests/conftest.py` to consolidate the shared test scaffolding
 
 This ExecPlan (execution plan) is a living document. The sections `Constraints`,
-`Tolerances`, `Risks`, `Progress`, `Surprises and discoveries`, `Decision log`,
-and `Outcomes and retrospective` must be kept up to date as work proceeds.
+`Tolerances`, `Risks`, `Progress`, `Surprises and discoveries`,
+`Decision log`, and `Outcomes and retrospective` must be kept up to date as
+work proceeds.
 
 Status: COMPLETE
 
@@ -217,10 +218,11 @@ Yes on both counts. `tests/conftest.py` now owns the six shared helpers
 (`project_root`, `pyproject`, `read_repo_text`, `toml_table`,
 `single_program_catalogue`, `venv_scripts_dir`); the four static-parse modules
 and the two console-scripts modules consume them by fixture name, and the
-cross-module private import `from tests.test_console_scripts_e2e import
-_venv_scripts_dir` is gone. No `from tests.conftest import` was introduced, and
-no `tests/__init__.py` or import-mode change was needed — the fixture-first
-approach in the Decision log held.
+cross-module private import
+`from tests.test_console_scripts_e2e import _venv_scripts_dir` is gone. No
+`from tests.conftest import` was introduced, and no `tests/__init__.py` or
+import-mode change was needed — the fixture-first approach in the Decision log
+held.
 
 The suite stayed green throughout: 52 passed before the conftest-helper tests,
 54 passed after (the two added `single_program_catalogue` assertions), with the
@@ -230,8 +232,8 @@ POSIX-only skip semantics unchanged on this POSIX host. `make all`,
 One deviation from the plan: the e2e test tripped Ruff `PLR0914` after gaining
 two fixture parameters, resolved by extracting the per-script run-and-assert
 loop into the module-level `_assert_scripts_exit_two` helper (recorded under
-Surprises and discoveries). No tolerance was breached: net changes stayed within
-budget, no test changed outcome, no dependency was added.
+Surprises and discoveries). No tolerance was breached: net changes stayed
+within budget, no test changed outcome, no dependency was added.
 
 ## Context and orientation
 
@@ -358,8 +360,8 @@ docstring'd, numpy-style):
   Replaces `_parse_scripts`/`_pyproject`/the inline parse.
 - `toml_table` returning a callable
   `(parent: Mapping, key: str) -> dict[str, object]` narrowing a value to a
-  table or raising `AssertionError`
-  (the `_table` logic from `tests/test_interrogate_gate.py:32`).
+  table or raising `AssertionError` (the `_table` logic from
+  `tests/test_interrogate_gate.py:32`).
 
 Then migrate the four static-parse modules to consume the fixtures and delete
 their local copies:

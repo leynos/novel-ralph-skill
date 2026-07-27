@@ -24,12 +24,11 @@ rather than trusting the planner's prose or the prior rounds.
   `ExitCode.USAGE_ERROR == 2` at `contract/exit_codes.py`. The plan copies this
   shape verbatim.
 - **Gate-ratio invariant (D4, Constraint).**
-  `validate.py:_check_gate_ratio_consistent`
-  (lines 250-278) uses `sum(by_chapter.values()) / target`, binds all three
-  knitting gates via `zip(flags, GATE_THRESHOLDS)`, and short-circuits on
-  `target <= 0`. The plan's account — including the deliberate `by_chapter` (not
-  `current`) decoupling and the "do not fix the doc into the code" Constraint
-  — is exact.
+  `validate.py:_check_gate_ratio_consistent` (lines 250-278) uses
+  `sum(by_chapter.values()) / target`, binds all three knitting gates via
+  `zip(flags, GATE_THRESHOLDS)`, and short-circuits on `target <= 0`. The
+  plan's account — including the deliberate `by_chapter` (not `current`)
+  decoupling and the "do not fix the doc into the code" Constraint — is exact.
 - **set_cursor vs advance_phase skeleton (D4).** `set_cursor`
   (`_state_mutators.py:176-234`) calls `_refuse_if_incoherent` on the
   **proposed** state only (line 224); `advance_phase` refuses **both** prior
@@ -64,8 +63,7 @@ rather than trusting the planner's prose or the prior rounds.
   plan makes `wc -l <= 399` a named WI5 acceptance gate with an escalation path
   — honest.
 - **Fixture construction (D8).** `build_working_tree` (`_builder.py:211`) does
-  no
-  validation, so the **incoherent** `gate_lags_ratio` prior is constructible;
+  no validation, so the **incoherent** `gate_lags_ratio` prior is constructible;
   `WorkingTreeSpec` exposes `done_30/50/80`, `final_pass_complete`, per-chapter
   `draft_words`/`target_words` (`_specs.py:201-204`), and
   `_gate_true_below_threshold` (`_variants.py:80-96`) is the exact template
@@ -76,17 +74,15 @@ rather than trusting the planner's prose or the prior rounds.
 ## Advisory (non-blocking) — for the implementer, not back to the planner
 
 - **A-r4-1 (snapshot redaction).** WI1's syrupy snapshot asserts "no timestamps
-  in
-  this envelope". Confirm at implementation time that the write-shaped `result`/
-  `messages` for `set-gate` carry no volatile field; if any appears, redact it.
-  Low risk — the existing set-cursor success envelope has none.
+  in this envelope". Confirm at implementation time that the write-shaped
+  `result`/ `messages` for `set-gate` carry no volatile field; if any appears,
+  redact it. Low risk — the existing set-cursor success envelope has none.
 - **A-r4-2 (xfail staging).** WI1-4 land bodies before WI5 registers them. The
-  plan
-  says to mark installed-e2e arms `xfail(strict=True)` or defer to WI5. Prefer
-  defer-to-WI5 for the e2e arms (the in-process unit/property tests can call
-  the body directly without registration), to avoid a stale strict-xfail that
-  flips to XPASS the moment WI5 lands mid-series. Cosmetic; the plan already
-  permits this.
+  plan says to mark installed-e2e arms `xfail(strict=True)` or defer to WI5.
+  Prefer defer-to-WI5 for the e2e arms (the in-process unit/property tests can
+  call the body directly without registration), to avoid a stale strict-xfail
+  that flips to XPASS the moment WI5 lands mid-series. Cosmetic; the plan
+  already permits this.
 - **A-r4-3 (registrar idempotence).** `register_gate_drafting_commands(app)` is
   called once from `build_app`. If any test calls `build_app()` twice against a
   shared app, double registration could raise. The existing per-call

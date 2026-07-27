@@ -15,27 +15,27 @@ entry — `novel` — dispatching into a `state` subgroup and four leaf verbs
 (`novel state …`, `novel done`, `novel compile`, `novel desloppify`,
 `novel wordcount`). This is verified in the worktree: `pyproject.toml` lists
 only `novel = "novel_ralph_skill.commands.novel:main"`, and
-`novel_ralph_skill/commands/names.py` holds the spaced surface vocabulary as the
-single source of truth.
+`novel_ralph_skill/commands/names.py` holds the spaced surface vocabulary as
+the single source of truth.
 
-Two repository documents still describe the retired per-command scripts, because
-this task (1.2.14) was specified but never executed (its body was orphaned under
-roadmap sub-task 1.2.15.1 with no checkbox until promoted):
+Two repository documents still describe the retired per-command scripts,
+because this task (1.2.14) was specified but never executed (its body was
+orphaned under roadmap sub-task 1.2.15.1 with no checkbox until promoted):
 
 1. `docs/novel-ralph-harness-design.md` carries **44 lines** that name the
-   retired hyphenated console-scripts (`grep -cE
-   'novel-state|novel-done|novel-compile' …` returns 44; the count rises to 65
-   if the bare `desloppify`/`wordcount` operation-noun hits are also counted).
-   The §4 *intro* (lines 267-274) and the §4.1-§4.5 subsection *headings* were
-   already updated to the spaced form, but the **§2.3 Verification scope** prose
-   (lines 112 `novel-state` validator, 115 `novel-done` returns, 121
-   `novel-compile --check`, 123 `novel-done` compile clause), the **§3.1 Output
-   modes** envelope example (line 148 `"command": "novel-done"`), the §3 tables,
-   the two Mermaid diagrams (Figure 1 at lines 53-73, Figure 3 at lines
-   798-810), and the §4 body (including the §4.2 envelope example at line 358
-   `"command": "novel-done"`), §5, §9, and §10 prose still carry hyphenated
-   literals. The design is therefore in a **mixed** state, which is itself a
-   defect: a reader sees both forms.
+   retired hyphenated console-scripts
+   (`grep -cE 'novel-state|novel-done|novel-compile' …` returns 44; the count
+   rises to 65 if the bare `desloppify`/`wordcount` operation-noun hits are
+   also counted). The §4 *intro* (lines 267-274) and the §4.1-§4.5 subsection
+   *headings* were already updated to the spaced form, but the **§2.3
+   Verification scope** prose (lines 112 `novel-state` validator, 115
+   `novel-done` returns, 121 `novel-compile --check`, 123 `novel-done` compile
+   clause), the **§3.1 Output modes** envelope example (line 148
+   `"command": "novel-done"`), the §3 tables, the two Mermaid diagrams (Figure
+   1 at lines 53-73, Figure 3 at lines 798-810), and the §4 body (including the
+   §4.2 envelope example at line 358 `"command": "novel-done"`), §5, §9, and
+   §10 prose still carry hyphenated literals. The design is therefore in a
+   **mixed** state, which is itself a defect: a reader sees both forms.
 2. `skill/novel-ralph/SKILL.md` carries **33 hyphenated occurrences** across 26
    lines, presents the harness in its Setup section as "five console-scripts",
    and verifies the install with `novel-state --version` — a command that **no
@@ -48,8 +48,8 @@ the package actually ships, with no surviving console-script reference and a
 Setup install check (`novel --version`) that resolves against the installed
 binary. The work is a **documentation-only** sweep: it edits two Markdown files
 and touches no Python, no tests, and no command behaviour, so `make all` stays
-green by construction (verified: no test asserts on the *content* of either file
-— see `Surprises & Discoveries`). Success is observable by grep (no
+green by construction (verified: no test asserts on the *content* of either
+file — see `Surprises & Discoveries`). Success is observable by grep (no
 command-surface literal survives, the noun-form operation references and the
 `desloppify-checklist.md` filename are preserved) and by the Markdown gates
 (`make markdownlint` and `make nixie` pass; `make nixie` is load-bearing here
@@ -81,21 +81,21 @@ workaround.
   hyphenated namespacing (Option A, which ADR 007 rejected). Confirm every
   command form written into either file against
   `novel_ralph_skill/commands/names.py` `SUBCOMMAND_NAMES`, **never** against
-  design §4's body prose, whose command literals are still hyphenated until this
-  sweep flips them.
+  design §4's body prose, whose command literals are still hyphenated until
+  this sweep flips them.
 - **Convert the JSON envelope `command` field exactly.** The two JSON envelope
-  examples at design line 148 (§3.1 Output modes) and line 358 (§4.2 `novel
-  done`) carry `"command": "novel-done"`. The multiplexer stamps the **spaced**
-  form into this field: `names.py` `ENVELOPE_COMMAND_NAMES` (line 53) is derived
-  from `SUBCOMMAND_NAMES` (line 40), whose entry is exactly `"novel done"`
-  (line 42). Both envelope lines must become `"command": "novel done"`,
-  confirmed character-for-character against `names.py` `SUBCOMMAND_NAMES` —
-  **not** a `novel-done` → `novel done` text reflex. This is the most
-  contract-sensitive convert target in the file: the envelope `command` string
-  is part of the harness's machine-read output contract, so an off-by-one
-  spacing or a stray hyphen is a contract defect, not a prose nit. Verify both
-  with `grep -n '"command":' "$DESIGN"` returning exactly `"novel done"` after
-  the sweep.
+  examples at design line 148 (§3.1 Output modes) and line 358 (§4.2
+  `novel done`) carry `"command": "novel-done"`. The multiplexer stamps the
+  **spaced** form into this field: `names.py` `ENVELOPE_COMMAND_NAMES` (line
+  53) is derived from `SUBCOMMAND_NAMES` (line 40), whose entry is exactly
+  `"novel done"` (line 42). Both envelope lines must become
+  `"command": "novel done"`, confirmed character-for-character against
+  `names.py` `SUBCOMMAND_NAMES` — **not** a `novel-done` → `novel done` text
+  reflex. This is the most contract-sensitive convert target in the file: the
+  envelope `command` string is part of the harness's machine-read output
+  contract, so an off-by-one spacing or a stray hyphen is a contract defect,
+  not a prose nit. Verify both with `grep -n '"command":' "$DESIGN"` returning
+  exactly `"novel done"` after the sweep.
 - **Preserve the `desloppify-checklist.md` filename verbatim.** It is a
   reference-document filename (`skill/novel-ralph/references/`), not a
   console-script reference. It appears 3 times in `SKILL.md` and once in the
@@ -111,8 +111,9 @@ workaround.
   surface.** The design's distribution prose (lines 103, 268, 279, 881, 890)
   describes the package being installed as a console-script — still true of the
   single `novel` entry point (ADR 004 distribution is unchanged per ADR 007).
-  These are not "five separate scripts" claims and stay. Only convert prose that
-  frames the surface as *multiple* separate scripts (e.g. `SKILL.md` line 28).
+  These are not "five separate scripts" claims and stay. Only convert prose
+  that frames the surface as *multiple* separate scripts (e.g. `SKILL.md` line
+  28).
 - All prose must be en-GB Oxford spelling (`-ize`/`-yse`/`-our`), matching the
   surrounding documents.
 
@@ -122,14 +123,15 @@ workaround.
   require editing a third file, stop and escalate (it likely belongs to sibling
   task 1.2.16 or 1.2.17).
 - Noun-vs-script ambiguity: if a bare `` `desloppify` `` or `` `wordcount` ``
-  cannot be confidently classified as either an *operation noun* (preserve) or a
-  *command invocation* (convert to `novel desloppify` / `novel wordcount`) by
+  cannot be confidently classified as either an *operation noun* (preserve) or
+  a *command invocation* (convert to `novel desloppify` / `novel wordcount`) by
   the rule in the Decision Log, stop and record the specific line in the
-  `Decision Log` before guessing. Do **not** mass-substitute bare
-  `desloppify`/`wordcount`.
+  `Decision Log` before guessing. Do **not** mass-substitute bare `desloppify`/
+  `wordcount`.
 - Mermaid: if `make nixie` fails after a diagram-node edit, stop and inspect —
-  a swept node label with a space (e.g. `ST[novel state]`) is valid Mermaid, but
-  a stray bracket or arrow corruption is not. Fix within 3 attempts or escalate.
+  a swept node label with a space (e.g. `ST[novel state]`) is valid Mermaid,
+  but a stray bracket or arrow corruption is not. Fix within 3 attempts or
+  escalate.
 - Gate iterations: if `make markdownlint` still fails after 3 fix attempts on a
   single work item, stop and escalate.
 
@@ -416,39 +418,41 @@ workaround.
 ## Outcomes & retrospective
 
 Completed 2026-06-26. Both files were swept to the single `novel` multiplexer
-surface across two atomic commits (design doc, then `SKILL.md`). The final-state
-gates all hold: `make markdownlint`, `make nixie`, and `make all` are green; the
-surface grep's survivors over both files are exactly the recorded
-operation-noun and `desloppify-checklist` filename references; the count gate
-shows DESIGN `11 desloppify` / `1 desloppify-checklist` / `5 novel desloppify`
-and `4 wordcount` / `5 novel wordcount`, SKILL `0` bare `desloppify` / `3
-desloppify-checklist` / `0` bare `wordcount`; both JSON envelope `command`
-fields read `"novel done"`; the `SKILL.md` Setup install check is `novel
---version`. `coderabbit review` returned **No findings** on both commits.
+surface across two atomic commits (design doc, then `SKILL.md`). The
+final-state gates all hold: `make markdownlint`, `make nixie`, and `make all`
+are green; the surface grep's survivors over both files are exactly the
+recorded operation-noun and `desloppify-checklist` filename references; the
+count gate shows DESIGN `11 desloppify` / `1 desloppify-checklist` /
+`5 novel desloppify` and `4 wordcount` / `5 novel wordcount`, SKILL `0` bare
+`desloppify` / `3 desloppify-checklist` / `0` bare `wordcount`; both JSON
+envelope `command` fields read `"novel done"`; the `SKILL.md` Setup install
+check is `novel --version`. `coderabbit review` returned **No findings** on
+both commits.
 
-Lessons: (1) `markdownlint`'s MD060 table-column-style rule is strict — the §3.3
-checker table needed re-alignment after the longer `novel <verb>` cells, so
-table edits must re-pad pipes (MD013 line-length is disabled in this repo, so
-80-column prose wrapping is courtesy, not gate-enforced). (2) The hyphenated
+Lessons: (1) `markdownlint`'s MD060 table-column-style rule is strict — the
+§3.3 checker table needed re-alignment after the longer `novel <verb>` cells,
+so table edits must re-pad pipes (MD013 line-length is disabled in this repo,
+so 80-column prose wrapping is courtesy, not gate-enforced). (2) The hyphenated
 command prefixes (`novel-state`/`novel-done`/`novel-compile`) never appear
 fused to a hyphenated suffix in `SKILL.md`, so a prefix-only token replacement
 was safe and left the subcommand hyphens (`set-chapters`, `set-cursor`) intact.
 (3) The two-file scope held with no third-file edit required.
 
-The plan succeeded as specified. The plan succeeds when: no
-`novel-state`/`novel-done`/`novel-compile` console-script reference (including
-the §2.3 validator/returns/compile prose and both §3.1/§4.2 JSON envelope
-`command` fields) and no hyphenated-or-invoked `desloppify`/`wordcount`
-console-script reference survives in either file; both JSON envelope `command`
-fields read `"command": "novel done"`, character-for-character matching
-`names.py` `SUBCOMMAND_NAMES`; the `desloppify-checklist.md` filename and the
+The plan succeeded as specified. The plan succeeds when: no `novel-state`/
+`novel-done`/`novel-compile` console-script reference (including the §2.3
+validator/returns/compile prose and both §3.1/§4.2 JSON envelope `command`
+fields) and no hyphenated-or-invoked `desloppify`/`wordcount` console-script
+reference survives in either file; both JSON envelope `command` fields read
+`"command": "novel done"`, character-for-character matching `names.py`
+`SUBCOMMAND_NAMES`; the `desloppify-checklist.md` filename and the
 operation-noun mentions are intact at their pinned counts (the preserve-noun
 count gate shows DESIGN `11 desloppify` / `1 desloppify-checklist` /
 `5 novel desloppify` and `4 wordcount` / `5 novel wordcount`, and SKILL `0` bare
 `desloppify` / `3 desloppify-checklist` / `0` bare `wordcount`), so neither an
-over-swept nor an under-swept noun escapes; the SKILL.md Setup section describes
-the single `novel` multiplexer and its install check is `novel --version`; and
-`make markdownlint`, `make nixie`, and `make all` are green.
+over-swept nor an under-swept noun escapes; the SKILL.md Setup section
+describes the single `novel` multiplexer and its install check is
+`novel --version`; and `make markdownlint`, `make nixie`, and `make all` are
+green.
 
 ## Context and orientation
 
@@ -457,13 +461,14 @@ A novice should read these before touching anything:
 - [docs/roadmap.md](../roadmap.md), task 1.2.14 (the step-task paragraph, the
   update instruction, and its success criterion) and the sibling tasks 1.2.16
   (completed — the users'/developers' guides, the precedent for this sweep's
-  mechanics) and 1.2.17 (the reference-file sweep, which states the noun-vs-script
-  distinction this plan adopts). Task 1.2.14's parent is step 1.2.
+  mechanics) and 1.2.17 (the reference-file sweep, which states the
+  noun-vs-script distinction this plan adopts). Task 1.2.14's parent is step
+  1.2.
 - [docs/adr-007-command-surface-novel-multiplexer.md](../adr-007-command-surface-novel-multiplexer.md)
   — fixes the surface as a single `novel` multiplexer (supersedes ADR 005). Its
-  "Decision outcome" section lists the exact subcommand structure (lines 90-96);
-  its "Migration plan" section (lines 113-123) explicitly names "sweeps the
-  design prose and diagrams and `SKILL.md` (including its Setup section and
+  "Decision outcome" section lists the exact subcommand structure (lines
+  90-96); its "Migration plan" section (lines 113-123) explicitly names "sweeps
+  the design prose and diagrams and `SKILL.md` (including its Setup section and
   every bare-command reference) from `novel-x` to `novel x`" as part of the
   migration — this task executes that clause.
 - [docs/novel-ralph-harness-design.md](../novel-ralph-harness-design.md) — the
@@ -471,21 +476,21 @@ A novice should read these before touching anything:
   authoritative description of each operation's **behaviour**. **Caveat
   (verified):** §4's *body* command literals are still hyphenated (the spaced
   forms are confined to the §4 intro and the subsection headings). So §4 is
-  **not** a spaced-surface reference: any command literal quoted from it must be
-  re-spaced. The surface vocabulary source is `names.py` `SUBCOMMAND_NAMES` plus
-  ADR 007, not §4's body.
+  **not** a spaced-surface reference: any command literal quoted from it must
+  be re-spaced. The surface vocabulary source is `names.py` `SUBCOMMAND_NAMES`
+  plus ADR 007, not §4's body.
 - The previously-completed
   [docs/execplans/roadmap-1-2-16.md](roadmap-1-2-16.md) — the sibling sweep of
   the two guides. Its mechanics (per-file gating, bare-alternation surface gate
-  with token-level preserve subtraction, no `make fmt`, hand-wrap at 80 columns)
-  are the template this plan follows. 1.2.14 differs in two ways: (a) it sweeps
-  two Mermaid diagrams, so `make nixie` is load-bearing; (b) its only preserve
-  cases are the `desloppify-checklist` filename and the operation-noun mentions,
-  not Python fixtures.
+  with token-level preserve subtraction, no `make fmt`, hand-wrap at 80
+  columns) are the template this plan follows. 1.2.14 differs in two ways: (a)
+  it sweeps two Mermaid diagrams, so `make nixie` is load-bearing; (b) its only
+  preserve cases are the `desloppify-checklist` filename and the operation-noun
+  mentions, not Python fixtures.
 - [AGENTS.md](../../AGENTS.md) — quality gates ("Markdown files (`.md` only)":
-  `make markdownlint` line 169, `make nixie` line 172) and the Markdown guidance
-  (80-column prose line 173, 120-column code line 174, dash bullets, en-GB Oxford
-  spelling).
+  `make markdownlint` line 169, `make nixie` line 172) and the Markdown
+  guidance (80-column prose line 173, 120-column code line 174, dash bullets,
+  en-GB Oxford spelling).
 - [docs/documentation-style-guide.md](../documentation-style-guide.md) — house
   style the documents already follow.
 
@@ -493,18 +498,18 @@ The single, authoritative source of the surface vocabulary is
 [`novel_ralph_skill/commands/names.py`](../../novel_ralph_skill/commands/names.py)
 together with ADR 007: `SUBCOMMAND_NAMES` is exactly
 `("novel state", "novel done", "novel compile", "novel desloppify", "novel wordcount")`,
-and `project_scripts_table()` returns exactly `{"novel": …}`. **Every** command
-form written into either file must be confirmed against this file (and ADR 007's
-subcommand structure), never against design §4's body prose.
+and `project_scripts_table()` returns exactly `{"novel": …}`. **Every**
+command form written into either file must be confirmed against this file (and
+ADR 007's subcommand structure), never against design §4's body prose.
 
 Terms used in this plan:
 
 - **Command-surface reference**: a token naming the command a user or the
   harness invokes on the shell — `novel-state`, `novel-done`, `novel-compile`,
-  and their subcommand/flag forms (`novel-state check`, `novel-compile --check`),
-  plus a bare `desloppify`/`wordcount` used as an *invocation* (a pipeline node,
-  a flag-bearing form, a checker-command table row). These are converted to the
-  spaced `novel <verb>` form.
+  and their subcommand/flag forms (`novel-state check`,
+  `novel-compile --check`), plus a bare `desloppify`/`wordcount` used as an
+  *invocation* (a pipeline node, a flag-bearing form, a checker-command table
+  row). These are converted to the spaced `novel <verb>` form.
 - **Operation noun**: a bare `` `desloppify` `` / `` `wordcount` `` (or "the
   desloppify command/pass") naming the *operation* in running prose rather than
   an invocation. These are preserved (see the Decision Log rule).
@@ -521,9 +526,9 @@ resolve. See the Decision Log entry "No cuprum … API is exercised".
 
 The sweep proceeds file by file, each behind its own Markdown gate, so a
 stopping point never leaves a half-converted document. Stage A (work items 0-1)
-understands and classifies without editing; Stage B (items 2-3) sweeps and gates
-the design document (prose, tables, and the two Mermaid diagrams); Stage C
-(items 4-5) sweeps and gates `SKILL.md` (including the Setup section and the
+understands and classifies without editing; Stage B (items 2-3) sweeps and
+gates the design document (prose, tables, and the two Mermaid diagrams); Stage
+C (items 4-5) sweeps and gates `SKILL.md` (including the Setup section and the
 install check) and proves the whole-file end-state.
 
 ### Work item 0 — Orientation and reference grep (no edits)
@@ -558,12 +563,11 @@ rule; Risks 1 and 2 mitigation.
 
 Run the enumerating greps below and record, in the `Surprises & Discoveries`
 section of this plan, the per-file list of hits split into three buckets:
-**convert** (command-surface references, including invoked
-`desloppify`/`wordcount`), **preserve-noun** (operation-noun
-`desloppify`/`wordcount`), and **preserve-filename** (`desloppify-checklist.md`).
-This classification is the contract the two sweep items execute against, so a
-later edit cannot silently corrupt the checklist filename or over-sweep an
-operation noun.
+**convert** (command-surface references, including invoked `desloppify`/
+`wordcount`), **preserve-noun** (operation-noun `desloppify`/`wordcount`), and
+**preserve-filename** (`desloppify-checklist.md`). This classification is the
+contract the two sweep items execute against, so a later edit cannot silently
+corrupt the checklist filename or over-sweep an operation noun.
 
 Commands (run from the worktree root):
 
@@ -605,10 +609,11 @@ from the planning pass (re-verify line numbers on disk, the file may shift):
   invocation list), 812 (caption "Detection (`desloppify`, `wordcount`)"),
   843-844 ("`wordcount` and `desloppify` are pure aggregations"), 870/874
   ("`desloppify`, whose rule-pack loader …", "`wordcount`"), 924 ("`desloppify`
-  exits 2" — **knowingly close call** (review A3): it reads as a runtime-contract
-  statement but names the operation that exits, not a shell invocation, so it is
-  preserve-noun; do not silently flip it, and if the implementer judges it an
-  invocation, stop and record per Tolerances before converting).
+  exits 2" — **knowingly close call** (review A3): it reads as a
+  runtime-contract statement but names the operation that exits, not a shell
+  invocation, so it is preserve-noun; do not silently flip it, and if the
+  implementer judges it an invocation, stop and record per Tolerances before
+  converting).
 - **Preserve-filename**: design line 938 and SKILL.md (3 occurrences) —
   `desloppify-checklist.md`.
 
@@ -638,12 +643,13 @@ wording, re-spaced), §4.2 envelope example, §5, §9, §10.
 Independently committable. Edit only `docs/novel-ralph-harness-design.md`. Four
 kinds of change, in order:
 
-1. **Figure 1 (lines 53-73).** Re-space the five deterministic-spine node labels:
-   `ST[novel-state]` → `ST[novel state]`, `DN[novel-done]` → `DN[novel done]`,
-   `CO[novel-compile]` → `CO[novel compile]`, `DS[desloppify]` →
-   `DS[novel desloppify]`, `WC[wordcount]` → `WC[novel wordcount]`. Edit only the
-   label text inside `[]`; leave node ids (`ST`, `DN`, …) and the arrows
-   untouched. The caption (Figure 1) names no command literal and stays.
+1. **Figure 1 (lines 53-73).** Re-space the five deterministic-spine node
+   labels: `ST[novel-state]` → `ST[novel state]`, `DN[novel-done]` →
+   `DN[novel done]`, `CO[novel-compile]` → `CO[novel compile]`,
+   `DS[desloppify]` → `DS[novel desloppify]`, `WC[wordcount]` →
+   `WC[novel wordcount]`. Edit only the label text inside `[]`; leave node ids
+   (`ST`, `DN`, …) and the arrows untouched. The caption (Figure 1) names no
+   command literal and stays.
 
 2. **Figure 3 (lines 798-810) and its caption (812-814).** Re-space the
    invocation node `G[novel-state recount / novel-done / wordcount]` →
@@ -654,19 +660,19 @@ kinds of change, in order:
 3. **§2.3 Verification scope, §3 tables and prose, §3.1 Output modes, §4 body,
    §5, §9, §10 (the convert bucket from work item 1).** Convert every
    command-surface literal to its spaced form: `novel-state` → `novel state`
-   (and its verb forms `novel-state check` → `novel state check`, `novel-state
-   recount` → `novel state recount`, etc.), `novel-done` → `novel done`,
-   `novel-compile` → `novel compile`, `novel-compile --check` → `novel compile
-   --check`. §2.3 (lines 112, 115, 121, 123) and §3.1 are NOT optional: line 112
-   (`novel-state` validator), line 115 (`novel-done` returns), line 121
-   (`novel-compile --check`), and line 123 (`novel-done` compile clause) are all
-   convert targets. In the §3.3 segregation table (line 242) and the §9
-   exit-code proofs (line 884), the invoked `desloppify`/`wordcount` become
-   `novel desloppify`/`novel wordcount`. Reconcile any surrounding prose so each
-   sentence reads truthfully (a clause that introduced a separate script now
-   names a subcommand of `novel`). Take the per-operation *behaviour* wording
-   from §4.1-§4.5 where needed, re-spacing any command literal it quotes (the §4
-   caveat).
+   (and its verb forms `novel-state check` → `novel state check`,
+   `novel-state recount` → `novel state recount`, etc.), `novel-done` →
+   `novel done`, `novel-compile` → `novel compile`, `novel-compile --check` →
+   `novel compile --check`. §2.3 (lines 112, 115, 121, 123) and §3.1 are NOT
+   optional: line 112 (`novel-state` validator), line 115 (`novel-done`
+   returns), line 121 (`novel-compile --check`), and line 123 (`novel-done`
+   compile clause) are all convert targets. In the §3.3 segregation table (line
+   242) and the §9 exit-code proofs (line 884), the invoked `desloppify`/
+   `wordcount` become `novel desloppify`/`novel wordcount`. Reconcile any
+   surrounding prose so each sentence reads truthfully (a clause that
+   introduced a separate script now names a subcommand of `novel`). Take the
+   per-operation *behaviour* wording from §4.1-§4.5 where needed, re-spacing
+   any command literal it quotes (the §4 caveat).
 
    **3a. The two JSON envelope `command` fields (contract-sensitive).** §3.1's
    Output-modes example at design line 148 and §4.2's example at line 358 both
@@ -682,25 +688,25 @@ kinds of change, in order:
    lines as `"command": "novel done"`.
 
 4. **Preserve** the operation-noun `desloppify`/`wordcount` mentions
-   (preserve-noun bucket), the `desloppify-checklist.md` filename (line 938), the
-   ADR-005 supersession history (lines 18, 274), and the single-surface
+   (preserve-noun bucket), the `desloppify-checklist.md` filename (line 938),
+   the ADR-005 supersession history (lines 18, 274), and the single-surface
    `console-script` distribution prose (lines 103, 268, 279, 881, 890) verbatim.
 
 Do not touch any section that carries no command-surface reference (e.g. §1's
 problem statement beyond its command mentions, §6's rule-pack schema beyond its
 operation-noun mentions, §11 references beyond the preserved ADR filenames).
 
-Docs to read: design §4.1-§4.5 (per-operation *behaviour* wording only; re-space
-any hyphenated command literal it quotes), ADR 007 (subcommand structure),
-`names.py` `SUBCOMMAND_NAMES` (the authoritative spaced forms), AGENTS.md
-Markdown guidance.
+Docs to read: design §4.1-§4.5 (per-operation *behaviour* wording only;
+re-space any hyphenated command literal it quotes), ADR 007 (subcommand
+structure), `names.py` `SUBCOMMAND_NAMES` (the authoritative spaced forms),
+AGENTS.md Markdown guidance.
 
 Skills to load: `en-gb-oxendict` (every reworded sentence), `leta`/`grepai` for
 navigation.
 
 Tests: none — this is documentation. Per the AGENTS.md testing rules, a
-documentation-only change that alters no externally observable behaviour adds no
-unit, behavioural, property, snapshot, or e2e test; the Markdown gates
+documentation-only change that alters no externally observable behaviour adds
+no unit, behavioural, property, snapshot, or e2e test; the Markdown gates
 (`make markdownlint`, `make nixie`) are the verification. (Verified: no test
 reads the design body — see `Surprises & Discoveries`.)
 
@@ -731,17 +737,17 @@ Run, from the worktree root:
 
 The surface grep prints `line:token` for every alternation hit, then drops any
 token that is the preserve filename or a correctly-converted `novel <verb>`
-form. What survives is the set of un-converted command-surface references **plus
-the operation-noun `desloppify`/`wordcount` mentions** (which legitimately
-remain). The implementer reviews the survivors against the work-item-1
-preserve-noun bucket: every survivor must be a bucket entry. If a hit appears
-that is NOT a recorded operation noun, it is an un-converted reference — fix it
-and re-run.
+form. What survives is the set of un-converted command-surface references
+**plus the operation-noun `desloppify`/`wordcount` mentions** (which
+legitimately remain). The implementer reviews the survivors against the
+work-item-1 preserve-noun bucket: every survivor must be a bucket entry. If a
+hit appears that is NOT a recorded operation noun, it is an un-converted
+reference — fix it and re-run.
 
 This surface grep catches UNDER-sweep (a hyphenated literal that escaped
 conversion). It cannot by itself catch OVER-sweep, because the
-`novel (desloppify|wordcount)` forms are subtracted before survivors print, so a
-noun wrongly promoted to `novel desloppify` is invisible to it (B3, Risk 2).
+`novel (desloppify|wordcount)` forms are subtracted before survivors print, so
+a noun wrongly promoted to `novel desloppify` is invisible to it (B3, Risk 2).
 Add the **preserve-noun count gate**, which pins the exact post-sweep
 operation-noun and converted-form counts derived in `Surprises & Discoveries`:
 
@@ -764,13 +770,12 @@ grep lacks.
 Acceptance: `make markdownlint` and `make nixie` exit 0; the surface grep's
 survivors are exactly the recorded operation-noun mentions; the preserve-noun
 count gate shows exactly `11 desloppify` / `1 desloppify-checklist` /
-`5 novel desloppify` and `4 wordcount` / `5 novel wordcount`; both
-`"command":` envelope fields read `"command": "novel done"`; the
-`desloppify-checklist.md` filename count is unchanged (1). Commit the design-doc
-sweep as one atomic commit with an imperative subject (for example, "Sweep
-harness design to the novel multiplexer surface"). If a gate fails, fix within
-tolerance (re-wrap at 80 columns; repair the Mermaid node) and re-run before
-committing.
+`5 novel desloppify` and `4 wordcount` / `5 novel wordcount`; both `"command":`
+envelope fields read `"command": "novel done"`; the `desloppify-checklist.md`
+filename count is unchanged (1). Commit the design-doc sweep as one atomic
+commit with an imperative subject (for example, "Sweep harness design to the
+novel multiplexer surface"). If a gate fails, fix within tolerance (re-wrap at
+80 columns; repair the Mermaid node) and re-run before committing.
 
 ### Work item 4 — Sweep `skill/novel-ralph/SKILL.md` to the `novel` surface
 
@@ -786,9 +791,9 @@ of change, in order:
    `novel-compile`, `desloppify`, and `wordcount`". It is a single `novel`
    multiplexer (one `[project.scripts]` entry; `project_scripts_table()` returns
    `{"novel": …}`) with a `state` subgroup and four leaf verbs. Take the
-   vocabulary from `names.py` `SUBCOMMAND_NAMES` and ADR 007. Replace the install
-   check `novel-state --version` (line 37) with **`novel --version`** — verified
-   to exist and exit 0 (`novel.py` docstring lines 18-20;
+   vocabulary from `names.py` `SUBCOMMAND_NAMES` and ADR 007. Replace the
+   install check `novel-state --version` (line 37) with **`novel --version`** —
+   verified to exist and exit 0 (`novel.py` docstring lines 18-20;
    `tests/test_multiplexer_dispatch.py` lines 81-82). Re-space the "Invoke the
    commands by **bare name**" guidance (line 40, `novel-state init …`,
    `novel-done`, `novel-compile`) to `novel state init …`, `novel done`,
@@ -796,21 +801,22 @@ of change, in order:
    invoked as `novel <sub>`, not as five bare scripts).
 
 2. **Body command references throughout (the convert bucket from work item 1).**
-   Convert every command-surface literal: `novel-state` → `novel state` (and its
-   verb forms), `novel-done` → `novel done`, `novel-compile` → `novel compile`.
-   In `SKILL.md` the only bare `desloppify`/`wordcount` (1 each, both on line 29)
-   live inside the "five console-scripts" framing sentence rewritten in step 1;
-   they are NOT operation nouns. The other `desloppify` hits (lines 87, 105, 372)
-   are all the `references/desloppify-checklist.md` filename and are preserved.
-   So the post-sweep SKILL baseline is **0** bare `desloppify`, **0** bare
+   Convert every command-surface literal: `novel-state` → `novel state` (and
+   its verb forms), `novel-done` → `novel done`, `novel-compile` →
+   `novel compile`. In `SKILL.md` the only bare `desloppify`/`wordcount` (1
+   each, both on line 29) live inside the "five console-scripts" framing
+   sentence rewritten in step 1; they are NOT operation nouns. The other
+   `desloppify` hits (lines 87, 105, 372) are all the
+   `references/desloppify-checklist.md` filename and are preserved. So the
+   post-sweep SKILL baseline is **0** bare `desloppify`, **0** bare
    `wordcount`, **3** `desloppify-checklist` — pinned by the work-item-5
    preserve-noun count gate.
 
 3. **Preserve** the `desloppify-checklist.md` filename (3 occurrences) verbatim.
 
-Reconcile the harness-contract clause at line 63 ("the `novel-done` command exits
-0") and the other body mentions so each reads truthfully against the single
-surface.
+Reconcile the harness-contract clause at line 63 ("the `novel-done` command
+exits 0") and the other body mentions so each reads truthfully against the
+single surface.
 
 Docs to read: ADR 007 (Migration plan, for the Setup-section truthful framing),
 `names.py` `SUBCOMMAND_NAMES`, `novel_ralph_skill/commands/novel.py` (to confirm
@@ -867,15 +873,15 @@ Run, from the worktree root:
 
 Acceptance: `make markdownlint` and `make nixie` exit 0; the surface grep's
 survivors over both files are exactly the recorded operation-noun mentions (no
-un-converted hyphenated reference, no invoked bare `desloppify`/`wordcount`); the
-preserve-noun count gate shows DESIGN `11 desloppify` / `1 desloppify-checklist`
-/ `5 novel desloppify` and `4 wordcount` / `5 novel wordcount`, and SKILL `0`
-bare `desloppify` / `3 desloppify-checklist` / `0` bare `wordcount` (so no SKILL
-operation noun was over-swept); both design `"command":` envelope fields read
-`"command": "novel done"`; the "five console-scripts" framing grep is empty;
-`novel-state --version` is gone and `novel --version` is the Setup install check;
-the `desloppify-checklist.md` counts are 3 (SKILL) and 1 (design); `make all` is
-green. Commit the `SKILL.md`
+un-converted hyphenated reference, no invoked bare `desloppify`/`wordcount`);
+the preserve-noun count gate shows DESIGN `11 desloppify` /
+`1 desloppify-checklist` / `5 novel desloppify` and `4 wordcount` /
+`5 novel wordcount`, and SKILL `0` bare `desloppify` / `3 desloppify-checklist`
+/ `0` bare `wordcount` (so no SKILL operation noun was over-swept); both design
+`"command":` envelope fields read `"command": "novel done"`; the "five
+console-scripts" framing grep is empty; `novel-state --version` is gone and
+`novel --version` is the Setup install check; the `desloppify-checklist.md`
+counts are 3 (SKILL) and 1 (design); `make all` is green. Commit the `SKILL.md`
 sweep as one atomic commit with an imperative subject (for example, "Sweep
 novel-ralph SKILL.md to the novel multiplexer surface"). If a gate fails, fix
 within tolerance and re-run before committing.
@@ -886,8 +892,8 @@ Every work item is a self-contained Markdown edit gated by `make markdownlint`,
 `make nixie`, and the surface grep; re-running a gate is safe. If a sweep is
 interrupted mid-file, re-run the work-item-1 greps to see which literals remain
 and resume. No step is destructive; `git checkout -- <file>` restores either
-file to HEAD. The two sweeps are independent commits, so the design-doc sweep can
-land and be verified before the `SKILL.md` sweep begins.
+file to HEAD. The two sweeps are independent commits, so the design-doc sweep
+can land and be verified before the `SKILL.md` sweep begins.
 
 ## Validation and acceptance
 
@@ -916,10 +922,10 @@ outputs.
 
 ## Interfaces and dependencies
 
-None. This task adds no code, no module, no public interface, and no dependency.
-It edits two Markdown files. The surface vocabulary it writes is governed by the
-existing `novel_ralph_skill/commands/names.py` `SUBCOMMAND_NAMES` and ADR 007;
-this plan changes neither.
+None. This task adds no code, no module, no public interface, and no
+dependency. It edits two Markdown files. The surface vocabulary it writes is
+governed by the existing `novel_ralph_skill/commands/names.py`
+`SUBCOMMAND_NAMES` and ADR 007; this plan changes neither.
 
 ## Revision note
 
@@ -932,15 +938,15 @@ blocking points and the actionable advisories:
   "Implements" line. Verified live: those four §2.3 lines and the §3.1 envelope
   carry the hyphenated forms.
 - **B2 (envelope `command` field).** Added a dedicated Constraint, a work-item-2
-  step 3a, and a gate line (work items 1/3/5) converting both `"command":
-  "novel-done"` envelopes (design lines 148, 358) to `"command": "novel done"`,
-  tied character-for-character to `names.py` `SUBCOMMAND_NAMES` (line 42) /
-  `ENVELOPE_COMMAND_NAMES` (line 53). Verified live: `grep -n '"command":'`
-  returns lines 148 and 358.
+  step 3a, and a gate line (work items 1/3/5) converting both
+  `"command": "novel-done"` envelopes (design lines 148, 358) to
+  `"command": "novel done"`, tied character-for-character to `names.py`
+  `SUBCOMMAND_NAMES` (line 42) / `ENVELOPE_COMMAND_NAMES` (line 53). Verified
+  live: `grep -n '"command":'` returns lines 148 and 358.
 - **B3 (over-sweep blind spot).** Added a preserve-noun count gate (over-sweep
   oracle) to work items 3 and 5, pinning the post-sweep bare-noun and
-  converted-form counts per file (DESIGN 11/4 bare, 5/5 converted,
-  1 `desloppify-checklist`; SKILL 0/0 bare, 3 `desloppify-checklist`). Baselines
+  converted-form counts per file (DESIGN 11/4 bare, 5/5 converted, 1
+  `desloppify-checklist`; SKILL 0/0 bare, 3 `desloppify-checklist`). Baselines
   derived from live worktree greps and recorded in `Surprises & Discoveries`.
 - Advisories: corrected the 44-vs-65 grep parenthetical (A1), the SKILL hit-line
   count to 26 (A2), and flagged line 924 (`desloppify exits 2`) as a knowingly
@@ -958,5 +964,5 @@ execplan checkboxes, `Surprises & Discoveries` evidence, and the `Outcomes`
 section were updated alongside. All deterministic gates (`make markdownlint`,
 `make nixie`, `make all`) and `coderabbit review` (No findings) pass. The only
 in-flight correction was re-aligning the §3.3 checker table for MD060 after the
-longer `novel <verb>` cells — recorded in `Outcomes`. No tolerance was breached;
-no third file was touched.
+longer `novel <verb>` cells — recorded in `Outcomes`. No tolerance was
+breached; no third file was touched.

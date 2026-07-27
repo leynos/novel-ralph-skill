@@ -36,10 +36,9 @@ Trail followed: explored with `leta`/reads over `state/validate.py`,
 and `git log origin/main`. Source of truth consulted:
 `docs/novel-ralph-harness-design.md` §5.2 and §9, `docs/developers-guide.md`
 "Invariant validation", `docs/roadmap.md` task 2.1.3,
-`docs/adr-003-shared-interface-contract.md`, prior
-`docs/issues/audit-2.1.2.md` and `audit-2.1.4.md`, and `AGENTS.md`. Each
-finding records a category, a location, a description, a concrete proposed fix,
-and a severity.
+`docs/adr-003-shared-interface-contract.md`, prior `docs/issues/audit-2.1.2.md`
+and `audit-2.1.4.md`, and `AGENTS.md`. Each finding records a category, a
+location, a description, a concrete proposed fix, and a severity.
 
 ## Finding 1 — The live-draft oracle re-parses `state.toml` three times per tree
 
@@ -62,10 +61,9 @@ and a severity.
   an ergonomic and clarity snag and a small drift surface (three places must
   agree on how the table is decoded).
 - Proposed fix: parse `state.toml` once at the top of `live_draft_owned` and
-  pass
-  the decoded `[word_counts]` / `[gates]` / `[drafting]` sub-tables (or the
-  whole mapping) into the three predicates as arguments, turning them into pure
-  functions over already-decoded data. This removes two redundant reads,
+  pass the decoded `[word_counts]` / `[gates]` / `[drafting]` sub-tables (or
+  the whole mapping) into the three predicates as arguments, turning them into
+  pure functions over already-decoded data. This removes two redundant reads,
   collapses the triplicated decode line to one site, and makes each predicate
   trivially unit testable without a filesystem round-trip.
 
@@ -107,12 +105,11 @@ and a severity.
   lines 125–135 (`_check_by_chapter_sum`).
 - Description: the
   `sum([word_counts].by_chapter.values()) == [word_counts].current` predicate
-  now exists in three places. The production
-  validator and the `_oracle` twin are a *deliberate* independent cross-check
-  (documented in the developers' guide and pinned by
-  `test_incoherent_agreement_restricted_to_owned`). The live-draft copy is a
-  third hand-written restatement of the *table-internal* read; its own
-  docstring (lines 98–104) frames it as "a deliberate twin of
+  now exists in three places. The production validator and the `_oracle` twin
+  are a *deliberate* independent cross-check (documented in the developers'
+  guide and pinned by `test_incoherent_agreement_restricted_to_owned`). The
+  live-draft copy is a third hand-written restatement of the *table-internal*
+  read; its own docstring (lines 98–104) frames it as "a deliberate twin of
   `_oracle._check_by_chapter_sum`", but unlike the validator/oracle pair there
   is no contract test pinning the live-draft copy equal to the other two.
   Because `by-chapter-sum` is explicitly *not* a live quantity (it has no draft
@@ -211,9 +208,8 @@ and a severity.
   for it. (This compounds the open user-docs gap recorded in `audit-2.2.2.md`
   Finding 1.)
 - Proposed fix: add a short "validation verdicts" subsection to the
-  `novel-state`
-  section of `docs/users-guide.md` listing the eight owned invariant names with
-  a one-line operator-facing meaning for each (what state contradiction it
-  flags and the typical corrective action), cross-referenced to the design §5.2
-  wording. Fold this into the broader users-guide update `audit-2.2.2.md`
-  already proposes.
+  `novel-state` section of `docs/users-guide.md` listing the eight owned
+  invariant names with a one-line operator-facing meaning for each (what state
+  contradiction it flags and the typical corrective action), cross-referenced
+  to the design §5.2 wording. Fold this into the broader users-guide update
+  `audit-2.2.2.md` already proposes.

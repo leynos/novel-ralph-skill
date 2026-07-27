@@ -421,15 +421,14 @@ in [`tests/test_console_scripts_e2e.py`](../tests/test_console_scripts_e2e.py),
 which runs on POSIX only (see
 [adr-006-console-scripts-e2e-posix-policy.md](adr-006-console-scripts-e2e-posix-policy.md)),
 and [`tests/test_pyproject_scripts.py`](../tests/test_pyproject_scripts.py)
-guards the entry-point table. The spaced subcommand names live once, as data,
-in
+guards the entry-point table. The spaced subcommand names live once, as data, in
 [`novel_ralph_skill/contract/names.py`](../novel_ralph_skill/contract/names.py):
 `SUBCOMMAND_NAMES` is the spaced `novel <verb>` names (the contract owns this
-vocabulary; roadmap task 7.3.6). The bare mount verbs are derived once from those
-names as `SUBCOMMAND_VERBS` (the `state`/`done`/… tuple) with a `verb_for(spaced)`
-accessor that looks up a single spaced name's verb and raises `KeyError` for any
-non-registry name, so the spaced-name-to-verb split lives in exactly one place
-(roadmap task 7.3.8).
+vocabulary; roadmap task 7.3.6). The bare mount verbs are derived once from
+those names as `SUBCOMMAND_VERBS` (the `state`/`done`/… tuple) with a
+`verb_for(spaced)` accessor that looks up a single spaced name's verb and raises
+`KeyError` for any non-registry name, so the spaced-name-to-verb split lives
+in exactly one place (roadmap task 7.3.8).
 [`novel_ralph_skill/commands/names.py`](../novel_ralph_skill/commands/names.py)
 re-exports them and its `project_scripts_table` derives the single `novel`
 entry. The dispatcher and every test derive their names from this registry, and
@@ -455,20 +454,20 @@ so each mounted leaf keeps its four-flag contract and the parent returns the
 leaf body's `CommandOutcome` to the shared `run` wrapper unchanged (verified
 against the locked Cyclopts 4.18.0).
 
-`build_multiplexer` mounts the five leaves by iterating a single registry-driven
-construction table rather than re-spelling each verb in a hand-copied mount
-line. The helper `_build_mount_table` returns a verb-keyed mapping of mount verb
-to the leaf module's `build_app` factory, and `build_multiplexer` mounts each
-leaf in `SUBCOMMAND_NAMES` (ADR 007 surface) order by iterating the bare-verb
-keys of `_SUBCOMMAND_FOR_VERB` — the registry-derived map keyed by the same bare
-verbs the table carries, whose verbs are resolved through the registry's
-`verb_for` accessor rather than re-spelled inline — so the verbs the dispatcher
-mounts come from the registry, not inline in the mount lines. (The sibling map
-`_VERB_FOR_SUBCOMMAND` is keyed by the *spaced* names; iterating it would index
-the bare-verb-keyed table with a spaced name and raise `KeyError`, so the loop
-reads `_SUBCOMMAND_FOR_VERB`.) The spaced subcommand names live once, as data, in
-a single registry, so the names the multiplexer mounts and the names it stamps
-cannot drift apart.
+`build_multiplexer` mounts the five leaves by iterating a single
+registry-driven construction table rather than re-spelling each verb in a
+hand-copied mount line. The helper `_build_mount_table` returns a verb-keyed
+mapping of mount verb to the leaf module's `build_app` factory, and
+`build_multiplexer` mounts each leaf in `SUBCOMMAND_NAMES` (ADR 007 surface)
+order by iterating the bare-verb keys of `_SUBCOMMAND_FOR_VERB` — the
+registry-derived map keyed by the same bare verbs the table carries, whose
+verbs are resolved through the registry's `verb_for` accessor rather than
+re-spelled inline — so the verbs the dispatcher mounts come from the registry,
+not inline in the mount lines. (The sibling map `_VERB_FOR_SUBCOMMAND` is keyed
+by the *spaced* names; iterating it would index the bare-verb-keyed table with
+a spaced name and raise `KeyError`, so the loop reads `_SUBCOMMAND_FOR_VERB`.)
+The spaced subcommand names live once, as data, in a single registry, so the
+names the multiplexer mounts and the names it stamps cannot drift apart.
 [`tests/test_multiplexer_mount_table.py`](../tests/test_multiplexer_mount_table.py)
 pins the table against the registry — its verbs equal the registry's bare-verb
 set and each entry is the leaf's own `build_app` — so a dropped or drifted
@@ -485,13 +484,12 @@ then derives the spaced command name from the residual argv through
 build-`RunContext`-then-call-`run` plumbing (roadmap task 7.3.5): `main`
 re-spells none of it inline, so a future entry point cannot silently re-inline
 the plumbing — `tests/test_entry_point_single_home.py` fails if it does, and
-`drive` forwards to `run` once. The name
-derivation consults the registry, not inline literals: `names.py` carries
-`SUBCOMMAND_NAMES` (the spaced `novel <verb>` names) and the
-`ENVELOPE_COMMAND_NAMES` superset (those spaced names plus the bare `"novel"`
-the body-less help and version arms stamp); `build_envelope` validates
-`command` against that superset, so every name the multiplexer stamps
-validates. The dispatch proof lives in
+`drive` forwards to `run` once. The name derivation consults the registry, not
+inline literals: `names.py` carries `SUBCOMMAND_NAMES` (the spaced
+`novel <verb>` names) and the `ENVELOPE_COMMAND_NAMES` superset (those spaced
+names plus the bare `"novel"` the body-less help and version arms stamp);
+`build_envelope` validates `command` against that superset, so every name the
+multiplexer stamps validates. The dispatch proof lives in
 [`tests/test_multiplexer_dispatch.py`](../tests/test_multiplexer_dispatch.py)
 (the multiplexer shape, the four-flag contract tripwire, and the name mapping)
 and
@@ -617,20 +615,22 @@ the contract's exit `2`.
 
 That `run` arm owns only the *parser*-detected usage fault — the unknown option
 or missing argument Cyclopts itself rejects. A command *body* can also detect a
-usage fault the parser accepted (a no-flag `set-gate`, a `--chapter` outside the
-manifest, or a malformed `--pack`/`--ledger`), and the exit-`2` envelope every
-such body fault builds is single-homed in `contract.runner.usage_error_outcome`
-(roadmap task 7.3.7). A body raises a thin domain subclass of the shared
-`BodyUsageError` marker (`DesloppifyUsageError`, `GateDraftingUsageError`) — or,
-for a malformed-content fault that keeps its own typed identity, a `RulePackError`
-or `LedgerError` — and the adapter returns `usage_error_outcome(exc)` rather than
+usage fault the parser accepted (a no-flag `set-gate`, a `--chapter` outside
+the manifest, or a malformed `--pack`/`--ledger`), and the exit-`2` envelope
+every such body fault builds is single-homed in
+`contract.runner.usage_error_outcome` (roadmap task 7.3.7). A body raises a
+thin domain subclass of the shared `BodyUsageError` marker
+(`DesloppifyUsageError`, `GateDraftingUsageError`) — or, for a
+malformed-content fault that keeps its own typed identity, a `RulePackError` or
+`LedgerError` — and the adapter returns `usage_error_outcome(exc)` rather than
 re-spelling the `CommandOutcome(code=ExitCode.USAGE_ERROR, …)` construction. So
 `desloppify`, `set-gate`, and the `--ledger` arm all delegate to one home while
 keeping their distinct trigger types. The structural guard
 `tests/test_usage_error_outcome_single_home.py` pins that single home: it fails
 if any command module re-spells the exit-`2` `CommandOutcome` inline. The
-runner's parser-fault arm is deliberately outwith that guard's scope — it is the
-legitimate home of its own path, a separate concern from a body-detected fault.
+runner's parser-fault arm is deliberately outwith that guard's scope — it is
+the legitimate home of its own path, a separate concern from a body-detected
+fault.
 
 `build_envelope` validates its `command` argument against
 `ENVELOPE_COMMAND_NAMES`. The command-name vocabulary — `MULTIPLEXER_NAME`,
@@ -639,9 +639,9 @@ spaced-name-to-verb accessor (`SUBCOMMAND_VERBS` / `verb_for`) — lives in
 [`novel_ralph_skill/contract/names.py`](../novel_ralph_skill/contract/names.py),
 so the `contract` layer owns the contract vocabulary its envelope guard
 enforces and `contract/envelope.py` validates `command` against it with **no**
-`commands` import (roadmap task 7.3.6 repaired this; the older
-`contract` → `commands.names` edge audited under sub-task 1.3.1.2 is removed).
-The `working/` directory name, `WORKING_DIR_NAME`, likewise lives in
+`commands` import (roadmap task 7.3.6 repaired this; the older `contract` →
+`commands.names` edge audited under sub-task 1.3.1.2 is removed). The
+`working/` directory name, `WORKING_DIR_NAME`, likewise lives in
 `contract/names.py` — it is the token every envelope stamps into its
 `working_dir` field — and is re-exported from
 [`novel_ralph_skill/commands/state_sourcing.py`](../novel_ralph_skill/commands/state_sourcing.py)
@@ -649,15 +649,15 @@ for back-compatibility.
 
 [`novel_ralph_skill/commands/names.py`](../novel_ralph_skill/commands/names.py)
 keeps the `[project.scripts]` console-script binding — `NOVEL_MODULE` and
-`project_scripts_table()`, which name a `commands`-layer entry-point module — and
-*re-exports* the vocabulary from `contract.names` for back-compatibility. It is
-therefore no longer a dependency-free "leaf" module: re-exporting from
+`project_scripts_table()`, which name a `commands`-layer entry-point module —
+and *re-exports* the vocabulary from `contract.names` for back-compatibility.
+It is therefore no longer a dependency-free "leaf" module: re-exporting from
 `contract.names` means importing `commands.names` now transitively executes
 `contract/__init__.py` (which pulls `contract.runner`, and thus `cyclopts`).
-That is a downward, deliberate `commands` → `contract` import, **not** a cycle —
-nothing under `contract/` imports `commands` — and it does not affect the
-`novel`-import laziness guard (`novel` already pulls the contract package). Keep
-the dependency pointed this way: the whole-package layering guard
+That is a downward, deliberate `commands` → `contract` import, **not** a cycle
+— nothing under `contract/` imports `commands` — and it does not affect the
+`novel`-import laziness guard (`novel` already pulls the contract package).
+Keep the dependency pointed this way: the whole-package layering guard
 (`tests/test_contract_layering.py`) fails if any `contract` module imports a
 `commands` module, so the inversion cannot regress.
 
@@ -685,10 +685,10 @@ a missing or unparseable `state.toml` or an absent working directory uses the
 same channel.
 
 The exit-3 messages are actionable, never raw OS text. Five sibling formatters
-in the dependency-free leaf module `state_sourcing` own the prose, each replacing
-the raw OS text with prose that names the offending artefact and offers a
-remedy. `_state_input_error` serves the *state.toml-load* fault (roadmap
-§6.3.1): a missing `working/` names the current directory and the
+in the dependency-free leaf module `state_sourcing` own the prose, each
+replacing the raw OS text with prose that names the offending artefact and
+offers a remedy. `_state_input_error` serves the *state.toml-load* fault
+(roadmap §6.3.1): a missing `working/` names the current directory and the
 `novel state init` remedy, while a present-but-corrupt `state.toml` names the
 path and asks for inspection or repair. `_draft_read_error` serves the six
 *draft-read* boundaries (roadmap §6.3.5) — `novel state check`'s disk-evidence
@@ -698,19 +698,19 @@ present `working/` tree holds a corrupt or unreadable `draft.md`/`compiled.md`;
 it names the `working/` tree and asks for inspection or repair, never advising
 `init` (the tree exists).
 
-The `try`/`except STATE_INPUT_ERRORS → _draft_read_error` *guard* that re-raises
-a faulted draft read as that exit-3 error is itself single-homed in the
-`draft_read_guard` context manager in `state_sourcing` (roadmap §7.3.3). Where
-`_draft_read_error` owns *what* the message says, `draft_read_guard` owns *which*
-read faults become exit 3 and *how* they re-raise (chaining the caught exception
-via `from` so the `messages` channel carries only the prose). `novel wordcount`,
-`novel state recount`, and `novel desloppify` delegate to it — each wraps its
-draft read in `with draft_read_guard(working_dir): …` rather than re-spelling the
-shell — and a structural test pins that single home so it cannot silently
-re-fork. The three remaining draft-read boundaries (`novel done` and both of
-`novel compile`'s tails) still open-code the shell pending a later slice, so they
-are deliberately not yet wired to the guard; a reader should not be surprised
-that they differ.
+The `try`/`except STATE_INPUT_ERRORS → _draft_read_error` *guard* that
+re-raises a faulted draft read as that exit-3 error is itself single-homed in
+the `draft_read_guard` context manager in `state_sourcing` (roadmap §7.3.3).
+Where `_draft_read_error` owns *what* the message says, `draft_read_guard` owns
+*which* read faults become exit 3 and *how* they re-raise (chaining the caught
+exception via `from` so the `messages` channel carries only the prose).
+`novel wordcount`, `novel state recount`, and `novel desloppify` delegate to it
+— each wraps its draft read in `with draft_read_guard(working_dir): …` rather
+than re-spelling the shell — and a structural test pins that single home so it
+cannot silently re-fork. The three remaining draft-read boundaries
+(`novel done` and both of `novel compile`'s tails) still open-code the shell
+pending a later slice, so they are deliberately not yet wired to the guard; a
+reader should not be surprised that they differ.
 
 Three further formatters (roadmap §6.3.8) close the remaining raw-OS-text
 leaks, each a single-arm sibling that never advises `init` because the working
@@ -1160,18 +1160,18 @@ the invariant-validation twin policy) and does not import the helper, so a
 production bug cannot mask itself.
 
 **The authoritative-docstring + consumer self-projection convention (roadmap
-§7.1).** Each consolidated §7.1 projection — the compile-currency family owned by
-`compile_model.compiled_matches_drafts`, the reconciliation payload owned by
+§7.1).** Each consolidated §7.1 projection — the compile-currency family owned
+by `compile_model.compiled_matches_drafts`, the reconciliation payload owned by
 `reconcile.reconciliation_payload`, and the projections 7.1.1, 7.1.4, and the
 remaining §7.1 tasks consolidate — keeps its full description in exactly one
 place and reroutes every other reader through a cross-reference rather than a
 re-stated copy. Three rules apply:
 
 - **Single authoritative docstring.** The defining symbol's docstring holds the
-  *full* projection table (its members, shape, or polarities). Consumers carry a
-  one-sentence self-projection describing only their own polarity, plus a
-  cross-reference to the authoritative docstring — never a re-enumeration of the
-  whole table.
+  *full* projection table (its members, shape, or polarities). Consumers carry
+  a one-sentence self-projection describing only their own polarity, plus a
+  cross-reference to the authoritative docstring — never a re-enumeration of
+  the whole table.
 - **The defining-module path is canonical.** A consumer names its authoritative
   target through the *defining-module* dotted path
   (`novel_ralph_skill.state.compile_model.compiled_matches_drafts`,
@@ -1180,23 +1180,25 @@ re-stated copy. Three rules apply:
   *intra-module* consumer that sits in the same module as the authoritative
   symbol (for example `compile_is_current`, which lives beside
   `compiled_matches_drafts`): use the full defining-module path, not a bare
-  relative ``:func:`name``` role. The drift-guard rejects a bare relative
+  relative ``:func: name role. The drift-guard rejects a bare relative
   reference, so a future §7.1 consumer that uses one is caught rather than
   silently admitted.
-- **The reusable drift-guard pins it.** `tests/test_projection_docstring_drift_guard.py`
-  imports the relevant symbols' `__doc__` in process (no subprocess, mirroring the
-  command-contract prose-guard `tests/test_developers_guide_contract_drift_guard.py`)
-  and asserts, per projection, that the authoritative docstring carries the full
-  table while each consumer carries the defining-module cross-reference and none
-  of the re-export spelling. The authoritative-versus-consumer split is keyed by
-  registry position — the authoritative symbol is the row key — never by counting
-  member names or scanning for an "authority" token, because the real consumers
-  are heterogeneous (`check_compiled` names all three members; the phrase
-  "authoritative table" appears inside consumer docstrings). A new §7.1 task that
-  consolidates a projection registers its row in that guard — binding the
-  authoritative symbol to its consumers, its canonical path, its re-export tail,
-  and its table markers — rather than re-deciding the convention; the guard's
-  failure on a missing, re-export, or bare-relative reference is the enforcement.
+- **The reusable drift-guard pins it.**
+  `tests/test_projection_docstring_drift_guard.py` imports the relevant symbols'
+  `__doc__` in process (no subprocess, mirroring the command-contract
+  prose-guard `tests/test_developers_guide_contract_drift_guard.py`) and
+  asserts, per projection, that the authoritative docstring carries the full
+  table while each consumer carries the defining-module cross-reference and
+  none of the re-export spelling. The authoritative-versus-consumer split is
+  keyed by registry position — the authoritative symbol is the row key — never
+  by counting member names or scanning for an "authority" token, because the
+  real consumers are heterogeneous (`check_compiled` names all three members;
+  the phrase "authoritative table" appears inside consumer docstrings). A new
+  §7.1 task that consolidates a projection registers its row in that guard —
+  binding the authoritative symbol to its consumers, its canonical path, its
+  re-export tail, and its table markers — rather than re-deciding the
+  convention; the guard's failure on a missing, re-export, or bare-relative
+  reference is the enforcement.
 
 **The exit-`4` carve-out (the conservative reading).** `novel done` exits `4`
 (`ACTIONABLE_FINDING`) **iff** `compile_consistent` is the *sole* false clause
@@ -1391,9 +1393,9 @@ state-error channel) and leaves the prior `state.toml` byte-for-byte intact.
 The behavioural proof is the `pytest-bdd` scenario
 `tests/features/recount.feature`.
 
-The fresh-inline-table idiom every mutator shares —
-`tomlkit.inline_table()` then `update(mapping)` — has one home,
-`build_inline_table` in the `state` package
+The fresh-inline-table idiom every mutator shares — `tomlkit.inline_table()`
+then `update(mapping)` — has one home, `build_inline_table` in the `state`
+package
 ([`novel_ralph_skill/state/document.py`](../novel_ralph_skill/state/document.py)),
 re-exported from `novel_ralph_skill.state` (roadmap task 7.2.1). Its five
 consumers are `init` (the empty `by_chapter` and the populated
@@ -1403,11 +1405,11 @@ and the working-corpus reference builder
 ([`tests/working_corpus/_builder.py`](../tests/working_corpus/_builder.py)). A
 future sixth consumer should import this helper rather than re-copy the idiom.
 The helper takes the widest read-only `Mapping[str, object]`, builds structure
-only (it never serialises or writes), and preserves the caller's iteration order
-— the property `recount`'s byte-for-byte deterministic write relies on. The
-corpus builder may import it without weakening its oracle independence because
-the helper carries no schema or value-derivation logic, so the import does not
-couple the suite's value-derivation oracle to production (only schema
+only (it never serialises or writes), and preserves the caller's iteration
+order — the property `recount`'s byte-for-byte deterministic write relies on.
+The corpus builder may import it without weakening its oracle independence
+because the helper carries no schema or value-derivation logic, so the import
+does not couple the suite's value-derivation oracle to production (only schema
 *derivation* stays independent). The array-of-inline-tables skeleton that
 `set-chapters` and the corpus builder both wrap around this helper
 (`tomlkit.array()` plus `multiline` plus a loop) is itself a single home,
@@ -1417,8 +1419,8 @@ couple the suite's value-derivation oracle to production (only schema
 takes an ordered sequence of `ChapterRecord` four-key records (`number`, `slug`,
 `title`, `target_words`) and returns the multiline `[[chapters]]` array, so
 `set-chapters` (`_chapter_array`) and the corpus builder (`_chapters_array`)
-route through it rather than re-copy the skeleton — each still deriving its four
-values its own way (a `ChapterPlanEntry` versus manifest-only fallbacks).
+route through it rather than re-copy the skeleton — each still deriving its
+four values its own way (a `ChapterPlanEntry` versus manifest-only fallbacks).
 
 ### The state-layout direct-edit guard
 
@@ -1789,11 +1791,11 @@ enhancement, recorded here so the limitation is explicit, not accidental.
 The rule-pack and device-ledger loaders were built as deliberate parallels
 (schema → parse → detect → report), which left six near-verbatim primitives
 cloned between them. Roadmap task 7.2.2 consolidated those into one home,
-[`novel_ralph_skill/loaderkit/`](../novel_ralph_skill/loaderkit/), a neutral leaf
-package that depends only on the `contract` layer and the standard library so
-both pack families may consume it without an import cycle (design §6; ADR-001/
-003). It owns the six primitives once each: the scalar-coercion family (`where`,
-`reject_unknown_keys`, `require`, `require_str`, `require_int`), the
+[`novel_ralph_skill/loaderkit/`](../novel_ralph_skill/loaderkit/), a neutral
+leaf package that depends only on the `contract` layer and the standard library
+so both pack families may consume it without an import cycle (design §6;
+ADR-001/ 003). It owns the six primitives once each: the scalar-coercion family
+(`where`, `reject_unknown_keys`, `require`, `require_str`, `require_int`), the
 array-of-tables extractor (`entries`), the eager pattern compiler
 (`compile_pattern`), the duplicate-id rejector (`reject_duplicate_ids`), the
 file-fault TOML loader (`load_toml`), and the per-line scan (`scan_pattern`).
@@ -1803,97 +1805,98 @@ Roadmap task 7.2.3 also relocated the per-line scan's two neutral shapes —
 pack family inherits them rather than cloning or cross-importing them. Roadmap
 task 7.2.5 completed the consolidation by lifting the shared error *hierarchy*
 into `loaderkit/errors.py`: `PackError` (the exit-`2` content base) and
-`PackFileError` (the exit-`3` file base), each a distinct `EnvelopeMessagesError`
-subclass. Each pack binds these by subclassing them — `RulePackError`/
-`RulePackFileError` keep the `rule_id` keyword, `LedgerError`/`LedgerFileError`
-keep `device_id` — so the two-class failure shape lives once and a third family
-inherits it rather than re-spelling a third near-identical pair, mirroring the
-coercion binding. The error channels were the one part task 7.2.2 deliberately
-scoped out (it kept each package's typed error type unchanged); task 7.2.5 is the
-sanctioned pass that retires that last near-copy.
+`PackFileError` (the exit-`3` file base), each a distinct
+`EnvelopeMessagesError` subclass. Each pack binds these by subclassing them —
+`RulePackError`/ `RulePackFileError` keep the `rule_id` keyword, `LedgerError`/
+`LedgerFileError` keep `device_id` — so the two-class failure shape lives once
+and a third family inherits it rather than re-spelling a third near-identical
+pair, mirroring the coercion binding. The error channels were the one part task
+7.2.2 deliberately scoped out (it kept each package's typed error type
+unchanged); task 7.2.5 is the sanctioned pass that retires that last near-copy.
 
 Roadmap task 7.2.6 retired the final un-consolidated loader primitive: the
 *validating parse boundary* itself. Both `parse_rulepack` and `parse_ledger`
-carried a structurally identical orchestration — reject an unknown top-level key,
-resolve and reject an unsupported `schema_version`, extract the non-empty entry
-array, build one validated entry per element, reject duplicate ids — that
+carried a structurally identical orchestration — reject an unknown top-level
+key, resolve and reject an unsupported `schema_version`, extract the non-empty
+entry array, build one validated entry per element, reject duplicate ids — that
 `loaderkit/parse.py` now owns as a **head/tail pair**. The head,
 `resolve_schema_version`, rejects unknown keys and resolves the version (taking
 the per-family hyphenated noun — `"rule-pack"`/`"device-ledger"` — for the
 unsupported-version sentence); the tail, `build_entries`, extracts the array,
 builds each entry through a caller-supplied builder, and rejects duplicate ids
-over a caller-supplied `entry_id` projection (defaulting to `.id`). The skeleton
-returns only *neutral* products — the resolved version int and the built entry
-tuple — so each package binds it by supplying its constant, key set, array key,
-builder, and `EntriesMessages`, then constructs its own `RulePack`/`DeviceLedger`
-at the leaf; `loaderkit` never imports a pack result type. The split into two
-functions is deliberate: the rule pack reads its extra top-level `pack` string
-**at the head/tail seam** — after the version resolve but before the entry-array
-extraction — preserving its live `pack`-before-`entries` fault precedence (a
-simultaneously missing-`pack` and bad-array input still raises the missing-`pack`
-fault). The ledger has no such field, so its head and tail run back-to-back with
-nothing read at the seam. A third pack family binds the skeleton rather than
-cloning a third `parse_*` orchestration, exactly as it inherits the coercion and
-error bindings.
+over a caller-supplied `entry_id` projection (defaulting to `.id`). The
+skeleton returns only *neutral* products — the resolved version int and the
+built entry tuple — so each package binds it by supplying its constant, key
+set, array key, builder, and `EntriesMessages`, then constructs its own
+`RulePack`/`DeviceLedger` at the leaf; `loaderkit` never imports a pack result
+type. The split into two functions is deliberate: the rule pack reads its extra
+top-level `pack` string **at the head/tail seam** — after the version resolve
+but before the entry-array extraction — preserving its live
+`pack`-before-`entries` fault precedence (a simultaneously missing-`pack` and
+bad-array input still raises the missing-`pack` fault). The ledger has no such
+field, so its head and tail run back-to-back with nothing read at the seam. A
+third pack family binds the skeleton rather than cloning a third `parse_*`
+orchestration, exactly as it inherits the coercion and error bindings.
 
-Each primitive is **parameterized on an error factory** rather than hard-wired to
-one package's exception. A pack family binds a small frozen `CoercionErrors`
+Each primitive is **parameterized on an error factory** rather than hard-wired
+to one package's exception. A pack family binds a small frozen `CoercionErrors`
 bundle carrying its content-error constructor (with the `rule_id=`/`device_id=`
-keyword already bound) and its noun pair, so one body raises *that* family's typed
-error with *that* family's noun. The rule pack binds it to `RulePackError` with
-the `"rule"`/`"rule pack"` nouns; the ledger binds it to `LedgerError` with the
-`"device"`/`"device ledger"` nouns. Each package's now-thin `_coerce.py` is a
-*binding* — it builds the bundle and re-exports the underscore-named wrappers its
-`parse.py`/`_fields.py` import — so the call sites keep their terse
-`rule_id=`/`device_id=` shape while the body lives once in `loaderkit`. A third
-pack family (design §8.1's per-novel packs) inherits the primitives by adding one
-more bundle, not a third copy.
+keyword already bound) and its noun pair, so one body raises *that* family's
+typed error with *that* family's noun. The rule pack binds it to
+`RulePackError` with the `"rule"`/`"rule pack"` nouns; the ledger binds it to
+`LedgerError` with the `"device"`/`"device ledger"` nouns. Each package's
+now-thin `_coerce.py` is a *binding* — it builds the bundle and re-exports the
+underscore-named wrappers its `parse.py`/`_fields.py` import — so the call
+sites keep their terse `rule_id=`/`device_id=` shape while the body lives once
+in `loaderkit`. A third pack family (design §8.1's per-novel packs) inherits
+the primitives by adding one more bundle, not a third copy.
 
-Two primitives carry a deliberate twist. `entries` is parameterized on the *full*
-verbatim message strings via an `EntriesMessages` bundle, not on the noun pair,
-because its empty-array message embeds a container noun (`pack`/`ledger`) and an
-item noun (`rule`/`device`) that are neither `CoercionErrors` noun; the strings
-therefore live at each pack's call site, keeping the shared body noun-free.
-`scan_pattern` now references the `ScannedChapter`/`LineHit` shapes that
-`loaderkit/scan.py` itself **defines** (roadmap 7.2.3); both detectors import them
-from the neutral home, so the temporary `TYPE_CHECKING` `loaderkit → rulepack`
-edge roadmap 7.2.2 introduced is gone. The primitive still constructs each hit
-through a caller-supplied `line_hit` callable, the seam that keeps it free of any
-`Rule`/`Device` knowledge, so `loaderkit.scan` imports neither `rulepack` nor
-`ledger` at runtime *or* under `TYPE_CHECKING` and the direction
-`rulepack.detect → loaderkit.scan` / `ledger.detect → loaderkit.scan` stays
-acyclic.
+Two primitives carry a deliberate twist. `entries` is parameterized on the
+*full* verbatim message strings via an `EntriesMessages` bundle, not on the
+noun pair, because its empty-array message embeds a container noun (`pack`/
+`ledger`) and an item noun (`rule`/`device`) that are neither `CoercionErrors`
+noun; the strings therefore live at each pack's call site, keeping the shared
+body noun-free. `scan_pattern` now references the `ScannedChapter`/`LineHit`
+shapes that `loaderkit/scan.py` itself **defines** (roadmap 7.2.3); both
+detectors import them from the neutral home, so the temporary `TYPE_CHECKING`
+`loaderkit → rulepack` edge roadmap 7.2.2 introduced is gone. The primitive
+still constructs each hit through a caller-supplied `line_hit` callable, the
+seam that keeps it free of any `Rule`/`Device` knowledge, so `loaderkit.scan`
+imports neither `rulepack` nor `ledger` at runtime *or* under `TYPE_CHECKING`
+and the direction `rulepack.detect → loaderkit.scan` /
+`ledger.detect → loaderkit.scan` stays acyclic.
 
 Roadmap task 7.2.4 pruned the temporary `rulepack.detect` re-export of the two
 scan shapes, so `rulepack.detect.__all__` is now exactly `DetectionReport`,
 `RuleFinding` and `detect`, and `ScannedChapter` is reachable only under
 `TYPE_CHECKING`. `LineHit`, by contrast, remains an importable-but-unadvertised
-runtime attribute of `rulepack.detect` *by design*: the detector constructs it in
-its `line_hit` lambda, so it stays a runtime import and `hasattr(rulepack.detect,
-"LineHit")` is `True` even though `LineHit` is absent from `__all__`. The
-surviving attribute is therefore intentional, not an incomplete prune, and is
-pinned by `tests/test_rulepack_detect.py::test_detect_no_longer_reexports_scan_shapes`,
+runtime attribute of `rulepack.detect` *by design*: the detector constructs it
+in its `line_hit` lambda, so it stays a runtime import and
+`hasattr(rulepack.detect, "LineHit")` is `True` even though `LineHit` is absent
+from `__all__`. The surviving attribute is therefore intentional, not an
+incomplete prune, and is pinned by
+`tests/test_rulepack_detect.py::test_detect_no_longer_reexports_scan_shapes`,
 which asserts `LineHit` is absent from `__all__` rather than absent as an
 attribute.
 
 This consolidation **superseded** the earlier `ledger/_coerce.py` "deliberate
-near-copy" rationale: that rationale deferred the error-factory refactor because
-editing the then-frozen rule-pack loader was an ExecPlan Tolerance trip during the
-ledger's own build. Task 7.2.2 is the sanctioned consolidation pass that performs
-exactly the refactor the old docstring foresaw, so the near-copy is retired. The
-shared primitives are pinned by `tests/test_loaderkit_coerce.py`,
-`tests/test_loaderkit_load.py`, `tests/test_loaderkit_scan.py`,
-`tests/test_loaderkit_errors.py` (which pins the `PackError`/`PackFileError`
-bases against a test-local third-family id keyword), and
-`tests/test_loaderkit_parse.py` (which pins the head/tail skeleton against a
-test-local third-family binding, including the head/tail seam independence that
-buys the rule pack's `pack`-before-`entries` precedence), and both packages'
-suites stay green unchanged, so the primitives cannot silently re-fork. The
-rule pack's precedence is additionally pinned by
-`tests/test_rulepack_loader.py::test_missing_pack_precedes_empty_array`.
-The last of those also pins the relocated scan shapes' single home: an
-AST-scoped guard asserts `ScannedChapter`/`LineHit` are defined in `loaderkit.scan`
-and that the module imports nothing from a pack domain, and a callback-contract
+near-copy" rationale: that rationale deferred the error-factory refactor
+because editing the then-frozen rule-pack loader was an ExecPlan Tolerance trip
+during the ledger's own build. Task 7.2.2 is the sanctioned consolidation pass
+that performs exactly the refactor the old docstring foresaw, so the near-copy
+is retired. The shared primitives are pinned by
+`tests/test_loaderkit_coerce.py`, `tests/test_loaderkit_load.py`,
+`tests/test_loaderkit_scan.py`, `tests/test_loaderkit_errors.py` (which pins the
+`PackError`/`PackFileError` bases against a test-local third-family id
+keyword), and `tests/test_loaderkit_parse.py` (which pins the head/tail
+skeleton against a test-local third-family binding, including the head/tail
+seam independence that buys the rule pack's `pack`-before-`entries`
+precedence), and both packages' suites stay green unchanged, so the primitives
+cannot silently re-fork. The rule pack's precedence is additionally pinned by
+`tests/test_rulepack_loader.py::test_missing_pack_precedes_empty_array`. The
+last of those also pins the relocated scan shapes' single home: an AST-scoped
+guard asserts `ScannedChapter`/`LineHit` are defined in `loaderkit.scan` and
+that the module imports nothing from a pack domain, and a callback-contract
 test pins that `scan_pattern` builds every hit through the caller's `line_hit`
 factory.
 
@@ -1936,15 +1939,15 @@ upload.
 
 ### Workflow pins and Dependabot
 
-Dependabot owns the upgrade of GitHub Actions and reusable workflows,
-including calls into `leynos/shared-actions`. Contract tests that assert a
-caller's exact commit SHA create a lockstep dependency: every time Dependabot
-opens a bump PR, the test fails until a human edits the pinned constant to
-match. That defeats the purpose of automated dependency updates and turns a
-routine bump into a manual chore.
+Dependabot owns the upgrade of GitHub Actions and reusable workflows, including
+calls into `leynos/shared-actions`. Contract tests that assert a caller's exact
+commit SHA create a lockstep dependency: every time Dependabot opens a bump PR,
+the test fails until a human edits the pinned constant to match. That defeats
+the purpose of automated dependency updates and turns a routine bump into a
+manual chore.
 
-Contract tests may still verify the *shape* of a reusable-workflow caller.
-They must not verify the specific SHA value.
+Contract tests may still verify the *shape* of a reusable-workflow caller. They
+must not verify the specific SHA value.
 
 - Do assert the workflow references the correct reusable workflow path.
 - Do assert the ref is pinned to a full 40-character commit SHA, not a

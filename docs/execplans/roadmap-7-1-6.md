@@ -4,14 +4,14 @@ This ExecPlan (execution plan) is a living document. The sections `Constraints`,
 `Tolerances`, `Risks`, `Progress`, `Surprises & Discoveries`, `Decision Log`,
 and `Outcomes & Retrospective` must be kept up to date as work proceeds.
 
-Status: DRAFT (planning round 4 — resolves the round-3 logisphere review's single
-blocking finding B3-1, the vacuous tail-discriminator unit test, by co-locating
-both spellings in the tail-isolating fixture; see Decision Log "tail-isolating
-fixture co-locates both spellings (resolves B3-1)" and §"Source verification,
-round 4". Rounds 2-3 already resolved R2-B1 / R2-B2 / R2-A1 / R2-A2; see Decision
-Log "WI3 discriminator" / "registry coverage" / "compile_is_current
-normalization" / "no-bare-re-export check restated" and §"Source verification,
-round 3")
+Status: DRAFT (planning round 4 — resolves the round-3 logisphere review's
+single blocking finding B3-1, the vacuous tail-discriminator unit test, by
+co-locating both spellings in the tail-isolating fixture; see Decision Log
+"tail-isolating fixture co-locates both spellings (resolves B3-1)" and §"Source
+verification, round 4". Rounds 2-3 already resolved R2-B1 / R2-B2 / R2-A1 /
+R2-A2; see Decision Log "WI3 discriminator" / "registry coverage" /
+"compile_is_current normalization" / "no-bare-re-export check restated" and
+§"Source verification, round 3")
 
 ## Purpose / big picture
 
@@ -43,10 +43,10 @@ themselves left un-single-sourced (audit-7.1.2 Findings 2, 3, 5):
    variant lives in the authoritative module itself:
    `state/compile_model.py::compile_is_current` cross-references the
    authoritative table with a **bare relative** `:func:` role naming
-   `compiled_matches_drafts` (line 106) rather than a dotted path,
-   because it is intra-module. That bare relative ref names neither the canonical
-   path nor the re-export path, so it satisfies neither the convention nor the
-   guard; round 3 normalizes it to the canonical defining-module path so the
+   `compiled_matches_drafts` (line 106) rather than a dotted path, because it
+   is intra-module. That bare relative ref names neither the canonical path nor
+   the re-export path, so it satisfies neither the convention nor the guard;
+   round 3 normalizes it to the canonical defining-module path so the
    registry's consumer set is uniform (see Decision Log "compile_is_current
    normalization").
 
@@ -582,8 +582,8 @@ escalation, not a workaround.
 
 Every load-bearing claim below was re-verified against the worktree on
 2026-06-27 with the commands shown, so the implementer inherits facts, not a
-menu. Round 3 adds the two facts the round-2 review flagged as wrong
-(R2-B1 / R2-B2) and pins them.
+menu. Round 3 adds the two facts the round-2 review flagged as wrong (R2-B1 /
+R2-B2) and pins them.
 
 - **R2-B1 — `compile_is_current` does NOT carry the canonical path; WI1 must
   normalize it.** Importing the live symbol and testing substrings:
@@ -599,8 +599,8 @@ menu. Round 3 adds the two facts the round-2 review flagged as wrong
         # bare relative: True
 
   So `compile_is_current` cross-references the table only via the bare relative
-  ``:func:`compiled_matches_drafts``` at compile_model.py line 106. WI1
-  normalises that single ref to the canonical defining-module path; the round-2
+  ``:func: compiled_matches_drafts at compile_model.py line 106. WI1 normalises
+  that single ref to the canonical defining-module path; the round-2
   "compile_model.py needs no spelling change" claim is corrected.
 - **R2-B2 — the re-export tail is NOT a substring of the canonical path.**
 
@@ -612,14 +612,14 @@ menu. Round 3 adds the two facts the round-2 review flagged as wrong
         # reconcile tail in canonical: False
 
   So the "no bare re-export" check is the simple invariant "tail count == 0",
-  not a "preceded by"/"counts equal" rule (Decision Log "no-bare-re-export check
-  restated").
+  not a "preceded by"/"counts equal" rule (Decision Log "no-bare-re-export
+  check restated").
 
 ## Source verification, round 4
 
 Round 4 pins the single fact the round-3 review flagged as a vacuous test
-(B3-1): the tail-isolating fixture must co-locate both spellings. Verified on the
-worktree on 2026-06-27 with the command shown.
+(B3-1): the tail-isolating fixture must co-locate both spellings. Verified on
+the worktree on 2026-06-27 with the command shown.
 
 - **B3-1 — a co-located fixture isolates assertion 3; a bare-re-export-only
   fixture does not.** Constructing both candidate strings and testing the two
@@ -649,8 +649,9 @@ worktree on 2026-06-27 with the command shown.
   `__doc__` contains the canonical path twice (lines 224, 234);
   `disk_evidence._check_compiled_matches_drafts` `__doc__` contains it twice
   (lines 197, 209); after WI1, `_compile.check_compiled` contains it (lines
-  175, 186). The reconcile authoritative marker `{action, discrepancies,
-  detail}` is present in `reconcile.reconciliation_payload.__doc__` (line 160).
+  175, 186). The reconcile authoritative marker
+  `{action, discrepancies, detail}` is present in
+  `reconcile.reconciliation_payload.__doc__` (line 160).
 
 - **All eight re-export references in `_compile.py`.** Grepping the re-export
   spellings of `compiled_matches_drafts` / `concatenate_drafts` /
@@ -730,7 +731,7 @@ Relevant files (full repository-relative paths):
   `CompiledComparison` (~48). `compiled_matches_drafts` is the authoritative
   anchor the guard pins and needs no spelling change. `compile_is_current`,
   HOWEVER, is a registered consumer and cross-references the table via the
-  **bare relative** ``:func:`compiled_matches_drafts``` at line 106, carrying
+  **bare relative** ``:func: compiled_matches_drafts at line 106, carrying
   neither the canonical path nor the re-export tail (R2-B1, verified §"Source
   verification, round 3"); WI1 normalizes that one ref to the canonical
   defining-module path so the consumer satisfies the guard (Decision Log
@@ -838,25 +839,25 @@ resolve and are NOT re-export spellings, so leave them unchanged. The guard
 relative ref, so no absolute rewrite is forced. Do not alter `check_compiled`'s
 one-sentence self-projection or its `Returns`/`Raises` content.
 
-**Then, in `novel_ralph_skill/state/compile_model.py` (R2-B1):** rewrite the one
-intra-module bare relative cross-reference in `compile_is_current`'s docstring
-to the canonical defining-module path (verified line, §"Source verification,
-round 3"):
+**Then, in `novel_ralph_skill/state/compile_model.py` (R2-B1):** rewrite the
+one intra-module bare relative cross-reference in `compile_is_current`'s
+docstring to the canonical defining-module path (verified line, §"Source
+verification, round 3"):
 
 - `compile_is_current` line 106:
   ``See :func:`compiled_matches_drafts` for the authoritative three-valued
-  table…`` →
+  table…``
+  →
   ``See :func:`~novel_ralph_skill.state.compile_model.compiled_matches_drafts`
   for the authoritative three-valued table…``.
 
 Leave `compile_is_current` line 112 (the `Parameters` aside "The three-valued
 verdict from the bare relative `compiled_matches_drafts` role) as a relative
 ref: it is a parameter-type note, not the authoritative-table cross-reference,
-and the bare
-relative form never emits the re-export tail, so it satisfies the guard without
-change (Decision Log "compile_is_current normalization"). Do not touch the
-authoritative `compiled_matches_drafts` docstring (its table is the single home)
-or any other prose in the module.
+and the bare relative form never emits the re-export tail, so it satisfies the
+guard without change (Decision Log "compile_is_current normalization"). Do not
+touch the authoritative `compiled_matches_drafts` docstring (its table is the
+single home) or any other prose in the module.
 
 After editing, re-run the verification grep and confirm **zero**
 `novel_ralph_skill.state.<symbol>` re-export spellings remain in
@@ -927,25 +928,25 @@ Implements: roadmap 7.1.6 (audit-7.1.2 Finding 3, the drift-guard; Finding 5,
 corrected round 3).** The guard distinguishes the authoritative docstring from
 consumers by REGISTRY POSITION (the authoritative symbol is the row's key),
 never by counting members or scanning for an authority token. This is forced by
-the real tree and recorded in Decision Log "WI3 discriminator": `check_compiled`
-names all three members and both polarities, and the phrases "single production
-site"/"authoritative … table" appear inside consumer docstrings, so neither a
-member-count nor a token heuristic can tell authoritative from consumer. The
-member-enumeration check is DROPPED. The guard mirrors how
-`test_developers_guide_contract_drift_guard.py` keys the field set off the
-imported `Envelope` dataclass — by symbol identity, not parsed prose.
+the real tree and recorded in Decision Log "WI3 discriminator":
+`check_compiled` names all three members and both polarities, and the phrases
+"single production site"/"authoritative … table" appear inside consumer
+docstrings, so neither a member-count nor a token heuristic can tell
+authoritative from consumer. The member-enumeration check is DROPPED. The guard
+mirrors how `test_developers_guide_contract_drift_guard.py` keys the field set
+off the imported `Envelope` dataclass — by symbol identity, not parsed prose.
 
 Round 3 corrects two specifics of the round-2 draft (see Decision Log
-"compile_is_current normalization" and "no-bare-re-export check restated"):
-(a) `compile_model.compile_is_current` is a registered consumer whose
-pre-normalization docstring carried only the bare relative
-``:func:`compiled_matches_drafts``` — WI1 normalises it to the canonical path so
-the "cross-reference present" assertion passes; and (b) the "no bare re-export"
+"compile_is_current normalization" and "no-bare-re-export check restated"): (a)
+`compile_model.compile_is_current` is a registered consumer whose
+pre-normalization docstring carried only the bare relative ``:func:
+compiled_matches_drafts — WI1 normalises it to the canonical path so the
+"cross-reference present" assertion passes; and (b) the "no bare re-export"
 assertion is the simple "tail substring count is zero" invariant, NOT a
-"preceded by"/"counts equal" rule, because the re-export tail is not a substring
-of the canonical path. The table-marker assertion is authoritative-only (R2-A2),
-stated in the guard module docstring, because consumers legitimately name
-members.
+"preceded by"/"counts equal" rule, because the re-export tail is not a
+substring of the canonical path. The table-marker assertion is
+authoritative-only (R2-A2), stated in the guard module docstring, because
+consumers legitimately name members.
 
 Create `tests/test_projection_docstring_drift_guard.py` (and, only if it would
 exceed ~250 lines, factor the pure parsing into a sibling
@@ -1113,10 +1114,10 @@ truth") recording:
   §7.1 projection names its authoritative target via the *defining-module*
   dotted path, never the `state` re-export façade — and this holds even for an
   *intra-module* consumer (e.g. `compile_is_current`, which sits in the same
-  module as `compiled_matches_drafts`): use the full defining-module path, not a
-  bare relative ``:func:`name``` (R2-B1; pre-mortem #3). The guard rejects a bare
-  relative reference, so a future §7.1 consumer that uses one is caught rather
-  than silently admitted;
+  module as `compiled_matches_drafts`): use the full defining-module path, not
+  a bare relative ``:func: name (R2-B1; pre-mortem #3). The guard rejects a
+  bare relative reference, so a future §7.1 consumer that uses one is caught
+  rather than silently admitted;
 - the **single-authoritative-docstring invariant**: exactly one docstring holds
   the full projection table; consumers carry a one-sentence self-projection
   plus the cross-reference;
@@ -1159,8 +1160,8 @@ Run everything from the worktree root
         #               test_reconciliation_payload.py:3.
         #   no ">>>" doctest lines.
 
-   R2-A1 pre-flight GATE — prove the three unedited compile-family consumers and
-   the reconcile authoritative symbol carry the canonical markers BEFORE
+   R2-A1 pre-flight GATE — prove the three unedited compile-family consumers
+   and the reconcile authoritative symbol carry the canonical markers BEFORE
    authoring the guard, so a missing one fails loudly here, not mid-WI3:
 
         python3 - <<'PY'
@@ -1180,9 +1181,9 @@ Run everything from the worktree root
 
 3. Apply work item 1 edits to `novel_ralph_skill/commands/_compile.py` (all
    eight references) AND to `novel_ralph_skill/state/compile_model.py`
-   (`compile_is_current` line 106 bare relative ref → canonical, R2-B1), confirm
-   zero re-export spellings remain in production AND that `compile_is_current`
-   now carries the canonical path, then run the gate:
+   (`compile_is_current` line 106 bare relative ref → canonical, R2-B1),
+   confirm zero re-export spellings remain in production AND that
+   `compile_is_current` now carries the canonical path, then run the gate:
 
         RX='novel_ralph_skill\.state\.(compiled_matches_drafts'
         RX="$RX"'|concatenate_drafts|present_draft_bodies|CompiledComparison)\b'
@@ -1255,10 +1256,10 @@ Quality criteria (what "done" means):
   the non-vacuous tail-branch proof, B3-1), and a hollowed authoritative
   docstring, AND passes both the canonical-only docstring (tail-isolation
   positive half) and a `check_compiled`-shaped three-member consumer fixture
-  (no false positive). Reverting any consumer
-  reference to the re-export path reddens the matching row (demonstrated
-  transcript in `Artifacts and notes`). The compile, done-predicate,
-  disk-evidence, reconcile, and desloppify suites stay green unchanged.
+  (no false positive). Reverting any consumer reference to the re-export path
+  reddens the matching row (demonstrated transcript in `Artifacts and notes`).
+  The compile, done-predicate, disk-evidence, reconcile, and desloppify suites
+  stay green unchanged.
 - **Lint/typecheck:** `make lint` (Ruff + interrogate 100% docstring coverage +
   Pylint) and `make typecheck` (`ty check`) pass; the new guard module carries
   docstrings to satisfy interrogate.

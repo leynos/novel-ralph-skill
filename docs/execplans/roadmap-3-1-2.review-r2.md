@@ -27,7 +27,8 @@ against real source; no new blocking defect survives.
     at the top of `_novel_done` (`:63`); current two-way `all_hold` →
     `SUCCESS`/`BENIGN_NEGATIVE` mapping; module docstring states "No 3.1.1 path
     produces exit 4". Confirmed.
-  - `tests/working_corpus/_specs.py` — `compiled: str | None`; `_resolve_compiled`
+  - `tests/working_corpus/_specs.py` — `compiled: str | None`;
+    `_resolve_compiled`
     writes `COMPILED_AUTO` as the coherent concatenation and any other string
     verbatim; `draft_body(n)` emits header-free `"word word …"`. Confirmed
     (A-1 vacuity is real).
@@ -63,10 +64,10 @@ against real source; no new blocking defect survives.
 
 ## Round-1 defect resolution
 
-- **B-1 (RESOLVED).** The exit-4 carve-out predicate is now stated **identically**
-  and **conservatively** in all four locations — D-CARVE (`:360-371`),
-  R-CARVE-MISFIRE (`:238-241`), Work item 3 (`:669-671`), and the Interfaces
-  section (`:944-955`):
+- **B-1 (RESOLVED).** The exit-4 carve-out predicate is now stated
+  **identically** and **conservatively** in all four locations — D-CARVE
+  (`:360-371`), R-CARVE-MISFIRE (`:238-241`), Work item 3 (`:669-671`), and the
+  Interfaces section (`:944-955`):
 
   ```python
   clauses.failed_clause_names == ("compile_consistent",) and (
@@ -83,14 +84,14 @@ against real source; no new blocking defect survives.
   freeze) and is ADR-001-safe (read-only). Implementable as written.
 - **A-1 (ADDRESSED).** Work item 2 now states the "header count" half is vacuous
   under the header-free corpus and requires the implementer to either add a
-  non-zero-header count-coincident spec (preferred) or state the vacuity plainly
-  and lean on the word-total spec plus the Work-item-1 Hypothesis
-  byte-perturbation property. Verified the vacuity claim against
-  `_specs.py` `draft_body`.
+  non-zero-header count-coincident spec (preferred) or state the vacuity
+  plainly and lean on the word-total spec plus the Work-item-1 Hypothesis
+  byte-perturbation property. Verified the vacuity claim against `_specs.py`
+  `draft_body`.
 - **A-2 (ADDRESSED).** Work item 1 now explicitly lists
   `test_compile_consistent_exists_present_and_absent` (`:135`) and its import
-  (`:32`) for removal/rewrite, so the first commit does not go red on a dangling
-  import. Verified both sites exist.
+  (`:32`) for removal/rewrite, so the first commit does not go red on a
+  dangling import. Verified both sites exist.
 - **A-3 (ADDRESSED).** The "one shared routine" acceptance bullet now runs the
   clause-vs-detector equality test **only over present-compile trees** and pins
   the absent-compile trees separately (clause→False, detector→vacuous).
@@ -118,8 +119,8 @@ against real source; no new blocking defect survives.
   `disk_evidence.py:183` and avoids a second comparison mechanism — correct.
 - **Doggylump (failure modes):** the pre-mortem's "regenerated a compile that
   never existed" path is closed by the conservative reading + the stat;
-  undecodable `compiled.md` → exit 3 is pinned (R-FAULT-COMPILE); snapshot churn
-  is verified absent. One non-blocking observation below.
+  undecodable `compiled.md` → exit 3 is pinned (R-FAULT-COMPILE); snapshot
+  churn is verified absent. One non-blocking observation below.
 - **Dinolump (viability):** read-only checker, no new deps, mainstream tooling,
   within module/line caps, TDD ordering, en-GB convention respected. No
   long-term concern.
@@ -137,33 +138,33 @@ against real source; no new blocking defect survives.
 2. **A-1 option choice.** Option 1 (a non-zero-header count-coincident spec) is
    the stronger discharge of the literal roadmap criterion; the implementer is
    permitted option 2 (state the vacuity) only when option 1 is
-   disproportionate. Worth nudging the implementer toward option 1, but the plan
-   already permits either and is honest about the trade — not gating.
+   disproportionate. Worth nudging the implementer toward option 1, but the
+   plan already permits either and is honest about the trade — not gating.
 
 ## Pre-mortem (Doggylump, round 2)
 
-The round-1 pre-mortem's three scenarios are all now mitigated in the plan text:
-(1) regenerating a never-built compile — closed by the conservative reading +
-the specified stat; (2) a stale compile slipping through on header structure —
-covered by the Hypothesis byte-perturbation property plus the disclosed A-1
-choice; (3) a red first commit from the orphaned import — closed by A-2's
-explicit removal instruction. No new 03:00 scenario surfaced.
+The round-1 pre-mortem's three scenarios are all now mitigated in the plan
+text: (1) regenerating a never-built compile — closed by the conservative
+reading + the specified stat; (2) a stale compile slipping through on header
+structure — covered by the Hypothesis byte-perturbation property plus the
+disclosed A-1 choice; (3) a red first commit from the orphaned import — closed
+by A-2's explicit removal instruction. No new 03:00 scenario surfaced.
 
 ## Alternatives checkpoint (Wafflecat, round 2)
 
-No credible structural alternative beats the plan's reuse-not-reinvent approach.
-The engine-side richer-verdict alternative is correctly deferred to 3.1.3 (which
-will unify the comparison anyway), so paying a single read-only stat in the
-command body now is the right calibration. That the strongest alternative is a
-deliberate deferral rather than a missed option is a strong signal the design is
-on solid ground.
+No credible structural alternative beats the plan's reuse-not-reinvent
+approach. The engine-side richer-verdict alternative is correctly deferred to
+3.1.3 (which will unify the comparison anyway), so paying a single read-only
+stat in the command body now is the right calibration. That the strongest
+alternative is a deliberate deferral rather than a missed option is a strong
+signal the design is on solid ground.
 
 ## Conclusion
 
-This plan is implementable and design-conformant as
-written. The work items are atomic, ordered (red→green→refactor), independently
-committable, and `make all`-gated; validation is specified per item (unit,
-property, behavioural, snapshot, e2e, plus markdownlint/nixie for docs); nothing
-contradicts the deterministic/judgemental boundary (ADR-001 — the command writes
-nothing, the stat is read-only) or the established contracts (ADR-003 — envelope,
-`schema_version: 1`, six-boolean `result`, bounded payload). Proceed.
+This plan is implementable and design-conformant as written. The work items are
+atomic, ordered (red→green→refactor), independently committable, and
+`make all`-gated; validation is specified per item (unit, property,
+behavioural, snapshot, e2e, plus markdownlint/nixie for docs); nothing
+contradicts the deterministic/judgemental boundary (ADR-001 — the command
+writes nothing, the stat is read-only) or the established contracts (ADR-003 —
+envelope, `schema_version: 1`, six-boolean `result`, bounded payload). Proceed.

@@ -64,9 +64,8 @@ Revision 4 of the plan resolves both:
   doc lines 285-286 say "none [shell out] in v1". No subprocess on this task's
   path.
 - **No uncited locked-library claim.** The plan makes no Cyclopts /
-  pytest-timeout
-  / uv behavioural assertion that needs a citation or a pinning test; the seam
-  is pure `tomllib`/`pathlib`.
+  pytest-timeout / uv behavioural assertion that needs a citation or a pinning
+  test; the seam is pure `tomllib`/`pathlib`.
 - **Roadmap coordination (D2)** confirmed: 7.3.6 (roadmap lines 2906-2908) owns
   the `WORKING_DIR_NAME` → `contract` move and asks 7.3.1 to keep it
   command-layer. The plan obeys.

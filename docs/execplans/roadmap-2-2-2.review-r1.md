@@ -88,12 +88,11 @@ advancing `current` makes a *skip or out-of-order* prior state fail
 `_check_completed_prefix`. But scrutinize the mechanism against validate.py:
 
 - If the *prior* state is already coherent (the normal harness case),
-  `completed`
-  is exactly the in-order prefix of `current`. Appending `current` and moving
-  to the successor yields a state whose `completed` is the in-order prefix of
-  the successor — i.e. still coherent. So a coherent tree NEVER refuses here;
-  the only refusals are the terminal-phase and empty-manifest command-level
-  preconditions.
+  `completed` is exactly the in-order prefix of `current`. Appending `current`
+  and moving to the successor yields a state whose `completed` is the in-order
+  prefix of the successor — i.e. still coherent. So a coherent tree NEVER
+  refuses here; the only refusals are the terminal-phase and empty-manifest
+  command-level preconditions.
 - The completed-prefix refusal therefore only fires when the prior state is
   *already incoherent* (its `completed` is not the prefix). That means the
   "out-of-order advance is refused" behavioural scenario (the roadmap success
@@ -167,14 +166,13 @@ Work item 4 says "advance-phase into drafting … with a populated manifest exit
   extraction) compounds it. Re-confirm the file budget once B1-B4 are resolved.
 
 - A5 — **`advance-phase` mutating `completed` then validating is
-  order-sensitive.**
-  The plan appends to `document["phase"]["completed"]` then sets
-  `document["phase"]["current"]`. tomlkit array append on a freshly-`init`-ed
-  empty `completed = []` array is the same surgical case 2.2.1 verified, but
-  the plan should add a comment-preservation/round-trip assertion specifically
-  for the *append-to-empty-array* sub-case, which differs from the value-edit
-  case 2.2.1 probed. Low risk, but pin it rather than assume the 2.2.1 probe
-  covers it.
+  order-sensitive.** The plan appends to `document["phase"]["completed"]` then
+  sets `document["phase"]["current"]`. tomlkit array append on a
+  freshly-`init`-ed empty `completed = []` array is the same surgical case
+  2.2.1 verified, but the plan should add a comment-preservation/round-trip
+  assertion specifically for the *append-to-empty-array* sub-case, which
+  differs from the value-edit case 2.2.1 probed. Low risk, but pin it rather
+  than assume the 2.2.1 probe covers it.
 
 ## Pre-mortem (Doggylump)
 

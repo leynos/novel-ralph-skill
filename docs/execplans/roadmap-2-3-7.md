@@ -1,9 +1,8 @@
 # Make recount's gate-ratio refusal actionable and document the recount-gate coupling
 
-This ExecPlan (execution plan) is a living document. The sections
-`Constraints`, `Tolerances`, `Risks`, `Progress`, `Surprises & Discoveries`,
-`Decision Log`, and `Outcomes & Retrospective` must be kept up to date as work
-proceeds.
+This ExecPlan (execution plan) is a living document. The sections `Constraints`,
+`Tolerances`, `Risks`, `Progress`, `Surprises & Discoveries`, `Decision Log`,
+and `Outcomes & Retrospective` must be kept up to date as work proceeds.
 
 Status: DRAFT (revised — planning round 2, design-review blocking points B1/B2
 resolved; see Revision note)
@@ -44,9 +43,9 @@ escalation, not a workaround.
   validator (design §3.3 checker/mutator split; §5.4 "disk is authoritative").
 - The `gate-ratio-consistent` numerator must remain the drafted total
   `sum(word_counts.by_chapter.values())`, never `current`, and the predicate
-  must keep its `target <= 0` short-circuit so `validate_state` stays total over
-  every constructible `State` (design §5.2; developers-guide "Two readings are
-  deliberate pure-state approximations", lines 615-625; Decision Log B1/B7).
+  must keep its `target <= 0` short-circuit so `validate_state` stays total
+  over every constructible `State` (design §5.2; developers-guide "Two readings
+  are deliberate pure-state approximations", lines 615-625; Decision Log B1/B7).
 - The invariant **name** `gate-ratio-consistent` and the
   `PURE_STATE_INVARIANT_NAMES`/`CORPUS_INVARIANT_NAMES` vocabulary must not
   change. Task 2.1.3's whole-corpus agreement cross-check keys on these strings
@@ -282,16 +281,17 @@ escalation, not a workaround.
 All five work items are implemented, gated, and committed. Against Purpose: an
 operator who hits the recount gate-ratio refusal now reads a per-gate,
 direction-aware message that names the crossed threshold and the exact remedy
-(`set-gate --knitting-NN` upward; adjudicate, no verb, downward), instead of the
-former raw tuple dump; the recount-gate coupling is documented in the
+(`set-gate --knitting-NN` upward; adjudicate, no verb, downward), instead of
+the former raw tuple dump; the recount-gate coupling is documented in the
 developers' guide, the users' guide, and the skill. Both directions are proven
 at the user-visible level by behavioural scenarios and installed-binary e2e
 tests, the direct resolution of design-review B2.
 
-Shape 2 held: the `remedy` keyword on `_refuse_if_incoherent` defaults to `None`,
-so no other caller changed — no fallback to shape 1 was needed. The invariant
-name `gate-ratio-consistent`, the numerator, and the `target <= 0` short-circuit
-are unchanged, so the agreement cross-check and corpus oracle stayed green.
+Shape 2 held: the `remedy` keyword on `_refuse_if_incoherent` defaults to
+`None`, so no other caller changed — no fallback to shape 1 was needed. The
+invariant name `gate-ratio-consistent`, the numerator, and the `target <= 0`
+short-circuit are unchanged, so the agreement cross-check and corpus oracle
+stayed green.
 
 Deviations from the plan, with rationale:
 
@@ -300,8 +300,8 @@ Deviations from the plan, with rationale:
   `tests/test_recount_unit.py`, because in-place additions pushed that module
   past the 400-line cap (AGENTS.md "clear file boundaries"). The downward
   assertions the plan slated for `test_recount_legitimate_gate_breach_refuses`
-  moved into the new module's dedicated downward test instead; the original test
-  keeps its invariant-name assertion.
+  moved into the new module's dedicated downward test instead; the original
+  test keeps its invariant-name assertion.
 - The downward unit/e2e fixtures recount to **0.55** (not the plan's empty-draft
   0.00) so exactly **one** gate (`done_80`) disagrees, isolating the downward
   message — addressing a CodeRabbit major finding that the all-true/empty-draft
@@ -325,12 +325,14 @@ Key files (full repository-relative paths):
   public source of truth for the thresholds.
 - `novel_ralph_skill/commands/_state_mutators.py` —
   `_refuse_if_incoherent(state, *, context)` (lines 142-173) is the shared
-  validate-before-persist refusal. It raises `StateInputError(summary,
-  *details)` where `summary` is `"{context} would violate: {names}"` and each
-  `detail` is a violation's prose. Recount calls this with `context="recount"`.
+  validate-before-persist refusal. It raises
+  `StateInputError(summary, *details)` where `summary` is
+  `"{context} would violate: {names}"` and each `detail` is a violation's
+  prose. Recount calls this with `context="recount"`.
 - `novel_ralph_skill/commands/_recount.py` — the `recount()` body (lines
-  106-155). Line 149 calls `_refuse_if_incoherent(proposed, context="recount")`.
-  This is where the recount-specific remedy is added.
+  106-155). Line 149 calls
+  `_refuse_if_incoherent(proposed, context="recount")`. This is where the
+  recount-specific remedy is added.
 - `novel_ralph_skill/contract/runner.py` — `StateInputError` (lines 114-123)
   carries `messages` to the exit-3 envelope; the exit-3 `run` arm emits only
   `messages`, no `result`.
@@ -344,9 +346,9 @@ Documentation surfaces to update:
   1 (lines 588-620) already state the coupling rationale; verify and, if the
   reviewer asks, add at most one clarifying sentence (the design is the source
   of truth and largely already says this — keep additions minimal).
-- `docs/developers-guide.md` — the §5.2 invariant table and the `gate-ratio-
-  consistent` discussion (lines 605-674). Add a short subsection on the
-  recount-gate coupling and the actionable refusal.
+- `docs/developers-guide.md` — the §5.2 invariant table and the
+  `gate-ratio- consistent` discussion (lines 605-674). Add a short subsection
+  on the recount-gate coupling and the actionable refusal.
 - `docs/users-guide.md` — recount (lines 241-249) and set-gate (lines 285-298).
   Cross-link: a recount can refuse on gate-ratio, and set-gate is the remedy.
 - `skill/novel-ralph/references/state-layout.md` — the Gates section (lines
@@ -425,18 +427,18 @@ Tests this item must add/update:
 - Search for and update any snapshot capturing the gate-ratio detail:
   `tests/__snapshots__/test_set_gate_snapshots.ambr` and
   `tests/__snapshots__/test_novel_state_mutator_snapshots.ambr`. Regenerate with
-  `uv run pytest <suite> --snapshot-update` and review the diff so the churn is
-  a real contract change (AGENTS.md snapshot rule).
+  `uv run pytest <suite> --snapshot-update` and review the diff so the churn
+  is a real contract change (AGENTS.md snapshot rule).
 
 ### Work item 2 — Add the recount-specific actionable remedy
 
 Goal: when `recount()` refuses on `gate-ratio-consistent`, the exit-3 envelope
 carries one extra `messages` line **per disagreeing gate**, each naming that
-gate's threshold, the direction of the disagreement, and the
-direction-correct remedy. The remedy is built only from facts the validator
-already knows (each gate's recorded flag, its threshold, and the recounted
-drafted ratio) — the command layer **does not** recompute "which threshold was
-crossed"; it enumerates per-gate disagreements directly.
+gate's threshold, the direction of the disagreement, and the direction-correct
+remedy. The remedy is built only from facts the validator already knows (each
+gate's recorded flag, its threshold, and the recounted drafted ratio) — the
+command layer **does not** recompute "which threshold was crossed"; it
+enumerates per-gate disagreements directly.
 
 Implements: design §4.1 (recount), §5.4 recovery rule 1 (lines 600-611, "A
 done-claim large enough to move a gate is reported and escalated, not silently
@@ -446,18 +448,17 @@ Keeps the remedy in the command layer (Decision Log).
 #### Chosen shape (pinned — resolves review B1, advisory A2)
 
 Use **shape 2**: add a backward-compatible keyword
-`remedy: cabc.Callable[[State], cabc.Sequence[str]] | None = None`
-(defaulting to `None`) to `_refuse_if_incoherent`. When the verdict is
-non-empty **and** `remedy is not None`, the helper appends the lines returned
-by `remedy(state)` after the existing per-violation details. No other caller
-passes `remedy`, so no other caller changes (verified: the other 10 call sites
-are `_reconcile` recount and reconcile, `_set_chapters` set-chapters,
-`_state_mutators` set-cursor and the two advance-phase calls, and
-`_gate_drafting_mutators` set-gate, complete-final-pass, set-fangirl, and
-set-critic-pass — Interfaces section).
-Recount passes a `remedy=_gate_ratio_remedy` callable. This validates the
-proposed state exactly **once** (it is the helper's own `validate_state` call),
-avoiding the double-validation of the rejected shape 1 (advisory A2).
+`remedy: cabc.Callable[[State], cabc.Sequence[str]] | None = None` (defaulting
+to `None`) to `_refuse_if_incoherent`. When the verdict is non-empty **and**
+`remedy is not None`, the helper appends the lines returned by `remedy(state)`
+after the existing per-violation details. No other caller passes `remedy`, so
+no other caller changes (verified: the other 10 call sites are `_reconcile`
+recount and reconcile, `_set_chapters` set-chapters, `_state_mutators`
+set-cursor and the two advance-phase calls, and `_gate_drafting_mutators`
+set-gate, complete-final-pass, set-fangirl, and set-critic-pass — Interfaces
+section). Recount passes a `remedy=_gate_ratio_remedy` callable. This validates
+the proposed state exactly **once** (it is the helper's own `validate_state`
+call), avoiding the double-validation of the rejected shape 1 (advisory A2).
 
 If, on implementation, adding the keyword forces any *other* caller to change
 (it must not), abandon shape 2 for shape 1 (re-validate locally in `recount`)
@@ -472,9 +473,9 @@ the validator computes: `flags = (done_30, done_50, done_80)`,
 and emits **one line per gate whose flag disagrees with `ratio >= threshold`**,
 choosing the line by direction. The flag→`set-gate` mapping is fixed:
 `done_30 → --knitting-30`, `done_50 → --knitting-50`, `done_80 → --knitting-80`
-(verified `_gate_drafting_mutators.py` lines 71-73). The threshold percentage is
-rendered as an integer (`int(threshold * 100)` → `30`/`50`/`80`); the ratio is
-rendered as a whole-number percentage (`ratio * 100:.0f`).
+(verified `_gate_drafting_mutators.py` lines 71-73). The threshold percentage
+is rendered as an integer (`int(threshold * 100)` → `30`/`50`/`80`); the ratio
+is rendered as a whole-number percentage (`ratio * 100:.0f`).
 
 Two line forms, one per direction. Pin these exact templates (`RR` is the
 recounted ratio rendered as a whole-number percentage and `NN` is the threshold
@@ -488,9 +489,9 @@ still lags):
     gate done_NN is still false: integrate the pending knitting pass and log it,
     then run `novel-state set-gate --knitting-NN`. Do not hand-edit [gates].
 
-Downward (gate flag `true`, but `ratio < threshold` — drafts shrank, or the gate
-was set prematurely; nothing was "crossed" upward, so the message must NOT tell
-the operator to run `set-gate --knitting-NN`):
+Downward (gate flag `true`, but `ratio < threshold` — drafts shrank, or the
+gate was set prematurely; nothing was "crossed" upward, so the message must NOT
+tell the operator to run `set-gate --knitting-NN`):
 
     recount left drafting below the NN% knitting threshold (drafts now at RR% of
     target) but gate done_NN is recorded true: the recorded gate no longer
@@ -502,8 +503,8 @@ derive from — they are derivable from the plan, not the implementation):
 
 - 30 upward (ratio 0.34, `done_30=false`): "recount crossed the 30% knitting
   threshold (drafts now at 34% of target) but gate done_30 is still false:
-  integrate the pending knitting pass and log it, then run `novel-state
-  set-gate --knitting-30`. Do not hand-edit [gates]."
+  integrate the pending knitting pass and log it, then run
+  `novel-state set-gate --knitting-30`. Do not hand-edit [gates]."
 - 50 upward (ratio 0.55, `done_50=false`): "… crossed the 50% knitting
   threshold (drafts now at 55% of target) but gate done_50 is still false: …
   `novel-state set-gate --knitting-50`. …"
@@ -538,8 +539,8 @@ derived from this plan, not reverse-engineered):
   the downward line — proving the upward-shaped remedy cannot leak into the
   downward path, the pre-mortem's most likely incident).
 
-Edit `novel_ralph_skill/commands/_recount.py`, function `recount()`. The current
-line 149 is `_refuse_if_incoherent(proposed, context="recount")`. Add a
+Edit `novel_ralph_skill/commands/_recount.py`, function `recount()`. The
+current line 149 is `_refuse_if_incoherent(proposed, context="recount")`. Add a
 module-private `_gate_ratio_remedy(state: State) -> list[str]` building the
 lines above, then change line 149 to
 `_refuse_if_incoherent(proposed, context="recount", remedy=_gate_ratio_remedy)`.
@@ -610,11 +611,12 @@ user-visible level):
   matches the drafts". Given a tree whose hand-typed counts cross 80% with
   `done_80` true but whose `draft.md` files are empty (the existing
   `test_recount_legitimate_gate_breach_refuses` shape); When recount runs; Then
-  recount exits 3, and the message contains `"left drafting below the 80%
-  knitting threshold"`, `"gate done_80 is recorded true"`, and `"Adjudicate"`;
-  And the message does **not** contain `"set-gate --knitting-80"`; And
-  `state.toml` is unchanged. This is the acceptance-level proof B2 requires that
-  the downward path ships a coherent, non-misleading message.
+  recount exits 3, and the message contains
+  `"left drafting below the 80% knitting threshold"`,
+  `"gate done_80 is recorded true"`, and `"Adjudicate"`; And the message does
+  **not** contain `"set-gate --knitting-80"`; And `state.toml` is unchanged.
+  This is the acceptance-level proof B2 requires that the downward path ships a
+  coherent, non-misleading message.
 - Add the matching steps to `tests/steps/recount_steps.py`, reusing the existing
   `_run_recount` driver and the `working_corpus`/tree builder. Capture the
   exit-3 envelope's `messages` (drive through `run` and read the emitted
@@ -639,21 +641,21 @@ Add installed-binary e2e — **both directions** (resolves B2 end to end):
     assert exit `3`, `envelope["ok"] is False`, the downward substrings, and
     `"set-gate --knitting-80"` **absent** from every `messages` entry.
   The `make`/`run_sync`/`ExecutionContext`/`ProgramCatalogue` surface is locked
-  in cuprum 0.1.0 (verified in `/data/leynos/Projects/cuprum/cuprum/sh.py` lines
-  169, 441, 528 and `cuprum/catalogue.py` line 59).
+  in cuprum 0.1.0 (verified in `/data/leynos/Projects/cuprum/cuprum/sh.py`
+  lines 169, 441, 528 and `cuprum/catalogue.py` line 59).
 
 Docs to read first: developers-guide lines 159-186 (the entry-point e2e and the
-crossed-knitting-gate proof) and lines 282-295 (set-gate as the repair mutator);
-ADR-006 (POSIX-only console-script e2e).
+crossed-knitting-gate proof) and lines 282-295 (set-gate as the repair
+mutator); ADR-006 (POSIX-only console-script e2e).
 
 Skills to load: `python-router` → `python-testing` (pytest-bdd scenarios,
-marks, parametrization, the installed-binary fixture pattern); `python-
-verification` to confirm example-based behavioural/e2e is the right level (it
-is — this is a contract assertion, not a property).
+marks, parametrization, the installed-binary fixture pattern);
+`python- verification` to confirm example-based behavioural/e2e is the right
+level (it is — this is a contract assertion, not a property).
 
 Tests this item adds: two pytest-bdd scenarios (upward + downward, feature +
-steps) and two installed-binary e2e tests (upward + downward), plus, if cheap, a
-fast in-process entry-point variant through `stub.novel_state()` mirroring
+steps) and two installed-binary e2e tests (upward + downward), plus, if cheap,
+a fast in-process entry-point variant through `stub.novel_state()` mirroring
 `test_entry_point_recount_reachable_exits_zero`, asserting the exit-3 envelope
 and the upward message — a fast non-`slow` proof that does not need the wheel
 build. The dual-direction coverage at the behavioural and e2e levels is the
@@ -671,10 +673,10 @@ Edit `docs/developers-guide.md`. After the existing `gate-ratio-consistent`
 discussion (lines 615-674), add a short subsection ("The recount-gate
 coupling") explaining: recount re-derives `[word_counts]` only and never writes
 `[gates]`; a recount that would cross a 30/50/80% threshold while the gate flag
-lags is refused with exit `3` on `gate-ratio-consistent` (it must not synthesize
-the "pass integrated" fact disk does not store); the refusal message names the
-crossed threshold and points at `novel-state set-gate --knitting-NN` as the
-repair once the pending knitting pass is integrated. Cross-reference the
+lags is refused with exit `3` on `gate-ratio-consistent` (it must not
+synthesize the "pass integrated" fact disk does not store); the refusal message
+names the crossed threshold and points at `novel-state set-gate --knitting-NN`
+as the repair once the pending knitting pass is integrated. Cross-reference the
 existing set-gate "repair mutator" wording (lines 282-295).
 
 Docs to read first: design §4.1, §5.4 recovery rule 1; developers-guide lines
@@ -682,8 +684,8 @@ Docs to read first: design §4.1, §5.4 recovery rule 1; developers-guide lines
 
 Skills to load: `en-gb-oxendict` (Oxford spelling); no code skill.
 
-Tests: documentation only — no unit tests. Validation is `make markdownlint`
-and `make nixie` plus `make all` (the markdown lint gate). No Mermaid diagram is
+Tests: documentation only — no unit tests. Validation is `make markdownlint` and
+`make nixie` plus `make all` (the markdown lint gate). No Mermaid diagram is
 added, but `make nixie` is run because the file is markdown (AGENTS.md).
 
 ### Work item 5 — Document the coupling in the users' guide and the skill
@@ -709,15 +711,14 @@ sentence that a recount refuses with exit `3` (writing nothing) when it would
 cross a knitting-gate threshold the recorded gates do not yet reflect, naming
 the crossed threshold, and cross-link **to the existing** set-gate paragraph
 (lines 285-298) as the remedy once the pending knitting pass is integrated. Do
-not
-duplicate the set-gate "repair" wording; point at it.
+not duplicate the set-gate "repair" wording; point at it.
 
-Edit `skill/novel-ralph/references/state-layout.md`: in the Gates section (lines
-205-219) and/or beside the recount mention, state the coupling for the agent:
-after a knitting pass is integrated, run `novel-compile`/`recount` then
-`set-gate --knitting-NN`; if a recount refuses on `gate-ratio-consistent`, it is
-telling you a threshold was crossed but the gate still lags — integrate and flag
-the pass, do not hand-edit.
+Edit `skill/novel-ralph/references/state-layout.md`: in the Gates section
+(lines 205-219) and/or beside the recount mention, state the coupling for the
+agent: after a knitting pass is integrated, run `novel-compile`/`recount` then
+`set-gate --knitting-NN`; if a recount refuses on `gate-ratio-consistent`, it
+is telling you a threshold was crossed but the gate still lags — integrate and
+flag the pass, do not hand-edit.
 
 Docs to read first: users-guide lines 241-298; skill state-layout.md lines
 205-243; `skill/novel-ralph/SKILL.md` lines 461-465 (the existing knitting-gate
@@ -772,16 +773,15 @@ Acceptance is behaviour a human can verify:
   `false` exits `3`, writes nothing, and emits an envelope whose `messages`
   contain "crossed the 30% knitting threshold", "set-gate --knitting-30", and
   "Do not hand-edit [gates]". The upward behavioural scenario in
-  `tests/features/recount.feature`
-  and the upward installed e2e in `tests/test_recount_e2e.py` both fail before
-  the change and pass after.
+  `tests/features/recount.feature` and the upward installed e2e in
+  `tests/test_recount_e2e.py` both fail before the change and pass after.
 - **Downward direction.** Driving `novel-state recount` over the
   empty-draft/`done_80=true` tree exits `3`, writes nothing, and emits an
   envelope whose `messages` contain "left drafting below the 80% knitting
   threshold", "gate done_80 is recorded true", and "Adjudicate", and which do
-  **not** contain "set-gate --knitting-80" (the downward path must not prescribe
-  the upward repair verb). The downward behavioural scenario and the downward
-  installed e2e prove this at the user-visible level (resolves B2).
+  **not** contain "set-gate --knitting-80" (the downward path must not
+  prescribe the upward repair verb). The downward behavioural scenario and the
+  downward installed e2e prove this at the user-visible level (resolves B2).
 - The existing recount idempotence/correctness scenario, the pure-validator
   property suite, and the whole-corpus agreement cross-check stay green
   (`gate-ratio-consistent` and its verdict are unchanged; only prose differs).
@@ -806,47 +806,48 @@ regenerated snapshot diff by hand.
 
 ## Idempotence and recovery
 
-Every step is re-runnable. The edits are text edits; re-running `make all` after
-a fix is safe. Snapshot regeneration is the only non-idempotent step — review
-the `git diff` of `tests/__snapshots__` before committing, and revert with
-`git checkout -- tests/__snapshots__` if the churn is not a real contract
+Every step is re-runnable. The edits are text edits; re-running `make all`
+after a fix is safe. Snapshot regeneration is the only non-idempotent step —
+review the `git diff` of `tests/__snapshots__` before committing, and revert
+with `git checkout -- tests/__snapshots__` if the churn is not a real contract
 change. No `working/` tree or persistent state is mutated by this work; the
 behavioural and e2e tests build throwaway trees under `tmp_path`.
 
 ## Artefacts and notes
 
 - Verified cuprum 0.1.0 API (locked, `uv.lock` line 113-118): `cuprum/sh.py`
-  defines `make`, `run_sync(*, capture=True, echo, context)`, `ExecutionContext`
-  (with `cwd`), and the `capture` flag; `cuprum/catalogue.py` defines
-  `ProgramCatalogue`. The existing `tests/test_recount_e2e.py` uses exactly this
-  surface, so the new e2e reuses it verbatim — no new cuprum capability needed.
+  defines `make`, `run_sync(*, capture=True, echo, context)`,
+  `ExecutionContext` (with `cwd`), and the `capture` flag;
+  `cuprum/catalogue.py` defines `ProgramCatalogue`. The existing
+  `tests/test_recount_e2e.py` uses exactly this surface, so the new e2e reuses
+  it verbatim — no new cuprum capability needed.
 - Verified the `set-gate` flag-to-gate mapping in
   `novel_ralph_skill/commands/_gate_drafting_mutators.py` (lines 71-93):
-  `--knitting-30 → done_30`, `--knitting-50 → done_50`, `--knitting-80 →
-  done_80`. The remedy line points at these existing flags.
+  `--knitting-30 → done_30`, `--knitting-50 → done_50`,
+  `--knitting-80 → done_80`. The remedy line points at these existing flags.
 
 ## Interfaces and dependencies
 
 No public interface changes are expected. The function bodies edited are:
 
-- `novel_ralph_skill.state.validate._check_gate_ratio_consistent(state: State)
-  -> Violation | None` — unchanged signature; richer `detail` prose only.
+- novel_ralph_skill.state.validate._check_gate_ratio_consistent(state: State) ->
+  Violation | None — unchanged signature; richer `detail` prose only.
 - `novel_ralph_skill.commands._recount.recount() -> CommandOutcome` — unchanged
   signature; refusal path augmented with the recount-specific remedy.
-- `novel_ralph_skill.commands._state_mutators._refuse_if_incoherent(state:
-  State, *, context: str, remedy: cabc.Callable[[State], cabc.Sequence[str]] |
-  None = None) -> None` — the pinned shape 2 (Decision Log). A
-  backward-compatible keyword defaulting to `None`; when non-`None` and the
-  verdict is non-empty, the lines returned by `remedy(state)` are appended after
-  the per-violation details. The keyword has 11 call sites across five files;
-  recount is the sole caller that passes `remedy`. The other 10 omit it and are
-  unchanged: `_reconcile.py` (recount and reconcile), `_set_chapters.py`
-  (set-chapters), `_state_mutators.py` (set-cursor and two advance-phase calls),
-  and `_gate_drafting_mutators.py` (set-gate, complete-final-pass, set-fangirl,
-  set-critic-pass). If this would
-  force any other caller to change, abandon shape 2 for shape 1 (Tolerances).
-- `novel_ralph_skill.commands._recount._gate_ratio_remedy(state: State) ->
-  list[str]` — new module-private pure function returning the per-gate
+- novel_ralph_skill.commands._state_mutators._refuse_if_incoherent(state: State,
+  *, context: str, remedy: cabc.Callable[[State], cabc.Sequence[str]] | None =
+  None) -> None — the pinned shape 2 (Decision Log). A backward-compatible
+  keyword defaulting to `None`; when non-`None` and the verdict is non-empty,
+  the lines returned by `remedy(state)` are appended after the per-violation
+  details. The keyword has 11 call sites across five files; recount is the sole
+  caller that passes `remedy`. The other 10 omit it and are unchanged:
+  `_reconcile.py` (recount and reconcile), `_set_chapters.py` (set-chapters),
+  `_state_mutators.py` (set-cursor and two advance-phase calls), and
+  `_gate_drafting_mutators.py` (set-gate, complete-final-pass, set-fangirl,
+  set-critic-pass). If this would force any other caller to change, abandon
+  shape 2 for shape 1 (Tolerances).
+- novel_ralph_skill.commands._recount._gate_ratio_remedy(state: State) ->
+  list[str] — new module-private pure function returning the per-gate
   direction-aware remedy lines (empty when no knitting gate disagrees).
 
 No new runtime or dev dependencies. Locked: cyclopts + tomlkit (runtime),
@@ -867,13 +868,14 @@ from `roadmap-2-3-7.logisphere-review-r1.md` and folded in advisories A1-A5.
   disagreements rather than recomputing a "crossed threshold". The shape is
   committed (shape 2, the `remedy` callable keyword), not left as a menu.
 - **B2 (downward message incoherent / untested at acceptance level):** the
-  downward line is specified verbatim and deliberately omits `set-gate
-  --knitting-NN` ("the recorded gate no longer matches the drafts. Adjudicate
-  …"). The dual-direction promise is now proven at the user-visible level: Work
-  item 3 adds a downward behavioural scenario and a downward installed e2e (each
-  asserting the downward substrings **and** the absence of the upward
-  `set-gate` verb), alongside the upward pair; the unit suite (Work item 2) adds
-  the same absence assertion. Validation/Acceptance drives both directions.
+  downward line is specified verbatim and deliberately omits
+  `set-gate --knitting-NN` ("the recorded gate no longer matches the drafts.
+  Adjudicate …"). The dual-direction promise is now proven at the user-visible
+  level: Work item 3 adds a downward behavioural scenario and a downward
+  installed e2e (each asserting the downward substrings **and** the absence of
+  the upward `set-gate` verb), alongside the upward pair; the unit suite (Work
+  item 2) adds the same absence assertion. Validation/Acceptance drives both
+  directions.
 - **A1:** Work item 5 now records that the users' guide already documents the
   coupling from the set-gate side (lines 289-298) and scopes the work to a
   forward cross-link, not duplicate prose.
@@ -901,12 +903,12 @@ no-review lightweight pass.
   premise understates the keyword's blast radius for a future implementer.
   Correct the enumeration to the real call-site set. Lightweight addendum pass.
 - [x] **2.3.7.2 Render the recount remedy ratio without a boundary
-  self-contradiction (from review:2.3.7; low).**
-  `_recount._gate_ratio_remedy` renders the drafted ratio
-  with `f"{ratio * 100:.0f}"`, so a ratio of `0.298` prints `30%` inside the
-  downward "below the … threshold (drafts now at 30% of target)" sentence,
-  reading as a contradiction for an operator near a gate boundary (R2 advisory
-  A8, neither mitigated nor documented). The verdict and exit code are
-  unaffected; this is a cosmetic operator-UX wart. Render the ratio with one
-  decimal, or document the boundary-rounding edge inline, so the message cannot
-  read as self-contradictory at a gate boundary. Lightweight addendum pass.
+  self-contradiction (from review:2.3.7; low).** `_recount._gate_ratio_remedy`
+  renders the drafted ratio with `f"{ratio * 100:.0f}"`, so a ratio of `0.298`
+  prints `30%` inside the downward "below the … threshold (drafts now at 30% of
+  target)" sentence, reading as a contradiction for an operator near a gate
+  boundary (R2 advisory A8, neither mitigated nor documented). The verdict and
+  exit code are unaffected; this is a cosmetic operator-UX wart. Render the
+  ratio with one decimal, or document the boundary-rounding edge inline, so the
+  message cannot read as self-contradictory at a gate boundary. Lightweight
+  addendum pass.

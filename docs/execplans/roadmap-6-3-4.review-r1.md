@@ -9,8 +9,9 @@ planner.
 
 ## Verified-correct (credit where due)
 
-- cuprum 0.1.0 locked signature `run_sync(*, capture=True, echo=False,
-  context=None)` confirmed at the installed source line 450; `make`, `ExecutionContext`,
+- cuprum 0.1.0 locked signature
+  `run_sync(*, capture=True, echo=False, context=None)` confirmed at the
+  installed source line 450; `make`, `ExecutionContext`,
   `CommandResult.exit_code` all present. The plan correctly pins to the
   installed wheel, not the drifted git HEAD.
 - `pathlib.Path("working").resolve()` non-strict success on a missing path
@@ -25,8 +26,8 @@ planner.
 
 ### B1 (Pandalump / Doggylump) — `working/` is resolved in three places, not one
 
-The plan's Constraint asserts "The single home for *where a command looks*
-stays `_state_load.py`" and that adding a sibling accessor keeps resolution
+The plan's Constraint asserts "The single home for *where a command looks* stays
+`_state_load.py`" and that adding a sibling accessor keeps resolution
 single-sourced. This is already false in the codebase:
 
 - `novel_ralph_skill/commands/_desloppify.py:198`:
@@ -34,9 +35,9 @@ single-sourced. This is already false in the codebase:
 - `novel_ralph_skill/commands/_wordcount.py:130`:
   `working_dir = pathlib.Path(WORKING_DIR_NAME)`
 
-Both rebuild the path from the constant instead of calling `working_dir()`.
-The Constraint as written is not a true invariant the plan preserves; it is a
-goal the code already violates. The plan must either (a) acknowledge these as
+Both rebuild the path from the constant instead of calling `working_dir()`. The
+Constraint as written is not a true invariant the plan preserves; it is a goal
+the code already violates. The plan must either (a) acknowledge these as
 pre-existing parallel resolution sites and state they are out of scope for the
 *reported* path (since they feed `result`/messages, not the envelope
 `working_dir`), or (b) fold them into the single-accessor story. As written the
@@ -45,29 +46,29 @@ Constraint will read as satisfied when it is not.
 ### B2 (Telefono / Pandalump) — second production stamp of a path-bearing `working_dir` is scoped out without justification
 
 `novel_ralph_skill/commands/novel_state.py:264` stamps
-`result={"working_dir": WORKING_DIR_NAME, "slug": slug}` — the `novel state
-init` command reports `working_dir: "working"` in its **result body**. This is
-a production stamp of the literal token into a field the agent reads, carrying
-exactly the dogfooding defect §6.3.4 targets ("the field never names *where* the
-command actually looked"). The plan declares `novel.main` "the **only**
-production stamp of `working_dir` to change" and the Ambiguity tolerance escalates
-only on a second stamp "beyond `novel.main`". A second stamp exists. The plan
-must either bring it into scope or record an explicit, justified decision that
-the *result-body* `working_dir` is deliberately left literal (and explain why
-the same loud-resolution argument does not apply to it). Silent omission is a
-blocking gap — Work item 0's audit is specified to catch precisely this and the
-plan pre-empts it with a false "only" claim.
+`result={"working_dir": WORKING_DIR_NAME, "slug": slug}` — the
+`novel state init` command reports `working_dir: "working"` in its **result
+body**. This is a production stamp of the literal token into a field the agent
+reads, carrying exactly the dogfooding defect §6.3.4 targets ("the field never
+names *where* the command actually looked"). The plan declares `novel.main`
+"the **only** production stamp of `working_dir` to change" and the Ambiguity
+tolerance escalates only on a second stamp "beyond `novel.main`". A second
+stamp exists. The plan must either bring it into scope or record an explicit,
+justified decision that the *result-body* `working_dir` is deliberately left
+literal (and explain why the same loud-resolution argument does not apply to
+it). Silent omission is a blocking gap — Work item 0's audit is specified to
+catch precisely this and the plan pre-empts it with a false "only" claim.
 
 ### B3 (Dinolump / Telefono) — fabricated/misattributed doc citations
 
-The plan repeatedly cites, as a quoted design-doc rule, `docs/novel-ralph-harness-design.md`
-line 151: "the fixed cwd-relative working directory" (Purpose, Constraints,
-Decision Log D1/D2, Work items 0/1/3). Line 151 of the design doc is the JSON
-sample value `"working_dir": "working"`. A grep of the design doc for
-`cwd-relative`, `upward`, or any prose stating the resolution rule returns
-**nothing**. The quoted phrase exists only as a source comment in
-`_state_load.py:32`. The design doc does not document the cwd-relative
-resolution rule in prose at all.
+The plan repeatedly cites, as a quoted design-doc rule,
+`docs/novel-ralph-harness-design.md` line 151: "the fixed cwd-relative working
+directory" (Purpose, Constraints, Decision Log D1/D2, Work items 0/1/3). Line
+151 of the design doc is the JSON sample value `"working_dir": "working"`. A
+grep of the design doc for `cwd-relative`, `upward`, or any prose stating the
+resolution rule returns **nothing**. The quoted phrase exists only as a source
+comment in `_state_load.py:32`. The design doc does not document the
+cwd-relative resolution rule in prose at all.
 
 Likewise the plan quotes `docs/developers-guide.md` "the single
 `WORKING_DIR_NAME`-anchored accessor" (Constraints, Work item 0) and instructs
@@ -93,9 +94,9 @@ at "line 300". The assertion at ~line 298 is inside
 command-specific (`command.name`). The per-cell `run_dir` differs
 (`tmp_path / f"{mount_verb[0]}-{arm.label}"`). The fix must compute
 `expected_working_dir` from each cell's own `run_dir`, not patch one literal.
-The plan gestures at this ("surface it ... or recompute it the same way") but
-its own Risk/Progress framing ("exactly the pins ... at line 300") undercounts
-the parametrization and will mislead the implementer into a single-literal edit
+The plan gestures at this ("surface it … or recompute it the same way") but its
+own Risk/Progress framing ("exactly the pins … at line 300") undercounts the
+parametrization and will mislead the implementer into a single-literal edit
 that fails for the non-asserting half of the matrix. Re-state the inventory as
 "the parametrized full-envelope equality across all `_CELLS`".
 
@@ -137,9 +138,9 @@ name, not by hand-waving "two hits already found").
 
 It is six months on. A dogfooding agent ran `novel state init` from inside an
 existing `working/` tree, got `result.working_dir: "working"` (still literal,
-because B2 was scoped out), created a nested `working/working/`, and trusted the
-benign-looking body. The envelope's top-level `working_dir` was absolute and
-loud — but the agent gated on the `init` result body, which the plan never
+because B2 was scoped out), created a nested `working/working/`, and trusted
+the benign-looking body. The envelope's top-level `working_dir` was absolute
+and loud — but the agent gated on the `init` result body, which the plan never
 touched. The signal the team missed: the plan proved the *envelope* field loud
 while leaving a sibling path-bearing field silent, and the audit step that
 should have caught it was pre-answered with a false "only one stamp" claim.

@@ -1,18 +1,18 @@
 # Post-merge audit — roadmap task 1.2.11
 
-Audit of the codebase after roadmap task 1.2.11 ("Migrate `test_contract_test_deps`
-onto the shared conftest fixtures") merged to `main` at commit `4757526`. The
-slice itself is correct and discharges the duplication it targeted: the weaker
-`split()`-chain distribution-name normalizer and the per-module `pyproject`
-re-parse in
-[`tests/test_contract_test_deps.py`](../../tests/test_contract_test_deps.py) are
-gone, a single `dist_name` fixture now lives in
+Audit of the codebase after roadmap task 1.2.11 ("Migrate
+`test_contract_test_deps` onto the shared conftest fixtures") merged to `main`
+at commit `4757526`. The slice itself is correct and discharges the duplication
+it targeted: the weaker `split()`-chain distribution-name normalizer and the
+per-module `pyproject` re-parse in
+[`tests/test_contract_test_deps.py`](../../tests/test_contract_test_deps.py)
+are gone, a single `dist_name` fixture now lives in
 [`tests/conftest.py`](../../tests/conftest.py), and the
-[`tests/test_interrogate_gate.py`](../../tests/test_interrogate_gate.py) consumer
-was migrated onto it too. The new fixture carries a parametrized table test
-([`tests/test_conftest_helpers.py`](../../tests/test_conftest_helpers.py)) and a
-Hypothesis property test, and the developers' guide records the fixture. That
-work needs nothing further.
+[`tests/test_interrogate_gate.py`](../../tests/test_interrogate_gate.py)
+consumer was migrated onto it too. The new fixture carries a parametrized table
+test ([`tests/test_conftest_helpers.py`](../../tests/test_conftest_helpers.py))
+and a Hypothesis property test, and the developers' guide records the fixture.
+That work needs nothing further.
 
 This audit re-checks the wider codebase against the recurring themes carried by
 `docs/issues/audit-1.2.1.md` through `docs/issues/audit-1.2.10.md`, and against
@@ -51,13 +51,14 @@ assert any(isinstance(spec, str) and dist_name(spec) == name for spec in dev), .
 
 `test_contract_test_deps.py` loops the check over `("hypothesis", "syrupy")`;
 `test_interrogate_gate.py` runs it for the single name `"interrogate"`. The
-predicate, the `isinstance(dev, list)` guard, and the `isinstance(spec, str) and
-dist_name(spec) == name` membership test are otherwise identical. This is the
-same single-source-of-truth principle 1.2.11 itself applied to `dist_name`,
-stopped one layer short: a future change to how the dev group is located (for
-example a move to `[project.optional-dependencies]` or a normalization rule that
-should also lower-case names per PEP 503) must be re-discovered and re-applied in
-two places, and a copy that drifts would weaken its module's guarantee silently.
+predicate, the `isinstance(dev, list)` guard, and the
+`isinstance(spec, str) and dist_name(spec) == name` membership test are
+otherwise identical. This is the same single-source-of-truth principle 1.2.11
+itself applied to `dist_name`, stopped one layer short: a future change to how
+the dev group is located (for example a move to
+`[project.optional-dependencies]` or a normalization rule that should also
+lower-case names per PEP 503) must be re-discovered and re-applied in two
+places, and a copy that drifts would weaken its module's guarantee silently.
 
 **Proposed fix:** lift a `dev_dependency_names` fixture (or an
 `assert_declared_in_dev_group(name)` callable) into `tests/conftest.py` that
@@ -75,28 +76,29 @@ two migrated modules suffices.
   [`tests/test_interrogate_gate.py:72-113`](../../tests/test_interrogate_gate.py)
   (`test_dist_name_extracts_bare_name_property`),
   [`tests/test_conftest_helpers.py:74-93,141-147`](../../tests/test_conftest_helpers.py)
-  (`test_dist_name_extracts_bare_name`, `test_dist_name_returns_none_for_non_name`)
+  (`test_dist_name_extracts_bare_name`,
+  `test_dist_name_returns_none_for_non_name`)
 
 `dist_name` is a shared `conftest` fixture, and
-`tests/test_conftest_helpers.py` is described in its own module docstring as the
-home for "focused unit tests for the shared `tests/conftest.py` fixtures". The
-parametrized table test and the `None`-for-non-name test for `dist_name` correctly
-live there. The Hypothesis *property* test for the same fixture, however, was
-placed in `test_interrogate_gate.py` — a module whose stated remit is pinning the
-"docstring-coverage gate's configuration, invocation, and dependencies". The
-property test has nothing to do with the interrogate gate; it landed there only
-because that module previously owned the normalizer before 1.2.11 moved it to
-`conftest`. A reader looking for the `dist_name` contract finds two thirds of it
-in `test_conftest_helpers.py` and the load-bearing third in an unrelated gate
-module.
+`tests/test_conftest_helpers.py` is described in its own module docstring as
+the home for "focused unit tests for the shared `tests/conftest.py` fixtures".
+The parametrized table test and the `None`-for-non-name test for `dist_name`
+correctly live there. The Hypothesis *property* test for the same fixture,
+however, was placed in `test_interrogate_gate.py` — a module whose stated remit
+is pinning the "docstring-coverage gate's configuration, invocation, and
+dependencies". The property test has nothing to do with the interrogate gate;
+it landed there only because that module previously owned the normalizer before
+1.2.11 moved it to `conftest`. A reader looking for the `dist_name` contract
+finds two thirds of it in `test_conftest_helpers.py` and the load-bearing third
+in an unrelated gate module.
 
 **Proposed fix:** move `test_dist_name_extracts_bare_name_property` (and its
 `operator`/`hypothesis.strategies` imports) from `test_interrogate_gate.py` into
 `tests/test_conftest_helpers.py` alongside the other `dist_name` tests, leaving
-`test_interrogate_gate.py` to test only the gate. The closure-fixture convention
-the property test follows (resolving the function-scoped fixture in the outer
-test and passing it into the inner `@given` body) is unchanged by the move.
-`make test` confirms the relocation.
+`test_interrogate_gate.py` to test only the gate. The closure-fixture
+convention the property test follows (resolving the function-scoped fixture in
+the outer test and passing it into the inner `@given` body) is unchanged by the
+move. `make test` confirms the relocation.
 
 ## Finding 3 — The render_human empty-messages branch is still unexercised (carried)
 
@@ -110,18 +112,18 @@ test and passing it into the inner `@given` body) is unchanged by the move.
 First raised as `audit-1.2.10.md` Finding 1 and untouched by 1.2.11. Every
 `render_human` test in the suite still passes a non-empty `messages` sequence
 (`test_render_human_lists_messages_without_result_json` passes two notes, and
-`test_render_human_success_snapshot` passes one), so the `if env.messages:` branch
-is always taken and the `else` branch emitting the literal `messages: (none)` line
-for a message-less envelope is dead with respect to the suite. A success envelope
-with no human prose is a real, expected shape (a checker that is satisfied and has
-nothing to say), so the unrendered branch is exactly the path a future edit could
-break unnoticed.
+`test_render_human_success_snapshot` passes one), so the `if env.messages:`
+branch is always taken and the `else` branch emitting the literal
+`messages: (none)` line for a message-less envelope is dead with respect to the
+suite. A success envelope with no human prose is a real, expected shape (a
+checker that is satisfied and has nothing to say), so the unrendered branch is
+exactly the path a future edit could break unnoticed.
 
 **Proposed fix:** add a focused test that builds an envelope with `messages=[]`
-and asserts `render_human(env)` contains the literal `messages: (none)` line and
-does *not* contain a two-space-and-dash message bullet; a syrupy snapshot of the
-empty-messages rendering would also pin the exact line. `make test` over the new
-case suffices.
+and asserts `render_human(env)` contains the literal `messages: (none)` line
+and does *not* contain a two-space-and-dash message bullet; a syrupy snapshot
+of the empty-messages rendering would also pin the exact line. `make test` over
+the new case suffices.
 
 ## Finding 4 — A third copy of the wrapper-configured app builder (carried; roadmap 1.2.21)
 
@@ -137,10 +139,11 @@ case suffices.
 
 Carried from `audit-1.2.8.md` Finding 3 and `audit-1.2.10.md` Finding 2, and
 untouched by 1.2.11. Three test modules each build a Cyclopts app with the same
-load-bearing `result_action="return_value", exit_on_error=False,
-print_error=False, help_on_error=False` configuration the `run` wrapper requires.
-A future cyclopts upgrade that changes one of those keyword defaults must be
-re-discovered and re-fixed three times.
+load-bearing
+`result_action="return_value", exit_on_error=False, print_error=False, help_on_error=False`
+configuration the `run` wrapper requires. A future cyclopts upgrade that
+changes one of those keyword defaults must be re-discovered and re-fixed three
+times.
 
 **Proposed fix:** roadmap task 1.2.21 already covers extracting a shared
 wrapper-app builder fixture into `tests/conftest.py`. No new roadmap item is
@@ -157,18 +160,19 @@ needed; flagged here only to record that 1.2.11 did not touch it.
   (`ExitCode.USAGE_ERROR = 2`)
 
 Carried from `audit-1.2.10.md` Finding 6. The stub module defines
-`STUB_EXIT_CODE = 2` with a docstring naming it "usage error, design 3.2", which
-is exactly `ExitCode.USAGE_ERROR`. The contract package now exists as the single
-source of truth for the exit-code vocabulary, yet the stub hard-codes the integer
-`2` independently. If a future contract revision renumbered the usage-error code,
-the stubs would silently diverge from the contract they honour.
+`STUB_EXIT_CODE = 2` with a docstring naming it "usage error, design 3.2",
+which is exactly `ExitCode.USAGE_ERROR`. The contract package now exists as the
+single source of truth for the exit-code vocabulary, yet the stub hard-codes
+the integer `2` independently. If a future contract revision renumbered the
+usage-error code, the stubs would silently diverge from the contract they
+honour.
 
-**Proposed fix:** import `ExitCode` from `novel_ralph_skill.contract.exit_codes`
-and define `STUB_EXIT_CODE = ExitCode.USAGE_ERROR` (or use the enum member
-directly in the `sys.exit` call). Because `ExitCode` subclasses `int`, behaviour
-is unchanged. Best sequenced when the stubs adopt the envelope contract (roadmap
-1.3.x) so they migrate onto the contract module in one move. Not yet a roadmap
-item.
+**Proposed fix:** import `ExitCode` from
+`novel_ralph_skill.contract.exit_codes` and define
+`STUB_EXIT_CODE = ExitCode.USAGE_ERROR` (or use the enum member directly in the
+`sys.exit` call). Because `ExitCode` subclasses `int`, behaviour is unchanged.
+Best sequenced when the stubs adopt the envelope contract (roadmap 1.3.x) so
+they migrate onto the contract module in one move. Not yet a roadmap item.
 
 ## Finding 6 — Four near-identical locked-version-pin guards lack a shared shape (carried/widened)
 
@@ -186,20 +190,21 @@ Four locked-version tripwires now follow the same pattern: a `LOCKED_X_VERSION`
 constant and an assertion that the resolved version (via `module.__version__` or
 `importlib.metadata.version`) equals the pin. The bodies and commentary differ
 just enough that this is a *similarity*, not a clean duplication — each carries
-bespoke rationale (tomlkit's round-trip risk, cyclopts's exit-code-contract risk,
-the dev-deps tripwire). They are not wrong, but as the spine grows more pinned
-dependencies the pattern will multiply, and there is no shared helper to keep the
-"read the resolved version, compare to the pin" mechanics consistent (note that
-`syrupy` already needs the `importlib.metadata.version` fallback because it
-exposes no `__version__`, a wrinkle each future pin must rediscover).
+bespoke rationale (tomlkit's round-trip risk, cyclopts's exit-code-contract
+risk, the dev-deps tripwire). They are not wrong, but as the spine grows more
+pinned dependencies the pattern will multiply, and there is no shared helper to
+keep the "read the resolved version, compare to the pin" mechanics consistent
+(note that `syrupy` already needs the `importlib.metadata.version` fallback
+because it exposes no `__version__`, a wrinkle each future pin must rediscover).
 
-**Proposed fix:** consider a small shared `assert_locked_version(distribution,
-expected)` helper (or `resolved_version` fixture) in `tests/conftest.py` that
-prefers `importlib.metadata.version` uniformly, so each guard reduces to one
-call plus its bespoke rationale comment. This is lower priority than Findings 1–3
-and is genuinely optional — the per-module commentary is the load-bearing part —
-so weigh it against the value of leaving each tripwire self-contained. Not a
-roadmap item; offered as a watch-this-pattern note.
+**Proposed fix:** consider a small shared
+`assert_locked_version(distribution, expected)` helper (or `resolved_version`
+fixture) in `tests/conftest.py` that prefers `importlib.metadata.version`
+uniformly, so each guard reduces to one call plus its bespoke rationale
+comment. This is lower priority than Findings 1–3 and is genuinely optional —
+the per-module commentary is the load-bearing part — so weigh it against the
+value of leaving each tripwire self-contained. Not a roadmap item; offered as a
+watch-this-pattern note.
 
 ## Finding 7 — Leftover project-template scaffold is unrelated to the harness (carried)
 
@@ -212,26 +217,27 @@ roadmap item; offered as a watch-this-pattern note.
 
 Carried from `audit-1.2.10.md` Finding 5. `pure.py` exports a single `hello()`
 returning `"hello from Python"`, `__init__.py` carries the matching
-Rust-or-Python fallback wiring, and `test_stub.py` asserts the greeting. This is
-boilerplate from the pure-Python project template, not part of the deterministic
-spine: there is no Rust extension in this repository and `hello` is not part of
-the contract surface (ADR 003). A reader opening `__init__.py` first meets
-template greeting machinery rather than the command/contract architecture.
+Rust-or-Python fallback wiring, and `test_stub.py` asserts the greeting. This
+is boilerplate from the pure-Python project template, not part of the
+deterministic spine: there is no Rust extension in this repository and `hello`
+is not part of the contract surface (ADR 003). A reader opening `__init__.py`
+first meets template greeting machinery rather than the command/contract
+architecture.
 
 **Proposed fix:** decide the package's intended public entry shape and either
 (a) remove `pure.py`, the `hello` re-export, and `test_stub.py`, trimming
 `__init__.py` to the genuine package surface; or (b) if a `_rs` accelerator is
-genuinely planned, record that intent in a short ADR so the fallback wiring reads
-as deliberate. The design names no Rust component, so (a) is the likelier correct
-call. Not yet a roadmap item; offered for the root agent to track.
+genuinely planned, record that intent in a short ADR so the fallback wiring
+reads as deliberate. The design names no Rust component, so (a) is the likelier
+correct call. Not yet a roadmap item; offered for the root agent to track.
 
 ## Notes on what was checked and found sound
 
 - The 1.2.11 `dist_name` fixture is well-formed: the regex is anchored, the
   normalization is the single home for the concept, and the property test
   correctly resolves the function-scoped fixture outside the `@given` body so
-  `HealthCheck.function_scoped_fixture` cannot fire (Finding 2 concerns only its
-  *location*, not its correctness).
+  `HealthCheck.function_scoped_fixture` cannot fire (Finding 2 concerns only
+  its *location*, not its correctness).
 - The `run` wrapper (`contract/runner.py`) cleanly separates command bodies from
   exit-code translation and envelope emission. No command-query-separation
   violation found: `build_envelope` and `is_ok` are pure queries, `_emit`/`run`

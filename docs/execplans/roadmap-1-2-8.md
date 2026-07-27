@@ -216,8 +216,8 @@ escalation, not a workaround.
   `tomli_w.dump(`); (b) tomlkit write tokens `tomlkit.dump` and
   `tomlkit.dumps`; (c) generic Python file-writes targeting the state file —
   `.write_text(` paired with `state.toml`, and `open(` paired with `state.toml`
-  **only when a write signal is also present** (a write-mode literal `"w"`/`"a"`
-  /`"x"`/`"wb"`/`"ab"`/`"xb"`/ `"w+"` etc., or a `.write(`/`.writelines(`
+  **only when a write signal is also present** (a write-mode literal `"w"`/
+  `"a"` /`"x"`/`"wb"`/`"ab"`/`"xb"`/ `"w+"` etc., or a `.write(`/`.writelines(`
   call), so a read-only `open(... "rb")` is not flagged; (d) shell redirects
   and heredocs whose target is the state file — `> ...state.toml`,
   `>> ...state.toml`, `tee ...state.toml`, `cat > ...state.toml` — every
@@ -275,12 +275,12 @@ Delivered. The broadened guard meets the purpose:
 
 Retrospective: the only friction was tooling, not design. Ruff's
 implicit-string-concatenation rule forced the planted recipes out of the
-`parametrize` literal into a module-level `_PLANTED_RECIPES` dict (a readability
-gain), and `make fmt`'s mdformat-all pass churns unrelated docs, so the touched
-Python file was formatted with `ruff format` directly and the doc churn was
-stashed. The plan's verified line-range observations (six fences, prose-only
-atomic-write discipline) held exactly, so no escalation was needed. The
-implementation stayed within the three-file, ~120-line scope tolerance.
+`parametrize` literal into a module-level `_PLANTED_RECIPES` dict (a
+readability gain), and `make fmt`'s mdformat-all pass churns unrelated docs, so
+the touched Python file was formatted with `ruff format` directly and the doc
+churn was stashed. The plan's verified line-range observations (six fences,
+prose-only atomic-write discipline) held exactly, so no escalation was needed.
+The implementation stayed within the three-file, ~120-line scope tolerance.
 
 ## Context and orientation
 
@@ -542,8 +542,7 @@ Run everything from the worktree root
 
 1. Confirm the branch and clean tree from the worktree root. Run
    `git branch --show-current` (expect `roadmap-1-2-8`) and
-   `git status --short` (expect
-   clean or plan-only).
+   `git status --short` (expect clean or plan-only).
 
 2. Work item 1, step 1 — add the failing predicate tests, then run `make test`
    to observe red. Expect the new `find_direct_state_write_recipes` tests to
@@ -624,10 +623,10 @@ note, never in parallel) from the worktree root. `make all` is
   evidence only; it is never committed.
 - Work item 1 result (commit `ba17f1d`): the predicate and its tests were
   written together within one session (TDD performed in place; no red state
-  committed, per Decision-log AGENTS.md lines 99/108). `make check-fmt`, `make
-  lint` (ruff clean, `interrogate` 100%, Pylint 10.00/10), `make typecheck`
-  (`ty` clean), `make test` (61 passed), `make all` (61 passed), and `make
-  audit` (no known vulnerabilities) were all green. The new
+  committed, per Decision-log AGENTS.md lines 99/108). `make check-fmt`,
+  `make lint` (ruff clean, `interrogate` 100%, Pylint 10.00/10),
+  `make typecheck` (`ty` clean), `make test` (61 passed), `make all` (61
+  passed), and `make audit` (no known vulnerabilities) were all green. The new
   `TestFindDirectStateWriteRecipes` class covers the green-on-current
   regression, the five negative cases, and the eight-row planted-recipe table.
 - Work item 1 deviations: (a) the planted recipes were lifted into a
@@ -642,9 +641,9 @@ note, never in parallel) from the worktree root. `make all` is
   Python file. The Safety Net blocks `git checkout --` and `rm -rf`, so doc
   reverts use `git stash push -- docs/` and temp cleanup avoids `-rf`.
 - coderabbit (work item 1): one minor finding, against the pre-existing review
-  artefact `docs/execplans/roadmap-1-2-8.review-r1.md` (an Oxford-comma nit in a
-  reviewer list), not against any file changed by this work item. No actionable
-  finding on the guard module; left unchanged.
+  artefact `docs/execplans/roadmap-1-2-8.review-r1.md` (an Oxford-comma nit in
+  a reviewer list), not against any file changed by this work item. No
+  actionable finding on the guard module; left unchanged.
 - Work item 2 result: added the "The state-layout direct-edit guard"
   subsection to `docs/developers-guide.md` (after "State and on-disk layout")
   and ticked roadmap task 1.2.8 (`- [ ]` -> `- [x]`), leaving 6.2.3 untouched.
@@ -660,8 +659,8 @@ note, never in parallel) from the worktree root. `make all` is
   are prose with no fence; Progress shows one red-then-green commit (work item
   1); and the validation sections state `make all` is
   `build check-fmt lint typecheck test` with audit/markdownlint/nixie run
-  explicitly. The shipped implementation matches (test #2 feeds synthetic prose,
-  not a fence; one green commit `ba17f1d`; gates run sequentially). No
+  explicitly. The shipped implementation matches (test #2 feeds synthetic
+  prose, not a fence; one green commit `ba17f1d`; gates run sequentially). No
   actionable change; left as is.
 - Dual-review fix round 1 (commit `32873c6`): closed four blocking
   guard-bypass findings against `tests/test_state_layout_reference.py`, all of
@@ -802,8 +801,8 @@ and hygiene only.
   conftest). Behaviour-preserving; gate with `make all`.
 - [x] 1.2.8.3 — Distinguish the live `state.toml` from its `.new` sibling in the
   guard (from review:1.2.8, medium — a real false-positive bug). `_STATE_FILE`
-  matches as a bare substring, so a write-then-rename illustration (design §3.4,
-  §5.3) is false-flagged; anchor the live-file match on a word, quote, or
+  matches as a bare substring, so a write-then-rename illustration (design
+  §3.4, §5.3) is false-flagged; anchor the live-file match on a word, quote, or
   end-of-line boundary and add a negative test for a `.new`-only
   write-then-rename fence. Gate with `make all`.
 - [x] 1.2.8.4 — Reconcile the developers' guide guard section with the merged
@@ -820,5 +819,5 @@ and hygiene only.
   and the production-module-name scope of 1.2.14/1.2.16, so they survive
   untracked. Flip each `novel-state` reference to the spaced `novel state`
   surface, preserving the negative test's intent (an invocation example must
-  still not be flagged by the guard). Behaviour-preserving; gate with `make all`
-  plus `make markdownlint`/`make nixie`.
+  still not be flagged by the guard). Behaviour-preserving; gate with
+  `make all` plus `make markdownlint`/`make nixie`.

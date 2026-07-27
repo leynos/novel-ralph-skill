@@ -6,8 +6,8 @@ slice completes the design §8 skill-defect remediation: it reduces both prose
 copies of the done predicate — the short form in
 [`SKILL.md`](../../skill/novel-ralph/SKILL.md) and the long-form pseudocode in
 [`done-conditions.md`](../../skill/novel-ralph/references/done-conditions.md) —
-to a pointer at the `novel-done` command and the developers' guide clause table,
-and reconciles the §8 defect record in
+to a pointer at the `novel-done` command and the developers' guide clause
+table, and reconciles the §8 defect record in
 [`novel-ralph-harness-design.md`](../../docs/novel-ralph-harness-design.md) to
 on-disk reality (the phase mislabel and the dead `plan.md` entry were already
 closed by commit `916313c`).
@@ -15,14 +15,15 @@ closed by commit `916313c`).
 The slice is sound and of a high standard. It removes the duplicated
 `novel_predicate` pseudocode that could drift from
 [`done_predicate.py`](../../novel_ralph_skill/state/done_predicate.py), routes
-the agent at the executable command rather than a hand-kept clause list, and the
-cross-references between `SKILL.md`, `done-conditions.md`, and the developers'
-guide all resolve. The en-GB Oxford-spelling convention holds throughout the new
-prose.
+the agent at the executable command rather than a hand-kept clause list, and
+the cross-references between `SKILL.md`, `done-conditions.md`, and the
+developers' guide all resolve. The en-GB Oxford-spelling convention holds
+throughout the new prose.
 
-The findings below are minor. None is a defect in the 6.2.3 diff; they are small
-residual documentation, test-coverage, and code-duplication gaps in and around
-the consolidated predicate that are cheap to close now that the prose is settled.
+The findings below are minor. None is a defect in the 6.2.3 diff; they are
+small residual documentation, test-coverage, and code-duplication gaps in and
+around the consolidated predicate that are cheap to close now that the prose is
+settled.
 
 ## Finding 1 — no guard test stops the prose from re-restating the predicate
 
@@ -45,13 +46,13 @@ future edit could silently re-introduce a `def novel_predicate(...)` pseudocode
 block or a hand-numbered clause list in either file, re-opening the exact
 two-source drift §8 records as closed, and nothing would fail.
 
-Proposed fix: add a test (mirroring `test_state_layout_reference.py`'s structure
-and reusing the `read_repo_text` conftest fixture) that asserts, against
-`SKILL.md` and `done-conditions.md`, (a) no executable code fence in either file
-defines `novel_predicate`/`novel_is_done` or re-implements the clause loop, and
-(b) each file still contains the literal `novel-done` pointer. Keep the scanner
-pure (extract it like `tests/_state_layout_scanner.py`) so the guard reads
-markdown text without importing the package.
+Proposed fix: add a test (mirroring `test_state_layout_reference.py`'s
+structure and reusing the `read_repo_text` conftest fixture) that asserts,
+against `SKILL.md` and `done-conditions.md`, (a) no executable code fence in
+either file defines `novel_predicate`/`novel_is_done` or re-implements the
+clause loop, and (b) each file still contains the literal `novel-done` pointer.
+Keep the scanner pure (extract it like `tests/_state_layout_scanner.py`) so the
+guard reads markdown text without importing the package.
 
 ## Finding 2 — developers' guide clause table lists the six clauses out of canonical §4.2 order
 
@@ -101,10 +102,11 @@ silently diverge from the path `compile_model.compiled_matches_drafts` actually
 reads.
 
 Proposed fix: add a `_compiled_path(working_dir: Path) -> Path` helper beside
-`_chapter_dir_name` in `_disk_paths.py` (or a `MANUSCRIPT_DIRNAME` constant plus
-the helper) and route all four sites through it, so the `manuscript/compiled.md`
-layout, like `chapter-NN`, has a single definition both the writer
-(`novel-compile`) and the readers (`novel-done`, the §5.4 detector) share.
+`_chapter_dir_name` in `_disk_paths.py` (or a `MANUSCRIPT_DIRNAME` constant
+plus the helper) and route all four sites through it, so the
+`manuscript/compiled.md` layout, like `chapter-NN`, has a single definition
+both the writer (`novel-compile`) and the readers (`novel-done`, the §5.4
+detector) share.
 
 ## Finding 4 — design §8 retains future-tense "roadmap task 6.2.3 reduces …" after the task merged
 
@@ -115,16 +117,18 @@ layout, like `chapter-NN`, has a single definition both the writer
   §8 "Skill defects the rebuild corrects", the "Two-source done predicate"
   bullet (around line 786).
 
-The 6.2.3 diff rewrote the phase-mislabel and dead-`plan.md` bullets to the past
-tense ("Already corrected … landed in commit `916313c`") now that those defects
-are closed, but the "Two-source done predicate" bullet — the very defect this
-task closes — still reads in the future tense: "`novel-done` is the single
-source of truth; roadmap task 6.2.3 reduces both prose copies to a pointer …".
-Since 6.2.3 has merged, the section no longer truthfully records "how each
-defect was closed" for this third defect: it describes the fix as still pending.
+The 6.2.3 diff rewrote the phase-mislabel and dead-`plan.md` bullets to the
+past tense ("Already corrected … landed in commit `916313c`") now that those
+defects are closed, but the "Two-source done predicate" bullet — the very
+defect this task closes — still reads in the future tense: "`novel-done` is the
+single source of truth; roadmap task 6.2.3 reduces both prose copies to a
+pointer …". Since 6.2.3 has merged, the section no longer truthfully records
+"how each defect was closed" for this third defect: it describes the fix as
+still pending.
 
 Proposed fix: rewrite the bullet to the past tense in line with its two
 siblings, e.g. "`novel-done` is the single source of truth; roadmap task 6.2.3
 reduced both prose copies to a pointer at the command and the developers' guide
-clause table." This keeps the §8 record internally consistent (all three defects
-described as closed) and matches the consolidation the skill files now carry.
+clause table." This keeps the §8 record internally consistent (all three
+defects described as closed) and matches the consolidation the skill files now
+carry.

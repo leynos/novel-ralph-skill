@@ -101,8 +101,7 @@ workaround.
 - Gate iterations: if `make markdownlint` still fails after 3 fix attempts on a
   single work item, stop and escalate.
 - Code-symbol boundary: if you find yourself about to change a token that is
-  also
-  an importable Python name (a fixture, module, or function that exists in
+  also an importable Python name (a fixture, module, or function that exists in
   `novel_ralph_skill/` or `tests/`), stop and re-confirm it is a
   command-surface reference, not a code identifier, before editing.
 
@@ -416,20 +415,20 @@ surface; the final acceptance gates all pass.
 
 - Surface gate (refined token subtraction, see Decision Log): prints nothing —
   no `novel-state` / `novel-done` / `novel-compile` / hyphenated or bare-generic
-  `desloppify` / `wordcount` command-surface reference survives in either guide.
-  The five preserve identifiers (`installed_novel_state`, `installed_desloppify`,
-  `_build_and_install_novel_state`, `_novel_done.py`, `novel_state.py`) are
-  intact at their original counts.
-- Stale-prose CLASS gate (three patterns): the "five"-adjacency, "legacy"-framing,
-  and additive/stub-literal greps each print nothing. The heading became
-  `### The deterministic commands`; the orientation spine line, the "five names
-  live once" registry prose, the additive "stands up that multiplexer
-  additively" framing, the "legacy five" superset claim, the "the legacy scripts
-  produce" verbatim forbidden example, and the "five-script command surface"
-  line are all reconciled. The stale `COMMAND_NAMES` symbol (retired; a test
-  asserts `not hasattr(names, "COMMAND_NAMES")`) was corrected to
-  `ENVELOPE_COMMAND_NAMES`, and the `test_multiplexer_behaviour.py` description
-  was corrected from "legacy-versus-multiplexer" to the truthful
+  `desloppify` / `wordcount` command-surface reference survives in either
+  guide. The five preserve identifiers (`installed_novel_state`,
+  `installed_desloppify`, `_build_and_install_novel_state`, `_novel_done.py`,
+  `novel_state.py`) are intact at their original counts.
+- Stale-prose CLASS gate (three patterns): the "five"-adjacency,
+  "legacy"-framing, and additive/stub-literal greps each print nothing. The
+  heading became `### The deterministic commands`; the orientation spine line,
+  the "five names live once" registry prose, the additive "stands up that
+  multiplexer additively" framing, the "legacy five" superset claim, the "the
+  legacy scripts produce" verbatim forbidden example, and the "five-script
+  command surface" line are all reconciled. The stale `COMMAND_NAMES` symbol
+  (retired; a test asserts `not hasattr(names, "COMMAND_NAMES")`) was corrected
+  to `ENVELOPE_COMMAND_NAMES`, and the `test_multiplexer_behaviour.py`
+  description was corrected from "legacy-versus-multiplexer" to the truthful
   multiplexer-versus-direct-`build_app` envelope equality.
 - `make markdownlint` and `make nixie` exit 0 on both guides and this plan.
 - `make all` is green at HEAD (1151 passed, 1 skipped). One Hypothesis
@@ -614,8 +613,8 @@ Independently committable. Edit only `docs/users-guide.md`. Two kinds of change:
    command vocabulary from `names.py` `SUBCOMMAND_NAMES` and ADR 007's
    subcommand structure (not from design §4's hyphenated body literals). Design
    §4's opening paragraph may supply the *behaviour* framing, with any command
-   literal it quotes re-spaced. Remove the now-false sentence "All
-   five console-scripts now drive their real checkers." (the scripts no longer
+   literal it quotes re-spaced. Remove the now-false sentence "All five
+   console-scripts now drive their real checkers." (the scripts no longer
    exist; the operations do).
 
 2. **Body command references throughout (lines ~87-492).** Convert every
@@ -721,16 +720,15 @@ kinds of change, in order:
    intact.
 
 2. **Reconcile the "The `novel` multiplexer" subsection (around lines
-   332-370).**
-   Remove the additive-transition framing: the multiplexer is no longer being
-   "stood up additively"; the "legacy five `[project.scripts]` entries" do not
-   "stay registered and working"; "their removal and the prose sweep … roadmap
-   tasks 1.2.13 and 1.2.14" is completed history, not future work. Rewrite to
-   the present single-surface state: `novel` is the sole entry point; the
-   dispatcher in `novel_ralph_skill/commands/novel.py` builds a parent contract
-   app via `make_contract_app("novel")` and mounts each operation's `build_app`
-   (these symbols still exist — verified: `make_contract_app` at
-   `novel_ralph_skill/contract/runner.py` and the five
+   332-370).** Remove the additive-transition framing: the multiplexer is no
+   longer being "stood up additively"; the "legacy five `[project.scripts]`
+   entries" do not "stay registered and working"; "their removal and the prose
+   sweep … roadmap tasks 1.2.13 and 1.2.14" is completed history, not future
+   work. Rewrite to the present single-surface state: `novel` is the sole entry
+   point; the dispatcher in `novel_ralph_skill/commands/novel.py` builds a
+   parent contract app via `make_contract_app("novel")` and mounts each
+   operation's `build_app` (these symbols still exist — verified:
+   `make_contract_app` at `novel_ralph_skill/contract/runner.py` and the five
    `app.command(<leaf>.build_app(), name=…)` mounts at
    `novel_ralph_skill/commands/novel.py` lines 84-89). Remove the sentence that
    says `main` "generalizes the `stub.py` `_drive` shape" (stub.py is gone).
@@ -964,8 +962,8 @@ All commands run from the worktree root
    (including change-kind 4's enumerated literal-free legacy-framing lines),
    preserving the bucket-2 code identifiers.
 5. Work item 5: `make markdownlint && make nixie` (no `make fmt`), the surface
-   grep and the three stale-prose class greps, then `make all`; commit; finalize
-   the plan.
+   grep and the three stale-prose class greps, then `make all`; commit;
+   finalize the plan.
 
 ## Validation and acceptance
 

@@ -497,12 +497,11 @@ Key code, by full path:
   both subclassing `EnvelopeMessagesError`; the ledger errors mirror this
   exactly (`LedgerError`/`LedgerFileError`).
 - `novel_ralph_skill/rulepack/detect.py` — the pure line-by-line detector and
-  its
-  `ScannedChapter`/`LineHit`/`RuleFinding`/`DetectionReport` shapes; the ledger
-  detector reuses `ScannedChapter` and mirrors the per-line `finditer` scan.
+  its `ScannedChapter`/`LineHit`/`RuleFinding`/`DetectionReport` shapes; the
+  ledger detector reuses `ScannedChapter` and mirrors the per-line `finditer`
+  scan.
 - `novel_ralph_skill/commands/_desloppify.py` — the command body;
-  `source_chapters`
-  (chapter sourcing the ledger reuses), `_select_chapters`,
+  `source_chapters` (chapter sourcing the ledger reuses), `_select_chapters`,
   `DesloppifyUsageError` (the exit-2 body fault the ledger reuses), and
   `build_app` (where `--ledger` is added to the `_scan` signature). Currently
   318 lines — watch the cap.
@@ -634,8 +633,8 @@ Validation:
 - A `uv run python -c` import of `load_ledger` from
   `novel_ralph_skill.ledger` succeeds.
 - A `uv run python -c` load of
-  `tests/data/ledgers/example-device-ledger.toml` through `load_ledger`
-  prints the device count (see "Concrete steps" for the exact invocation).
+  `tests/data/ledgers/example-device-ledger.toml` through `load_ledger` prints
+  the device count (see "Concrete steps" for the exact invocation).
 - `make all` green.
 
 Docs to read: design §6.1 (schema template), §6.3 (the device fields);
@@ -694,8 +693,7 @@ regression pin).
 Add `novel_ralph_skill/ledger/detect.py` (pure, mirroring `rulepack/detect.py`):
 
 - Reuse `ScannedChapter` from `rulepack.detect` (import it) as the input type,
-  so
-  chapter sourcing is shared and the chapter-number attribution is identical.
+  so chapter sourcing is shared and the chapter-number attribution is identical.
 - A `DeviceFinding` (frozen/slotted/kw-only) carrying `device_id`, `pattern`,
   `count`, the per-hit `lines: tuple[LineHit, ...]` (reuse `LineHit`), the
   evaluated ration (which constraint, its bound), and `passed: bool` plus the
@@ -744,8 +742,7 @@ lowers the count). Drive `detect_ledger` directly with hand-built
 Validation:
 
 - `uv run pytest tests/test_ledger_detect.py -q` passes (each new constraint
-  test
-  fails before the detector branch exists, passes after).
+  test fails before the detector branch exists, passes after).
 - `make all` green.
 
 Docs to read: design §6.3 (the four constraints' meaning); `rulepack/detect.py`
@@ -1016,9 +1013,8 @@ Quality method (how we check):
   work item is safe. The example and bad-ledger fixtures are overwritten
   wholesale on re-edit; no migration.
 - The `--ledger` mode is detect-only (ADR-001): no `working/` tree,
-  `state.toml`,
-  or draft is mutated by any step; the e2e materializes throwaway trees under
-  `tmp_path`, which pytest discards.
+  `state.toml`, or draft is mutated by any step; the e2e materializes throwaway
+  trees under `tmp_path`, which pytest discards.
 - The wheel e2e builds into a `tmp_path` venv/wheel dir pytest discards;
   re-running rebuilds cleanly. If a build fails mid-run, delete the `tmp_path`
   and re-run.
@@ -1056,9 +1052,9 @@ Quality method (how we check):
   `venv_scripts_dir`. The rule-pack scan path, its envelope, exit codes, and
   snapshots are unchanged.
 - Dependencies: no new third-party dependency. `tomllib`/`re`/
-  `importlib.resources`
-  (stdlib), `pytest`, `syrupy`, `cuprum` 0.1.0, `hypothesis`, `cyclopts` 4.18.0,
-  `pytest-timeout` 2.4.0, `uv` are already locked.
+  `importlib.resources` (stdlib), `pytest`, `syrupy`, `cuprum` 0.1.0,
+  `hypothesis`, `cyclopts` 4.18.0, `pytest-timeout` 2.4.0, `uv` are already
+  locked.
 
 ## Revision note
 
@@ -1084,8 +1080,8 @@ Quality method (how we check):
 ## Addenda (post-merge follow-ups)
 
 Lightweight addendum work items folded back onto this completed task from the
-review and audit of step 7.1. Execute each as a small addendum pass — no plan or
-design-review cycle: make the change, run `make all` (plus
+review and audit of step 7.1. Execute each as a small addendum pass — no plan
+or design-review cycle: make the change, run `make all` (plus
 `make markdownlint`/`make nixie` for Markdown), `coderabbit review --agent`,
 commit, and tick the matching roadmap sub-task on merge. The substantial
 follow-ups surfaced alongside these — the must-appear ration floor (roadmap
@@ -1095,17 +1091,20 @@ warrant their own plans and are filed as full tasks; this is the small
 fault-routing and gate correction only.
 
 - [ ] 7.1.2.1 — Fix the recurring MD012 double-blank in `developers-guide.md`
-  introduced by the 7.1.2 merge (from audit:7.1.2, medium). The 7.1.2 commit left
-  a second consecutive blank line above the "The device ledger and per-novel
-  rationing" heading, reddening the whole-tree `make markdownlint` gate on `main`
-  (the same MD012 defect audit:7.1.1 Finding 7 caught before it); delete the
-  surplus blank line so the documentation gate is green. The structural
-  prevention — folding the doc-lint gates into the author's pre-merge gate — is
-  owned by roadmap 7.24.3 and is not duplicated here. Gate with `make markdownlint`.
-- [ ] 7.1.2.2 — Reject `--pack` combined with `--ledger` as an exit-2 usage error
-  (from review:7.1.2, low). On the ledger path `_dispatch` returns `ledger_scan`
-  and never reads `pack`, so an operator's `--pack` selection is silently dropped,
-  contradicting the developers' guide framing of `--ledger` as a scan "instead of
-  the rule-pack scan"; raise a body-detected `DesloppifyUsageError` mirroring the
-  existing `--ledger` + `--chapter` rejection so the combination exits 2 and names
-  the conflict rather than ignoring the pack. Gate with `make all`.
+  introduced by the 7.1.2 merge (from audit:7.1.2, medium). The 7.1.2 commit
+  left a second consecutive blank line above the "The device ledger and
+  per-novel rationing" heading, reddening the whole-tree `make markdownlint`
+  gate on `main` (the same MD012 defect audit:7.1.1 Finding 7 caught before
+  it); delete the surplus blank line so the documentation gate is green. The
+  structural prevention — folding the doc-lint gates into the author's
+  pre-merge gate — is owned by roadmap 7.24.3 and is not duplicated here. Gate
+  with `make markdownlint`.
+- [ ] 7.1.2.2 — Reject `--pack` combined with `--ledger` as an exit-2 usage
+      error
+  (from review:7.1.2, low). On the ledger path `_dispatch` returns
+  `ledger_scan` and never reads `pack`, so an operator's `--pack` selection is
+  silently dropped, contradicting the developers' guide framing of `--ledger`
+  as a scan "instead of the rule-pack scan"; raise a body-detected
+  `DesloppifyUsageError` mirroring the existing `--ledger` + `--chapter`
+  rejection so the combination exits 2 and names the conflict rather than
+  ignoring the pack. Gate with `make all`.

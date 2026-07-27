@@ -1,9 +1,8 @@
 # Implement the shared JSON-envelope and output-mode module
 
-This ExecPlan (execution plan) is a living document. The sections
-`Constraints`, `Tolerances`, `Risks`, `Progress`, `Surprises & Discoveries`,
-`Decision Log`, and `Outcomes & Retrospective` must be kept up to date as work
-proceeds.
+This ExecPlan (execution plan) is a living document. The sections `Constraints`,
+`Tolerances`, `Risks`, `Progress`, `Surprises & Discoveries`, `Decision Log`,
+and `Outcomes & Retrospective` must be kept up to date as work proceeds.
 
 Status: COMPLETE
 
@@ -30,36 +29,36 @@ Concretely, after this task lands:
   result exits `1` / `4` as the command body decides.
 - A property-based test (Hypothesis) proves `ok is True` if and only if the
   exit code is `0`, that each of the four non-zero codes is reported as
-  `ok: false`, and that the five codes carry the distinct semantics §3.2
-  fixes (a malformed invocation → `2`; an unparseable or missing `state.toml`
-  → `3`; codes `1` and `4` are non-interchangeable).
+  `ok: false`, and that the five codes carry the distinct semantics §3.2 fixes
+  (a malformed invocation → `2`; an unparseable or missing `state.toml` → `3`;
+  codes `1` and `4` are non-interchangeable).
 - Snapshot tests (syrupy) pin the rendered envelope shape — one machine-mode
   snapshot per exit code, plus a human-mode snapshot — with non-deterministic
   fields normalized, so a snapshot failure flags a real contract change.
 
-This module is the load-bearing seam the slices in roadmap phases 2-6 reuse;
-it is built once here (ADR-003 "Migration plan": "built once in roadmap task
-1.3.1 and reused by every slice").
+This module is the load-bearing seam the slices in roadmap phases 2-6 reuse; it
+is built once here (ADR-003 "Migration plan": "built once in roadmap task 1.3.1
+and reused by every slice").
 
 ### What this task does NOT do
 
 - It does not implement any of the five commands' `result` payloads. Those are
   per-command shapes defined in design §4 and built in later slices (ADR-003
-  "Non-goals"). This task delivers the envelope *frame* and the *plumbing*;
-  the command bodies remain the stubs from task 1.2.x.
+  "Non-goals"). This task delivers the envelope *frame* and the *plumbing*; the
+  command bodies remain the stubs from task 1.2.x.
 - It does not rewire `pyproject.toml`'s `[project.scripts]` entry points. The
-  five entry points keep pointing at
-  `novel_ralph_skill.commands.stub` (verified: `pyproject.toml` lines 10-15).
-  Converting a stub to use the new contract module is each command's own later
-  task; doing it here would smear command logic into the scaffolding task and
-  break the focused, atomic boundary.
+  five entry points keep pointing at `novel_ralph_skill.commands.stub`
+  (verified: `pyproject.toml` lines 10-15). Converting a stub to use the new
+  contract module is each command's own later task; doing it here would smear
+  command logic into the scaffolding task and break the focused, atomic
+  boundary.
 - It does not invoke any external process, so it depends on **no** `cuprum`
   API. Design §9 states plainly: "v1 commands shell out to nothing, so the
   suite touches only the filesystem under `tmp_path`." The scripting standards
   reserve `cuprum` for "external processes" (`docs/scripting-standards.md`
   lines 35-39); this module has none, so cuprum is correctly absent from its
-  imports and tests. (Stated explicitly so the implementer does not reach for
-  a catalogue that this task has no use for.)
+  imports and tests. (Stated explicitly so the implementer does not reach for a
+  catalogue that this task has no use for.)
 
 ## Orientation for a newcomer
 
@@ -69,21 +68,21 @@ You have only this repository's working tree and this file. Key facts:
   `requires-python = ">=3.14"` line 6). It already contains
   `novel_ralph_skill/commands/{names.py,stub.py}` and a `pure.py`.
 - The five console-script names live once, as data, in
-  `novel_ralph_skill/commands/names.py`
-  (`COMMAND_ENTRY_POINTS`, `COMMAND_NAMES`); never re-spell them. The new
-  module will import `COMMAND_NAMES` to validate the `command` field rather
-  than hard-coding a literal list.
+  `novel_ralph_skill/commands/names.py` (`COMMAND_ENTRY_POINTS`,
+  `COMMAND_NAMES`); never re-spell them. The new module will import
+  `COMMAND_NAMES` to validate the `command` field rather than hard-coding a
+  literal list.
 - The CLI framework is Cyclopts, pinned at `4.18.0` (`uv.lock`), and is the
   project default (`docs/scripting-standards.md` lines 5-25). The stub module
   already builds `cyclopts.App` instances.
 - `tomlkit` is the only other runtime dependency (`pyproject.toml` line 8); it
   is the state round-trip library (ADR-002), not used by this task except that
-  the exit-`3` "unparseable `state.toml`" path is exercised by the property
-  and CLI tests through a small helper, not by parsing real TOML here.
+  the exit-`3` "unparseable `state.toml`" path is exercised by the property and
+  CLI tests through a small helper, not by parsing real TOML here.
 - Quality gates are Makefile targets (`AGENTS.md` lines 71-98): `make all`
-  runs `build check-fmt lint typecheck test`; markdown changes additionally
-  need `make markdownlint` and `make nixie`. `make lint` enforces 100%
-  docstring coverage via `interrogate` and runs Ruff plus PyPy-Pylint.
+  runs `build check-fmt lint typecheck test`; markdown changes additionally need
+  `make markdownlint` and `make nixie`. `make lint` enforces 100% docstring
+  coverage via `interrogate` and runs Ruff plus PyPy-Pylint.
 - Tests live in the top-level `tests/` tree only (`AGENTS.md` lines 145-147);
   do not put tests inside the package.
 
@@ -98,15 +97,16 @@ dictates the shape of the `run` wrapper. Three facts are load-bearing:
    `exit_on_error=True`, so on such an error it calls `sys.exit(1)` after
    printing a Rich panel (api.html / app_calling.html "Exception Handling and
    Exiting"). Building the app with `exit_on_error=False` makes it *raise* the
-   `CycloptsError` instead of exiting; building it with `print_error=False,
-   help_on_error=False` suppresses the Rich error panel so the wrapper can emit
-   the contract's own diagnostics. `--help` and `--version` still exit `0`.
+   `CycloptsError` instead of exiting; building it with
+   `print_error=False, help_on_error=False` suppresses the Rich error panel so
+   the wrapper can emit the contract's own diagnostics. `--help` and
+   `--version` still exit `0`.
 2. **`result_action` governs what happens to the body's *return value*, and the
    default would swallow the success path.** Per Cyclopts v4.18.0
    `packaging.html` "Result Action", `App` defaults to
    `result_action="print_non_int_sys_exit"`: an **integer** return is passed
-   straight to `sys.exit(int)`, a **`None`** return calls `sys.exit(0)`, a
-   **`bool`** maps `True`→`sys.exit(0)`/`False`→`sys.exit(1)`, and a **string**
+   straight to `sys.exit(int)`, a **`None`** return calls `sys.exit(0)`, a **
+   `bool`** maps `True`→`sys.exit(0)`/`False`→`sys.exit(1)`, and a **string**
    is printed then `sys.exit(0)`. Under this default, `App.__call__` itself
    terminates the process on a normal body return, so any wrapper code placed
    after `app(...)` to build and emit the success/benign/actionable envelope
@@ -128,14 +128,15 @@ default is `1`, and the contract demands the wrapper emit the envelope on the
 `0`/`1`/`4` success path, which the default `result_action` would pre-empt.**
 The wrapper therefore (a) constructs the app with
 `result_action="return_value", exit_on_error=False, print_error=False,
-help_on_error=False`, (b) catches `CycloptsError` and exits `2` with a
-usage-error envelope, (c) catches `StateInputError` and exits `3`, and (d) on a
-normal return emits the envelope and calls `sys.exit` with the body's
-`ExitCode` integer for the `0`/`1`/`4` paths.
+help_on_error=False`,
+(b) catches `CycloptsError` and exits `2` with a usage-error envelope, (c)
+catches `StateInputError` and exits `3`, and (d) on a normal return emits the
+envelope and calls `sys.exit` with the body's `ExitCode` integer for the `0`/
+`1` /`4` paths.
 
 Because this behaviour is the foundation of the whole contract and a future
-`uv` re-resolution could change a Cyclopts default silently, it is **pinned by a
-committed tripwire test** (Work item 1), not merely probed — mirroring the
+`uv` re-resolution could change a Cyclopts default silently, it is **pinned by
+a committed tripwire test** (Work item 1), not merely probed — mirroring the
 existing `tests/test_tomlkit_dependency.py` version-and-behaviour pin.
 
 ## Constraints
@@ -148,9 +149,9 @@ Hard invariants; violation requires escalation, not a workaround.
   contract.
 - Do not weaken any existing test. The task is additive.
 - The five command names come from `novel_ralph_skill.commands.names`; the new
-  module must not introduce a second list of names (AGENTS.md "shotgun
-  surgery" / single-source-of-truth heuristic; developers-guide "Edit a command
-  name there, not in five places").
+  module must not introduce a second list of names (AGENTS.md "shotgun surgery"
+  / single-source-of-truth heuristic; developers-guide "Edit a command name
+  there, not in five places").
 - The envelope's field set and order are fixed by ADR-003 and design §3.1:
   `command`, `schema_version`, `ok`, `working_dir`, `result`, `messages`. No
   field may be added, renamed, dropped, or reordered.
@@ -162,8 +163,7 @@ Hard invariants; violation requires escalation, not a workaround.
   rendering; diagnostics go to stderr in both modes (design §3.1).
 - The envelope `schema_version` is the contract version, independent of the
   `state.toml` and rule-pack versions (design §3.1; ADR-003 "Technical
-  requirements"). It is a single integer constant in this module, currently
-  `1`.
+  requirements"). It is a single integer constant in this module, currently `1`.
 - en-GB Oxford spelling ("-ize"/"-yse"/"-our") in all prose, comments, and
   docstrings (AGENTS.md lines 18-20; en-gb-oxendict skill), except references
   to external API names (e.g. Cyclopts's `print_error`).
@@ -177,13 +177,13 @@ Hard invariants; violation requires escalation, not a workaround.
 - Scope: if implementation requires changing more than 8 files or ~600 net
   lines (production + tests), stop and escalate.
 - Dependencies: this plan adds exactly two dev dependencies — `hypothesis` and
-  `syrupy` — to `[dependency-groups].dev` (neither is a runtime dep), each at an
-  exact locked version pin. `pytest-bdd` is deliberately NOT added: design §9
-  scopes behavioural (pytest-bdd) suites to concrete commands' harness-facing
-  flows and assigns the exit-code contract to "CLI error-path tests", which this
-  module satisfies without a behavioural suite (see Decision Log, round-2 B4).
-  If a *third* new dependency, or any new *runtime* dependency, appears
-  necessary, stop and escalate.
+  `syrupy` — to `[dependency-groups].dev` (neither is a runtime dep), each at
+  an exact locked version pin. `pytest-bdd` is deliberately NOT added: design
+  §9 scopes behavioural (pytest-bdd) suites to concrete commands'
+  harness-facing flows and assigns the exit-code contract to "CLI error-path
+  tests", which this module satisfies without a behavioural suite (see Decision
+  Log, round-2 B4). If a *third* new dependency, or any new *runtime*
+  dependency, appears necessary, stop and escalate.
 - Interface: if the envelope field set, the exit-code values, or the
   `schema_version` semantics in ADR-003 must change to make the module work,
   stop and escalate — that is an ADR amendment, not a silent change (ADR-003
@@ -200,28 +200,28 @@ Hard invariants; violation requires escalation, not a workaround.
 
 - Risk: Cyclopts maps usage errors to exit 1, conflicting with the contract's
   exit 2. Severity: high. Likelihood: high (confirmed, not hypothetical).
-  Mitigation: the `run` wrapper builds the App with `print_error=False,
-  help_on_error=False` and calls it with `exit_on_error=False`, catches
-  `CycloptsError`, emits the usage-error envelope, and exits 2. Pinned by the
-  committed Cyclopts tripwire (Work item 1) and a CLI error-path test (Work
-  item 4).
+  Mitigation: the `run` wrapper builds the App with
+  `print_error=False, help_on_error=False` and calls it with
+  `exit_on_error=False`, catches `CycloptsError`, emits the usage-error
+  envelope, and exits 2. Pinned by the committed Cyclopts tripwire (Work item
+  1) and a CLI error-path test (Work item 4).
 - Risk: Cyclopts's default `result_action="print_non_int_sys_exit"` calls
-  `sys.exit()` on the body's return value inside `App.__call__`, pre-empting the
-  wrapper's envelope emission on the success/benign/actionable path. Severity:
-  high. Likelihood: high (confirmed against packaging.html). Mitigation: the
-  wrapper constructs the app with `result_action="return_value"` so `app(...)`
-  returns the body value to the wrapper, which owns all exit and envelope
-  emission. Pinned by the Work item 1 tripwire (assert `app(...)` returns
-  control) and the Work item 4 success-path tests (assert exit 0/1/4 envelopes
-  are emitted).
+  `sys.exit()` on the body's return value inside `App.__call__`, pre-empting
+  the wrapper's envelope emission on the success/benign/actionable path.
+  Severity: high. Likelihood: high (confirmed against packaging.html).
+  Mitigation: the wrapper constructs the app with
+  `result_action="return_value"` so `app(...)` returns the body value to the
+  wrapper, which owns all exit and envelope emission. Pinned by the Work item 1
+  tripwire (assert `app(...)` returns control) and the Work item 4 success-path
+  tests (assert exit 0/1/4 envelopes are emitted).
 - Risk: a future `uv` re-resolution bumps Cyclopts past 4.18.0 and changes a
   default (the `result_action` protocol, the usage-error exit code, or the
-  panel-suppression kwargs), breaking the contract while `make all` stays green.
-  Severity: high. Likelihood: low. Mitigation: a committed version+behaviour
-  tripwire test (Work item 1) pins `LOCKED_CYCLOPTS_VERSION = "4.18.0"` and the
-  three load-bearing behaviours, so a silent drift fails the suite and a
-  deliberate bump updates the pin visibly (the `tests/test_tomlkit_dependency.py`
-  pattern).
+  panel-suppression kwargs), breaking the contract while `make all` stays
+  green. Severity: high. Likelihood: low. Mitigation: a committed
+  version+behaviour tripwire test (Work item 1) pins
+  `LOCKED_CYCLOPTS_VERSION = "4.18.0"` and the three load-bearing behaviours,
+  so a silent drift fails the suite and a deliberate bump updates the pin
+  visibly (the `tests/test_tomlkit_dependency.py` pattern).
 - Risk: Hypothesis's `function_scoped_fixture` health check fires if a `@given`
   test consumes `tmp_path` (or any function-scoped fixture). Severity: medium.
   Likelihood: medium. Mitigation: the envelope property test generates all
@@ -252,10 +252,11 @@ Hard invariants; violation requires escalation, not a workaround.
   pinning 4.18.0, the usage-error→`CycloptsError`-under-`exit_on_error=False`
   behaviour, `result_action="return_value"` returns control to the caller, and
   the help/version-returns-`None` behaviour (no production code). Done: see
-  `tests/test_cyclopts_contract.py`. Two plan assumptions were corrected against
-  the locked Cyclopts (help/version return `None` under `exit_on_error=False`;
-  unknown subcommand raises `UnknownCommandError` only without a catch-all
-  default) — recorded in Surprises. `make all` green; coderabbit 0 findings.
+  `tests/test_cyclopts_contract.py`. Two plan assumptions were corrected
+  against the locked Cyclopts (help/version return `None` under
+  `exit_on_error=False`; unknown subcommand raises `UnknownCommandError` only
+  without a catch-all default) — recorded in Surprises. `make all` green;
+  coderabbit 0 findings.
 - [x] Work item 2: add hypothesis and syrupy dev dependencies (each version-
   pinned) and a version-pinning guard test. Done: hypothesis 6.155.7, syrupy
   5.3.2 in `[dependency-groups].dev`; `tests/test_contract_test_deps.py` pins
@@ -265,12 +266,12 @@ Hard invariants; violation requires escalation, not a workaround.
   machine-mode + human renderers, with unit and snapshot tests. Done:
   `contract/{exit_codes,envelope,__init__}.py`,
   `tests/test_contract_envelope.py`, two snapshots. `build_envelope` carries a
-  dual `# noqa: PLR0913` + `pylint: disable=too-many-arguments` (the five fields
-  are contract-fixed). `make all` green; coderabbit 0 findings.
+  dual `# noqa: PLR0913` + `pylint: disable=too-many-arguments` (the five
+  fields are contract-fixed). `make all` green; coderabbit 0 findings.
 - [x] Work item 4: implement the `run` wrapper and exit-code mapping (with
   `result_action="return_value"`), with CLI error-path tests covering the usage
-  (2), state (3), and success/benign/actionable (0/1/4) paths plus the
-  `--help`/`--version` and `--human` boundaries. Done: `contract/runner.py`
+  (2), state (3), and success/benign/actionable (0/1/4) paths plus the `--help`/
+  `--version` and `--human` boundaries. Done: `contract/runner.py`
   (`StateInputError`, `CommandOutcome`, `RunContext`, `run`),
   `tests/test_contract_runner.py`. Signature uses `RunContext` (see Decision
   Log). `make all` green; coderabbit 0 findings.
@@ -294,10 +295,11 @@ Hard invariants; violation requires escalation, not a workaround.
   `runner.py`, whose module and function docstrings make plain that the caller
   builds the app and `run` only *requires* it be built with
   `result_action="return_value", exit_on_error=False, print_error=False,
-  help_on_error=False`. A slice author trusting the old guide would pass a
-  default `cyclopts.App`; its default `result_action="print_non_int_sys_exit"`
-  would `sys.exit` on the body's `CommandOutcome` return inside `App.__call__`,
-  pre-empting `run`'s envelope emission — the B1 tripwire defect. Reworded
+  help_on_error=False`.
+  A slice author trusting the old guide would pass a default `cyclopts.App`;
+  its default `result_action="print_non_int_sys_exit"` would `sys.exit` on the
+  body's `CommandOutcome` return inside `App.__call__`, pre-empting `run`'s
+  envelope emission — the B1 tripwire defect. Reworded
   `docs/developers-guide.md` so the first load-bearing consequence says `run`
   *requires the caller* to build the app with that configuration so that `run`,
   not Cyclopts, owns every `sys.exit` and envelope emission.
@@ -327,7 +329,7 @@ Hard invariants; violation requires escalation, not a workaround.
   the round-2 plan did **not** reproduce against the locked `cyclopts==4.18.0`
   exactly as written, and the wrapper/tripwire were adapted to the real
   behaviour (the plan's Work item 4 note permits this: "shape the `body`
-  callable ... to fit Cyclopts's idiom, provided `result_action="return_value"`,
+  callable … to fit Cyclopts's idiom, provided `result_action="return_value"`,
   the exit-code mapping, and the machine-mode-default behaviour hold").
   - `--help`/`--version` do **not** raise `SystemExit` when the app is built
     with `exit_on_error=False`; they print and **return `None`** to the caller.
@@ -350,18 +352,19 @@ Hard invariants; violation requires escalation, not a workaround.
 
 - Decision: serialize the envelope with a frozen `@dataclass` plus
   `json.dumps`, not msgspec/attrs/pydantic. Rationale: msgspec is unlocked (see
-  Surprises); the stdlib needs no new runtime dependency, produces deterministic
-  key order matching the fixed field order, and keeps the module trivially
-  typecheckable. The data shape is a flat record with a nested `result` mapping
-  and a `messages` list — well within `dataclasses`' remit (python-data-shapes
-  skill: reach for a dataclass for a plain domain record with no wire-schema
-  needs). Date/Author: 2026-06-22, planning agent.
+  Surprises); the stdlib needs no new runtime dependency, produces
+  deterministic key order matching the fixed field order, and keeps the module
+  trivially typecheckable. The data shape is a flat record with a nested
+  `result` mapping and a `messages` list — well within `dataclasses`' remit
+  (python-data-shapes skill: reach for a dataclass for a plain domain record
+  with no wire-schema needs). Date/Author: 2026-06-22, planning agent.
 - Decision: the contract lives in a new package `novel_ralph_skill/contract/`
   (an `__init__.py` plus `envelope.py`, `exit_codes.py`, `runner.py`), not a
   single flat module. Rationale: AGENTS.md caps files at 400 lines and asks for
-  coherent module boundaries; the envelope record, the exit-code vocabulary, and
-  the Cyclopts-driving runner are three distinct responsibilities. Splitting now
-  avoids a later refactor commit. Date/Author: 2026-06-22, planning agent.
+  coherent module boundaries; the envelope record, the exit-code vocabulary,
+  and the Cyclopts-driving runner are three distinct responsibilities.
+  Splitting now avoids a later refactor commit. Date/Author: 2026-06-22,
+  planning agent.
 - Decision: the `run` wrapper owns the Cyclopts-to-contract exit-code
   translation rather than each command. Rationale: Cyclopts exits 1 on usage
   errors but the contract demands 2; centralizing the translation is the only
@@ -372,21 +375,21 @@ Hard invariants; violation requires escalation, not a workaround.
   envelope emission. Rationale: the default
   `result_action="print_non_int_sys_exit"` calls `sys.exit()` on the body's
   return value inside `App.__call__` (packaging.html "Result Action": int →
-  `sys.exit(int)`, None → `sys.exit(0)`), so the wrapper's success-path envelope
-  emission after `app(...)` would never run. `"return_value"` is a documented
-  built-in mode (api.html `App.result_action`: "returns the command's value
-  unchanged") and returns control to the wrapper. A custom `result_action`
-  callable (`def handler(result)`) was the alternative but spreads exit logic
-  across two sites; `"return_value"` keeps it in one place. `result_action` is
-  added to the interface allow-list and the Work item 1 tripwire. Date/Author:
-  2026-06-22, planning agent.
+  `sys.exit(int)`, None → `sys.exit(0)`), so the wrapper's success-path
+  envelope emission after `app(...)` would never run. `"return_value"` is a
+  documented built-in mode (api.html `App.result_action`: "returns the
+  command's value unchanged") and returns control to the wrapper. A custom
+  `result_action` callable (`def handler(result)`) was the alternative but
+  spreads exit logic across two sites; `"return_value"` keeps it in one place.
+  `result_action` is added to the interface allow-list and the Work item 1
+  tripwire. Date/Author: 2026-06-22, planning agent.
 - Decision (round-2, B4): do NOT add `pytest-bdd` or a `tests/features` /
   `tests/steps` behavioural suite for this module. Rationale: design §9 scopes
   behavioural (`pytest-bdd`) tests to concrete commands' harness-facing flows
   (a stale `compiled.md` caught by `novel-done`; an out-of-order
   `advance-phase` refused; a knitting gate at threshold) and assigns the
   exit-code contract itself to "CLI error-path tests", explicitly stating the
-  simpler surfaces need "only snapshot coverage ... not a property-based or
+  simpler surfaces need "only snapshot coverage … not a property-based or
   behavioural suite of their own". §9 even pins the 1-versus-4 distinction to
   `novel-done`, not to this scaffolding module. Adding the project's first
   `pytest-bdd` harness here would be asserted, not derived, and would trip this
@@ -413,8 +416,8 @@ Hard invariants; violation requires escalation, not a workaround.
   (`human_flag_seen`, `body`) plus a `working_dir` parameter would have given
   `run` five positional-ish parameters and tripped Ruff/Pylint
   `too-many-arguments` (the project caps at 4); bundling the per-invocation
-  context into one dataclass keeps the call ergonomic, keeps every exit decision
-  in `run`, and preserves the observable contract
+  context into one dataclass keeps the call ergonomic, keeps every exit
+  decision in `run`, and preserves the observable contract
   (`result_action="return_value"`, the 2/3/0/1/4 mapping, machine-default /
   `--human`-switch). `RunContext` and `CommandOutcome` are added to the public
   surface. Date/Author: 2026-06-22, implementation agent.
@@ -423,19 +426,19 @@ Hard invariants; violation requires escalation, not a workaround.
 
 Completed 2026-06-22. All six work items landed as atomic commits, each with
 `make all` green (plus `make markdownlint` and `make nixie` for Work item 6's
-markdown changes) and coderabbit reporting 0 findings on every run. The property
-test asserts the ok/exit-code biconditional (confirmed non-vacuous by a local
-inversion that failed with a shrunk counter-example before being reverted) and
-the five-code semantics; the five per-code machine-mode snapshots plus the
-success human/machine snapshots are stable; the developers' guide documents the
-module and its `result_action="return_value"` / exit-`2` translation rules and
-the `StateInputError`→exit-`3` channel.
+markdown changes) and coderabbit reporting 0 findings on every run. The
+property test asserts the ok/exit-code biconditional (confirmed non-vacuous by
+a local inversion that failed with a shrunk counter-example before being
+reverted) and the five-code semantics; the five per-code machine-mode snapshots
+plus the success human/machine snapshots are stable; the developers' guide
+documents the module and its `result_action="return_value"` / exit-`2`
+translation rules and the `StateInputError`→exit-`3` channel.
 
 Friction and lessons for future slices:
 
 - Two of the round-2 plan's Cyclopts claims did not reproduce against the locked
-  `cyclopts==4.18.0` and were adapted (recorded in Surprises and the Work item 1
-  tripwire): under `exit_on_error=False`, `--help`/`--version` return `None`
+  `cyclopts==4.18.0` and were adapted (recorded in Surprises and the Work item
+  1 tripwire): under `exit_on_error=False`, `--help`/`--version` return `None`
   rather than raising `SystemExit`, and an unknown subcommand raises
   `UnknownCommandError` only when the app has no catch-all `@app.default`. The
   wrapper therefore treats a non-`CommandOutcome` return as the help/version
@@ -446,8 +449,8 @@ Friction and lessons for future slices:
   stay within the project's 4-argument cap; command bodies return a
   `CommandOutcome`. Future command slices adopt these two value types.
 - The project gitignores `.hypothesis/`, so the failing-seed database is not
-  checked in; the property is instead defended by the deliberate-inversion check
-  noted above. No `pytest-bdd` suite was added (design §9 / round-2 B4).
+  checked in; the property is instead defended by the deliberate-inversion
+  check noted above. No `pytest-bdd` suite was added (design §9 / round-2 B4).
 
 ## Documentation to read, and skills to load, before starting
 
@@ -503,8 +506,8 @@ CrossHair and mutmut are NOT required for this task: the contract surface is a
 small, total mapping with a single property already covered by Hypothesis;
 `python-verification` would route symbolic execution or mutation testing only
 if coverage holes or weak assertions remained, which the planned property plus
-snapshots close. (If the implementer finds the property test passes
-vacuously, escalate and reconsider mutmut per the mutmut skill.)
+snapshots close. (If the implementer finds the property test passes vacuously,
+escalate and reconsider mutmut per the mutmut skill.)
 
 ## Plan of work
 
@@ -515,14 +518,14 @@ parallel, to benefit from build caching (user instruction).
 
 ### Work item 1: commit a Cyclopts version+behaviour tripwire test
 
-Purpose (round-2 B2): the entire usage-error→`2` contract and the
-success-path envelope emission rest on three Cyclopts v4.18.0 behaviours. A
-throwaway probe does not protect them: a future `uv` re-resolution that bumps
-Cyclopts or changes a default would pass `make all` silently and break the
-harness at runtime. So this work item commits a *tripwire* test that pins the
-locked version and the load-bearing behaviour, exactly as
-`tests/test_tomlkit_dependency.py` pins `LOCKED_TOMLKIT_VERSION = "0.15.0"` plus
-a round-trip. Read that file first to match its style and docstring shape.
+Purpose (round-2 B2): the entire usage-error→`2` contract and the success-path
+envelope emission rest on three Cyclopts v4.18.0 behaviours. A throwaway probe
+does not protect them: a future `uv` re-resolution that bumps Cyclopts or
+changes a default would pass `make all` silently and break the harness at
+runtime. So this work item commits a *tripwire* test that pins the locked
+version and the load-bearing behaviour, exactly as
+`tests/test_tomlkit_dependency.py` pins `LOCKED_TOMLKIT_VERSION = "0.15.0"`
+plus a round-trip. Read that file first to match its style and docstring shape.
 
 Steps:
 
@@ -532,8 +535,8 @@ Steps:
 3. Write `tests/test_cyclopts_contract.py` (an in-tree pytest module; tests live
    only under top-level `tests/`, AGENTS.md). It builds a small throwaway
    `cyclopts.App(result_action="return_value", exit_on_error=False,
-   print_error=False, help_on_error=False)` with one trivial command and
-   asserts:
+   print_error=False, help_on_error=False)`
+   with one trivial command and asserts:
    - `cyclopts.__version__ == LOCKED_CYCLOPTS_VERSION` (the re-resolution
      tripwire; bump in lockstep with a deliberate upgrade).
    - Calling the app with an unknown subcommand, an unknown option, and a
@@ -581,14 +584,14 @@ Tests to add:
   and `syrupy`, (a) imports the package, (b) asserts its `__version__` equals a
   module-level `LOCKED_*_VERSION` constant set to the version `uv.lock`
   resolves, and (c) asserts the dependency is declared in
-  `[dependency-groups].dev` (read `pyproject.toml` with `tomllib`). This mirrors
-  the **load-bearing** element of `tests/test_tomlkit_dependency.py` — the exact
-  version pin (`LOCKED_TOMLKIT_VERSION = "0.15.0"`) acting as a re-resolution
-  tripwire, not merely a presence check (round-2 B3). Read that file first to
-  match style. Obtain the locked versions by reading `uv.lock` after `make
-  build` (or `<pkg>.__version__` from the synced venv) and hard-code them as the
-  pins; a silent drift then fails the guard, a deliberate bump updates it
-  visibly. If `syrupy` does not expose `__version__`, pin via
+  `[dependency-groups].dev` (read `pyproject.toml` with `tomllib`). This
+  mirrors the **load-bearing** element of `tests/test_tomlkit_dependency.py` —
+  the exact version pin (`LOCKED_TOMLKIT_VERSION = "0.15.0"`) acting as a
+  re-resolution tripwire, not merely a presence check (round-2 B3). Read that
+  file first to match style. Obtain the locked versions by reading `uv.lock`
+  after `make build` (or `<pkg>.__version__` from the synced venv) and
+  hard-code them as the pins; a silent drift then fails the guard, a deliberate
+  bump updates it visibly. If `syrupy` does not expose `__version__`, pin via
   `importlib.metadata.version("syrupy")` instead and note it in the test
   docstring.
 
@@ -614,18 +617,19 @@ New package `novel_ralph_skill/contract/`:
 - `envelope.py`: a frozen
   `@dataclass(frozen=True, kw_only=True)` named `Envelope` with fields, in the
   fixed order, `command: str`, `schema_version: int`, `ok: bool`,
-  `working_dir: str`, `result: Mapping[str, object]`, `messages: Sequence[str]`.
-  Add `ENVELOPE_SCHEMA_VERSION: int = 1` module constant. Provide a constructor
-  helper `build_envelope(*, command, working_dir, code, result, messages)` that
-  derives `ok` from `is_ok(code)` (so callers cannot set `ok` inconsistently)
-  and validates `command in COMMAND_NAMES` (import from
-  `novel_ralph_skill.commands.names`), raising a `ValueError` otherwise.
-  Provide `render_machine(env) -> str` returning `json.dumps(...)` with the
-  fields serialized in contract order (build an explicit ordered dict; do not
-  rely on dataclass field order leaking through), and
-  `render_human(env) -> str` returning a readable multi-line rendering that
-  shows `ok`, the working dir, and each message on its own line, omitting raw
-  `result` JSON (messages are the human channel per §3.1).
+  `working_dir: str`, `result: Mapping[str, object]`,
+  `messages: Sequence[str]`. Add `ENVELOPE_SCHEMA_VERSION: int = 1` module
+  constant. Provide a constructor helper
+  `build_envelope(*, command, working_dir, code, result, messages)` that derives
+  `ok` from `is_ok(code)` (so callers cannot set `ok` inconsistently) and
+  validates `command in COMMAND_NAMES` (import from
+  `novel_ralph_skill.commands.names`), raising a `ValueError` otherwise. Provide
+  `render_machine(env) -> str` returning `json.dumps(...)` with the fields
+  serialized in contract order (build an explicit ordered dict; do not rely on
+  dataclass field order leaking through), and `render_human(env) -> str`
+  returning a readable multi-line rendering that shows `ok`, the working dir,
+  and each message on its own line, omitting raw `result` JSON (messages are
+  the human channel per §3.1).
 
 Tests to add (`tests/test_contract_envelope.py`):
 
@@ -647,22 +651,22 @@ Tests to add (`tests/test_contract_envelope.py`):
 Validation: `make all`. Commit.
 
 Docs/skills: `python-data-shapes` (dataclass choice), `python-types-and-apis`
-(IntEnum and signatures), `python-testing` + syrupy usage. `leta show
-COMMAND_NAMES` to confirm the import path.
+(IntEnum and signatures), `python-testing` + syrupy usage.
+`leta show COMMAND_NAMES` to confirm the import path.
 
 ### Work item 4: the `run` wrapper and exit-code mapping
 
 Purpose: centralize the Cyclopts-to-contract translation so usage errors exit
-`2`, state/input errors exit `3`, and the command body's own result decides
-`0`/`1`/`4` — the single shared plumbing the five commands reuse.
+`2`, state/input errors exit `3`, and the command body's own result decides `0`/
+`1`/`4` — the single shared plumbing the five commands reuse.
 
 New `novel_ralph_skill/contract/runner.py`:
 
 - A sentinel exception `StateInputError(Exception)` a command body raises to
   signal a state/input fault (e.g. missing or unparseable `state.toml`, absent
-  working dir). Document that this is the contract's exit-`3` channel
-  (design §3.2; §10 failure modes). Give it an optional `messages` payload so
-  the envelope can carry human prose.
+  working dir). Document that this is the contract's exit-`3` channel (design
+  §3.2; §10 failure modes). Give it an optional `messages` payload so the
+  envelope can carry human prose.
 - `run(app: cyclopts.App, *, command: str, human_flag_seen, body) -> NoReturn`
   is the wrapper. Define its exact responsibilities:
   - **`result_action` is the crux (round-2 B1).** The app MUST be built with
@@ -731,13 +735,13 @@ contract to the CLI error-path tests above (round-2 B4; Decision Log).
 Validation: `make all`. Commit.
 
 Docs/skills: `python-errors-and-logging` (narrow `except CycloptsError`,
-`raise ... from`), `python-testing` (capsys, `pytest.raises`),
-`hypothesis`/`python-verification` not yet (property test is Work item 5).
+`raise ... from`), `python-testing` (capsys, `pytest.raises`), `hypothesis`/
+`python-verification` not yet (property test is Work item 5).
 
 ### Work item 5: the ok/exit-code property test and per-code envelope snapshots
 
-Purpose: deliver the roadmap success criterion's property test and the
-per-code snapshot matrix.
+Purpose: deliver the roadmap success criterion's property test and the per-code
+snapshot matrix.
 
 Tests to add (`tests/test_contract_properties.py`):
 
@@ -749,14 +753,14 @@ Tests to add (`tests/test_contract_properties.py`):
   Compatibility docs: that raises `HealthCheck.function_scoped_fixture`); build
   all inputs from strategies.
 - Hypothesis property asserting the four non-zero codes all yield `ok: false`
-  and are pairwise distinct in meaning: assert `BENIGN_NEGATIVE != USAGE_ERROR
-  != STATE_ERROR != ACTIONABLE_FINDING` as integers and that `1` and `4` are
-  not interchangeable (a test that would fail if someone collapsed them).
+  and are pairwise distinct in meaning: assert
+  `BENIGN_NEGATIVE != USAGE_ERROR != STATE_ERROR != ACTIONABLE_FINDING` as
+  integers and that `1` and `4` are not interchangeable (a test that would fail
+  if someone collapsed them).
 - Semantic mapping assertions (plain `pytest`, not Hypothesis, for the
-  example-specific cases the roadmap names): a malformed invocation maps to
-  code `2`; an unparseable/missing `state.toml` (modelled via
-  `StateInputError`) maps to code `3`. These reuse the `run` wrapper from Work
-  item 4.
+  example-specific cases the roadmap names): a malformed invocation maps to code
+  `2`; an unparseable/missing `state.toml` (modelled via `StateInputError`)
+  maps to code `3`. These reuse the `run` wrapper from Work item 4.
 
 Snapshots to add (`tests/test_contract_envelope_snapshots.py`, syrupy):
 
@@ -764,10 +768,9 @@ Snapshots to add (`tests/test_contract_envelope_snapshots.py`, syrupy):
   over the codes, with `working_dir` normalized to the fixed token `"working"`.
   (The envelope has no timestamp and no other path field, so there is nothing
   else to redact — round-1 A1.) "A snapshot pins the envelope shape for each
-  code" (roadmap 1.3.1
-  success criterion). Pair each with a semantic assertion that the parsed JSON
-  `ok` matches the code, so the snapshot is not the only guard (AGENTS.md
-  "avoid snapshot-only coverage").
+  code" (roadmap 1.3.1 success criterion). Pair each with a semantic assertion
+  that the parsed JSON `ok` matches the code, so the snapshot is not the only
+  guard (AGENTS.md "avoid snapshot-only coverage").
 
 Validation: `make all`. Confirm the property test does not pass vacuously by
 temporarily inverting the biconditional locally and seeing it fail (then
@@ -838,8 +841,8 @@ Acceptance is behavioural:
   because the app uses `result_action="return_value"`, returning control to the
   wrapper); `--help`/`--version` exit `0` with no envelope; `--human` switches
   the stdout rendering while preserving the exit code. The CLI error-path tests
-  (Work item 4) assert the harness meaning of the 1-vs-4 split (`1` != `4`,
-  both `ok: false`, not interchangeable) — design §9 assigns this distinction to
+  (Work item 4) assert the harness meaning of the 1-vs-4 split (`1` != `4`, both
+  `ok: false`, not interchangeable) — design §9 assigns this distinction to
   CLI error-path tests, not a behavioural suite.
 - Five per-code machine-mode snapshots and a human-mode snapshot exist and are
   stable across reruns; each is paired with a semantic assertion.
@@ -854,8 +857,8 @@ Quality criteria ("done"):
 - Audit: `make audit` clean.
 - Markdown: `make markdownlint` and `make nixie` green for the doc commits.
 
-Quality method: `make all` (plus the two markdown targets for doc commits),
-run sequentially.
+Quality method: `make all` (plus the two markdown targets for doc commits), run
+sequentially.
 
 ## Idempotence and recovery
 
@@ -941,8 +944,8 @@ What changed and why, in response to the round-1 Logisphere review
   the body value to the caller instead of `sys.exit`-ing inside `App.__call__`.
   This is added to the Orientation pinning, the Risks, the Decision Log, Work
   item 4's responsibilities, the acceptance criteria, the interface allow-list,
-  and the Work item 1 verification probes. The `0`/`1`/`4` success-path envelope
-  emission now has a defined mechanism.
+  and the Work item 1 verification probes. The `0`/`1`/`4` success-path
+  envelope emission now has a defined mechanism.
 - **B2 (load-bearing Cyclopts behaviour unpinned).** Work item 1 no longer
   produces a throwaway probe; it commits `tests/test_cyclopts_contract.py`, a
   version+behaviour tripwire pinning `LOCKED_CYCLOPTS_VERSION = "4.18.0"`, the
@@ -956,10 +959,10 @@ What changed and why, in response to the round-1 Logisphere review
 - **B4 (pytest-bdd added without a §9 mandate).** `pytest-bdd` and the
   `tests/features` / `tests/steps` behavioural suite are dropped. Design §9
   assigns the exit-code contract to CLI error-path tests and scopes behavioural
-  suites to concrete commands; the 1-vs-4 harness meaning is now asserted by the
-  Work item 4 CLI error-path tests plus the Work item 5 Hypothesis property. The
-  dependency count drops from three to two and the Tolerances and interface list
-  are updated accordingly.
+  suites to concrete commands; the 1-vs-4 harness meaning is now asserted by
+  the Work item 4 CLI error-path tests plus the Work item 5 Hypothesis
+  property. The dependency count drops from three to two and the Tolerances and
+  interface list are updated accordingly.
 - Non-blocking A1 (snapshot redaction named non-existent fields) and A2
   (`--help`/`--version` exemption unpinned) are also resolved: redaction is
   limited to normalizing `working_dir`, and a `--help`/`--version`→0-with-no-
@@ -984,8 +987,8 @@ on merge.
   audit:1.2.8, low). The four-flag Cyclopts `_build_app` is duplicated across
   `test_contract_runner` and `test_contract_properties`, and `_parse_scripts`
   duplicates an inline `toml_table` access; add a `wrapper_app` fixture plus a
-  `project_scripts` walker in `conftest` so both live once. Behaviour-preserving;
-  gate with `make all`.
+  `project_scripts` walker in `conftest` so both live once.
+  Behaviour-preserving; gate with `make all`.
 - [x] 1.3.1.2 — Audit and document the `contract`→`commands.names` import edge
   (from review:1.3.6, low). `contract/envelope.py` and `tests/conftest.py` both
   import `COMMAND_NAMES` from `novel_ralph_skill.commands.names`, which crosses

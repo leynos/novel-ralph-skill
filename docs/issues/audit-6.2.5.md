@@ -17,8 +17,8 @@ the bracket primitive" requirement *is* genuinely satisfied: the new BDD test
 drives `run(build_app(), ...)`, where the existing integration test calls
 `_reconcile.reconcile()` directly. So the new test adds real command-boundary
 coverage. The findings below are duplication the new module both inherited and
-extended, a private-seam coupling that has now spread to a third site, and a few
-smaller consistency and documentation gaps. None block the merge.
+extended, a private-seam coupling that has now spread to a third site, and a
+few smaller consistency and documentation gaps. None block the merge.
 
 Sources relied on: `docs/developers-guide.md` ("Shared test scaffolding", "The
 `working/` fixture corpus"), `docs/novel-ralph-harness-design.md` (§3.4 atomic
@@ -31,25 +31,27 @@ with `leta`/`grep`; history traced with `git show` over commit `5e46076`.
 
 - **Category:** duplication
 - **Severity:** high
-- **Location:** `tests/steps/torn_turn_recovery_steps.py:107` (`_run`) and `:119`
-  (`_run_capturing`); `tests/steps/reconcile_steps.py:83` (`_run`);
+- **Location:** `tests/steps/torn_turn_recovery_steps.py:107` (`_run`) and
+  `:119` (`_run_capturing`); `tests/steps/reconcile_steps.py:83` (`_run`);
   `tests/test_reconcile_integration.py:52` (`_drive`).
 
-Four near-identical helpers wrap the same body: `monkeypatch.chdir(
-working.parent)`, then `run(build_app(), [command], RunContext(command=
-"novel-state", working_dir="working", human=False))` inside `pytest.raises(
-SystemExit)`, returning the captured exit code (and, in the capturing variants,
-the parsed JSON envelope). `torn_turn_recovery_steps._run` and
-`reconcile_steps._run` are byte-for-byte identical bar the inlined vs constant
-`"novel-state"` literal; `torn_turn_recovery_steps._run_capturing` and
+Four near-identical helpers wrap the same body:
+`monkeypatch.chdir( working.parent)`, then
+`run(build_app(), [command], RunContext(command=
+"novel-state", working_dir="working", human=False))`
+inside `pytest.raises( SystemExit)`, returning the captured exit code (and, in
+the capturing variants, the parsed JSON envelope).
+`torn_turn_recovery_steps._run` and `reconcile_steps._run` are byte-for-byte
+identical bar the inlined vs constant `"novel-state"` literal;
+`torn_turn_recovery_steps._run_capturing` and
 `test_reconcile_integration._drive` are identical bar the helper name. Task
 6.2.5 added two fresh copies of this body.
 
 The `docs/developers-guide.md` "Shared test scaffolding" rule is explicit: "New
-shared scaffolding belongs in `tests/conftest.py` as another fixture rather than
-a fresh copy in each module," and reaching into another test module's private
-symbols is "forbidden here". A command-runner wrapper used by the reconcile
-integration test and two BDD step modules is exactly such scaffolding.
+shared scaffolding belongs in `tests/conftest.py` as another fixture rather
+than a fresh copy in each module," and reaching into another test module's
+private symbols is "forbidden here". A command-runner wrapper used by the
+reconcile integration test and two BDD step modules is exactly such scaffolding.
 
 - **Proposed fix:** Promote a single command-driver to a registered plugin (e.g.
   a `tests/command_driver.py` module added to `pytest_plugins`, mirroring
@@ -57,8 +59,8 @@ integration test and two BDD step modules is exactly such scaffolding.
   `drive(working, command) -> tuple[int, dict[str, object]]` — that performs the
   `chdir`, the `run`, and the `SystemExit`/envelope capture. The non-capturing
   callers take `code, _ = drive(...)`. Replace the `_run`, `_run_capturing`, and
-  `_drive` bodies with delegations. This collapses four bodies to one and brings
-  the step modules onto the documented fixture-by-name path.
+  `_drive` bodies with delegations. This collapses four bodies to one and
+  brings the step modules onto the documented fixture-by-name path.
 
 ## Finding 2: The crash-injection seam is hand-rolled at a third site
 
@@ -77,9 +79,9 @@ patch — is reproduced verbatim from `test_reconcile_integration.py`. Both reac
 into the production module's *private* `_append_recovery_entry` symbol. The new
 module's docstring (lines 8-14) cites this seam as the one
 `test_reconcile_integration` already validates, so the duplication is
-acknowledged but not abstracted. Patching a leading-underscore production helper
-in two independent tests means a rename of `_append_recovery_entry` silently
-breaks both, and any future torn-turn test must re-discover the seam.
+acknowledged but not abstracted. Patching a leading-underscore production
+helper in two independent tests means a rename of `_append_recovery_entry`
+silently breaks both, and any future torn-turn test must re-discover the seam.
 
 - **Proposed fix:** Extract a context-manager fixture — e.g.
   `crash_after_recovery_receipt(monkeypatch)` — into the same shared plugin as
@@ -94,13 +96,15 @@ breaks both, and any future torn-turn test must re-discover the seam.
 - **Category:** duplication
 - **Severity:** medium
 - **Location:** `tests/steps/torn_turn_recovery_steps.py:88` (`_draft_bytes`),
-  `:102` (`_present_files`); `tests/steps/reconcile_steps.py:54` (`_draft_bytes`).
+  `:102` (`_present_files`); `tests/steps/reconcile_steps.py:54`
+  (`_draft_bytes`).
 
 `_draft_bytes` (rglob every `draft.md`, key path→bytes) is byte-for-byte
 identical between the two step modules. The "every regular file under
 `working`" set is computed by `torn_turn_recovery_steps._present_files` and by
-three inline `{str(p.relative_to(...)) for p in working.rglob("*") if
-p.is_file()}` comprehensions in `reconcile_steps.py` (plus a fourth shape in
+three inline
+`{str(p.relative_to(...)) for p in working.rglob("*") if p.is_file()}`
+comprehensions in `reconcile_steps.py` (plus a fourth shape in
 `test_reconcile.py:70`). These back the same draft-integrity and
 "no-file-removed" invariants (design §5.4) across the suites. The new module's
 docstring (lines 29-31, Decision D-DUP) justifies keeping the step helpers
@@ -140,10 +144,10 @@ bound here and the `range(3)` in the integration test must move in lockstep.
 
 - **Proposed fix:** Once Findings 1-3 land a shared driver, crash fixture, and
   corpus helpers, the residual difference between the two tests is just the
-  crash entry path (command vs body). Add a cross-reference comment in each test
-  naming its twin and the one axis it varies, and consider parametrizing the
-  shared recovery assertions over the two entry paths so the convergence bound
-  and target live in one place. No behavioural change.
+  crash entry path (command vs body). Add a cross-reference comment in each
+  test naming its twin and the one axis it varies, and consider parametrizing
+  the shared recovery assertions over the two entry paths so the convergence
+  bound and target live in one place. No behavioural change.
 
 ## Finding 5: The recovery scenario under-asserts the audit receipt
 
@@ -154,9 +158,9 @@ bound here and the `range(3)` in the integration test must move in lockstep.
   `tests/steps/reconcile_steps.py:171` (`reconcile_logs_and_keeps_files`).
 
 The sibling `reconcile_steps` scenario pins the `log.md` receipt with a precise
-regex (`reconcile: recount: ... current 44800 across 3 chapters`), explicitly so
-the assertion "survives a behaviour-preserving refactor of the prose but fails
-if the operation or the repaired fields drift". The new recovery scenario
+regex (`reconcile: recount: ... current 44800 across 3 chapters`), explicitly
+so the assertion "survives a behaviour-preserving refactor of the prose but
+fails if the operation or the repaired fields drift". The new recovery scenario
 asserts the cleared `[pending_turn]` and the recounted `[word_counts]`, but
 never inspects `log.md` for the `complete-pending-turn` receipt that the design
 (§5.4) treats as the audited reconciliation record. Recovery could clear the
@@ -168,18 +172,18 @@ lands.
 - **Proposed fix:** Add a `Then` step asserting `log.md` carries a
   `complete-pending-turn` reconcile receipt for the recovered turn (a substring
   or, preferably, a structured-line regex matching the `reconcile_steps`
-  precedent). This closes the gap between "the tree settled" and "the settle was
-  audited".
+  precedent). This closes the gap between "the tree settled" and "the settle
+  was audited".
 
 ## Finding 6: `_RECOUNT_TARGET` restates a magic mapping the suite repeats
 
 - **Category:** inconsistency
 - **Severity:** low
-- **Location:** `tests/steps/torn_turn_recovery_steps.py:68` (`_RECOUNT_TARGET =
-  {"01": 0, "02": 24000, "03": 20800}`); `tests/steps/reconcile_steps.py:177`
-  (same literal inline); `tests/test_reconcile_integration.py` and
-  `tests/test_reconcile.py` (the `44800`-across-3-chapters total derived from
-  the same drafts).
+- **Location:** `tests/steps/torn_turn_recovery_steps.py:68`
+  (`_RECOUNT_TARGET = {"01": 0, "02": 24000, "03": 20800}`);
+  `tests/steps/reconcile_steps.py:177` (same literal inline);
+  `tests/test_reconcile_integration.py` and `tests/test_reconcile.py` (the
+  `44800`-across-3-chapters total derived from the same drafts).
 
 The `done-claim-stale-word-counts` recount convergence target
 (`{"01": 0, "02": 24000, "03": 20800}`, summing to 44800 across 3 chapters) is
@@ -191,9 +195,9 @@ opaquely. The corpus already owns these drafts, so it can own their recount.
 - **Proposed fix:** Expose the expected recount for a named incoherent variant
   from the `working_corpus` package (e.g. alongside `INCOHERENT_VARIANTS`, the
   `_expected` second element the callers currently discard as `_expected`), and
-  have the reconcile-family tests assert against that rather than re-literalising
-  the mapping. This makes the corpus the single source of truth for both the
-  tree and its repaired counts.
+  have the reconcile-family tests assert against that rather than
+  re-literalising the mapping. This makes the corpus the single source of truth
+  for both the tree and its repaired counts.
 
 ## Finding 7: The feature file's design citation is narrower than the scenario proves
 
@@ -203,13 +207,13 @@ opaquely. The corpus already owns these drafts, so it can own their recount.
   §3.4, §5.4"); the step module docstring additionally invokes ExecPlan
   Decisions D-MECH, D-INPROC, D-CONVERGE, D-DUP.
 
-The Gherkin narrative is the operator-facing artefact, yet it cites only the two
-design sections, while the substance of *why* the scenario is shaped as it is —
-the bounded two-pass convergence (D-CONVERGE), the command-boundary requirement
-(D-MECH/D-INPROC) — lives only in the step docstring and the (now-merged)
-ExecPlan. A reader of the feature alone cannot tell why recovery needs a *loop*
-rather than a single `reconcile`. This is a minor documentation-locality gap,
-not an error.
+The Gherkin narrative is the operator-facing artefact, yet it cites only the
+two design sections, while the substance of *why* the scenario is shaped as it
+is — the bounded two-pass convergence (D-CONVERGE), the command-boundary
+requirement (D-MECH/D-INPROC) — lives only in the step docstring and the
+(now-merged) ExecPlan. A reader of the feature alone cannot tell why recovery
+needs a *loop* rather than a single `reconcile`. This is a minor
+documentation-locality gap, not an error.
 
 - **Proposed fix:** Add one clause to the feature's free-text narrative noting
   that a crashed recount converges over a bounded re-entry loop (clear the

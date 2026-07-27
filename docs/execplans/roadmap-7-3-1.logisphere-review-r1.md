@@ -20,9 +20,8 @@ Confirmed `leta mv`/`leta rename` capabilities via `leta mv --help` /
 ## What holds (credit where due)
 
 - The "seam already lives in the dependency-free leaf `_state_load.py`,
-  re-exported
-  by `novel_state`" observation is correct (`novel_state.py:61-73`, `__all__`
-  89-102). `stub.py` genuinely no longer exists. The task is a
+  re-exported by `novel_state`" observation is correct (`novel_state.py:61-73`,
+  `__all__` 89-102). `stub.py` genuinely no longer exists. The task is a
   rename-and-repoint.
 - The seven-consumer inventory and their imported-name sets are accurate.
 - The `_state_mutators` second-hop is correct: `_recount.py:22` and
@@ -52,9 +51,9 @@ line-number citations. The plan must enumerate and sweep all of:
 2. `novel_ralph_skill/commands/novel.py:153` — line-number citation
    `_state_load.py:32-48`. Stale filename after rename.
 3. `novel_ralph_skill/commands/_state_load.py:56` — the module's *own*
-   self-citation
-   `_state_load.py:32-48`. WI1 says "update the module docstring … rather than
-   '…400-line cap'" but does not call out this line-number self-reference.
+   self-citation `_state_load.py:32-48`. WI1 says "update the module docstring
+   … rather than '…400-line cap'" but does not call out this line-number
+   self-reference.
 4. `novel_ralph_skill/commands/_wordcount.py:117` — bare `_load_or_state_error`
    in free prose (not a `:func:` role). `leta rename` will not touch docstring
    free-text; WI5's six-item list does not include it.

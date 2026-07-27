@@ -1,9 +1,8 @@
 # Derive the envelope field order from the `Envelope` dataclass everywhere
 
-This ExecPlan (execution plan) is a living document. The sections
-`Constraints`, `Tolerances`, `Risks`, `Progress`, `Surprises & Discoveries`,
-`Decision Log`, and `Outcomes & Retrospective` must be kept up to date as work
-proceeds.
+This ExecPlan (execution plan) is a living document. The sections `Constraints`,
+`Tolerances`, `Risks`, `Progress`, `Surprises & Discoveries`, `Decision Log`,
+and `Outcomes & Retrospective` must be kept up to date as work proceeds.
 
 Status: COMPLETE (all four work items landed and gated)
 
@@ -11,21 +10,21 @@ Status: COMPLETE (all four work items landed and gated)
 
 Roadmap task 7.1.5 removes the last hand-spelled copies of the envelope's
 six-name field order so that the order has a single canonical home: the
-`Envelope` dataclass declaration. After this change, adding, removing, renaming,
-or reordering an envelope field is a one-line edit to the dataclass that every
-renderer and every test oracle inherits automatically, instead of a four-way
-hand-edit that can silently drift.
+`Envelope` dataclass declaration. After this change, adding, removing,
+renaming, or reordering an envelope field is a one-line edit to the dataclass
+that every renderer and every test oracle inherits automatically, instead of a
+four-way hand-edit that can silently drift.
 
 The envelope is the shared JSON object every deterministic command emits on
-stdout (design §3.1; ADR-003). Its field order is fixed by contract:
-`command`, `schema_version`, `ok`, `working_dir`, `result`, `messages`. Roadmap
-task 6.3.7 already made `dataclasses.fields(Envelope)` the canonical source for
-the agent-facing `SKILL.md` copy of that order (its drift-guard reads the
+stdout (design §3.1; ADR-003). Its field order is fixed by contract: `command`,
+`schema_version`, `ok`, `working_dir`, `result`, `messages`. Roadmap task 6.3.7
+already made `dataclasses.fields(Envelope)` the canonical source for the
+agent-facing `SKILL.md` copy of that order (its drift-guard reads the
 dataclass), but three sites still spell the same order by hand:
 
 - `render_machine` in `novel_ralph_skill/contract/envelope.py` (the renderer of
-  record) builds an `ordered` dict by listing the six keys in sequence
-  (line 143);
+  record) builds an `ordered` dict by listing the six keys in sequence (line
+  143);
 - `_FIXED_FIELD_ORDER` in `tests/test_contract_envelope.py` (line 33) is a
   literal six-tuple that asserts `render_machine`'s output order;
 - `ENVELOPE_KEY_ORDER` in `tests/cross_command_contract/__init__.py` (line 81)
@@ -42,8 +41,8 @@ After this change a reader can observe the single canonical home directly:
 - `make test` stays green (no behaviour changes).
 - Editing the order of fields in the `Envelope` dataclass (for example swapping
   `result` and `messages`) and running `make test` reddens exactly the one
-  literal tripwire test plus the order assertions that read the renderer — never
-  a hand-edit of a second literal copy that silently re-tracks the swap.
+  literal tripwire test plus the order assertions that read the renderer —
+  never a hand-edit of a second literal copy that silently re-tracks the swap.
 - `grep -n` for the six-name order across the renderer and the two test oracles
   finds the literal sequence in exactly one place (the tripwire test).
 
@@ -59,12 +58,12 @@ escalation, not a workaround.
   `tests/**/__snapshots__/` may change. If any `.ambr` snapshot would change,
   stop and escalate: that is a real contract regression, not a refactor.
 - `render_machine` must keep coercing `result` to a plain `dict` and `messages`
-  to a plain `list` before `json.dumps`, exactly as today (envelope.py
-  lines 148-149). The dataclass stores `result`/`messages` as frozen
-  read-only containers (`__post_init__`, lines 62-65, via
-  `novel_ralph_skill/_freeze.py`); `json.dumps` of a `MappingProxyType` or a
-  tuple is not guaranteed to round-trip to the same JSON, so the coercion is
-  load-bearing and must survive the refactor.
+  to a plain `list` before `json.dumps`, exactly as today (envelope.py lines
+  148-149). The dataclass stores `result`/`messages` as frozen read-only
+  containers (`__post_init__`, lines 62-65, via `novel_ralph_skill/_freeze.py`);
+  `json.dumps` of a `MappingProxyType` or a tuple is not guaranteed to
+  round-trip to the same JSON, so the coercion is load-bearing and must survive
+  the refactor.
 - `ENVELOPE_KEY_ORDER` must remain a `tuple[str, ...]`: it is compared with
   `==` against `tuple(envelope)` in
   `tests/cross_command_contract/_identity_assertions.py` (line 96), and the
@@ -89,8 +88,8 @@ escalation, not a workaround.
   lines of code, stop and escalate. The expected footprint is one source file
   and two test files (plus this plan).
 - Interface: the public signatures of `render_machine`, `render_human`,
-  `build_envelope`, and `Envelope` must not change. If any must change, stop and
-  escalate.
+  `build_envelope`, and `Envelope` must not change. If any must change, stop
+  and escalate.
 - Dependencies: no new external dependency. Only the stdlib `dataclasses`
   module (already imported in `envelope.py`) is used. If a new dependency seems
   needed, stop and escalate.
@@ -99,10 +98,11 @@ escalation, not a workaround.
 - Iterations: if `make all` still fails after 3 fix attempts on any work item,
   stop and escalate.
 - Ambiguity: the audit (audit:6.3.7 Finding 1) and the roadmap entry name three
-  scoped sites. Work item 4 proposes an *optional* extension to the two existing
-  drift-guard `_envelope_field_order()` helpers; if that extension turns out to
-  widen scope or churn the §6.3 guards, drop it and record the decision rather
-  than escalating (it is explicitly out of the roadmap's three-site scope).
+  scoped sites. Work item 4 proposes an *optional* extension to the two
+  existing drift-guard `_envelope_field_order()` helpers; if that extension
+  turns out to widen scope or churn the §6.3 guards, drop it and record the
+  decision rather than escalating (it is explicitly out of the roadmap's
+  three-site scope).
 
 ## Risks
 
@@ -283,33 +283,35 @@ path:
 
 - `novel_ralph_skill/contract/envelope.py` — defines the `Envelope` frozen
   dataclass (lines 33-65), `build_envelope` (lines 68-123), `render_machine`
-  (lines 126-151, the machine-mode JSON renderer), and `render_human`
-  (lines 154-181). `render_machine` today builds a dict literal `ordered` whose
-  module docstring claims the order is "asserted by this function rather than
-  implied" — yet the function does not read the dataclass it renders. The
-  `Envelope` dataclass declares the six fields in contract order:
-  `command`, `schema_version`, `ok`, `working_dir`, `result`, `messages`.
-  `__post_init__` freezes `result` to a read-only mapping and `messages` to a
-  tuple via `novel_ralph_skill/_freeze.py` (`freeze_mapping`/`freeze_sequence`).
+  (lines 126-151, the machine-mode JSON renderer), and `render_human` (lines
+  154-181). `render_machine` today builds a dict literal `ordered` whose module
+  docstring claims the order is "asserted by this function rather than implied"
+  — yet the function does not read the dataclass it renders. The `Envelope`
+  dataclass declares the six fields in contract order: `command`,
+  `schema_version`, `ok`, `working_dir`, `result`, `messages`. `__post_init__`
+  freezes `result` to a read-only mapping and `messages` to a tuple via
+  `novel_ralph_skill/_freeze.py` (`freeze_mapping`/`freeze_sequence`).
 
 - `tests/test_contract_envelope.py` — unit and snapshot tests for the envelope.
   `_FIXED_FIELD_ORDER` (line 33) is a literal six-tuple;
   `test_render_machine_emits_fixed_field_order` (line 148) asserts
-  `tuple(parsed) == _FIXED_FIELD_ORDER` after `json.loads(render_machine(env))`.
-  The success and per-code snapshot tests (using `syrupy`) pin the rendered
-  shape; their `.ambr` files live under `tests/__snapshots__/`.
+  `tuple(parsed) == _FIXED_FIELD_ORDER` after
+  `json.loads(render_machine(env))`. The success and per-code snapshot tests
+  (using `syrupy`) pin the rendered shape; their `.ambr` files live under
+  `tests/__snapshots__/`.
 
 - `tests/cross_command_contract/__init__.py` — the cross-command identity
   proof's package init. `ENVELOPE_KEY_ORDER` (line 81) is a second literal
   six-tuple, annotated `typ.Final[tuple[str, ...]]`.
 
-- `tests/cross_command_contract/_identity_assertions.py` — `assert_envelope_skeleton`
-  compares `tuple(envelope) == ENVELOPE_KEY_ORDER` (line 96) for every spaced
-  command; this is the ~seven-site consumer that must keep working unchanged.
+- `tests/cross_command_contract/_identity_assertions.py` —
+  `assert_envelope_skeleton` compares `tuple(envelope) == ENVELOPE_KEY_ORDER`
+  (line 96) for every spaced command; this is the ~seven-site consumer that
+  must keep working unchanged.
 
 - `tests/test_skill_contract_drift_guard.py` (line 207) and
-  `tests/test_developers_guide_contract_drift_guard.py` (line 139) each define a
-  private `_envelope_field_order()` that returns
+  `tests/test_developers_guide_contract_drift_guard.py` (line 139) each define
+  a private `_envelope_field_order()` that returns
   `[field.name for field in dataclasses.fields(Envelope)]` — the 6.3.7-era
   derivation. These already read the dataclass; Work item 4 considers routing
   them through the new shared constant.
@@ -328,8 +330,8 @@ Term definitions:
 ## Plan of work
 
 Four work items, each independently committable and gate-passable. Work items 1
-through 3 are the roadmap's three-site scope; Work item 4 is an in-scope-adjacent
-consolidation gated by the Tolerances.
+through 3 are the roadmap's three-site scope; Work item 4 is an
+in-scope-adjacent consolidation gated by the Tolerances.
 
 ### Work item 1 — Promote the shared `ENVELOPE_FIELD_ORDER` constant and the surviving tripwire
 
@@ -337,8 +339,8 @@ Docs to read first: design §3.1 (`docs/novel-ralph-harness-design.md`);
 `docs/adr-003-shared-interface-contract.md` (§"Decision", the six-field
 envelope); `docs/issues/audit-6.3.7.md` Finding 1 (the proposed fix this item
 implements). Skills to load: `python-router`, then `python-data-shapes` (the
-dataclass-introspection question is "derive a tuple from declaration order")
-and `python-types-and-apis` (the `typ.Final[tuple[str, ...]]` public-constant
+dataclass-introspection question is "derive a tuple from declaration order") and
+`python-types-and-apis` (the `typ.Final[tuple[str, ...]]` public-constant
 shape).
 
 In `novel_ralph_skill/contract/envelope.py`, immediately after the `Envelope`
@@ -360,9 +362,9 @@ dataclass definition (after line 65), add a module-level public constant:
 
 Then, in `tests/test_contract_envelope.py`, replace the literal
 `_FIXED_FIELD_ORDER` tuple (line 33) with the surviving *tripwire*: keep a
-hand-written literal six-tuple, but rename and re-document it so its role as the
-one deliberate human-readable anchor is explicit, and add a test pinning the
-derived constant to it. Concretely, keep a local literal (e.g.
+hand-written literal six-tuple, but rename and re-document it so its role as
+the one deliberate human-readable anchor is explicit, and add a test pinning
+the derived constant to it. Concretely, keep a local literal (e.g.
 `_EXPECTED_FIELD_ORDER`) and add:
 
     # tests/test_contract_envelope.py
@@ -392,9 +394,9 @@ derived constant to it. Concretely, keep a local literal (e.g.
 
 Update `test_render_machine_emits_fixed_field_order` to assert against
 `ENVELOPE_FIELD_ORDER` (the derived constant), so that test now proves the
-renderer matches the dataclass-derived order, while the new tripwire test proves
-the dataclass-derived order matches the expected names. Together they form a
-spanning tree with the dataclass at the root.
+renderer matches the dataclass-derived order, while the new tripwire test
+proves the dataclass-derived order matches the expected names. Together they
+form a spanning tree with the dataclass at the root.
 
 Tests this item adds/updates:
 
@@ -404,7 +406,7 @@ Tests this item adds/updates:
 
 No `hypothesis`, `crosshair`, or `mutmut` is warranted here: the order is a
 fixed six-element constant, not an invariant over a range of inputs (AGENTS.md
-"Use property tests ... when a change introduces an invariant over a range of
+"Use property tests … when a change introduces an invariant over a range of
 inputs"). A single example-based equality is the correct adversary; the
 surviving literal is itself the falsifier for a dataclass reorder.
 
@@ -416,16 +418,16 @@ to pass and no snapshot change.
 ### Work item 2 — Derive `render_machine`'s ordered mapping from the dataclass
 
 Docs to read first: design §3.1 (the wire envelope and its field semantics);
-ADR-003 §"Decision"; `docs/scripting-standards.md` (return-shape and pure-helper
-conventions). Skills to load: `python-router`, then
+ADR-003 §"Decision"; `docs/scripting-standards.md` (return-shape and
+pure-helper conventions). Skills to load: `python-router`, then
 `python-iterators-and-generators` (the field-iterating comprehension) and
 `python-data-shapes` (the dataclass-to-dict projection with per-field coercion).
 
 In `novel_ralph_skill/contract/envelope.py`, rewrite `render_machine` (lines
 126-151) so the ordered mapping is built by iterating `ENVELOPE_FIELD_ORDER`
-(equivalently `dataclasses.fields(Envelope)`), pulling each value via `getattr`,
-and applying an explicit per-field coercion so `result` becomes a plain `dict`
-and `messages` a plain `list` exactly as today. For example:
+(equivalently `dataclasses.fields(Envelope)`), pulling each value via
+`getattr`, and applying an explicit per-field coercion so `result` becomes a
+plain `dict` and `messages` a plain `list` exactly as today. For example:
 
     # novel_ralph_skill/contract/envelope.py
     _FIELD_COERCIONS: typ.Final[
@@ -455,25 +457,26 @@ and `messages` a plain `list` exactly as today. For example:
 
 The exact spelling (a coercion map, or a small `match`/`if`) is an implementer
 choice, but the *behaviour* is fixed: `result -> dict`, `messages -> list`,
-every other field passed through, keys emitted in `ENVELOPE_FIELD_ORDER`. Update
-the docstring so it no longer claims the order is "asserted by this function
-rather than implied" — after this change the order is *read from the dataclass*,
-which is stronger; the docstring must state that plainly. Cross-reference the
-defining symbol via its module-qualified path
+every other field passed through, keys emitted in `ENVELOPE_FIELD_ORDER`.
+Update the docstring so it no longer claims the order is "asserted by this
+function rather than implied" — after this change the order is *read from the
+dataclass*, which is stronger; the docstring must state that plainly.
+Cross-reference the defining symbol via its module-qualified path
 (`novel_ralph_skill.contract.envelope.ENVELOPE_FIELD_ORDER`) per the §7.1
 docstring convention (the convention task 7.1.6 settles; using the
 defining-module path here keeps this consumer consistent with it ahead of time).
 
 Tests this item adds/updates:
 
-- No new test is strictly required because `test_render_machine_emits_fixed_field_order`
-  (Work item 1) and the existing `syrupy` snapshot tests already pin the output
-  order and the exact rendered bytes. Add one focused unit assertion that
-  `render_machine` round-trips a representative envelope whose `result` is passed
-  as a non-dict mapping and `messages` as a non-list sequence (e.g. a
-  `MappingProxyType` and a tuple), proving the coercion still yields plain
-  `dict`/`list` JSON. This is the regression test for the medium-severity
-  coercion risk; place it beside the existing render tests.
+- No new test is strictly required because
+  `test_render_machine_emits_fixed_field_order` (Work item 1) and the existing
+  `syrupy` snapshot tests already pin the output order and the exact rendered
+  bytes. Add one focused unit assertion that `render_machine` round-trips a
+  representative envelope whose `result` is passed as a non-dict mapping and
+  `messages` as a non-list sequence (e.g. a `MappingProxyType` and a tuple),
+  proving the coercion still yields plain `dict`/`list` JSON. This is the
+  regression test for the medium-severity coercion risk; place it beside the
+  existing render tests.
 - Confirm no `.ambr` snapshot changes (Constraints): the snapshot suite is the
   behavioural guard for this item.
 
@@ -484,9 +487,10 @@ the new coercion regression test to pass.
 
 Docs to read first: `tests/cross_command_contract/__init__.py` module docstring
 (the cross-command identity proof, design §3.1/§3.2, ADR-003 Table 2);
-`tests/cross_command_contract/_identity_assertions.py` (the consumer). Skills to
-load: `python-router`, then `python-testing` (fixture and oracle hygiene) and
-`python-types-and-apis` (preserving the `typ.Final[tuple[str, ...]]` annotation).
+`tests/cross_command_contract/_identity_assertions.py` (the consumer). Skills
+to load: `python-router`, then `python-testing` (fixture and oracle hygiene) and
+`python-types-and-apis` (preserving the `typ.Final[tuple[str, ...]]`
+annotation).
 
 In `tests/cross_command_contract/__init__.py`, delete the literal
 `ENVELOPE_KEY_ORDER` six-tuple (line 81) and replace it with a re-export of the
@@ -515,13 +519,15 @@ still spells the six-name order outside the single surviving tripwire.
 Tests this item adds/updates:
 
 - No new behavioural test: the existing cross-command identity suite
-  (`tests/cross_command_contract/`) is the behavioural guard. It drives all five
-  spaced commands in-process and asserts `tuple(envelope) == ENVELOPE_KEY_ORDER`;
-  re-pointing the alias at the canonical constant must leave that suite green.
+  (`tests/cross_command_contract/`) is the behavioural guard. It drives all
+  five spaced commands in-process and asserts
+  `tuple(envelope) == ENVELOPE_KEY_ORDER`; re-pointing the alias at the
+  canonical constant must leave that suite green.
 - Add or extend one assertion (in `tests/test_contract_envelope.py` or the
-  cross-command package's own unit coverage) that `ENVELOPE_KEY_ORDER is
-  ENVELOPE_FIELD_ORDER` (identity, not just equality), pinning that the alias is
-  a re-export and cannot silently re-fork into a second literal.
+  cross-command package's own unit coverage) that
+  `ENVELOPE_KEY_ORDER is ENVELOPE_FIELD_ORDER` (identity, not just equality),
+  pinning that the alias is a re-export and cannot silently re-fork into a
+  second literal.
 
 Validation: `make all`. Expect the full cross-command identity suite green and
 the new identity assertion green.
@@ -532,8 +538,8 @@ Docs to read first: `docs/issues/audit-6.3.7.md` Finding 1 (scope note: the
 audit names exactly the three sites above); the roadmap 7.1.5 entry (its three
 named sites). Skills to load: `python-router`, then `python-testing`.
 
-The two existing drift-guards each carry a private `_envelope_field_order()` that
-re-derives `[field.name for field in dataclasses.fields(Envelope)]`
+The two existing drift-guards each carry a private `_envelope_field_order()`
+that re-derives `[field.name for field in dataclasses.fields(Envelope)]`
 (`tests/test_skill_contract_drift_guard.py:207`;
 `tests/test_developers_guide_contract_drift_guard.py:139`). These already read
 the dataclass, so they are not a *hand-spelled* copy of the order — they are a
@@ -549,10 +555,10 @@ Decision rule for this item:
   constant and removes the last places the field-order projection is computed
   outside its home.
 - If it would churn the §6.3 guards, change their public surface, or risk the
-  settled documentation hypothesis, **do not** do it. Record in the Decision Log
-  that the two helpers are left as independent derivations because they read the
-  same canonical dataclass and the roadmap scopes 7.1.5 to the renderer and its
-  two oracles only.
+  settled documentation hypothesis, **do not** do it. Record in the Decision
+  Log that the two helpers are left as independent derivations because they
+  read the same canonical dataclass and the roadmap scopes 7.1.5 to the
+  renderer and its two oracles only.
 
 Tests this item adds/updates:
 
@@ -588,8 +594,9 @@ Run everything from the worktree root
    Expect `make all` green; the new tripwire test passes; no `.ambr` diff.
 
 3. Work item 2: rewrite `render_machine` to iterate `ENVELOPE_FIELD_ORDER` with
-   explicit `result`/`messages` coercion; update its docstring; add the coercion
-   regression test. Then `make all` and commit. Expect every snapshot unchanged.
+   explicit `result`/`messages` coercion; update its docstring; add the
+   coercion regression test. Then `make all` and commit. Expect every snapshot
+   unchanged.
 
 4. Work item 3: alias `ENVELOPE_KEY_ORDER = ENVELOPE_FIELD_ORDER` in the
    cross-command package init; add the identity assertion. Then `make all` and
@@ -612,26 +619,25 @@ Run everything from the worktree root
 Quality criteria (what "done" means):
 
 - Tests: `make test` passes. The new tripwire test
-  `test_envelope_field_order_matches_expected` fails if the `Envelope` dataclass
-  is reordered without updating the literal (verify once by temporarily swapping
-  two fields and observing the red, then revert). The coercion regression test
-  passes. The cross-command identity suite and the contract envelope suite stay
-  green. No `.ambr` snapshot changes.
+  `test_envelope_field_order_matches_expected` fails if the `Envelope`
+  dataclass is reordered without updating the literal (verify once by
+  temporarily swapping two fields and observing the red, then revert). The
+  coercion regression test passes. The cross-command identity suite and the
+  contract envelope suite stay green. No `.ambr` snapshot changes.
 - Lint/typecheck: `make lint` (Ruff + 100% docstring coverage) and
   `make typecheck` (pyright/mypy per the repo config) pass. The new public
   constant and any helper carry docstrings.
 - Markdown (this plan): `make markdownlint` and `make nixie` pass.
 - Single-source proof: `grep -rn` for the literal six-name sequence across
-  `novel_ralph_skill/contract/envelope.py`,
-  `tests/test_contract_envelope.py`, and
-  `tests/cross_command_contract/__init__.py` finds it in exactly one place — the
-  surviving tripwire in `tests/test_contract_envelope.py`.
+  `novel_ralph_skill/contract/envelope.py`, `tests/test_contract_envelope.py`,
+  and `tests/cross_command_contract/__init__.py` finds it in exactly one place
+  — the surviving tripwire in `tests/test_contract_envelope.py`.
 
 Quality method (how we check):
 
 - `make all` is the single gate per work item (build, check-fmt, lint,
   typecheck, test). Run it before each commit (AGENTS.md "Run all code commit
-  gateways ... prior to committing").
+  gateways … prior to committing").
 - The behaviour proof is the unchanged snapshot suite plus the unchanged
   cross-command identity suite: both render the real envelope and would redden
   on any wire-format or order regression.
@@ -639,12 +645,13 @@ Quality method (how we check):
 ## Idempotence and recovery
 
 Every step is a small, self-contained edit followed by `make all` and a commit,
-so each work item is independently re-runnable. If a step half-applies, `git
-diff` shows the partial edit; revert with `git checkout -- <file>` and re-apply.
-No step is destructive: there are no migrations, no generated artefacts, and no
-file deletions beyond replacing two in-module literal tuples with imports. If a
-snapshot unexpectedly changes, do not `--snapshot-update`; stop and escalate
-(Constraints), because a snapshot change here means a real contract regression.
+so each work item is independently re-runnable. If a step half-applies,
+`git diff` shows the partial edit; revert with `git checkout -- <file>` and
+re-apply. No step is destructive: there are no migrations, no generated
+artefacts, and no file deletions beyond replacing two in-module literal tuples
+with imports. If a snapshot unexpectedly changes, do not `--snapshot-update`;
+stop and escalate (Constraints), because a snapshot change here means a real
+contract regression.
 
 ## Artefacts and notes
 
@@ -663,8 +670,9 @@ The load-bearing before/after is the `render_machine` body. Before (today,
     return json.dumps(ordered)
 
 After (Work item 2): the same JSON, but the key order and field set are read
-from `ENVELOPE_FIELD_ORDER` (itself `tuple(f.name for f in
-dataclasses.fields(Envelope))`), with `result`/`messages` coerced as before.
+from `ENVELOPE_FIELD_ORDER` (itself
+`tuple(f.name for f in dataclasses.fields(Envelope))`), with `result`/
+`messages` coerced as before.
 
 ## Interfaces and dependencies
 
@@ -691,31 +699,32 @@ At the end of this work the following symbols must exist:
 
 Lightweight addendum work items folded back onto this completed task from the
 reviews and audits of step 7.1's tasks. Execute each as a small addendum pass —
-no plan or design-review cycle: make the change, run `make all` (plus `make
-markdownlint`/`make nixie` for Markdown), `coderabbit review --agent`, commit,
-and tick the matching roadmap sub-task on merge.
+no plan or design-review cycle: make the change, run `make all` (plus
+`make markdownlint`/`make nixie` for Markdown), `coderabbit review --agent`,
+commit, and tick the matching roadmap sub-task on merge.
 
 - [x] 7.1.5.1 — Register this envelope field-order projection as a row in the
   §7.1 projection-docstring drift guard (from review:7.1.6, audit:7.1.6; low;
   two near-identical proposals merged). Task 7.1.6 authored
-  `tests/test_projection_docstring_drift_guard.py` as an extensible registry and
-  deliberately deferred 7.1.5's row to "when 7.1.5 lands" (its Decision Log: the
-  guard must not import `ENVELOPE_FIELD_ORDER` while 7.1.5 was unmerged). Now that
-  7.1.5 has merged, add the `(authoritative, consumers, canonical_path,
-  reexport_tail, table_markers)` row binding `ENVELOPE_FIELD_ORDER`
-  (authoritative) to its consumers (`render_machine` and the two test oracles) so
-  the envelope field-order consolidation is enforced by the guard rather than
-  merely conventionally documented. `render_machine` already cross-references
-  `ENVELOPE_FIELD_ORDER` via the defining-module path, so no docstring rewrite is
-  needed; this is the registry-row addition alone. Gate with `make all`.
+  `tests/test_projection_docstring_drift_guard.py` as an extensible registry
+  and deliberately deferred 7.1.5's row to "when 7.1.5 lands" (its Decision
+  Log: the guard must not import `ENVELOPE_FIELD_ORDER` while 7.1.5 was
+  unmerged). Now that 7.1.5 has merged, add the
+  `(authoritative, consumers, canonical_path, reexport_tail, table_markers)`
+  row binding `ENVELOPE_FIELD_ORDER` (authoritative) to its consumers
+  (`render_machine` and the two test oracles) so the envelope field-order
+  consolidation is enforced by the guard rather than merely conventionally
+  documented. `render_machine` already cross-references `ENVELOPE_FIELD_ORDER`
+  via the defining-module path, so no docstring rewrite is needed; this is the
+  registry-row addition alone. Gate with `make all`.
 
   Implementation note (addendum pass). The guard reads `symbol.__doc__`, but
   `ENVELOPE_FIELD_ORDER` is a module-level tuple whose runtime `__doc__` is the
   built-in tuple docstring, not its PEP 224 attribute docstring, so it cannot
   carry the field-order table the marker assertion checks. The row therefore
   keys `authoritative` to the `Envelope` dataclass — the single source
-  `ENVELOPE_FIELD_ORDER` is derived from, whose docstring already enumerates the
-  six fields and so needs no rewrite — exactly as
+  `ENVELOPE_FIELD_ORDER` is derived from, whose docstring already enumerates
+  the six fields and so needs no rewrite — exactly as
   `test_developers_guide_contract_drift_guard.py` keys its field set off the
   imported `Envelope` by symbol identity. `canonical_path` is the
   `ENVELOPE_FIELD_ORDER` dotted path the three consumers (`render_machine` and
@@ -725,5 +734,5 @@ and tick the matching roadmap sub-task on merge.
   `canonical_path`, keeping the tail check non-vacuous on the green tree. The
   contract-side oracle gained a one-sentence canonical cross-reference in its
   docstring (a test-only edit, not a production change) so it satisfies the
-  consumer cross-reference assertion. The two oracle functions are imported under
-  non-`test_` aliases so pytest does not re-collect them.
+  consumer cross-reference assertion. The two oracle functions are imported
+  under non-`test_` aliases so pytest does not re-collect them.

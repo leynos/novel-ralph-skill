@@ -765,40 +765,42 @@ commits. Measured against the Purpose: a planned chapter reaches `[chapters]`
 creates the `chapter-NN/` directories and seeds `by_chapter` so `check` exits 0
 immediately); an incoherent plan (non-contiguous, duplicate number or slug,
 non-positive target, empty) is refused with exit 3 and writes nothing, a
-non-empty prior manifest is refused with exit 3 (D3), and a malformed `--chapters`
-argument exits 2; and `check`/`recount`/`novel-compile` then operate on the real
-chapter directories. The full behaviour is pinned at the unit, property,
-behavioural (pytest-bdd), and end-to-end (entry-point + installed-binary) layers.
+non-empty prior manifest is refused with exit 3 (D3), and a malformed
+`--chapters` argument exits 2; and `check`/`recount`/`novel-compile` then
+operate on the real chapter directories. The full behaviour is pinned at the
+unit, property, behavioural (pytest-bdd), and end-to-end (entry-point +
+installed-binary) layers.
 
-Two interactions the plan did not foresee surfaced during implementation and were
-resolved in-scope:
+Two interactions the plan did not foresee surfaced during implementation and
+were resolved in-scope:
 
 - **S7/D13:** `set-chapters` had to seed `[word_counts].by_chapter` with a zero
   per chapter, or the post-2.3.6 `word-counts-cover-drafts` invariant fires and
-  `check` exits 4 — defeating the success criterion. The plan reasoned about the
-  §5.2 bijection but not the §5.4 coverage invariant.
+  `check` exits 4 — defeating the success criterion. The plan reasoned about
+  the §5.2 bijection but not the §5.4 coverage invariant.
 - **S8:** Work item 4's bottom-of-module `ChapterPlanEntry` import in
-  `novel_state.py` was circular when `_set_chapters` is imported first (caught by
-  the Work item 7 property suite). Resolved by a dependency-free leaf module
+  `novel_state.py` was circular when `_set_chapters` is imported first (caught
+  by the Work item 7 property suite). Resolved by a dependency-free leaf module
   `commands/_chapter_plan_entry.py`, a cleaner end-state than the original
   bottom-import-with-`E402`.
 
 The only unresolved item is the CodeRabbit review service stalling on the Work
 item 7 diff (three attempts, "summarizing" phase, never reaching findings — a
-transient service-side hang, not a rate limit); the deterministic gates were green
-and the work item proceeded per the workflow's rate-limit policy. Every other work
-item was CodeRabbit-reviewed and its actionable feedback addressed.
+transient service-side hang, not a rate limit); the deterministic gates were
+green and the work item proceeded per the workflow's rate-limit policy. Every
+other work item was CodeRabbit-reviewed and its actionable feedback addressed.
 
 ## Open issues
 
 - The CodeRabbit review service stalled in its "summarizing" phase for the Work
-  item 7 and Work item 8 diffs (several attempts each, with exponential backoff,
-  a transient service-side hang, not a 429/rate limit). Work items 1-6 were all
-  CodeRabbit-reviewed and their actionable feedback addressed; Work items 7
-  (a new Hypothesis property file plus a clean leaf-module refactor) and 8
-  (documentation only) are green under `make all`/`make audit` and, for the docs,
-  `make markdownlint`/`make nixie`, and are consistent with the surrounding house
-  style. A later CodeRabbit pass over the merged branch can re-review them.
+  item 7 and Work item 8 diffs (several attempts each, with exponential
+  backoff, a transient service-side hang, not a 429/rate limit). Work items 1-6
+  were all CodeRabbit-reviewed and their actionable feedback addressed; Work
+  items 7 (a new Hypothesis property file plus a clean leaf-module refactor)
+  and 8 (documentation only) are green under `make all`/`make audit` and, for
+  the docs, `make markdownlint`/`make nixie`, and are consistent with the
+  surrounding house style. A later CodeRabbit pass over the merged branch can
+  re-review them.
 
 ## Context and orientation
 
@@ -1099,9 +1101,10 @@ manifest-derivable directories to materialise (design §3.4, §5.4).
   `reconcile.py` under the 400-line cap. As implemented, the
   reconciliation-reasoning predicate (`_set_chapters_turn_explains_bijection`,
   which inspects `pending_turn`/`fired`) stays in `reconcile.py`; only the pure
-  path parsers it calls (`_chapter_number_of`, `_declared_chapter_numbers`) moved
-  to `state/_disk_paths.py` beside the sibling chapter-number parsers, which kept
-  `reconcile.py` under the cap without putting reconcile logic in the path module.
+  path parsers it calls (`_chapter_number_of`, `_declared_chapter_numbers`)
+  moved to `state/_disk_paths.py` beside the sibling chapter-number parsers,
+  which kept `reconcile.py` under the cap without putting reconcile logic in
+  the path module.
 - This change is **scoped, not a blanket precedence inversion**: it fires only
   for an explained `set-chapters` bijection break. The module docstring's
   precedence narrative (lines 13-44) and the `_REFUSE_CLASS` comment must be
@@ -1341,8 +1344,7 @@ in SKILL.md Phase 7"). This is the markdown work item.
   maintenance" and "Markdown guidance" (80-col prose wrap, 120-col code,
   dashes); en-gb-oxendict.
 - Skills: `en-gb-oxendict`; `roadmap-doc`/`tech-design-doc` not required (this
-  is
-  an ADR edit, follow the existing ADR template).
+  is an ADR edit, follow the existing ADR template).
 - Tests: none (docs); but if a test asserts the design subcommand table (e.g. a
   state-layout reference scanner), update its expectation.
 - Validation: `make markdownlint` and `make nixie` (Mermaid in the design doc),
@@ -1410,8 +1412,8 @@ Acceptance is behavioural, matching the roadmap Success clause:
 1. **Command-only path.** Build a fresh tree with `novel-state init`, then run
    `novel-state set-chapters --chapters '[{"number":1,...},{"number":2,...}]'`.
    `working/state.toml` `[chapters]` is populated and
-   `working/manuscript/chapter-01/` and `chapter-02/` exist. No step
-   hand-edited `state.toml`.
+   `working/manuscript/chapter-01/` and `chapter-02/` exist. No step hand-edited
+   `state.toml`.
 2. **Incoherent plan refused.** Run the command with a non-contiguous plan
    (numbers `[1, 3]`) and with a duplicate number (`[1, 1]`); each exits **3**,
    emits `ok: false`, and leaves `state.toml` byte-for-byte unchanged.
@@ -1445,29 +1447,28 @@ green before each commit.
 
 - Directory creation is `mkdir(parents=True, exist_ok=True)` — idempotent.
 - Re-running `set-chapters` against a tree whose manifest is already populated
-  is
-  refused with exit 3 (D3), so the command is a safe one-shot; it never
+  is refused with exit 3 (D3), so the command is a safe one-shot; it never
   silently overwrites a live manifest.
 - A crash mid-turn leaves a populated `operation="set-chapters"`
-  `[pending_turn]`
-  record over a **persisted, populated** manifest (the manifest and the intent
-  land together at the first write — D10), with one or more `chapter-NN/`
-  directories missing. This includes the **partial-directory** case (manifest
-  `{1,2}`, on-disk `{1}`), which fires `manifest-disk-bijection`. A subsequent
-  `novel-state check` reports it and `novel-state reconcile` resolves it by
-  COMPLETE-ing the turn — creating the missing `chapter-NN/` directories and
-  clearing the record (Work item 3a, D8; design §3.4, §5.4). The precedence
-  branch (Work item 3a) is what lets `reconcile` reach COMPLETE despite the
-  fired bijection refuse-class, but only when the break is fully explained by
-  the pending-turn's missing dirs; an unexplained break still REFUSEs. This is
-  the *only* sanctioned recovery: a `set-chapters` re-run is refused by D3 and
-  no manual `mkdir` is required. The empty directories reconcile creates are
-  deterministically derivable from the already-written manifest (D10 guarantees
-  it is on disk), so the recovery fabricates no agent judgement (recomputable,
-  exactly like reconcile re-deriving `log.md`/`[word_counts]`). Before Work
-  item 3a this recovery path did not exist (the existing reconcile REFUSEs the
-  partial-directory case at the bijection arm and ROLLBACKs the all-missing
-  case — S5 corrected); it is the resolution of the round-2 B1 blocking point.
+  `[pending_turn]` record over a **persisted, populated** manifest (the
+  manifest and the intent land together at the first write — D10), with one or
+  more `chapter-NN/` directories missing. This includes the
+  **partial-directory** case (manifest `{1,2}`, on-disk `{1}`), which fires
+  `manifest-disk-bijection`. A subsequent `novel-state check` reports it and
+  `novel-state reconcile` resolves it by COMPLETE-ing the turn — creating the
+  missing `chapter-NN/` directories and clearing the record (Work item 3a, D8;
+  design §3.4, §5.4). The precedence branch (Work item 3a) is what lets
+  `reconcile` reach COMPLETE despite the fired bijection refuse-class, but only
+  when the break is fully explained by the pending-turn's missing dirs; an
+  unexplained break still REFUSEs. This is the *only* sanctioned recovery: a
+  `set-chapters` re-run is refused by D3 and no manual `mkdir` is required. The
+  empty directories reconcile creates are deterministically derivable from the
+  already-written manifest (D10 guarantees it is on disk), so the recovery
+  fabricates no agent judgement (recomputable, exactly like reconcile
+  re-deriving `log.md`/`[word_counts]`). Before Work item 3a this recovery path
+  did not exist (the existing reconcile REFUSEs the partial-directory case at
+  the bijection arm and ROLLBACKs the all-missing case — S5 corrected); it is
+  the resolution of the round-2 B1 blocking point.
 - A refused write leaves `state.toml` byte-for-byte intact; no recovery needed.
 - All test trees are built under `tmp_path`; nothing touches the developer's
   working tree.
@@ -1498,16 +1499,14 @@ the canonical pin for the locked 4.18.0 behaviour.
 
 Reconcile precedence, verified by source read this round (S5 corrected):
 `derive_reconciliation` (`state/reconcile.py` lines 258-264) evaluates the
-refuse-class FIRST —
-`refuse = [n for n in fired if n in _REFUSE_CLASS]` then
-`if refuse: return _refuse(...)` —
-and `_REFUSE_CLASS` (lines 78-83) contains `MANIFEST_DISK_BIJECTION`.
-`_check_manifest_disk_bijection` (`disk_evidence.py` lines 112-134) fires on any
-`manifest != on_disk` with no pending-turn exemption. So a PARTIAL-directory
-torn `set-chapters` turn REFUSEs before `_classify_pending_turn` runs — the
-round-2 B1 finding. Work item 3a's guarded precedence branch is the fix; editing
-`_RECOMPUTABLE_BASENAMES` alone (the round-1 plan) would be dead code in that
-path.
+refuse-class FIRST — `refuse = [n for n in fired if n in _REFUSE_CLASS]` then
+`if refuse: return _refuse(...)` — and `_REFUSE_CLASS` (lines 78-83) contains
+`MANIFEST_DISK_BIJECTION`. `_check_manifest_disk_bijection` (`disk_evidence.py`
+lines 112-134) fires on any `manifest != on_disk` with no pending-turn
+exemption. So a PARTIAL-directory torn `set-chapters` turn REFUSEs before
+`_classify_pending_turn` runs — the round-2 B1 finding. Work item 3a's guarded
+precedence branch is the fix; editing `_RECOMPUTABLE_BASENAMES` alone (the
+round-1 plan) would be dead code in that path.
 
 cuprum API pinned for the e2e (locked 0.1.0):
 `cuprum/sh.py::make(program, *, catalogue)` → `SafeCmdBuilder`;
@@ -1620,8 +1619,7 @@ Revision 3 (2026-06-25) — round-2 design review (verdict REVISE; three blockin
 points B1/B2/B3 resolved):
 
 - **B1 (precedence — Work item 3a was unreachable).** The round-2 reviewer
-  proved
-  that `derive_reconciliation` evaluates the refuse-class (containing
+  proved that `derive_reconciliation` evaluates the refuse-class (containing
   `manifest-disk-bijection`) BEFORE the pending-turn branch, so the round-1
   classifier-only change was dead code for a partial-directory torn turn
   (REFUSE, exit 4, before classification). **Fix:** Work item 3a is rewritten
@@ -1646,23 +1644,20 @@ points B1/B2/B3 resolved):
   write"; new unit test (3f) injecting a mkdir failure and asserting the
   manifest is already persisted; Idempotence/recovery rewritten.
 - **B3 (recomputable-set amendment under-justified).** Adding `chapter-NN/` to
-  the
-  recomputable artefacts and changing the precedence are genuine
+  the recomputable artefacts and changing the precedence are genuine
   design-invariant changes. **Fix:** Work item 8 now records both in ADR 008
   and amends design §5.4 (the recomputable enumeration AND the precedence
   statement) and the developers' guide, with the precedence narrative and the
   persisted-manifest rationale spelt out; D8 frames it as a reasoned amendment,
   not a tweak.
 - **A1 (manifest-only alternative).** New Decision D9 gives the explicit
-  trade-off
-  and rejects it: the roadmap MANDATES the `[pending_turn]` bracket (2.2.3
-  lines 715-719) and the design makes the bijection a firm immediate invariant
-  (§5.1 lines 398-404, §5.2), so manifest-only would leave `check` at exit 4
-  the instant the command returns and reconcile's draft-without-manifest path
-  is a REFUSE not a repair.
+  trade-off and rejects it: the roadmap MANDATES the `[pending_turn]` bracket
+  (2.2.3 lines 715-719) and the design makes the bijection a firm immediate
+  invariant (§5.1 lines 398-404, §5.2), so manifest-only would leave `check` at
+  exit 4 the instant the command returns and reconcile's draft-without-manifest
+  path is a REFUSE not a repair.
 - **Effect on remaining work.** Still nine work items; Work items 3 (ordering)
-  and
-  3a (precedence) are the substantive redesigns. No undecided forks remain;
+  and 3a (precedence) are the substantive redesigns. No undecided forks remain;
   every load-bearing claim is verified against source (S5 corrected, D10's seam
   check) or pinned by a named test.
 

@@ -15,8 +15,8 @@ This reference defines the done predicate at three scales:
 
 Every turn, after the entry routine but before doing new work, evaluate the
 novel-level predicate by running the `novel done` command. If it exits 0
-(reports done), write a final log entry and stop. Otherwise proceed. `novel done`
-is the single source of truth for the novel-level predicate; see
+(reports done), write a final log entry and stop. Otherwise proceed.
+`novel done` is the single source of truth for the novel-level predicate; see
 [Novel-level predicate](#novel-level-predicate) below.
 
 Phase advancement past `final-pass` to `done` happens exactly once, at the end
@@ -140,20 +140,20 @@ A chapter is done when all of:
 The terminator. The agent declares done only when this evaluates true on disk.
 Do not re-implement the predicate here: run the `novel done` command, which is
 the single source of truth for the novel-level clauses. Its six clauses and the
-disk source of each are tabulated in the developers' guide under
-"Done predicate (`novel done`)"; the truth conditions are fixed by design §4.2
-and implemented in `novel_ralph_skill/state/done_predicate.py`. `novel done`
-exits 0 when every clause holds and names any failed clause in its output, so
-the agent acts on the specific clause that is false.
+disk source of each are tabulated in the developers' guide under "Done predicate
+(`novel done`)"; the truth conditions are fixed by design §4.2 and implemented
+in `novel_ralph_skill/state/done_predicate.py`. `novel done` exits 0 when every
+clause holds and names any failed clause in its output, so the agent acts on
+the specific clause that is false.
 
 The shipped predicate pins `contains_unresolved_blocker` to the spiteful
 critic's strict output format (`critic-personas.md`, "Resolving a BLOCKER";
 roadmap 3.1.5; design §4.2): an unresolved BLOCKER is a `### Bn — <label>`
 finding heading under the `## BLOCKER` section heading that is *not* marked
-resolved. A finding is resolved when its `### Bn` heading line ends with a space
-and then the `[resolved]` token and nothing after it, so an incidental mid-line
-mention of the token does not clear the blocker and trailing text after the
-token leaves it unresolved by design. The convergence sentinel
+resolved. A finding is resolved when its `### Bn` heading line ends with a
+space and then the `[resolved]` token and nothing after it, so an incidental
+mid-line mention of the token does not clear the blocker and trailing text
+after the token leaves it unresolved by design. The convergence sentinel
 `No BLOCKER. No MAJOR.` writes no `## BLOCKER` section and is therefore clean,
 and an absent `critic-notes.md` is clean. The token is case-sensitive; variants
 such as `[RESOLVED]` or `(resolved)` are out of scope and leave the finding

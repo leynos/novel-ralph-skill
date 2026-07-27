@@ -490,40 +490,40 @@ Stop and escalate, documenting the trigger in the Decision Log, when:
 
 ## Outcomes & retrospective
 
-**Complete (2026-06-26).** All six work items landed; `make all` is green at HEAD
-(1151 passed, 1 skipped) and `make markdownlint` / `make nixie` pass for the
-amended docs. The Purpose scenario holds end-to-end (Work item 5 fast e2e): a
-relaxed drafting subset with a missing drafted cover key exits `4` on
+**Complete (2026-06-26).** All six work items landed; `make all` is green at
+HEAD (1151 passed, 1 skipped) and `make markdownlint` / `make nixie` pass for
+the amended docs. The Purpose scenario holds end-to-end (Work item 5 fast e2e):
+a relaxed drafting subset with a missing drafted cover key exits `4` on
 `word-counts-cover-drafts` (not `manifest-disk-bijection`) with a `recount`
-reconciliation, `reconcile` repairs it via `RECOUNT` (exit `0`), and a re-`check`
-exits `0`. The strict reconcile precedence (ADR 008 torn `set-chapters` COMPLETE,
-pinned by the B1 regression), the bijection relaxation, `word-counts-match-drafts`,
-and the corpus agreement suites are all unchanged.
+reconciliation, `reconcile` repairs it via `RECOUNT` (exit `0`), and a
+re-`check` exits `0`. The strict reconcile precedence (ADR 008 torn
+`set-chapters` COMPLETE, pinned by the B1 regression), the bijection relaxation,
+`word-counts-match-drafts`, and the corpus agreement suites are all unchanged.
 
 Retrospective notes:
 
-- The 400-line file cap was the dominant force on layout. Three test modules were
-  born from it (`test_cover_drafts_relaxation.py`,
+- The 400-line file cap was the dominant force on layout. Three test modules
+  were born from it (`test_cover_drafts_relaxation.py`,
   `test_relaxed_subset_reconcile.py`, `test_relaxed_subset_e2e.py`) and one
-  production module (`_reconcile_precedence.py`). The plan's Tolerances anticipated
-  this ("extract a shared helper rather than inlining"); the splits stayed within
-  the bounded edit set.
+  production module (`_reconcile_precedence.py`). The plan's Tolerances
+  anticipated this ("extract a shared helper rather than inlining"); the splits
+  stayed within the bounded edit set.
 - The plan's B2 write-draft expectation ("pending-turn action wins") was
   unreachable as worded: a coherent drafting subset always fires the strict
-  bijection, which is refuse-class and precedes the pending-turn arm, so the tree
-  REFUSEs. The load-bearing invariant — the pre-arm never masks a pending turn
-  into a RECOUNT — is preserved and pinned; the test asserts not-RECOUNT and the
-  unchanged strict REFUSE outcome (Work item 3 deviation).
+  bijection, which is refuse-class and precedes the pending-turn arm, so the
+  tree REFUSEs. The load-bearing invariant — the pre-arm never masks a pending
+  turn into a RECOUNT — is preserved and pinned; the test asserts not-RECOUNT
+  and the unchanged strict REFUSE outcome (Work item 3 deviation).
 - crosshair is not locked in this environment, so the planned totality
-  verification falls back to the existing `test_derivation_is_total_*` Hypothesis
-  property, which exercises the new branch.
+  verification falls back to the existing `test_derivation_is_total_*`
+  Hypothesis property, which exercises the new branch.
 - No `INCOHERENT_VARIANTS` registration was added for the mid-draft shape: it
-  fires strict `manifest-disk-bijection`, so the strict `corpus_check` agreement
-  suite would mis-classify it; the dedicated relaxed agreement test covers the
-  shape against both twins directly (Work item 4 deviation).
+  fires strict `manifest-disk-bijection`, so the strict `corpus_check`
+  agreement suite would mis-classify it; the dedicated relaxed agreement test
+  covers the shape against both twins directly (Work item 4 deviation).
 - coderabbit was run once per work item (6 runs total); findings were a
-  bare-assert style note (Work items 1 and 5, fixed) and out-of-scope typos in the
-  untracked planning review artefact. No rate-limiting occurred.
+  bare-assert style note (Work items 1 and 5, fixed) and out-of-scope typos in
+  the untracked planning review artefact. No rate-limiting occurred.
 
 ## Context and orientation
 
@@ -1107,15 +1107,16 @@ Small, surgical corrections accrued from the reviews and audits of task 2.3.8
 after it settled. Each is a lightweight, no-plan, no-review pass; the roadmap
 records the matching nested sub-task under `[x] 2.3.8`.
 
-- [x] Addendum 2.3.8.1 (from review:2.3.8; low). Add a present-but-empty-draft case
-  (a `chapter-NN/` directory whose `draft.md` has count `0`) to the cover-drafts
-  convergence and coherence tests. Decision D6 pins "drafted means
+- [x] Addendum 2.3.8.1 (from review:2.3.8; low). Add a present-but-empty-draft
+      case
+  (a `chapter-NN/` directory whose `draft.md` has count `0`) to the
+  cover-drafts convergence and coherence tests. Decision D6 pins "drafted means
   directory-present, not non-empty `draft.md`", but no test exercises a drafted
-  chapter directory carrying an empty draft, so a future refactor to a non-empty
-  filter would not be caught. A targeted case (the directory-present, count-`0`
-  chapter still requires a `by_chapter` key and converges after a manifest-keyed
-  RECOUNT writes its `0` key) pins the D6 contract. Test-only; no production
-  change.
+  chapter directory carrying an empty draft, so a future refactor to a
+  non-empty filter would not be caught. A targeted case (the directory-present,
+  count-`0` chapter still requires a `by_chapter` key and converges after a
+  manifest-keyed RECOUNT writes its `0` key) pins the D6 contract. Test-only;
+  no production change.
 - [x] Addendum 2.3.8.2 (from review:2.3.8; low). Add a direct
   `_check_word_counts_match_drafts` non-co-fire assertion on the relaxed
   omitted-drafted-key subset. Constraint 3 (orthogonality) is currently proven
@@ -1123,15 +1124,15 @@ records the matching nested sub-task under `[x] 2.3.8`.
   shared-key value detector is silent on the omitted-drafted-key relaxed tree
   (where `word-counts-cover-drafts` fires) hardens the no-double-fire invariant
   at the predicate level. Test-only; no production change. (Distinct from step
-  7.15, which targets the *strict* predicate's latent double-fire; this pins the
-  *relaxed* path's orthogonality directly.)
+  7.15, which targets the *strict* predicate's latent double-fire; this pins
+  the *relaxed* path's orthogonality directly.)
 - [x] Addendum 2.3.8.3 (from audit:2.3.8; low). Add a BDD scenario to
   `tests/features/reconcile.feature` for the mid-draft relaxed-subset RECOUNT
   recovery (a `phase=drafting`, manifest `{1,2,3}`, on-disk `{1,2}` tree with a
   drafted key omitted from `by_chapter`: `check` exits 4 on
   `word-counts-cover-drafts`, `reconcile` re-keys via RECOUNT exits 0, a
-  follow-up `check` exits 0), reusing the existing when/then step vocabulary plus
-  one new `@given` relaxed-subset tree fixture. The headline 2.3.8 behaviour has
-  unit and e2e coverage but, unlike its sibling reconcile recoveries, no
-  black-box scenario pinning the operator-visible contract; this restores
-  coverage symmetry. Test-only; no production change.
+  follow-up `check` exits 0), reusing the existing when/then step vocabulary
+  plus one new `@given` relaxed-subset tree fixture. The headline 2.3.8
+  behaviour has unit and e2e coverage but, unlike its sibling reconcile
+  recoveries, no black-box scenario pinning the operator-visible contract; this
+  restores coverage symmetry. Test-only; no production change.

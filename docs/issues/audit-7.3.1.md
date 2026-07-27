@@ -21,17 +21,17 @@ developer/user documentation, and behavioural/unit test coverage. Each finding
 records a location and a concrete proposed fix.
 
 The migration itself is clean and disciplined: no module still references the
-old `_state_load`, the developers' guide is updated to name the new home and its
-formatters, and a dedicated structural test (`test_state_sourcing_home.py`) pins
-both the public-seam export and the no-`novel_state`-dependency invariant. The
-material findings concern an **API-privacy inconsistency** between the seam's
-declared `__all__`/docstring and its actual cross-module callers, a
+old `_state_load`, the developers' guide is updated to name the new home and
+its formatters, and a dedicated structural test (`test_state_sourcing_home.py`)
+pins both the public-seam export and the no-`novel_state`-dependency invariant.
+The material findings concern an **API-privacy inconsistency** between the
+seam's declared `__all__`/docstring and its actual cross-module callers, a
 **re-export hop** through `_state_mutators` that partially undermines the
 canonical-home goal, and structural duplication between the two state loaders.
 
-Documentation and skills relied on for this audit:
-`docs/developers-guide.md` (the "exit-3 messages are actionable" passage at
-lines 619-666, and the `state_sourcing` seam summary at lines 656-666),
+Documentation and skills relied on for this audit: `docs/developers-guide.md`
+(the "exit-3 messages are actionable" passage at lines 619-666, and the
+`state_sourcing` seam summary at lines 656-666),
 `docs/novel-ralph-harness-design.md` (§7.3.1), the merged ExecPlan reviews
 `docs/execplans/roadmap-7-3-1.logisphere-review-r1..r4.md`, `docs/adr-003`
 (shared interface contract), and `AGENTS.md` (quality gates, 400-line file cap,
@@ -51,16 +51,17 @@ en-GB Oxford spelling). Code navigation used `leta`; history was traced with
   (`_compile_write_error`, `_draft_read_error`), and `_desloppify.py:46`
   (`_draft_read_error`, `_rule_pack_read_error`).
 
-The module docstring and the `__all__` comment both assert the actionable-message
-formatters are "module-private," and the seam test (`test_state_sourcing_home.py`
-lines 25-36) records the same claim. In fact `_state_input_error`,
-`_draft_read_error`, `_compile_write_error`, `_rule_pack_read_error`, and
-`_device_ledger_read_error` are imported by six sibling command modules. Under
-PEP 8 a leading underscore signals a module-private name not meant for import by
-other modules; the developers' guide (lines 619-647) simultaneously documents
-these same names as the developer-facing contract for the exit-3 message
-surface. The code, the docstring, and the prose disagree on whether these are
-private implementation or public seam.
+The module docstring and the `__all__` comment both assert the
+actionable-message formatters are "module-private," and the seam test
+(`test_state_sourcing_home.py` lines 25-36) records the same claim. In fact
+`_state_input_error`, `_draft_read_error`, `_compile_write_error`,
+`_rule_pack_read_error`, and `_device_ledger_read_error` are imported by six
+sibling command modules. Under PEP 8 a leading underscore signals a
+module-private name not meant for import by other modules; the developers'
+guide (lines 619-647) simultaneously documents these same names as the
+developer-facing contract for the exit-3 message surface. The code, the
+docstring, and the prose disagree on whether these are private implementation
+or public seam.
 
 **Proposed fix:** treat the formatters as what they are — part of the public
 state-sourcing seam — and rename them without the leading underscore
@@ -68,11 +69,11 @@ state-sourcing seam — and rename them without the leading underscore
 `rule_pack_read_error`, `device_ledger_read_error`), adding them to `__all__`
 and updating the docstring, the developers' guide `:func:` roles, and the seam
 test's `_PUBLIC_SEAM`/`_SEAM_SYMBOLS`. Keep only genuinely internal helpers
-(`_file_fault_error`, `INSPECT_REPAIR_REMEDY`) underscore-prefixed. Alternatively,
-if the design intends them to stay private, re-route the six consumers through a
-public dispatcher (a single `file_fault_error(kind, path)` factory) so the
-underscore claim becomes true. The rename is the lower-risk option because the
-prose already documents them as a stable contract.
+(`_file_fault_error`, `INSPECT_REPAIR_REMEDY`) underscore-prefixed.
+Alternatively, if the design intends them to stay private, re-route the six
+consumers through a public dispatcher (a single `file_fault_error(kind, path)`
+factory) so the underscore claim becomes true. The rename is the lower-risk
+option because the prose already documents them as a stable contract.
 
 ## Finding 2 — `_recount` and `_reconcile` reach the seam accessors via a re-export hop through `_state_mutators`, not the canonical home
 
@@ -86,8 +87,8 @@ prose already documents them as a stable contract.
   (`from novel_ralph_skill.commands._state_mutators import _state_path,
   _working_dir, _load_document_or_state_error`).
 
-The stated goal of 7.3.1 (developers' guide lines 661-664) is that "every command
-imports the seam directly from `state_sourcing` rather than through the
+The stated goal of 7.3.1 (developers' guide lines 661-664) is that "every
+command imports the seam directly from `state_sourcing` rather than through the
 `novel_state` command facade." Two mutator modules instead import the
 `working_dir`/`state_path` accessors *via* `_state_mutators`, which re-exports
 them from `state_sourcing` purely to satisfy those importers (the `__all__`
@@ -97,8 +98,8 @@ unused-import lint). This swaps the old `novel_state` facade for a new
 intermediary command module, so the "single canonical home" property the task
 sells is only partially realized.
 
-**Proposed fix:** repoint `_recount` and `_reconcile` to import `state_path`
-and `working_dir` directly from `state_sourcing` (the document loader
+**Proposed fix:** repoint `_recount` and `_reconcile` to import `state_path` and
+`working_dir` directly from `state_sourcing` (the document loader
 `_load_document_or_state_error` legitimately lives in `_state_mutators` and may
 stay), then drop the `_state_path`/`_working_dir` aliases and their `__all__`
 re-export entries from `_state_mutators`. This removes a hop and makes the
@@ -134,16 +135,16 @@ Land this together with Finding 2 so the test passes on the corrected imports.
 - **Severity:** low
 - **Location:** `novel_ralph_skill/commands/state_sourcing.py:379-382`
   (`try: return load_state(path) except STATE_INPUT_ERRORS as exc: raise
-  _state_input_error(path, exc) from exc`) and
-  `novel_ralph_skill/commands/_state_mutators.py:111-113` (identical body with
-  `load_document` in place of `load_state`).
+  _state_input_error(path, exc) from exc`)
+  and `novel_ralph_skill/commands/_state_mutators.py:111-113` (identical body
+  with `load_document` in place of `load_state`).
 
 The read-only loader and the document loader share an identical
 load-and-translate body; only the wrapped loader (`load_state` → `State` vs
 `load_document` → `TOMLDocument`) differs. The two are deliberately kept in
 parity (both route through `_state_input_error`), but the parity is currently
-enforced by hand rather than structurally, so a future edit to one
-`except`/`raise … from` arm could silently drift the other.
+enforced by hand rather than structurally, so a future edit to one `except`/
+`raise … from` arm could silently drift the other.
 
 **Proposed fix:** extract a private generic helper in `state_sourcing`, e.g.
 `_load_or_state_error[T](loader: Callable[[Path], T], path: Path) -> T` that
@@ -152,8 +153,8 @@ arm, and have both `load_or_state_error` and `_load_document_or_state_error`
 delegate to it (the document loader keeps living in `_state_mutators` but calls
 the shared arm). This makes the parity structural. Weigh against the cost of a
 `ParamSpec`/`TypeVar` signature; if the team prefers explicitness over the
-generic, leave a cross-reference comment on each body instead and downgrade to a
-documentation note. (See `python-types-and-apis` for the generic-callable
+generic, leave a cross-reference comment on each body instead and downgrade to
+a documentation note. (See `python-types-and-apis` for the generic-callable
 signature.)
 
 ## Finding 5 — `_file_fault_error` is a one-line constructor wrapper whose indirection may not earn its keep
@@ -168,15 +169,15 @@ signature.)
 `_file_fault_error` exists to deduplicate the `return StateInputError(message)`
 tail across four formatters that each build their own prose. The deduplicated
 body is a single constructor call, so the wrapper adds a layer of indirection
-and a 25-line docstring to save four characters of typing per call site; it does
-not centralize any behaviour the four formatters could otherwise diverge on
-(they already build the message themselves). The abstraction is documented as an
-intentional `audit:6.3.8` dedup, so this is a judgement call rather than a
-defect.
+and a 25-line docstring to save four characters of typing per call site; it
+does not centralize any behaviour the four formatters could otherwise diverge
+on (they already build the message themselves). The abstraction is documented
+as an intentional `audit:6.3.8` dedup, so this is a judgement call rather than
+a defect.
 
 **Proposed fix:** inline `return StateInputError(message)` at the four call
-sites and delete `_file_fault_error`, or — if a shared seam is genuinely
-wanted — give it a reason to exist by having it own the common file-fault *message
+sites and delete `_file_fault_error`, or — if a shared seam is genuinely wanted
+— give it a reason to exist by having it own the common file-fault *message
 scaffold* (the "cannot {verb} {artefact}; {remedy}" shape) rather than only the
 constructor call, so the four formatters supply just verb/artefact/remedy. If
 neither change is desired, keep as-is; the cost is small. (See
@@ -203,5 +204,5 @@ cite the function/section name (`:func:`/`:mod:` roles or a named heading)
 rather than `file.py:NNN`. Where a line citation is unavoidable, consider a
 lightweight docs-link checker in the test suite (or a `markdownlint`/custom
 gate) that resolves `:func:` roles and flags dangling `file.py:NN` anchors. At
-minimum, sweep the existing `parse.py:NNN` citations to symbolic form during the
-next touch of those modules.
+minimum, sweep the existing `parse.py:NNN` citations to symbolic form during
+the next touch of those modules.

@@ -27,14 +27,13 @@ both:
 
 - The test-facing import is now the **verbatim** sanctioned form
   `from conftest import WorkingTreeSpec` under `if TYPE_CHECKING:`
-  (developers-guide lines
-  39-52). The spec types stay *defined* in `tests/working_corpus.py`;
-  `tests/conftest.py` **re-exports** them inside its own `TYPE_CHECKING` block.
-  The only runtime import edge is the `TYPE_CHECKING`-guarded
-  `conftest → working_corpus`, which is `False` at runtime and mirrors
-  conftest's existing `from cuprum.program import Program` (line 33). No
-  runtime cross-module import is introduced anywhere; the no-value-import
-  contract holds.
+  (developers-guide lines 39-52). The spec types stay *defined* in
+  `tests/working_corpus.py`; `tests/conftest.py` **re-exports** them inside its
+  own `TYPE_CHECKING` block. The only runtime import edge is the
+  `TYPE_CHECKING`-guarded `conftest → working_corpus`, which is `False` at
+  runtime and mirrors conftest's existing `from cuprum.program import Program`
+  (line 33). No runtime cross-module import is introduced anywhere; the
+  no-value-import contract holds.
 - Work item 5 is now explicitly *descriptive* — it "records how the corpus
   applies the already-stated rule" and carries an escalation guard if the
   carve-out "appears to genuinely require extension." The round-2

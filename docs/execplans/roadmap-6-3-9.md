@@ -1,9 +1,8 @@
 # Pin the developers'-guide contract restatement to the code with a drift-guard arm
 
-This ExecPlan (execution plan) is a living document. The sections
-`Constraints`, `Tolerances`, `Risks`, `Progress`, `Surprises & Discoveries`,
-`Decision Log`, and `Outcomes & Retrospective` must be kept up to date as work
-proceeds.
+This ExecPlan (execution plan) is a living document. The sections `Constraints`,
+`Tolerances`, `Risks`, `Progress`, `Surprises & Discoveries`, `Decision Log`,
+and `Outcomes & Retrospective` must be kept up to date as work proceeds.
 
 Status: COMPLETE
 
@@ -30,19 +29,19 @@ the developers' guide, which `SKILL.md` and the design doc point at as the
 developer-facing canonical restatement — is itself pinned by **no** test. A
 change to `novel_ralph_skill/contract/exit_codes.py`,
 `novel_ralph_skill/contract/envelope.py`, or the guide's two contract sections
-that is not kept in lockstep would silently stale the developer-facing copy: the
-exact per-command drift roadmap step §6.3 exists to close.
+that is not kept in lockstep would silently stale the developer-facing copy:
+the exact per-command drift roadmap step §6.3 exists to close.
 
-After this change, a developer who edits the `ExitCode` enum, the envelope field
-set, `ENVELOPE_SCHEMA_VERSION`, or the developers'-guide exit-code table /
-envelope field-list without keeping them in lockstep gets a failing test naming
-the divergence, rather than discovering the staleness later. Success is
+After this change, a developer who edits the `ExitCode` enum, the envelope
+field set, `ENVELOPE_SCHEMA_VERSION`, or the developers'-guide exit-code table
+/ envelope field-list without keeping them in lockstep gets a failing test
+naming the divergence, rather than discovering the staleness later. Success is
 observable by running the new test before the change (it fails on a planted
 divergence) and after (it passes against the live `docs/developers-guide.md`),
 and by running `make all`, `make markdownlint`, and `make nixie` green. With
-this guard in place, every one of the four contract restatement copies is pinned
-by a test, and the §6.3 "documented once without per-command drift" hypothesis
-is fully discharged.
+this guard in place, every one of the four contract restatement copies is
+pinned by a test, and the §6.3 "documented once without per-command drift"
+hypothesis is fully discharged.
 
 The mechanism is a docs-level *drift-guard*, following the repository's
 established in-process *prose-guard* pattern (the shared `read_repo_text`
@@ -68,28 +67,29 @@ escalation, not a workaround.
   not change them. The roadmap success criterion is a guard, not a contract
   change.
 - Do not change the *content* of the developers'-guide exit-code table, the
-  envelope field-list, or the surrounding contract prose, nor of ADR-003 Table 2
-  or design §3.1/§3.2. The guard pins the existing restatement; it is not a
-  licence to re-edit the contract. The only permitted `docs/developers-guide.md`
-  edit, if the guard's anchors demand it, is a whitespace-neutral clarification
-  that does not change a documented value, recorded in the Decision Log with its
-  justification.
+  envelope field-list, or the surrounding contract prose, nor of ADR-003 Table
+  2 or design §3.1/§3.2. The guard pins the existing restatement; it is not a
+  licence to re-edit the contract. The only permitted
+  `docs/developers-guide.md` edit, if the guard's anchors demand it, is a
+  whitespace-neutral clarification that does not change a documented value,
+  recorded in the Decision Log with its justification.
 - The new test must keep the repository's prose-guard discipline: it reads
   `docs/developers-guide.md` in process through the shared `read_repo_text`
   fixture (`tests/conftest.py`), does **not** shell out, and does **not** import
-  `novel_ralph_skill` for its *runtime* side effects. It may import the contract
-  *constants and enum* (`ExitCode`, the `Envelope` dataclass fields,
+  `novel_ralph_skill` for its *runtime* side effects. It may import the
+  contract *constants and enum* (`ExitCode`, the `Envelope` dataclass fields,
   `ENVELOPE_SCHEMA_VERSION`) — these are pure data, and importing them is what
   ties the guard to the code source the roadmap names. This mirrors
   `tests/test_skill_contract_drift_guard.py` (6.3.7) and
-  `tests/test_contract_envelope_snapshots.py`, which already import the contract
-  module directly.
+  `tests/test_contract_envelope_snapshots.py`, which already import the
+  contract module directly.
 - Keep the new test module under the 400-line cap the repository applies to test
-  modules (AGENTS.md lines 24-27; see `tests/test_skill_contract_drift_guard.py`
-  and `tests/test_state_layout_reference.py`, which extracted helpers to stay
-  under it). Reuse the existing pure parser `tests/_skill_contract_scanner.py`;
-  add a new pure helper to it only if a developers'-guide-specific parse (the
-  inline field list) cannot be expressed with the existing functions.
+  modules (AGENTS.md lines 24-27; see
+  `tests/test_skill_contract_drift_guard.py` and
+  `tests/test_state_layout_reference.py`, which extracted helpers to stay under
+  it). Reuse the existing pure parser `tests/_skill_contract_scanner.py`; add a
+  new pure helper to it only if a developers'-guide-specific parse (the inline
+  field list) cannot be expressed with the existing functions.
 - en-GB Oxford spelling ("-ize"/"-yse"/"-our") in all prose, comments,
   docstrings, and the commit message. 100% docstring coverage is enforced by
   `make lint`; every new module, class, function, and fixture needs a docstring.
@@ -107,8 +107,8 @@ escalation, not a workaround.
   guard cannot read the contract as data, which contradicts the task framing.
 - Source divergence: if the guard reveals that `docs/developers-guide.md`
   already diverges from the live contract (a real, pre-existing drift rather
-  than a planted one), stop and escalate. Fixing a live drift is a contract edit
-  outside this task's scope; record it in the Decision Log and surface it.
+  than a planted one), stop and escalate. Fixing a live drift is a contract
+  edit outside this task's scope; record it in the Decision Log and surface it.
 - Dependencies: if a new external dependency is required, stop and escalate. No
   new dependency is expected; `pytest` and the existing scanner are already in
   the test toolchain.
@@ -342,8 +342,8 @@ escalation, not a workaround.
 
 This repository is a Python skill (`skill/novel-ralph/`) plus its supporting
 package (`novel_ralph_skill/`) and a `tests/` tree. The shared interface
-contract — how every `novel` command reports to the harness — is defined once in
-code and restated in several reader-facing documents.
+contract — how every `novel` command reports to the harness — is defined once
+in code and restated in several reader-facing documents.
 
 The canonical contract sources, by full path:
 
@@ -356,9 +356,9 @@ The canonical contract sources, by full path:
 - `novel_ralph_skill/contract/envelope.py` defines
   `ENVELOPE_SCHEMA_VERSION: int = 1` and the frozen `Envelope` dataclass whose
   fields, in order, are `command`, `schema_version`, `ok`, `working_dir`,
-  `result`, `messages` (verified at lines 55-60). This is the code source of the
-  envelope field set, order, and schema version. Verified side-effect-free at
-  import (no top-level I/O).
+  `result`, `messages` (verified at lines 55-60). This is the code source of
+  the envelope field set, order, and schema version. Verified side-effect-free
+  at import (no top-level I/O).
 
 The restatement site this task pins, by full path:
 
@@ -377,16 +377,16 @@ The restatement site this task pins, by full path:
 
 The other three restatement copies (`docs/adr-003-shared-interface-contract.md`
 Table 2; `docs/novel-ralph-harness-design.md` §3.1/§3.2;
-`skill/novel-ralph/SKILL.md`) are already pinned: ADR-003 and the design doc are
-the canonical/source copies and are cross-checked by, and `SKILL.md` is pinned
-by, the 6.3.7 guard `tests/test_skill_contract_drift_guard.py`.
+`skill/novel-ralph/SKILL.md`) are already pinned: ADR-003 and the design doc
+are the canonical/source copies and are cross-checked by, and `SKILL.md` is
+pinned by, the 6.3.7 guard `tests/test_skill_contract_drift_guard.py`.
 
 The established prose-guard pattern this plan reuses:
 
 - `tests/test_skill_contract_drift_guard.py` (roadmap 6.3.7) reads `SKILL.md`
-  through the `read_repo_text` fixture, slices it by heading anchors, parses the
-  exit-code table and envelope skeleton, and asserts each cell tracks the live
-  `ExitCode`/`Envelope`/`ENVELOPE_SCHEMA_VERSION`. This task is its direct
+  through the `read_repo_text` fixture, slices it by heading anchors, parses
+  the exit-code table and envelope skeleton, and asserts each cell tracks the
+  live `ExitCode`/`Envelope`/`ENVELOPE_SCHEMA_VERSION`. This task is its direct
   sibling for the developers' guide.
 - `tests/_skill_contract_scanner.py` holds the pure parsing helpers:
   `slice_doc_region(text, start, end, *, source)` (loud-failure region slicer),
@@ -401,8 +401,8 @@ The established prose-guard pattern this plan reuses:
 
 The shared fixture: `tests/conftest.py` defines `read_repo_text` (an in-process
 repo-relative UTF-8 reader, verified at lines 153-170) and the `RepoTextReader`
-protocol; `project_root` gives the worktree root. These are the only scaffolding
-the guard needs.
+protocol; `project_root` gives the worktree root. These are the only
+scaffolding the guard needs.
 
 Term definitions:
 
@@ -412,8 +412,8 @@ Term definitions:
   documentation file as text and asserts mechanical properties of it without
   shelling out.
 - *Field-list*: the inline `{command, schema_version, ...}` brace-list that
-  names the envelope fields in contract order in the developers' guide (in place
-  of a fenced JSON skeleton).
+  names the envelope fields in contract order in the developers' guide (in
+  place of a fenced JSON skeleton).
 
 ## Plan of work
 
@@ -443,35 +443,36 @@ All commands run from the worktree root
 
 ### Work item 1 — Failing drift-guard skeleton (Stage A)
 
-Implements: the roadmap 6.3.9 success criterion ("a drift-guard arm fails if the
-developers'-guide exit-code table or envelope-field vocabulary diverges … the
-guard reuses the repo's established prose-guard pattern"); AGENTS.md
-"Establish a failing test suite prior to implementation (red, green,
-refactor)" (lines 66-67).
+Implements: the roadmap 6.3.9 success criterion ("a drift-guard arm fails if
+the developers'-guide exit-code table or envelope-field vocabulary diverges …
+the guard reuses the repo's established prose-guard pattern"); AGENTS.md
+"Establish a failing test suite prior to implementation (red, green, refactor)"
+(lines 66-67).
 
-Docs to read first: `docs/roadmap.md` task 6.3.9 (the "Pin the developers'-guide
-contract restatement" block); the execplans skill (red-green-refactor, mandatory
-living sections); AGENTS.md testing rules (lines 141-172). Read the sibling
-`docs/execplans/roadmap-6-3-7.md` end to end — this task is its direct analogue.
+Docs to read first: `docs/roadmap.md` task 6.3.9 (the "Pin the
+developers'-guide contract restatement" block); the execplans skill
+(red-green-refactor, mandatory living sections); AGENTS.md testing rules (lines
+141-172). Read the sibling `docs/execplans/roadmap-6-3-7.md` end to end — this
+task is its direct analogue.
 
-Skills to load: `leta` first for navigation; `sem` for history;
-`python-router` (it routes to `python-testing` for the pytest
-fixture/parametrize idiom and to `python-types-and-apis` for the `RepoTextReader`
-protocol import).
+Skills to load: `leta` first for navigation; `sem` for history; `python-router`
+(it routes to `python-testing` for the pytest fixture/parametrize idiom and to
+`python-types-and-apis` for the `RepoTextReader` protocol import).
 
 Create `tests/test_developers_guide_contract_drift_guard.py` with:
 
 - A module docstring stating it pins the `docs/developers-guide.md`
-  command-contract restatement (the "### Disambiguated exit codes" table and the
-  "### The shared JSON envelope" field-list) to `ExitCode`, the `Envelope` field
-  set, and `ENVELOPE_SCHEMA_VERSION`, following the prose-guard pattern of
+  command-contract restatement (the "### Disambiguated exit codes" table and
+  the "### The shared JSON envelope" field-list) to `ExitCode`, the `Envelope`
+  field set, and `ENVELOPE_SCHEMA_VERSION`, following the prose-guard pattern of
   `tests/test_skill_contract_drift_guard.py`, and naming the
   schema_version-as-field-name carve-out (Decision Log).
 - A `_GUIDE_PARTS = ("docs", "developers-guide.md")` constant and a `guide_text`
   fixture over `read_repo_text`, mirroring the 6.3.7 guard's `skill_text`
   fixture.
-- One *placeholder* assertion that intentionally fails (e.g. asserting a sentinel
-  the file does not contain), so the suite is red before the guard exists.
+- One *placeholder* assertion that intentionally fails (e.g. asserting a
+  sentinel the file does not contain), so the suite is red before the guard
+  exists.
 
 Run the new module and confirm it is collected and red:
 
@@ -499,13 +500,12 @@ Docs to read first: the guide's "### Disambiguated exit codes" section
 (`docs/developers-guide.md` heading line 596, two-column table lines 601-607);
 `exit_codes.py` (the five enum members); the 6.3.7 guard's exit-code half
 (`tests/test_skill_contract_drift_guard.py`,
-`TestSkillExitCodeTableDriftGuard`). Skills: `python-router` →
-`python-testing`.
+`TestSkillExitCodeTableDriftGuard`). Skills: `python-router` → `python-testing`.
 
 No new scanner function is needed for the exit-code half: reuse
-`slice_doc_region`, `parse_markdown_table`, and `extract_exit_code_meanings` from
-`tests/_skill_contract_scanner.py` (the last is already column-count tolerant, so
-the guide's two-column table parses unchanged).
+`slice_doc_region`, `parse_markdown_table`, and `extract_exit_code_meanings`
+from `tests/_skill_contract_scanner.py` (the last is already column-count
+tolerant, so the guide's two-column table parses unchanged).
 
 In `tests/test_developers_guide_contract_drift_guard.py` add:
 
@@ -517,9 +517,10 @@ In `tests/test_developers_guide_contract_drift_guard.py` add:
   `SUCCESS → ("success",)`, `BENIGN_NEGATIVE → ("benign",)`,
   `USAGE_ERROR → ("usage",)`, `STATE_ERROR → ("state",)`,
   `ACTIONABLE_FINDING → ("actionable", "finding")`. Keying off the enum member,
-  not a string copied from the guide, is the load-bearing coupling. (This may be
-  imported from, or duplicated from, the 6.3.7 guard; prefer a small local copy
-  to avoid coupling two test modules, and note the choice in the Decision Log.)
+  not a string copied from the guide, is the load-bearing coupling. (This may
+  be imported from, or duplicated from, the 6.3.7 guard; prefer a small local
+  copy to avoid coupling two test modules, and note the choice in the Decision
+  Log.)
 - `test_guide_exit_codes_cover_exactly_the_enum`: parse the guide's table with
   `parse_markdown_table` + `extract_exit_code_meanings`, assert the set of
   integer codes equals `{c.value for c in ExitCode}` (i.e. `{0,1,2,3,4}`).
@@ -537,8 +538,8 @@ two-column in-string table fixture (a multi-line literal, not a file) to prove
 the column-count-tolerant path reads a two-column table correctly — the
 guide-specific shape (Risks: structural divergence). No snapshot test is
 warranted (AGENTS.md lines 148-158: avoid snapshot-only coverage for logic
-assertable directly). No property test is warranted: the inputs are fixed in-repo
-documents, not a generative surface (AGENTS.md lines 162-163).
+assertable directly). No property test is warranted: the inputs are fixed
+in-repo documents, not a generative surface (AGENTS.md lines 162-163).
 
 Validation:
 
@@ -547,9 +548,10 @@ Validation:
     make markdownlint
     make nixie
 
-Expected: all new tests pass; full suite green; markdown gates green (no markdown
-changed in this item, but run them to confirm the gate). Commit this work item
-(folding in Work item 1's scaffolding) with a message referencing roadmap 6.3.9.
+Expected: all new tests pass; full suite green; markdown gates green (no
+markdown changed in this item, but run them to confirm the gate). Commit this
+work item (folding in Work item 1's scaffolding) with a message referencing
+roadmap 6.3.9.
 
 ### Work item 3 — Envelope field-list drift guard (Stage B)
 
@@ -572,39 +574,43 @@ Add the new pure helper to `tests/_skill_contract_scanner.py`:
   the FIRST `{...}` brace-list in the region, splits it on commas, strips
   surrounding whitespace and backticks from each field, and returns the field
   names in order. Raises `ValueError` (naming `source`) if the region holds no
-  brace-list (vacuous-pass guard, mirroring `extract_fenced_json`). Its docstring
-  states it is the fence-free counterpart used for the developers' guide, whose
-  envelope section names the field set inline rather than in a ```json fence.
-  Keep it pure (no filesystem, no `novel_ralph_skill` import) like its siblings.
+  brace-list (vacuous-pass guard, mirroring `extract_fenced_json`). Its
+  docstring states it is the fence-free counterpart used for the developers'
+  guide, whose envelope section names the field set inline rather than in a ```
+  json fence. Keep it pure (no filesystem, no `novel_ralph_skill` import) like
+  its siblings.
 
 Add to `tests/test_developers_guide_contract_drift_guard.py`:
 
 - An `_ENVELOPE_HEADING = "### The shared JSON envelope"` anchor and an
   `_ENVELOPE_END = "### Disambiguated exit codes"` anchor; an `envelope_region`
-  fixture: `slice_doc_region(guide_text, _ENVELOPE_HEADING, _ENVELOPE_END,
+  fixture:
+  `slice_doc_region(guide_text, _ENVELOPE_HEADING, _ENVELOPE_END,
   source="developers-guide.md")`.
-- A `guide_envelope_fields` fixture: `extract_brace_field_list(envelope_region,
-  source="developers-guide.md")`.
+- A `guide_envelope_fields` fixture:
+  `extract_brace_field_list(envelope_region, source="developers-guide.md")`.
 - `test_guide_envelope_fields_match_dataclass`: assert `guide_envelope_fields`
   equals `[f.name for f in dataclasses.fields(Envelope)]` — i.e.
   `["command", "schema_version", "ok", "working_dir", "result", "messages"]`.
-  This pins the field set **and order** to the code (the contract field order is
-  load-bearing; `render_machine` asserts it too). A field renamed, reordered,
-  added, or dropped in the guide's brace-list, or in the dataclass, fails here.
+  This pins the field set **and order** to the code (the contract field order
+  is load-bearing; `render_machine` asserts it too). A field renamed,
+  reordered, added, or dropped in the guide's brace-list, or in the dataclass,
+  fails here.
 - `test_guide_envelope_names_schema_version_field`: assert `"schema_version"` is
   in `guide_envelope_fields`. Per the Decision Log carve-out, this pins
   schema_version as a *field name in contract position*, NOT as a literal value
   (the guide carries no `schema_version: 1` literal in this section). Document
   the carve-out in the test docstring so a future reader does not "tighten" it
-  into a non-existent value assertion. The import of `ENVELOPE_SCHEMA_VERSION` at
-  module top ties the guard to the constant; reference it in the docstring's
+  into a non-existent value assertion. The import of `ENVELOPE_SCHEMA_VERSION`
+  at module top ties the guard to the constant; reference it in the docstring's
   rationale even though the section carries no literal to compare.
 
-Tests to add (per AGENTS.md): unit/prose-guard tests as above. Extend the scanner
-unit-test class with planted fixtures proving (a) `extract_brace_field_list`
-returns the ordered field names from a planted `{a, b, c}` literal and strips
-backticks, and (b) it raises `ValueError` on a region with no brace-list. No
-snapshot/property test warranted (same reasoning as Work item 2).
+Tests to add (per AGENTS.md): unit/prose-guard tests as above. Extend the
+scanner unit-test class with planted fixtures proving (a)
+`extract_brace_field_list` returns the ordered field names from a planted
+`{a, b, c}` literal and strips backticks, and (b) it raises `ValueError` on a
+region with no brace-list. No snapshot/property test warranted (same reasoning
+as Work item 2).
 
 Validation: the same command quartet as Work item 2; all green. Commit
 referencing roadmap 6.3.9.
@@ -614,8 +620,8 @@ referencing roadmap 6.3.9.
 Implements: roadmap 6.3.9 success criterion's "fails if … diverges" — proven by
 demonstrating red on a planted divergence; AGENTS.md "a failing test before the
 fix and a passing test that would have caught the regression" (lines 66-71) and
-the snapshot/guard discipline that "a … guard failure identifies a real contract
-change" (lines 156-158).
+the snapshot/guard discipline that "a … guard failure identifies a real
+contract change" (lines 156-158).
 
 Docs to read first: the 6.3.7 guard's vacuous-pass class
 (`tests/test_skill_contract_drift_guard.py`, the non-vacuous test) and the
@@ -625,12 +631,12 @@ warranted (it is not — fixed-document inputs).
 
 Steps:
 
-1. Audit every anchor lookup and region slice in the guard. Confirm each uses the
-   loud-failure helpers (`slice_doc_region` with its `source` label,
-   `extract_brace_field_list`'s missing-brace-list raise) so a renamed heading or
-   removed field-list fails rather than yielding an empty region that passes
-   vacuously. Add an explicit `test_regions_are_non_empty` asserting the guide's
-   exit-table region contains `| 0 |` and the envelope region contains
+1. Audit every anchor lookup and region slice in the guard. Confirm each uses
+   the loud-failure helpers (`slice_doc_region` with its `source` label,
+   `extract_brace_field_list`'s missing-brace-list raise) so a renamed heading
+   or removed field-list fails rather than yielding an empty region that passes
+   vacuously. Add an explicit `test_regions_are_non_empty` asserting the
+   guide's exit-table region contains `| 0 |` and the envelope region contains
    `schema_version` and exactly the six expected fields (so a future heading
    rename or a second stray brace-list cannot silently neuter the guard).
 2. Prove the guard is genuinely red on divergence, *without committing a broken
@@ -639,18 +645,18 @@ Steps:
    `uv run pytest -q tests/test_developers_guide_contract_drift_guard.py`,
    observe `test_guide_exit_codes_cover_exactly_the_enum` fail, then revert.
    Likewise temporarily rename `working_dir` to `workdir` in the envelope
-   brace-list and observe `test_guide_envelope_fields_match_dataclass` fail, then
-   revert. Record both transcripts in `Artifacts and notes`. (These edits are
-   never committed; they are the red-test evidence the execplans skill and
+   brace-list and observe `test_guide_envelope_fields_match_dataclass` fail,
+   then revert. Record both transcripts in `Artifacts and notes`. (These edits
+   are never committed; they are the red-test evidence the execplans skill and
    AGENTS.md require. `git checkout -- docs/developers-guide.md` restores the
    file; confirm `git status` is clean of the guide before committing.)
 3. Confirm no test-collection inventory tripwire. The 6.3.7 plan traced
    (`docs/execplans/roadmap-6-3-7.md`, B3 Decision-Log entry) that there is NO
-   collected-test-module-count assertion, `tests/`-directory inventory frozenset,
-   or `pytest_collect*` hook in the suite, so a new `tests/` module breaks no
-   gate. Re-confirm with a quick search; if, contrary to that trace, a
-   collection-count guard is encountered, that is a Tolerance breach — stop and
-   escalate rather than editing it.
+   collected-test-module-count assertion, `tests/`-directory inventory
+   frozenset, or `pytest_collect*` hook in the suite, so a new `tests/` module
+   breaks no gate. Re-confirm with a quick search; if, contrary to that trace,
+   a collection-count guard is encountered, that is a Tolerance breach — stop
+   and escalate rather than editing it.
 4. Final docs gate, since the guard is docs-adjacent: run the full quartet.
 
 Validation:
@@ -671,9 +677,9 @@ Quality criteria (what "done" means):
 - Tests: the new `tests/test_developers_guide_contract_drift_guard.py` passes
   against the live `docs/developers-guide.md`; it fails (demonstrated
   transiently) when the guide's exit-code table loses/gains a code and when an
-  envelope field in the brace-list is renamed, reordered, added, or dropped. The
-  6.3.7 guard (`tests/test_skill_contract_drift_guard.py`) and the contract suite
-  (`tests/test_contract_*`) stay green.
+  envelope field in the brace-list is renamed, reordered, added, or dropped.
+  The 6.3.7 guard (`tests/test_skill_contract_drift_guard.py`) and the contract
+  suite (`tests/test_contract_*`) stay green.
 - Lint/typecheck: `make lint` passes (Ruff, 100% docstring coverage, pyright/ty
   as configured). `make all` is green end to end.
 - Markdown: `make markdownlint` and `make nixie` pass (no Mermaid added; run to
@@ -697,16 +703,16 @@ Quality method (how we check):
 
 ## Idempotence and recovery
 
-- All steps are re-runnable. The guard reads files; it writes only new test files
-  (and one new helper appended to `tests/_skill_contract_scanner.py`). Re-running
-  `make all` is safe.
-- The Work item 4 red-test demonstration uses transient, never-committed edits to
-  `docs/developers-guide.md`; if interrupted mid-edit,
-  `git checkout -- docs/developers-guide.md` restores it. Confirm `git status` is
-  clean of the guide before committing.
-- If the guard reveals a *real* pre-existing drift between the guide and the live
-  contract (a Tolerance breach), stop, do not "fix" it by editing the contract or
-  the table, and escalate per the Tolerances section.
+- All steps are re-runnable. The guard reads files; it writes only new test
+  files (and one new helper appended to `tests/_skill_contract_scanner.py`).
+  Re-running `make all` is safe.
+- The Work item 4 red-test demonstration uses transient, never-committed edits
+  to `docs/developers-guide.md`; if interrupted mid-edit,
+  `git checkout -- docs/developers-guide.md` restores it. Confirm `git status`
+  is clean of the guide before committing.
+- If the guard reveals a *real* pre-existing drift between the guide and the
+  live contract (a Tolerance breach), stop, do not "fix" it by editing the
+  contract or the table, and escalate per the Tolerances section.
 
 ## Artefacts and notes
 
@@ -740,15 +746,15 @@ commit):
 Libraries/modules to use and why:
 
 - `pytest` with the shared `read_repo_text` fixture (`tests/conftest.py`) — the
-  sanctioned in-process repo-text reader; no subprocess, matching the prose-guard
-  discipline.
+  sanctioned in-process repo-text reader; no subprocess, matching the
+  prose-guard discipline.
 - `novel_ralph_skill.contract.exit_codes.ExitCode` — imported as pure data to
-  derive the expected code set and per-code keywords, tying the guide's table to
-  the code source named by the roadmap.
+  derive the expected code set and per-code keywords, tying the guide's table
+  to the code source named by the roadmap.
 - `novel_ralph_skill.contract.envelope.Envelope` (via `dataclasses.fields`) and
-  `ENVELOPE_SCHEMA_VERSION` — imported to derive the expected field order and to
-  tie the guard to the schema-version constant (as a field-name coupling; see the
-  Decision Log carve-out).
+  `ENVELOPE_SCHEMA_VERSION` — imported to derive the expected field order and
+  to tie the guard to the schema-version constant (as a field-name coupling;
+  see the Decision Log carve-out).
 - `dataclasses` (stdlib) for field introspection.
 - The pure scanner `tests/_skill_contract_scanner.py` — reused for
   `slice_doc_region`, `parse_markdown_table`, `extract_exit_code_meanings`, and
@@ -773,40 +779,41 @@ changes.
 ## Revision note
 
 Initial draft (2026-06-26). Decomposes roadmap 6.3.9 into four ordered,
-independently committable work items: red skeleton (folded into WI2 to keep every
-commit gate-green), exit-code-table guard, envelope-field-list guard, and
-vacuous-pass hardening with a planted-divergence red/green proof. The plan is the
-direct sibling of `docs/execplans/roadmap-6-3-7.md` (the `SKILL.md` guard) and
-reuses its pure scanner `tests/_skill_contract_scanner.py`. Two structural
+independently committable work items: red skeleton (folded into WI2 to keep
+every commit gate-green), exit-code-table guard, envelope-field-list guard, and
+vacuous-pass hardening with a planted-divergence red/green proof. The plan is
+the direct sibling of `docs/execplans/roadmap-6-3-7.md` (the `SKILL.md` guard)
+and reuses its pure scanner `tests/_skill_contract_scanner.py`. Two structural
 divergences from the SKILL guard are pinned with verified evidence: the
 developers'-guide exit-code table has only two columns (handled by the existing
 column-count-tolerant `extract_exit_code_meanings`), and the envelope section
-carries an inline `{...}` field-list rather than a fenced JSON skeleton (handled
-by a new `extract_brace_field_list` helper). The `schema_version`-as-field-name
-carve-out — the guide names the field but carries no literal `1` in this section
-— is recorded so the guard pins the field, not a non-existent value. cuprum and
-the other locked external libraries are scoped out explicitly with rationale
-(Decision Log): the task is an in-process docs drift-guard that uses none of them.
+carries an inline `{...}` field-list rather than a fenced JSON skeleton
+(handled by a new `extract_brace_field_list` helper). The
+`schema_version`-as-field-name carve-out — the guide names the field but
+carries no literal `1` in this section — is recorded so the guard pins the
+field, not a non-existent value. cuprum and the other locked external libraries
+are scoped out explicitly with rationale (Decision Log): the task is an
+in-process docs drift-guard that uses none of them.
 
 ## Addenda (post-merge follow-ups)
 
 Lightweight addendum work items folded back onto this completed task from the
 post-merge reviews and audits. Execute each as a small addendum pass — no plan
-or design-review cycle: make the change, run `make all` (plus `make
-markdownlint`/`make nixie` for any Markdown), `coderabbit review --agent`,
-commit, and tick the matching roadmap sub-task on merge. The substantial,
-cross-cutting follow-ups raised against this task (single-sourcing the
-contract-guard helpers, renaming the now document-generic scanner module,
-auditing guard keyword/anchor brittleness, and guarding the developers'-guide
-exit-3 formatter-count prose) were re-routed to roadmap step 7.6; this is the
-small coverage gap.
+or design-review cycle: make the change, run `make all` (plus
+`make markdownlint`/`make nixie` for any Markdown),
+`coderabbit review --agent`, commit, and tick the matching roadmap sub-task on
+merge. The substantial, cross-cutting follow-ups raised against this task
+(single-sourcing the contract-guard helpers, renaming the now document-generic
+scanner module, auditing guard keyword/anchor brittleness, and guarding the
+developers'-guide exit-3 formatter-count prose) were re-routed to roadmap step
+7.6; this is the small coverage gap.
 
 - [x] 6.3.9.1 — Cover the trailing-comma discard branch of
   `extract_brace_field_list` (from review:6.3.9 / audit:6.3.9, low; two
   near-identical proposals merged). The scanner helper documents that empty
-  comma-split fragments (e.g. a trailing comma) are discarded via the `if
-  field:` guard at `tests/_skill_contract_scanner.py:268`, and the behaviour is
-  correct, but no unit test exercises that branch, so a regression removing the
-  guard would pass every current test. Add one unit case planting `{a, b, }` and
-  asserting it parses to `[a, b]`, pinning the documented contract and closing
-  the coverage gap. Gate with `make all`.
+  comma-split fragments (e.g. a trailing comma) are discarded via the
+  `if field:` guard at `tests/_skill_contract_scanner.py:268`, and the
+  behaviour is correct, but no unit test exercises that branch, so a regression
+  removing the guard would pass every current test. Add one unit case planting
+  `{a, b, }` and asserting it parses to `[a, b]`, pinning the documented
+  contract and closing the coverage gap. Gate with `make all`.

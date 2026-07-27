@@ -271,42 +271,43 @@ Hard invariants that must hold throughout implementation.
 ## Outcomes & retrospective
 
 All four work items landed, each as one atomic commit gated by `make all` and a
-clean `coderabbit review --agent`. The three remaining exit-`3` write/file-fault
-arms — compile-write, rule-pack-read, device-ledger-read — now route through
-three new dependency-free formatters in `_state_load.py`
+clean `coderabbit review --agent`. The three remaining exit-`3`
+write/file-fault arms — compile-write, rule-pack-read, device-ledger-read — now
+route through three new dependency-free formatters in `_state_load.py`
 (`_compile_write_error`, `_rule_pack_read_error`, `_device_ledger_read_error`),
 each naming the offending artefact and offering a concrete, write- or
-file-shaped remedy with no `Errno`, no `{exc}` repr, and no traceback. The
-WI4 cross-arm parity guard pins the no-raw-leak property structurally over all
-five state-input formatters.
+file-shaped remedy with no `Errno`, no `{exc}` repr, and no traceback. The WI4
+cross-arm parity guard pins the no-raw-leak property structurally over all five
+state-input formatters.
 
-What held to plan: Decisions D1 (host in `_state_load.py`), D2 (build prose from
-the path, never the typed FileError's pre-built message), and D3 (three distinct
-formatters) all proved correct — WI2/WI3's red anchors exposed the predicted
-*double* leak when the FileError message was re-interpolated.
+What held to plan: Decisions D1 (host in `_state_load.py`), D2 (build prose
+from the path, never the typed FileError's pre-built message), and D3 (three
+distinct formatters) all proved correct — WI2/WI3's red anchors exposed the
+predicted *double* leak when the FileError message was re-interpolated.
 
 Deviation from plan: the rule-pack formatter takes
 `importlib.resources.abc.Traversable`, not the `pathlib.Path`/`str` the
-Interfaces section assumed, because `offenders_pack_path()` (the shipped default)
-returns a `Traversable` while `--pack` supplies a `Path`. `Traversable` is a
-stdlib type imported under `TYPE_CHECKING`, so the leaf module stays
-dependency-free — the Constraint that matters is preserved. This is a
-type-precision deviation, not a behaviour or dependency change; no Tolerance was
-tripped. (See the Traversable entry under Surprises & discoveries.)
+Interfaces section assumed, because `offenders_pack_path()` (the shipped
+default) returns a `Traversable` while `--pack` supplies a `Path`.
+`Traversable` is a stdlib type imported under `TYPE_CHECKING`, so the leaf
+module stays dependency-free — the Constraint that matters is preserved. This
+is a type-precision deviation, not a behaviour or dependency change; no
+Tolerance was tripped. (See the Traversable entry under Surprises &
+discoveries.)
 
 No snapshot churn (the Stage-A grep found none, confirmed by `make all`). No
 `ExitCode`, envelope field, or `ENVELOPE_SCHEMA_VERSION` change. Scope stayed
-within Tolerances: six source/test files touched
-(`_state_load.py`, `_compile.py`, `_desloppify.py`, `_desloppify_ledger.py`,
-`novel_state.py`, plus three test files) — at the file-count edge but no net-line
-or interface trip. The 7.3.9 pack-detect consolidation has not landed, so the
-rule-pack and ledger arms were given their own formatter calls as planned.
+within Tolerances: six source/test files touched (`_state_load.py`,
+`_compile.py`, `_desloppify.py`, `_desloppify_ledger.py`, `novel_state.py`,
+plus three test files) — at the file-count edge but no net-line or interface
+trip. The 7.3.9 pack-detect consolidation has not landed, so the rule-pack and
+ledger arms were given their own formatter calls as planned.
 
-Coderabbit raised three findings total, all on the WI4 parity guard (import from
-the definition module; derive the faulty path from `tmp_path`; pre-create the
-parent directory so the precondition is a missing file, not a missing directory;
-and an explanatory `isinstance` assertion message), all addressed. WI1–WI3
-reviews were clean on first pass.
+Coderabbit raised three findings total, all on the WI4 parity guard (import
+from the definition module; derive the faulty path from `tmp_path`; pre-create
+the parent directory so the precondition is a missing file, not a missing
+directory; and an explanatory `isinstance` assertion message), all addressed.
+WI1–WI3 reviews were clean on first pass.
 
 ## Context and orientation
 
@@ -687,18 +688,19 @@ Surgical follow-ups folded onto this completed task by the GIST triage of the
   `_file_fault_error(message)` builder and drop the dead `exc` parameter from
   the path-only formatters — no body reads it, and `ARG` is not in the ruff
   select set so the unused argument passes lint while misleading the signature.
-  Adjust `tests/test_state_load_actionable_parity.py` to the trimmed signatures.
-  Removes the near-identical single-arm duplication and the misleading `exc`
-  parameter in one focused change.
+  Adjust `tests/test_state_load_actionable_parity.py` to the trimmed
+  signatures. Removes the near-identical single-arm duplication and the
+  misleading `exc` parameter in one focused change.
 - [x] 6.3.8.2 (from audit:6.3.8 Finding 5; medium). Update the developers' guide
   exit-3 section (`docs/developers-guide.md`), which still reads "Two sibling
   formatters" and omits the three 6.3.8 additions, to describe all five
   actionable formatters — `_compile_write_error`, `_rule_pack_read_error`, and
   `_device_ledger_read_error` alongside `_state_input_error` and
-  `_draft_read_error` — and their write-shaped/file-shaped remedies, so the only
-  finding touching a stated source of truth no longer undercounts the
+  `_draft_read_error` — and their write-shaped/file-shaped remedies, so the
+  only finding touching a stated source of truth no longer undercounts the
   formatters.
-- [x] 6.3.8.3 (from audit:6.3.8 Finding 6; low). Pin the actionable remedy wording
+- [x] 6.3.8.3 (from audit:6.3.8 Finding 6; low). Pin the actionable remedy
+      wording
   for the three exit-3 file-fault arms in tests: the behavioural and parity
   tests assert path-named and no-raw-leak but not the remedy clause, so a
   regression dropping the remedy would pass. Add one stable remedy-substring
