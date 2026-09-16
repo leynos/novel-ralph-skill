@@ -1644,8 +1644,8 @@ advisories (A7, A8) from `roadmap-2-2-4.review-r3.md`.
   via the runner's `str(CycloptsError)` arm
   (`_desloppify.py:DesloppifyUsageError` line 69 + `_scan_or_usage` lines
   315-345 are copied in shape). `StateInputError` is not reusable (it maps to
-  exit 3). The exit-2 envelope was **verified live driving the real `runner.run`
-  **: the no-flag `set-gate` exits 2 with
+  exit 3). The exit-2 envelope was **verified live** driving the real
+  `runner.run`: the no-flag `set-gate` exits 2 with
   `{"ok": false, "result": {}, "messages": ["set-gate requires at least one flag"]}`
   and no traceback. WI1's no-flag unit test and WI5's no-flag e2e arm now
   require the real-runner / installed-binary exit-2 envelope assertion, never a

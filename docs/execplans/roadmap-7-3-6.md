@@ -728,63 +728,63 @@ Run everything from the worktree root
 2. Re-enumerate every consumer before moving anything (sanity against the
    Context list):
 
-```text
-grep -rn "ENVELOPE_COMMAND_NAMES\|SUBCOMMAND_NAMES\|MULTIPLEXER_NAME" --include='*.py' novel_ralph_skill tests
-grep -rn "WORKING_DIR_NAME" --include='*.py' novel_ralph_skill tests
-```
+   ```text
+   grep -rn "ENVELOPE_COMMAND_NAMES\|SUBCOMMAND_NAMES\|MULTIPLEXER_NAME" --include='*.py' novel_ralph_skill tests
+   grep -rn "WORKING_DIR_NAME" --include='*.py' novel_ralph_skill tests
+   ```
 
-1. WI1: create `contract/names.py`, edit `commands/names.py`, add
+3. WI1: create `contract/names.py`, edit `commands/names.py`, add
    `tests/test_contract_names_home.py`, then run both gates (`make all` does
    *not* include audit):
 
-```text
-make all
-make audit
-```
+   ```text
+   make all
+   make audit
+   ```
 
    Expected tail: all suites pass, including the new home test, and `pip-audit`
    reports no actionable advisory. Commit:
 
-```text
-git add -A && git commit  # message file per commit-message skill
-```
+   ```text
+   git add -A && git commit  # message file per commit-message skill
+   ```
 
-1. WI2: add `WORKING_DIR_NAME` to contract, re-export from `state_sourcing.py`
+4. WI2: add `WORKING_DIR_NAME` to contract, re-export from `state_sourcing.py`
    and `contract/__init__.py`, extend the home test, then `make all` followed by
    `make audit`; commit.
 
-2. WI3: land the widened guard and the `envelope.py` repoint, then prove the new
+5. WI3: land the widened guard and the `envelope.py` repoint, then prove the new
    guard red against the *pre-edit* `envelope.py` with a **file-scoped** revert
    (a blanket `git stash` is forbidden — it would also remove the widened guard
    and falsely show green; round-1 BLOCKING finding 2):
 
-```text
-# widened guard + envelope.py repoint are both written, then staged:
-git add -A
-# revert ONLY envelope.py to its pre-edit (commands.names) state,
-# keeping the widened guard staged and on disk:
-git restore --staged --worktree novel_ralph_skill/contract/envelope.py
-uv run python -m pytest tests/test_contract_layering.py -q  # expect FAIL
-# re-apply the envelope.py repoint (re-edit it to import contract.names):
-uv run python -m pytest tests/test_contract_layering.py -q  # expect PASS
-```
+   ```text
+   # widened guard + envelope.py repoint are both written, then staged:
+   git add -A
+   # revert ONLY envelope.py to its pre-edit (commands.names) state,
+   # keeping the widened guard staged and on disk:
+   git restore --staged --worktree novel_ralph_skill/contract/envelope.py
+   uv run python -m pytest tests/test_contract_layering.py -q  # expect FAIL
+   # re-apply the envelope.py repoint (re-edit it to import contract.names):
+   uv run python -m pytest tests/test_contract_layering.py -q  # expect PASS
+   ```
 
    Then run the commit gates and commit:
 
-```text
-make all
-make audit
-```
+   ```text
+   make all
+   make audit
+   ```
 
-1. WI4: edit `docs/developers-guide.md` and `docs/roadmap.md`, update this plan,
+6. WI4: edit `docs/developers-guide.md` and `docs/roadmap.md`, update this plan,
    then run the markdown gates plus the code gates:
 
-```text
-make markdownlint
-make nixie
-make all
-make audit
-```
+   ```text
+   make markdownlint
+   make nixie
+   make all
+   make audit
+   ```
 
    Commit.
 
