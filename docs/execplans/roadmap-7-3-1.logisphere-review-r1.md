@@ -25,10 +25,10 @@ Confirmed `leta mv`/`leta rename` capabilities via `leta mv --help` /
   rename-and-repoint.
 - The seven-consumer inventory and their imported-name sets are accurate.
 - The `_state_mutators` second-hop is correct: `_recount.py:22` and
-  `_reconcile.py:51` import `_state_path`/`_working_dir` *from `_state_mutators`
-  *, whose `__all__` re-export keeps those names; `_recount.py:29` separately
-  imports `STATE_INPUT_ERRORS`/`_draft_read_error` from `novel_state` (handled
-  by WI3). Both legs verified.
+  `_reconcile.py:51` import `_state_path`/`_working_dir` *from*
+  `_state_mutators`, whose `__all__` re-export keeps those names;
+  `_recount.py:29` separately imports `STATE_INPUT_ERRORS`/`_draft_read_error`
+  from `novel_state` (handled by WI3). Both legs verified.
 - The six `:func:` prose cross-references in WI5 (`_wordcount.py:112`,
   `_desloppify.py:168,176`, `_state_mutators.py:89,91,130`) match exactly the
   `novel_state._<seam>` `:func:` roles found by grep. That sub-list is complete.
