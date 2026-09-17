@@ -721,15 +721,15 @@ transposition fails at the gate rather than emitting a wrong-id message.
 1. `novel_ralph_skill/rulepack/_coerce.py` — collapse to one binding plus two
    survivors (Decision D-ERRORS-ALIAS). Replace the whole forwarder body with:
 
-```text
-_COERCION = bind_coercion(
-    content_error=lambda msg, rule_id: RulePackError(msg, rule_id=rule_id),
-    per_id_noun="rule",
-    per_level_noun="rule pack",
-)
-_ERRORS = _COERCION.errors
-type _Mapping = Mapping
-```
+   ```text
+   _COERCION = bind_coercion(
+       content_error=lambda msg, rule_id: RulePackError(msg, rule_id=rule_id),
+       per_id_noun="rule",
+       per_level_noun="rule pack",
+   )
+   _ERRORS = _COERCION.errors
+   type _Mapping = Mapping
+   ```
 
    Remove the `_where`, `_reject_unknown_keys`, `_require_str`, `_require_int`
    forwarder *bodies*. The public error keyword `rule_id=` stays inside
@@ -738,18 +738,18 @@ type _Mapping = Mapping
    `loaderkit.coerce` import (keep `Mapping`, `CoercionErrors` is no longer
    needed since `bind_coercion` builds it — import `bind_coercion` instead).
 
-1. `novel_ralph_skill/ledger/_coerce.py` — the same collapse with the `device`
+2. `novel_ralph_skill/ledger/_coerce.py` — the same collapse with the `device`
    nouns:
 
-```text
-_COERCION = bind_coercion(
-    content_error=lambda msg, device_id: LedgerError(msg, device_id=device_id),
-    per_id_noun="device",
-    per_level_noun="device ledger",
-)
-_ERRORS = _COERCION.errors
-type _Mapping = Mapping
-```
+   ```text
+   _COERCION = bind_coercion(
+       content_error=lambda msg, device_id: LedgerError(msg, device_id=device_id),
+       per_id_noun="device",
+       per_level_noun="device ledger",
+   )
+   _ERRORS = _COERCION.errors
+   type _Mapping = Mapping
+   ```
 
    Remove the `_where`, `_reject_unknown_keys`, `_require`, `_require_str`,
    `_require_int` forwarder bodies. The bare `_require` divergence disappears
@@ -757,7 +757,7 @@ type _Mapping = Mapping
    `_ERRORS` and `_Mapping` survive as aliases consumed by `parse.py` and
    `_fields.py`.
 
-1. `novel_ralph_skill/rulepack/parse.py` — repoint the import and the **10
+3. `novel_ralph_skill/rulepack/parse.py` — repoint the import and the **10
    helper call sites**; leave the three `errors=_ERRORS` sites untouched (they
    bind the aliased `_ERRORS`). The import block changes from
    `_ERRORS, _Mapping, _reject_unknown_keys, _require_int, _require_str, _where`
@@ -788,7 +788,7 @@ type _Mapping = Mapping
    `CoercionErrors` via the `_ERRORS` alias. The public
    `RulePackError(..., rule_id=...)` raises in this module stay byte-identical.
 
-2. `novel_ralph_skill/ledger/parse.py` — repoint the import and the **2 helper
+4. `novel_ralph_skill/ledger/parse.py` — repoint the import and the **2 helper
    call sites**; leave the three `errors=_ERRORS` sites untouched. The import
    block changes from `_ERRORS, _Mapping, _reject_unknown_keys, _require_str` to
    `_COERCION, _ERRORS, _Mapping`. Then:
@@ -801,7 +801,7 @@ type _Mapping = Mapping
    Lines 126 (`compile_pattern(..., errors=_ERRORS, ...)`), 187 and 193
    (`errors=_ERRORS`) are **unchanged**.
 
-3. `novel_ralph_skill/ledger/_fields.py` — repoint the import and the **9 helper
+5. `novel_ralph_skill/ledger/_fields.py` — repoint the import and the **9 helper
    call sites**. The import block changes from
    `_Mapping, _require, _require_int, _where` to `_COERCION, _Mapping`. Then:
 
