@@ -780,6 +780,7 @@ Run everything from the worktree root
    then run the markdown gates plus the code gates:
 
    ```text
+   make fmt
    make markdownlint
    make nixie
    make all

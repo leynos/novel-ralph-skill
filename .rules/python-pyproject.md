@@ -199,8 +199,8 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 ```
 
-- **`requires`:** A list of packages needed at build time. For editable installs
-  in `uv`, you need at least `setuptools>=61.0` and `wheel`. (Python Packaging
+- **`requires`:** A list of packages needed at build time. Editable installs
+  in `uv` require at least `setuptools>=61.0` and `wheel`. (Python Packaging
   [^4], Astral Docs[^7])
 - **`build-backend`:** The entry point for your build backend.
   `setuptools.build_meta` is the PEP 517-compliant backend for setuptools.
