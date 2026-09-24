@@ -38,7 +38,7 @@ ignore = [
   '\bDistNameNormaliser\b',
   # The rule id and the deliberate unknown-key typo the fixtures carry.
   '\bcapitalised-abstract-noun\b',
-  '\bthresold\b',
+  '`[^`\n]*\bthresold\b[^`\n]*`',
   # The init command's literal message, quoted in audits.
   '\binitialised (?:\{path\}|working/state\.toml)',
   # Upstream command-line flag of `act`.

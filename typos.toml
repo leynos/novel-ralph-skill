@@ -46,8 +46,8 @@ extend-ignore-re = [
     "\\btest_command_name_for_falls_back_on_unrecognised_tokens\\b",
     "\\btest_contract_app_centralisation\\b",
     "\\btest_materialises_design_paths\\b",
-    "\\bthresold\\b",
     "`(?:serialiser|serialise|materialise|initialise|initialised|summarising|recognise|realisation|maximise|minimise|parametrised|parametrises)`",
+    "`[^`\\n]*\\bthresold\\b[^`\\n]*`",
     "`color`",
 ]
 
