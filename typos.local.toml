@@ -23,7 +23,33 @@ accepted = [
 [words.corrections]
 
 [patterns]
-ignore = []
+# Exact upstream or repository identifiers that keep their own spelling. The
+# generated base no longer ignores inline code, so each one is named here
+# rather than widening the dictionary.
+ignore = [
+  # Test helpers, test names and fixtures in this repository.
+  '\b_normalise\b',
+  '\bnormalise\((?:name \+ suffix|got|None)\)',
+  '\bnormalise = dist_name\b',
+  '\btest_contract_app_centralisation\b',
+  '\btest_materialises_design_paths\b',
+  '\b_materialise_working\b',
+  '\btest_command_name_for_falls_back_on_unrecognised_tokens\b',
+  '\bDistNameNormaliser\b',
+  # The rule id and the deliberate unknown-key typo the fixtures carry.
+  '\bcapitalised-abstract-noun\b',
+  '\bthresold\b',
+  # The init command's literal message, quoted in audits.
+  '\binitialised (?:\{path\}|working/state\.toml)',
+  # Upstream command-line flag of `act`.
+  '--artifact-server-path\b',
+  # Abbreviated commit identifiers quoted in execplans and audits.
+  '\b(?:ba17f1d|dbe115a|9b2ba4d)\b',
+  # The US API spelling the style guide cites as its example.
+  '`color`',
+  # Spellings quoted as the subject of past audits and roadmap entries.
+  '`(?:serialiser|serialise|materialise|initialise|initialised|summarising|recognise|realisation|maximise|minimise|parametrised|parametrises)`',
+]
 
 [files]
 exclude = []

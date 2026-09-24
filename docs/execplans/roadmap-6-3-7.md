@@ -734,7 +734,7 @@ Steps:
    `test_skill_envelope_schema_version_matches_constant` fail, then revert the
    edit. Likewise temporarily delete the `| 4 | … |` row and observe
    `test_skill_exit_codes_cover_exactly_the_enum` fail, then revert. Record
-   both transcripts in `Artifacts and notes`. (These edits are never committed;
+   both transcripts in `Artefacts and notes`. (These edits are never committed;
    they are the red-test evidence the execplans skill and AGENTS.md require.)
 3. **B3 (resolved): no inventory or test-count update is needed.** The round-1
    plan's "update `_KNOWN_SKILL_MARKDOWN` if it references the new test module"

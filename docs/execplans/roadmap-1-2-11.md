@@ -152,7 +152,7 @@ escalation, not a workaround.
 - Risk (B2, determinate, RESOLVED): the property strategy composes a bare name
   with a suffix whose leading character lies inside the PEP 503 name alphabet
   (`[A-Za-z0-9._-]`), so the `_DIST_NAME` regex greedily absorbs it and
-  invariant (a) (`normaliser returns exactly the bare name`) is false.
+  invariant (a) (`normalizer returns exactly the bare name`) is false.
   Severity: high if unaddressed. Likelihood: certain for the original alphabet.
   Mitigation: Work item 3 constrains the suffix so its FIRST character is a
   true delimiter drawn ONLY from `[`, `]`, `<`, `>`, `=`, `~`, `;`, or space —

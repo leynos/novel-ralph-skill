@@ -599,7 +599,7 @@ R2-B2) and pins them.
         # bare relative: True
 
   So `compile_is_current` cross-references the table only via the bare relative
-  ``:func: compiled_matches_drafts at compile_model.py line 106. WI1 normalises
+  ``:func: compiled_matches_drafts at compile_model.py line 106. WI1 normalizes
   that single ref to the canonical defining-module path; the round-2
   "compile_model.py needs no spelling change" claim is corrected.
 - **R2-B2 — the re-export tail is NOT a substring of the canonical path.**
@@ -657,7 +657,7 @@ the worktree on 2026-06-27 with the command shown.
   spellings of `compiled_matches_drafts` / `concatenate_drafts` /
   `present_draft_bodies` / `CompiledComparison` over
   `novel_ralph_skill/commands/_compile.py` returns lines 12, 14, 34, 104, 106,
-  175, 181, 186. WI1 normalises all eight.
+  175, 181, 186. WI1 normalizes all eight.
 - **The two consumers already on the defining-module path (guard rows, no
   edit).** Grepping `compile_model.compiled_matches_drafts` over
   `done_predicate.py` → lines 37, 224, 234; over `disk_evidence.py` → lines
@@ -681,7 +681,7 @@ the worktree on 2026-06-27 with the command shown.
   shape". The guard's authoritative table-marker set for this row is the field
   shape `{action, discrepancies, detail}`.
 - **No doctests in the edited modules.** Grepping `>>>` over `_compile.py` and
-  `novel_state.py` → no hits. Normalising docstrings cannot break a doctest.
+  `novel_state.py` → no hits. Normalizing docstrings cannot break a doctest.
 - **Three TEST docstrings name re-export paths (out of registry scope; correct
   the B3 narrative).** Grepping the re-export spellings of
   `reconciliation_payload` / `compiled_matches_drafts` over `tests/` (excluding
@@ -940,7 +940,7 @@ Round 3 corrects two specifics of the round-2 draft (see Decision Log
 "compile_is_current normalization" and "no-bare-re-export check restated"): (a)
 `compile_model.compile_is_current` is a registered consumer whose
 pre-normalization docstring carried only the bare relative ``:func:
-compiled_matches_drafts — WI1 normalises it to the canonical path so the
+compiled_matches_drafts — WI1 normalizes it to the canonical path so the
 "cross-reference present" assertion passes; and (b) the "no bare re-export"
 assertion is the simple "tail substring count is zero" invariant, NOT a
 "preceded by"/"counts equal" rule, because the re-export tail is not a
@@ -1054,7 +1054,7 @@ strings through the helper:
      of the tail-isolation pair);
 - **a BARE-RELATIVE docstring** (R2-B1) — whose only projection reference is the
      intra-module relative `:func:` role naming `compiled_matches_drafts` with no
-     dotted path, mirroring `compile_is_current`'s *pre-normalisation* shape →
+     dotted path, mirroring `compile_is_current`'s *pre-normalization* shape →
      helper
      RAISES on the "cross-reference present" assertion (the canonical path is
      absent). This pins the chosen rule's treatment of intra-module relative
@@ -1074,11 +1074,11 @@ guard's discriminating power without mutating production code, mirroring how
 the developers'-guide guard pins its column/keyword tolerance with explicit
 cases. Run the negative cases (they pass — the helper raises on the drift
 shapes and passes the check_compiled-shaped case) and the positive registry
-cases against the *normalised* tree from work items 1-2 (they pass). To prove
-the guard would have caught the pre-normalisation state, temporarily revert one
+cases against the *normalized* tree from work items 1-2 (they pass). To prove
+the guard would have caught the pre-normalization state, temporarily revert one
 `_compile.py` reference to the re-export spelling, run the guard, observe the
 `compiled_matches_drafts` row go red on the "no bare re-export" assertion, then
-restore — record the transcript in `Artifacts and notes`.
+restore — record the transcript in `Artefacts and notes`.
 
 Mirror the existing guards' structural choices: in-process, import `__doc__`,
 no subprocess, pure scanner colocated, under the 400-line cap. Add the module
@@ -1087,7 +1087,7 @@ example-based registry; no generated input space), echoing
 `test_compile_model_seam.py`.
 
 Validation: `make all`. Acceptance: the positive registry cases pass on the
-normalised tree; the negative cases prove the helper raises on a missing
+normalized tree; the negative cases prove the helper raises on a missing
 cross-reference (assertion 2), on a bare-re-export-ONLY spelling (assertion 2,
 cross-reference absent), on a CO-LOCATED canonical+tail spelling (assertion 3,
 the non-vacuous tail-branch proof for B3-1), and on a hollowed authoritative
@@ -1257,7 +1257,7 @@ Quality criteria (what "done" means):
   docstring, AND passes both the canonical-only docstring (tail-isolation
   positive half) and a `check_compiled`-shaped three-member consumer fixture
   (no false positive). Reverting any consumer reference to the re-export path
-  reddens the matching row (demonstrated transcript in `Artifacts and notes`).
+  reddens the matching row (demonstrated transcript in `Artefacts and notes`).
   The compile, done-predicate, disk-evidence, reconcile, and desloppify suites
   stay green unchanged.
 - **Lint/typecheck:** `make lint` (Ruff + interrogate 100% docstring coverage +

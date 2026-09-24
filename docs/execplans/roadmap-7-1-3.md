@@ -377,7 +377,7 @@ escalation, not a workaround.
       heuristic would wrongly place it in ``novel_state.py``'s ``TYPE_CHECKING``
       block and raise ``NameError`` (round-3 B2; corrected in Work Item 3).
 
-    - Observation: ``_write_outcome`` serialises its ``action`` *parameter*
+    - Observation: ``_write_outcome`` serializes its ``action`` *parameter*
       (``str(action)``, ``_reconcile.py:225``), not the attribute
       ``str(reconciliation.action)`` the projection uses. They are value-identical
       at every call site only because both callers pass
@@ -464,7 +464,7 @@ escalation, not a workaround.
       ``Reconciliation`` is imported" heuristic was wrong under
       ``from __future__ import annotations`` and would raise a runtime
       ``NameError``. B3 — the ``_write_outcome`` "byte-identical" claim was
-      textually false: ``_write_outcome`` serialises its ``action`` *parameter*
+      textually false: ``_write_outcome`` serializes its ``action`` *parameter*
       (``str(action)``, ``_reconcile.py:225``) while the projection serializes
       ``str(reconciliation.action)``; they are value-identical only because both
       callers pass ``action == reconciliation.action``, and that caller
