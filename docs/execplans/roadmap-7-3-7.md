@@ -760,7 +760,7 @@ assertion that the guard fires on a synthetic inline-construction string).
 
 Validation: `make all` green; the new guard passes on the post-WI4 tree.
 Sanity: temporarily re-inline one site, confirm the guard fails, then revert
-(record the red/green evidence in `Artifacts and notes`).
+(record the red/green evidence in `Artefacts and notes`).
 
 #### WI6 — Document the single home and refresh the stale base docstring
 

@@ -1324,8 +1324,8 @@ mutator:
   Validation precedes the write (§3.4 above), so the echoed scalars equal the
   persisted `[drafting]` cursor on every success and a diverging write is
   refused before it lands; the cursor is plain scalars the mutator neither
-  derives nor normalises, so re-reading the document would add no guarantee. A
-  future mutator that *computes* or *normalises* a value before persisting it
+  derives nor normalizes, so re-reading the document would add no guarantee. A
+  future mutator that *computes* or *normalizes* a value before persisting it
   must report the written value, not its input echo. `advance-phase` returns
   `{from, to}` — the transition it made, as the `Phase.value` strings. The
   `from`/`to` keys are *transition labels*, not on-disk schema keys:
@@ -1353,7 +1353,7 @@ mutator:
 `init` *creates*, it does not overwrite: it refuses with exit `3` when
 `working/state.toml` already exists rather than clobbering a live project, then
 builds the full required table set (`build_initial_document`), creates the
-Initialisation directory skeleton plus an empty `log.md`, and writes
+Initialization directory skeleton plus an empty `log.md`, and writes
 atomically. Each of these mutators writes a single file (`state.toml`, plus
 `init`'s `log.md`), already atomic via `Path.replace`, so none opens a
 `[pending_turn]` bracket — that belongs to the genuinely multi-file mutator
@@ -1368,7 +1368,7 @@ likewise with no bracket. Both behave exactly like `set-cursor` and
 
 `advance-phase` takes no argument and always moves to the immediate successor,
 so a phase *skip* cannot be requested. "Refuses out-of-order completion" is
-therefore realised **solely** as a prior-state coherence guard: a prior whose
+therefore realized **solely** as a prior-state coherence guard: a prior whose
 `completed` is not the in-order prefix is refused (a future reader should not
 hunt for skip-rejection logic that cannot exist). The behavioural proof is the
 `pytest-bdd` scenario `tests/features/advance_phase_refusal.feature`, which
@@ -1405,7 +1405,7 @@ and the working-corpus reference builder
 ([`tests/working_corpus/_builder.py`](../tests/working_corpus/_builder.py)). A
 future sixth consumer should import this helper rather than re-copy the idiom.
 The helper takes the widest read-only `Mapping[str, object]`, builds structure
-only (it never serialises or writes), and preserves the caller's iteration
+only (it never serializes or writes), and preserves the caller's iteration
 order — the property `recount`'s byte-for-byte deterministic write relies on.
 The corpus builder may import it without weakening its oracle independence
 because the helper carries no schema or value-derivation logic, so the import
@@ -1472,7 +1472,7 @@ what `novel state init` actually emits. Beta testing of roadmap task 2.1.8
 found the emitted document carrying fields the reference never described, so
 [`tests/test_state_layout_schema_guard.py`](../tests/test_state_layout_schema_guard.py)
 locks the two together. It derives the required leaf-name and table-header
-nets from the **serialised** `build_initial_document(...)` dump
+nets from the **serialized** `build_initial_document(...)` dump
 (`tomlkit.dumps(...)`) — the exact textual shape the fence must mirror — and
 asserts each emitted leaf appears as a `name =` line and each emitted table
 header as a `[header]` line inside the extracted fence. Adding an emitted field
@@ -1486,7 +1486,7 @@ justified by the design's chosen rendering:
   emits no bare `[gates]` line — only `[gates.knitting]` and `[gates.final]`
   (design §5.1). Deriving the header net from the dump excludes `gates` (and
   any future parent-only table) automatically, with no special-case.
-- **`chapters`** serialises as the empty leaf line `chapters = []`, but the
+- **`chapters`** serializes as the empty leaf line `chapters = []`, but the
   reference documents the *populated* manifest as a `[[chapters]]` block, so
   `chapters` is the one emitted leaf the guard drops from the required-leaf
   set; its sub-fields are checked separately against `ChapterEntry`.
@@ -1605,7 +1605,7 @@ never read. The full audit trail of passing rules is **recoverable** from data
 the operator already owns: the rule pack is versioned, and any non-clean
 envelope still lists every offending rule in full. Carrying every passing rule
 would also make the payload grow linearly with pack size and pack count, so a
-clean multi-pack scan would serialise dozens of `count: 0` rows no consumer
+clean multi-pack scan would serialize dozens of `count: 0` rows no consumer
 reads; slimming keeps a clean scan at `findings: []` regardless of how many
 rules ship.
 

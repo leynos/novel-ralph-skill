@@ -646,7 +646,7 @@ Steps:
    observe `test_guide_exit_codes_cover_exactly_the_enum` fail, then revert.
    Likewise temporarily rename `working_dir` to `workdir` in the envelope
    brace-list and observe `test_guide_envelope_fields_match_dataclass` fail,
-   then revert. Record both transcripts in `Artifacts and notes`. (These edits
+   then revert. Record both transcripts in `Artefacts and notes`. (These edits
    are never committed; they are the red-test evidence the execplans skill and
    AGENTS.md require. `git checkout -- docs/developers-guide.md` restores the
    file; confirm `git status` is clean of the guide before committing.)

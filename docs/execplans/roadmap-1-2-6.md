@@ -594,7 +594,7 @@ pre-WI1 tree (where `tomli_w` is present), then confirm it **passes** after
 WI1+WI2. Because WI3 is committed after WI1, capture the red evidence by
 temporarily checking the assertion against a stashed copy of the original
 snippet (or by asserting the test's logic against a fixture string containing
-`tomli_w`), and record the transcript in `Artifacts and notes`. The committed
+`tomli_w`), and record the transcript in `Artefacts and notes`. The committed
 state is green.
 
 Validation for WI3:

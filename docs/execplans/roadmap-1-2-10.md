@@ -421,7 +421,7 @@ build-cache note in the global instructions): `make check-fmt`, then
 `make all`. Expect all green: the edited test passes (it asserted `callable`
 and the `program` round-trip), the rest of the suite is unaffected,
 `interrogate` reports 100%, ruff/`ruff format`/`ty` clean, `pip-audit` clean.
-Capture the `make test` summary line (N passed) in `Artifacts and notes`. Only
+Capture the `make test` summary line (N passed) in `Artefacts and notes`. Only
 when every gate is green is the commit made.
 
 Commit (single, gate-passing): "Assert sh.make builder in conftest helper test".
@@ -451,7 +451,7 @@ final end-to-end check: `make all`, then `make audit`. (`make all` is
 `build check-fmt lint typecheck test` per Makefile line 28; it does **not** run
 `audit`, `markdownlint`, or `nixie`, so those run explicitly.) Expect
 `make markdownlint` clean, `make nixie` clean, `make all` green, `make audit`
-clean. Capture each summary in `Artifacts and notes`.
+clean. Capture each summary in `Artefacts and notes`.
 
 Commit: "Tick roadmap task 1.2.10".
 

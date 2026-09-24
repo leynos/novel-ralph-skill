@@ -919,7 +919,7 @@ Validation for item 2 (the red/green demonstration):
    unexpected id appears, the parametrization is mis-wired — stop and fix the
    helper before proceeding (this is the false-green trap B3 guards against).
    Restore the item-1 edit and re-run — expect **all pass**. Capture both
-   transcripts in `Artifacts and notes`, including the three named RED row ids.
+   transcripts in `Artefacts and notes`, including the three named RED row ids.
 2. `make test` — expect the full suite green, including the existing
    `tests/test_state_layout_reference.py` (proving the documentation edit did
    not trip the write-recipe guard).
