@@ -1917,7 +1917,11 @@ actions under `.github/`.
   and pull requests, but no test reads `RUN_ACT_VALIDATION`, so a collection
   selects the same 1,580 tests with and without it, and that workflow ran the
   whole suite a second time. It was removed. `tests/test_suite_runs_once.py`
-  keeps any other workflow from running the suite again.
+  keeps any other workflow, or local composite action, from running the suite
+  again. It reads commands through `tests/suite_commands.py`, which splits a
+  command at shell separators, reads each segment's program before its
+  arguments, and looks through `uv run`, `uvx` and `python -m` wrappers; use it
+  for any other contract that asks whether a command runs the suite.
 - `.github/workflows/release.yml` publishes wheels when a `v*.*.*` tag is
   pushed. It builds a pure Python wheel, creates a GitHub release with
   generated release notes, downloads wheel artefacts, and uploads them to the
