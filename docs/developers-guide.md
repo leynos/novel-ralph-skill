@@ -1912,9 +1912,16 @@ actions under `.github/`.
   `make audit`, then delegates coverage generation to the shared coverage
   action. When the Rust extension is enabled, it also sets up Rust, installs
   Rust lint and test tools, and passes `rust_extension/Cargo.toml` to coverage.
-- `.github/workflows/act-validation.yml` runs rendered workflow validation in a
-  separate workflow. It installs `act`, checks Docker availability, and runs
-  `make test WITH_ACT=1` outside the coverage path.
+- The suite runs once per event, in `ci.yml`'s coverage step. An earlier
+  `act-validation.yml` workflow ran `make test WITH_ACT=1` beside it on pushes
+  and pull requests, but no test reads `RUN_ACT_VALIDATION`, so a collection
+  selects the same 1,580 tests with and without it, and that workflow ran the
+  whole suite a second time. It was removed. `tests/test_suite_runs_once.py`
+  keeps any other workflow, or local composite action, from running the suite
+  again. It reads commands through `tests/suite_commands.py`, which splits a
+  command at shell separators, reads each segment's program before its
+  arguments, and looks through `uv run`, `uvx` and `python -m` wrappers; use it
+  for any other contract that asks whether a command runs the suite.
 - `.github/workflows/release.yml` publishes wheels when a `v*.*.*` tag is
   pushed. It builds a pure Python wheel, creates a GitHub release with
   generated release notes, downloads wheel artefacts, and uploads them to the
