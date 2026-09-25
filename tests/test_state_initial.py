@@ -46,8 +46,8 @@ def test_initial_document_parses_then_carries_initial_fields() -> None:
         )
     )
     assert state.phase.current == Phase.PREMISE
-    assert state.phase.completed == ()
-    assert state.chapters == ()
+    assert not state.phase.completed
+    assert not state.chapters
     assert state.word_counts.target == 80000
     assert state.word_counts.current == 0
     assert state.word_counts.by_chapter == {}
