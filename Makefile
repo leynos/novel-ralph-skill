@@ -16,7 +16,7 @@ PYTHON_TARGETS ?= novel_ralph_skill tests
 PYLINT_PYTHON ?= pypy@3.12
 PYLINT_VERSION ?= 4.0.9
 PYLINT_TARGETS ?= $(PYTHON_TARGETS)
-PYLINT = $(UV_ENV) $(UV) tool run --python $(PYLINT_PYTHON) --from 'pylint==$(PYLINT_VERSION)' pylint
+PYLINT = $(UV_ENV) $(UV) tool run --managed-python --python $(PYLINT_PYTHON) --from 'pylint==$(PYLINT_VERSION)' pylint
 
 # why: git worktree/checkout/rebase rewrites source-file mtimes, which can make a
 # stale timestamp-validated __pycache__/*.pyc in the tracked tree compare as
