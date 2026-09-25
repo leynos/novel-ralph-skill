@@ -46,8 +46,10 @@ def test_initial_document_parses_then_carries_initial_fields() -> None:
         )
     )
     assert state.phase.current == Phase.PREMISE
-    assert not state.phase.completed
-    assert not state.chapters
+    assert isinstance(state.phase.completed, tuple), "completed phases are a tuple"
+    assert not state.phase.completed, "initial phase has no completed phases"
+    assert isinstance(state.chapters, tuple), "chapters are a tuple"
+    assert not state.chapters, "initial state has no chapters"
     assert state.word_counts.target == 80000
     assert state.word_counts.current == 0
     assert state.word_counts.by_chapter == {}
