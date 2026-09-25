@@ -16,9 +16,10 @@ these targets in order:
 
 The `lint-python` target runs Ruff, then Interrogate over `$(PYTHON_TARGETS)`
 to enforce 100% docstring coverage for the Python targets (the threshold is
-pinned in `[tool.interrogate]` in `pyproject.toml`), then Pylint via a
-PyPy-backed runner. The Pylint runner is installed through `uv tool run` from
-the pinned `pylint-pypy-shim` repository.
+pinned in `[tool.interrogate]` in `pyproject.toml`), then a pinned Pylint
+(`PYLINT_VERSION`) on uv-managed PyPy 3.12 (`PYLINT_PYTHON`), installed through
+`uv tool run`. `syntax-error` stays enabled, so a module that PyPy cannot parse
+fails the lint rather than being skipped.
 
 Pytest discovery is limited to the top-level `tests/` tree. Keep generated
 project unit tests there rather than in package module directories or

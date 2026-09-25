@@ -13,6 +13,13 @@ considered complete.
 docstring coverage (the threshold is pinned in `[tool.interrogate]` in
 `pyproject.toml`, and `tests/test_interrogate_gate.py` guards it), and Pylint.
 
+Pylint runs the exact `PYLINT_VERSION` release on uv-managed `PYLINT_PYTHON`
+(`pypy@3.12`) through `uv tool run --managed-python`, isolated from the project
+environment. `syntax-error` stays enabled, so a module that PyPy cannot parse
+fails the lint rather than being skipped. `tests/test_pylint_tier_contract.py`
+holds both pins and runs the configured command against an unparseable module
+and a clean one.
+
 Run `make audit` as the dependency vulnerability gate. It runs `pip-audit` for
 Python dependencies, and Rust-enabled projects also run `cargo audit` from the
 `rust_extension` crate directory.
