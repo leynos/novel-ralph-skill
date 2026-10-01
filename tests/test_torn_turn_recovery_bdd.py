@@ -15,6 +15,6 @@ where ``scenarios`` discovers them, mirroring the ``reconcile`` wiring.
 from __future__ import annotations
 
 from pytest_bdd import scenarios
-from steps.torn_turn_recovery_steps import *  # noqa: F403 - register step defs
+from steps.torn_turn_recovery_steps import *  # ruff: ignore[undefined-local-with-import-star] - register step defs
 
 scenarios("features/torn_turn_recovery.feature")

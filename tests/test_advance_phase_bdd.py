@@ -12,6 +12,6 @@ state intact (design §3.2, §4.1, §9). It binds
 from __future__ import annotations
 
 from pytest_bdd import scenarios
-from steps.advance_phase_steps import *  # noqa: F403 - register pytest-bdd step defs
+from steps.advance_phase_steps import *  # ruff: ignore[undefined-local-with-import-star] - register pytest-bdd step defs
 
 scenarios("features/advance_phase_refusal.feature")

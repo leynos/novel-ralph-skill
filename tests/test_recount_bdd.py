@@ -12,6 +12,6 @@ on a second run (design §4.1, §5.2 invariant 3, §9). It binds
 from __future__ import annotations
 
 from pytest_bdd import scenarios
-from steps.recount_steps import *  # noqa: F403 - register pytest-bdd step defs
+from steps.recount_steps import *  # ruff: ignore[undefined-local-with-import-star] - register pytest-bdd step defs
 
 scenarios("features/recount.feature")

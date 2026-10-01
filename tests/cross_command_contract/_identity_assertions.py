@@ -27,7 +27,7 @@ from novel_ralph_skill.contract.exit_codes import ExitCode
 from . import ENVELOPE_KEY_ORDER, WORKING_DIR_CONSTANT
 
 
-def _require(condition: bool, message: str) -> None:  # noqa: FBT001
+def _require(condition: bool, message: str) -> None:  # ruff: ignore[boolean-type-hint-positional-argument]
     """Raise :class:`AssertionError` with ``message`` when ``condition`` is false.
 
     A contract-assertion helper for this non-``test_*`` module: the envelope

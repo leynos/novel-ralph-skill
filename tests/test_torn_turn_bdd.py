@@ -14,6 +14,6 @@ to reconcile (design §3.4, §10).
 from __future__ import annotations
 
 from pytest_bdd import scenarios
-from steps.torn_turn_steps import *  # noqa: F403 - register pytest-bdd step defs
+from steps.torn_turn_steps import *  # ruff: ignore[undefined-local-with-import-star] - register pytest-bdd step defs
 
 scenarios("features/torn_turn.feature")

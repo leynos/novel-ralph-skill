@@ -14,6 +14,6 @@ removing no file), and re-checked clean (exit 0). It binds
 from __future__ import annotations
 
 from pytest_bdd import scenarios
-from steps.reconcile_steps import *  # noqa: F403 - register pytest-bdd step defs
+from steps.reconcile_steps import *  # ruff: ignore[undefined-local-with-import-star] - register pytest-bdd step defs
 
 scenarios("features/reconcile.feature")

@@ -343,6 +343,6 @@ def pending_turn(
     # ExecPlan Decision log — this helper owns only the producer side). A
     # try/finally would wrongly clear the record on the error path, so RUF075's
     # "wrap the yield" advice does not apply here.
-    yield document  # noqa: RUF075 - leave-on-error is the design §3.4 contract
+    yield document  # ruff: ignore[fallible-context-manager] - leave-on-error is the design §3.4 contract
     clear_pending_turn(document)
     write_document_atomically(document, path)

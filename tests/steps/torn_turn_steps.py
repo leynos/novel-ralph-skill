@@ -115,7 +115,7 @@ def bracket_raises(state_path: Path, operation: str) -> None:
     """
     # The bracket body must raise to simulate the torn turn, so pytest.raises
     # wraps the multi-statement body (PT012).
-    with (  # noqa: PT012
+    with (  # ruff: ignore[pytest-raises-with-multiple-statements]
         pytest.raises(_ArtefactError),
         pending_turn(state_path, operation=operation, paths=_DECLARED_PATHS),
     ):

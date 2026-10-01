@@ -26,7 +26,7 @@ import typing as typ
 
 import pytest
 from pytest_bdd import scenario
-from steps.per_chapter_loop_installed_steps import *  # noqa: F403 - register steps
+from steps.per_chapter_loop_installed_steps import *  # ruff: ignore[undefined-local-with-import-star] - register steps
 
 if typ.TYPE_CHECKING:
     import collections.abc as cabc

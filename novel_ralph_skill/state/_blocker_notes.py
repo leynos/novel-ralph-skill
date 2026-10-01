@@ -36,7 +36,7 @@ _FINDING_PREFIX: typ.Final = "### B"
 _SECTION_PREFIX: typ.Final = "## "
 # why: the token spells a resolution marker, not a credential; the S105
 # hardcoded-password heuristic only sees the literal string assignment.
-_RESOLVED_TOKEN: typ.Final = "[resolved]"  # noqa: S105
+_RESOLVED_TOKEN: typ.Final = "[resolved]"  # ruff: ignore[hardcoded-password-string]
 # A finding heading is resolved only when it ends with a space then the token,
 # so a heading whose label happens to be exactly ``[resolved]`` (no separating
 # space) does not self-resolve.

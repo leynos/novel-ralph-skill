@@ -12,6 +12,6 @@ the ``given``/``when``/``then`` callables into this module's namespace where
 from __future__ import annotations
 
 from pytest_bdd import scenarios
-from steps.complete_final_pass_steps import *  # noqa: F403 - register pytest-bdd steps
+from steps.complete_final_pass_steps import *  # ruff: ignore[undefined-local-with-import-star] - register pytest-bdd steps
 
 scenarios("features/complete_final_pass.feature")
