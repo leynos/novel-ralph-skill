@@ -28,6 +28,6 @@ namespace where ``scenarios`` discovers them, mirroring the partial-landed
 from __future__ import annotations
 
 from pytest_bdd import scenarios
-from steps.torn_turn_rollback_partial_done_flag_steps import *  # noqa: F403 - register steps
+from steps.torn_turn_rollback_partial_done_flag_steps import *  # ruff: ignore[undefined-local-with-import-star] - register steps
 
 scenarios("features/torn_turn_rollback_partial_done_flag.feature")

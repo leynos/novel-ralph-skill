@@ -186,7 +186,7 @@ def torn_rollback_partial_tree(
 
     # The bracket body must land the residue and then raise to simulate the torn
     # mid-write, so pytest.raises wraps the multi-statement body (PT012).
-    with (  # noqa: PT012
+    with (  # ruff: ignore[pytest-raises-with-multiple-statements]
         pytest.raises(_TornError),
         pending_turn(
             working / "state.toml",

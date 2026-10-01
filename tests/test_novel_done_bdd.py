@@ -12,6 +12,6 @@ single clause is false (design §4.2, §3.2). It binds
 from __future__ import annotations
 
 from pytest_bdd import scenarios
-from steps.novel_done_steps import *  # noqa: F403 - register pytest-bdd step defs
+from steps.novel_done_steps import *  # ruff: ignore[undefined-local-with-import-star] - register pytest-bdd step defs
 
 scenarios("features/novel_done.feature")

@@ -13,6 +13,6 @@ namespace where ``scenarios`` discovers them, mirroring the ``recount`` wiring.
 from __future__ import annotations
 
 from pytest_bdd import scenarios
-from steps.state_input_message_steps import *  # noqa: F403 - register pytest-bdd step defs
+from steps.state_input_message_steps import *  # ruff: ignore[undefined-local-with-import-star] - register pytest-bdd step defs
 
 scenarios("features/state_input_message.feature")

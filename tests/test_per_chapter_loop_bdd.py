@@ -24,6 +24,6 @@ platform boundary (ExecPlan Decision D-INSTALLED-SPLIT).
 from __future__ import annotations
 
 from pytest_bdd import scenarios
-from steps.per_chapter_loop_steps import *  # noqa: F403 - register step defs
+from steps.per_chapter_loop_steps import *  # ruff: ignore[undefined-local-with-import-star] - register step defs
 
 scenarios("features/per_chapter_loop.feature")

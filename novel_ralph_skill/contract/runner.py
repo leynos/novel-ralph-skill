@@ -278,7 +278,7 @@ def run(
     sys.exit(outcome.code)
 
 
-def drive(  # noqa: PLR0913  # pylint: disable=too-many-arguments
+def drive(  # ruff: ignore[too-many-arguments]  # pylint: disable=too-many-arguments
     app: cyclopts.App,
     argv: cabc.Sequence[str],
     *,

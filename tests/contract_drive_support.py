@@ -91,7 +91,7 @@ VOLATILE_PATTERN = re.compile(
 # (``tests/test_compile_check_snapshots.py`` line 8), not a volatile per-run
 # path, so the volatile guard exempts it rather than flagging it as
 # multi-segment-path churn. The snapshot still pins it verbatim.
-DETERMINISTIC_PATH_TOKEN = "working/manuscript/compiled.md"  # noqa: S105  # a path, not a secret
+DETERMINISTIC_PATH_TOKEN = "working/manuscript/compiled.md"  # ruff: ignore[hardcoded-password-string]  # a path, not a secret
 
 # The fixed working-relative sentinel the synthetic ``RunContext`` injects. A
 # ``working_dir`` carrying exactly this token is the deterministic contract
@@ -101,7 +101,7 @@ WORKING_DIR_SENTINEL = "working"
 
 # The stable token the normaliser substitutes for a machine-dependent
 # ``working_dir`` so a snapshot stays machine-independent.
-WORKING_DIR_TOKEN = "<working-dir>"  # noqa: S105  # a redaction token, not a secret
+WORKING_DIR_TOKEN = "<working-dir>"  # ruff: ignore[hardcoded-password-string]  # a redaction token, not a secret
 
 
 def normalise_working_dir(raw: str) -> str:

@@ -13,6 +13,6 @@ brings the ``given``/``when``/``then`` callables into this module's namespace wh
 from __future__ import annotations
 
 from pytest_bdd import scenarios
-from steps.set_chapters_steps import *  # noqa: F403 - register pytest-bdd step defs
+from steps.set_chapters_steps import *  # ruff: ignore[undefined-local-with-import-star] - register pytest-bdd step defs
 
 scenarios("features/set_chapters.feature")

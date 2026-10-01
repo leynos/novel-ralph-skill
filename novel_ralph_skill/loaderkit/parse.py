@@ -85,7 +85,7 @@ class EntryBuilder[T](typ.Protocol):
         """Build one validated entry from ``entry`` at array position ``index``."""
 
 
-def resolve_schema_version(  # noqa: PLR0913  # pylint: disable=too-many-arguments
+def resolve_schema_version(  # ruff: ignore[too-many-arguments]  # pylint: disable=too-many-arguments
     raw: Mapping,
     *,
     allowed_keys: frozenset[str],
@@ -164,7 +164,7 @@ def _entry_id(entry: _HasId) -> str:
     return entry.id
 
 
-def build_entries[T: _HasId](  # noqa: PLR0913  # pylint: disable=too-many-arguments
+def build_entries[T: _HasId](  # ruff: ignore[too-many-arguments]  # pylint: disable=too-many-arguments
     raw: Mapping,
     *,
     array_key: str,

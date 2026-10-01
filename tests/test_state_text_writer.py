@@ -49,7 +49,7 @@ def test_write_text_atomically_raises_and_leaves_no_temp_on_missing_parent(
     ``.state.toml.*`` temp file must survive in the ancestor directory.
     """
     target = tmp_path / "absent" / "compiled.md"
-    with pytest.raises(OSError):  # noqa: PT011 - the absent-parent fault is the assertion
+    with pytest.raises(OSError):  # ruff: ignore[pytest-raises-too-broad] - the absent-parent fault is the assertion
         write_text_atomically("body", target)
     leftovers = [child for child in tmp_path.iterdir() if child.is_file()]
     assert leftovers == [], f"a failed write left stray temp files: {leftovers}"

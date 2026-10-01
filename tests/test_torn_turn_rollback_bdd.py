@@ -24,6 +24,6 @@ trigger roadmap task 6.2.7 proved, and the ``done.flag`` trigger roadmap task
 from __future__ import annotations
 
 from pytest_bdd import scenarios
-from steps.torn_turn_rollback_steps import *  # noqa: F403 - register step defs
+from steps.torn_turn_rollback_steps import *  # ruff: ignore[undefined-local-with-import-star] - register step defs
 
 scenarios("features/torn_turn_rollback.feature")

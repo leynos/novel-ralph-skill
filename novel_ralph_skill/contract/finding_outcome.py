@@ -47,7 +47,7 @@ if typ.TYPE_CHECKING:
     import collections.abc as cabc
 
 
-def build_finding_outcome[Finding](  # noqa: PLR0913  # pylint: disable=too-many-arguments
+def build_finding_outcome[Finding](  # ruff: ignore[too-many-arguments]  # pylint: disable=too-many-arguments
     findings: cabc.Sequence[Finding],
     *,
     identify: cabc.Callable[[Finding], str],

@@ -14,6 +14,6 @@ file intact), and a no-flag ``set-gate`` faults with the usage envelope (exit
 from __future__ import annotations
 
 from pytest_bdd import scenarios
-from steps.set_gate_steps import *  # noqa: F403 - register pytest-bdd steps
+from steps.set_gate_steps import *  # ruff: ignore[undefined-local-with-import-star] - register pytest-bdd steps
 
 scenarios("features/set_gate.feature")

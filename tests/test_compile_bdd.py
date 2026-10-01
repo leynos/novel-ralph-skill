@@ -13,6 +13,6 @@ It binds ``tests/features/compile.feature`` to the step definitions in
 from __future__ import annotations
 
 from pytest_bdd import scenarios
-from steps.compile_steps import *  # noqa: F403 - register pytest-bdd step defs
+from steps.compile_steps import *  # ruff: ignore[undefined-local-with-import-star] - register pytest-bdd step defs
 
 scenarios("features/compile.feature")

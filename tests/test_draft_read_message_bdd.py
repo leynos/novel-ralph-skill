@@ -17,6 +17,6 @@ remedy naming the ``state.toml`` path, kept distinct from the draft-read prose
 from __future__ import annotations
 
 from pytest_bdd import scenarios
-from steps.draft_read_message_steps import *  # noqa: F403 - register pytest-bdd step defs
+from steps.draft_read_message_steps import *  # ruff: ignore[undefined-local-with-import-star] - register pytest-bdd step defs
 
 scenarios("features/draft_read_message.feature")

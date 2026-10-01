@@ -52,7 +52,7 @@ class Phase(enum.StrEnum):
     # The member name contains "PASS", which trips ruff's hardcoded-password
     # heuristic (S105) on the line below; this is a lifecycle phase value, not a
     # secret, so the inline suppression is intentional.
-    FINAL_PASS = "final-pass"  # noqa: S105
+    FINAL_PASS = "final-pass"  # ruff: ignore[hardcoded-password-string]
     """Final pass over the whole compiled manuscript."""
 
     DONE = "done"

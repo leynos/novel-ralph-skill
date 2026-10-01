@@ -79,7 +79,7 @@ consumer.
 """
 
 
-def build_envelope(  # noqa: PLR0913  # pylint: disable=too-many-arguments
+def build_envelope(  # ruff: ignore[too-many-arguments]  # pylint: disable=too-many-arguments
     # why: the five envelope fields are fixed by ADR 003 and design 3.1; this
     # constructor maps one keyword-only parameter per contract field.
     *,

@@ -13,6 +13,6 @@ in ``tests/steps/cross_command_contract_steps.py``; the star-import brings the
 from __future__ import annotations
 
 from pytest_bdd import scenarios
-from steps.cross_command_contract_steps import *  # noqa: F403 - register step defs
+from steps.cross_command_contract_steps import *  # ruff: ignore[undefined-local-with-import-star] - register step defs
 
 scenarios("features/cross_command_contract.feature")

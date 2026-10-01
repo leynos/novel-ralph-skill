@@ -132,7 +132,7 @@ def _emitted_leaf_names(document: tomlkit.TOMLDocument, dump: str) -> tuple[str,
     # ``last_finding_counts`` serialises inline, so its inner names do not appear
     # as their own ``key =`` lines; read them from the in-memory inline table.
     inline = document["drafting"]["critic"]["last_finding_counts"]  # type: ignore[index]
-    for key in inline.keys():  # noqa: SIM118 - tomlkit item, not a plain dict
+    for key in inline.keys():  # ruff: ignore[in-dict-keys] - tomlkit item, not a plain dict
         names.setdefault(key, None)
     names.pop(_CHAPTERS_LEAF_EXCEPTION, None)
     return tuple(names)

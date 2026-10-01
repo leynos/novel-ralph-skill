@@ -50,7 +50,7 @@ import typing as typ
 # so this import does not create the ``_set_chapters`` -> ``_state_mutators`` ->
 # ``novel_state`` cycle a direct ``_set_chapters`` import would.
 from novel_ralph_skill.commands._chapter_plan_entry import (
-    ChapterPlanEntry,  # noqa: TC001 - runtime global for Cyclopts annotation resolution
+    ChapterPlanEntry,  # ruff: ignore[typing-only-first-party-import] - runtime global for Cyclopts annotation resolution
 )
 
 # The ``working/state.toml`` load boundary lives in the neutral state-sourcing
