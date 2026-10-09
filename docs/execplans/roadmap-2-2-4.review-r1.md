@@ -168,6 +168,6 @@ cap, docstring coverage). source: validate.py:`_check_gate_ratio_consistent`,
 GATE_THRESHOLDS;_state_mutators.py (set_cursor/advance_phase pattern, 325
 lines); novel_state.py:build_app (registration); contract/runner.py (exit
 mapping); schema.py (gate/drafting dataclasses);
-tests/working_corpus/_library.py + _specs.py (baselines). cuprum READ-ONLY
+tests/working_corpus/\_library.py + \_specs.py (baselines). cuprum READ-ONLY
 sibling confirmed as drifted ahead of the locked 0.1.0 wheel. skills:
 logisphere-design-review (this), leta/grepai for nav.
