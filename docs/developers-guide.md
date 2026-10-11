@@ -1992,3 +1992,20 @@ def test_uses_pinned_full_sha(caller_step):
 If a workflow's behaviour genuinely depends on a feature only present from a
 particular commit onwards, express that as a comment or a changelog note, not
 as a test assertion on the SHA string.
+
+## Running uv through the helper
+
+Every `uv` call in the Makefile goes through `scripts/uv_gate.py`, a copy of
+the helper in
+[shared-actions](https://github.com/leynos/shared-actions/tree/main/uv_gate).
+It cleans the environment, uses the global uv cache, runs offline first, and
+goes online at most once, only when uv proves a cache entry, a managed Python
+or a Git source is missing. The copy is vendored byte for byte and is never
+edited in place: the concordat `uv-gate-baseline` rule audits its digest, so
+the repository's file-length and scripting-stack conventions do not apply to
+it, and Ruff excludes it. `make prepare` installs the locked environment, and
+every gate that runs the project depends on it. A caller's `UV=/path/to/uv` is
+honoured by putting that uv's directory on `PATH`, so the executable must be
+named `uv`. A Git-sourced tool that is not cached yet needs uv 0.11.28 or
+newer; with an older uv, running the tool once with `uvx` warms the cache.
+`uv.lock` changes only through a manual `uv lock`; the gates never change it.

@@ -29,6 +29,8 @@ dev = [
 ]
 
 [tool.ruff]
+# Vendored byte for byte; its digest is audited, so Ruff must not touch it.
+extend-exclude = ["scripts/uv_gate.py"]
 line-length = 88
 preview = true
 target-version = "py314"
@@ -331,7 +333,7 @@ pytest_add_cli_args = ["-m", "not slow"]
 # runtime: the Makefile (test_interrogate_gate), docs/ (the drift guards and
 # conftest helpers), skill/ (the skill markdown guards), and README.md (the
 # installed-binary e2e builds a wheel, whose metadata references it).
-also_copy = ["Makefile", "README.md", "docs/", "skill/"]
+also_copy = ["Makefile", "README.md", "docs/", "skill/", "scripts/uv_gate.py"]
 
 [tool.pytest.ini_options]
 # Tests automatically killed after seconds elapsed
