@@ -14,6 +14,9 @@ export PATH := $(HOME)/.local/bin:$(HOME)/.bun/bin:$(PATH)
 # https://github.com/leynos/shared-actions/tree/main/uv_gate for the contract.
 UV_GATE ?= python3 scripts/uv_gate.py
 UV ?= $(shell command -v uv 2>/dev/null || printf '%s/.local/bin/uv' "$$HOME")
+# The helper finds uv on PATH, so a caller's UV=/path/to/uv is honoured by putting
+# that uv's directory first on PATH for every recipe.
+export PATH := $(if $(findstring /,$(UV)),$(patsubst %/,%,$(dir $(UV))):)$(PATH)
 USER_CARGO := $(HOME)/.cargo/bin/cargo
 USER_WHITAKER := $(HOME)/.local/bin/whitaker
 USER_BIN_PATH := $(HOME)/.cargo/bin:$(HOME)/.local/bin:$(HOME)/.bun/bin
@@ -39,8 +42,11 @@ PYLINT = $(UV_GATE) tool --managed-python --python $(PYLINT_PYTHON) --from 'pyli
 PURGE_TREE_BYTECODE = $(UV_GATE) run -- python -c "import pathlib, shutil, sys; [shutil.rmtree(d, ignore_errors=True) for t in sys.argv[1:] for d in pathlib.Path(t).rglob('__pycache__')]" $(PYTHON_TARGETS)
 
 
-.PHONY: help all audit clean build build-release lint lint-python fmt check-fmt \
+.PHONY: prepare help all audit clean build build-release lint lint-python fmt check-fmt \
         markdownlint spelling nixie test typecheck $(TOOLS) $(VENV_TOOLS)
+
+prepare: ## Install the locked development environment, offline first
+	$(UV_GATE) prepare --group dev
 
 .DEFAULT_GOAL := all
 
@@ -56,11 +62,10 @@ endef
 .venv: pyproject.toml
 	$(call ensure_uv)
 
-build: .venv ## Build virtual-env and install deps
-	$(UV_GATE) prepare --group dev
+build: .venv prepare ## Build virtual-env and install deps
 	$(PURGE_TREE_BYTECODE)
 
-build-release: ## Build artefacts (sdist & wheel)
+build-release: prepare ## Build artefacts (sdist & wheel)
 	$(call ensure_uv)
 	$(UV_GATE) run -- python -m build --sdist --wheel
 
@@ -133,7 +138,7 @@ markdownlint: $(MDLINT) ## Lint Markdown files
 TYPOS_VERSION ?= 1.48.0
 TYPOS := $(UV_GATE) tool --from typos@$(TYPOS_VERSION) -- typos
 
-spelling: ## Enforce en-GB-oxendict spelling in Markdown prose
+spelling: prepare ## Enforce en-GB-oxendict spelling in Markdown prose
 	$(UV_GATE) run -- python scripts/generate_typos_config.py
 	find . -type f -name '*.md' -not -path './.venv/*' -print0 | \
 		xargs -0 -r $(TYPOS) --config typos.toml --force-exclude
