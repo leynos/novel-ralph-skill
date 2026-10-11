@@ -333,7 +333,7 @@ pytest_add_cli_args = ["-m", "not slow"]
 # runtime: the Makefile (test_interrogate_gate), docs/ (the drift guards and
 # conftest helpers), skill/ (the skill markdown guards), and README.md (the
 # installed-binary e2e builds a wheel, whose metadata references it).
-also_copy = ["Makefile", "README.md", "docs/", "skill/"]
+also_copy = ["Makefile", "README.md", "docs/", "skill/", "scripts/uv_gate.py"]
 
 [tool.pytest.ini_options]
 # Tests automatically killed after seconds elapsed
