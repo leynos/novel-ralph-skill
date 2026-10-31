@@ -1,7 +1,9 @@
 """Contract that each push and pull request runs the test suite once.
 
-``ci.yml`` runs the suite under coverage on every push to ``main`` and every
-pull request. An ``act-validation.yml`` workflow used to run
+``ci.yml`` runs the suite under coverage on every pull request, and
+``coverage-main.yml`` runs it under coverage on every push to ``main``, because
+main owns the CodeScene upload (CV-005) and a pull request never reaches
+CodeScene. An ``act-validation.yml`` workflow used to run
 ``make test WITH_ACT=1`` on the same events. No test reads the
 ``RUN_ACT_VALIDATION`` variable that flag sets, so a collection selects the
 same 1,580 tests either way, and the workflow ran the whole suite a second
@@ -114,13 +116,32 @@ def test_no_local_step_runs_the_suite() -> None:
     assert not repeated, f"the suite runs outside coverage in {repeated!r}"
 
 
-def test_coverage_runs_once_in_ci_on_every_event() -> None:
-    """Require one coverage step, in ``ci.yml`` alone, with no job or step guard."""
+def test_coverage_runs_once_per_event() -> None:
+    """Require one coverage step in ``ci.yml`` and one in ``coverage-main.yml``.
+
+    The pull-request lane carries the pull-request guard and its job is
+    unguarded. The publisher's job and step are unguarded, and it triggers on
+    pushes to main alone, so no event runs the suite twice and none skips it.
+    """
     placements = _coverage_placements()
-    assert [where for where, _, _ in placements] == ["workflows/ci.yml"], placements
-    _, job, step = placements[0]
-    assert "if" not in job, "the coverage job must run on every event"
-    assert "if" not in step, "the coverage step must run on every event"
+    assert [where for where, _, _ in placements] == [
+        "workflows/ci.yml",
+        "workflows/coverage-main.yml",
+    ], placements
+    (_, lane_job, lane_step), (_, publisher_job, publisher_step) = placements
+    assert "if" not in lane_job, "the pull-request lane's job must not be guarded"
+    assert lane_step.get("if") == "github.event_name == 'pull_request'", (
+        "the pull-request lane must run on pull requests, and only there"
+    )
+    assert "if" not in publisher_job, "the publisher's job must not be guarded"
+    assert "if" not in publisher_step, "the publisher's coverage step is guarded"
+    publisher = _documents()["workflows/coverage-main.yml"]
+    assert "push" in _triggers(publisher), "the publisher must run on push"
+    assert "pull_request" not in _triggers(publisher), "a pull request must not publish"
+    push = _triggers(publisher)["push"] or {}
+    assert push.get("branches") == ["main"], "the publisher must run on pushes to main"
+    filters = sorted({"paths", "paths-ignore"} & set(push))
+    assert not filters, f"path filters {filters} would skip pushes to main"
 
 
 def test_ci_runs_on_every_pull_request_and_push_to_main() -> None:

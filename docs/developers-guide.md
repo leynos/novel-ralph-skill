@@ -1919,22 +1919,25 @@ The generated repository includes GitHub Actions workflows and local composite
 actions under `.github/`.
 
 - `.github/workflows/ci.yml` runs on pushes to `main` and on pull requests. It
-  sets up Python 3.13, installs `uv`, validates the generated `Makefile` with
+  sets up Python 3.14, installs `uv`, validates the generated `Makefile` with
   `mbake`, runs `make build`, `make check-fmt`, `make lint` (Ruff +
   `interrogate` over `$(PYTHON_TARGETS)` + Pylint), `make typecheck`, and
-  `make audit`, then delegates coverage generation to the shared coverage
-  action. When the Rust extension is enabled, it also sets up Rust, installs
-  Rust lint and test tools, and passes `rust_extension/Cargo.toml` to coverage.
-- The suite runs once per event, in `ci.yml`'s coverage step. An earlier
-  `act-validation.yml` workflow ran `make test WITH_ACT=1` beside it on pushes
-  and pull requests, but no test reads `RUN_ACT_VALIDATION`, so a collection
-  selects the same 1,580 tests with and without it, and that workflow ran the
-  whole suite a second time. It was removed. `tests/test_suite_runs_once.py`
-  keeps any other workflow, or local composite action, from running the suite
-  again. It reads commands through `tests/suite_commands.py`, which splits a
-  command at shell separators, reads each segment's program before its
-  arguments, and looks through `uv run`, `uvx` and `python -m` wrappers; use it
-  for any other contract that asks whether a command runs the suite.
+  `make audit`, then, on pull requests only, delegates coverage generation and
+  the ratchet to the shared coverage action. When the Rust extension is
+  enabled, it also sets up Rust, installs Rust lint and test tools, and passes
+  `rust_extension/Cargo.toml` to coverage.
+- The suite runs once per event, under coverage: in `ci.yml`'s pull-request
+  lane on pull requests, and in `coverage-main.yml` on pushes to `main`. An
+  earlier `act-validation.yml` workflow ran `make test WITH_ACT=1` beside it on
+  pushes and pull requests, but no test reads `RUN_ACT_VALIDATION`, so a
+  collection selects the same 1,580 tests with and without it, and that
+  workflow ran the whole suite a second time. It was removed.
+  `tests/test_suite_runs_once.py` keeps any other workflow, or local composite
+  action, from running the suite again. It reads commands through
+  `tests/suite_commands.py`, which splits a command at shell separators, reads
+  each segment's program before its arguments, and looks through `uv run`,
+  `uvx` and `python -m` wrappers; use it for any other contract that asks
+  whether a command runs the suite.
 - `.github/workflows/release.yml` publishes wheels when a `v*.*.*` tag is
   pushed. It builds a pure Python wheel, creates a GitHub release with
   generated release notes, downloads wheel artefacts, and uploads them to the
@@ -1942,9 +1945,8 @@ actions under `.github/`.
 - `.github/workflows/build-wheels.yml` is a reusable workflow for extension
   builds. It accepts a Python version and builds wheels across Linux, Windows,
   and macOS architectures via `.github/actions/build-wheels`.
-- `.github/workflows/get-codescene-sha.yml` is manually dispatched. It fetches
-  the CodeScene coverage CLI installer, computes its SHA-256 digest, and writes
-  the result to the `CODESCENE_CLI_SHA256` repository variable.
+- `.github/workflows/coverage-main.yml` is the one CodeScene publisher; see
+  "CodeScene coverage publication" below.
 - `.github/actions/build-wheels` wraps `cibuildwheel` with `uvx` and uploads
   architecture-specific wheel artefacts.
 - `.github/actions/pure-python-wheel` builds a pure Python wheel with
@@ -1952,10 +1954,9 @@ actions under `.github/`.
 - `.github/dependabot.yml` enables dependency update pull requests for GitHub
   Actions and Python packages. Rust-enabled projects also receive Cargo updates.
 
-The `CS_ACCESS_TOKEN` secret must be configured when CodeScene coverage upload
-is required. The `CODESCENE_CLI_SHA256` variable should be populated using the
-refresh workflow, so CI can verify the downloaded CodeScene installer before
-upload.
+The `CS_ACCESS_TOKEN` secret belongs in the `codescene` environment, whose
+deployment policy admits `main` alone. Without it the publisher records a
+skipped upload and still succeeds.
 
 ### Workflow pins and Dependabot
 
@@ -1992,3 +1993,38 @@ def test_uses_pinned_full_sha(caller_step):
 If a workflow's behaviour genuinely depends on a feature only present from a
 particular commit onwards, express that as a comment or a changelog note, not
 as a test assertion on the SHA string.
+
+## CodeScene coverage publication
+
+Main owns CodeScene (CV-005). Nothing a pull request can start talks to
+CodeScene or holds its credential.
+
+- **Pull requests** (`.github/workflows/ci.yml`) run the suite once, under
+  coverage, and ratchet it with the shared `generate-coverage` action over
+  `./novel_ralph_skill`. The report is not uploaded anywhere.
+- **Main** (`.github/workflows/coverage-main.yml`) is the one publisher. It
+  runs on each push to `main` (and on manual dispatch), in the `codescene`
+  environment whose deployment policy admits `main` alone. It generates the
+  same coverage, writes the ratchet baseline that pull requests compare
+  against, and uploads through the shared `upload-codescene-coverage` action.
+  With no `CS_ACCESS_TOKEN` in the environment, the shared action records a
+  skipped upload and the run still succeeds, so the publisher works before a
+  CodeScene project exists.
+- **Known exception.** Merges made with `GITHUB_TOKEN`, such as Dependabot
+  automerge, fire no push event, so they reach the publisher only through a
+  later push or a manual dispatch.
+
+The `generate-coverage` selection in both workflows must match field for field
+(`python-source`, format and interpreter), and `.github/cv005.toml` repeats the
+`python-source`.
+
+### The CV-005 contract check
+
+`make test-workflow-contracts` runs the shared `cv005-contracts` checker
+against this repository's workflows. `make all` includes it, and CI runs it.
+The checker is fetched from the `leynos/shared-actions` commit named by
+`CV005_CONTRACTS_REF` in the `Makefile`, so the first run needs network access.
+Always pin a full 40-character commit: a fix to the contract arrives as a pin
+bump, never as a local copy of the rules. The command exits 0 when every clause
+holds, 1 with one `clause: message` line per violation, and 2 when the tree or
+the configuration cannot be read.
