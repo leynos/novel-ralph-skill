@@ -2003,13 +2003,14 @@ CodeScene or holds its credential.
   coverage, and ratchet it with the shared `generate-coverage` action over
   `./novel_ralph_skill`. The report is not uploaded anywhere.
 - **Main** (`.github/workflows/coverage-main.yml`) is the one publisher. It
-  runs on each push to `main` (and on manual dispatch), in the `codescene`
-  environment whose deployment policy admits `main` alone. It generates the
-  same coverage, writes the ratchet baseline that pull requests compare
+  runs on each push to `main` and on manual dispatch (which must target `main`:
+  the `codescene` environment, whose deployment policy admits `main` alone,
+  refuses a dispatch from any other branch before the job runs). It generates
+  the same coverage, writes the ratchet baseline that pull requests compare
   against, and uploads through the shared `upload-codescene-coverage` action.
-  With no `CS_ACCESS_TOKEN` in the environment, the shared action records a
-  skipped upload and the run still succeeds, so the publisher works before a
-  CodeScene project exists.
+  With no `CS_ACCESS_TOKEN` in the environment, the upload step is skipped and
+  a separate step writes a warning, so the run still succeeds and the publisher
+  works before a CodeScene project exists.
 - **Known exception.** Merges made with `GITHUB_TOKEN`, such as Dependabot
   automerge, fire no push event, so they reach the publisher only through a
   later push or a manual dispatch. A manual dispatch uploads coverage but does
