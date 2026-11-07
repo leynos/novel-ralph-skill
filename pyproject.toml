@@ -303,8 +303,9 @@ enable = [
 [tool.interrogate]
 # Docstring-coverage gate. The project standard is 100% (AGENTS.md): every
 # public module, class, and function carries a docstring. This value is the
-# single source of truth for the threshold; the Makefile invokes interrogate
-# over $(PYTHON_TARGETS) without re-spelling the threshold on the CLI.
+# threshold for any interrogate run that does not pass --fail-under; the
+# Makefile target also passes 100 explicitly (INTERROGATE_FLAGS), and a test
+# pins each.
 fail-under = 100
 # Ignore flags pinned to interrogate's non-relaxing defaults so the gate
 # measures every node; they are documentary, not exemptions.

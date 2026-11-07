@@ -22,7 +22,7 @@ if typ.TYPE_CHECKING:
 
 
 class TestInterrogateGate:
-    """Pin the docstring-coverage gate's configuration, invocation, and deps."""
+    """Pin the docstring-coverage gate's configuration and dependency."""
 
     def test_fail_under_is_one_hundred(
         self,

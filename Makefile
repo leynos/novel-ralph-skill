@@ -25,8 +25,8 @@ WITH_ACT ?= 0
 ACT_TEST_ENV = $(if $(filter 1 true yes on,$(WITH_ACT)),RUN_ACT_VALIDATION=1,)
 PYTEST_XDIST_WORKERS ?= auto
 PYTHON_TARGETS ?= novel_ralph_skill tests
-# The scripts directory holds Python the package and its tests do not cover, so
-# the docstring gate reads it too. It stays out of the other Python targets.
+# The scripts directory is outside the default PYTHON_TARGETS, so the docstring
+# gate names it explicitly. It stays out of the other Python targets.
 INTERROGATE_TARGETS ?= $(PYTHON_TARGETS) scripts
 # Level 2 prints a MISSED row per undocumented definition, which the
 # `interrogate` target fails on: the rounded percentage alone can pass a lone gap.
