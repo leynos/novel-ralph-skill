@@ -302,10 +302,9 @@ enable = [
 
 [tool.interrogate]
 # Docstring-coverage gate. The project standard is 100% (AGENTS.md): every
-# public module, class, and function carries a docstring. This value is the
-# threshold for any interrogate run that does not pass --fail-under; the
-# Makefile target also passes 100 explicitly (INTERROGATE_FLAGS), and a test
-# pins each.
+# public module, class, and function carries a docstring. Interrogate reads this
+# threshold from here when this file is its configuration and the command line
+# gives no --fail-under; a test pins it at 100.
 fail-under = 100
 # Ignore flags pinned to interrogate's non-relaxing defaults so the gate
 # measures every node; they are documentary, not exemptions.
