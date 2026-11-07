@@ -3,12 +3,10 @@
 The 100% docstring-coverage standard (AGENTS.md, ``docs/developers-guide.md``,
 ``docs/users-guide.md``) is enforced by ``interrogate``. This guard pins the
 gate's wiring by static parse so a regression fails ``make test`` rather than
-shipping silently: the threshold lives once in ``[tool.interrogate]`` (not as a
-CLI literal), the Makefile ``lint-python`` recipe invokes ``interrogate`` over
-``$(PYTHON_TARGETS)``, and ``interrogate`` is a declared dev dependency. It
-parses ``pyproject.toml`` with ``tomllib`` and reads the ``Makefile`` as text;
-it does not shell out to run ``interrogate``, because ``make lint`` already runs
-the live gate.
+shipping silently: the ``[tool.interrogate]`` threshold is 100 and
+``interrogate`` is a declared dev dependency. It parses ``pyproject.toml`` with
+``tomllib``. The Makefile target is covered by
+``tests/test_interrogate_target.py``.
 """
 
 from __future__ import annotations
@@ -22,11 +20,9 @@ from hypothesis import strategies as st
 if typ.TYPE_CHECKING:
     import collections.abc as cabc
 
-    from conftest import RepoTextReader
-
 
 class TestInterrogateGate:
-    """Pin the docstring-coverage gate's configuration, invocation, and deps."""
+    """Pin the docstring-coverage gate's configuration and dependency."""
 
     def test_fail_under_is_one_hundred(
         self,
@@ -40,20 +36,6 @@ class TestInterrogateGate:
             "docstring-coverage standard is enforced for any auto-detecting "
             "invocation"
         )
-
-    def test_makefile_invokes_interrogate(
-        self,
-        read_repo_text: RepoTextReader,
-    ) -> None:
-        """A single Makefile recipe line runs interrogate over the targets."""
-        makefile = read_repo_text("Makefile")
-        # Same-line co-occurrence: deleting the interrogate recipe line must
-        # fail this gate even though $(PYTHON_TARGETS) appears on several other
-        # lines.
-        assert any(
-            "interrogate" in line and "$(PYTHON_TARGETS)" in line
-            for line in makefile.splitlines()
-        ), "a Makefile recipe line must invoke interrogate over $(PYTHON_TARGETS)"
 
     def test_interrogate_is_a_dev_dependency(
         self,
