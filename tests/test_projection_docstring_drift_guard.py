@@ -236,7 +236,7 @@ def _consumer(doc: str) -> object:
     """Wrap a planted docstring in an object the helper can read as a consumer."""
 
     def _fixture() -> None:
-        pass
+        """Stand-in whose docstring is replaced with the planted text below."""
 
     _fixture.__doc__ = doc
     return _fixture

@@ -25,6 +25,13 @@ WITH_ACT ?= 0
 ACT_TEST_ENV = $(if $(filter 1 true yes on,$(WITH_ACT)),RUN_ACT_VALIDATION=1,)
 PYTEST_XDIST_WORKERS ?= auto
 PYTHON_TARGETS ?= novel_ralph_skill tests
+# The scripts directory holds Python the package and its tests do not cover, so
+# the docstring gate reads it too. It stays out of the other Python targets.
+INTERROGATE_TARGETS ?= $(PYTHON_TARGETS) scripts
+# Level 2 prints a MISSED row per undocumented definition, which the
+# `interrogate` target fails on: the rounded percentage alone can pass a lone gap.
+INTERROGATE_FLAGS ?= -vv --fail-under 100
+INTERROGATE ?= $(UV_ENV) $(UV) run interrogate
 PYLINT_PYTHON ?= pypy@3.12
 PYLINT_VERSION ?= 4.0.9
 PYLINT_TARGETS ?= $(PYTHON_TARGETS)
@@ -41,7 +48,7 @@ PURGE_TREE_BYTECODE = $(UV_ENV) $(UV) run python -c "import pathlib, shutil, sys
 
 
 .PHONY: help all audit clean build build-release lint lint-python fmt check-fmt \
-        markdownlint spelling nixie test typecheck $(TOOLS) $(VENV_TOOLS)
+        markdownlint spelling nixie test typecheck interrogate $(TOOLS) $(VENV_TOOLS)
 
 .DEFAULT_GOAL := all
 
@@ -114,9 +121,20 @@ check-fmt: build ## Verify formatting
 
 lint: lint-python ## Run linters
 
-lint-python: build ## Run Python linters
+# Interrogate rounds its percentage to one decimal, so `--fail-under 100` alone
+# can pass a lone gap in a large repository; fail on any MISSED row as well.
+interrogate: build ## Enforce complete Python docstring coverage
+	@report="$$($(INTERROGATE) $(INTERROGATE_FLAGS) $(INTERROGATE_TARGETS))"; \
+	  status=$$?; \
+	  printf '%s\n' "$$report"; \
+	  test "$$status" -eq 0 || exit "$$status"; \
+	  if printf '%s\n' "$$report" | grep -q '| *MISSED *|'; then \
+	    printf '%s\n' 'interrogate: undocumented definitions remain; see the MISSED rows above' >&2; \
+	    exit 1; \
+	  fi
+
+lint-python: build interrogate ## Run Python linters
 	$(UV_ENV) $(UV) run ruff check $(PYTHON_TARGETS)
-	$(UV_ENV) $(UV) run interrogate $(PYTHON_TARGETS)
 	$(PYLINT) $(PYLINT_TARGETS)
 
 
