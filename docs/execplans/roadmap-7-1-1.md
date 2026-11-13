@@ -392,9 +392,9 @@ Read these before starting. They are the source of truth.
   `compiled_manuscript_path` + `COMPILED_REL` to `compile_model.py`). Finding 3
   (docstring prose) is roadmap 7.1.2, **not** this task; Finding 4 (the race
   window) is out of scope.
-- `docs/adr-001-deterministic-judgemental-boundary.md` (detect-only;
+- `docs/adrs/adr-0001-deterministic-judgemental-boundary.md` (detect-only;
   `check_compiled` writes nothing).
-- `docs/adr-003-shared-interface-contract.md` (the envelope and exit-code
+- `docs/adrs/adr-0003-shared-interface-contract.md` (the envelope and exit-code
   contract this refactor must not perturb).
 - `AGENTS.md` "Python verification and testing" (unit/behavioural/property
   discipline; snapshot rule) and "Markdown guidance".

@@ -32,8 +32,8 @@ substring-based laziness guard**, and an **untested ordered-mapping claim**.
 
 Documentation and skills relied on for this audit: `docs/developers-guide.md`
 (the "`novel` multiplexer" section at lines 432-476),
-`docs/adr-007-command-surface-novel-multiplexer.md`, the merged ExecPlan and
-its three Logisphere reviews (`docs/execplans/roadmap-7-3-2.md`,
+`docs/adrs/adr-0007-command-surface-novel-multiplexer.md`, the merged ExecPlan
+and its three Logisphere reviews (`docs/execplans/roadmap-7-3-2.md`,
 `roadmap-7-3-2.logisphere-review-r1..r3.md`), and `AGENTS.md` (quality gates,
 400-line file cap, en-GB Oxford spelling). Code navigation used `leta` (`show`,
 `refs`, `grep`); history was traced with

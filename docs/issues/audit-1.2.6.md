@@ -7,7 +7,7 @@ documentation and code touched by that task: the rewritten initialization block
 in
 [`skill/novel-ralph/references/state-layout.md`](../../skill/novel-ralph/references/state-layout.md),
 the reconciled wording in
-[`docs/adr-002-toml-round-trip-tomlkit.md`](../../docs/adr-002-toml-round-trip-tomlkit.md)
+[`docs/adrs/adr-0002-toml-round-trip-tomlkit.md`](../adrs/adr-0002-toml-round-trip-tomlkit.md)
 and
 [`docs/novel-ralph-harness-design.md`](../../docs/novel-ralph-harness-design.md),
 and the new guard
@@ -100,8 +100,8 @@ and leaves each guard owning only its file-specific assertion.
   `docs/execplans/`
 
 audit-1.2.5 Finding 6 recorded that the documentation index lists ADRs 001-005
-but not `docs/adr-006-console-scripts-e2e-posix-policy.md`, and has no entry
-for the growing `docs/issues/` audit set or the `docs/execplans/`
+but not `docs/adrs/adr-0006-console-scripts-e2e-posix-policy.md`, and has no
+entry for the growing `docs/issues/` audit set or the `docs/execplans/`
 execution-plan set. This slice did not touch `contents.md`, so all three gaps
 remain; the issues set has since grown to six files (this audit included) and
 the execplans set to twelve, widening the index's blind spot. A reader using

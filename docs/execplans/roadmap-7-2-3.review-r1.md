@@ -120,7 +120,7 @@ scan.py and fail a literal reading of the acceptance check.
 ## Trail
 
 Design docs: `docs/novel-ralph-harness-design.md` §6/§6.1/§6.3;
-`docs/adr-001-*`, `docs/adr-003-shared-interface-contract.md`;
+`docs/adr-001-*`, `docs/adrs/adr-0003-shared-interface-contract.md`;
 `docs/developers-guide.md` "The shared loader primitives"; `docs/roadmap.md`
 7.2.3; `docs/execplans/roadmap-7-2-2.md` (D-SCANTYPES). Source verified:
 `loaderkit/scan.py`, `loaderkit/__init__.py`, `rulepack/detect.py`,

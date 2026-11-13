@@ -27,14 +27,15 @@ consistency gaps. None block the merge.
 Sources relied on: `docs/novel-ralph-harness-design.md` (§3.2 exit codes, §3.3
 checker/mutator split, §4.1-§4.5 command bodies, §5.4 disk evidence, §7.2
 Figure 3 the per-chapter loop, §9 lines 814-847 the loop success criteria, §10
-failure modes), `docs/adr-003-shared-interface-contract.md`, `docs/adr-006`
-(the POSIX-only installed boundary), `docs/developers-guide.md` ("The
-per-chapter deterministic-loop scenario"), `docs/roadmap.md` (task 6.2.2),
-prior audits `docs/issues/audit-6.2.1.md` and `docs/issues/audit-1.2.1.md`, and
-`AGENTS.md` (en-GB Oxford spelling, module/file boundaries, snapshot-plus-
-semantic rule, the `tests/steps/` assert/argument-count exemption). Loaded the
-`python-router` and `python-testing` skills; navigated code with `leta`/`grep`
-and traced history with `git show`/`sem` over commit `717782b`.
+failure modes), `docs/adrs/adr-0003-shared-interface-contract.md`,
+`docs/adr-006` (the POSIX-only installed boundary), `docs/developers-guide.md`
+("The per-chapter deterministic-loop scenario"), `docs/roadmap.md` (task
+6.2.2), prior audits `docs/issues/audit-6.2.1.md` and
+`docs/issues/audit-1.2.1.md`, and `AGENTS.md` (en-GB Oxford spelling,
+module/file boundaries, snapshot-plus- semantic rule, the `tests/steps/`
+assert/argument-count exemption). Loaded the `python-router` and
+`python-testing` skills; navigated code with `leta`/`grep` and traced history
+with `git show`/`sem` over commit `717782b`.
 
 ## Finding 1: The run-and-capture command driver is duplicated across five step modules
 

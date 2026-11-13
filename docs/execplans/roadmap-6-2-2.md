@@ -577,7 +577,7 @@ The reader is assumed to know nothing of this repository. Orientation:
 - This is a Python package, `novel_ralph_skill`, shipping five console-scripts
   forming a deterministic "spine" for a novel-writing harness: `novel-state`,
   `novel-done`, `novel-compile`, `desloppify`, and `wordcount`
-  (`docs/adr-005-command-surface-five-scripts.md`;
+  (`docs/adrs/adr-0005-command-surface-five-scripts.md`;
   `novel_ralph_skill/commands/names.py`).
 - Every command shares one JSON-envelope contract. A command body returns a
   `CommandOutcome` (exit code plus `result`/`messages`); the shared wrapper
@@ -598,7 +598,7 @@ The reader is assumed to know nothing of this repository. Orientation:
   mutator), 4 actionable finding (e.g. stale compile present, desloppify over
   threshold) (`docs/novel-ralph-harness-design.md` §3.2;
   `novel_ralph_skill/contract/exit_codes.py::ExitCode`;
-  `docs/adr-003-shared-interface-contract.md`).
+  `docs/adrs/adr-0003-shared-interface-contract.md`).
 - The per-chapter pipeline (`docs/novel-ralph-harness-design.md` §7.2, Figure 3)
   weaves detection (`desloppify`, `wordcount`) and state operations (`recount`,
   `novel-done`) with the judgemental passes; the deterministic commands are the

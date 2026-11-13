@@ -71,7 +71,8 @@ escalation, not a workaround.
   checker touching disk. The `--check` body must never call
   `write_text_atomically`, never open a `[pending_turn]` bracket, and never
   create `compiled.md`. It may only *read* `state.toml` and the manuscript tree.
-  (`docs/adr-001-deterministic-judgemental-boundary.md`; design §3.3 table.)
+  (`docs/adrs/adr-0001-deterministic-judgemental-boundary.md`; design §3.3
+  table.)
 - **`--check` and the `novel-done` `compile_consistent` clause share one
   comparison routine.** Both must read the verdict from the single production
   site
@@ -446,14 +447,14 @@ exiting 4 on divergence").
 
 Read first: design §4.3 (the `--check` paragraph), §3.2 (exit-code table, row
 4), §3.3 (checker/mutator table — `novel-compile --check` is a checker);
-`docs/adr-001-deterministic-judgemental-boundary.md`;
-`docs/adr-003-shared-interface-contract.md` (envelope, `result` vs `messages`,
-exit codes); `docs/adr-005-command-surface-five-scripts.md` (the five-script
-command surface and single-callback shape). Skills to load: `python-router` →
-`python-errors-and-logging` (the exit-`3` fault boundary and `raise … from …`
-discipline) and `python-types-and-apis` (the kw-only flag signature,
-`CommandOutcome` return type); `leta` for navigation. `domain-cli-and-daemons`
-for the operator-feedback shape.
+`docs/adrs/adr-0001-deterministic-judgemental-boundary.md`;
+`docs/adrs/adr-0003-shared-interface-contract.md` (envelope, `result` vs
+`messages`, exit codes); `docs/adrs/adr-0005-command-surface-five-scripts.md`
+(the five-script command surface and single-callback shape). Skills to load:
+`python-router` → `python-errors-and-logging` (the exit-`3` fault boundary and
+`raise … from …` discipline) and `python-types-and-apis` (the kw-only flag
+signature, `CommandOutcome` return type); `leta` for navigation.
+`domain-cli-and-daemons` for the operator-feedback shape.
 
 Edits, all in `novel_ralph_skill/commands/_compile.py`:
 

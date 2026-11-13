@@ -79,7 +79,7 @@ escalation, not a workaround.
 - **ADR 001 — validated commands only.** Every one of these fields reaches
   `state.toml` only through a validated command. No mutator may bypass the
   `tomlkit` round-trip or skip validation
-  (`docs/adr-001-deterministic-judgemental-boundary.md`).
+  (`docs/adrs/adr-0001-deterministic-judgemental-boundary.md`).
 - **Validate before persist (design §3.4, §4.1).** Each mutator edits the live
   `tomlkit` document, derives the typed `State` read view through
   `document_to_state`, applies `validate_state` (the §5.2 invariants), and
@@ -355,7 +355,7 @@ escalation, not a workaround.
       `make all` green.
     - [x] Work item 6: documentation — ADR, developers' guide, users' guide,
       SKILL bridge + markdown gates.
-      DONE: ADR 010 (docs/adr-010-gate-drafting-mutators.md) records the four
+      DONE: ADR 010 (docs/adrs/adr-0010-gate-drafting-mutators.md) records the four
       command names/shapes, the exit-2/exit-3 split, the gate-ratio repair
       semantics, the write-time preconditions, D10 (general set-gate), D11 (the
       registrar pattern), the single-file no-bracket/no-receipt stance, and the
@@ -1279,8 +1279,8 @@ Implements: roadmap 2.2.4 (the success wording mirrors 2.2.3's ADR
 requirement); AGENTS.md documentation rule; the documentation-style-guide and
 en-GB convention.
 
-- **ADR 010** `docs/adr-010-gate-drafting-mutators.md` (next free ADR number
-  after 009): record the four command names and input shapes, the exit-2
+- **ADR 010** `docs/adrs/adr-0010-gate-drafting-mutators.md` (next free ADR
+  number after 009): record the four command names and input shapes, the exit-2
   (shape/usage, incl. no-flag `set-gate`, realized by the
   `GateDraftingUsageError` + `_set_gate_or_usage` adapter that returns the
   exit-2 `CommandOutcome` directly — NOT `cyclopts.ValidationError(msg=...)`,

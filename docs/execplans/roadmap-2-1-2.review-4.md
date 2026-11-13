@@ -128,10 +128,10 @@ resolutions still hold. The plan is implementable and design-conformant as
 written. I would stake my name on it.
 
 Documentation and skills relied on: `docs/novel-ralph-harness-design.md` §5.2 /
-§5.4 / §2.3 / §3.1-§3.4 / §4.1; `docs/adr-003-shared-interface-contract.md`
-§3.1; `docs/developers-guide.md`; `AGENTS.md`;
-`novel_ralph_skill/contract/runner.py` lines 89-188;
-`novel_ralph_skill/state/schema.py` lines 74-92, 254-260;
+§5.4 / §2.3 / §3.1-§3.4 / §4.1;
+`docs/adrs/adr-0003-shared-interface-contract.md` §3.1;
+`docs/developers-guide.md`; `AGENTS.md`; `novel_ralph_skill/contract/runner.py`
+lines 89-188; `novel_ralph_skill/state/schema.py` lines 74-92, 254-260;
 `novel_ralph_skill/state/parse.py` lines 51-60;
 `tests/working_corpus/_oracle.py` lines 37-150;
 `tests/working_corpus/_variants.py` lines 24-153;

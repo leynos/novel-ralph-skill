@@ -581,7 +581,7 @@ Terms:
 
 Source docs to read before implementing: design §4.4, §6.1, §3.1-§3.2, §9;
 `docs/developers-guide.md` "Rule packs and the loader boundary"; AGENTS.md
-testing rules; `docs/adr-003-shared-interface-contract.md`;
+testing rules; `docs/adrs/adr-0003-shared-interface-contract.md`;
 `docs/scripting-standards.md` (Cyclopts; cuprum for the e2e only);
 `skill/novel-ralph/references/desloppify-checklist.md` §6 (the offender table).
 

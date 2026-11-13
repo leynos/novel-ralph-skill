@@ -468,10 +468,10 @@ The harness is a Python package, `novel_ralph_skill`, that ships a single
 "envelope" on stdout (or a human rendering under `--human`) and exits with a
 contract code. Read the following before starting; they are the source of truth.
 
-- `docs/adr-003-shared-interface-contract.md` — the shared six-field envelope,
-  the four-flag Cyclopts construction contract (Table 3), and the disambiguated
-  five-code exit table (Table 2). This is the contract the tripwire pins at the
-  installed boundary.
+- `docs/adrs/adr-0003-shared-interface-contract.md` — the shared six-field
+  envelope, the four-flag Cyclopts construction contract (Table 3), and the
+  disambiguated five-code exit table (Table 2). This is the contract the
+  tripwire pins at the installed boundary.
 - `docs/novel-ralph-harness-design.md` §3 (lines 131-264) — the same contract in
   narrative form: §3.1 the envelope and `ok`-iff-exit-0 rule, §3.2 the exit
   codes, §3.3 command/query segregation (why a checker's `result` carries
@@ -480,7 +480,7 @@ contract code. Read the following before starting; they are the source of truth.
   packaging boundary" rule, the wheel-build-and-install discipline, the cuprum
   catalogue allowlist, and the POSIX-only constraint. §10 (failure modes) — a
   fault yields a message, not a stack trace.
-- `docs/adr-006-console-scripts-e2e-posix-policy.md` — the POSIX-only,
+- `docs/adrs/adr-0006-console-scripts-e2e-posix-policy.md` — the POSIX-only,
   absolute-path-through-catalogue policy the installed e2es follow.
 - `docs/developers-guide.md` "Shared test scaffolding" (lines 20-105) — the
   fixture-by-name rule, the module-scoped `installed_novel_state` fixture, the

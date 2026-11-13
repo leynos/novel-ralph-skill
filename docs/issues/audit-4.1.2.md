@@ -7,7 +7,7 @@ same routine the `novel-done` `compile_consistent` clause consumes), writes
 nothing on any path, and exits `4` when `compiled.md` is stale or absent.
 
 Sources of truth consulted: `docs/novel-ralph-harness-design.md` §3.3 and §4.3;
-`docs/adr-001-deterministic-judgemental-boundary.md`; the developers' and
+`docs/adrs/adr-0001-deterministic-judgemental-boundary.md`; the developers' and
 users' guides; `docs/issues/audit-3.1.1.md`, `audit-3.1.2.md`, and
 `audit-3.1.3.md` (the prior compile-verdict slices). Skills relied on:
 `python-router` (routing), `leta`/`grepai` for navigation, `sem`/`git` for

@@ -90,7 +90,7 @@ genuine edit set is already at least:
 6. `tests/test_novel_state_mutators.py` (init-body test)
 7. `tests/test_console_scripts_error_arms_e2e.py`
 8. `docs/novel-ralph-harness-design.md`
-9. `docs/adr-003-shared-interface-contract.md`
+9. `docs/adrs/adr-0003-shared-interface-contract.md`
 10. `docs/developers-guide.md`
 11. `tests/test_novel_state_mutator_snapshots.py` (`_normalise` + stale
     docstring)

@@ -21,7 +21,7 @@ noted as such so the root agent does not double-book them.
 Trail followed: explored with `leta` (`leta show`, `leta refs`, `leta files`)
 and traced history with `sem diff --commit`. Source of truth consulted:
 `docs/novel-ralph-harness-design.md` §3.1–3.2, ADR 003
-(`docs/adr-003-shared-interface-contract.md`), ADR 005 and 006,
+(`docs/adrs/adr-0003-shared-interface-contract.md`), ADR 005 and 006,
 `docs/developers-guide.md`, `docs/contents.md`, and `AGENTS.md`.
 
 ## Finding 1 — `render_human`'s empty-messages branch is never exercised
@@ -119,7 +119,7 @@ only to record that 1.2.10 did not touch it.
 - **Location:** [`docs/contents.md`](../../docs/contents.md)
 
 The documentation index lists ADRs 001–005 but not
-[`adr-006-console-scripts-e2e-posix-policy.md`](../../docs/adr-006-console-scripts-e2e-posix-policy.md),
+[`adr-0006-console-scripts-e2e-posix-policy.md`](../adrs/adr-0006-console-scripts-e2e-posix-policy.md),
 and it omits [`terms-of-reference.md`](../../docs/terms-of-reference.md)
 entirely as well as the now-substantial `docs/issues/` audit-trail set (nine
 files) and the `docs/execplans/` per-task plan set. This is the long-open item

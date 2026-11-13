@@ -167,8 +167,8 @@ audits.
   `docs/execplans/`
 
 The documentation index lists ADRs 001-005 but not
-`docs/adr-006-console-scripts-e2e-posix-policy.md`, which exists and is the
-governing policy cited throughout the e2e tests (and by ADR-006's own
+`docs/adrs/adr-0006-console-scripts-e2e-posix-policy.md`, which exists and is
+the governing policy cited throughout the e2e tests (and by ADR-006's own
 cross-reference). A reader using `contents.md` as the map misses the POSIX-only
 policy entirely. The index also has no entry for the growing `docs/issues/`
 audit set (now five files including this one) or the `docs/execplans/` set, so

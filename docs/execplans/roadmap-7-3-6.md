@@ -413,8 +413,8 @@ commit bodies):
 
 - `docs/novel-ralph-harness-design.md` §3.1 (the shared envelope, the
   `command`/`working_dir` fields) and §4 (the command surface and its layering).
-- `docs/adr-003-shared-interface-contract.md` (the contract is owned by the
-  `contract` package; the four-flag construction contract and the
+- `docs/adrs/adr-0003-shared-interface-contract.md` (the contract is owned by
+  the `contract` package; the four-flag construction contract and the
   envelope-version vocabulary).
 - `docs/developers-guide.md` lines ~603-614 (the `contract` ->
   `commands.names` edge note from 1.3.1.2) and the "Disambiguated exit codes"
@@ -442,7 +442,7 @@ already living in contract (WI1), and WI4 documents the finished state.
 lives in the `contract` package"; ADR 003 (contract owns the contract
 vocabulary); design §3.1/§4.
 
-**Read first:** `docs/adr-003-shared-interface-contract.md`;
+**Read first:** `docs/adrs/adr-0003-shared-interface-contract.md`;
 `docs/novel-ralph-harness-design.md` §3.1 and §4; `commands/names.py` in full;
 `docs/developers-guide.md` lines ~603-614.
 
@@ -582,7 +582,7 @@ is removed"; ADR 003 layering rule.
 **Read first:** `contract/envelope.py` (the `build_envelope` guard);
 `tests/test_contract_layering.py` (the existing `ast` module-scope import walk
 — reuse its helpers, do not re-invent them);
-`docs/adr-003-shared-interface-contract.md`.
+`docs/adrs/adr-0003-shared-interface-contract.md`.
 
 **Skills to load:** `python-router` -> `python-testing` (the structural `ast`
 guard is the crux). Use `leta refs ENVELOPE_COMMAND_NAMES` to confirm the only

@@ -87,10 +87,10 @@ workaround.
 - **`loaderkit` stays a neutral leaf.** `novel_ralph_skill/loaderkit/errors.py`
   must import nothing from `rulepack` or `ledger` — at runtime or under
   `TYPE_CHECKING` — exactly as the other `loaderkit` modules do (design §6,
-  §6.3; `docs/adr-003-shared-interface-contract.md`). It may depend only on
-  `novel_ralph_skill.contract.errors` and the standard library. The parametrized
-  `loaderkit` import-direction guard (added in roadmap 7.2.3.1) must continue
-  to pass with the new module in scope.
+  §6.3; `docs/adrs/adr-0003-shared-interface-contract.md`). It may depend only
+  on `novel_ralph_skill.contract.errors` and the standard library. The
+  parametrized `loaderkit` import-direction guard (added in roadmap 7.2.3.1)
+  must continue to pass with the new module in scope.
 - **100% docstring coverage (`interrogate fail-under = 100`).** Every public
   module, class, function, `__init__`, magic method, nested function, and
   private symbol the factory introduces must carry a docstring. `interrogate`
@@ -265,7 +265,7 @@ You are working in the git worktree at
 
 The package under change is `novel_ralph_skill`, a Python deterministic
 harness. The relevant layering (design §3.1, §6;
-`docs/adr-003-shared-interface-contract.md`):
+`docs/adrs/adr-0003-shared-interface-contract.md`):
 
 - `novel_ralph_skill/contract/errors.py` defines `EnvelopeMessagesError`, the
   base every domain error subclasses. Its constructor is
@@ -387,7 +387,7 @@ roadmap Success criterion). Run `uv run pytest tests/test_loaderkit_errors.py`
 (red before the module, green after), then `make all`.
 
 Cited: design §6.1/§6.3 (`loaderkit` neutral home);
-`docs/adr-003-shared-interface-contract.md` (acyclic layering);
+`docs/adrs/adr-0003-shared-interface-contract.md` (acyclic layering);
 `docs/execplans/roadmap-7-2-2.md` Decision D-FACTORY (the error-factory framing
 this completes); AGENTS.md "Python verification and testing" (unit tests, 100%
 docstrings).
@@ -413,7 +413,7 @@ tests/test_rulepack_schema.py tests/test_rulepack_detect.py
 tests/test_rulepack_properties.py tests/test_contract_errors.py` —
 they must pass unchanged, then `make all`.
 
-Cited: design §6.1; `docs/adr-003-shared-interface-contract.md`;
+Cited: design §6.1; `docs/adrs/adr-0003-shared-interface-contract.md`;
 `docs/execplans/roadmap-7-2-2.md` (the binding precedent);
 `novel_ralph_skill/rulepack/errors.py`.
 
@@ -430,7 +430,7 @@ pytest tests/test_ledger_command.py tests/test_ledger_detect.py
 tests/test_ledger_properties.py tests/test_ledger_snapshots.py` —
 unchanged, then `make all`.
 
-Cited: design §6.3; `docs/adr-003-shared-interface-contract.md`;
+Cited: design §6.3; `docs/adrs/adr-0003-shared-interface-contract.md`;
 `novel_ralph_skill/ledger/errors.py`.
 
 ### Work item 4 — export, guard, and document
@@ -453,8 +453,8 @@ Cited: design §6.3; `docs/adr-003-shared-interface-contract.md`;
   the coercion binding. This is a docs change, so additionally run
   `make markdownlint` and `make nixie`.
 
-Cited: design §6.1/§6.3; `docs/adr-003-shared-interface-contract.md`; AGENTS.md
-(documentation update obligation); `docs/developers-guide.md`.
+Cited: design §6.1/§6.3; `docs/adrs/adr-0003-shared-interface-contract.md`;
+AGENTS.md (documentation update obligation); `docs/developers-guide.md`.
 
 ### Stage D — hardening
 

@@ -124,7 +124,7 @@ escalation, not a workaround.
   (`command`, `schema_version`, `ok`, `working_dir`, `result`, `messages`) in
   order, `working_dir` still a JSON string
   (`docs/novel-ralph-harness-design.md` §3.1;
-  `docs/adr-003-shared-interface-contract.md`). Only the *value* of the
+  `docs/adrs/adr-0003-shared-interface-contract.md`). Only the *value* of the
   top-level `working_dir` on the production path changes from `"working"` to an
   absolute path string, and the *value* of `result.working_dir` in
   `novel state init`'s body likewise becomes absolute (Decision Log D6).
@@ -165,13 +165,13 @@ escalation, not a workaround.
   (regenerated `test_init_success_envelope_snapshot`), (9)
   `tests/test_console_scripts_error_arms_e2e.py`, (10)
   `docs/novel-ralph-harness-design.md`, (11)
-  `docs/adr-003-shared-interface-contract.md`, (12) `docs/developers-guide.md`.
-  (Raised from the round-2 bound of 9/280 once the round-2 review (B5) showed
-  the `novel state init` result-body change (Decision Log D6) drags the
-  `init`-success snapshot — its source module, its `_normalise` helper, and its
-  `.ambr` — into the edit set; the prior 9-file tolerance undercounted that
-  genuine footprint, Decision Log D7.) If a **thirteenth** file (beyond these
-  twelve) proves necessary, stop and escalate.
+  `docs/adrs/adr-0003-shared-interface-contract.md`, (12)
+  `docs/developers-guide.md`. (Raised from the round-2 bound of 9/280 once the
+  round-2 review (B5) showed the `novel state init` result-body change
+  (Decision Log D6) drags the `init`-success snapshot — its source module, its
+  `_normalise` helper, and its `.ambr` — into the edit set; the prior 9-file
+  tolerance undercounted that genuine footprint, Decision Log D7.) If a
+  **thirteenth** file (beyond these twelve) proves necessary, stop and escalate.
 - **Interface:** if `RunContext.working_dir` must change type away from `str`
   (e.g. to `pathlib.Path`), or the envelope's `working_dir` JSON type must
   change from string, stop and escalate.
@@ -355,7 +355,7 @@ escalation, not a workaround.
     - Observation: ADR-003 lists ``working_dir`` only as a field *name*, with no
       rich field description to amend; and the developers' guide phrase "the
       fixed ``working_dir`` constant" sits at line 158, not 160.
-      Evidence: ``docs/adr-003-shared-interface-contract.md`` line 46 is the
+      Evidence: ``docs/adrs/adr-0003-shared-interface-contract.md`` line 46 is the
       bullet "Every command emits a common JSON envelope: ``command``,
       ``schema_version``, ``ok``, ``working_dir``, ``result``, ``messages``." —
       a six-field listing with no per-field prose. ``docs/developers-guide.md``
@@ -741,7 +741,8 @@ Documentation to read first:
 - `docs/novel-ralph-harness-design.md` §3 (the envelope and the `working_dir`
   field). Note: the resolution rule is NOT here — read it at
   `novel_ralph_skill/commands/_state_load.py:32-48` instead (Decision Log D4).
-- `docs/adr-003-shared-interface-contract.md` (the envelope/exit contract).
+- `docs/adrs/adr-0003-shared-interface-contract.md` (the envelope/exit
+  contract).
 - `docs/developers-guide.md` lines 132-135 (the state-error arm message, "cwd
   tail is volatile") and 155-175 (the cross-command identity proof and the
   "fixed `working_dir` constant" at line 160).
@@ -1020,10 +1021,10 @@ Actions:
    rule in prose (Decision D4); if a one-line note is added that the *reported*
    path is absolutized while resolution stays cwd-relative, cite the rule's
    true locus (`_state_load.py`), do not invent a "line 151 rule".
-2. `docs/adr-003-shared-interface-contract.md`: **add a short note** recording
-   that the `working_dir` field carries the absolute resolved path on the
-   production path, while the resolution rule itself is unchanged. Note there
-   is **no rich `working_dir` field description to amend** — line 46 lists
+2. `docs/adrs/adr-0003-shared-interface-contract.md`: **add a short note**
+   recording that the `working_dir` field carries the absolute resolved path on
+   the production path, while the resolution rule itself is unchanged. Note
+   there is **no rich `working_dir` field description to amend** — line 46 lists
    `working_dir` only as a field *name* in the six-field bullet (review
    advisory A4), so take the add-a-note path; do not hunt for a phantom field
    description. Keep it consistent with the design doc wording.

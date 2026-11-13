@@ -102,16 +102,19 @@ alignment cannot silently rot.
     separators", lines 348-353) — the join rule the byte-exact concatenation
     obeys, and why only a non-concatenation `compiled.md` can diverge.
 - ADRs that govern the change:
-  - `docs/adr-001-deterministic-judgemental-boundary.md` — scripts detect and
+  - `docs/adrs/adr-0001-deterministic-judgemental-boundary.md` — scripts detect
+    and
     report; the model adjudicates. Recording one authoritative `current` rule and
     surfacing `compiled.md` divergence as a finding (not a silent re-projection)
     is squarely within the deterministic half.
-  - `docs/adr-002-toml-round-trip-tomlkit.md` — no edit to a code path that
+  - `docs/adrs/adr-0002-toml-round-trip-tomlkit.md` — no edit to a code path
+    that
     writes
     `state.toml` is introduced here, but any test that constructs a `state.toml`
     must round-trip through `tomlkit` (via the corpus builder), never a
     hand-written serializer.
-  - `docs/adr-003-shared-interface-contract.md` — exit-code table (0 success, 4
+  - `docs/adrs/adr-0003-shared-interface-contract.md` — exit-code table (0
+    success, 4
     actionable finding). The `compiled-matches-drafts` finding already exits 4
     through `check`; this plan must not perturb that.
 - Prior execplans this plan reconciles with:
@@ -529,7 +532,7 @@ Edits:
 
 Docs to read first: `docs/novel-ralph-harness-design.md` §4.1, §4.3, §5.2, §5.4;
 `docs/execplans/roadmap-2-3-1.md` Decision Log D-CURRENT;
-`docs/adr-001-deterministic-judgemental-boundary.md`.
+`docs/adrs/adr-0001-deterministic-judgemental-boundary.md`.
 
 Skills to load: `execplans` (this plan is the living document);
 `en-gb-oxendict` (prose spelling); `leta` (navigate the design anchors and

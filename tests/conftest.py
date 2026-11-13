@@ -295,7 +295,7 @@ def venv_scripts_dir() -> cabc.Callable[[Path], Path]:
     """Return the venv executable-scripts-directory resolver.
 
     The resolver uses the ``venv`` install scheme and is POSIX-only per ADR-006
-    (``docs/adr-006-console-scripts-e2e-posix-policy.md``); modules consuming it
+    (``docs/adrs/adr-0006-console-scripts-e2e-posix-policy.md``); modules consuming it
     keep their own POSIX ``pytestmark`` skip guard.
 
     Returns

@@ -70,8 +70,8 @@ workaround.
   `/data/leynos/Projects/novel-ralph-skill.worktrees/roadmap-1-2-14`. Never
   read-modify-write any file in the root/control worktree.
 - The surface vocabulary is fixed by
-  [ADR 007](../adr-007-command-surface-novel-multiplexer.md). The subcommands
-  are
+  [ADR 007](../adrs/adr-0007-command-surface-novel-multiplexer.md). The
+  subcommands are
   `novel state init | set-cursor | advance-phase | recount | check | reconcile`
   (plus `set-chapters`, `set-gate`, `complete-final-pass`, `set-fangirl`,
   `set-critic-pass` under `novel state`); `novel done`;
@@ -103,10 +103,10 @@ workaround.
   would corrupt it to `novel desloppify-checklist.md`. This is the
   code-identifier-equivalent preserve case for this task.
 - **Preserve the ADR-005 supersession history.** The design doc references
-  `adr-005-command-surface-five-scripts.md` only as explicit superseded history
-  (line 18, a references-list filename; line 274, "superseding ADR 005"). These
-  are legitimate historical record, not present-tense surface claims, and are
-  left verbatim (1.2.16 precedent, Decision Log).
+  `adr-0005-command-surface-five-scripts.md` only as explicit superseded
+  history (line 18, a references-list filename; line 274, "superseding ADR
+  005"). These are legitimate historical record, not present-tense surface
+  claims, and are left verbatim (1.2.16 precedent, Decision Log).
 - **Preserve `console-script` distribution prose that is true of the single
   surface.** The design's distribution prose (lines 103, 268, 279, 881, 890)
   describes the package being installed as a console-script — still true of the
@@ -464,7 +464,7 @@ A novice should read these before touching anything:
   mechanics) and 1.2.17 (the reference-file sweep, which states the
   noun-vs-script distinction this plan adopts). Task 1.2.14's parent is step
   1.2.
-- [docs/adr-007-command-surface-novel-multiplexer.md](../adr-007-command-surface-novel-multiplexer.md)
+- [docs/adrs/adr-0007-command-surface-novel-multiplexer.md](../adrs/adr-0007-command-surface-novel-multiplexer.md)
   — fixes the surface as a single `novel` multiplexer (supersedes ADR 005). Its
   "Decision outcome" section lists the exact subcommand structure (lines
   90-96); its "Migration plan" section (lines 113-123) explicitly names "sweeps
@@ -544,7 +544,7 @@ vocabulary, the noun-vs-script rule, and the truthful end-state in mind before
 classifying hits.
 
 Docs to read: `docs/roadmap.md` (1.2.14, 1.2.16, 1.2.17),
-`docs/adr-007-command-surface-novel-multiplexer.md`,
+`docs/adrs/adr-0007-command-surface-novel-multiplexer.md`,
 `docs/execplans/roadmap-1-2-16.md`, `docs/novel-ralph-harness-design.md`
 §3-§5/§9-§10, `AGENTS.md`, `docs/documentation-style-guide.md`.
 

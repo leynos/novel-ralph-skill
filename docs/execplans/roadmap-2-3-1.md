@@ -379,7 +379,8 @@ Key files (full repository-relative paths):
   (invariants; invariant 3 `by-chapter-sum` at line 453, invariant 5 manifest
   bijection at lines 460-465), §5.3 (`tomlkit` round-trip), §3.2 (exit codes),
   §3.4 (atomic / `[pending_turn]`).
-- `docs/adr-002-toml-round-trip-tomlkit.md` — lossless round-trip rationale.
+- `docs/adrs/adr-0002-toml-round-trip-tomlkit.md` — lossless round-trip
+  rationale.
 - `docs/adr-003-*` — exit-code contract (exit `3` for state/input error).
 - `docs/developers-guide.md` — mutator conventions (write-shaped `result`, the
   two-helper load path) at lines 438-468.

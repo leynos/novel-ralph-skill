@@ -336,7 +336,7 @@ in-scope-adjacent consolidation gated by the Tolerances.
 ### Work item 1 — Promote the shared `ENVELOPE_FIELD_ORDER` constant and the surviving tripwire
 
 Docs to read first: design §3.1 (`docs/novel-ralph-harness-design.md`);
-`docs/adr-003-shared-interface-contract.md` (§"Decision", the six-field
+`docs/adrs/adr-0003-shared-interface-contract.md` (§"Decision", the six-field
 envelope); `docs/issues/audit-6.3.7.md` Finding 1 (the proposed fix this item
 implements). Skills to load: `python-router`, then `python-data-shapes` (the
 dataclass-introspection question is "derive a tuple from declaration order") and

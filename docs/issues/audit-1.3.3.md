@@ -38,7 +38,7 @@ with `leta` (`show`/`refs`/`grep`/`files`) over
 `tests/test_novel_state_check.py`; traced history with
 `sem diff --commit 61858d5` and `git log origin/main`. Source of truth
 consulted: `docs/novel-ralph-harness-design.md` §3.1-§3.2;
-[`docs/adr-003-shared-interface-contract.md`](../adr-003-shared-interface-contract.md);
+[`docs/adrs/adr-0003-shared-interface-contract.md`](../adrs/adr-0003-shared-interface-contract.md);
 `docs/developers-guide.md` ("The shared JSON envelope"); `docs/roadmap.md`
 (task 1.3.3); and `AGENTS.md`. Language router: `python-router` (data shapes,
 public API typing, testing). Spelling per `en-gb-oxendict`.
@@ -118,7 +118,7 @@ same pre-parse-then-run idiom the entry point follows.
 
 The splitter's docstring and the `runner.py` module docstring both attribute
 the splitter to "ADR-003 §3.1". ADR-003
-([`docs/adr-003-shared-interface-contract.md`](../adr-003-shared-interface-contract.md))
+([`docs/adrs/adr-0003-shared-interface-contract.md`](../adrs/adr-0003-shared-interface-contract.md))
 uses named headings ("Context and problem statement", "Requirements",
 "Decision outcome / proposed direction") and has no numbered "§3.1" subsection.
 The actual referent for the `--human` output-mode contract is *design* §3.1

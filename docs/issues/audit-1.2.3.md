@@ -5,11 +5,12 @@ cross-platform policy for the console-scripts e2e test") merged to `main` at
 commit `a7e1dec`. Primary scope is the code and documentation introduced or
 touched by that task: the rewritten `tests/test_console_scripts_e2e.py`, the new
 `tests/test_venv_scripts_dir.py`, ADR-006
-(`docs/adr-006-console-scripts-e2e-posix-policy.md`), and the developer-guide
-and design references that point at the new POSIX-only policy. The audit also
-re-checks whether the findings carried in `docs/issues/audit-1.2.1.md` and
-`docs/issues/audit-1.2.2.md` have been actioned, since the surface is still
-small enough that carrying them forward is cheap.
+(`docs/adrs/adr-0006-console-scripts-e2e-posix-policy.md`), and the
+developer-guide and design references that point at the new POSIX-only policy.
+The audit also re-checks whether the findings carried in
+`docs/issues/audit-1.2.1.md` and `docs/issues/audit-1.2.2.md` have been
+actioned, since the surface is still small enough that carrying them forward is
+cheap.
 
 Each finding records a category, a location, a description, a concrete proposed
 fix, and a severity. None is a blocking defect; the merged slice is correct
@@ -166,7 +167,7 @@ ambiguity of a tool that is installed but does nothing.
 
 - **Category:** docs-gap
 - **Severity:** low
-- **Location:** `docs/adr-006-console-scripts-e2e-posix-policy.md:88`
+- **Location:** `docs/adrs/adr-0006-console-scripts-e2e-posix-policy.md:88`
   ("recorded in novel-ralph-harness-design.md §4"),
   `docs/novel-ralph-harness-design.md:243`
 
@@ -174,14 +175,15 @@ ADR-006 states the decision is "recorded in
 [novel-ralph-harness-design.md](novel-ralph-harness-design.md) §4 and the
 [developers' guide](developers-guide.md)". Design §4 (line 243) does record
 that the e2e test "runs on POSIX only, per
-`docs/adr-006-console-scripts-e2e-posix-policy.md`", which is accurate. The
-minor gap is that the design and developer-guide references capture the *skip*
-half of the policy but not the resolver half — that the venv-scripts directory
-resolves through the canonical `venv` sysconfig scheme, which is the technical
-requirement ADR-006 leans on and the one a future contributor is most likely to
-break by swapping the scheme. The ADR carries this detail; the referencing
-documents do not, so a reader following the design's §4 pointer learns the
-platform policy but not why `_venv_scripts_dir` passes `"venv"` explicitly.
+`docs/adrs/adr-0006-console-scripts-e2e-posix-policy.md`", which is accurate.
+The minor gap is that the design and developer-guide references capture the
+*skip* half of the policy but not the resolver half — that the venv-scripts
+directory resolves through the canonical `venv` sysconfig scheme, which is the
+technical requirement ADR-006 leans on and the one a future contributor is most
+likely to break by swapping the scheme. The ADR carries this detail; the
+referencing documents do not, so a reader following the design's §4 pointer
+learns the platform policy but not why `_venv_scripts_dir` passes `"venv"`
+explicitly.
 
 **Proposed fix:** add one clause to the design §4 sentence (and optionally the
 developer-guide note at `docs/developers-guide.md:83`) recording that the

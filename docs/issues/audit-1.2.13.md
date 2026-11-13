@@ -17,7 +17,7 @@ Scope of the merged change: `tests/installed_binary_fixtures.py`,
 production module changed.
 
 Trail followed: `docs/roadmap.md` tasks 1.2.12-1.2.15;
-`docs/adr-007-command-surface-novel-multiplexer.md`;
+`docs/adrs/adr-0007-command-surface-novel-multiplexer.md`;
 `docs/novel-ralph-harness-design.md` §4; `docs/developers-guide.md` "Shared
 test scaffolding"; `docs/users-guide.md` "Installed Commands"; `AGENTS.md`
 code-style, refactoring-heuristics, and quality-gate rules. Explored with `leta`

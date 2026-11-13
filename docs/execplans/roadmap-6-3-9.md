@@ -14,8 +14,8 @@ ADR-003 Table 2) and the six-field JSON envelope field set
 (`{command, schema_version, ok, working_dir, result, messages}`, design §3.1) —
 is restated in four reader-facing places:
 
-1. `docs/adr-003-shared-interface-contract.md` (Table 2; the canonical decision
-   record).
+1. `docs/adrs/adr-0003-shared-interface-contract.md` (Table 2; the canonical
+   decision record).
 2. `docs/novel-ralph-harness-design.md` (§3.1 envelope skeleton; §3.2 exit-code
    table).
 3. `docs/developers-guide.md` ("### The shared JSON envelope" and "###
@@ -375,11 +375,12 @@ The restatement site this task pins, by full path:
     pins.** All anchoring is by heading text, not line number; line numbers above
     are orientation only and may drift.
 
-The other three restatement copies (`docs/adr-003-shared-interface-contract.md`
-Table 2; `docs/novel-ralph-harness-design.md` §3.1/§3.2;
-`skill/novel-ralph/SKILL.md`) are already pinned: ADR-003 and the design doc
-are the canonical/source copies and are cross-checked by, and `SKILL.md` is
-pinned by, the 6.3.7 guard `tests/test_skill_contract_drift_guard.py`.
+The other three restatement copies
+(`docs/adrs/adr-0003-shared-interface-contract.md` Table 2;
+`docs/novel-ralph-harness-design.md` §3.1/§3.2; `skill/novel-ralph/SKILL.md`)
+are already pinned: ADR-003 and the design doc are the canonical/source copies
+and are cross-checked by, and `SKILL.md` is pinned by, the 6.3.7 guard
+`tests/test_skill_contract_drift_guard.py`.
 
 The established prose-guard pattern this plan reuses:
 
@@ -493,7 +494,7 @@ ship Work items 1+2 as one commit to keep every commit gate-green).
 Implements: roadmap 6.3.9 ("fails if the developers'-guide exit-code table …
 diverges from the `ExitCode` … source"); design §3.2
 (`docs/novel-ralph-harness-design.md`); ADR-003 Table 2
-(`docs/adr-003-shared-interface-contract.md`);
+(`docs/adrs/adr-0003-shared-interface-contract.md`);
 `novel_ralph_skill/contract/exit_codes.py`.
 
 Docs to read first: the guide's "### Disambiguated exit codes" section

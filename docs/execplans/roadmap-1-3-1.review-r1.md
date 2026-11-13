@@ -4,7 +4,7 @@ Reviewer: Logisphere crew (adversarial). Date: 2026-06-22. Subject:
 `docs/execplans/roadmap-1-3-1.md` (Status: DRAFT). Verdict: **REVISE** —
 blocking design defects must be resolved before implementation.
 
-Sources consulted: `docs/adr-003-shared-interface-contract.md`,
+Sources consulted: `docs/adrs/adr-0003-shared-interface-contract.md`,
 `docs/novel-ralph-harness-design.md` §3.1/§3.2/§3.3/§9/§10,
 `docs/developers-guide.md`, `AGENTS.md`, `pyproject.toml`, `uv.lock`,
 `novel_ralph_skill/commands/{names.py,stub.py}`,

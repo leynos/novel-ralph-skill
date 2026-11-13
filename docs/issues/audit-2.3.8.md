@@ -14,19 +14,19 @@ verdict the user-facing `check` reports for the same tree. ADR 009, the harness
 design doc, and the developers' guide were updated to record the re-key.
 
 Trail followed: `docs/novel-ralph-harness-design.md` §5.4,
-`docs/adr-009-drafting-bijection-relaxation.md` (drafting bijection relaxation,
-"Known risks"), `docs/developers-guide.md` §"Invariant validation"/bijection
-relaxation section, `docs/roadmap.md` task 2.3.8,
+`docs/adrs/adr-0009-drafting-bijection-relaxation.md` (drafting bijection
+relaxation, "Known risks"), `docs/developers-guide.md` §"Invariant
+validation"/bijection relaxation section, `docs/roadmap.md` task 2.3.8,
 `docs/execplans/roadmap-2-3-8.md` and its Logisphere review round
 (design-review blocking points B1, B2),
-`docs/adr-008-chapter-manifest-mutator.md` (D8, the sibling `set-chapters`
-COMPLETE precedence), and `AGENTS.md` (quality gates, the 400-line cap, CQS,
-the deliberate-twin discipline). Navigation and history were traced with `leta`
-and `sem`; fallback `grep` was used to enumerate the `relax_drafting` call
-sites across production and the corpus oracle. The `python-router` skill routed
-the Python review (data-shapes for the proposed classification value,
-types-and-apis for the proposed shared predicate). Files inspected:
-`novel_ralph_skill/state/_reconcile_precedence.py`,
+`docs/adrs/adr-0008-chapter-manifest-mutator.md` (D8, the sibling
+`set-chapters` COMPLETE precedence), and `AGENTS.md` (quality gates, the
+400-line cap, CQS, the deliberate-twin discipline). Navigation and history were
+traced with `leta` and `sem`; fallback `grep` was used to enumerate the
+`relax_drafting` call sites across production and the corpus oracle. The
+`python-router` skill routed the Python review (data-shapes for the proposed
+classification value, types-and-apis for the proposed shared predicate). Files
+inspected: `novel_ralph_skill/state/_reconcile_precedence.py`,
 `novel_ralph_skill/state/_disk_word_counts.py`,
 `novel_ralph_skill/state/reconcile.py`,
 `novel_ralph_skill/state/disk_evidence.py`,
@@ -177,8 +177,8 @@ definitions.
 `_check_word_counts_cover_drafts` docstring lines 162-171 and
 `_drafted_subset_cover_violation` lines 108-137;
 `novel_ralph_skill/state/_reconcile_precedence.py` `_drafting_subset_cover_gap`
-lines 125-151; `docs/adr-009-drafting-bijection-relaxation.md` "Known risks";
-`docs/developers-guide.md` bijection-relaxation section.
+lines 125-151; `docs/adrs/adr-0009-drafting-bijection-relaxation.md` "Known
+risks"; `docs/developers-guide.md` bijection-relaxation section.
 
 **Description:** The "missing direction only, keyed off the on-disk drafted
 subset, gated on drafting + coherent subset, repaired by a scoped RECOUNT"

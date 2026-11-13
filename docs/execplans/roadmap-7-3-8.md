@@ -280,7 +280,7 @@ two fix attempts.
 This repository packages the `novel` Ralph-loop harness as `novel_ralph_skill`.
 The deterministic command surface is a single `novel` multiplexer with five
 operations (`state`, `done`, `compile`, `desloppify`, `wordcount`), fixed by
-`docs/adr-007-command-surface-novel-multiplexer.md` and described in
+`docs/adrs/adr-0007-command-surface-novel-multiplexer.md` and described in
 `docs/novel-ralph-harness-design.md` §4.
 
 Key terms:
@@ -333,7 +333,7 @@ item.
 
 ### WI1 — Add the registry accessor (define in contract, re-export in commands)
 
-Docs to read: `docs/adr-003-shared-interface-contract.md`;
+Docs to read: `docs/adrs/adr-0003-shared-interface-contract.md`;
 `docs/novel-ralph-harness-design.md` §4; `docs/execplans/roadmap-7-3-6.md`
 (Decision Log D1, the vocabulary-relocation pattern this mirrors);
 `docs/issues/audit-1.2.15.md` Finding 1 (the proposed `SUBCOMMAND_VERBS` /
@@ -448,7 +448,7 @@ symbol) before adding the production symbols, then green after. Commit.
 
 ### WI2 — Route the dispatcher through the registry accessor
 
-Docs to read: `docs/adr-007-command-surface-novel-multiplexer.md`;
+Docs to read: `docs/adrs/adr-0007-command-surface-novel-multiplexer.md`;
 `docs/novel-ralph-harness-design.md` §4; `novel_ralph_skill/commands/novel.py`
 (Decision Log D4 comment at lines 46-56).
 
@@ -497,7 +497,7 @@ Validation: `make all`. The dispatch suite proves no behaviour change. Commit.
 
 ### WI3 — Route the console-scripts e2e through the registry accessor
 
-Docs to read: `docs/adr-006-console-scripts-e2e-posix-policy.md`;
+Docs to read: `docs/adrs/adr-0006-console-scripts-e2e-posix-policy.md`;
 `docs/scripting-standards.md` (cuprum catalogue / allowlist / absolute-path
 execution — confirm the invocation chain is untouched);
 `tests/test_console_scripts_e2e.py` (the two split sites, lines 69 and 123).

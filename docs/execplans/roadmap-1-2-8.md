@@ -16,9 +16,9 @@ a validated `novel-state` subcommand (`docs/novel-ralph-harness-design.md`
 `skill/novel-ralph/references/state-layout.md` once shipped a copy-pasteable
 Python heredoc that imported the undeclared `tomli_w` dependency and hand-wrote
 `state.toml` — exactly the pattern §4.1 and ADR-002
-(`docs/adr-002-toml-round-trip-tomlkit.md`) reject. Roadmap task 1.2.6 deleted
-that snippet and added a guard, `tests/test_state_layout_reference.py`, that
-fails `make test` if it returns.
+(`docs/adrs/adr-0002-toml-round-trip-tomlkit.md`) reject. Roadmap task 1.2.6
+deleted that snippet and added a guard, `tests/test_state_layout_reference.py`,
+that fails `make test` if it returns.
 
 The 1.2.6 guard is deliberately narrow: it pins only the literal `tomli_w`
 substrings (`tomli_w`, `tomllib, tomli_w`, `tomli_w.dump(`). A future author
@@ -309,7 +309,8 @@ The reader needs no prior plans. Key facts and paths:
     validated subcommands. Direct editing of `state.toml` is eliminated."
   - `docs/novel-ralph-harness-design.md` §3.4 and §5.3 — the atomic
     temp-file-and-`Path.replace` write discipline and the `tomlkit` round-trip.
-  - `docs/adr-002-toml-round-trip-tomlkit.md` — selects `tomlkit` over `tomli_w`
+  - `docs/adrs/adr-0002-toml-round-trip-tomlkit.md` — selects `tomlkit` over
+    `tomli_w`
     as the *only* sanctioned writer, and notes the failed `tomli_w` snippet was
     removed.
 - Coordination: `docs/roadmap.md` lines 140-147 (task 1.2.8) and lines 468-476
@@ -354,14 +355,14 @@ made in a gate-failing state (AGENTS.md "Change quality and committing", lines
 ### Work item 1 — Broaden the guard (red-then-green, one commit)
 
 Implements: `docs/novel-ralph-harness-design.md` §4.1 (direct editing
-eliminated); `docs/adr-002-toml-round-trip-tomlkit.md` (tomlkit is the only
-sanctioned writer); AGENTS.md "Python verification and testing" (failing test
-observed before the change, happy and unhappy paths, edge cases) and "Code
+eliminated); `docs/adrs/adr-0002-toml-round-trip-tomlkit.md` (tomlkit is the
+only sanctioned writer); AGENTS.md "Python verification and testing" (failing
+test observed before the change, happy and unhappy paths, edge cases) and "Code
 style and structure" (small, single-responsibility functions; comment *why*);
 AGENTS.md "Change quality and committing" (commit only when all gates pass).
 
 Docs to read first: `docs/novel-ralph-harness-design.md` §4.1, §3.4, §5.3;
-`docs/adr-002-toml-round-trip-tomlkit.md`; the existing
+`docs/adrs/adr-0002-toml-round-trip-tomlkit.md`; the existing
 `tests/test_state_layout_reference.py`; AGENTS.md testing and committing
 sections; `.rules/python-00.md`, `.rules/python-typing.md`,
 `.rules/python-return.md` (style, annotation, and return conventions).

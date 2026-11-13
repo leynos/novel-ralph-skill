@@ -39,8 +39,8 @@ Trail followed: explored with `leta`/`Read` over the `rulepack` package,
 traced history with `sem diff --commit ad8e09a` and `git log origin/main`.
 Source of truth consulted: `docs/novel-ralph-harness-design.md` §3.1, §4.4,
 §6.1, and §10;
-[`docs/adr-001-deterministic-judgemental-boundary.md`](../adr-001-deterministic-judgemental-boundary.md);
-[`docs/adr-002-toml-round-trip-tomlkit.md`](../adr-002-toml-round-trip-tomlkit.md);
+[`docs/adrs/adr-0001-deterministic-judgemental-boundary.md`](../adrs/adr-0001-deterministic-judgemental-boundary.md);
+[`docs/adrs/adr-0002-toml-round-trip-tomlkit.md`](../adrs/adr-0002-toml-round-trip-tomlkit.md);
 `docs/scripting-standards.md`; `docs/developers-guide.md`;
 `docs/users-guide.md`; and `AGENTS.md`. Language router: `python-router`
 (Python boundary constructors, data shapes, errors and logging). Spelling per

@@ -76,11 +76,11 @@ escalation, not a workaround.
   compensation must operate at draft time against the honest target, not by
   moving the target.
 - Preserve the deterministic-and-judgemental boundary (ADR-001,
-  `docs/adr-001-deterministic-judgemental-boundary.md`): scripts detect and
-  report (`wordcount` supplies the figures); the model adjudicates and writes
-  prose (the expansion is a model judgement). The new step must read from
-  `wordcount`, never re-derive or hand-compute word totals, and must not invite
-  any hand-edit of `state.toml` (design §4.1; ADR-002).
+  `docs/adrs/adr-0001-deterministic-judgemental-boundary.md`): scripts detect
+  and report (`wordcount` supplies the figures); the model adjudicates and
+  writes prose (the expansion is a model judgement). The new step must read from
+  `wordcount`, never re-derive or hand-compute word totals, and must not
+  invite any hand-edit of `state.toml` (design §4.1; ADR-002).
 - Preserve the verified Phase 8 loop order and its quality gate. The loop is
   strictly sequential — c write, d desloppify, e spiteful-critic loop, f
   fangirl, g done (`SKILL.md:358-384`) — and the **only** place

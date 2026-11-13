@@ -154,8 +154,8 @@ strong signal the design is on solid ground.
   (disk-authoritative reconciliation).
 - `docs/issues/audit-2.3.2.md` Finding 2 (the originating finding) and the
   non-goal Findings 3-6.
-- `docs/adr-001-deterministic-judgemental-boundary.md`,
-  `docs/adr-003-shared-interface-contract.md`.
+- `docs/adrs/adr-0001-deterministic-judgemental-boundary.md`,
+  `docs/adrs/adr-0003-shared-interface-contract.md`.
 - `docs/roadmap.md` entry 7.1.3.
 - `AGENTS.md` (test-location rule `:143-146`; snapshot discipline).
 - Source: `state/reconcile.py`, `commands/novel_state.py`,

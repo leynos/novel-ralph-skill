@@ -22,11 +22,11 @@ the 7.1.6 blast radius; none is a correctness defect.
 The exploration used `leta`/`grep` for code navigation and `sem`/`git show` for
 history tracing. The sources of truth consulted were
 `docs/novel-ralph-harness-design.md` (§3.3 checker/mutator table, §4.3, §5.4),
-`docs/adr-001-deterministic-judgemental-boundary.md`,
-`docs/adr-003-shared-interface-contract.md`, `docs/developers-guide.md` (the
-§7.1 convention block), `AGENTS.md` (the 400-line cap and quality gates), and
-the existing audit issues under `docs/issues/`. Prose follows the en-GB Oxford
-spelling convention (`AGENTS.md`).
+`docs/adrs/adr-0001-deterministic-judgemental-boundary.md`,
+`docs/adrs/adr-0003-shared-interface-contract.md`, `docs/developers-guide.md`
+(the §7.1 convention block), `AGENTS.md` (the 400-line cap and quality gates),
+and the existing audit issues under `docs/issues/`. Prose follows the en-GB
+Oxford spelling convention (`AGENTS.md`).
 
 ## Finding 1 — The draft-read fault-routing block is hand-repeated at five call sites
 

@@ -16,7 +16,8 @@ line-number claim against the real files (`state-layout.md`, `adr-002`, design
    returning **nothing**. That command cannot return nothing after the work,
    because WI2 *deliberately keeps* the truthful "is removed" sentences, both
    of which contain the literal token `tomli_w`:
-   - `docs/adr-002-toml-round-trip-tomlkit.md:77` ("the failed `tomli_w` snippet
+   - `docs/adrs/adr-0002-toml-round-trip-tomlkit.md:77` ("the failed `tomli_w`
+     snippet
      is removed from the reference material") — WI2 explicitly leaves line 77.
    - `docs/novel-ralph-harness-design.md:466` ("The failed `tomli_w` snippet in
      the current reference is removed.") — WI2 explicitly leaves it.

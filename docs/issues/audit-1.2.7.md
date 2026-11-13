@@ -166,9 +166,9 @@ fix) so the lint gate is green before the next merge.
 
 audit-1.2.5 Finding 6 and audit-1.2.6 Finding 3 recorded that the documentation
 index lists ADRs 001-005 but not
-`docs/adr-006-console-scripts-e2e-posix-policy.md`, and has no entry for the
-growing `docs/issues/` audit set or the `docs/execplans/` execution-plan set.
-This slice did not touch `contents.md`, so all three gaps remain. Since
+`docs/adrs/adr-0006-console-scripts-e2e-posix-policy.md`, and has no entry for
+the growing `docs/issues/` audit set or the `docs/execplans/` execution-plan
+set. This slice did not touch `contents.md`, so all three gaps remain. Since
 audit-1.2.6 the issues set has grown to seven files (this audit included) and
 the execplans set to eighteen, so the index's blind spot has widened by two
 audits and several plans. A reader using `contents.md` as the map still misses

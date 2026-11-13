@@ -64,10 +64,10 @@ flag-bearing retired invocation in the live skill surface.
 
 - **Category:** docs-gap
 - **Severity:** low
-- **Location:** `docs/adr-008-chapter-manifest-mutator.md` (lines 6, 8, 21, 22,
-  52, 168), `docs/adr-009-drafting-bijection-relaxation.md` (lines 6, 28, 38,
-  60, 149), `docs/adr-010-gate-drafting-mutators.md` (line 10),
-  `docs/contents.md` (lines 42, 46, 51)
+- **Location:** `docs/adrs/adr-0008-chapter-manifest-mutator.md` (lines 6, 8,
+  21, 22, 52, 168), `docs/adrs/adr-0009-drafting-bijection-relaxation.md`
+  (lines 6, 28, 38, 60, 149), `docs/adrs/adr-0010-gate-drafting-mutators.md`
+  (line 10), `docs/contents.md` (lines 42, 46, 51)
 
 ADRs 008, 009, and 010 were authored against the `novel-state` surface and
 still name it inline. ADR 008 goes further: line 52 presents a fenced bash

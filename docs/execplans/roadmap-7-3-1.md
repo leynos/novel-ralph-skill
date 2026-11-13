@@ -598,9 +598,9 @@ Design and decision sources this task implements:
 - `docs/novel-ralph-harness-design.md` §3.1 (output modes / the envelope the
   exit-3 channel feeds) and §4 (the deterministic commands and the
   `novel state` subgroup, lines 274-318).
-- `docs/adr-003-shared-interface-contract.md` (the shared envelope, the exit-3
-  state-error channel, and the single-enforcement-point discipline this move
-  continues).
+- `docs/adrs/adr-0003-shared-interface-contract.md` (the shared envelope, the
+  exit-3 state-error channel, and the single-enforcement-point discipline this
+  move continues).
 - `docs/developers-guide.md` lines 619-649 (the five sibling formatters in the
   leaf module), lines 970-979 (`novel done` reusing the `novel state` seams),
   and lines 1080-1104 (the "defining-module path is canonical, never the

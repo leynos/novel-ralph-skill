@@ -77,8 +77,8 @@ workaround.
   sibling roadmap task 1.2.15.1 (a separate addendum pass), not by 1.2.16,
   whose scope is the two guides.
 - The surface vocabulary is fixed by
-  [ADR 007](../adr-007-command-surface-novel-multiplexer.md). The subcommands
-  are
+  [ADR 007](../adrs/adr-0007-command-surface-novel-multiplexer.md). The
+  subcommands are
   `novel state init | set-cursor | advance-phase | recount | check | reconcile`,
   plus `set-chapters`, `set-gate`, `complete-final-pass`, `set-fangirl`,
   `set-critic-pass` under `novel state`; `novel done`;
@@ -453,7 +453,7 @@ A novice should read these before touching anything:
 - [docs/roadmap.md](../roadmap.md), task 1.2.16 (the remediation paragraph and
   its success criterion) and its parent step 1.2 — the source of truth for
   scope and acceptance.
-- [docs/adr-007-command-surface-novel-multiplexer.md](../adr-007-command-surface-novel-multiplexer.md)
+- [docs/adrs/adr-0007-command-surface-novel-multiplexer.md](../adrs/adr-0007-command-surface-novel-multiplexer.md)
   — fixes the surface as a single `novel` multiplexer (supersedes ADR 005). Its
   "Decision outcome" section lists the exact subcommand structure; its
   "Migration plan" section is the template for the truthful end-state prose.
@@ -787,7 +787,7 @@ kinds of change, in order:
      "five separate … not a multiplexer" framing entirely (do not merely reword
      the count), or the `five separate` class term stays red.
    - **Line ~277** — the inline link to
-     `adr-005-command-surface-five-scripts.md`. Re-point to ADR 007, keeping
+     `adr-0005-command-surface-five-scripts.md`. Re-point to ADR 007, keeping
      ADR 005 only if cited explicitly as superseded history (per the Decision
      Log). The bare ADR-005 link as a *live* rationale must go.
    - **Lines ~310 / ~322** — "these **five names** are wired as

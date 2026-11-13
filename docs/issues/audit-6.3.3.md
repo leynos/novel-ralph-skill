@@ -142,8 +142,8 @@ to prevent. The repository already has the pattern to guard this:
 - **Category:** docs-gap
 - **Severity:** low
 - **Location:** `skill/novel-ralph/SKILL.md` lines 95-100 and 152-153 point at
-  `docs/adr-003-shared-interface-contract.md` and the developers' guide as the
-  source of truth; `docs/novel-ralph-harness-design.md` is not named.
+  `docs/adrs/adr-0003-shared-interface-contract.md` and the developers' guide
+  as the source of truth; `docs/novel-ralph-harness-design.md` is not named.
 
 The `SKILL.md` section names ADR-003 Table 2 and the developers'-guide sections
 as canonical, and §3.1/§3.2 of the design document as the basis for the

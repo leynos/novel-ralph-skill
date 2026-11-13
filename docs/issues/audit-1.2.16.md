@@ -163,10 +163,11 @@ deserves the same regression discipline as the code surface.
 
 - **Category:** inconsistency
 - **Severity:** low
-- **Location:** repository-wide; e.g. `docs/adr-002-toml-round-trip-tomlkit.md`
-  (`serialiser`, `serialise`), `docs/adr-008-chapter-manifest-mutator.md:117`
-  (`materialise`), `skill/novel-ralph/SKILL.md:114,122,261,367` (`initialise`,
-  `summarising`, `recognise`, `realisation`),
+- **Location:** repository-wide; e.g.
+  `docs/adrs/adr-0002-toml-round-trip-tomlkit.md` (`serialiser`, `serialise`),
+  `docs/adrs/adr-0008-chapter-manifest-mutator.md:117` (`materialise`),
+  `skill/novel-ralph/SKILL.md:114,122,261,367` (`initialise`, `summarising`,
+  `recognise`, `realisation`),
   `skill/novel-ralph/references/critic-personas.md:9` (`maximise`, `minimise`),
   `docs/users-guide.md:228` (`initialised`)
 

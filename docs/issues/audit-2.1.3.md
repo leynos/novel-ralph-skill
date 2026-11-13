@@ -36,9 +36,10 @@ Trail followed: explored with `leta`/reads over `state/validate.py`,
 and `git log origin/main`. Source of truth consulted:
 `docs/novel-ralph-harness-design.md` §5.2 and §9, `docs/developers-guide.md`
 "Invariant validation", `docs/roadmap.md` task 2.1.3,
-`docs/adr-003-shared-interface-contract.md`, prior `docs/issues/audit-2.1.2.md`
-and `audit-2.1.4.md`, and `AGENTS.md`. Each finding records a category, a
-location, a description, a concrete proposed fix, and a severity.
+`docs/adrs/adr-0003-shared-interface-contract.md`, prior
+`docs/issues/audit-2.1.2.md` and `audit-2.1.4.md`, and `AGENTS.md`. Each
+finding records a category, a location, a description, a concrete proposed fix,
+and a severity.
 
 ## Finding 1 — The live-draft oracle re-parses `state.toml` three times per tree
 

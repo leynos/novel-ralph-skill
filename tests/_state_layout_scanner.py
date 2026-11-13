@@ -6,7 +6,7 @@ stays under the 400-line cap (roadmap addendum 1.2.8.2). The functions are pure
 over markdown text — they take the document as a parameter and never touch the
 filesystem, shell out, or import ``novel_ralph_skill``.
 
-ADR-002 (``docs/adr-002-toml-round-trip-tomlkit.md``) selects ``tomlkit`` over
+ADR-002 (``docs/adrs/adr-0002-toml-round-trip-tomlkit.md``) selects ``tomlkit`` over
 ``tomli_w`` as the only sanctioned writer, and design §4.1
 (``docs/novel-ralph-harness-design.md``) eliminates direct editing of
 ``state.toml`` in favour of validated ``novel-state`` subcommands. The scanner

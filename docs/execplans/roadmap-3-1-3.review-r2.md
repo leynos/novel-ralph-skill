@@ -122,11 +122,12 @@ against the real source is accurate. No new blocking defect was found.
 `docs/issues/audit-3.1.1.md` (Finding 2), `docs/roadmap.md` (tasks 3.1.2/3.1.3),
 `docs/novel-ralph-harness-design.md` §§4.2/4.3/5.4 (via the dev-guide and plan
 anchors), `docs/developers-guide.md` (compile-model `:316-326`, done-predicate
-`:540-586`), `docs/adr-001-deterministic-judgemental-boundary.md`, `AGENTS.md`
-(400-line cap, CQS, en-GB Oxford spelling), and the `logisphere-design-review`
-skill. Source verified directly: `novel_ralph_skill/state/compile_model.py`,
-`disk_evidence.py`, `done_predicate.py`, `state/__init__.py`,
-`tests/test_done_predicate.py`, `tests/test_disk_evidence.py`,
-`tests/working_corpus/_oracle_disk.py`, plus a repo-wide grep for the clause
-and the two new symbols. cuprum's read-only sibling checkout was not consulted
-because the diff has no cuprum surface (D-NO-CUPRUM, verified).
+`:540-586`), `docs/adrs/adr-0001-deterministic-judgemental-boundary.md`,
+`AGENTS.md` (400-line cap, CQS, en-GB Oxford spelling), and the
+`logisphere-design-review` skill. Source verified directly:
+`novel_ralph_skill/state/compile_model.py`, `disk_evidence.py`,
+`done_predicate.py`, `state/__init__.py`, `tests/test_done_predicate.py`,
+`tests/test_disk_evidence.py`, `tests/working_corpus/_oracle_disk.py`, plus a
+repo-wide grep for the clause and the two new symbols. cuprum's read-only
+sibling checkout was not consulted because the diff has no cuprum surface
+(D-NO-CUPRUM, verified).

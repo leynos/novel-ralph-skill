@@ -86,8 +86,8 @@ The installed console-scripts run through a cuprum catalogue keyed on their
 absolute paths — cuprum 0.1.0 allowlists any `Program` string, including an
 absolute path — so no raw `subprocess` is required and the scripting standards
 are met. The decision is recorded in
-[novel-ralph-harness-design.md](novel-ralph-harness-design.md) §4 and the
-[developers' guide](developers-guide.md).
+[novel-ralph-harness-design.md](../novel-ralph-harness-design.md) §4 and the
+[developers' guide](../developers-guide.md).
 
 ## Goals and non-goals
 

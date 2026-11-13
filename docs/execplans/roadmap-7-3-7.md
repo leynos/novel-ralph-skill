@@ -342,8 +342,8 @@ confirmed in practice — this was a pure in-process Python consolidation.
 This repository is a Python package, `novel_ralph_skill`, implementing a
 deterministic command harness for novel drafting. Commands emit a shared JSON
 envelope and branch the harness on UNIX exit codes (design §3.1, §3.2;
-`docs/adr-003-shared-interface-contract.md`). Exit code 2 means "usage error:
-the invocation is wrong" (design §3.2 Table; `contract/exit_codes.py`,
+`docs/adrs/adr-0003-shared-interface-contract.md`). Exit code 2 means "usage
+error: the invocation is wrong" (design §3.2 Table; `contract/exit_codes.py`,
 `ExitCode.USAGE_ERROR = 2`).
 
 The relevant layers, by full path:
@@ -426,7 +426,7 @@ contract, single output shape); audit-2.2.4 Finding 1 (proposed fix). Roadmap
 task 7.3.7.
 
 Docs to read first: `docs/novel-ralph-harness-design.md` §3.1 and §3.2;
-`docs/adr-003-shared-interface-contract.md`; `docs/issues/audit-2.2.4.md`
+`docs/adrs/adr-0003-shared-interface-contract.md`; `docs/issues/audit-2.2.4.md`
 Finding 1 and Finding 5; `docs/scripting-standards.md` (en-GB prose, docstring
 conventions); `AGENTS.md` (quality gates, docstring-coverage gate, 400-line
 cap).
@@ -620,8 +620,8 @@ Implements: audit-2.2.4 Finding 1 and Finding 7 (the 400-line headroom note);
 design §3.2; roadmap task 7.3.7.
 
 Docs to read first: `docs/issues/audit-2.2.4.md` Finding 1 and Finding 7;
-`docs/adr-010-gate-drafting-mutators.md` (the gate/drafting mutator family, for
-context on the no-flag `set-gate` usage arm).
+`docs/adrs/adr-0010-gate-drafting-mutators.md` (the gate/drafting mutator
+family, for context on the no-flag `set-gate` usage arm).
 
 Skills to load: `python-router` → `python-errors-and-logging`; `leta` for the
 `GateDraftingUsageError` reference scan.

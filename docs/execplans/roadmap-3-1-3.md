@@ -97,7 +97,7 @@ escalation, not a workaround.
   Decision Log D-TWIN.
 - **Read-only / CQS.** Every touched function stays a pure
   `(State, working_dir) -> …` query that writes nothing on any path (ADR-001,
-  `docs/adr-001-deterministic-judgemental-boundary.md`; design §3.3 at
+  `docs/adrs/adr-0001-deterministic-judgemental-boundary.md`; design §3.3 at
   `docs/novel-ralph-harness-design.md:235-307`).
 - **Fault boundary preserved.** A *missing* `draft.md` contributes `""`
   (benign); every other read fault (`PermissionError`, `IsADirectoryError`,
@@ -382,7 +382,7 @@ Design and doc anchors this task implements:
   `compiled-matches-drafts`).
 - `docs/issues/audit-3.1.1.md` Finding 2 (the named fix: one
   `compiled_matches_drafts(state, working_dir)` helper both callers consume).
-- `docs/adr-001-deterministic-judgemental-boundary.md` (read-only checker
+- `docs/adrs/adr-0001-deterministic-judgemental-boundary.md` (read-only checker
   boundary).
 - `docs/developers-guide.md` §"Done predicate" (`:540-600`) and §"Invariant
   validation" (the deliberate-twin policy).

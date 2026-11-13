@@ -40,8 +40,8 @@ packages, `state/wordcount.py`, `commands/_recount.py`, and the desloppify
 tests; traced history with `git show f55a2bb` and `sem` over the merged commit.
 Source of truth consulted: `docs/novel-ralph-harness-design.md` §3.1, §3.2,
 §3.3, §4.4, §5.1, §6, and §9;
-[`docs/adr-001-deterministic-judgemental-boundary.md`](../adr-001-deterministic-judgemental-boundary.md);
-[`docs/adr-003-shared-interface-contract.md`](../adr-003-shared-interface-contract.md);
+[`docs/adrs/adr-0001-deterministic-judgemental-boundary.md`](../adrs/adr-0001-deterministic-judgemental-boundary.md);
+[`docs/adrs/adr-0003-shared-interface-contract.md`](../adrs/adr-0003-shared-interface-contract.md);
 `docs/scripting-standards.md`; `docs/developers-guide.md`;
 `docs/users-guide.md`; and `AGENTS.md`. Language router: `python-router`
 (Python data shapes, errors and logging, testing). Spelling per

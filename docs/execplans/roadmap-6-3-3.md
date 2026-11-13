@@ -93,7 +93,7 @@ escalation, not a workaround.
   verbatim in meaning, the authoritative sources and must not introduce a
   fourth, drifting copy:
   - The five-code table fixed by ADR-003 Table 2
-    (`docs/adr-003-shared-interface-contract.md` lines 85-95) and design §3.2
+    (`docs/adrs/adr-0003-shared-interface-contract.md` lines 85-95) and design §3.2
     (`docs/novel-ralph-harness-design.md` lines 203-233): 0 success; 1 benign
     negative (predicate not yet satisfied, loop continues); 2 usage error; 3
     state or input error; 4 actionable finding.
@@ -573,7 +573,7 @@ documents and must not contradict.
 - `docs/roadmap.md` lines 2116-2178 — step 6.3 and tasks 6.3.1-6.3.3. Task
   6.3.3 (lines 2164-2178) is this plan; its predecessors 6.3.1 (actionable
   exit- 3 messages) and 6.3.2 (cross-command contract suite) are complete.
-- `docs/adr-003-shared-interface-contract.md` — the shared envelope (lines
+- `docs/adrs/adr-0003-shared-interface-contract.md` — the shared envelope (lines
   45-46), the disambiguated five-code exit table (Table 2, lines 85-95), and
   the four-flag Cyclopts construction contract (Table 3). This is the contract
   this task documents.
@@ -720,9 +720,9 @@ home for the contract an agent gates on) — titled, in sentence case, e.g.
 
 Mark both the table and the schema explicitly as the agent-facing restatement
 of the canonical sources, and add a single pointer: "The canonical contract is
-`docs/adr-003-shared-interface-contract.md` and the developers' guide sections
-'The shared JSON envelope' and 'Disambiguated exit codes'; this skill restates
-it for the agent at the point of use." This mirrors the existing "Done
+`docs/adrs/adr-0003-shared-interface-contract.md` and the developers' guide
+sections 'The shared JSON envelope' and 'Disambiguated exit codes'; this skill
+restates it for the agent at the point of use." This mirrors the existing "Done
 predicate (short form)" pointer (SKILL.md lines 590-600) and is the §8
 single-source discipline applied to the contract, so no per-command prose copy
 can drift.
@@ -959,8 +959,8 @@ touched, so there is nothing to roll back beyond the Markdown edits themselves.
 The canonical contract sources this task documents, for the implementer's quick
 reference:
 
-- ADR-003 Table 2 (`docs/adr-003-shared-interface-contract.md` lines 85-95) —
-  the five-code exit table.
+- ADR-003 Table 2 (`docs/adrs/adr-0003-shared-interface-contract.md` lines
+  85-95) — the five-code exit table.
 - Design §3.1 (`docs/novel-ralph-harness-design.md` lines 146-201) — the
   envelope skeleton and field semantics.
 - Developers' guide lines 522-593 — the developer-facing restatement SKILL.md

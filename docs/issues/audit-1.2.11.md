@@ -25,7 +25,7 @@ double-book them.
 Trail followed: explored with `leta` (`leta show`, `leta refs`, `leta files`)
 and traced history with `sem`/`git show --commit`. Source of truth consulted:
 `docs/novel-ralph-harness-design.md` §3.1–3.2, ADR 003
-(`docs/adr-003-shared-interface-contract.md`), ADR 004, ADR 005, ADR 006,
+(`docs/adrs/adr-0003-shared-interface-contract.md`), ADR 004, ADR 005, ADR 006,
 `docs/developers-guide.md`, `docs/roadmap.md`, and `AGENTS.md`. Language router:
 `python-router` (Python test scaffolding and fixtures).
 

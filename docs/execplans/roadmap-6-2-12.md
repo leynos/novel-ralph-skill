@@ -534,9 +534,9 @@ Files to read or touch:
   `working_corpus` package (lines 181+) — the sanctioned value import and
   step-module conventions; lines 817+ describe the torn-turn
   behavioural-scenario precedent.
-- `docs/adr-002-toml-round-trip-tomlkit.md` (the `tomlkit` document path the
-  `pending_turn` bracket writes through — orientation only; no change here).
-- `docs/adr-003-shared-interface-contract.md` (the shared command-runner
+- `docs/adrs/adr-0002-toml-round-trip-tomlkit.md` (the `tomlkit` document path
+  the `pending_turn` bracket writes through — orientation only; no change here).
+- `docs/adrs/adr-0003-shared-interface-contract.md` (the shared command-runner
   interface contract the scenario drives through — orientation only).
 - `novel_ralph_skill/state/document.py` — `pending_turn`,
   `write_text_atomically` (the `.tmp` discipline at lines 145-151),

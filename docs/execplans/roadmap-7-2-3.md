@@ -632,10 +632,10 @@ contract); Decisions D-HOME, D-REEXPORT, D-LEDGER-REPOINT, D-SCAN-IMPORT,
 D-GUARD.
 
 Docs to read first: `docs/novel-ralph-harness-design.md` §6, §6.1, §6.3;
-`docs/adr-003-shared-interface-contract.md`; `docs/adr-001-*` (the detect-only,
-no-flags discipline); `docs/execplans/roadmap-7-2-2.md` Constraints and
-Decision D-SCANTYPES; `docs/developers-guide.md` section "The shared loader
-primitives (`loaderkit`)".
+`docs/adrs/adr-0003-shared-interface-contract.md`; `docs/adr-001-*` (the
+detect-only, no-flags discipline); `docs/execplans/roadmap-7-2-2.md`
+Constraints and Decision D-SCANTYPES; `docs/developers-guide.md` section "The
+shared loader primitives (`loaderkit`)".
 
 Skills to load: `leta` (navigate `loaderkit.scan`, `rulepack.detect`,
 `ledger.detect`, and every importer — use `leta refs ScannedChapter` /

@@ -385,7 +385,7 @@ Scripts detect and report; the model adjudicates. A command never makes a
 creative or editorial decision, and the model never hand-edits state or
 hand-counts words. This split is the load-bearing invariant of the system and
 is recorded in
-[adr-001-deterministic-judgemental-boundary.md](adr-001-deterministic-judgemental-boundary.md).
+[adrs/adr-0001-deterministic-judgemental-boundary.md](adrs/adr-0001-deterministic-judgemental-boundary.md).
 When adding behaviour, decide which side of the boundary it sits on before
 writing code: anything requiring taste belongs to the model, anything
 mechanically checkable belongs to a command.
@@ -394,9 +394,9 @@ mechanically checkable belongs to a command.
 
 The spine is the single `novel` multiplexer in `novel_ralph_skill`: a `state`
 subgroup plus four leaf verbs (the rationale is in
-[adr-007-command-surface-novel-multiplexer.md](adr-007-command-surface-novel-multiplexer.md),
+[adrs/adr-0007-command-surface-novel-multiplexer.md](adrs/adr-0007-command-surface-novel-multiplexer.md),
 which supersedes ADR 005, with distribution in
-[adr-004-distribution-console-scripts.md](adr-004-distribution-console-scripts.md)):
+[adrs/adr-0004-distribution-console-scripts.md](adrs/adr-0004-distribution-console-scripts.md)):
 
 - `novel state` — the only path that mutates `state.toml`. Subcommands
   `init`, `set-cursor`, `advance-phase`, `recount`, `set-chapters`, `set-gate`,
@@ -432,7 +432,7 @@ dispatches to the `state` subgroup and the four leaf verbs (`pyproject.toml`;
 ADR 007). Each operation drives its real app. The build-and-install proof lives
 in [`tests/test_console_scripts_e2e.py`](../tests/test_console_scripts_e2e.py),
 which runs on POSIX only (see
-[adr-006-console-scripts-e2e-posix-policy.md](adr-006-console-scripts-e2e-posix-policy.md)),
+[adrs/adr-0006-console-scripts-e2e-posix-policy.md](adrs/adr-0006-console-scripts-e2e-posix-policy.md)),
 and [`tests/test_pyproject_scripts.py`](../tests/test_pyproject_scripts.py)
 guards the entry-point table. The spaced subcommand names live once, as data, in
 [`novel_ralph_skill/contract/names.py`](../novel_ralph_skill/contract/names.py):
@@ -453,7 +453,7 @@ by the shared contract scaffolding (roadmap step 1.3).
 
 ### The `novel` multiplexer
 
-[adr-007-command-surface-novel-multiplexer.md](adr-007-command-surface-novel-multiplexer.md)
+[adrs/adr-0007-command-surface-novel-multiplexer.md](adrs/adr-0007-command-surface-novel-multiplexer.md)
 (superseding ADR 005) fixes the command surface as a single `novel`
 multiplexer — `novel state …`, `novel done`, `novel compile`,
 `novel desloppify`, and `novel wordcount`.
@@ -595,7 +595,7 @@ Every command emits the same machine-mode JSON envelope —
 `{command, schema_version, ok, working_dir, result, messages}` — with a
 `--human` flag for readable output. The contract, and the single shared
 implementation both checkers and mutators reuse, is recorded in
-[adr-003-shared-interface-contract.md](adr-003-shared-interface-contract.md)
+[adrs/adr-0003-shared-interface-contract.md](adrs/adr-0003-shared-interface-contract.md)
 and design §2. New commands adopt the envelope rather than inventing their own
 output shape.
 
@@ -622,7 +622,7 @@ re-spelling them, and the structural tripwire
 `tests/test_contract_app_centralisation.py` pins that the constructors and
 entry points consume it. The per-flag rationale and the construction contract
 live in
-[adr-003-shared-interface-contract.md](adr-003-shared-interface-contract.md)
+[adrs/adr-0003-shared-interface-contract.md](adrs/adr-0003-shared-interface-contract.md)
 Table 3. Second, `run` translates Cyclopts's native exit-`1` usage errors into
 the contract's exit `2`.
 
@@ -767,7 +767,7 @@ modules can import *from* the home without forming an import cycle.
 counts, and the chapter manifest; it is mutated only through `novel state` and
 round-trips losslessly with `tomlkit` to preserve comments and formatting
 (rationale in
-[adr-002-toml-round-trip-tomlkit.md](adr-002-toml-round-trip-tomlkit.md)).
+[adrs/adr-0002-toml-round-trip-tomlkit.md](adrs/adr-0002-toml-round-trip-tomlkit.md)).
 Manuscript content lives under `working/manuscript/` (`compiled.md` and
 per-chapter `chapter-NN/{draft.md,done.flag}`), with planning artefacts under
 `working/plan/`. The `novel compile` **write** path (roadmap task 4.1.1)

@@ -28,7 +28,7 @@ skeleton is recorded here as the one genuine untracked gap.
 The exploration used `leta` for code navigation (`leta show`, `leta refs`,
 `leta grep`, `leta calls`) and `sem`/`git show` for history tracing. The
 sources of truth consulted were `docs/novel-ralph-harness-design.md` (§5.3
-inline-table materialization), `docs/adr-002-toml-round-trip-tomlkit.md`,
+inline-table materialization), `docs/adrs/adr-0002-toml-round-trip-tomlkit.md`,
 `docs/roadmap.md` (steps 7.2 and 7.3), `docs/developers-guide.md`, `AGENTS.md`,
 and the existing audit issues under `docs/issues/`. Prose follows the en-GB
 Oxford spelling convention (`AGENTS.md`).

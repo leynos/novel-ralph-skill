@@ -397,7 +397,7 @@ escalation, not a workaround.
       leaf-module refactor. See Open issues.
     - [x] (done) Work item 8: ADR 008 + design/developers'/users' guide +
       SKILL.md Phase 7 bridge + contents index. Added
-      `docs/adr-008-chapter-manifest-mutator.md` recording the name, the
+      `docs/adrs/adr-0008-chapter-manifest-mutator.md` recording the name, the
       `--chapters` JSON input shape, the exit-2/exit-3 split, directory creation,
       the non-empty-prior refusal, the pure-coherence-predicate placement, the
       manifest-only rejection, the write-at-intent ordering (D10), and the
@@ -1285,26 +1285,26 @@ Record the decision and bridge the command into the agent workflow (roadmap
 2.2.3: "Record the command's input shape and behaviour as an ADR, and bridge it
 in SKILL.md Phase 7"). This is the markdown work item.
 
-- Add `docs/adr-008-chapter-manifest-mutator.md` (next free number; ADRs 001-007
-  exist): record the `set-chapters` name (D1), the `--chapters '<json-array>'`
-  input shape and cyclopts JSON-list mechanism (D7), the exit-2/exit-3 split
-  (D6), directory creation (D2), the non-empty-prior refusal (D3), the
-  pure-coherence-predicate placement (D4), the **manifest-only alternative and
-  why it is rejected** (D9 — the roadmap mandate plus the §5.1/§5.2 firm
-  bijection requirement), the **write-ordering decision** (D10 — the manifest
-  persists AT the intent write, before any directory, because the manifest is
-  the agent's non-recomputable judgement, unlike reconcile's recomputable
-  recount payload), and the **torn-turn recovery contract and its precedence
-  change** (D8): a torn `set-chapters` turn is completed by `reconcile`, which
-  now classifies a `set-chapters` `[pending_turn]` ahead of the
-  `manifest-disk-bijection` REFUSE **when that break is fully explained by the
-  pending-turn's missing chapter directories** (and still REFUSEs an
-  unexplained break). Spell out: (a) the precedence narrative (why the
-  bijection refuse-class normally dominates, and why the explained
-  `set-chapters` case is the one sanctioned exception); (b) why an empty
-  `chapter-NN/` directory is recomputable *given the persisted manifest* (D10)
-  — it carries no agent judgement, exactly like `log.md`; (c) the scope guard
-  (the branch never masks a second contradiction). This is a deliberate
+- Add `docs/adrs/adr-0008-chapter-manifest-mutator.md` (next free number; ADRs
+  001-007 exist): record the `set-chapters` name (D1), the
+  `--chapters '<json-array>'` input shape and cyclopts JSON-list mechanism
+  (D7), the exit-2/exit-3 split (D6), directory creation (D2), the
+  non-empty-prior refusal (D3), the pure-coherence-predicate placement (D4),
+  the **manifest-only alternative and why it is rejected** (D9 — the roadmap
+  mandate plus the §5.1/§5.2 firm bijection requirement), the **write-ordering
+  decision** (D10 — the manifest persists AT the intent write, before any
+  directory, because the manifest is the agent's non-recomputable judgement,
+  unlike reconcile's recomputable recount payload), and the **torn-turn
+  recovery contract and its precedence change** (D8): a torn `set-chapters`
+  turn is completed by `reconcile`, which now classifies a `set-chapters`
+  `[pending_turn]` ahead of the `manifest-disk-bijection` REFUSE **when that
+  break is fully explained by the pending-turn's missing chapter directories**
+  (and still REFUSEs an unexplained break). Spell out: (a) the precedence
+  narrative (why the bijection refuse-class normally dominates, and why the
+  explained `set-chapters` case is the one sanctioned exception); (b) why an
+  empty `chapter-NN/` directory is recomputable *given the persisted manifest*
+  (D10) — it carries no agent judgement, exactly like `log.md`; (c) the scope
+  guard (the branch never masks a second contradiction). This is a deliberate
   amendment to the §5.4 recomputable-artefact set and the reconcile precedence,
   not a mechanical tweak. Reference ADR 001 and design §3.4/§4.1/§5.4.
 - Update `docs/novel-ralph-harness-design.md`: add `set-chapters` to the §4.1
@@ -1674,8 +1674,8 @@ Each runs as a single focused commit gated by `make all` and `make audit`.
   decision is recorded only for `[novel].slug`. Reconcile the two: soften the
   "filesystem-safe" docstrings so they no longer over-claim, record the opaque
   chapter-slug stance alongside the `[novel].slug` decision in
-  `docs/adr-008-chapter-manifest-mutator.md` and the developers' guide, and add
-  the `slug` field to SKILL Phase 7's outline checklist
+  `docs/adrs/adr-0008-chapter-manifest-mutator.md` and the developers' guide,
+  and add the `slug` field to SKILL Phase 7's outline checklist
   (`skill/novel-ralph/SKILL.md` "Phase 7 — Chapter planning"), which currently
   omits it though `set-chapters` requires it. Documentation-and-docstring
   reconciliation only; no validation rule is added and no behaviour changes.

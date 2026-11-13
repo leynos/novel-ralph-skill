@@ -506,9 +506,10 @@ Design source-of-truth this task implements:
 - `docs/novel-ralph-harness-design.md` §6.1 (rule-pack schema), §6.2 (AI-isms as
   versioned data), §6.3 (device ledger) — the two parallel detection-pack
   families whose loader-and-scan primitives must each have a single home.
-- `docs/adr-003-shared-interface-contract.md` — the shared-interface/single-home
-  discipline and the no-import-cycle layering the `loaderkit` primitives obey.
-- `docs/adr-001-deterministic-judgemental-boundary.md` — the read-only,
+- `docs/adrs/adr-0003-shared-interface-contract.md` — the
+  shared-interface/single-home discipline and the no-import-cycle layering the
+  `loaderkit` primitives obey.
+- `docs/adrs/adr-0001-deterministic-judgemental-boundary.md` — the read-only,
   detect-only loader boundary (no message change is a behaviour change).
 - `docs/developers-guide.md` — internal conventions for the loaderkit binding
   seam.

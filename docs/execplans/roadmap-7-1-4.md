@@ -88,7 +88,7 @@ escalation, not a workaround.
 
 - The shared envelope shape
   `{command, schema_version, ok, working_dir, result, messages}` (design §3.1;
-  `docs/adr-003-shared-interface-contract.md`) must not change. This task
+  `docs/adrs/adr-0003-shared-interface-contract.md`) must not change. This task
   touches neither `build_envelope` nor `render_machine`.
 - The `result` payload shape of **each** path must be byte-for-byte unchanged
   for every existing input. Rule-pack `result` keys remain, in order, `pack`,
@@ -470,10 +470,10 @@ Assume no prior knowledge of this repository. The relevant pieces:
 - The harness invokes five deterministic console-scripts every turn and gates on
   their output. They share one JSON envelope
   `{command, schema_version, ok, working_dir, result, messages}` (design §3.1;
-  `docs/adr-003-shared-interface-contract.md`). The harness reads `result` and
-  `ok`; it never parses `messages`. The five exit codes are 0 success, 1 benign
-  negative, 2 usage error, 3 state/input error, 4 actionable finding (design
-  §3.2; ADR-003 Table 2).
+  `docs/adrs/adr-0003-shared-interface-contract.md`). The harness reads
+  `result` and `ok`; it never parses `messages`. The five exit codes are 0
+  success, 1 benign negative, 2 usage error, 3 state/input error, 4 actionable
+  finding (design §3.2; ADR-003 Table 2).
 - A command body returns a `CommandOutcome` (a frozen dataclass:
   `code: ExitCode`, `result: Mapping[str, object]`, `messages: Sequence[str]`;
   `novel_ralph_skill/contract/runner.py:126-147`) and the shared `run` wrapper

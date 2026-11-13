@@ -20,7 +20,7 @@ field set inline as a fence-free ``{...}`` brace-list.
 The guard pins the agent-facing exit-code table and envelope skeleton in
 ``skill/novel-ralph/SKILL.md`` to the live ``ExitCode`` enum, the ``Envelope``
 field set/order, and ``ENVELOPE_SCHEMA_VERSION``, and cross-checks them against
-the canonical ADR-003 Table 2 (``docs/adr-003-shared-interface-contract.md``)
+the canonical ADR-003 Table 2 (``docs/adrs/adr-0003-shared-interface-contract.md``)
 and the harness design §3.1/§3.2 (``docs/novel-ralph-harness-design.md``).
 
 Two parsing carve-outs are load-bearing and recorded in the ExecPlan Decision

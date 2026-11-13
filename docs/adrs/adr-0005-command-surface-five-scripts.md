@@ -2,7 +2,7 @@
 
 ## Status
 
-**Superseded by [ADR 007](adr-007-command-surface-novel-multiplexer.md)
+**Superseded by [ADR 007](adr-0007-command-surface-novel-multiplexer.md)
 (2026-06-25).** Originally Accepted, 2026-06-21: the deterministic spine was to
 ship as five separately named console-scripts — `novel-state`, `novel-done`,
 `novel-compile`, `desloppify`, `wordcount`. ADR 007 reverses this to a single

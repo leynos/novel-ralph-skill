@@ -418,9 +418,9 @@ Implements audit-1.2.3 Findings 1-2 and audit-1.2.5 Finding 5. Cite these.
 
 Documentation to read first: `docs/issues/audit-1.2.3.md` Findings 1-2,
 `docs/scripting-standards.md` "Command execution with cuprum" and "Catalogue
-and allowlisting", `docs/adr-006-console-scripts-e2e-posix-policy.md` (the
-POSIX-only skip policy), the "Verified locked-library facts" section above.
-Skills: `python-testing` (fixtures returning factories),
+and allowlisting", `docs/adrs/adr-0006-console-scripts-e2e-posix-policy.md`
+(the POSIX-only skip policy), the "Verified locked-library facts" section
+above. Skills: `python-testing` (fixtures returning factories),
 `python-types-and-apis` (the catalogue/resolver signatures), `leta`/`sem`.
 
 Add to `tests/conftest.py`:

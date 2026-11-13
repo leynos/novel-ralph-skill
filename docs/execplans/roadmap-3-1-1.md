@@ -567,10 +567,10 @@ Authoritative documents (read these before coding the matching work item):
 - Reference predicate: `skill/novel-ralph/references/done-conditions.md`
   ("Novel-level predicate" lines 145-204, "Phase 8 — Drafting" lines 105-114,
   "Phase 9 — Final pass" lines 115-122, "Failure modes" lines 206-219).
-- ADRs: `docs/adr-001-deterministic-judgemental-boundary.md`,
-  `docs/adr-003-shared-interface-contract.md`,
-  `docs/adr-005-command-surface-five-scripts.md`,
-  `docs/adr-006-console-scripts-e2e-posix-policy.md`.
+- ADRs: `docs/adrs/adr-0001-deterministic-judgemental-boundary.md`,
+  `docs/adrs/adr-0003-shared-interface-contract.md`,
+  `docs/adrs/adr-0005-command-surface-five-scripts.md`,
+  `docs/adrs/adr-0006-console-scripts-e2e-posix-policy.md`.
 - Standards: `docs/scripting-standards.md` (Cyclopts/pathlib conventions),
   `docs/developers-guide.md` (the twin/oracle discipline, "Invariant
   validation"), `AGENTS.md` (gates, testing rules, module cap, spelling).

@@ -22,32 +22,32 @@ documentation set.
 
 ## Architecture decision records
 
-- [ADR 001: deterministic and judgemental boundary](adr-001-deterministic-judgemental-boundary.md)
+- [ADR 001: deterministic and judgemental boundary](adrs/adr-0001-deterministic-judgemental-boundary.md)
   fixes the controlling decision: scripts detect and report; the model
   adjudicates.
-- [ADR 002: TOML round-trip via tomlkit](adr-002-toml-round-trip-tomlkit.md)
+- [ADR 002: TOML round-trip via tomlkit](adrs/adr-0002-toml-round-trip-tomlkit.md)
   selects `tomlkit` for comment-preserving state mutation (resolves Q1).
-- [ADR 003: shared interface contract](adr-003-shared-interface-contract.md)
+- [ADR 003: shared interface contract](adrs/adr-0003-shared-interface-contract.md)
   fixes the JSON envelope and the disambiguated exit-code table (resolves Q2).
-- [ADR 004: distribution as installed console-scripts](adr-004-distribution-console-scripts.md)
+- [ADR 004: distribution as installed console-scripts](adrs/adr-0004-distribution-console-scripts.md)
   records why the commands ship as console-scripts (decision C3).
-- [ADR 005: command surface — five scripts, not one multiplexer](adr-005-command-surface-five-scripts.md)
+- [ADR 005: command surface — five scripts, not one multiplexer](adrs/adr-0005-command-surface-five-scripts.md)
   weighs the multiplexer and settles on five named commands.
-- [ADR 006: console-scripts e2e is POSIX-only](adr-006-console-scripts-e2e-posix-policy.md)
+- [ADR 006: console-scripts e2e is POSIX-only](adrs/adr-0006-console-scripts-e2e-posix-policy.md)
   records why the wheel-build end-to-end test runs only where
   `os.name == "posix"`.
-- [ADR 007: command surface — a single `novel` multiplexer](adr-007-command-surface-novel-multiplexer.md)
+- [ADR 007: command surface — a single `novel` multiplexer](adrs/adr-0007-command-surface-novel-multiplexer.md)
   supersedes ADR 005 and folds the surface into one `novel` multiplexer.
-- [ADR 008: the validated chapter-manifest mutator](adr-008-chapter-manifest-mutator.md)
+- [ADR 008: the validated chapter-manifest mutator](adrs/adr-0008-chapter-manifest-mutator.md)
   records `novel-state set-chapters`: its input shape, the exit-2/exit-3 split,
   directory creation, the manifest-at-intent-write ordering, and the torn-turn
   recovery precedence.
-- [ADR 009: the phase-gated drafting bijection relaxation](adr-009-drafting-bijection-relaxation.md)
+- [ADR 009: the phase-gated drafting bijection relaxation](adrs/adr-0009-drafting-bijection-relaxation.md)
   records that during drafting `novel-state check` relaxes the manifest-to-disk
   bijection to disk-subset-of-manifest behind a default-strict flag, leaving
   the orphan and contiguity directions firing, `reconcile` strict, and the
   exact bijection re-tightening at `final-pass` and `done`.
-- [ADR 010: the gate and drafting sub-state mutators](adr-010-gate-drafting-mutators.md)
+- [ADR 010: the gate and drafting sub-state mutators](adrs/adr-0010-gate-drafting-mutators.md)
   records `novel-state set-gate`, `complete-final-pass`, `set-fangirl`, and
   `set-critic-pass`: their input shapes, the exit-2/exit-3 split, the
   gate-ratio binding that makes `set-gate` the repair mutator for a gate that

@@ -27,14 +27,14 @@ sources without a single gate catching it. The duplication exists today in:
 - `tests/test_pyproject_scripts.py` — an `EXPECTED_SCRIPTS` mapping (lines
   17-23).
 
-The five names are fixed by `docs/adr-005-command-surface-five-scripts.md`
+The five names are fixed by `docs/adrs/adr-0005-command-surface-five-scripts.md`
 (`novel-state`, `novel-done`, `novel-compile`, `desloppify`, `wordcount`),
 distributed as installed console-scripts by
-`docs/adr-004-distribution-console-scripts.md`, and described as the v1 spine in
-`docs/novel-ralph-harness-design.md` §4. The audit's prescription is precise:
-"a package registry consumed by the entry points and tests, asserted against
-`[project.scripts]`, removes the drift risk while the surface is still five
-thin stubs."
+`docs/adrs/adr-0004-distribution-console-scripts.md`, and described as the v1
+spine in `docs/novel-ralph-harness-design.md` §4. The audit's prescription is
+precise: "a package registry consumed by the entry points and tests, asserted
+against `[project.scripts]`, removes the drift risk while the surface is still
+five thin stubs."
 
 The deliverable is therefore a **single package-level registry** —
 `novel_ralph_skill/commands/names.py` — that records, once, the ordered mapping
@@ -404,9 +404,9 @@ the worktree root
   `make nixie` gate Markdown and Mermaid.
 - `docs/roadmap.md` lines 112-117 — this task; lines 104-111 — the adjacent
   1.2.3 (the e2e POSIX policy, already done).
-- `docs/adr-005-command-surface-five-scripts.md` — fixes the five names and the
-  five-script (not multiplexer) shape.
-- `docs/adr-004-distribution-console-scripts.md` — fixes installed
+- `docs/adrs/adr-0005-command-surface-five-scripts.md` — fixes the five names
+  and the five-script (not multiplexer) shape.
+- `docs/adrs/adr-0004-distribution-console-scripts.md` — fixes installed
   console-scripts in `novel_ralph_skill` as the distribution form.
 - `docs/novel-ralph-harness-design.md` §4 (lines 237-368) — the five commands as
   the v1 spine.
@@ -453,9 +453,9 @@ worktree standing rules):
 Authoritative sources to read before editing:
 
 - `docs/roadmap.md` lines 104-117 — task 1.2.4 and the adjacent 1.2.3 boundary.
-- `docs/adr-005-command-surface-five-scripts.md` and
-  `docs/adr-004-distribution-console-scripts.md` — the five fixed names and the
-  console-script distribution form.
+- `docs/adrs/adr-0005-command-surface-five-scripts.md` and
+  `docs/adrs/adr-0004-distribution-console-scripts.md` — the five fixed names
+  and the console-script distribution form.
 - `docs/novel-ralph-harness-design.md` §4 — the five commands.
 - `docs/developers-guide.md` lines 53-87 — the cross-reference target.
 - `docs/scripting-standards.md` — Cyclopts/cuprum conventions (context only).
@@ -479,9 +479,9 @@ on it (3). Each commit leaves the suite green.
 
 Implements: roadmap task 1.2.4 ("a package registry consumed by the entry
 points and tests, asserted against `[project.scripts]`");
-`docs/adr-005-command-surface-five-scripts.md` (the five fixed names);
-`docs/adr-004-distribution-console-scripts.md` (the entry-point targets bind to
-`novel_ralph_skill.commands.stub`).
+`docs/adrs/adr-0005-command-surface-five-scripts.md` (the five fixed names);
+`docs/adrs/adr-0004-distribution-console-scripts.md` (the entry-point targets
+bind to `novel_ralph_skill.commands.stub`).
 
 Add `novel_ralph_skill/commands/names.py`, the single source of truth:
 
@@ -544,8 +544,8 @@ the runtime table:
    here, not only at the TOML gate).
 
 Read first: `docs/roadmap.md` lines 112-117;
-`docs/adr-005-command-surface-five-scripts.md`;
-`docs/adr-004-distribution-console-scripts.md`; `.rules/python-typing.md`,
+`docs/adrs/adr-0005-command-surface-five-scripts.md`;
+`docs/adrs/adr-0004-distribution-console-scripts.md`; `.rules/python-typing.md`,
 `.rules/python-return.md`, `.rules/python-00.md`;
 `tests/test_pyproject_scripts.py` (the `tomllib` pattern to mirror).
 

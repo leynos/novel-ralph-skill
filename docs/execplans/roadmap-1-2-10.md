@@ -229,7 +229,7 @@ escalation, not a workaround.
 - Decision: do **not** add `.run_sync()` / `.run` to the assertion.
   - Rationale: the test docstring (`tests/test_conftest_helpers.py` lines 77-81)
     explicitly avoids "paying the slow wheel-build-and-install e2e cost", and
-    ADR-006 (`docs/adr-006-console-scripts-e2e-posix-policy.md`) scopes actual
+    ADR-006 (`docs/adrs/adr-0006-console-scripts-e2e-posix-policy.md`) scopes actual
     console-script execution to the POSIX-guarded slow e2e in
     `tests/test_console_scripts_e2e.py`. Executing here would duplicate that and
     risk sandbox flakiness. The no-raise guarantee is already exercised by the
@@ -305,7 +305,8 @@ worktree `/data/leynos/Projects/novel-ralph-skill.worktrees/roadmap-1-2-10`):
     `from cuprum import SafeCmd`.
 - Source-of-truth docs the change must respect:
   - `docs/roadmap.md` lines 155-160 — task 1.2.10 (the remediation text).
-  - `docs/adr-006-console-scripts-e2e-posix-policy.md` — execution of console
+  - `docs/adrs/adr-0006-console-scripts-e2e-posix-policy.md` — execution of
+    console
     scripts is the slow, POSIX-guarded e2e's job, not this unit test's; line 86
     confirms "cuprum 0.1.0 allowlists any `Program` string, including an
     absolute path", matching the fixture docstring.
@@ -352,10 +353,10 @@ unit test, not an execution test.
 Docs to read first: `docs/roadmap.md` lines 155-160; the existing
 `tests/test_conftest_helpers.py` (the whole file, ~108 lines) and
 `tests/conftest.py` `single_program_catalogue` (lines 112-141);
-`docs/adr-006-console-scripts-e2e-posix-policy.md` (why execution stays in the
-slow e2e); `docs/scripting-standards.md` lines 160-199 (the `sh.make` builder
-concept); AGENTS.md "Code style and structure", "Python verification and
-testing", and "Change quality and committing"; `.rules/python-00.md`,
+`docs/adrs/adr-0006-console-scripts-e2e-posix-policy.md` (why execution stays
+in the slow e2e); `docs/scripting-standards.md` lines 160-199 (the `sh.make`
+builder concept); AGENTS.md "Code style and structure", "Python verification
+and testing", and "Change quality and committing"; `.rules/python-00.md`,
 `.rules/python-typing.md`, `.rules/python-return.md` (style, annotation, return
 conventions).
 

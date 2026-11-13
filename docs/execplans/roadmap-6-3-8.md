@@ -10,9 +10,9 @@ Status: DONE
 
 The deterministic novel-harness commands all share one exit-code and JSON
 envelope contract (design §3.1–§3.2;
-`docs/adr-003-shared-interface-contract.md`). Exit `3` is the "state or input
-error" channel: the harness stops and the dogfooding agent must recover state.
-For that recovery to be possible the message on the channel must be
+`docs/adrs/adr-0003-shared-interface-contract.md`). Exit `3` is the "state or
+input error" channel: the harness stops and the dogfooding agent must recover
+state. For that recovery to be possible the message on the channel must be
 *actionable* — it must name the artefact and offer a remedy — and it must never
 leak raw operating-system text (an `Errno`, a stringified exception repr), per
 `docs/scripting-standards.md` line 678 ("Production code should present
@@ -376,8 +376,8 @@ site.
 
 Implements: design §3.2 (exit-3 channel) and §3.4 (atomic writes);
 `docs/scripting-standards.md` line 678;
-`docs/adr-003-shared-interface-contract.md` (shared envelope); roadmap §6.3.8
-first artefact.
+`docs/adrs/adr-0003-shared-interface-contract.md` (shared envelope); roadmap
+§6.3.8 first artefact.
 
 Docs to read first: `docs/novel-ralph-harness-design.md` §3.2 and §3.4;
 `docs/scripting-standards.md` lines 603-605 and 678;

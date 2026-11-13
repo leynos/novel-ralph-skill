@@ -114,7 +114,7 @@ drifting copy that step 6.3 exists to eliminate.
 
 Skills: `logisphere-design-review` (this), `firecrawl` (uv doc
 re-verification). Source of truth consulted: `docs/roadmap.md` (2164-2178),
-`docs/adr-003-shared-interface-contract.md` (43-95),
+`docs/adrs/adr-0003-shared-interface-contract.md` (43-95),
 `docs/novel-ralph-harness-design.md` §3.2 (203-233), `docs/developers-guide.md`
 (144-152, 522-595), `docs/documentation-style-guide.md` (35-65),
 `.markdownlint-cli2.jsonc`, `skill/novel-ralph/SKILL.md` (front matter, Setup,

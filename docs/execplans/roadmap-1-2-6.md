@@ -18,9 +18,9 @@ Three documents currently disagree about the same fact:
    Bash code block whose Python heredoc still imports `tomli_w` and calls
    `tomli_w.dump(...)` to hand-edit `state.toml`. The exact `import` line is at
    line 229 and the `dump` call at line 235.
-2. `docs/adr-002-toml-round-trip-tomlkit.md` line 77 already asserts, in the
-   present tense, that "the failed `tomli_w` snippet **is removed** from the
-   reference material", and `docs/novel-ralph-harness-design.md` §5.3 (line
+2. `docs/adrs/adr-0002-toml-round-trip-tomlkit.md` line 77 already asserts, in
+   the present tense, that "the failed `tomli_w` snippet **is removed** from
+   the reference material", and `docs/novel-ralph-harness-design.md` §5.3 (line
    466) makes the same present-tense claim ("The failed `tomli_w` snippet in
    the current reference **is removed**.").
 3. The same ADR-002, at line 22, says the reference material "even **carries** a
@@ -55,18 +55,19 @@ The deliverable is a single, coherent state of the documentation:
 
 Success is observable in two parts, because the word `tomli_w` legitimately
 **survives** in the design and ADR after the work — WI2 deliberately keeps the
-two truthful "is removed" sentences (`docs/adr-002-toml-round-trip-tomlkit.md`
-line 77 and `docs/novel-ralph-harness-design.md` line 466), and ADR-002 line 22
-keeps the word while only its tense changes (present "carries" → past
-"carried"). A whole-tree `grep` for the bare token therefore *must not* be the
-acceptance gate; scrubbing those surviving sentences to make such a grep silent
-would re-open the very inaccuracy this task closes. The two-part gate is:
+two truthful "is removed" sentences
+(`docs/adrs/adr-0002-toml-round-trip-tomlkit.md` line 77 and
+`docs/novel-ralph-harness-design.md` line 466), and ADR-002 line 22 keeps the
+word while only its tense changes (present "carries" → past "carried"). A
+whole-tree `grep` for the bare token therefore *must not* be the acceptance
+gate; scrubbing those surviving sentences to make such a grep silent would
+re-open the very inaccuracy this task closes. The two-part gate is:
 
 1. **Absence in the skill reference.**
    `grep -rn 'tomli_w' skill/` returns **nothing** — the dead snippet is gone
    from `state-layout.md`, the only file under `skill/` that ever held it.
 2. **Truthful references elsewhere.**
-   `grep -rn 'tomli_w' docs/adr-002-toml-round-trip-tomlkit.md docs/novel-ralph-harness-design.md`
+   `grep -rn 'tomli_w' docs/adrs/adr-0002-toml-round-trip-tomlkit.md docs/novel-ralph-harness-design.md`
    still matches, but every surviving line is a *truthful* mention: the
    present tense "even carries" at ADR-002 line 22 is gone (now past tense),
    and the only remaining present-tense uses are the "is removed" sentences at
@@ -129,7 +130,7 @@ escalation (see `Decision Log`), not a workaround.
 
 - Scope: if the change requires editing more than the three files named below
   (`skill/novel-ralph/references/state-layout.md`,
-  `docs/adr-002-toml-round-trip-tomlkit.md`,
+  `docs/adrs/adr-0002-toml-round-trip-tomlkit.md`,
   `docs/novel-ralph-harness-design.md`) plus the one new test file
   (`tests/test_state_layout_reference.py`), stop and escalate.
 - Net size: if the diff exceeds roughly 80 net lines, stop and escalate — this
@@ -341,8 +342,8 @@ Key files for this task, by full repository-relative path:
   line 224 nor line 240 contains a `state.toml.new` narrative; that token
   appears only inside the deleted block (lines 234, 236) and at the untouched
   line 61.
-- `docs/adr-002-toml-round-trip-tomlkit.md` — ADR-002. Line 22 ("even carries"),
-  line 77 ("is removed").
+- `docs/adrs/adr-0002-toml-round-trip-tomlkit.md` — ADR-002. Line 22 ("even
+  carries"), line 77 ("is removed").
 - `docs/novel-ralph-harness-design.md` — the design. §5.3 is lines 458-467; the
   claim is line 466 ("is removed"). §4.1 (lines 246-249) and §3.4 (lines
   217-235) define the mutator-owned atomic-write discipline. §8 (lines 646-666)
@@ -504,13 +505,13 @@ design §5.3 (lines 458-467); ADR-002 (lines 22 and 77).
 Sequenced after WI1 so the present-tense "is removed" is already true. Edit two
 files:
 
-1. `docs/adr-002-toml-round-trip-tomlkit.md` line 22: change the present-tense
-   "The current reference material even **carries** a failed `tomli_w` snippet
-   that does not round-trip comments." to the past tense (e.g. "even
-   **carried** a failed `tomli_w` snippet…"), so the ADR no longer claims the
-   reference currently holds a snippet that WI1 deleted. Leave line 77 ("the
-   failed `tomli_w` snippet is removed from the reference material") as-is:
-   after WI1 it is true. Confirm the surrounding "Context and problem
+1. `docs/adrs/adr-0002-toml-round-trip-tomlkit.md` line 22: change the
+   present-tense "The current reference material even **carries** a failed
+   `tomli_w` snippet that does not round-trip comments." to the past tense
+   (e.g. "even **carried** a failed `tomli_w` snippet…"), so the ADR no longer
+   claims the reference currently holds a snippet that WI1 deleted. Leave line
+   77 ("the failed `tomli_w` snippet is removed from the reference material")
+   as-is: after WI1 it is true. Confirm the surrounding "Context and problem
    statement" and "Decision outcome" prose still reads coherently with the
    tense change. The audit (`docs/issues/audit-1.2.2.md`) cites this design
    sentence as `§5.3:464`; this plan uses the more precise `466-467`. Both
@@ -536,7 +537,7 @@ absence in the reference and, optionally, the truthfulness predicate — see WI3
 
 Validation for WI2:
 
-1. `grep -rn 'tomli_w' docs/adr-002-toml-round-trip-tomlkit.md docs/novel-ralph-harness-design.md`
+1. `grep -rn 'tomli_w' docs/adrs/adr-0002-toml-round-trip-tomlkit.md docs/novel-ralph-harness-design.md`
    shows only truthful, past-or-removed references (no present-tense "carries").
 2. `make markdownlint` passes.
 3. `make nixie` passes.
@@ -563,11 +564,12 @@ path from `Path(__file__).resolve().parent.parent`, exactly as
    Finding 1, lines 26-27, are gone).
 
 Optionally, add a second test asserting cross-document truthfulness: that
-`docs/adr-002-toml-round-trip-tomlkit.md` does not contain the present-tense
-phrase "even carries a failed `tomli_w`" (the line-22 defect WI2 fixes). Keep
-this assertion substring-based and tolerant of surrounding wording so it is not
-brittle; if it proves brittle under markdownlint reflow, drop it and rely on
-the reference-only assertion plus review (note the choice in the Decision Log).
+`docs/adrs/adr-0002-toml-round-trip-tomlkit.md` does not contain the
+present-tense phrase "even carries a failed `tomli_w`" (the line-22 defect WI2
+fixes). Keep this assertion substring-based and tolerant of surrounding wording
+so it is not brittle; if it proves brittle under markdownlint reflow, drop it
+and rely on the reference-only assertion plus review (note the choice in the
+Decision Log).
 
 The module must carry a module docstring and each test a numpy-style docstring
 with the project's conventions (mirror `tests/test_interrogate_gate.py`: class
@@ -632,7 +634,7 @@ make all
 WI2 — reconcile wording, then gate:
 
 ```bash
-grep -rn 'tomli_w' docs/adr-002-toml-round-trip-tomlkit.md docs/novel-ralph-harness-design.md
+grep -rn 'tomli_w' docs/adrs/adr-0002-toml-round-trip-tomlkit.md docs/novel-ralph-harness-design.md
 make markdownlint
 make nixie
 make all
@@ -649,7 +651,7 @@ make all
 Final cross-document check (all three documents agree):
 
 ```bash
-grep -rn 'tomli_w' skill/ docs/adr-002-toml-round-trip-tomlkit.md \
+grep -rn 'tomli_w' skill/ docs/adrs/adr-0002-toml-round-trip-tomlkit.md \
   docs/novel-ralph-harness-design.md
 # expect: no output from skill/; design and ADR show only truthful references
 ```
@@ -660,9 +662,9 @@ Acceptance, phrased as observable behaviour:
 
 - Running `grep -rn 'tomli_w' skill/novel-ralph/references/state-layout.md`
   returns nothing: the dead snippet is gone.
-- `docs/adr-002-toml-round-trip-tomlkit.md` no longer contains the present-tense
-  "even carries a failed `tomli_w` snippet"; line 77's "is removed" and design
-  §5.3's "is removed" are now truthful.
+- `docs/adrs/adr-0002-toml-round-trip-tomlkit.md` no longer contains the
+  present-tense "even carries a failed `tomli_w` snippet"; line 77's "is
+  removed" and design §5.3's "is removed" are now truthful.
 - The new test `tests/test_state_layout_reference.py` fails on the unmodified
   tree (where `tomli_w` is present) and passes after WI1+WI2.
 - `make all` passes (build, check-fmt, lint, typecheck, test).

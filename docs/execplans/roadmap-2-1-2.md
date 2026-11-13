@@ -130,10 +130,10 @@ Read these before starting, in order:
    the `[pending_turn]` model.
 5. `docs/novel-ralph-harness-design.md` §4.1 — the `novel-state` subcommand
    table; `check` is "Validate every invariant (§5.2) … without writing".
-6. `docs/adr-003-shared-interface-contract.md` §3.1 — the JSON envelope, the
-   `--human` flag, the `working_dir` envelope **field** (not a flag), and the
-   disambiguated exit-code table (0/1/2/3/4). Note: ADR-003 mandates only the
-   `--human` flag and the `working_dir` envelope field; the design fixes
+6. `docs/adrs/adr-0003-shared-interface-contract.md` §3.1 — the JSON envelope,
+   the `--human` flag, the `working_dir` envelope **field** (not a flag), and
+   the disambiguated exit-code table (0/1/2/3/4). Note: ADR-003 mandates only
+   the `--human` flag and the `working_dir` envelope field; the design fixes
    `working_dir` to the cwd-relative constant `"working"` (design line 151) and
    defines exit `3` as "working dir absent" (design line 189). There is **no**
    `--working-dir` CLI flag anywhere in the design, the ADRs, or the

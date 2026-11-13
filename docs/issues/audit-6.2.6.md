@@ -23,11 +23,12 @@ direct predecessors of this change), `docs/roadmap.md` (tasks 6.2.6, 7.23.1,
 7.23.2), `docs/developers-guide.md` ("Shared test scaffolding"),
 `docs/novel-ralph-harness-design.md` (§3.2 mutator-refusal-is-3, §9
 installed-binary criteria, §10 message-not-traceback),
-`docs/adr-003-shared-interface-contract.md` (Table 2 exit-code contract),
-`docs/adr-006-console-scripts-e2e-posix-policy.md`, and `AGENTS.md` (module and
-local-variable caps, bare-`assert` policy). Code navigated with `leta`; history
-traced with `git show` over commit `fdb351d`. Skills consulted: `python-router`,
-`python-testing` (fixture scope and parametrize-over-copy-paste guidance).
+`docs/adrs/adr-0003-shared-interface-contract.md` (Table 2 exit-code contract),
+`docs/adrs/adr-0006-console-scripts-e2e-posix-policy.md`, and `AGENTS.md`
+(module and local-variable caps, bare-`assert` policy). Code navigated with
+`leta`; history traced with `git show` over commit `fdb351d`. Skills consulted:
+`python-router`, `python-testing` (fixture scope and
+parametrize-over-copy-paste guidance).
 
 ## Finding 1: The installed exit-3 test body is now copy-pasted across three modules
 

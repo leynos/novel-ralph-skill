@@ -467,7 +467,7 @@ The harness is a Python package, `novel_ralph_skill`, that ships a single
 "envelope" on stdout (or a human rendering under `--human`) and exits with a
 contract code. Read the following before starting; they are the source of truth.
 
-- `docs/adr-003-shared-interface-contract.md` — the shared envelope, the
+- `docs/adrs/adr-0003-shared-interface-contract.md` — the shared envelope, the
   four-flag Cyclopts construction contract (Table 3), and the disambiguated
   five-code exit table (Table 2). This is the contract this task pins.
 - `docs/novel-ralph-harness-design.md` §3 (lines 131-264) — the same contract

@@ -122,10 +122,11 @@ escalation, not a workaround.
   220 net lines, stop and escalate. Expected files: this plan,
   `tests/test_console_scripts_e2e.py` (rewrite of the run loop and the scheme),
   a new `tests/test_venv_scripts_dir.py` (focused unit test for the resolver),
-  `docs/adr-006-console-scripts-e2e-posix-policy.md` (new ADR), and one or two
-  one-line cross-reference additions to `docs/novel-ralph-harness-design.md` and
-  `docs/developers-guide.md`. If any **command body**, `pyproject.toml`, or
-  the stub factory must change, stop and escalate — that is outside 1.2.3.
+  `docs/adrs/adr-0006-console-scripts-e2e-posix-policy.md` (new ADR), and one
+  or two one-line cross-reference additions to
+  `docs/novel-ralph-harness-design.md` and `docs/developers-guide.md`. If any
+  **command body**, `pyproject.toml`, or the stub factory must change, stop and
+  escalate — that is outside 1.2.3.
 - Dependencies: this task adds **no** new runtime or dev dependency. cuprum,
   cyclopts, pytest-timeout, and pytest-xdist are already locked. If running the
   installed scripts through cuprum appears to require a new dependency or a
@@ -200,7 +201,7 @@ escalation, not a workaround.
   `result.exit_code`/`result.stderr`. `make all` green at 38 passed; CodeRabbit
   clean (0 findings). remaining: none.)
 - [x] Work item 3: Author and accept
-  `docs/adr-006-console-scripts-e2e-posix-policy.md`; add a one-line
+  `docs/adrs/adr-0006-console-scripts-e2e-posix-policy.md`; add a one-line
   cross-reference from `docs/novel-ralph-harness-design.md` (§4) and from
   `docs/developers-guide.md` (the e2e paragraph). Gate Markdown with
   `make markdownlint` and `make nixie`. (completed: ADR 006 authored following
@@ -336,7 +337,7 @@ All three work items landed as planned, in three atomic commits, with
 - A module-level `pytestmark` skip guard makes the test SKIPPED on
   `os.name != "posix"`, naming ADR 006; the `win32`/`nt_user` branch and the
   `python.exe` conditional are gone.
-- `docs/adr-006-console-scripts-e2e-posix-policy.md` is Accepted and
+- `docs/adrs/adr-0006-console-scripts-e2e-posix-policy.md` is Accepted and
   cross-referenced from the design (§4) and the developers' guide.
 
 Deviations from the plan: none material. The plan's stated "no Linux red on the
@@ -395,10 +396,10 @@ the worktree root
   "Notes and gotchas" — the requirement that external programs run through a
   curated cuprum catalogue rather than `subprocess`, and that `run_sync()`
   returns a `CommandResult` whose `exit_code` is checked explicitly.
-- `docs/adr-004-distribution-console-scripts.md` and
-  `docs/adr-005-command-surface-five-scripts.md` — the distribution and command
-  surface decisions whose e2e proof this test is; the new ADR follows their
-  template.
+- `docs/adrs/adr-0004-distribution-console-scripts.md` and
+  `docs/adrs/adr-0005-command-surface-five-scripts.md` — the distribution and
+  command surface decisions whose e2e proof this test is; the new ADR follows
+  their template.
 - The locked cuprum sources, pinned at the `v0.1.0` tag of
   `/data/leynos/Projects/cuprum`: `cuprum/program.py` (`Program` newtype),
   `cuprum/catalogue.py` (`ProgramCatalogue`, `ProjectSettings`, allowlisting),
@@ -440,9 +441,9 @@ Authoritative sources to read before editing:
 - `docs/roadmap.md` lines 104-117 — task 1.2.3 and the adjacent 1.2.4 boundary.
 - `docs/scripting-standards.md` — the cuprum-over-subprocess rule and the
   `run_sync()` result contract.
-- `docs/adr-004-distribution-console-scripts.md` and
-  `docs/adr-005-command-surface-five-scripts.md` — the ADR template and the
-  decisions this test proves.
+- `docs/adrs/adr-0004-distribution-console-scripts.md` and
+  `docs/adrs/adr-0005-command-surface-five-scripts.md` — the ADR template and
+  the decisions this test proves.
 - `docs/novel-ralph-harness-design.md` §4 and `docs/developers-guide.md`
   lines 76-86 — the ADR cross-reference targets.
 - `AGENTS.md` — quality gates, en-GB Oxford spelling, 400-line limit, 100%
@@ -586,10 +587,10 @@ Implements: AGENTS.md ("Record substantive decisions in the relevant design
 document; for major decisions, capture an ADR"); roadmap task 1.2.3 ("decide
 and enforce" — the ADR is the durable record of the decision).
 
-- Create `docs/adr-006-console-scripts-e2e-posix-policy.md` following the
-  template of `docs/adr-004-distribution-console-scripts.md` (Status, Date,
-  Context, Decision drivers, Options considered, Decision outcome, Goals and
-  non-goals, Known risks, Outstanding decisions). Record: the two options
+- Create `docs/adrs/adr-0006-console-scripts-e2e-posix-policy.md` following the
+  template of `docs/adrs/adr-0004-distribution-console-scripts.md` (Status,
+  Date, Context, Decision drivers, Options considered, Decision outcome, Goals
+  and non-goals, Known risks, Outstanding decisions). Record: the two options
   (commit to POSIX-only vs. make the lookup truly portable on Windows); the
   decision to go POSIX-only because the test suite runs only on `ubuntu-latest`
   (`ci.yml`) while the Windows/macOS matrix builds wheels only
@@ -601,8 +602,8 @@ and enforce" — the ADR is the durable record of the decision).
   from the `docs/developers-guide.md` e2e paragraph (lines 76-86), so the
   policy is discoverable from both the design and the contributor docs.
 
-Read first: `docs/adr-004-distribution-console-scripts.md` and
-`docs/adr-005-command-surface-five-scripts.md` (template and tone);
+Read first: `docs/adrs/adr-0004-distribution-console-scripts.md` and
+`docs/adrs/adr-0005-command-surface-five-scripts.md` (template and tone);
 `docs/documentation-style-guide.md`; AGENTS.md "Markdown guidance".
 
 Skills: `en-gb-oxendict` for the prose; `python-router` is not needed (no code).
@@ -681,8 +682,8 @@ Acceptance, phrased as observable behaviour:
   directory.
 - On a non-POSIX platform the e2e test reports `SKIPPED` with a reason naming
   ADR 006, instead of executing a broken Windows path.
-- `docs/adr-006-console-scripts-e2e-posix-policy.md` exists, is Accepted, and is
-  cross-referenced from `docs/novel-ralph-harness-design.md` §4 and the
+- `docs/adrs/adr-0006-console-scripts-e2e-posix-policy.md` exists, is Accepted,
+  and is cross-referenced from `docs/novel-ralph-harness-design.md` §4 and the
   `docs/developers-guide.md` e2e paragraph.
 
 Quality criteria (what "done" means):

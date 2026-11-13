@@ -514,8 +514,8 @@ criterion. This is the substantive change. Read first: design §3.3 (read-only
 checker column), §4.2 (the six clauses), §332-344 (`novel-done` behaviour and
 exit codes); `docs/developers-guide.md` §"Done predicate (`novel-done`)" (the
 clause table, the consolidation target); ADR-001
-(`docs/adr-001-deterministic-judgemental-boundary.md`). Load skill: none beyond
-the Markdown gates.
+(`docs/adrs/adr-0001-deterministic-judgemental-boundary.md`). Load skill: none
+beyond the Markdown gates.
 
 In `skill/novel-ralph/SKILL.md`, replace the body of the
 `## Done predicate (short form)` section (lines 455-468) with a short pointer
