@@ -405,9 +405,9 @@ Files you will read or touch:
 - `docs/roadmap.md` lines 1342-1354 (task 6.2.5 statement and success clause).
 - `docs/developers-guide.md` §"Shared test scaffolding", §"working_corpus",
   §"The five entry points" (the `stub.py` boundary).
-- `docs/adr-006-console-scripts-e2e-posix-policy.md` (the installed-binary e2e
-  POSIX policy — referenced only for orientation; this task adds no new
-  installed-binary e2e).
+- `docs/adrs/adr-0006-console-scripts-e2e-posix-policy.md` (the
+  installed-binary e2e POSIX policy — referenced only for orientation; this
+  task adds no new installed-binary e2e).
 - `novel_ralph_skill/commands/_reconcile.py` — the `reconcile` body,
   `_run_reconcile_bracket` (the manual intent → edit → receipt → clear
   bracket), and `_append_recovery_entry` (the crash seam).

@@ -3,7 +3,7 @@
 Verdict: REVISE (proceed-with-conditions once blocking defects are closed).
 
 Reviewer trail: `docs/novel-ralph-harness-design.md` §3.2/§3.4;
-`docs/adr-003-shared-interface-contract.md`; `docs/adr-001-...`;
+`docs/adrs/adr-0003-shared-interface-contract.md`; `docs/adr-001-...`;
 `docs/scripting-standards.md` lines 600-688; `docs/developers-guide.md` line
 589; `AGENTS.md` lines 18/24-27/135-165; `docs/execplans/roadmap-6-3-1.md`
 (Decisions D6/D7/D8); read of real source for every cited boundary; cuprum

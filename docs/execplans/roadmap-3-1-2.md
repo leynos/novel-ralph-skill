@@ -607,10 +607,10 @@ Authoritative documents (read before coding the matching work item):
 - Reference predicate: `skill/novel-ralph/references/done-conditions.md`
   ("Novel-level predicate", "Failure modes" — the `compiled.md` stale mode at
   line 214).
-- ADRs: `docs/adr-001-deterministic-judgemental-boundary.md`,
-  `docs/adr-003-shared-interface-contract.md`,
-  `docs/adr-005-command-surface-five-scripts.md`,
-  `docs/adr-006-console-scripts-e2e-posix-policy.md`.
+- ADRs: `docs/adrs/adr-0001-deterministic-judgemental-boundary.md`,
+  `docs/adrs/adr-0003-shared-interface-contract.md`,
+  `docs/adrs/adr-0005-command-surface-five-scripts.md`,
+  `docs/adrs/adr-0006-console-scripts-e2e-posix-policy.md`.
 - Standards: `docs/scripting-standards.md` (Cyclopts/pathlib conventions),
   `docs/developers-guide.md` (the done-predicate subsection at lines 530-575,
   the twin/oracle discipline, "Invariant validation"), `AGENTS.md` (gates,

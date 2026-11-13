@@ -24,9 +24,9 @@ double-book them.
 
 Trail followed: explored with `leta`/`grep` and traced history with
 `git show --stat`/`sem`. Source of truth consulted:
-[`docs/adr-007-command-surface-novel-multiplexer.md`](../adr-007-command-surface-novel-multiplexer.md),
-[`docs/adr-003-shared-interface-contract.md`](../adr-003-shared-interface-contract.md),
-[`docs/adr-005-command-surface-five-scripts.md`](../adr-005-command-surface-five-scripts.md),
+[`docs/adrs/adr-0007-command-surface-novel-multiplexer.md`](../adrs/adr-0007-command-surface-novel-multiplexer.md),
+[`docs/adrs/adr-0003-shared-interface-contract.md`](../adrs/adr-0003-shared-interface-contract.md),
+[`docs/adrs/adr-0005-command-surface-five-scripts.md`](../adrs/adr-0005-command-surface-five-scripts.md),
 [`docs/developers-guide.md`](../developers-guide.md) §"The `novel`
 multiplexer", [`docs/users-guide.md`](../users-guide.md),
 [`docs/roadmap.md`](../roadmap.md) (tasks 1.2.12–1.2.14), and

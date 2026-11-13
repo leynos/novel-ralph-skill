@@ -741,7 +741,7 @@ subcommands through `run` (mirroring `tests/test_novel_state_check.py`'s
 Docs to read first: design §4.1 (the `novel-state` subcommand table), §3.2
 (exit codes and the third-case refusal paragraph), §5.2 (the invariants the
 proposed state must satisfy), §5.1 (the phase enum and initial state);
-`docs/adr-003-shared-interface-contract.md` §3.1-§3.2; AGENTS.md "Python
+`docs/adrs/adr-0003-shared-interface-contract.md` §3.1-§3.2; AGENTS.md "Python
 verification and testing"; developers-guide "Checker/mutator segregation" and
 "Invariant validation".
 

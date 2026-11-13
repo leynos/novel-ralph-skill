@@ -21,9 +21,9 @@ one documentation-accuracy correction to action before the state slice (task
 - **Severity:** medium
 - **Location:** `docs/novel-ralph-harness-design.md:464`
   ("The failed `tomli_w` snippet in the current reference is removed."),
-  `docs/adr-002-toml-round-trip-tomlkit.md:77` ("the failed `tomli_w` snippet
-  is removed from the reference material"), versus the still-present snippet at
-  `skill/novel-ralph/references/state-layout.md:229` and `:235`
+  `docs/adrs/adr-0002-toml-round-trip-tomlkit.md:77` ("the failed `tomli_w`
+  snippet is removed from the reference material"), versus the still-present
+  snippet at `skill/novel-ralph/references/state-layout.md:229` and `:235`
 
 ADR-002 and design §5.3 — the two documents that justify the `tomlkit`
 dependency this task added — both state in the present tense that the failed

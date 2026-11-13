@@ -13,8 +13,8 @@ builds the one contract every deterministic command shares: a single
 machine-mode JSON envelope on stdout, a `--human` rendering switch, and the
 disambiguated exit-code table (0/1/2/3/4) — all as reusable helpers that the
 five console-scripts adopt rather than each re-inventing an output shape. The
-contract is fixed in `docs/adr-003-shared-interface-contract.md` and described
-in `docs/novel-ralph-harness-design.md` §3.1 and §3.2.
+contract is fixed in `docs/adrs/adr-0003-shared-interface-contract.md` and
+described in `docs/novel-ralph-harness-design.md` §3.1 and §3.2.
 
 After this change a contributor can, in Python, build an envelope for any
 command and render it in either mode, and the exit code the process returns is
@@ -459,8 +459,8 @@ Read first (source of truth):
 - `docs/novel-ralph-harness-design.md` §3.1 (output modes / envelope), §3.2
   (exit codes), §3.3 (checker/mutator segregation, for context), §9
   (verification strategy — which test method each command earns).
-- `docs/adr-003-shared-interface-contract.md` in full (the contract this task
-  implements; Table 2 is the exit-code table).
+- `docs/adrs/adr-0003-shared-interface-contract.md` in full (the contract this
+  task implements; Table 2 is the exit-code table).
 - `docs/developers-guide.md` "The shared JSON envelope" and "Disambiguated exit
   codes" sections (lines 108-135).
 - `docs/scripting-standards.md` (Cyclopts conventions; cuprum is NOT needed

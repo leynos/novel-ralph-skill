@@ -323,8 +323,8 @@ rules):
 
 - `docs/novel-ralph-harness-design.md` §6 and §6.1 — the neutral-leaf
   single-home discipline for the loader/scan primitives and shapes.
-- `docs/adr-003-shared-interface-contract.md` — the frozen rule-pack output
-  contract (`DetectionReport`/`RuleFinding`/`detect`) that must not move.
+- `docs/adrs/adr-0003-shared-interface-contract.md` — the frozen rule-pack
+  output contract (`DetectionReport`/`RuleFinding`/`detect`) that must not move.
 - `docs/issues/audit-7.2.3.md` Findings 1 and 3 — the exact stragglers and stale
   cross-references this task closes (Finding 2 is **out of scope**: it is
   7.8.1/7.2.3.2).

@@ -411,7 +411,7 @@ The documents you will edit:
 - **Documentation style:** `docs/documentation-style-guide.md` and the
   `en-gb-oxendict` skill for the prose edits.
 - **Design source of truth:** `docs/novel-ralph-harness-design.md` §3.1, §3.2,
-  §3.3, §5.4; `docs/adr-003-shared-interface-contract.md`;
+  §3.3, §5.4; `docs/adrs/adr-0003-shared-interface-contract.md`;
   `docs/issues/audit-2.2.2.md` Finding 2.
 
 ## Plan of work

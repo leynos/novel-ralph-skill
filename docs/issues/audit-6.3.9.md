@@ -28,8 +28,8 @@ both files under the 400-line cap. The three heading anchors the guard slices
 between all resolve in order (`docs/developers-guide.md` lines 546, 596, 638).
 
 Trail followed: `docs/novel-ralph-harness-design.md` §3.1/§3.2 (the envelope
-and exit-code contract), `docs/adr-003-shared-interface-contract.md` (Table
-2/Table 3), `docs/developers-guide.md` ("The shared JSON envelope" /
+and exit-code contract), `docs/adrs/adr-0003-shared-interface-contract.md`
+(Table 2/Table 3), `docs/developers-guide.md` ("The shared JSON envelope" /
 "Disambiguated exit codes" / the exit-3 formatter prose),
 `docs/scripting-standards.md` (actionable prose), `AGENTS.md` (the 400-line
 cap, CQS, en-GB Oxford spelling), the `python-router` skill (routing to

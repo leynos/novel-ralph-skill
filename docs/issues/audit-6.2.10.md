@@ -24,7 +24,7 @@ Sources relied on: `docs/issues/audit-6.2.8.md` and
 accessor — and 3.1.1.2 — the `_chapter_dir_name` `chapter-NN` single source);
 `docs/novel-ralph-harness- design.md` (§3.2 exit codes, §4.1 disk-authoritative
 counting, §4.2 done predicate, §4.5 wordcount);
-`docs/adr-003-shared-interface-contract.md` (the shared `run`/envelope
+`docs/adrs/adr-0003-shared-interface-contract.md` (the shared `run`/envelope
 contract); `docs/scripting-standards.md`; and `AGENTS.md` (en-GB Oxford
 spelling, the 400-line module cap, the single-source-of-truth stance). Code
 navigated with `leta` (`grep`/`refs`/`show`); history traced with `sem`/

@@ -38,7 +38,7 @@ Trail followed: created a `git-donkey` worktree off `origin/main`
 `commands/_state_mutators.py`, `commands/_set_chapters.py`,
 `commands/_desloppify.py`, `contract/errors.py`, and `state/validate.py`;
 traced history with `git show ac6a8aa` and `git log origin/main`. Source of
-truth consulted: `docs/adr-010-gate-drafting-mutators.md`,
+truth consulted: `docs/adrs/adr-0010-gate-drafting-mutators.md`,
 `docs/novel-ralph-harness-design.md` §4.1/§5.2, `docs/developers-guide.md`,
 `docs/users-guide.md`, `skill/novel-ralph/SKILL.md`,
 `skill/novel-ralph/references/state-layout.md`, `AGENTS.md`, and prior

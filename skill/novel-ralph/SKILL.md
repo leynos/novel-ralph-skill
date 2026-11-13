@@ -93,11 +93,11 @@ Every body-producing `novel` invocation emits one JSON envelope on stdout and
 exits with a contract exit code. This section restates that contract for the
 agent at the point of use. It is a convenience restatement of the canonical
 sources, not a fresh definition: the source of truth is
-`docs/adr-003-shared-interface-contract.md` and the developers' guide sections
-"The shared JSON envelope" and "Disambiguated exit codes". When the contract
-changes, edit those canonical copies; this restatement follows them, exactly as
-the "Done predicate (short form)" section below points at the developers' guide
-clause table rather than re-listing the clauses.
+`docs/adrs/adr-0003-shared-interface-contract.md` and the developers' guide
+sections "The shared JSON envelope" and "Disambiguated exit codes". When the
+contract changes, edit those canonical copies; this restatement follows them,
+exactly as the "Done predicate (short form)" section below points at the
+developers' guide clause table rather than re-listing the clauses.
 
 ### Exit-code table
 

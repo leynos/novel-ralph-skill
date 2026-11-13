@@ -211,7 +211,8 @@ docs/scripting-standards.md.
 - [x] 1.2.12. Stand up the `novel` multiplexer dispatcher and entry point
   (ADR 007).
   - Requires 1.2.1 and 1.2.4.
-  - Per `docs/adr-007-command-surface-novel-multiplexer.md` (superseding ADR
+  - Per `docs/adrs/adr-0007-command-surface-novel-multiplexer.md` (superseding
+    ADR
     005), add a single `novel` Cyclopts dispatcher that mounts the existing apps
     as a `state` subgroup plus four leaf verbs (`novel done`, `novel compile`,
     `novel desloppify`, `novel wordcount`), and register it as a `novel`
@@ -224,7 +225,7 @@ docs/scripting-standards.md.
     over the corpus, exit-2/3/0 arms). Scope this task to the dispatcher only —
     do not migrate the e2e/contract suites or sweep the docs here.
   - See novel-ralph-harness-design.md §4 and
-    adr-007-command-surface-novel-multiplexer.md.
+    adrs/adr-0007-command-surface-novel-multiplexer.md.
   - Success: `novel state init`, `novel done`, `novel compile`,
     `novel desloppify`, and `novel wordcount` all dispatch correctly with the
     unchanged envelope and exit codes; the multiplexer tests pass; the five
@@ -253,7 +254,8 @@ docs/scripting-standards.md.
     1.2.15), so the legacy-vs-multiplexer parity tests still have their oracle
     and the change is low-risk and independently landable. Do not delete any
     entry point or registry symbol here.
-  - See adr-007-command-surface-novel-multiplexer.md and AGENTS.md (testing).
+  - See adrs/adr-0007-command-surface-novel-multiplexer.md and AGENTS.md
+    (testing).
   - Success: every e2e and contract test invokes `novel <sub>`; the legacy entry
     points and registry symbols are untouched and still pass; `make all`
     (including the installed-binary e2e) is green.
@@ -277,7 +279,8 @@ docs/scripting-standards.md.
     dropped, justify the reduced exit-code-and-command-name assertion in the
     execplan Decision Log. Make that judgement in the plan, not in the
     implementer.
-  - See adr-007-command-surface-novel-multiplexer.md and AGENTS.md (testing).
+  - See adrs/adr-0007-command-surface-novel-multiplexer.md and AGENTS.md
+    (testing).
   - Success: `uv tool install` puts exactly one command, `novel`, on `PATH`; no
     `novel-x`/`desloppify`/`wordcount` entry point and no `COMMAND_NAMES`/
     `COMMAND_ENTRY_POINTS` symbol remains; the parity coverage is preserved or its
@@ -318,7 +321,7 @@ docs/scripting-standards.md.
     Replace the `novel-state --version` install check with a command that exists
     on the single `novel` surface.
   - See novel-ralph-harness-design.md §4 and
-    adr-007-command-surface-novel-multiplexer.md.
+    adrs/adr-0007-command-surface-novel-multiplexer.md.
   - Success: no `novel-state`/`novel-done`/`novel-compile`/`desloppify`/
     `wordcount` console-script reference survives in the design or `SKILL.md`,
     the Setup install check names a command that exists, and `make markdownlint`
@@ -341,7 +344,7 @@ docs/scripting-standards.md.
     operation rather than the retired console-script and stays; name that
     distinction explicitly so the noun form is not mis-swept.
   - See novel-ralph-harness-design.md §4 and
-    adr-007-command-surface-novel-multiplexer.md.
+    adrs/adr-0007-command-surface-novel-multiplexer.md.
   - Success: no `novel-state`/`novel-done`/`novel-compile` console-script
     invocation and no retired `desloppify`/`wordcount` console-script reference
     survives in the three reference files, the noun-form `desloppify` pass is
@@ -384,7 +387,7 @@ docs/scripting-standards.md.
     developers' guide multiplexer subsection) for truthfulness; do not restrict
     the change to a pre-enumerated repair list.
   - See novel-ralph-harness-design.md §4 and
-    adr-007-command-surface-novel-multiplexer.md.
+    adrs/adr-0007-command-surface-novel-multiplexer.md.
   - Success: no `novel-state`/`novel-done`/`novel-compile`/`desloppify`/
     `wordcount` console-script reference survives in `docs/users-guide.md` or
     `docs/developers-guide.md`, AND no prose in either guide describes the
@@ -468,7 +471,7 @@ drift and seeds the snapshot suite. See novel-ralph-harness-design.md §3 and §
     direction sets, rather than the 2.1 schema hypothesis where it was raised.
   - Requires 1.3.1.
   - See novel-ralph-harness-design.md §3.1;
-    docs/adr-003-shared-interface-contract.md.
+    docs/adrs/adr-0003-shared-interface-contract.md.
   - Success: `parse_global_flags` and `_HUMAN_FLAG` live in a shared seam (e.g.
     `contract.runner` or `commands/_global_flags.py`), every command imports the
     one splitter, and no command depends on a sibling command module.
@@ -485,7 +488,7 @@ drift and seeds the snapshot suite. See novel-ralph-harness-design.md §3 and §
     depend on a `contract` base, never the reverse.
   - Requires 1.3.1.
   - See novel-ralph-harness-design.md §3.1;
-    docs/adr-003-shared-interface-contract.md.
+    docs/adrs/adr-0003-shared-interface-contract.md.
   - Success: a single `EnvelopeMessagesError` base in a neutral `contract`
     module
     records `self.messages: tuple[str, ...]` once; the three domain exceptions
@@ -508,7 +511,7 @@ drift and seeds the snapshot suite. See novel-ralph-harness-design.md §3 and §
     contract in the design or developers' guide so later mutators inherit it.
   - Requires 1.3.1.
   - See novel-ralph-harness-design.md §3.1, §3.2, and §5.4;
-    docs/adr-003-shared-interface-contract.md; docs/issues/audit-2.2.2.md
+    docs/adrs/adr-0003-shared-interface-contract.md; docs/issues/audit-2.2.2.md
     (Finding 2).
   - Success: the `novel-state` write mutators return a write-shaped `result`
     that names what they changed rather than an empty `violations` echo, the
@@ -543,7 +546,7 @@ drift and seeds the snapshot suite. See novel-ralph-harness-design.md §3 and §
     through it.
   - Requires 1.3.1.
   - See novel-ralph-harness-design.md §3.1 and §4;
-    docs/adr-003-shared-interface-contract.md;
+    docs/adrs/adr-0003-shared-interface-contract.md;
     docs/issues/audit-3.1.1.md (Finding 5).
   - Success: a single `make_contract_app(name)` factory owns the four-flag
     contract, the four `build_app()` constructors and the `stub.py` entry-point
@@ -988,7 +991,7 @@ novel-ralph-harness-design.md §3.4, §4.1, and §5.3.
     agent records chapters by running the command, never by hand-editing
     `state.toml`.
   - See novel-ralph-harness-design.md §4.1, §5.1, §5.2, and
-    adr-001-deterministic-judgemental-boundary.md.
+    adrs/adr-0001-deterministic-judgemental-boundary.md.
   - Success: a chapter planned in `chapter-outline.md` reaches `[chapters]` only
     through the command (no hand-edit); the command refuses a non-contiguous or
     incomplete manifest with exit 3; and `check`, `recount`, and `novel-compile`
@@ -1014,7 +1017,7 @@ novel-ralph-harness-design.md §3.4, §4.1, and §5.3.
     `complete-final-pass`, `set-fangirl`, `set-critic-pass`) with the same
     write-time validation, atomic-write, and log-receipt discipline as the
     existing mutators.
-  - See adr-001-deterministic-judgemental-boundary.md and
+  - See adrs/adr-0001-deterministic-judgemental-boundary.md and
     novel-ralph-harness-design.md §4.1 and §5.1.
   - Success: every gate and drafting sub-state field is settable through a
     command, no field requires a hand-edit, `check` stays coherent across the
@@ -1301,7 +1304,7 @@ agent-improvised recovery routine. See novel-ralph-harness-design.md §4.1 and
     `check`/`reconcile` behaviour green, which warrants its own plan and review.
   - Requires 2.3.6 and 2.1.7.
   - See novel-ralph-harness-design.md §5.2 and §5.4;
-    docs/adr-009-drafting-bijection-relaxation.md (Known risks and limitations;
+    docs/adrs/adr-0009-drafting-bijection-relaxation.md (Known risks and limitations;
     Outstanding decisions); docs/execplans/roadmap-2-3-6.md.
   - Success: while `phase.current == drafting` and the on-disk chapters are a
     subset of the manifest, `word-counts-cover-drafts` keys off the on-disk
@@ -1823,7 +1826,8 @@ novel-ralph-harness-design.md §2.3 and §9.
     `@slow` installed-binary e2e that runs `novel-state recount` over a built
     wheel and asserts the JSON envelope, plus one that drives a missing or
     unparseable `state.toml` through the installed binary and asserts exit 3.
-  - See novel-ralph-harness-design.md §9; adr-003-shared-interface-contract.md.
+  - See novel-ralph-harness-design.md §9;
+    adrs/adr-0003-shared-interface-contract.md.
   - Success: `recount` and at least one exit-3 state-error path are each
     asserted against a real installed console-script, not only in-process.
 - [x] 6.2.5. Add a torn-turn recovery scenario driven through a real command.
@@ -1862,7 +1866,7 @@ novel-ralph-harness-design.md §2.3 and §9.
     console-scripts and assert exit 3, mirroring the `recount` proof 6.2.4 added.
   - Requires 6.2.4.
   - See novel-ralph-harness-design.md §9 and §2.3;
-    docs/adr-003-shared-interface-contract.md;
+    docs/adrs/adr-0003-shared-interface-contract.md;
     docs/issues/audit-6.2.4.md (Finding 6).
   - Success: `reconcile` and `wordcount` each assert exit 3 on a missing or
     unparseable `state.toml` against a real installed console-script over a built
@@ -2032,7 +2036,7 @@ novel-ralph-harness-design.md §2.3 and §9.
     asserts the `--human` stamp and envelope shape on both arms.
   - Requires 6.2.4 and 6.2.8.
   - See novel-ralph-harness-design.md §9 and §2.3;
-    docs/adr-003-shared-interface-contract.md.
+    docs/adrs/adr-0003-shared-interface-contract.md.
   - Success: the command-agnostic exit-2 and exit-3 diagnostic arms are each
     asserted against a real installed console-script over a built wheel, with the
     `--human` stamp and envelope shape pinned, closing the in-process-versus-binary
@@ -2073,7 +2077,7 @@ novel-ralph-harness-design.md §2.3 and §9.
     asserts exit 3, mirroring the recount/reconcile/wordcount proofs.
   - Requires 6.2.6 and 7.5.3.
   - See novel-ralph-harness-design.md §9 and §2.3;
-    docs/adr-003-shared-interface-contract.md.
+    docs/adrs/adr-0003-shared-interface-contract.md.
   - Success: `desloppify` asserts exit 3 on a missing or unparseable
     `state.toml`
     against a real installed console-script over a built wheel, not only
@@ -2158,7 +2162,7 @@ harness unattended. Its outcome is a contract a dogfooding agent can trust:
 loud, consistent, and self-describing. Surfaced by dogfooding (a
 wrong-directory invocation that read as a silent failure because the error was
 a raw errno and the skill never said to check exit codes). See
-novel-ralph-harness-design.md §3 and adr-003-shared-interface-contract.md.
+novel-ralph-harness-design.md §3 and adrs/adr-0003-shared-interface-contract.md.
 
 - [x] 6.3.1. Make state-input (exit-3) error messages actionable across every
   command.
@@ -2205,7 +2209,8 @@ novel-ralph-harness-design.md §3 and adr-003-shared-interface-contract.md.
     error channel (usage → 2, state/input → 3, actionable finding → 4). The
     suite must fail if any command drifts from the shared envelope or exit-code
     table.
-  - See adr-003-shared-interface-contract.md and novel-ralph-harness-design.md
+  - See adrs/adr-0003-shared-interface-contract.md and
+    novel-ralph-harness-design.md
     §3.
   - Success: a single cross-command suite (pytest-bdd scenarios + syrupy
     snapshots) pins the exit-code and envelope contract for every command and
@@ -2298,7 +2303,7 @@ novel-ralph-harness-design.md §3 and adr-003-shared-interface-contract.md.
     home.
   - Requires 6.3.1.
   - See novel-ralph-harness-design.md §3.2 and §3.4;
-    docs/adr-003-shared-interface-contract.md;
+    docs/adrs/adr-0003-shared-interface-contract.md;
     novel_ralph_skill/commands/_state_load.py (`_state_input_error`);
     novel_ralph_skill/commands/_state_mutators.py
     (`_state_view_or_state_error`).
@@ -2327,7 +2332,8 @@ novel-ralph-harness-design.md §3 and adr-003-shared-interface-contract.md.
     residual gap between the in-process identity proof and the executed surface,
     without duplicating the full `command × channel` matrix.
   - Requires 6.3.2.
-  - See adr-003-shared-interface-contract.md; novel-ralph-harness-design.md §3
+  - See adrs/adr-0003-shared-interface-contract.md;
+    novel-ralph-harness-design.md §3
     and §9; docs/execplans/roadmap-6-3-2.md (Decision Log; Interfaces);
     tests/installed_binary_fixtures.py.
   - Success: one installed-binary identity tripwire drives a representative
@@ -2367,7 +2373,7 @@ novel-ralph-harness-design.md §3 and adr-003-shared-interface-contract.md.
     pattern, so the guard is mechanical rather than reliant on reviewer
     diligence.
   - Requires 6.3.3.
-  - See adr-003-shared-interface-contract.md (Table 2);
+  - See adrs/adr-0003-shared-interface-contract.md (Table 2);
     novel-ralph-harness-design.md §3.1;
     novel_ralph_skill/contract/exit_codes.py;
     novel_ralph_skill/contract/envelope.py; SKILL.md.
@@ -2404,7 +2410,7 @@ novel-ralph-harness-design.md §3 and adr-003-shared-interface-contract.md.
   - Requires 6.3.5.
   - See novel-ralph-harness-design.md §3.2 and §3.4;
     docs/scripting-standards.md (line 678);
-    docs/adr-003-shared-interface-contract.md;
+    docs/adrs/adr-0003-shared-interface-contract.md;
     novel_ralph_skill/commands/_compile.py;
     novel_ralph_skill/commands/_desloppify.py;
     novel_ralph_skill/commands/_desloppify_ledger.py.
@@ -2454,7 +2460,7 @@ novel-ralph-harness-design.md §3 and adr-003-shared-interface-contract.md.
     "documented once" hypothesis is fully discharged.
   - Requires 6.3.7.
   - See novel-ralph-harness-design.md §3.1;
-    docs/adr-003-shared-interface-contract.md (Table 2);
+    docs/adrs/adr-0003-shared-interface-contract.md (Table 2);
     docs/developers-guide.md ("shared JSON envelope" / "disambiguated exit
     codes"); novel_ralph_skill/contract/exit_codes.py;
     novel_ralph_skill/contract/envelope.py.
@@ -2612,7 +2618,7 @@ of truth, and a test pins it so it cannot silently re-fork.
     the same `failed` list the builder filters.
   - Requires 8.1.2.
   - See novel-ralph-harness-design.md §4.4, §6.1, §6.2, and §6.3;
-    docs/adr-003-shared-interface-contract.md;
+    docs/adrs/adr-0003-shared-interface-contract.md;
     novel_ralph_skill/commands/_desloppify_report.py;
     novel_ralph_skill/ledger/report.py.
   - Success: one shared contract-package builder owns the failed-filter,
@@ -2657,7 +2663,7 @@ of truth, and a test pins it so it cannot silently re-fork.
     where it was raised.
   - Requires 6.3.7.
   - See novel-ralph-harness-design.md §3.1;
-    docs/adr-003-shared-interface-contract.md;
+    docs/adrs/adr-0003-shared-interface-contract.md;
     novel_ralph_skill/contract/envelope.py (`render_machine`);
     tests/test_contract_envelope.py (`_FIXED_FIELD_ORDER`);
     tests/cross_command_contract/__init__.py (`ENVELOPE_KEY_ORDER`).
@@ -2739,7 +2745,7 @@ it so it cannot silently re-fork.
     where it was raised, so it is deferred here.
   - Requires 2.3.1.
   - See novel-ralph-harness-design.md §5.3;
-    docs/adr-002-toml-round-trip-tomlkit.md.
+    docs/adrs/adr-0002-toml-round-trip-tomlkit.md.
   - Success: one `tomlkit` inline-table helper lives in the state package and is
     consumed by `recount`, `state/initial.py`, and the corpus builder; the
     initial-document docstring no longer flags a hand-copied twin; and the
@@ -2820,7 +2826,7 @@ it so it cannot silently re-fork.
     `scan_pattern`'s `line_hit` factory.
   - Requires 7.2.2.
   - See novel-ralph-harness-design.md §6.1;
-    docs/adr-003-shared-interface-contract.md;
+    docs/adrs/adr-0003-shared-interface-contract.md;
     docs/execplans/roadmap-7-2-2.md (Constraints, Decision D-SCANTYPES);
     novel_ralph_skill/loaderkit/scan.py;
     novel_ralph_skill/rulepack/detect.py;
@@ -2869,7 +2875,7 @@ it so it cannot silently re-fork.
     completing the single-home consolidation 7.2.3 began but left partial.
   - Requires 7.2.3.
   - See novel-ralph-harness-design.md §6.1;
-    docs/adr-003-shared-interface-contract.md;
+    docs/adrs/adr-0003-shared-interface-contract.md;
     docs/execplans/roadmap-7-2-3.md (Decision D-SCANTYPES);
     novel_ralph_skill/rulepack/detect.py;
     novel_ralph_skill/loaderkit/scan.py;
@@ -2913,7 +2919,7 @@ it so it cannot silently re-fork.
     error factory lands beside the shared coercion and scan primitives.
   - Requires 7.2.2.
   - See novel-ralph-harness-design.md §6.1, §6.2, and §6.3;
-    docs/adr-003-shared-interface-contract.md;
+    docs/adrs/adr-0003-shared-interface-contract.md;
     novel_ralph_skill/loaderkit/;
     novel_ralph_skill/rulepack/errors.py;
     novel_ralph_skill/ledger/errors.py.
@@ -2967,7 +2973,7 @@ it so it cannot silently re-fork.
     family binds the skeleton rather than cloning a third copy.
   - Requires 7.2.2, 7.2.5.
   - See novel-ralph-harness-design.md §6.1, §6.2, and §6.3;
-    docs/adr-003-shared-interface-contract.md;
+    docs/adrs/adr-0003-shared-interface-contract.md;
     novel_ralph_skill/loaderkit/;
     novel_ralph_skill/rulepack/parse.py;
     novel_ralph_skill/ledger/parse.py.
@@ -3029,7 +3035,7 @@ it so it cannot silently re-fork.
     channel, and the operator messages stay unchanged.
   - Requires 7.2.2, 7.2.6.
   - See novel-ralph-harness-design.md §6.1, §6.2, and §6.3;
-    docs/adr-003-shared-interface-contract.md;
+    docs/adrs/adr-0003-shared-interface-contract.md;
     novel_ralph_skill/loaderkit/ (`parse.py`, `scan.py`, `coerce.py`);
     novel_ralph_skill/rulepack/_coerce.py;
     novel_ralph_skill/ledger/_coerce.py.
@@ -3076,7 +3082,7 @@ of truth, and a test pins it so it cannot silently re-fork.
     where it was raised, so it is deferred here.
   - Requires 1.3.6.
   - See novel-ralph-harness-design.md §3.1 and §4;
-    docs/adr-003-shared-interface-contract.md.
+    docs/adrs/adr-0003-shared-interface-contract.md.
   - Success: the load-and-translate seam, the state-input exception-tuple, the
     `working/` directory name, and the `state_path`/`working_dir` accessors live
     in a dedicated module with a public `load_or_state_error`; the five sibling
@@ -3121,7 +3127,7 @@ of truth, and a test pins it so it cannot silently re-fork.
     state-sourcing seam.
   - Requires 1.3.6.
   - See novel-ralph-harness-design.md §4;
-    docs/adr-007-command-surface-novel-multiplexer.md;
+    docs/adrs/adr-0007-command-surface-novel-multiplexer.md;
     novel_ralph_skill/commands/names.py (`SUBCOMMAND_NAMES`).
   - Success: the five hand-copied mount lines in `build_multiplexer` are
     produced
@@ -3251,7 +3257,7 @@ of truth, and a test pins it so it cannot silently re-fork.
     one drive seam.
   - Requires 1.2.13 and 7.3.2.
   - See novel-ralph-harness-design.md §4;
-    docs/adr-007-command-surface-novel-multiplexer.md;
+    docs/adrs/adr-0007-command-surface-novel-multiplexer.md;
     novel_ralph_skill/commands/novel.py (`main`);
     novel_ralph_skill/commands/stub.py (`_drive`).
   - Success: the parse-`--human`/resolve-name/drive-via-`run` body lives in one
@@ -3326,7 +3332,7 @@ of truth, and a test pins it so it cannot silently re-fork.
     the relocated `WORKING_DIR_NAME` rather than re-pinning it to `novel_state`.
   - Requires 1.3.1 and 7.3.1.
   - See novel-ralph-harness-design.md §3.1 and §4;
-    docs/adr-003-shared-interface-contract.md;
+    docs/adrs/adr-0003-shared-interface-contract.md;
     novel_ralph_skill/commands/novel_state.py (`WORKING_DIR_NAME`);
     novel_ralph_skill/contract/envelope.py;
     novel_ralph_skill/commands/names.py.
@@ -3383,7 +3389,7 @@ of truth, and a test pins it so it cannot silently re-fork.
     raised. Do it before a third command module copies the pattern again.
   - Requires 1.3.4.
   - See novel-ralph-harness-design.md §3.2 and §4;
-    docs/adr-003-shared-interface-contract.md;
+    docs/adrs/adr-0003-shared-interface-contract.md;
     docs/issues/audit-2.2.4.md (Finding 1);
     novel_ralph_skill/contract/errors.py;
     novel_ralph_skill/commands/_gate_drafting_mutators.py;
@@ -3422,7 +3428,7 @@ of truth, and a test pins it so it cannot silently re-fork.
     follow-on to the registry consolidation.
   - Requires 1.2.15.
   - See novel-ralph-harness-design.md §4;
-    docs/adr-007-command-surface-novel-multiplexer.md;
+    docs/adrs/adr-0007-command-surface-novel-multiplexer.md;
     novel_ralph_skill/commands/names.py;
     novel_ralph_skill/commands/novel.py;
     tests/test_console_scripts_e2e.py.
@@ -3554,7 +3560,7 @@ of truth, and a test pins it so it cannot silently re-fork.
     `StateInputError` (exit 3) with a recovery hint pointing at `reconcile`.
   - Requires 2.2.1.
   - See novel-ralph-harness-design.md §3.2, §3.4, and §5.3;
-    docs/adr-003-shared-interface-contract.md;
+    docs/adrs/adr-0003-shared-interface-contract.md;
     novel_ralph_skill/contract/runner.py;
     novel_ralph_skill/state/document.py.
   - Success: an `OSError` during a multi-file mutator's mid-turn write is
@@ -3577,7 +3583,7 @@ of truth, and a test pins it so it cannot silently re-fork.
     over a foreign uncleared one and directs the operator at `reconcile`.
   - Requires 2.2.1 and 2.3.2.
   - See novel-ralph-harness-design.md §3.4 and §5.4;
-    docs/adr-003-shared-interface-contract.md;
+    docs/adrs/adr-0003-shared-interface-contract.md;
     novel_ralph_skill/state/document.py.
   - Success: a multi-file mutator invoked over an uncleared `[pending_turn]`
     left
@@ -3600,7 +3606,7 @@ of truth, and a test pins it so it cannot silently re-fork.
     deferred here.
   - Requires 2.2.3 and 2.3.2.
   - See novel-ralph-harness-design.md §3.4 and §5.3;
-    docs/adr-002-toml-round-trip-tomlkit.md;
+    docs/adrs/adr-0002-toml-round-trip-tomlkit.md;
     novel_ralph_skill/state/document.py;
     novel_ralph_skill/commands/_set_chapters.py;
     novel_ralph_skill/commands/_reconcile.py.
@@ -3626,8 +3632,8 @@ of truth, and a test pins it so it cannot silently re-fork.
     cross-cutting mutator-layer DRY hardening, deferred here.
   - Requires 2.2.1.
   - See novel-ralph-harness-design.md §3.4 and §5.4;
-    docs/adr-001-deterministic-judgemental-boundary.md;
-    docs/adr-003-shared-interface-contract.md;
+    docs/adrs/adr-0001-deterministic-judgemental-boundary.md;
+    docs/adrs/adr-0003-shared-interface-contract.md;
     novel_ralph_skill/commands/_state_mutators.py.
   - Success: one higher-order helper owns the load → structural-proof → edit →
     re-view → refuse-if-incoherent → write skeleton; `set_cursor` and the four
@@ -3664,7 +3670,7 @@ of truth, and a test pins it so it cannot silently re-fork.
     full task here rather than a lightweight addendum.
   - Requires 7.3.1.
   - See novel-ralph-harness-design.md §3.1 and §4;
-    docs/adr-003-shared-interface-contract.md;
+    docs/adrs/adr-0003-shared-interface-contract.md;
     docs/execplans/roadmap-7-3-1.md (Decision D10; Risks; the WI5 gate block);
     novel_ralph_skill/commands/_state_mutators.py;
     novel_ralph_skill/commands/_recount.py;
@@ -3729,7 +3735,7 @@ of truth, and a test pins it so it cannot silently re-fork.
     so it is filed as a full task rather than a lightweight addendum.
   - Requires 7.3.6.
   - See novel-ralph-harness-design.md §4;
-    docs/adr-007-command-surface-novel-multiplexer.md;
+    docs/adrs/adr-0007-command-surface-novel-multiplexer.md;
     novel_ralph_skill/contract/names.py;
     novel_ralph_skill/commands/names.py;
     novel_ralph_skill/commands/novel.py.
@@ -3762,7 +3768,7 @@ of truth, and a test pins it so it cannot silently re-fork.
     than a lightweight addendum.
   - Requires 7.3.7.
   - See novel-ralph-harness-design.md §3.2 and §4;
-    docs/adr-003-shared-interface-contract.md;
+    docs/adrs/adr-0003-shared-interface-contract.md;
     docs/issues/audit-7.3.7.md (Findings 1, 2, 3, 6);
     novel_ralph_skill/contract/errors.py;
     novel_ralph_skill/contract/runner.py;
@@ -4433,7 +4439,7 @@ single source of truth, and a test pins it so it cannot silently re-fork.
     idiom lands in the shared `run_installed` helper rather than per-module copies.
   - Requires 2.3.8 and 7.5.3.
   - See novel-ralph-harness-design.md §9; docs/execplans/roadmap-2-3-8.md
-    (Decision D5; Work item 5); docs/adr-006-console-scripts-e2e-posix-policy.md;
+    (Decision D5; Work item 5); docs/adrs/adr-0006-console-scripts-e2e-posix-policy.md;
     tests/installed_binary_fixtures.py.
   - Success: no slow e2e calls `SafeCmd.run_sync(..., capture=True)` (each uses
     `output=sh.RunOutputOptions(capture=True)` via the shared `run_installed`
@@ -5120,7 +5126,7 @@ copies that would re-diverge.
     hypothesis where it was raised; it is regression-guard hardening, deferred
     here.
   - Requires 1.2.15.
-  - See adr-007-command-surface-novel-multiplexer.md;
+  - See adrs/adr-0007-command-surface-novel-multiplexer.md;
     docs/issues/audit-1.2.15.md;
     tests/test_legacy_surface_retired.py.
   - Success: the legacy-surface-retired guard asserts its curated paths exist
@@ -5143,7 +5149,7 @@ copies that would re-diverge.
     packaging-supports-invocation hypothesis where it was raised; it is
     regression-guard hardening, deferred here.
   - Requires 1.2.14, 1.2.16, and 1.2.17.
-  - See adr-007-command-surface-novel-multiplexer.md;
+  - See adrs/adr-0007-command-surface-novel-multiplexer.md;
     docs/issues/audit-1.2.16.md;
     tests/test_legacy_surface_retired.py.
   - Success: the legacy-surface-retired guard scans `docs/` and `skill/` for
@@ -5244,7 +5250,7 @@ copies that would re-diverge.
   - Requires 6.3.8.
   - See novel-ralph-harness-design.md §3.2 and §3.4;
     docs/scripting-standards.md (line 678);
-    docs/adr-003-shared-interface-contract.md;
+    docs/adrs/adr-0003-shared-interface-contract.md;
     novel_ralph_skill/rulepack/parse.py (`RulePackFileError`);
     novel_ralph_skill/ledger/parse.py (`LedgerFileError`).
   - Success: the `RulePackFileError` and `LedgerFileError` messages carry the
@@ -5273,7 +5279,7 @@ copies that would re-diverge.
     deferred here.
   - Requires 6.3.9 and 7.1.5.
   - See novel-ralph-harness-design.md §3.1;
-    docs/adr-003-shared-interface-contract.md;
+    docs/adrs/adr-0003-shared-interface-contract.md;
     tests/_skill_contract_scanner.py;
     tests/test_skill_contract_drift_guard.py;
     tests/test_developers_guide_contract_drift_guard.py;
@@ -5350,7 +5356,7 @@ copies that would re-diverge.
     documentation hypothesis where it was raised, so it is deferred here.
   - Requires 6.3.9.
   - See novel-ralph-harness-design.md §3.1;
-    docs/adr-003-shared-interface-contract.md;
+    docs/adrs/adr-0003-shared-interface-contract.md;
     tests/test_skill_contract_drift_guard.py;
     tests/test_developers_guide_contract_drift_guard.py;
     tests/_skill_contract_scanner.py.
@@ -5485,7 +5491,7 @@ copies that would re-diverge.
     deferred here.
   - Requires 7.1.5.
   - See novel-ralph-harness-design.md §3.1;
-    docs/adr-003-shared-interface-contract.md;
+    docs/adrs/adr-0003-shared-interface-contract.md;
     novel_ralph_skill/contract/envelope.py (`render_machine`, `render_human`,
     `_FIELD_COERCIONS`);
     tests/test_contract_envelope.py.
@@ -5612,7 +5618,7 @@ copies that would re-diverge.
   - See novel-ralph-harness-design.md §4 and §5.4;
     docs/developers-guide.md;
     docs/novel-ralph-harness-design.md;
-    docs/adr-003-shared-interface-contract.md;
+    docs/adrs/adr-0003-shared-interface-contract.md;
     docs/execplans/roadmap-7-3-1.md (WI5 gate block; Decision D11 correction).
   - Success: the canonical-module-path / source-file citation gate covers
     `docs/novel-ralph-harness-design.md` and `docs/adr-*.md` (with the immutable
@@ -5667,7 +5673,7 @@ copies that would re-diverge.
     than a pre-consolidation copy.
   - Requires 7.3.7.
   - See novel-ralph-harness-design.md §3.2 and §4;
-    docs/adr-003-shared-interface-contract.md;
+    docs/adrs/adr-0003-shared-interface-contract.md;
     novel_ralph_skill/contract/errors.py;
     novel_ralph_skill/contract/runner.py.
   - Success: the exit-2-versus-exit-3 envelope pairing is either type-enforced
@@ -5693,7 +5699,7 @@ copies that would re-diverge.
     scan.
   - Requires 7.3.8.
   - See novel-ralph-harness-design.md §4;
-    docs/adr-007-command-surface-novel-multiplexer.md;
+    docs/adrs/adr-0007-command-surface-novel-multiplexer.md;
     novel_ralph_skill/contract/names.py;
     tests/test_verb_derivation_home.py.
   - Success: the verb-derivation guard flags any spaced-name-to-verb derivation
@@ -5771,7 +5777,7 @@ conventions are settled once.
     accreting per-command logging.
   - Requires 2.3.1.
   - See novel-ralph-harness-design.md §3.1 and §3.2;
-    docs/adr-003-shared-interface-contract.md; docs/developers-guide.md.
+    docs/adrs/adr-0003-shared-interface-contract.md; docs/developers-guide.md.
   - Success: the developers' guide states the mutator observability contract
     explicitly, the existing mutators conform to whatever the contract decides,
     and no later mutator re-litigates per-command logging.
@@ -5842,7 +5848,7 @@ conventions are settled once.
     disk-derivation hypothesis where it was raised, so it is deferred here.
   - Requires 6.1.1.
   - See novel-ralph-harness-design.md §3.1 and §4.5;
-    docs/adr-003-shared-interface-contract.md;
+    docs/adrs/adr-0003-shared-interface-contract.md;
     novel_ralph_skill/commands/_wordcount_report.py.
   - Success: one fixed-precision (or basis-point) convention for derived
     machine-payload percentages and ratios is recorded once in the envelope
@@ -5914,7 +5920,7 @@ conventions are settled once.
     here rather than parked in 6.1.
   - Requires 6.1.2, 6.2.1.
   - See novel-ralph-harness-design.md §7.2 and §4.5; SKILL.md Phases 8-9;
-    `docs/adr-001-deterministic-judgemental-boundary.md`.
+    `docs/adrs/adr-0001-deterministic-judgemental-boundary.md`.
   - Success: a measured per-chapter desloppify-plus-critic shrinkage
     distribution
     is recorded across more than one drafted manuscript, a convergence check
@@ -5939,10 +5945,10 @@ conventions are settled once.
     packaging-supports-invocation hypothesis where it was raised; it is
     documentation reconciliation, deferred here.
   - Requires 1.2.14, 1.2.16, and 1.2.17.
-  - See adr-007-command-surface-novel-multiplexer.md;
-    docs/adr-008-chapter-manifest-mutator.md;
-    docs/adr-009-drafting-bijection-relaxation.md;
-    docs/adr-010-gate-drafting-mutators.md; docs/contents.md.
+  - See adrs/adr-0007-command-surface-novel-multiplexer.md;
+    docs/adrs/adr-0008-chapter-manifest-mutator.md;
+    docs/adrs/adr-0009-drafting-bijection-relaxation.md;
+    docs/adrs/adr-0010-gate-drafting-mutators.md; docs/contents.md.
   - Success: no runnable retired `novel-state`/`novel-compile` invocation
     survives in ADRs 008-010 or `docs/contents.md` (each is flipped to the
     `novel <sub>` form or carries an explicit ADR-007 surface-note), the
@@ -5973,7 +5979,7 @@ conventions are settled once.
     write/file-fault formatters adopt the same settled polarity.
   - Requires 6.3.4 and 6.3.5.
   - See novel-ralph-harness-design.md §3.2 and §3.4;
-    docs/developers-guide.md; docs/adr-003-shared-interface-contract.md;
+    docs/developers-guide.md; docs/adrs/adr-0003-shared-interface-contract.md;
     novel_ralph_skill/commands/_state_load.py
     (`_state_input_error`, `_draft_read_error`).
   - Success: one decision records whether the exit-3 messages name the resolved
@@ -6067,7 +6073,7 @@ conventions are settled once.
     whose docstring-citation sweep touches the same formatter docstrings.
   - Requires 7.3.1.
   - See novel-ralph-harness-design.md §3.2 and §4;
-    docs/adr-003-shared-interface-contract.md;
+    docs/adrs/adr-0003-shared-interface-contract.md;
     docs/developers-guide.md;
     novel_ralph_skill/commands/state_sourcing.py;
     tests/test_state_load_actionable_parity.py.
@@ -6121,7 +6127,7 @@ expressing the scan-aggregate with no vacuous seams and no near-copy loops.
     simplification, so it is rerouted here.
   - Requires 7.2.3.
   - See novel-ralph-harness-design.md §6.1;
-    docs/adr-003-shared-interface-contract.md;
+    docs/adrs/adr-0003-shared-interface-contract.md;
     docs/execplans/roadmap-7-2-3.md (Decision D-SCANTYPES);
     novel_ralph_skill/loaderkit/scan.py;
     novel_ralph_skill/rulepack/detect.py;
@@ -6174,7 +6180,7 @@ expressing the scan-aggregate with no vacuous seams and no near-copy loops.
     retires the callback, this task is moot and should be closed as superseded.
   - Requires 7.8.1.
   - See novel-ralph-harness-design.md §6.1;
-    docs/adr-003-shared-interface-contract.md;
+    docs/adrs/adr-0003-shared-interface-contract.md;
     novel_ralph_skill/loaderkit/scan.py;
     novel_ralph_skill/loaderkit/parse.py.
   - Success: if the `line_hit` seam survives 7.8.1, `scan_pattern` types it as a
@@ -6200,7 +6206,7 @@ expressing the scan-aggregate with no vacuous seams and no near-copy loops.
     so the new primitive lands beside the shared coercion helpers.
   - Requires 7.2.2.
   - See novel-ralph-harness-design.md §6.1, §6.2, and §6.3;
-    docs/adr-003-shared-interface-contract.md;
+    docs/adrs/adr-0003-shared-interface-contract.md;
     novel_ralph_skill/loaderkit/coerce.py;
     novel_ralph_skill/ledger/_fields.py.
   - Success: `loaderkit.coerce` exposes a shared list-coercion primitive
@@ -6358,7 +6364,7 @@ Make the desloppify detection packs configurable and extend the shipped set.
     a test.
   - Requires 8.1.1.
   - See novel-ralph-harness-design.md §6.2 and §4.4;
-    docs/adr-006-console-scripts-e2e-posix-policy.md;
+    docs/adrs/adr-0006-console-scripts-e2e-posix-policy.md;
     docs/execplans/roadmap-7-1-1.md.
   - Success: `desloppify --pack ai-isms` resolves the shipped pack on an
     installed wheel and flags an ai-ism, a bespoke filesystem `--pack PATH`
@@ -6379,7 +6385,7 @@ Make the desloppify detection packs configurable and extend the shipped set.
     behaviour across multiple packs) and warrants its own plan and review.
   - Requires 8.1.6.
   - See novel-ralph-harness-design.md §6.1, §6.2, and §4.4;
-    docs/adr-003-shared-interface-contract.md.
+    docs/adrs/adr-0003-shared-interface-contract.md.
   - Success: a single `desloppify` invocation scans both `offenders.toml` and
     `ai-isms.toml`, reports the union of findings without double-counting a
     shared offender, keeps the §3.2 exit-code contract (4 on any violation, 0 on
@@ -6431,7 +6437,7 @@ Make the desloppify detection packs configurable and extend the shipped set.
     seams against a third consumer and hardens their parameterization against
     regression.
   - See novel-ralph-harness-design.md §6.1, §6.3 and
-    adr-001-deterministic-judgemental-boundary.md.
+    adrs/adr-0001-deterministic-judgemental-boundary.md.
   - Success: `novel desloppify --pack filter-words.toml` flags a `was`-heavy or
     filter-word-heavy draft with per-rule density and threshold, passes a clean
     draft, the thresholds do not fire on a calibrated corpus baseline, and the
@@ -6494,7 +6500,7 @@ openers and similar cross-sentence repetition).
     no new heavy dependency) as an ADR. Keep the existing pattern bases and all
     current packs unchanged.
   - See novel-ralph-harness-design.md §6.1, §6.3, and
-    adr-001-deterministic-judgemental-boundary.md.
+    adrs/adr-0001-deterministic-judgemental-boundary.md.
   - Success: a draft with three or more consecutive sentences opening on the
     same
     word is flagged deterministically with the run and line numbers; a varied

@@ -543,9 +543,9 @@ Documentation to read first:
 - `docs/novel-ralph-harness-design.md` §2.3, §3.2, §9 (the "CLI error-path
   tests" and "Installed-binary e2es" bullets), and §10 (a state fault yields a
   message, not a stack trace).
-- `docs/adr-003-shared-interface-contract.md` (the `--human` global flag and the
-  exit-code translation `run` owns).
-- `docs/adr-006-console-scripts-e2e-posix-policy.md` (the POSIX-only,
+- `docs/adrs/adr-0003-shared-interface-contract.md` (the `--human` global flag
+  and the exit-code translation `run` owns).
+- `docs/adrs/adr-0006-console-scripts-e2e-posix-policy.md` (the POSIX-only,
   run-by-absolute-path-through-cuprum policy).
 - `docs/scripting-standards.md` (every external program runs through a cuprum
   catalogue; no raw `subprocess`, no `uv run`).

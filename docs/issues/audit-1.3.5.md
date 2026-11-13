@@ -35,7 +35,7 @@ Trail followed: explored with `leta`/reads over `commands/_state_mutators.py`,
 the prior findings with `grep` over `docs/roadmap.md`. Source of truth
 consulted: `docs/novel-ralph-harness-design.md` §3.1/§3.3/§4.1/§5.2,
 `docs/users-guide.md`, `docs/developers-guide.md` "State mutators",
-`docs/adr-003-shared-interface-contract.md`, prior
+`docs/adrs/adr-0003-shared-interface-contract.md`, prior
 `docs/issues/audit-2.2.2.md`, and `AGENTS.md`. Skills relied on:
 `python-router` (routing the Python read), `leta` (navigation), and `sem`/`git`
 (history). Each finding records a category, a location, a description, a

@@ -27,8 +27,8 @@ Trail followed: explored with `leta` (`show`, `grep`, `files`) over the
 `tests/test_contract_errors.py`; traced history with `git show 08fa690` and
 `git log origin/main`. Source of truth consulted:
 `docs/novel-ralph-harness-design.md` §3.1,
-`docs/adr-003-shared-interface-contract.md`, `docs/developers-guide.md`, and
-`AGENTS.md`. Each finding records a category, a location, a description, a
+`docs/adrs/adr-0003-shared-interface-contract.md`, `docs/developers-guide.md`,
+and `AGENTS.md`. Each finding records a category, a location, a description, a
 concrete proposed fix, and a severity.
 
 ## Finding 1 — Redundant `list(exc.messages)` round-trip in the runner

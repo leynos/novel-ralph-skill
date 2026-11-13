@@ -707,14 +707,14 @@ and `make nixie`).
 
 Read before starting any item: this ExecPlan in full; `AGENTS.md` (testing
 rules, en-GB spelling, 400-line cap, abstraction/helper sweep policy);
-`docs/adr-001-deterministic-judgemental-boundary.md` (read-only, detect-only
-loader); `docs/adr-003-shared-interface-contract.md` (the frozen rule-pack
-contract and the ledger-as-parallel rationale); design §6.1, §6.2, §6.3 and
-§3.1 (layering). Load the `python-router` skill and follow it to the smaller
-skills it routes to: `python-types-and-apis` (the factory-bundle signatures,
-`Protocol`/`Callable` shapes, and `TypeAlias`), `python-data-shapes` (the
-frozen dataclass bundle and the read-only `Mapping` boundary),
-`python-errors-and- logging` (the `raise … from …` chaining and the
+`docs/adrs/adr-0001-deterministic-judgemental-boundary.md` (read-only,
+detect-only loader); `docs/adrs/adr-0003-shared-interface-contract.md` (the
+frozen rule-pack contract and the ledger-as-parallel rationale); design §6.1,
+§6.2, §6.3 and §3.1 (layering). Load the `python-router` skill and follow it to
+the smaller skills it routes to: `python-types-and-apis` (the factory-bundle
+signatures, `Protocol`/`Callable` shapes, and `TypeAlias`),
+`python-data-shapes` (the frozen dataclass bundle and the read-only `Mapping`
+boundary), `python-errors-and- logging` (the `raise … from …` chaining and the
 narrow-`except` discipline the file-load and compile primitives preserve), and
 `python-testing` (the sentinel-bundle fixture and parametrization shape). For
 the new shared primitives' invariants, load `python-verification` to decide

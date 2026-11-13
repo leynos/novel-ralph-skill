@@ -516,9 +516,9 @@ Read these before starting, in order:
    a pack of `pattern`/`threshold`/`basis` rules, validate `schema_version`,
    and reject malformed patterns with exit 2 naming the offending rule id;
    success = "fails loudly, naming the rule".
-6. `docs/adr-001-deterministic-judgemental-boundary.md` — the detect-and-report
-   rule the loader sits inside.
-7. `docs/adr-002-toml-round-trip-tomlkit.md` — why writes use `tomlkit`
+6. `docs/adrs/adr-0001-deterministic-judgemental-boundary.md` — the
+   detect-and-report rule the loader sits inside.
+7. `docs/adrs/adr-0002-toml-round-trip-tomlkit.md` — why writes use `tomlkit`
    (relevant only to confirm this *read-only* loader correctly uses `tomllib`,
    not `tomlkit`).
 8. `docs/scripting-standards.md` "Language and runtime" and the regex/pathlib

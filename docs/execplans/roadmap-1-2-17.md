@@ -94,7 +94,7 @@ workaround.
 - **Convert only retired console-script invocations.** Flip `novel-state <verb>`
   → `novel state <verb>`, `novel-compile` → `novel compile`, and `novel-done` →
   `novel done`. The surface vocabulary is fixed by
-  [ADR 007](../adr-007-command-surface-novel-multiplexer.md) and
+  [ADR 007](../adrs/adr-0007-command-surface-novel-multiplexer.md) and
   `novel_ralph_skill/commands/names.py` `SUBCOMMAND_NAMES`; use exactly these
   spaced forms. Do **not** invent `novel-desloppify`-style hyphenated
   namespacing (Option A, which ADR 007 rejected).
@@ -415,7 +415,7 @@ A novice should read these before touching anything:
   and acceptance. Read also task 1.2.8.5 (the test-literal sweep that owns the
   `tests/` `novel-state` literals this task must NOT touch) and tasks 1.2.14 /
   1.2.16 (the design/`SKILL.md` and guide sweeps this task extends).
-- [docs/adr-007-command-surface-novel-multiplexer.md](../adr-007-command-surface-novel-multiplexer.md)
+- [docs/adrs/adr-0007-command-surface-novel-multiplexer.md](../adrs/adr-0007-command-surface-novel-multiplexer.md)
   — fixes the surface as a single `novel` multiplexer (supersedes ADR 005). Its
   "Decision outcome" section (lines 90-96) lists the exact subcommand structure:
   `novel state init | set-cursor | advance-phase | recount | check | reconcile`,

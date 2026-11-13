@@ -43,7 +43,7 @@ escalation, not a workaround.
 
 - The exit-code contract is fixed: a missing or unparseable `working/state.toml`
   is the exit-3 state-or-input channel, never the benign exit 1 (design §3.2,
-  lines 203-233; `adr-003-shared-interface-contract.md`). This plan changes
+  lines 203-233; `adr-0003-shared-interface-contract.md`). This plan changes
   only the **message text**, never the code path's exit code or the
   `StateInputError`-to-exit-3 mapping in `novel_ralph_skill/contract/runner.py`.
 - There must remain exactly **one** actionable-message helper. The two existing
@@ -321,7 +321,7 @@ steps under `tests/steps/`; snapshot suites use `syrupy` and redact `messages`.
 
 Relevant design and standards sections to read before starting: design §3.2
 (exit codes), §3.4 (atomic writes / state-input channel),
-`adr-003-shared-interface-contract.md` (the shared envelope and message
+`adr-0003-shared-interface-contract.md` (the shared envelope and message
 contract), `docs/scripting-standards.md` lines 603-605 and 678 ("human-friendly
 error messages should highlight remediation steps"; production code presents
 friendly messages), and `AGENTS.md` (quality gates and en-GB Oxford spelling).
@@ -336,11 +336,11 @@ first (red→green), then each consumer and its documentation follow.
 ### Work item 1 — Shared actionable-message helper (the single source of truth)
 
 Implements: design §3.2 (exit-3 channel), §3.4; `adr-003`
-(`docs/adr-003-shared-interface-contract.md`); `scripting-standards.md` lines
-603-605, 678. Closes the roadmap §6.3.1 requirement that both producers "route
-through one shared actionable-message helper so they cannot diverge".
+(`docs/adrs/adr-0003-shared-interface-contract.md`); `scripting-standards.md`
+lines 603-605, 678. Closes the roadmap §6.3.1 requirement that both producers
+"route through one shared actionable-message helper so they cannot diverge".
 
-Docs to read: design §3.2 and §3.4; `adr-003-shared-interface-contract.md`;
+Docs to read: design §3.2 and §3.4; `adr-0003-shared-interface-contract.md`;
 `scripting-standards.md` lines 600-688; `AGENTS.md` lines 18, 141-172.
 
 Skills to load: `python-router` (route to the smaller skills it picks);
@@ -501,10 +501,10 @@ land and passes after.
 ### Work item 4 — Installed-binary error-arm e2e refresh
 
 Implements: roadmap §6.3.1 (the message holds for the real installed command,
-not just in-process); `adr-006-console-scripts-e2e-posix-policy.md`
+not just in-process); `adr-0006-console-scripts-e2e-posix-policy.md`
 (POSIX-only); design §4 (single console-script).
 
-Docs to read: `adr-006-console-scripts-e2e-posix-policy.md`; the e2e fixture
+Docs to read: `adr-0006-console-scripts-e2e-posix-policy.md`; the e2e fixture
 `tests/installed_binary_fixtures.py` and
 `tests/test_console_scripts_error_arms_e2e.py`; this plan's Decision D5 (the
 locked cuprum 0.1.0 surface).

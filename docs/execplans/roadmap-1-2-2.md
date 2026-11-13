@@ -11,11 +11,11 @@ Status: DONE
 This is roadmap task 1.2.2 (`docs/roadmap.md`, step 1.2). It closes the
 packaging boundary that step 1.2 stands up by confirming that `tomlkit` — the
 TOML round-trip mechanism fixed in ADR 002
-(`docs/adr-002-toml-round-trip-tomlkit.md`) and design §5.3 — is a declared,
-resolved, installed, and importable dependency of `novel_ralph_skill`, and that
-the full quality-gate set still passes against it. It depends on roadmap tasks
-1.1.2 (the TOML round-trip ADR, accepted) and 1.2.1 (the wired console-scripts,
-already merged).
+(`docs/adrs/adr-0002-toml-round-trip-tomlkit.md`) and design §5.3 — is a
+declared, resolved, installed, and importable dependency of
+`novel_ralph_skill`, and that the full quality-gate set still passes against
+it. It depends on roadmap tasks 1.1.2 (the TOML round-trip ADR, accepted) and
+1.2.1 (the wired console-scripts, already merged).
 
 The task name reads "Add `tomlkit` to the package dependencies and confirm the
 build", but the empirical starting state is that **`tomlkit` is already
@@ -231,7 +231,7 @@ escalation, not a workaround.
 - Observation: ADR 002 is internally inconsistent independent of the roadmap
   gap: line 22 (Context) says the reference "even carries" the snippet (present
   tense), while line 77 (Decision outcome) says it "is removed" (past tense).
-  - Evidence: `docs/adr-002-toml-round-trip-tomlkit.md:22` and `:77`.
+  - Evidence: `docs/adrs/adr-0002-toml-round-trip-tomlkit.md:22` and `:77`.
   - Impact: noted for the roadmap owner so that whichever task is assigned the
     removal reconciles both sentences, not just line 77. Not edited here.
 - Observation: there is no unused-dependency gate (`deptry` absent; `pip-audit`
@@ -348,8 +348,9 @@ worktree root `/data/leynos/Projects/novel-ralph-skill.worktrees/roadmap-1-2-2`:
   `make test` is `uv run pytest -v -n auto`.
   `PYTHON_TARGETS = novel_ralph_skill tests`, so the new test is linted and
   type-checked. `make markdownlint` and `make nixie` gate Markdown and Mermaid.
-- `docs/adr-002-toml-round-trip-tomlkit.md` — the dependency decision this task
-  confirms; its "Migration plan" splits 1.2.2 (add) from 2.2.1 (exercise).
+- `docs/adrs/adr-0002-toml-round-trip-tomlkit.md` — the dependency decision
+  this task confirms; its "Migration plan" splits 1.2.2 (add) from 2.2.1
+  (exercise).
 - `docs/novel-ralph-harness-design.md` §5.3 (TOML round-trip; line 465 carries
   the premature "is removed" claim, left untouched here), §3.4 (atomic writes —
   2.2.1 territory, named here only to mark the boundary), §8 (the three
@@ -381,7 +382,7 @@ Terms of art, defined so the plan is self-contained:
 Authoritative sources to read before editing:
 
 - `docs/roadmap.md` step 1.2, tasks 1.2.2 and 2.2.1 — the task and its boundary.
-- `docs/adr-002-toml-round-trip-tomlkit.md` — the decision, its "Migration
+- `docs/adrs/adr-0002-toml-round-trip-tomlkit.md` — the decision, its "Migration
   plan" (1.2.2 adds, 2.2.1 exercises), and its "Known risks" (the major-version
   regression the version pin tripwires).
 - `docs/novel-ralph-harness-design.md` §5.3, §8, §9 — the round-trip decision,
@@ -447,8 +448,8 @@ Do **not** read or write `state.toml`, do **not** use `Path.replace`, and do
 **not** add a Hypothesis strategy — those belong to task 2.2.1 (Constraints).
 Keep the assertions direct and semantic; do not snapshot (Decision Log).
 
-Read first: `docs/adr-002-toml-round-trip-tomlkit.md` (the decision and its
-1.2.2/2.2.1 split), `docs/novel-ralph-harness-design.md` §5.3 and §9,
+Read first: `docs/adrs/adr-0002-toml-round-trip-tomlkit.md` (the decision and
+its 1.2.2/2.2.1 split), `docs/novel-ralph-harness-design.md` §5.3 and §9,
 `.rules/python-00.md`, `.rules/python-return.md`.
 
 Skills: `python-router`, then `python-testing` (focused unit test, direct

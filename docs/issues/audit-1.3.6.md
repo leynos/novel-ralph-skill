@@ -22,7 +22,7 @@ opportunities, not defects; none blocks the merge. Several are continuations of
 the same single-home discipline the task itself advanced.
 
 Trail followed: `docs/novel-ralph-harness-design.md` §§3.1/3.2/4,
-`docs/adr-003-shared-interface-contract.md`, `docs/developers-guide.md`,
+`docs/adrs/adr-0003-shared-interface-contract.md`, `docs/developers-guide.md`,
 `docs/issues/audit-3.1.1.md` (Finding 5, the reroute this task discharged), and
 the source under `novel_ralph_skill/contract/` and
 `novel_ralph_skill/commands/`. Navigation used `leta` (`files`, `show`,
@@ -156,7 +156,7 @@ factory is broken.
 
 ## Finding 6 — The four-flag contract is undocumented in ADR-003 and the design (docs-gap)
 
-**Location**: `docs/adr-003-shared-interface-contract.md`,
+**Location**: `docs/adrs/adr-0003-shared-interface-contract.md`,
 `docs/novel-ralph-harness-design.md`, `docs/developers-guide.md`; the gap is
 acknowledged in-code at `novel_ralph_skill/contract/runner.py:58-60` ("the
 flags serve the exit-code policy in design §3.2 / ADR-003 Table 2 but are not

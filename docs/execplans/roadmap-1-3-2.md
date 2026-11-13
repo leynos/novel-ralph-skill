@@ -714,8 +714,8 @@ Read first (source of truth):
   idiom and the no-value-import rule).
 - `docs/scripting-standards.md` (pathlib for filesystem work; `cuprum` is NOT
   needed here — see "What this task does NOT do").
-- `docs/adr-002-toml-round-trip-tomlkit.md` (why `state.toml` is written with
-  `tomlkit`).
+- `docs/adrs/adr-0002-toml-round-trip-tomlkit.md` (why `state.toml` is written
+  with `tomlkit`).
 - `AGENTS.md` (quality gates lines 71-98; testing rules lines 141-166; file
   size lines 24-27; spelling lines 18-20).
 

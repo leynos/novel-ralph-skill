@@ -213,7 +213,7 @@ recording it keeps the conftest the single home for table navigation.
   any entry for `docs/issues/` or `docs/execplans/`
 
 The documentation index lists ADRs 001-005 but not
-[`docs/adr-006-console-scripts-e2e-posix-policy.md`](../../docs/adr-006-console-scripts-e2e-posix-policy.md),
+[`docs/adrs/adr-0006-console-scripts-e2e-posix-policy.md`](../adrs/adr-0006-console-scripts-e2e-posix-policy.md),
 and has no entry for the `docs/issues/` post-merge audit set or the
 `docs/execplans/` execution-plan set. The 1.2.8 slice did not touch
 `contents.md`, so all three gaps remain and the blind spot has widened again:

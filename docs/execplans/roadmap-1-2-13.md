@@ -327,12 +327,12 @@ Read these before starting (paths relative to the worktree root
 
 - `docs/roadmap.md` lines 237-249 (task 1.2.13) and lines 202-236 (task 1.2.12,
   which built the multiplexer this task migrates onto).
-- `docs/adr-007-command-surface-novel-multiplexer.md` (the single-`novel`
+- `docs/adrs/adr-0007-command-surface-novel-multiplexer.md` (the single-`novel`
   surface; §"Migration plan" names the installed-binary e2e migration).
-- `docs/adr-006-console-scripts-e2e-posix-policy.md` (installed-binary e2e is
-  POSIX-only).
-- `docs/adr-003-shared-interface-contract.md` §3.1 (the envelope and exit-code
-  policy the `command` field belongs to).
+- `docs/adrs/adr-0006-console-scripts-e2e-posix-policy.md` (installed-binary
+  e2e is POSIX-only).
+- `docs/adrs/adr-0003-shared-interface-contract.md` §3.1 (the envelope and
+  exit-code policy the `command` field belongs to).
 - `docs/novel-ralph-harness-design.md` §4 (lines 265-280) — the deterministic
   spine is a single `novel` multiplexer; §4.1-4.5 name the five operations;
   §3.2 (the two command-agnostic diagnostic arms).

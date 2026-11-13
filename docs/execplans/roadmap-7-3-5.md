@@ -416,9 +416,10 @@ Deviations from the plan, with rationale:
 ## Context and orientation
 
 The harness exposes a single deterministic command surface, the `novel`
-multiplexer, recorded in `docs/adr-007-command-surface-novel-multiplexer.md` and
-`docs/novel-ralph-harness-design.md` §4 ("The deterministic commands"). The
-key production files are:
+multiplexer, recorded in
+`docs/adrs/adr-0007-command-surface-novel-multiplexer.md` and
+`docs/novel-ralph-harness-design.md` §4 ("The deterministic commands"). The key
+production files are:
 
 - `novel_ralph_skill/commands/novel.py` — the multiplexer dispatcher and the
   sole console entry point. `main()` (lines 177-205) is the body this plan

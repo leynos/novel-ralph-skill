@@ -22,8 +22,8 @@ blast radius; none is a correctness defect.
 The exploration used `leta` for code navigation and `sem`/`git show` for
 history tracing. The sources of truth consulted were
 `docs/novel-ralph-harness-design.md` (§3.1 envelope contract),
-`docs/adr-003-shared-interface-contract.md`, and the existing audit issues under
-`docs/issues/`. Prose follows the en-GB Oxford spelling convention
+`docs/adrs/adr-0003-shared-interface-contract.md`, and the existing audit
+issues under `docs/issues/`. Prose follows the en-GB Oxford spelling convention
 (`AGENTS.md`).
 
 ## Finding 1 — Duplicated `_meaning_has_keyword` helper across both drift guards

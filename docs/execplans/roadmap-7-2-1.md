@@ -558,7 +558,7 @@ markdown additionally run `make markdownlint` and `make nixie`).
 
 Read before starting any item: this ExecPlan in full; `AGENTS.md` (testing
 rules, en-GB spelling, 400-line cap, abstraction/helper sweep policy);
-`docs/adr-002-toml-round-trip-tomlkit.md`; design §5.3. Load the
+`docs/adrs/adr-0002-toml-round-trip-tomlkit.md`; design §5.3. Load the
 `python-router` skill and follow it to the smaller skills it routes to:
 `python-types-and-apis` (the `Mapping` signature and `InlineTable` return type),
 `python-data-shapes` (read-only `Mapping` vs `dict` at the boundary), and

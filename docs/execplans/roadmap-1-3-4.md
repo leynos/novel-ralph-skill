@@ -321,10 +321,11 @@ The module docstring must explain that this is the single home for the
 envelope-`messages`-carrying contract (design §3.1; ADR-003), that domain error
 types across the `contract` and `rulepack` layers subclass it, and that the
 `messages` tuple is captured once at construction (the freeze-on-construct
-decision). Cite design §3.1 and `docs/adr-003-shared-interface-contract.md`.
-Re-export `EnvelopeMessagesError` from `novel_ralph_skill/contract/__init__.py`
-(add to the import block and to `__all__`, keeping `__all__` sorted to satisfy
-Ruff `RUF022`/import ordering as the existing list is).
+decision). Cite design §3.1 and
+`docs/adrs/adr-0003-shared-interface-contract.md`. Re-export
+`EnvelopeMessagesError` from `novel_ralph_skill/contract/__init__.py` (add to
+the import block and to `__all__`, keeping `__all__` sorted to satisfy Ruff
+`RUF022`/import ordering as the existing list is).
 
 Add a failing-first unit test at `tests/test_contract_errors.py`:
 
@@ -337,9 +338,10 @@ Add a failing-first unit test at `tests/test_contract_errors.py`:
 Run the new test first to confirm it fails (module absent → ImportError), then
 add the module to make it pass.
 
-**Docs to read:** design §3.1; `docs/adr-003-shared-interface-contract.md`
-(Functional requirements, Decision outcome); AGENTS.md §"Quality gates" and
-§"Python verification and testing".
+**Docs to read:** design §3.1;
+`docs/adrs/adr-0003-shared-interface-contract.md` (Functional requirements,
+Decision outcome); AGENTS.md §"Quality gates" and §"Python verification and
+testing".
 
 **Skills to load:** `python-router` → `python-errors-and-logging` (exception
 hierarchy and N818), `python-testing` (unit-test placement and pytest style),
@@ -372,7 +374,7 @@ Do not change `run`'s `except StateInputError` clause (lines 210-216): it still
 catches the same concrete type and reads `exc.messages`.
 
 **Docs to read:** design §3.2 and §3.4 (the exit-`3` state/input channel);
-`docs/adr-003-shared-interface-contract.md`.
+`docs/adrs/adr-0003-shared-interface-contract.md`.
 
 **Skills to load:** `python-errors-and-logging`, `leta` (find `StateInputError`
 refs to confirm none break), `commit-message`.
@@ -411,7 +413,7 @@ Do not change `rulepack/parse.py` (it raises the same types with the same
 signatures) or the `rulepack/__init__.py` re-exports.
 
 **Docs to read:** design §3.1, §4.4, §10 (the two rule-pack failure channels);
-`docs/adr-003-shared-interface-contract.md`.
+`docs/adrs/adr-0003-shared-interface-contract.md`.
 
 **Skills to load:** `python-errors-and-logging`, `leta` (confirm
 `RulePackError` / `RulePackFileError` call sites in `parse.py` are unaffected),

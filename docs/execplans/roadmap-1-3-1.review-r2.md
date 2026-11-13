@@ -8,7 +8,7 @@ implementation but do not gate the plan.
 
 Sources consulted (read from disk, not from the planner's summary):
 `docs/execplans/roadmap-1-3-1.md`, `docs/execplans/roadmap-1-3-1.review-r1.md`,
-`docs/adr-003-shared-interface-contract.md`,
+`docs/adrs/adr-0003-shared-interface-contract.md`,
 `docs/novel-ralph-harness-design.md` §3.1/§3.2/§3.3/§3.4/§9/§10,
 `docs/developers-guide.md` (envelope / exit-code sections), `docs/roadmap.md`
 (1.3.1), `AGENTS.md` (gates), `pyproject.toml`,

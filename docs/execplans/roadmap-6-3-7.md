@@ -11,9 +11,9 @@ Status: COMPLETE (implemented round 2)
 Roadmap task 6.3.7 closes the last unguarded copy of the shared interface
 contract. After roadmap task 6.3.3, the contract — the disambiguated exit-code
 table (design §3.2) and the six-field JSON envelope skeleton (design §3.1) — is
-restated in four places: `docs/adr-003-shared-interface-contract.md` (Table 2),
-the harness design (`docs/novel-ralph-harness-design.md` §3.1 envelope and §3.2
-exit codes), the developers' guide, and the agent-facing skill
+restated in four places: `docs/adrs/adr-0003-shared-interface-contract.md`
+(Table 2), the harness design (`docs/novel-ralph-harness-design.md` §3.1
+envelope and §3.2 exit codes), the developers' guide, and the agent-facing skill
 (`skill/novel-ralph/SKILL.md`). Three of these are either the canonical source
 or already pinned; the `SKILL.md` exit-code table and envelope skeleton are the
 one copy that no test pins. A change to the `ExitCode` enum, the envelope field
@@ -403,11 +403,11 @@ The canonical contract sources, by full path:
 
 The four restatement sites, by full path:
 
-- `docs/adr-003-shared-interface-contract.md` — Table 2 (the markdown table at
-  lines 90-96, three columns: Code, Meaning, Harness response) is the exit-code
-  policy; the `result`/`messages`/`schema_version` prose (lines 100-106)
-  defines the envelope semantics. This ADR is the documented source of truth
-  the SKILL section names.
+- `docs/adrs/adr-0003-shared-interface-contract.md` — Table 2 (the markdown
+  table at lines 90-96, three columns: Code, Meaning, Harness response) is the
+  exit-code policy; the `result`/`messages`/`schema_version` prose (lines
+  100-106) defines the envelope semantics. This ADR is the documented source of
+  truth the SKILL section names.
 - `docs/novel-ralph-harness-design.md` §3.1 "Output modes" (heading at line 137)
   carries the six-field envelope skeleton at lines 146-155 (the FIRST ```json
   fence; a SECOND, five-field `novel done` example lives at line 365, in §4,
@@ -532,9 +532,9 @@ the choice in the Decision Log. Preferred path: fold Work item 1 into Work item
 
 Implements: roadmap 6.3.7 ("fails if the SKILL.md exit-code table … diverges
 from ADR-003 Table 2 / design §3.2 or from the ExitCode … source"); ADR-003
-Table 2 (`docs/adr-003-shared-interface-contract.md` table at lines 90-96,
-three columns); design §3.2 (`docs/novel-ralph-harness-design.md` table at
-lines 221-227, four columns); `novel_ralph_skill/contract/exit_codes.py`.
+Table 2 (`docs/adrs/adr-0003-shared-interface-contract.md` table at lines
+90-96, three columns); design §3.2 (`docs/novel-ralph-harness-design.md` table
+at lines 221-227, four columns); `novel_ralph_skill/contract/exit_codes.py`.
 
 Docs to read first: ADR-003 Table 2 and the surrounding "Decision outcome"
 prose (lines 86-106); design §3.2 (heading line 212, table 221-227 — note the
@@ -845,7 +845,7 @@ Libraries/modules to use and why:
 - `dataclasses` (stdlib) for field introspection; `json` (stdlib) for parsing
   the fenced envelope skeletons.
 - The same `read_repo_text` fixture also reads
-  `docs/adr-003-shared-interface-contract.md` and
+  `docs/adrs/adr-0003-shared-interface-contract.md` and
   `docs/novel-ralph-harness-design.md` for the cross-document agreement checks
   (WI2 ADR/design tables; WI3 design §3.1 skeleton). No new dependency: it is
   the same in-process reader, just pointed at two more in-repo docs.

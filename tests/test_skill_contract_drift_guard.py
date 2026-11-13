@@ -55,7 +55,7 @@ if typ.TYPE_CHECKING:
 
 _SKILL_PARTS = ("skill", "novel-ralph", "SKILL.md")
 _DESIGN_PARTS = ("docs", "novel-ralph-harness-design.md")
-_ADR_PARTS = ("docs", "adr-003-shared-interface-contract.md")
+_ADR_PARTS = ("docs", "adrs", "adr-0003-shared-interface-contract.md")
 
 # SKILL.md command-contract anchors. The exit-code table sits between its H3 and
 # the envelope-schema H3; the envelope region (skeleton plus field bullets) runs
@@ -106,7 +106,7 @@ def design_text(read_repo_text: RepoTextReader) -> str:
 
 @pytest.fixture
 def adr_text(read_repo_text: RepoTextReader) -> str:
-    """Return the UTF-8 text of ``docs/adr-003-shared-interface-contract.md``."""
+    """Return the UTF-8 text of ``docs/adrs/adr-0003-shared-interface-contract.md``."""
     return read_repo_text(*_ADR_PARTS)
 
 
@@ -154,7 +154,7 @@ def adr_exit_meanings(adr_text: str) -> dict[int, str]:
         adr_text,
         _ADR_TABLE_START,
         _ADR_TABLE_END,
-        source="adr-003-shared-interface-contract.md",
+        source="adr-0003-shared-interface-contract.md",
     )
     return extract_exit_code_meanings(parse_markdown_table(region))
 

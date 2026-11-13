@@ -29,7 +29,7 @@ used outside its `allowed_chapters`, used after `retired_after_chapter`, or
 used anywhere other than `reserved_for_chapter`. A device within its ration is
 silent. The command **does not edit prose and does not decide whether a device
 should be spent** — that judgement stays with the model (design §6.3, ADR-001
-`docs/adr-001-deterministic-judgemental-boundary.md`). This resolves open
+`docs/adrs/adr-0001-deterministic-judgemental-boundary.md`). This resolves open
 question Q3 (`docs/terms-of-reference.md`).
 
 You can observe success four ways:
@@ -91,7 +91,7 @@ Hard invariants that must hold throughout implementation. Violation requires
 escalation, not a workaround.
 
 - The command surface stays **five console-scripts** (ADR-005,
-  `docs/adr-005-command-surface-five-scripts.md`). Ledger enforcement is a
+  `docs/adrs/adr-0005-command-surface-five-scripts.md`). Ledger enforcement is a
   `--ledger PATH` keyword on the existing `desloppify` command, never a new
   entry point. No change to `pyproject.toml` `[project.scripts]`.
 - Detect-only boundary (ADR-001): the ledger model, loader, detector, and report
@@ -104,11 +104,12 @@ escalation, not a workaround.
   only from `finditer` over the sourced chapter text, so the ledger cannot
   drift from the manuscript.
 - The shared interface contract is unchanged for the existing rule-pack scan
-  (design §3.1, §3.2; ADR-003 `docs/adr-003-shared-interface-contract.md`).
-  `desloppify` with no `--ledger` behaves exactly as today (same default pack,
-  exit codes, envelope). The `--ledger` mode reuses the same four-flag
-  contract, the same `CommandOutcome`, and the same exit-code table (`0` clean /
-  `4` finding / `2` usage / `3` state/input).
+  (design §3.1, §3.2; ADR-003
+  `docs/adrs/adr-0003-shared-interface-contract.md`). `desloppify` with no
+  `--ledger` behaves exactly as today (same default pack, exit codes,
+  envelope). The `--ledger` mode reuses the same four-flag contract, the same
+  `CommandOutcome`, and the same exit-code table (`0` clean / `4` finding / `2`
+  usage / `3` state/input).
 - Ledger device patterns compile under `re.compile` with **no flags** (`(?i)`
   inline only), and detection scans **line by line**, exactly as `detect.py`
   does (`detect.py` module docstring): `.` cannot cross `\n`, so a per-line
@@ -467,10 +468,10 @@ Read these before starting. They are the source of truth.
   per-hit output), §3.1/§3.2 (envelope and exit codes).
 - `docs/terms-of-reference.md` Q3 (the device-ledger open question this task
   resolves; mark it resolved in Work Item 7, citing the developers' guide).
-- `docs/adr-001-deterministic-judgemental-boundary.md` (detect-only),
-  `docs/adr-003-shared-interface-contract.md` (envelope contract),
-  `docs/adr-005-command-surface-five-scripts.md` (no sixth script — the ledger
-  is a `desloppify` flag).
+- `docs/adrs/adr-0001-deterministic-judgemental-boundary.md` (detect-only),
+  `docs/adrs/adr-0003-shared-interface-contract.md` (envelope contract),
+  `docs/adrs/adr-0005-command-surface-five-scripts.md` (no sixth script — the
+  ledger is a `desloppify` flag).
 - `docs/developers-guide.md` "Rule packs and the loader boundary" (lines
   950-1095): the description of the pack TOML shape, the closed key vocabulary,
   the validating loader, and the two-exit-code fault split. The ledger gets a
@@ -861,7 +862,7 @@ Validation:
 - `make all` green (the slow e2e runs under `make test`).
 
 Docs to read: `tests/test_desloppify_e2e.py`; ADR-006
-(`docs/adr-006-console-scripts-e2e-posix-policy.md`);
+(`docs/adrs/adr-0006-console-scripts-e2e-posix-policy.md`);
 `docs/scripting-standards.md` (cuprum catalogue allowlisting);
 `tests/conftest.py`, `tests/corpus_fixtures.py`. Skills to load:
 `python-router` → `python-testing` (e2e/marks), `domain-cli-and-daemons`

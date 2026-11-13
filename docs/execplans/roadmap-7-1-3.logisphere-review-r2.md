@@ -225,8 +225,8 @@ ground.
 - `docs/novel-ralph-harness-design.md` §3.3 (CQS read/write split), §5.4
   (disk-authoritative reconciliation).
 - `docs/issues/audit-2.3.2.md` Finding 2; non-goal Findings 1, 3-6.
-- `docs/adr-001-deterministic-judgemental-boundary.md`,
-  `docs/adr-003-shared-interface-contract.md`.
+- `docs/adrs/adr-0001-deterministic-judgemental-boundary.md`,
+  `docs/adrs/adr-0003-shared-interface-contract.md`.
 - `docs/roadmap.md` entry 7.1.3; `docs/execplans/roadmap-7-1-1.md` (sibling
   precedent); `docs/execplans/roadmap-7-1-3.logisphere-review-r1.md` (round 1).
 - `AGENTS.md` (snapshot discipline; test-location rule).

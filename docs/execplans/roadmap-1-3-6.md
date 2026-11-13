@@ -62,7 +62,7 @@ behaviour. It serves the step-1.3 shared-contract-scaffolding hypothesis — one
 envelope, output-mode switch, and exit-code helper serving all five commands —
 by co-locating the four-flag contract with the runner that enforces it, per
 roadmap task 1.3.6 and `docs/issues/audit-3.1.1.md` Finding 5. It cites design
-§3.1 and §4 and `docs/adr-003-shared-interface-contract.md`.
+§3.1 and §4 and `docs/adrs/adr-0003-shared-interface-contract.md`.
 
 ## Constraints
 
@@ -536,8 +536,8 @@ are the verified normalized values, the test is genuinely red→green: it cannot
 be silently weakened to pass against a wrong literal.
 
 **Docs to read:** design §3.1 (output modes / envelope) and §3.2 (exit-code
-table); `docs/adr-003-shared-interface-contract.md` (Decision outcome, Table
-2); AGENTS.md §"Quality gates" and §"Python verification and testing".
+table); `docs/adrs/adr-0003-shared-interface-contract.md` (Decision outcome,
+Table 2); AGENTS.md §"Quality gates" and §"Python verification and testing".
 
 **Skills to load:** `python-router` → `python-types-and-apis` (public function
 signature shape) and `python-testing` (unit-test placement); `leta` (navigate
@@ -583,7 +583,7 @@ Do not change any subcommand body, any import other than adding the factory
 import, or any `name=` string (the names must stay the console-script names).
 
 **Docs to read:** design §4.1 (`novel-state` subcommands), §4.2 (`novel-done`),
-§4.3 (`novel-compile`); `docs/adr-003-shared-interface-contract.md`.
+§4.3 (`novel-compile`); `docs/adrs/adr-0003-shared-interface-contract.md`.
 
 **Skills to load:** `python-router` → `python-types-and-apis`; `leta` (find each
 `build_app` and its references to confirm the call sites are unaffected);
@@ -651,9 +651,10 @@ pre-parse and B3/B4 rationale now live once in `_drive`; the entry-point
 docstring can shrink to a one-line "drives the real app" referencing `_drive`).
 
 **Docs to read:** design §3.1 (the `--human` switch) and §4 (the five commands);
-`docs/adr-003-shared-interface-contract.md`; `docs/issues/audit-3.1.1.md`
-(Findings 4 and 5). The Decision Log B3/B4 references are the established
-shorthand in the existing docstrings; preserve them.
+`docs/adrs/adr-0003-shared-interface-contract.md`;
+`docs/issues/audit-3.1.1.md` (Findings 4 and 5). The Decision Log B3/B4
+references are the established shorthand in the existing docstrings; preserve
+them.
 
 **Skills to load:** `python-router` → `python-abstractions` (the right level to
 hide the shared plumbing) and `python-types-and-apis` (the `_drive` callable
@@ -705,7 +706,7 @@ make test 2>&1 | grep -E "test_console_scripts_e2e"
 
 **Docs to read:** AGENTS.md §"Quality gates" (the full gate) and §"Python
 verification and testing" (test placement);
-`docs/adr-006-console-scripts-e2e-posix-policy.md` (the e2e suite's POSIX
+`docs/adrs/adr-0006-console-scripts-e2e-posix-policy.md` (the e2e suite's POSIX
 scope).
 
 **Skills to load:** `python-testing` (fixture refactor), `code-review`

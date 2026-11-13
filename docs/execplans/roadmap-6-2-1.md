@@ -567,7 +567,7 @@ The reader is assumed to know nothing of this repository. Orientation:
 - This is a Python package, `novel_ralph_skill`, that ships five console-scripts
   forming a deterministic "spine" for a novel-writing harness: `novel-state`,
   `novel-done`, `novel-compile`, `desloppify`, and `wordcount`
-  (`docs/adr-005-command-surface-five-scripts.md`;
+  (`docs/adrs/adr-0005-command-surface-five-scripts.md`;
   `novel_ralph_skill/commands/names.py`).
 - Every command shares one JSON-envelope contract. A command body returns a
   `CommandOutcome` (exit code plus `result`/`messages`); the shared wrapper
@@ -1044,10 +1044,11 @@ Docs to read before implementing (source of truth):
   (word reporting and gate derivation), §5.1 (phase enum), §5.2 (invariants),
   §9 (verification strategy and carried gaps), §10 (the empty-manifest exit-3
   refusal that drives the compile branches).
-- ADRs: `docs/adr-003-shared-interface-contract.md` (the envelope and
-  output-mode contract), `docs/adr-005-command-surface-five-scripts.md` (the
-  five-command surface), `docs/adr-001-deterministic-judgemental-boundary.md`
-  (why the spine is deterministically testable).
+- ADRs: `docs/adrs/adr-0003-shared-interface-contract.md` (the envelope and
+  output-mode contract), `docs/adrs/adr-0005-command-surface-five-scripts.md`
+  (the five-command surface),
+  `docs/adrs/adr-0001-deterministic-judgemental-boundary.md` (why the spine is
+  deterministically testable).
 - `docs/developers-guide.md`: "Shared test scaffolding", "The `working/` fixture
   corpus", "The five commands", "The shared JSON envelope".
 - `docs/scripting-standards.md`: Cyclopts, cuprum, pathlib, and testing

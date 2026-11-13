@@ -432,8 +432,8 @@ gap and the add-the-slice option). Closes the Finding-5 gap.
 Documentation to read first:
 
 - `docs/novel-ralph-harness-design.md` §2.3, §3.2, §9 (the line ranges above).
-- `docs/adr-003-shared-interface-contract.md` (the `--human` global flag and the
-  exit-code translation `run` owns).
+- `docs/adrs/adr-0003-shared-interface-contract.md` (the `--human` global flag
+  and the exit-code translation `run` owns).
 - `docs/issues/audit-6.2.1.md` Finding 5 (lines 151–178).
 - `AGENTS.md` "Python verification and testing" (snapshot discipline:
   pair-with-semantic, redact nondeterministic fields, no brittle snapshots).

@@ -14,8 +14,8 @@
 - **Companion documents:**
   - `docs/terms-of-reference.md` — the problem space and scope.
   - `docs/roadmap.md` — phase, step, and task sequencing.
-  - `docs/adr-001-deterministic-judgemental-boundary.md` through
-    `docs/adr-005-command-surface-five-scripts.md` — the accepted decisions
+  - `docs/adrs/adr-0001-deterministic-judgemental-boundary.md` through
+    `docs/adrs/adr-0005-command-surface-five-scripts.md` — the accepted decisions
     this design fixes: the boundary (§1), the TOML round-trip (§5.3), the
     interface contract (§3), the distribution form, and the command surface
     (§4).
@@ -132,7 +132,7 @@ mode is asserted for presence rather than pinned.
 
 All commands share one contract so the harness can invoke and gate them
 uniformly. This resolves open question Q2 from the terms of reference and is
-fixed in `docs/adr-003-shared-interface-contract.md`.
+fixed in `docs/adrs/adr-0003-shared-interface-contract.md`.
 
 ### 3.1 Output modes
 
@@ -279,12 +279,13 @@ and four leaf verbs (`novel done`, `novel compile`, `novel desloppify`,
 `novel wordcount`). The single entry point gives `PATH` one name, makes the
 shared envelope structural as well as convention-enforced, and offers a
 discoverable `novel --help`; the choice of one multiplexer over five separate
-scripts is recorded in [ADR 007](adr-007-command-surface-novel-multiplexer.md)
-(superseding ADR 005). Each operation is a Cyclopts application; none invokes
-an external process for its core logic, so cuprum is required only where a
-command shells out (none do in v1); filesystem work uses `pathlib`. The
-build-and-install proof (`tests/test_console_scripts_e2e.py`) runs on POSIX
-only, per `docs/adr-006-console-scripts-e2e-posix-policy.md`.
+scripts is recorded in
+[ADR 007](adrs/adr-0007-command-surface-novel-multiplexer.md) (superseding ADR
+005). Each operation is a Cyclopts application; none invokes an external
+process for its core logic, so cuprum is required only where a command shells
+out (none do in v1); filesystem work uses `pathlib`. The build-and-install proof
+(`tests/test_console_scripts_e2e.py`) runs on POSIX only, per
+`docs/adrs/adr-0006-console-scripts-e2e-posix-policy.md`.
 
 ### 4.1 `novel state`
 
@@ -548,8 +549,8 @@ The design selects `tomlkit`, which round-trips formatting and comments, over
 an owned serializer, because owning a comment-preserving TOML writer is
 avoidable complexity for no benefit. This choice is hard to reverse once
 mutators depend on it and is recorded in
-`docs/adr-002-toml-round-trip-tomlkit.md`. The failed `tomli_w` snippet in the
-reference is removed.
+`docs/adrs/adr-0002-toml-round-trip-tomlkit.md`. The failed `tomli_w` snippet
+in the reference is removed.
 
 The one `tomlkit` idiom every mutator shares — building a fresh inline table
 from a mapping (`tomlkit.inline_table()` then `update`) — has a single home in

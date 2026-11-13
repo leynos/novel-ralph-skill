@@ -162,7 +162,7 @@ Hard invariants that must hold throughout implementation.
 
 ```plaintext
     - [x] Work item 1: ADR 009 recording the phase-gated bijection relaxation.
-      DONE — docs/adr-009-drafting-bijection-relaxation.md created (ADR 008 shape;
+      DONE — docs/adrs/adr-0009-drafting-bijection-relaxation.md created (ADR 008 shape;
       enumerates the two-invariant blast radius, the strict/relaxed split, and the
       §4.3 re-tightening), linked into docs/contents.md. markdownlint + nixie +
       make all green. CodeRabbit on this item raised only planning-doc style nits
@@ -514,15 +514,15 @@ failing gate.
 
 Documentation only; lands first so the code work items can cite it.
 
-Docs to read first: `docs/adr-008-chapter-manifest-mutator.md` (the format and
-the §5.4 precedence it established); design §5.2 invariant 5 and §5.4 (the
-disk-authoritative model and the §4.3 ordering guarantee the bijection
-protects); the roadmap 2.1.7 entry. Skills to load: none beyond en-GB prose
-discipline (`en-gb-oxendict`).
+Docs to read first: `docs/adrs/adr-0008-chapter-manifest-mutator.md` (the
+format and the §5.4 precedence it established); design §5.2 invariant 5 and
+§5.4 (the disk-authoritative model and the §4.3 ordering guarantee the
+bijection protects); the roadmap 2.1.7 entry. Skills to load: none beyond en-GB
+prose discipline (`en-gb-oxendict`).
 
-Create `docs/adr-009-drafting-bijection-relaxation.md` following the ADR 008
-shape (Status, Date, Context and problem statement, Decision drivers, Decision,
-Consequences, References). It must state:
+Create `docs/adrs/adr-0009-drafting-bijection-relaxation.md` following the ADR
+008 shape (Status, Date, Context and problem statement, Decision drivers,
+Decision, Consequences, References). It must state:
 
 - The problem: §5.2 invariant 5 requires exact bijection, but during drafting
   the manifest leads the on-disk directory set, so `check` exits 4 for the
@@ -560,9 +560,9 @@ Consequences, References). It must state:
   understands the relaxation's true scope (review r1 blocking item 1;
   pre-mortem prevention).
 
-Append `docs/adr-009-drafting-bijection-relaxation.md` to `docs/contents.md` in
-the ADR list (the abstraction-recording rule, AGENTS.md "Abstraction / port /
-helper policy").
+Append `docs/adrs/adr-0009-drafting-bijection-relaxation.md` to
+`docs/contents.md` in the ADR list (the abstraction-recording rule, AGENTS.md
+"Abstraction / port / helper policy").
 
 Tests: none (pure documentation). Validation: `make markdownlint` and
 `make nixie` (no Mermaid is added, but the gate is mandatory for markdown

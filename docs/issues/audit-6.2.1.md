@@ -18,12 +18,13 @@ locality gaps in the new matrix module. None block the merge.
 
 Sources relied on: `docs/novel-ralph-harness-design.md` (§2.3 verification
 surface, §3.2 exit codes, §3.3 checker/mutator split, §4.1-§4.5 command bodies,
-§5.4 disk evidence), `docs/adr-003-shared-interface-contract.md`,
-`docs/adr-005-command-surface-five-scripts.md`, `docs/developers-guide.md`
-("The combinatorial command-surface matrix"), `docs/roadmap.md` (task 6.2.1),
-and `AGENTS.md` (en-GB Oxford spelling, module/file boundaries, snapshot-plus-
-semantic rule). Loaded the `python-router` skill; navigated code with `leta`/
-`grep` and traced history with `git show`/`sem` over commit `dc46d4a`.
+§5.4 disk evidence), `docs/adrs/adr-0003-shared-interface-contract.md`,
+`docs/adrs/adr-0005-command-surface-five-scripts.md`,
+`docs/developers-guide.md` ("The combinatorial command-surface matrix"),
+`docs/roadmap.md` (task 6.2.1), and `AGENTS.md` (en-GB Oxford spelling,
+module/file boundaries, snapshot-plus- semantic rule). Loaded the
+`python-router` skill; navigated code with `leta`/ `grep` and traced history
+with `git show`/`sem` over commit `dc46d4a`.
 
 ## Finding 1: The fixed `working/` accessors are bypassed by two command bodies
 

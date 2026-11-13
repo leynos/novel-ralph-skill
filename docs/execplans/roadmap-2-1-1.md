@@ -90,8 +90,8 @@ Read these before starting, in order:
    layout and the concrete `state.toml` example the schema mirrors. The §5.1
    schema *follows this file exactly* except for the three added fields and the
    omitted `plan.md`.
-4. `docs/adr-002-toml-round-trip-tomlkit.md` — why writes go through `tomlkit`
-   (relevant to 2.2.1, not this task; this task only *reads*).
+4. `docs/adrs/adr-0002-toml-round-trip-tomlkit.md` — why writes go through
+   `tomlkit` (relevant to 2.2.1, not this task; this task only *reads*).
 5. `docs/developers-guide.md` "State and on-disk layout" and "Shared test
    scaffolding" sections.
 6. `AGENTS.md` — code style, the 400-line file cap, en-GB Oxford spelling, the

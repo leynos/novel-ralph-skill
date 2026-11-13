@@ -14,8 +14,8 @@ block the merge.
 
 Sources relied on: `docs/developers-guide.md` ("Shared test scaffolding"),
 `docs/novel-ralph-harness-design.md` (§9 installed-binary criteria),
-`docs/adr-006-console-scripts-e2e-posix-policy.md`, `AGENTS.md` (module and
-local-variable caps, bare-`assert` policy), and the `python-router` /
+`docs/adrs/adr-0006-console-scripts-e2e-posix-policy.md`, `AGENTS.md` (module
+and local-variable caps, bare-`assert` policy), and the `python-router` /
 `python-testing` skills. Code navigated with `leta`; history traced with
 `git show` over commit `9c63253`.
 

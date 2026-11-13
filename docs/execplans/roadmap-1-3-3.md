@@ -317,8 +317,8 @@ Authoritative references for this task:
 
 - `docs/novel-ralph-harness-design.md` §3.1 (output modes; the `--human`
   switch is the shared contract's responsibility).
-- `docs/adr-003-shared-interface-contract.md` §3.1 (the `--human` rendering
-  switch is a functional requirement of the one shared contract).
+- `docs/adrs/adr-0003-shared-interface-contract.md` §3.1 (the `--human`
+  rendering switch is a functional requirement of the one shared contract).
 - `docs/developers-guide.md`, the "The shared JSON envelope" section (the
   contract package's public surface) and the `novel-state check` passage near
   line 318 (the pre-parse-before-`run` convention).
@@ -370,9 +370,10 @@ if the current item's gate fails.
 ### Work item 1: Move the splitter into `contract.runner`
 
 Documentation to read first: `docs/novel-ralph-harness-design.md` §3.1;
-`docs/adr-003-shared-interface-contract.md` §3.1; `AGENTS.md` "Abstraction /
-port / helper policy" (confirm by sweep that no rival splitter exists —
-`grep -rn "--human"` across `novel_ralph_skill/` shows only the one definition).
+`docs/adrs/adr-0003-shared-interface-contract.md` §3.1; `AGENTS.md`
+"Abstraction / port / helper policy" (confirm by sweep that no rival splitter
+exists — `grep -rn "--human"` across `novel_ralph_skill/` shows only the one
+definition).
 
 Skills to load: `python-router` (it routes to the smaller skills below); `leta`
 for navigation; from the router, `python-data-shapes` is not needed (no new

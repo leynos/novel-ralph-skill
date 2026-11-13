@@ -119,10 +119,10 @@ workaround.
 - **`loaderkit` stays a neutral leaf.** `novel_ralph_skill/loaderkit/parse.py`
   must import nothing from `rulepack` or `ledger` — at runtime or under
   `TYPE_CHECKING` — exactly as the other `loaderkit` modules do (design §6,
-  §6.1, §6.3; `docs/adr-003-shared-interface-contract.md`). It may depend only
-  on `novel_ralph_skill.contract.errors`, `novel_ralph_skill.loaderkit` siblings
-  (`coerce`, `load`), and the standard library. The parametrized package-wide
-  import-direction guard
+  §6.1, §6.3; `docs/adrs/adr-0003-shared-interface-contract.md`). It may depend
+  only on `novel_ralph_skill.contract.errors`, `novel_ralph_skill.loaderkit`
+  siblings (`coerce`, `load`), and the standard library. The parametrized
+  package-wide import-direction guard
   (`tests/test_loaderkit_scan.py::test_loaderkit_module_imports_no_pack_domain`,
   which globs `loaderkit/*.py`) must continue to pass with the new module in
   scope.
@@ -417,7 +417,7 @@ You are working in the git worktree at
 
 The package under change is `novel_ralph_skill`, a Python deterministic
 harness. The relevant layering (design §3.1, §6;
-`docs/adr-003-shared-interface-contract.md`):
+`docs/adrs/adr-0003-shared-interface-contract.md`):
 
 - `novel_ralph_skill/contract/errors.py` defines `EnvelopeMessagesError`, the
   base every domain error subclasses. It is the bottom of the dependency graph.
@@ -627,8 +627,8 @@ roadmap Success criterion). Run `uv run pytest tests/test_loaderkit_parse.py`
 (red before the module, green after), then `make all`.
 
 Cited: design §6.1/§6.3 (`loaderkit` neutral home, the loader-primitive
-consolidation); `docs/adr-003-shared-interface-contract.md` (acyclic layering);
-`docs/execplans/roadmap-7-2-5.md` (the binding precedent and
+consolidation); `docs/adrs/adr-0003-shared-interface-contract.md` (acyclic
+layering); `docs/execplans/roadmap-7-2-5.md` (the binding precedent and
 D-NO-EXTERNAL-RESEARCH); AGENTS.md "Testing" (unit tests, property tests where
 logic branches, 100% docstrings). Skills: `python-router` →
 `python-types-and-apis` (the `TypeVar` generic skeleton signature and
@@ -708,7 +708,7 @@ tests/test_contract_errors.py` —
 every pre-existing assertion passes unchanged and the new precedence test
 passes, then `make all`.
 
-Cited: design §6.1; `docs/adr-003-shared-interface-contract.md`;
+Cited: design §6.1; `docs/adrs/adr-0003-shared-interface-contract.md`;
 `docs/execplans/roadmap-7-2-2.md`/`roadmap-7-2-5.md` (the binding precedent);
 `novel_ralph_skill/rulepack/parse.py`. Skills: `python-router` →
 `python-errors-and-logging` (preserving the single-exception-type boundary
@@ -752,7 +752,7 @@ bindings, catch sites, `__all__`, or test changes. Run the ledger suites —
 tests/test_ledger_properties.py tests/test_ledger_snapshots.py` —
 unchanged, then `make all`.
 
-Cited: design §6.3; `docs/adr-003-shared-interface-contract.md`;
+Cited: design §6.3; `docs/adrs/adr-0003-shared-interface-contract.md`;
 `novel_ralph_skill/ledger/parse.py`. Skills: `python-router` →
 `python-errors-and-logging`, `python-testing`.
 
@@ -778,8 +778,8 @@ Cited: design §6.3; `docs/adr-003-shared-interface-contract.md`;
   rule pack's extra `pack` read staying at its call site. This is a docs
   change, so additionally run `make markdownlint` and `make nixie`.
 
-Cited: design §6.1/§6.3; `docs/adr-003-shared-interface-contract.md`; AGENTS.md
-(documentation update obligation); `docs/developers-guide.md`. Skills:
+Cited: design §6.1/§6.3; `docs/adrs/adr-0003-shared-interface-contract.md`;
+AGENTS.md (documentation update obligation); `docs/developers-guide.md`. Skills:
 `en-gb-oxendict` (Oxford spelling in the guide prose).
 
 ### Stage D — hardening

@@ -6,12 +6,13 @@ load-bearing source claim re-verified against real source. No new blocking
 defect found.
 
 Reviewer trail: `docs/novel-ralph-harness-design.md` §3.2/§3.4;
-`docs/adr-003-shared-interface-contract.md`; `docs/scripting-standards.md`
-600-688; `docs/developers-guide.md` line 589/1140-1148/1328-1359/1497;
-`AGENTS.md` 18/24-27/141-165; `docs/execplans/roadmap-6-3-1.md` Decisions
-D6/D8; first-hand read of `_state_load.py`, `_state_mutators.py`, `_compile.py`,
-`novel_state.py`, `_recount.py`, `_wordcount.py`, `_novel_done.py`,
-`_desloppify.py`, `tests/test_complete_final_pass_unit.py`,
+`docs/adrs/adr-0003-shared-interface-contract.md`;
+`docs/scripting-standards.md` 600-688; `docs/developers-guide.md` line
+589/1140-1148/1328-1359/1497; `AGENTS.md` 18/24-27/141-165;
+`docs/execplans/roadmap-6-3-1.md` Decisions D6/D8; first-hand read of
+`_state_load.py`, `_state_mutators.py`, `_compile.py`, `novel_state.py`,
+`_recount.py`, `_wordcount.py`, `_novel_done.py`, `_desloppify.py`,
+`tests/test_complete_final_pass_unit.py`,
 `tests/test_state_input_message_parity.py`, plus a `grep` over `tests/`. Skills:
 `logisphere-design-review`.
 

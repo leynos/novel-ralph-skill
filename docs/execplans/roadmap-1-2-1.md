@@ -53,8 +53,8 @@ packaging boundary the design fixes in ADR 004 (installed console-scripts) and
 ADR 005 (five separate scripts, not one multiplexer), without implementing any
 command behaviour, so the five later slices converge on one coherent spine. It
 depends on roadmap tasks 1.1.3 (shared interface contract,
-`docs/adr-003-shared-interface-contract.md`) and 1.1.5 (command surface,
-`docs/adr-005-command-surface-five-scripts.md`), both already accepted.
+`docs/adrs/adr-0003-shared-interface-contract.md`) and 1.1.5 (command surface,
+`docs/adrs/adr-0005-command-surface-five-scripts.md`), both already accepted.
 
 To verify the implementation, build a wheel, install it into a throwaway
 virtual environment, and run each of the five commands: every one is found on
@@ -85,7 +85,7 @@ escalation, not a workaround.
   detect nothing and write nothing to the working tree; they only report "not
   implemented" and exit `2`.
 - Exit code `2` means "usage error" per the shared contract
-  (`docs/adr-003-shared-interface-contract.md`, design §3.2). The stub's
+  (`docs/adrs/adr-0003-shared-interface-contract.md`, design §3.2). The stub's
   *command result* — the bare no-argument invocation and any positional-token
   invocation that reaches the default callback — exits `2`. Do not use code `0`,
   `1`, `3`, or `4` for that command result.
@@ -498,18 +498,18 @@ Terms of art, defined here so the plan is self-contained:
   exists, is invocable, returns a defined exit code) but performs none of the
   real work. Here every stub reports "not implemented" and exits `2`.
 - **Exit-code contract.** The shared interface contract
-  (`docs/adr-003-shared-interface-contract.md`, design §3.2) reserves: `0`
-  success, `1` benign negative, `2` usage error, `3` state/input error, `4`
+  (`docs/adrs/adr-0003-shared-interface-contract.md`, design §3.2) reserves:
+  `0` success, `1` benign negative, `2` usage error, `3` state/input error, `4`
   actionable finding. Stubs use `2` for their command result.
 
 Authoritative sources to read before editing:
 
 - `docs/roadmap.md` step 1.2 and task 1.2.1 — the task's success criteria.
-- `docs/adr-004-distribution-console-scripts.md` — why console-scripts.
-- `docs/adr-005-command-surface-five-scripts.md` — why five names, not a
+- `docs/adrs/adr-0004-distribution-console-scripts.md` — why console-scripts.
+- `docs/adrs/adr-0005-command-surface-five-scripts.md` — why five names, not a
   multiplexer.
-- `docs/adr-003-shared-interface-contract.md` and design §3.2 — the exit-code
-  table the stub exit must honour.
+- `docs/adrs/adr-0003-shared-interface-contract.md` and design §3.2 — the
+  exit-code table the stub exit must honour.
 - `docs/novel-ralph-harness-design.md` §4 — the five commands and that "Each is
   a Cyclopts application exposed as a console-script in `novel_ralph_skill`",
   and that cuprum is required only where a command shells out (none do in v1).
@@ -776,12 +776,12 @@ disposable venv (verified against uv 0.9.21; its `--no-project` flag exists to
 avoid project discovery, so the default discovers it). That would yield a green
 test that never exercises the installed wheel.
 
-Read first: `docs/adr-004-distribution-console-scripts.md`,
-`docs/adr-005-command-surface-five-scripts.md`, `.rules/python-pyproject.md`,
-`docs/scripting-standards.md` (the cuprum section — illustrative only; pin the
-real API per the Decision Log), the Makefile `build-release` target,
-`/data/leynos/Projects/cuprum/cuprum/catalogue.py`, `.../program.py`,
-`.../sh.py`.
+Read first: `docs/adrs/adr-0004-distribution-console-scripts.md`,
+`docs/adrs/adr-0005-command-surface-five-scripts.md`,
+`.rules/python-pyproject.md`, `docs/scripting-standards.md` (the cuprum section
+— illustrative only; pin the real API per the Decision Log), the Makefile
+`build-release` target, `/data/leynos/Projects/cuprum/cuprum/catalogue.py`,
+`.../program.py`, `.../sh.py`.
 
 Skills: `python-router`, `python-testing` (slow marks, timeouts, the
 build-install e2e boundary, the xdist interaction). `cmd-mox` is not used — the

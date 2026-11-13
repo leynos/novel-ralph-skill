@@ -190,7 +190,7 @@ and `_require` run in the worktree.
 ## Trail
 
 Design docs: `docs/novel-ralph-harness-design.md` §6/§6.1/§6.3;
-`docs/adr-001-*`, `docs/adr-003-shared-interface-contract.md`;
+`docs/adr-001-*`, `docs/adrs/adr-0003-shared-interface-contract.md`;
 `docs/developers-guide.md` "The shared loader primitives"; `docs/roadmap.md`
 7.2.3; `docs/execplans/roadmap-7-2-2.md` (D-SCANTYPES);
 `docs/execplans/roadmap-7-2-3.review-r1.md`,

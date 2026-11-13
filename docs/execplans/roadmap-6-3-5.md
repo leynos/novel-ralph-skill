@@ -80,7 +80,7 @@ escalation, not a workaround.
 - The exit-code contract is fixed: an undecodable/unreadable `draft.md`,
   `compiled.md`, or a structurally-incomplete `state.toml` is the exit-3
   state-or-input channel, never the benign exit 1 (design §3.2, the exit-code
-  table; `adr-003-shared-interface-contract.md`). This plan changes only the
+  table; `adr-0003-shared-interface-contract.md`). This plan changes only the
   **message text**; it never changes an exit code, never alters the
   `StateInputError`-to-exit-3 mapping in
   `novel_ralph_skill/contract/runner.py`, and never moves a fault from one
@@ -499,11 +499,11 @@ not edited.
 
 Design and standards to read before starting: design §3.2 (the exit-code
 table), §3.4 (the state-input channel / atomic writes);
-`docs/adr-003-shared-interface-contract.md` (the shared envelope and message
-contract); `docs/scripting-standards.md` lines 600-688 ("human-friendly error
-messages should highlight remediation steps"; production code presents friendly
-messages); `AGENTS.md` (quality gates, en-GB Oxford spelling, the 400-line cap,
-the testing rules at lines 141-165). The 6.3.1 ExecPlan
+`docs/adrs/adr-0003-shared-interface-contract.md` (the shared envelope and
+message contract); `docs/scripting-standards.md` lines 600-688 ("human-friendly
+error messages should highlight remediation steps"; production code presents
+friendly messages); `AGENTS.md` (quality gates, en-GB Oxford spelling, the
+400-line cap, the testing rules at lines 141-165). The 6.3.1 ExecPlan
 (`docs/execplans/roadmap-6-3-1.md`) is the template this plan follows; its
 Decision D6 (leaf-module split for the cap) and Decision D8 (the
 view-derivation boundary being a distinct *state-document* fault, not a
@@ -526,11 +526,12 @@ follows, then the behavioural cross-boundary proof, then documentation.
 ### Work item 1 — Shared draft-read actionable-message formatter
 
 Implements: design §3.2 (the exit-3 channel) and §3.4;
-`docs/adr-003-shared-interface-contract.md`; `docs/scripting-standards.md`
-lines 600-688. Closes the §6.3.5 requirement to "route all six call sites
-through a shared actionable formatter analogous to `_state_input_error`".
+`docs/adrs/adr-0003-shared-interface-contract.md`;
+`docs/scripting-standards.md` lines 600-688. Closes the §6.3.5 requirement to
+"route all six call sites through a shared actionable formatter analogous to
+`_state_input_error`".
 
-Docs to read: design §3.2 and §3.4; `adr-003-shared-interface-contract.md`;
+Docs to read: design §3.2 and §3.4; `adr-0003-shared-interface-contract.md`;
 `docs/scripting-standards.md` lines 600-688; `AGENTS.md` lines 18, 24-27,
 141-165; `docs/execplans/roadmap-6-3-1.md` (the `_state_input_error` precedent
 and the 6.3.1 plan's Decision D6, the leaf-module split — distinct from *this*

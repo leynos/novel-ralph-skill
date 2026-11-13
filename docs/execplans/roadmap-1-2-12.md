@@ -655,15 +655,15 @@ Reused unchanged (escalate before altering any signature): `make_contract_app`,
 
 Documents the implementer must read (source of truth):
 
-- `docs/adr-007-command-surface-novel-multiplexer.md` — the decision, the exact
-  subcommand structure (§"The subcommand structure"), and the migration plan
-  naming 1.2.12's scope.
+- `docs/adrs/adr-0007-command-surface-novel-multiplexer.md` — the decision, the
+  exact subcommand structure (§"The subcommand structure"), and the migration
+  plan naming 1.2.12's scope.
 - `docs/novel-ralph-harness-design.md` §3 (envelope + exit-code contract), §3.2,
   §4 (the command surface; §4.1 `novel state`, §4.2 `novel done`, §4.3
   `novel compile`), and the per-command sections for desloppify/wordcount.
-- `docs/adr-003-shared-interface-contract.md` — the envelope, exit-code policy
-  (Table 2), and the `--human` global flag (§3.1).
-- `docs/adr-004-distribution-console-scripts.md` — the console-script
+- `docs/adrs/adr-0003-shared-interface-contract.md` — the envelope, exit-code
+  policy (Table 2), and the `--human` global flag (§3.1).
+- `docs/adrs/adr-0004-distribution-console-scripts.md` — the console-script
   distribution form (now one `novel` entry).
 - `docs/roadmap.md` task 1.2.12 (scope boundary), 1.2.13 and 1.2.14 (what is
   explicitly **out** of scope here).

@@ -525,10 +525,10 @@ Read these before starting. They are the source of truth.
   projection beside it and route all four sites through it; keep the read/write
   envelope code and exit codes where they are). Findings 1, 3, 4, 5, 6 are
   **not** this task (non-goals).
-- `docs/adr-001-deterministic-judgemental-boundary.md` (detect-only;
+- `docs/adrs/adr-0001-deterministic-judgemental-boundary.md` (detect-only;
   `check` writes nothing — the projection is a pure read of an immutable
   dataclass).
-- `docs/adr-003-shared-interface-contract.md` (the envelope and exit-code
+- `docs/adrs/adr-0003-shared-interface-contract.md` (the envelope and exit-code
   contract this refactor must not perturb).
 - `AGENTS.md` "Python verification and testing" (unit/behavioural/property
   discipline; the snapshot rule — keep snapshots on stable boundaries, pair

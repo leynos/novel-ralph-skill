@@ -36,7 +36,7 @@ with reads over `commands/_set_chapters.py`, `commands/_chapter_plan_entry.py`,
 `commands/_reconcile.py`, `state/reconcile.py`, `state/_disk_paths.py`,
 `state/document.py`, `state/schema.py`, `state/validate.py`, and the 2.2.3 test
 modules; traced history with `git show 0ca2767` and `git log origin/main`.
-Source of truth consulted: `docs/adr-008-chapter-manifest-mutator.md`,
+Source of truth consulted: `docs/adrs/adr-0008-chapter-manifest-mutator.md`,
 `docs/novel-ralph-harness-design.md` §5.1/§5.2/§5.4, `docs/developers-guide.md`
 ("State mutators" / "multi-file mutator"), `docs/users-guide.md`,
 `skill/novel-ralph/SKILL.md` Phase 7, prior `docs/issues/audit-2.2.2.md` and

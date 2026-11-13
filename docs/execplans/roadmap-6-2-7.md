@@ -474,8 +474,8 @@ Files to read or touch:
 - `docs/roadmap.md` lines 1384-1400 (task 6.2.7 statement and success clause).
 - `docs/developers-guide.md` §"Shared test scaffolding", §"working_corpus" (the
   sanctioned value import and step-module conventions).
-- `docs/adr-002-toml-round-trip-tomlkit.md` (the `tomlkit` document path the
-  `pending_turn` bracket writes through — orientation only; no change here).
+- `docs/adrs/adr-0002-toml-round-trip-tomlkit.md` (the `tomlkit` document path
+  the `pending_turn` bracket writes through — orientation only; no change here).
 - `novel_ralph_skill/state/document.py` — `pending_turn`, `open_pending_turn`,
   `clear_pending_turn` (the §3.4 producer the scenario raises inside). Do not
   modify.

@@ -17,7 +17,7 @@ threads `relax_drafting_bijection=True` only through the user-facing `check`
 `derive_reconciliation`
 ([`reconcile.py`](../../novel_ralph_skill/state/reconcile.py)) keeps the
 strict default; records
-[ADR 009](../../docs/adr-009-drafting-bijection-relaxation.md); and adds unit,
+[ADR 009](../adrs/adr-0009-drafting-bijection-relaxation.md); and adds unit,
 corpus, and end-to-end coverage.
 
 The slice is sound and discharges its Success clause. The relaxation is
@@ -52,8 +52,8 @@ Trail followed: explored with `leta` (`files`, `grep`, `show` over
 set-classification idiom; traced history with `git show cb20d3f` and
 `git log origin/main`. Source of truth consulted:
 
-- [ADR 009](../../docs/adr-009-drafting-bijection-relaxation.md)
-- [ADR 008](../../docs/adr-008-chapter-manifest-mutator.md)
+- [ADR 009](../adrs/adr-0009-drafting-bijection-relaxation.md)
+- [ADR 008](../adrs/adr-0008-chapter-manifest-mutator.md)
 - [developers-guide.md](../../docs/developers-guide.md)
 (§5.2 invariant table and the "drafting bijection relaxation" section),
 [`users-guide.md`](../../docs/users-guide.md),

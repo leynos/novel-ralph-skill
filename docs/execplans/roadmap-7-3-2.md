@@ -66,8 +66,8 @@ external-library behaviour. It serves the step-7.3 command-facade single-home
 hypothesis — one registry-driven home for the multiplexer's entry-point
 construction — per roadmap task 7.3.2 (`docs/roadmap.md` lines 2849–2871). It
 cites design §4 (`docs/novel-ralph-harness-design.md` lines 274–289), ADR 007
-(`docs/adr-007-command-surface-novel-multiplexer.md`, superseding ADR 005
-`docs/adr-005-command-surface-five-scripts.md`), and the names registry
+(`docs/adrs/adr-0007-command-surface-novel-multiplexer.md`, superseding ADR 005
+`docs/adrs/adr-0005-command-surface-five-scripts.md`), and the names registry
 (`novel_ralph_skill/commands/names.py`, `SUBCOMMAND_NAMES`).
 
 ### A load-bearing reinterpretation of the roadmap text (read before starting)
@@ -506,7 +506,7 @@ Documentation to read first:
 
 - `docs/novel-ralph-harness-design.md` lines 274–289 (design §4 — the single
   multiplexer mounting five operations) and ADR 007
-  (`docs/adr-007-command-surface-novel-multiplexer.md`).
+  (`docs/adrs/adr-0007-command-surface-novel-multiplexer.md`).
 - `novel_ralph_skill/commands/novel.py` lines 56–91 (the current
   `build_multiplexer` and its deferred imports) and the module docstring lines
   56–66 (the laziness rationale to preserve and re-state).

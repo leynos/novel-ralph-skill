@@ -14,10 +14,10 @@ added that proof but left `novel-state reconcile` and the `wordcount`
 console-script with only happy-path installed proofs, even though both share
 the same `./working/state.toml` input boundary and the same exit-3 contract
 (`docs/novel-ralph-harness-design.md` §3.2;
-`docs/adr-003-shared-interface-contract.md` Table 2). The harness branches on
-the *installed* exit code for every command, so this asymmetry is a real gap in
-the packaging boundary the unattended gate trusts (`docs/issues/audit-6.2.4.md`
-Finding 6).
+`docs/adrs/adr-0003-shared-interface-contract.md` Table 2). The harness
+branches on the *installed* exit code for every command, so this asymmetry is a
+real gap in the packaging boundary the unattended gate trusts
+(`docs/issues/audit-6.2.4.md` Finding 6).
 
 After this change a developer can run the test suite and observe two new
 `@slow` installed-binary e2e proofs:
@@ -76,7 +76,7 @@ escalation, not a workaround.
   `@pytest.mark.skipif(os.name != "posix", reason="console-script e2e is
   POSIX-only; see ADR 006")`,
   exactly as every existing installed e2e does
-  (`docs/adr-006-console-scripts-e2e-posix-policy.md`).
+  (`docs/adrs/adr-0006-console-scripts-e2e-posix-policy.md`).
 - **`@slow` and explicit timeout.** Each installed e2e carries
   `@pytest.mark.slow` and `@pytest.mark.timeout(180)`; the 180-second per-test
   timeout supersedes the 30-second project default because the wheel build is
@@ -250,7 +250,7 @@ The repository is a Python skill harness. The package lives in
 line 145). Five console-scripts are distributed in the wheel: `novel-state`
 (with subcommands `check`, `recount`, `reconcile`, `set-cursor`,
 `advance-phase`, `init`), `novel-compile`, `novel-done`, `wordcount`, and
-`desloppify` (`docs/adr-005-command-surface-five-scripts.md`).
+`desloppify` (`docs/adrs/adr-0005-command-surface-five-scripts.md`).
 
 Key terms:
 
@@ -261,16 +261,16 @@ Key terms:
   real packaging boundary, not merely against the in-process entry-point body,
   because the harness branches on the exit code of the *installed* script
   (`docs/novel-ralph-harness-design.md` §9;
-  `docs/adr-006-console-scripts-e2e-posix-policy.md`).
+  `docs/adrs/adr-0006-console-scripts-e2e-posix-policy.md`).
 - **Exit-3 (state or input error).** The contract code for "state or input
   error; stop and recover state" — a missing or unparseable `state.toml`, or an
   absent working directory (`docs/novel-ralph-harness-design.md` §3.2 Table;
-  `docs/adr-003-shared-interface-contract.md` Table 2, row 3). A mutator that
-  refuses an incoherent request exits 3, never 1 (design §3.2).
+  `docs/adrs/adr-0003-shared-interface-contract.md` Table 2, row 3). A mutator
+  that refuses an incoherent request exits 3, never 1 (design §3.2).
 - **Envelope.** The single JSON object every command emits in machine mode, with
   an `ok` field mirroring the exit code (`ok` is true only on exit 0) and a
-  `result` payload (`docs/adr-003-shared-interface-contract.md` §"Decision",
-  `ok` row).
+  `result` payload (`docs/adrs/adr-0003-shared-interface-contract.md`
+  §"Decision", `ok` row).
 - **`working_corpus` (alias `wc`).** The in-tree test helper
   (`tests/working_corpus/`) that materializes a `working/` tree from a
   `WorkingTreeSpec`; `wc.build_working_tree(spec, dest)` returns the `working/`
@@ -321,15 +321,15 @@ validation fails.
 Implements: `docs/novel-ralph-harness-design.md` §9 (installed-binary e2es
 prove the exit-code contract at the packaging boundary) and §3.2
 (mutator-refusal-is-3; state-or-input-error exits 3);
-`docs/adr-003-shared-interface-contract.md` Table 2 row 3;
+`docs/adrs/adr-0003-shared-interface-contract.md` Table 2 row 3;
 `docs/issues/audit-6.2.4.md` Finding 6; roadmap task 6.2.6.
 
 Docs to read first: `docs/novel-ralph-harness-design.md` §3.2 and §9; §10
 (failure modes — a state fault yields a message, not a stack trace);
-`docs/adr-003-shared-interface-contract.md` (envelope `ok` row, Table 2);
-`docs/adr-006-console-scripts-e2e-posix-policy.md` (POSIX-only e2e policy);
-`docs/developers-guide.md` "Shared test scaffolding" (no cross-module fixture
-copies); `AGENTS.md` "Python verification and testing".
+`docs/adrs/adr-0003-shared-interface-contract.md` (envelope `ok` row, Table 2);
+`docs/adrs/adr-0006-console-scripts-e2e-posix-policy.md` (POSIX-only e2e
+policy); `docs/developers-guide.md` "Shared test scaffolding" (no cross-module
+fixture copies); `AGENTS.md` "Python verification and testing".
 
 Skills to load: `python-router` (route to the smaller skills), then
 `python-testing` (parametrize, marks, fixture scope, e2e boundary). No

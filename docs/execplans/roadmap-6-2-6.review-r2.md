@@ -138,8 +138,8 @@ on the correct code in every case.
 ## Documentation / skills trail relied on
 
 `docs/novel-ralph-harness-design.md` §3.2/§9/§10; `docs/adr-001-...` (boundary),
-`docs/adr-003-shared-interface-contract.md` Table 2; `docs/adr-006-...` (POSIX
-e2e policy); `docs/issues/audit-6.2.4.md` Finding 6; `docs/roadmap.md` 6.2.6;
-`docs/developers-guide.md` ("Shared test scaffolding"); `AGENTS.md`; the locked
-`cuprum==0.1.0` wheel (PyPI, sha256 matched to `uv.lock`). Skills: the
+`docs/adrs/adr-0003-shared-interface-contract.md` Table 2; `docs/adr-006-...`
+(POSIX e2e policy); `docs/issues/audit-6.2.4.md` Finding 6; `docs/roadmap.md`
+6.2.6; `docs/developers-guide.md` ("Shared test scaffolding"); `AGENTS.md`; the
+locked `cuprum==0.1.0` wheel (PyPI, sha256 matched to `uv.lock`). Skills: the
 `logisphere-design-review` crew framework.

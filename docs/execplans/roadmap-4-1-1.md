@@ -472,11 +472,11 @@ Key files (full repository-relative paths):
   (schema; `[chapters]` manifest lines 418-424), §5.2 (the
   manifest-disk-bijection invariant lines 477-482), §9 (verification), §10
   (failure modes; manifest-missing lines 811-815).
-- `docs/adr-003-shared-interface-contract.md` — the envelope and the
+- `docs/adrs/adr-0003-shared-interface-contract.md` — the envelope and the
   disambiguated exit-code table (exit `3` state/input; exit `4` actionable).
-- `docs/adr-005-command-surface-five-scripts.md` — five named commands, each 1:1
-  onto a deterministic operation (so `novel-compile` is a single default
-  command).
+- `docs/adrs/adr-0005-command-surface-five-scripts.md` — five named commands,
+  each 1:1 onto a deterministic operation (so `novel-compile` is a single
+  default command).
 - `docs/scripting-standards.md` — Cyclopts, cuprum, and pathlib conventions
   (atomic temp-file-plus-`Path.replace`).
 - `docs/developers-guide.md` — the contract narrative; the compile-and-hash
