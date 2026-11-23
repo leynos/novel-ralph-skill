@@ -42,7 +42,7 @@ jobs:
       - name: Install mdtablefix
         # `make check-fmt` runs `mdtablefix --check --git`; 0.6.1 is the
         # first release with `--check` and `--git`.
-        uses: leynos/shared-actions/.github/actions/install-mdtablefix@cfd51f3d5423cb16155b94e020cdd7eaeebd0833
+        uses: leynos/shared-actions/.github/actions/install-mdtablefix@3551a0bf76fe47d0cc5ff632c7796a8ddb23717e
         with:
           version: "0.6.1"
 
@@ -84,7 +84,7 @@ jobs:
         # venv with a bare `uv venv`, which takes whatever uv finds first.
         env:
           UV_PYTHON: '3.14'
-        uses: leynos/shared-actions/.github/actions/generate-coverage@cfd51f3d5423cb16155b94e020cdd7eaeebd0833
+        uses: leynos/shared-actions/.github/actions/generate-coverage@3551a0bf76fe47d0cc5ff632c7796a8ddb23717e
         with:
           python-source: ./novel_ralph_skill
           output-path: coverage.xml
