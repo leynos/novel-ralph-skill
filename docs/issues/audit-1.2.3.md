@@ -115,13 +115,13 @@ restates `os.name`.
 - **Category:** duplication
 - **Severity:** medium
 - **Location:** `tests/test_command_stubs.py:23` and
-  `tests/test_console_scripts_e2e.py:60` (two hand-written `COMMAND_NAMES`
+  `tests/test_console_scripts_e2e.py:60` (two handwritten `COMMAND_NAMES`
   tuples), `tests/test_pyproject_scripts.py:17` (`EXPECTED_SCRIPTS` keys),
   `novel_ralph_skill/commands/stub.py` (five `def` entry points plus name
   literals), `pyproject.toml` `[project.scripts]`; no `tests/conftest.py`
 
 The five command names — `novel-state`, `novel-done`, `novel-compile`,
-`desloppify`, `wordcount` — remain hand-written across the stub module,
+`desloppify`, `wordcount` — remain handwritten across the stub module,
 `pyproject.toml`, and three test modules, exactly as audit-1.2.1 Finding 1 and
 audit-1.2.2 Finding 4 recorded. This slice did not add a copy (the rewritten
 e2e module kept its existing `COMMAND_NAMES`), but it confirms the drift

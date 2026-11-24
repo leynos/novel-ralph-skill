@@ -120,7 +120,7 @@ the parse boundary.
   `_require_str`, `_require_int`, and — ledger only — `_require` forwarders).
 
 The 7.2.2/7.2.5/7.2.6 lineage consolidated every coercion *body*, but each
-family still carries a hand-written shim whose only job is to rename the shared
+family still carries a handwritten shim whose only job is to rename the shared
 `offending_id=` keyword to a family-specific one (`rule_id=` / `device_id=`)
 and re-bind the noun pair. The two shims are structurally identical
 line-for-line forwarders differing only in that keyword name, the bound
@@ -158,8 +158,8 @@ has to notice the asymmetry and infer it is incidental rather than meaningful.
 
 - **Proposed fix:** Fold this into Finding 3's resolution: if the shims are
   generated from a shared factory the forwarder set is uniform by construction.
-  If the hand-written shims are kept, either add the `_require` forwarder to
-  the rule-pack shim for surface parity (and note it is unused there) or add a
+  If the handwritten shims are kept, either add the `_require` forwarder to the
+  rule-pack shim for surface parity (and note it is unused there) or add a
   one-line comment in `ledger/_coerce.py` explaining that `_require` is present
   only because `_fields.py` needs the bare value for the `allowed_chapters`
   array check, so the asymmetry reads as intentional.

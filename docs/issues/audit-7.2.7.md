@@ -5,7 +5,7 @@ per-family `_coerce.py` forwarder shims (commit `6d28cbc`). It introduced a
 shared `bind_coercion` factory in `loaderkit/coerce.py` that returns a frozen
 `BoundCoercion` bundle exposing every coercion helper pre-bound to one family's
 `CoercionErrors`, so each family's `_coerce.py` is now a single `bind_coercion`
-call rather than a hand-written set of `_where`/`_require*`/
+call rather than a handwritten set of `_where`/`_require*`/
 `_reject_unknown_keys` forwarders. In parallel it changed the two parameterized
 seams in `loaderkit/parse.py` and `loaderkit/scan.py` to a keyword-call
 convention (`build_entry(entry, index=index)` and
@@ -85,7 +85,7 @@ not the type checker.
 
 The task collapsed two *per-family* forwarder modules into one shared bundle —
 a real reduction, since the forwarders now live once rather than once per
-family. But the bundle itself is a hand-written set of five trivial forwarders,
+family. But the bundle itself is a handwritten set of five trivial forwarders,
 each re-spelling the underlying free function's signature only to call it back
 with `errors=self.errors`. The free functions and the bound methods must now be
 kept in lockstep by hand: adding a sixth coercion primitive means editing it in

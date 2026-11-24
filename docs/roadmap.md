@@ -2524,7 +2524,7 @@ of truth, and a test pins it so it cannot silently re-fork.
   - Success: a named `compile_is_current` predicate over `CompiledComparison`
     lives once in `compile_model.py` and is consumed by `check_compiled`,
     `compile_consistent`, and the `novel-done` compile clause in place of their
-    hand-written `is CompiledComparison.MATCHES` tests; the
+    handwritten `is CompiledComparison.MATCHES` tests; the
     `working/manuscript/compiled.md` path and its working-relative token have one
     definition the four modules import; no behaviour changes; and every compile,
     done-predicate, and disk-evidence suite stays green.

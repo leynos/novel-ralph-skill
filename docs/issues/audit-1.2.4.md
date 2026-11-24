@@ -36,7 +36,7 @@ defect; they are tidy-up opportunities plus prior-audit items that remain open.
   (`test_registry_matches_project_scripts`)
 
 This slice converged `test_pyproject_scripts.py` onto the registry by replacing
-its hand-written `EXPECTED_SCRIPTS` with `names.project_scripts_table()`. The
+its handwritten `EXPECTED_SCRIPTS` with `names.project_scripts_table()`. The
 side effect is that its sole test now asserts
 `scripts == names.project_scripts_table()` — byte-for-byte the same assertion
 the new `test_command_names_registry.py::test_registry_matches_project_scripts`

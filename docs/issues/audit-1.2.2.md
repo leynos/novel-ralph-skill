@@ -90,7 +90,7 @@ until the round-trip property test (task 2.2.1) exists.
   (`test_tomlkit_edit_preserves_comments`)
 
 The new test proves `tomlkit` round-trips and comment-preserves over a small,
-hand-written TOML fragment (`SRC`). This is exactly right for a
+handwritten TOML fragment (`SRC`). This is exactly right for a
 dependency-confirmation check and the docstring is careful to say so. The gap
 is forward-looking: the real property — a no-op read-mutate-write that
 preserves an actual `state.toml` byte-for-byte, integrated with the atomic
@@ -121,11 +121,11 @@ file atomically" is recorded rather than rediscovered.
 
 The findings recorded against task 1.2.1 (`docs/issues/audit-1.2.1.md`,
 findings 1, 3, and 4) are still open at this commit. The five command names are
-still hand-written across three test modules and the stub module; there is
-still no `tests/conftest.py` to host a shared command-name fixture or a
-project-root fixture; and `interrogate` is still installed but unconfigured and
-ungated, so docstring coverage is not enforced despite the new modules being
-well documented. None of these is introduced by task 1.2.2, but each compounds
+still handwritten across three test modules and the stub module; there is still
+no `tests/conftest.py` to host a shared command-name fixture or a project-root
+fixture; and `interrogate` is still installed but unconfigured and ungated, so
+docstring coverage is not enforced despite the new modules being well
+documented. None of these is introduced by task 1.2.2, but each compounds
 slightly as the surface grows, and the cheapest moment to fix the duplication
 and lock in the docstring gate is while the command surface is still five thin
 stubs.

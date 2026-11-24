@@ -344,7 +344,7 @@ CodeRabbit findings and their disposition; and confirmation that `make all`,
 - `test_console_scripts_e2e.py` dropped its inline `COMMAND_NAMES` tuple and
   imports the shared one; the cuprum run-loop, the POSIX skip guard, and the
   `slow`/`timeout(180)` markers are untouched.
-- `test_pyproject_scripts.py` dropped its hand-written `EXPECTED_SCRIPTS`
+- `test_pyproject_scripts.py` dropped its handwritten `EXPECTED_SCRIPTS`
   mapping and now asserts the parsed `[project.scripts]` equals
   `names.project_scripts_table()`. It stays complementary to the dedicated
   registry gate (which additionally pins order, callable resolution, and the
@@ -643,7 +643,7 @@ In `tests/test_console_scripts_e2e.py`:
 
 In `tests/test_pyproject_scripts.py`:
 
-- Replace the hand-written `EXPECTED_SCRIPTS` mapping (lines 17-23) with
+- Replace the handwritten `EXPECTED_SCRIPTS` mapping (lines 17-23) with
   `names.project_scripts_table()` so this gate, too, derives its expectation
   from the registry rather than re-declaring it. The test's behaviour (assert
   the parsed `[project.scripts]` equals the expected table) is preserved; its

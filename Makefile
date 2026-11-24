@@ -25,9 +25,7 @@ WITH_ACT ?= 0
 ACT_TEST_ENV = $(if $(filter 1 true yes on,$(WITH_ACT)),RUN_ACT_VALIDATION=1,)
 PYTEST_XDIST_WORKERS ?= auto
 PYTHON_TARGETS ?= novel_ralph_skill tests
-# The scripts directory is outside the default PYTHON_TARGETS, so the docstring
-# gate names it explicitly. It stays out of the other Python targets.
-INTERROGATE_TARGETS ?= $(PYTHON_TARGETS) scripts
+INTERROGATE_TARGETS ?= $(PYTHON_TARGETS)
 # Level 2 prints a MISSED row per undocumented definition, which the
 # `interrogate` target fails on: the rounded percentage alone can pass a lone gap.
 INTERROGATE_FLAGS ?= -vv --fail-under 100
@@ -150,13 +148,13 @@ markdownlint: $(MDLINT) ## Lint Markdown files
 	env -u NO_COLOR $(MDLINT) '**/*.md'
 	+$(MAKE) spelling
 
-TYPOS_VERSION ?= 1.48.0
-TYPOS := $(UV) tool run typos@$(TYPOS_VERSION)
+TYPOS_CONFIG_BUILDER_VERSION ?= v0.1.4
+TYPOS_CONFIG_BUILDER = $(UV_ENV) uv tool run --python 3.14 --from \
+	"git+https://github.com/leynos/typos-config-builder.git@$(TYPOS_CONFIG_BUILDER_VERSION)" \
+	typos-config-builder
 
-spelling: ## Enforce en-GB-oxendict spelling in Markdown prose
-	$(UV) run scripts/generate_typos_config.py
-	find . -type f -name '*.md' -not -path './.venv/*' -print0 | \
-		xargs -0 -r $(TYPOS) --config typos.toml --force-exclude
+spelling: ## Enforce en-GB-oxendict spelling in prose
+	$(TYPOS_CONFIG_BUILDER) gate --repository .
 
 nixie: ## Validate Mermaid diagrams
 	$(call ensure_tool,$(NIXIE))

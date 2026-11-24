@@ -21,7 +21,7 @@ the ``reconcile`` RECOUNT path:
 
 The corpus/``WorkingTreeSpec`` builders are taken by the sanctioned
 ``working_corpus as wc`` value import (ADR-002: ``state.toml`` is serialised
-through ``tomlkit`` by the builder, never hand-written here). Every command call
+through ``tomlkit`` by the builder, never handwritten here). Every command call
 is preceded by ``monkeypatch.chdir`` into the materialised tree's parent because
 the mutators resolve a cwd-relative ``working/state.toml`` (D-CWD).
 """

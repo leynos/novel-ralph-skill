@@ -109,7 +109,7 @@ and a severity.
   now exists in three places. The production validator and the `_oracle` twin
   are a *deliberate* independent cross-check (documented in the developers'
   guide and pinned by `test_incoherent_agreement_restricted_to_owned`). The
-  live-draft copy is a third hand-written restatement of the *table-internal*
+  live-draft copy is a third handwritten restatement of the *table-internal*
   read; its own docstring (lines 98–104) frames it as "a deliberate twin of
   `_oracle._check_by_chapter_sum`", but unlike the validator/oracle pair there
   is no contract test pinning the live-draft copy equal to the other two.

@@ -112,7 +112,7 @@ alignment cannot silently rot.
     writes
     `state.toml` is introduced here, but any test that constructs a `state.toml`
     must round-trip through `tomlkit` (via the corpus builder), never a
-    hand-written serializer.
+    handwritten serializer.
   - `docs/adrs/adr-0003-shared-interface-contract.md` — exit-code table (0
     success, 4
     actionable finding). The `compiled-matches-drafts` finding already exits 4

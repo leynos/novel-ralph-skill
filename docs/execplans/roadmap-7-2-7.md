@@ -343,7 +343,7 @@ workaround.
   - Decision: D-NO-EXTERNAL-RESEARCH — no cuprum/Cyclopts/pytest-timeout/uv
       behaviour is pinned because no work item depends on any of them (see
       Surprises). The only mechanism choices are stdlib (`functools.partial`
-      optional; a hand-written bound bundle is the primary mechanism).
+      optional; a handwritten bound bundle is the primary mechanism).
       Rationale: avoids inventing an unverified external dependency where the task
       is a pure internal-seam refactor.
       Date/Author: 2026-06-27, planning agent.

@@ -22,7 +22,7 @@ land in later slices, while the surface is still small.
   `tests/test_pyproject_scripts.py:17` (`EXPECTED_SCRIPTS` keys)
 
 The canonical list of the five command names — `novel-state`, `novel-done`,
-`novel-compile`, `desloppify`, `wordcount` — is hand-written in five places.
+`novel-compile`, `desloppify`, `wordcount` — is handwritten in five places.
 `test_command_stubs.py` and `test_console_scripts_e2e.py` each declare an
 identical `COMMAND_NAMES` tuple; `test_pyproject_scripts.py` re-states the same
 names as `EXPECTED_SCRIPTS` keys; `stub.py` repeats them as function names and

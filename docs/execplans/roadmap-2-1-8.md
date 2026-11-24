@@ -442,7 +442,7 @@ a type walk — see Revision note.)
     - Decision: D4 — derive the expected top-level **and every per-table leaf
       key** from `build_initial_document`; derive the chapter manifest sub-fields
       from `ChapterEntry` because `init` emits an **empty** `chapters` array.
-      Rationale: a hand-written list would itself drift. Deriving from the emitter
+      Rationale: a handwritten list would itself drift. Deriving from the emitter
       means the guard tracks whatever `init` actually emits, so a future leaf
       under *any* table (not only top-level tables or `[drafting.critic]`) added
       to the emitter without being documented fails the guard automatically —

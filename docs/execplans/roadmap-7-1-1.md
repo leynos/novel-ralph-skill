@@ -19,7 +19,7 @@ Two specific duplications exist:
 
 1. The *content-polarity projection* — "only `CompiledComparison.MATCHES`
    means the compile is current; `ABSENT` and `DIVERGES` are not" — is
-   hand-written at two sites: `done_predicate.compile_consistent`
+   handwritten at two sites: `done_predicate.compile_consistent`
    (`novel_ralph_skill/state/done_predicate.py:263`,
    `... is CompiledComparison.MATCHES`) and `commands._compile.check_compiled`
    (`novel_ralph_skill/commands/_compile.py:221`,
@@ -725,7 +725,7 @@ Quality method (how we check):
   `tests/test_compile_check_agreement.py` still passes, proving
   `novel compile --check` and `compile_consistent` agree on every corpus
   fixture — now backed by one shared `compile_is_current` predicate rather than
-  two hand-written projections.
+  two handwritten projections.
 
 ## Idempotence and recovery
 

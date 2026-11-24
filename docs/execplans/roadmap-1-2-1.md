@@ -360,7 +360,7 @@ escalation, not a workaround.
     the `D` rules or interrogate, so a new `commands/__init__.py` without a module
     docstring fails the lint gate.
   - Date/Author: 2026-06-21, planning agent.
-- Decision: share one stub factory rather than five hand-written apps.
+- Decision: share one stub factory rather than five handwritten apps.
   - Rationale: AGENTS.md DRY and refactoring heuristics; avoids drift across
     five
     identical bodies and keeps each module docstringed and under 400 lines.
