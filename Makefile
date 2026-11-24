@@ -149,7 +149,7 @@ markdownlint: $(MDLINT) ## Lint Markdown files
 	+$(MAKE) spelling
 
 TYPOS_CONFIG_BUILDER_VERSION ?= v0.1.4
-TYPOS_CONFIG_BUILDER = $(UV_ENV) uv tool run --python 3.14 --from \
+TYPOS_CONFIG_BUILDER = $(UV_ENV) $(UV) tool run --python 3.14 --from \
 	"git+https://github.com/leynos/typos-config-builder.git@$(TYPOS_CONFIG_BUILDER_VERSION)" \
 	typos-config-builder
 
