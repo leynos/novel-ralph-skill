@@ -190,7 +190,7 @@ parents were driven in one scenario.
 The installed module keeps a `_LOOP_ARGV` registry mapping each command to its
 extra argv, and the clean-pass `When` iterates `for command_name in _LOOP_ARGV`
 to drive all five. The stale-tree `When`, however, drives `novel-done` and
-`novel-compile` by two hand-written `_run_installed` calls (lines 237-238)
+`novel-compile` by two handwritten `_run_installed` calls (lines 237-238)
 rather than over a (sub)set of the same registry, so the two `When` steps
 express "drive this list of installed commands" in two different idioms. This
 is minor, but it means the set of commands the stale path exercises is implicit

@@ -10,7 +10,7 @@ Status: DELIVERED
 
 Today the serialization of a `Reconciliation` into its
 `{action, discrepancies, detail}` payload dict — plus the optional `current`/
-`by_chapter` recount pair — is hand-written at four sites across two command
+`by_chapter` recount pair — is handwritten at four sites across two command
 modules, even though `Reconciliation` already has a natural owner in
 `novel_ralph_skill/state/reconcile.py` (the module that defines the dataclass
 and the one pure `derive_reconciliation` derivation both `check` and

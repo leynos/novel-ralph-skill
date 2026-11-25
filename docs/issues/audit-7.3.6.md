@@ -150,8 +150,8 @@ exactly as `rulepack/_coerce.py` and `ledger/_coerce.py` already bind their one
 `CoercionErrors` bundle. Preserve the public `rule_id`/`device_id` attribute
 names so no call site or test changes. A third loader family then adds a
 binding, not a third copy. If the per-package attribute name is judged to
-belong with the package (so the class stays hand-written), record the
-deliberate parallelism in both modules' docstrings the way `_coerce.py` already
+belong with the package (so the class stays handwritten), record the deliberate
+parallelism in both modules' docstrings the way `_coerce.py` already
 cross-references its twin.
 
 ## Finding 4 — `commands.names` re-export keeps `WORKING_DIR_NAME` and the vocabulary on two different shims

@@ -82,8 +82,8 @@ source of truth rather than a test-only invariant.
 (`compiled_path = root / "manuscript" / "compiled.md"`).
 
 **Description:** The envelope/result/message advertise the written file via the
-hand-written string constant `_COMPILED_REL`, while the file actually written
-is built from `working_dir()` (the `WORKING_DIR_NAME`-anchored accessor) plus
+handwritten string constant `_COMPILED_REL`, while the file actually written is
+built from `working_dir()` (the `WORKING_DIR_NAME`-anchored accessor) plus
 `"manuscript" / "compiled.md"`. The two encode the same path through two
 independent spellings. If `WORKING_DIR_NAME` ever changed from `"working"`, the
 result envelope would still report `working/...` while writing elsewhere — the

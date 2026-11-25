@@ -320,7 +320,7 @@ Term definitions:
 
 - "field order" / "the six-name order": the fixed sequence
   `command, schema_version, ok, working_dir, result, messages` (design §3.1).
-- "tripwire": a deliberately hand-written literal that a derived value is
+- "tripwire": a deliberately handwritten literal that a derived value is
   checked against, so an accidental change to the source of truth fails a test
   rather than silently propagating.
 - "snapshot churn": a change that makes a `syrupy` `.ambr` snapshot file differ;
@@ -362,9 +362,9 @@ dataclass definition (after line 65), add a module-level public constant:
 
 Then, in `tests/test_contract_envelope.py`, replace the literal
 `_FIXED_FIELD_ORDER` tuple (line 33) with the surviving *tripwire*: keep a
-hand-written literal six-tuple, but rename and re-document it so its role as
-the one deliberate human-readable anchor is explicit, and add a test pinning
-the derived constant to it. Concretely, keep a local literal (e.g.
+handwritten literal six-tuple, but rename and re-document it so its role as the
+one deliberate human-readable anchor is explicit, and add a test pinning the
+derived constant to it. Concretely, keep a local literal (e.g.
 `_EXPECTED_FIELD_ORDER`) and add:
 
     # tests/test_contract_envelope.py
@@ -389,7 +389,7 @@ the derived constant to it. Concretely, keep a local literal (e.g.
 
 
     def test_envelope_field_order_matches_expected() -> None:
-        """The derived field order equals the hand-written tripwire."""
+        """The derived field order equals the handwritten tripwire."""
         assert ENVELOPE_FIELD_ORDER == _EXPECTED_FIELD_ORDER
 
 Update `test_render_machine_emits_fixed_field_order` to assert against

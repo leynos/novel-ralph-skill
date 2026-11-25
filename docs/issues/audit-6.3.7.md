@@ -26,7 +26,7 @@ new guard derives the envelope field order from the *code* —
 ([`tests/test_skill_contract_drift_guard.py`](../../tests/test_skill_contract_drift_guard.py)
 line 209) — making the dataclass the single source of truth for the field set
 and order. But three pre-existing copies of that same field order remain
-hand-written and unpinned to the dataclass, so the contract the new guard just
+handwritten and unpinned to the dataclass, so the contract the new guard just
 anchored is still re-spelled three times by literal tuples that can drift from
 the dataclass the guard treats as canonical (Finding 1). The remaining two
 findings record that 6.3.7's scanner is now the third independent markdown
@@ -38,7 +38,7 @@ All three findings are about *consistency and reuse*, not correctness: the
 merged work is right, and `make all` is green. None is applied here — this is a
 read-only audit step.
 
-## Finding 1 — The envelope field order is hand-written in three places, none pinned to the dataclass the 6.3.7 guard treats as canonical
+## Finding 1 — The envelope field order is handwritten in three places, none pinned to the dataclass the 6.3.7 guard treats as canonical
 
 - **Category**: inconsistency
 - **Severity**: medium

@@ -153,7 +153,7 @@ boundary.
   [`novel_ralph_skill/commands/novel_state.py:108-119`](../../novel_ralph_skill/commands/novel_state.py).
 
 The coherent and incoherent branches each construct a `CommandOutcome` with a
-hand-written `result={"violations": …}` and `messages=…`. The shapes are close
+handwritten `result={"violations": …}` and `messages=…`. The shapes are close
 enough that the "violations" key and the verdict-to-messages projection could
 be expressed once, with only the exit code differing.
 

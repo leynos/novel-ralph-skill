@@ -128,7 +128,7 @@ Both guards define an identical `_envelope_field_order() -> list[str]` returning
 `[field.name for field in dataclasses.fields(Envelope)]`. This is the
 canonical field-order derivation the 6.3.7 audit (Finding 1) named as the right
 anchor — the dataclass as single source — but 6.3.9 re-spells the derivation
-rather than sharing it, so the count of hand-written copies of "derive the
+rather than sharing it, so the count of handwritten copies of "derive the
 envelope field order from the dataclass" in `tests/` has gone from one to two.
 Note this sits adjacent to the still-open roadmap task 7.1.5, which already
 plans to promote a shared `ENVELOPE_FIELD_ORDER` constant beside the `Envelope`
