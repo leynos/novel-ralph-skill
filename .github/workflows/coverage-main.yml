@@ -66,7 +66,7 @@ jobs:
       - name: Generate coverage
         env:
           UV_PYTHON: '3.14'
-        uses: leynos/shared-actions/.github/actions/generate-coverage@b50fd9a2b2f2a096d64fe44593805dd2da7f9148
+        uses: leynos/shared-actions/.github/actions/generate-coverage@ab6505246c6b043b742a225e428e00448c0a37af
         with:
           python-source: ./novel_ralph_skill
           output-path: coverage.xml
@@ -90,7 +90,7 @@ jobs:
       # composite uploader would hand to its nested steps.
       - name: Upload coverage data to CodeScene
         if: steps.codescene-token.outputs.available == 'true' && github.ref == 'refs/heads/main'
-        uses: leynos/shared-actions/.github/actions/upload-codescene-coverage@b50fd9a2b2f2a096d64fe44593805dd2da7f9148
+        uses: leynos/shared-actions/.github/actions/upload-codescene-coverage@ab6505246c6b043b742a225e428e00448c0a37af
         with:
           format: cobertura
           path: coverage.xml
